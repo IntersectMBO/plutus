@@ -244,32 +244,40 @@ createBuiltinCostModel bmfile rfile = do
    vector." from dynSEXP.
 -}
 -- | Extract the model type descriptor from an R object
-getType :: MonadR m => SomeSEXP s -> m String
-getType x = fromSomeSEXP <$> [r| x_hs$type |]
+getString :: MonadR m => String -> SomeSEXP (Region m) -> m String
+getString s e = fromSomeSEXP <$> [r| e_hs[[s_hs]] |]
+
+-- | Extract the model type descriptor from an R object
+getType :: MonadR m => SomeSEXP (Region m) -> m String
+getType e = getString "type" e
+
+-- | Extract the model type descriptor from an R object
+getSubtype :: MonadR m => SomeSEXP (Region m) -> m String
+getSubtype e = getString "subtype" e
 
 -- | Extract a named regression coefficient from an R object
-getCoeff :: MonadR m => String -> SomeSEXP s -> m CostingInteger
+getCoeff :: MonadR m => String -> SomeSEXP (Region m) -> m CostingInteger
 getCoeff f e = microToPico . fromSomeSEXP  <$> [r| e_hs$coefficients[[f_hs]] |]
 
 -- | Extract some other parameter from an R object.  You can add arbitrary named
 -- parameters in mk.result in the R code and access them using this.  This can
 -- be useful for eg, returning off-diagonal constants
-getExtraParam :: MonadR m => String -> SomeSEXP s -> m CostingInteger
+getExtraParam :: MonadR m => String -> SomeSEXP (Region m) -> m CostingInteger
 getExtraParam f e = microToPico . fromSomeSEXP <$> [r| e_hs[[f_hs]] |]
 
 -- | For models of the form t~1: they fit a constant, but it's still called "(Intercept)"
-getConstant :: MonadR m => SomeSEXP s -> m CostingInteger
+getConstant :: MonadR m => SomeSEXP (Region m) -> m CostingInteger
 getConstant = getCoeff "(Intercept)"
 
 -- | A costing function of the form a+sx.
-readOneVariableLinearFunction :: MonadR m => String -> SomeSEXP s -> m OneVariableLinearFunction
+readOneVariableLinearFunction :: MonadR m => String -> SomeSEXP (Region m) -> m OneVariableLinearFunction
 readOneVariableLinearFunction var e = do
   intercept <- Intercept <$> getCoeff "(Intercept)" e
   slope <- Slope <$> getCoeff var e
   pure $ OneVariableLinearFunction intercept slope
 
 -- | A costing function of the form a+sx.
-readOneVariableQuadraticFunction :: MonadR m => String -> SomeSEXP s -> m OneVariableQuadraticFunction
+readOneVariableQuadraticFunction :: MonadR m => String -> SomeSEXP (Region m) -> m OneVariableQuadraticFunction
 readOneVariableQuadraticFunction var e = do
   coeff0 <- Coefficient0 <$> getCoeff "(Intercept)" e
   coeff1 <- Coefficient1 <$> getCoeff (printf "I(%s)" var) e
@@ -277,7 +285,7 @@ readOneVariableQuadraticFunction var e = do
   pure $ OneVariableQuadraticFunction coeff0 coeff1 coeff2
 
 -- | A costing function of the form a+sx+ty
-readTwoVariableLinearFunction :: MonadR m => String -> String -> SomeSEXP s -> m TwoVariableLinearFunction
+readTwoVariableLinearFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableLinearFunction
 readTwoVariableLinearFunction var1 var2 e = do
   intercept <- Intercept <$> getCoeff "(Intercept)" e
   slopeX <- Slope <$> getCoeff var1 e
@@ -287,21 +295,21 @@ readTwoVariableLinearFunction var1 var2 e = do
 -- | A two-variable costing function which is constant on one region of the
 -- plane and linear in one variable elsewhere.  TODO: generalise from a linear
 -- function to a general function.  This would change the JSON nesting.
-readTwoVariableFunConstOrLinear :: MonadR m => String -> SomeSEXP s -> m ModelConstantOrLinear
+readTwoVariableFunConstOrLinear :: MonadR m => String -> SomeSEXP (Region m) -> m ModelConstantOrLinear
 readTwoVariableFunConstOrLinear var e = do
-  constantPart <- getExtraParam "default" e
+  constantPart <- getExtraParam "const" e
   intercept <- Intercept <$> getCoeff "(Intercept)" e
   slope <- Slope <$> getCoeff var e
   pure $ ModelConstantOrLinear constantPart intercept slope
 
 -- | A two-variable costing function which is constant on one region of the
 -- plane and something else elsewhere.
-readTwoVariableFunConstOr :: MonadR m => (SomeSEXP s -> m ModelTwoArguments) -> SomeSEXP s -> m ModelConstantOrTwoArguments
-readTwoVariableFunConstOr reader e = do
-  constantPart <- getExtraParam "default" e
-  nonConstantPart <- reader e
-  pure $ ModelConstantOrTwoArguments constantPart  nonConstantPart
-
+readTwoVariableFunConstOr :: MonadR m => SomeSEXP (Region m) -> m ModelConstantOrTwoArguments
+readTwoVariableFunConstOr e = do
+  constantPart <- getExtraParam "const" e
+  subtype <- getSubtype e
+  nonConstantPart <- loadTwoVariableCostingFunctionOfType subtype e
+  pure $ ModelConstantOrTwoArguments constantPart nonConstantPart
 
 -- | Functions to read CPU costing functions from R.  There are some costing
 -- function types which are currently only used for memory models (which are
@@ -316,9 +324,12 @@ loadOneVariableCostingFunction e = do
     "linear_in_x"   -> ModelOneArgumentLinearCost <$> readOneVariableLinearFunction "x_mem" e  -- FIXME: duplicate
     _               -> error $ "Unknown one-variable model type: " ++ ty
 
-loadTwoVariableCostingFunction :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments
-loadTwoVariableCostingFunction e = do
-  ty <- getType e
+-- | Load in a two-variable costing function of a given type.  We have to supply
+-- the type as a parameter so that we can deal with nested costing functions
+-- which have type and subtype tags.  This generality is currently only required
+-- for two-variable costing functions.
+loadTwoVariableCostingFunctionOfType :: MonadR m => String -> SomeSEXP (Region m) -> m ModelTwoArguments
+loadTwoVariableCostingFunctionOfType ty e = do
   case ty of
     "constant_cost"        -> ModelTwoArgumentsConstantCost       <$> getConstant e
     "linear_in_x"          -> ModelTwoArgumentsLinearInX          <$> readOneVariableLinearFunction "x_mem" e
@@ -329,10 +340,15 @@ loadTwoVariableCostingFunction e = do
     "min_size"             -> ModelTwoArgumentsMinSize            <$> readOneVariableLinearFunction "pmin(x_mem, y_mem)" e
     "max_size"             -> ModelTwoArgumentsMaxSize            <$> readOneVariableLinearFunction "pmax(x_mem, y_mem)" e
     "linear_on_diagonal"   -> ModelTwoArgumentsLinearOnDiagonal   <$> readTwoVariableFunConstOrLinear "x_mem" e
-    "const_below_diagonal" -> ModelTwoArgumentsConstBelowDiagonal <$> readTwoVariableFunConstOr loadTwoVariableCostingFunction e
-    "const_above_diagonal" -> ModelTwoArgumentsConstAboveDiagonal <$> readTwoVariableFunConstOr loadTwoVariableCostingFunction e
+    "const_below_diagonal" -> ModelTwoArgumentsConstBelowDiagonal <$> readTwoVariableFunConstOr e
+    "const_above_diagonal" -> ModelTwoArgumentsConstAboveDiagonal <$> readTwoVariableFunConstOr e
     "quadratic_in_y"       -> ModelTwoArgumentsQuadraticInY       <$> readOneVariableQuadraticFunction "y_mem" e
     _                      -> error $ "Unknown two-variable model type: " ++ ty
+
+loadTwoVariableCostingFunction :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments
+loadTwoVariableCostingFunction e = do
+  ty <- getType e
+  loadTwoVariableCostingFunctionOfType ty e
 
 loadThreeVariableCostingFunction :: MonadR m => SomeSEXP (Region m) -> m ModelThreeArguments
 loadThreeVariableCostingFunction e = do

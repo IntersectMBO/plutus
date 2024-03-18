@@ -432,8 +432,8 @@ modelFun <- function(path) {
             filter (x_mem > y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ I(x_mem * y_mem), filtered)
-        mk.result(m, "multiplied_sizes", default=0.1965)
-        ## FIXME.  The `default` value above is the above-diagonal cost: infer it from the data.
+        mk.result(m, "const_above_diagonal", const=0.1965, subtype="multiplied_sizes")
+        ## FIXME.  The `const` value above is the above-diagonal cost: infer it from the data.
     }
 
     quotientIntegerModel  <- divideIntegerModel
@@ -492,8 +492,8 @@ modelFun <- function(path) {
     ## Depends on the size of the second argument, which has to be copied into
     ## the destination.
 
-    sliceByteStringModel <- linearInZ ("SliceByteString") ## Bytetrings are
-    immutable arrays with a pointer to the start and a length.
+    sliceByteStringModel <- linearInZ ("SliceByteString")
+    ## Bytetrings are immutable arrays with a pointer to the start and a length.
     ## SliceByteString just adjusts the pointer and length, so should be constant
     ## cost.  We've kept the linear model for compatibility reasons.
 
@@ -507,8 +507,8 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
-        mk.result(m, "linear_on_diagonal", default=0.245)
-        ## FIXME.  The `default` value above is the above-diagonal cost: infer it from the data.
+        mk.result(m, "linear_on_diagonal", const=0.245)
+        ## FIXME.  The `const` value above is the above-diagonal cost: infer it from the data.
     }
 
     lessThanByteStringModel <- {
@@ -566,8 +566,8 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
-        mk.result(m, "linear_on_diagonal", default=0.187)
-        ## FIXME.  The `default` value above is the above-diagonal cost: infer it from the data.
+        mk.result(m, "linear_on_diagonal", const=0.187)
+        ## FIXME.  The `const` value above is the above-diagonal cost: infer it from the data.
     }
 
     decodeUtf8Model <- linearInX ("DecodeUtf8")

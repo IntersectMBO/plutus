@@ -357,10 +357,16 @@
     "divideInteger": {
         "cpu": {
             "arguments": {
-                "intercept": 453240,
-                "slope": 220
+                "constant": 196500,
+                "model": {
+                    "arguments": {
+                        "intercept": 453240,
+                        "slope": 220
+                    },
+                    "type": "multiplied_sizes"
+                }
             },
-            "type": "multiplied_sizes"
+            "type": "const_above_diagonal"
         },
         "memory": {
             "arguments": {
@@ -646,10 +652,16 @@
     "modInteger": {
         "cpu": {
             "arguments": {
-                "intercept": 453240,
-                "slope": 220
+                "constant": 196500,
+                "model": {
+                    "arguments": {
+                        "intercept": 453240,
+                        "slope": 220
+                    },
+                    "type": "multiplied_sizes"
+                }
             },
-            "type": "multiplied_sizes"
+            "type": "const_above_diagonal"
         },
         "memory": {
             "arguments": {
@@ -689,10 +701,16 @@
     "quotientInteger": {
         "cpu": {
             "arguments": {
-                "intercept": 453240,
-                "slope": 220
+                "constant": 196500,
+                "model": {
+                    "arguments": {
+                        "intercept": 453240,
+                        "slope": 220
+                    },
+                    "type": "multiplied_sizes"
+                }
             },
-            "type": "multiplied_sizes"
+            "type": "const_above_diagonal"
         },
         "memory": {
             "arguments": {
@@ -706,10 +724,16 @@
     "remainderInteger": {
         "cpu": {
             "arguments": {
-                "intercept": 453240,
-                "slope": 220
+                "constant": 196500,
+                "model": {
+                    "arguments": {
+                        "intercept": 453240,
+                        "slope": 220
+                    },
+                    "type": "multiplied_sizes"
+                }
             },
-            "type": "multiplied_sizes"
+            "type": "const_above_diagonal"
         },
         "memory": {
             "arguments": {
