@@ -84,7 +84,7 @@ instance ToJSON (Schema referencedTypes) where
       toHex = Text.decodeUtf8 . Base16.encode
     SchemaList info MkListSchema{..} ->
       dataType info "list"
-        & requiredField "items" schema
+        & requiredField "items" itemSchema
         & optionalField "minItems" minItems
         & optionalField "maxItems" maxItems
         & optionalField "uniqueItems" uniqueItems
@@ -182,7 +182,7 @@ emptyBytesSchema :: BytesSchema
 emptyBytesSchema = MkBytesSchema{enum = [], minLength = Nothing, maxLength = Nothing}
 
 data ListSchema (referencedTypes :: [Type]) = MkListSchema
-  { schema      :: Schema referencedTypes
+  { itemSchema  :: Schema referencedTypes
   -- ^ Element schema
   , minItems    :: Maybe Natural
   -- ^ An array instance is valid if its size is greater than, or equal to, this value.
@@ -195,9 +195,9 @@ data ListSchema (referencedTypes :: [Type]) = MkListSchema
   deriving stock (Eq, Ord, Show, Generic, Data)
 
 mkListSchema :: Schema referencedTypes -> ListSchema referencedTypes
-mkListSchema schema =
+mkListSchema itemSchema =
   MkListSchema
-    { schema
+    { itemSchema
     , minItems = Nothing
     , maxItems = Nothing
     , uniqueItems = Nothing
