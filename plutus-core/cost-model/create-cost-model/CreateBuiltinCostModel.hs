@@ -325,7 +325,6 @@ loadTwoVariableCostingFunction e = do
     "linear_in_y"          -> ModelTwoArgumentsLinearInY          <$> readOneVariableLinearFunction "y_mem" e
     "linear_in_x_and_y"    -> ModelTwoArgumentsLinearInXAndY      <$> readTwoVariableLinearFunction "x_mem" "y_mem" e
     "added_sizes"          -> ModelTwoArgumentsAddedSizes         <$> readOneVariableLinearFunction "I(x_mem + y_mem)" e
-    "subtracted_sizes"     -> ModelTwoArgumentsSubtractedSizes    <$> error "subtracted sizes"
     "multiplied_sizes"     -> ModelTwoArgumentsMultipliedSizes    <$> readOneVariableLinearFunction "I(x_mem * y_mem)" e
     "min_size"             -> ModelTwoArgumentsMinSize            <$> readOneVariableLinearFunction "pmin(x_mem, y_mem)" e
     "max_size"             -> ModelTwoArgumentsMaxSize            <$> readOneVariableLinearFunction "pmax(x_mem, y_mem)" e
