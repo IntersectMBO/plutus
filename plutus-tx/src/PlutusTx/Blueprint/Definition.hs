@@ -1,9 +1,12 @@
 {-# LANGUAGE AllowAmbiguousTypes      #-}
 {-# LANGUAGE DataKinds                #-}
+{-# LANGUAGE DerivingStrategies       #-}
 {-# LANGUAGE FlexibleContexts         #-}
 {-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
@@ -15,11 +18,19 @@
 -- | This module provides a functionality to derive and reference schema definitions.
 module PlutusTx.Blueprint.Definition (
   module DefinitionId,
+  Definitions (..),
+  Definition (..),
+  definition,
+  definitionRef,
+  addDefinition,
+  definitionsToMap,
+  HasSchemaDefinition,
+
+  -- ** Type-level utilities
   Unroll,
   UnrollAll,
-  HasSchemaDefinition,
-  definitionRef,
-  deriveSchemaDefinitions,
+  Unrollable (..),
+  deriveDefinitions,
 ) where
 
 import Prelude
@@ -36,11 +47,80 @@ import PlutusTx.Blueprint.Schema (Schema (..))
 import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinData, BuiltinList, BuiltinString,
                                    BuiltinUnit)
 
--- For more context see the note ["Unrolling" types]
+-- | A schema definition of a type @t@ with a list of referenced types @ts@.
+data Definition t ts = MkDefinition DefinitionId (Schema ts)
+  deriving stock (Show)
+
+-- | A registry of schema definitions.
+data Definitions (ts :: [Type]) where
+  NoDefinitions :: Definitions '[]
+  AddDefinition :: Definition t ts -> Definitions ts -> Definitions (t ': ts)
+
+deriving stock instance Show (Definitions ts)
+
+-- | Add a schema definition to a registry.
+addDefinition :: Definitions ts -> Definition t ts -> Definitions (t ': ts)
+addDefinition NoDefinitions d       = AddDefinition d NoDefinitions
+addDefinition (AddDefinition t s) d = AddDefinition d (AddDefinition t s)
+
+definitionsToMap :: Definitions ts -> (forall xs. Schema xs -> v) -> Map DefinitionId v
+definitionsToMap NoDefinitions _k = Map.empty
+definitionsToMap (AddDefinition (MkDefinition defId v) s) k =
+  Map.insert defId (k v) (definitionsToMap s k)
+
+-- | Construct a schema definition.
+definition :: forall t ts. (AsDefinitionId t, HasSchema t ts) => Definition t ts
+definition = MkDefinition (definitionId @t) (schema @t)
+
+-- | Construct a schema that is a reference to a schema definition.
+definitionRef :: forall t ts. (AsDefinitionId t, HasSchemaDefinition t ts) => Schema ts
+definitionRef = SchemaDefinitionRef (definitionId @t)
+
+----------------------------------------------------------------------------------------------------
+-- Functionality to "unroll" types. -- For more context see the note ["Unrolling" types] -----------
+
+{- Note ["Unrolling" types]
+
+ContractBlueprint needs to be parameterized by a list of types used in
+a contract's type signature (including nested types) in order to:
+  a) produce a JSON-schema definition for every type used.
+  b) ensure that the schema definitions are referenced in a type-safe way.
+
+Given the following contract validator's type signature:
+
+  typedValidator :: Redeemer -> Datum -> ScriptContext -> Bool
+
+and the following data type definitions:
+
+  data Redeemer = MkRedeemer MyStruct
+  data MyStruct = MkMyStruct { field1 :: Integer, field2 :: Bool }
+  type Datum = ()
+
+The ContractBlueprint type should be:
+
+  ContractBlueprint '[Redeemer, MyStruct, Integer, Bool, ()]
+
+However, for contract blurprints authors specifying all the nested types manually is
+cumbersome and error-prone. To make it easier to work with, we provide the Unroll type family
+that can be used to traverse a type accumulating all types nested within it:
+
+  Unroll Redeemer ~ '[Redeemer, MyStruct, Integer, Bool]
+  UnrollAll '[Redeemer, Datum] ~ '[Redeemer, MyStruct, Integer, Bool, ()]
+
+This way blueprint authors can specify the top-level types used in a contract and the UnrollAll
+type family will take care of discovering all the nested types:
+
+  Blueprint '[Redeemer, Datum]
+
+  is equivalent to
+
+  ContractBlueprint '[Redeemer, MyStruct, Integer, Bool, ()]
+
+-}
 
 type family UnrollAll xs :: [Type] where
   UnrollAll '[] = '[]
-  UnrollAll (x ': xs) = Unroll x ++ UnrollAll xs
+  UnrollAll (x ': xs) = Concat (Unroll x) (UnrollAll xs)
 
 {- | Unroll a type into a list of all nested types (including the type itself).
 
@@ -56,9 +136,9 @@ type family Unroll (p :: Type) :: [Type] where
   Unroll BuiltinData = '[BuiltinData]
   Unroll BuiltinUnit = '[BuiltinUnit]
   Unroll BuiltinString = '[BuiltinString]
-  Unroll (BuiltinList a) = Insert (BuiltinList a) (GUnroll (Rep a))
+  Unroll (BuiltinList a) = Prepend (BuiltinList a) (GUnroll (Rep a))
   Unroll BuiltinByteString = '[BuiltinByteString]
-  Unroll p = Insert p (GUnroll (Break (NoGeneric p) (Rep p)))
+  Unroll p = Prepend p (GUnroll (Break (NoGeneric p) (Rep p)))
 
 -- | Detect stuck type family: https://blog.csongor.co.uk/report-stuck-families/#custom-type-errors
 type family Break e (rep :: Type -> Type) :: Type -> Type where
@@ -87,6 +167,19 @@ type family Insert x xs where
   Insert x (x : xs) = x ': xs
   Insert x (y : xs) = y ': Insert x xs
 
+type Prepend :: forall k. k -> [k] -> [k]
+type family Prepend x xs where
+  Prepend x '[] = '[x]
+  Prepend x (x : xs) = x ': xs
+  Prepend x (y : xs) = x ': y ': xs
+
+-- | Concatenates two type-level lists
+type Concat :: forall k. [k] -> [k] -> [k]
+type family Concat (as :: [k]) (bs :: [k]) :: [k] where
+  Concat '[] bs = bs
+  Concat as '[] = as
+  Concat (a : as) bs = a ': Concat as bs
+
 -- | Concatenates two type-level lists removing duplicates.
 type (++) :: forall k. [k] -> [k] -> [k]
 type family (as :: [k]) ++ (bs :: [k]) :: [k] where
@@ -95,13 +188,6 @@ type family (as :: [k]) ++ (bs :: [k]) :: [k] where
   (a : as) ++ bs = Insert a (as ++ bs)
 
 infixr 5 ++
-
--- | Construct a schema that is a reference to a schema definition.
-definitionRef ::
-  forall typ types.
-  (AsDefinitionId typ, HasSchemaDefinition typ types) =>
-  Schema types
-definitionRef = SchemaDefinitionRef (definitionId @typ)
 
 {- |
   A constraint that checks if a schema definition is present in a list of schema definitions.
@@ -117,66 +203,17 @@ type family HasSchemaDefinition n xs where
           GHC.:<>: GHC.Text " type was not found in the list of types having schema definitions."
       )
 
--- | Derive a map of schema definitions from a list of types.
-deriveSchemaDefinitions ::
-  forall (types :: [Type]).
-  (AsDefinitionsEntries types types) =>
-  Map DefinitionId (Schema types)
-deriveSchemaDefinitions = Map.fromList (definitionEntries @types @types)
-
-{- | This class is only used internally to derive schema definition entries from a list of types.
-
-It uses 2 instances to iterate a type-level list:
-  * one instance terminates recursion when the list of [remaining] types to iterate is empty.
-  * another instance does a recursive step:
-      taking a head and tail,
-      adds a schema definition entry if the head is in the `allTypes`
-      and recurses on tail as `remainingTypes`.
-
-This way in the beginning of iteration `allTypes` == `remainingTypes` and then
-`allTypes` stays the same list, while `remainingTypes` is shrinking until empty.
-
-Here is an analogy at the value level, where `remainingTypes` serves a similar purpose:
-
-@
-type Typ = String
-type DefinitionId = String
-type Schema = String
-
-asDefinitionEntries :: [Typ] -> [(DefinitionId, Schema)]
-asDefinitionEntries allTypes = go allTypes allTypes
-  where
-    go :: [Typ] -> [Typ] -> [(DefinitionId, Schema)]
-    go allTypes remainingTypes =
-      case remainingTypes of
-        [] -> []
-        (h : t) ->
-          let defId = lookupDefinitionId h allTypes
-              schema = lookupSchema h allTypes
-          in (defId, schema) : go allTypes t
-
-lookupDefinitionId :: Typ -> [Typ] -> DefinitionId
-lookupDefinitionId t allTypes | t `elem` allTypes = "DefinitionId for " ++ t
-lookupDefinitionId t _ = error $ "Type " ++ show t ++ " not found"
-
-lookupSchema :: Typ -> [Typ] -> Schema
-lookupSchema t allTypes | t `elem` allTypes = "Schema for " ++ t
-lookupSchema t _ = error $ "Type " ++ show t ++ " not found"
-@
+{- | This class and its two instances are used internally to derive
+'Definitions' for a given list of types.
 -}
-class AsDefinitionsEntries (allTypes :: [Type]) (remainingTypes :: [Type]) where
-  definitionEntries :: [(DefinitionId, Schema allTypes)]
+class Unrollable ts where
+  unroll :: Definitions ts
 
-instance AsDefinitionsEntries allTypes '[] where
-  definitionEntries = []
+instance Unrollable '[] where
+  unroll = NoDefinitions
 
-instance
-  ( AsDefinitionId t
-  , HasSchema t allTypes
-  , AsDefinitionsEntries allTypes ts
-  ) =>
-  AsDefinitionsEntries allTypes (t ': ts)
-  where
-  definitionEntries =
-    (definitionId @t, schema @t @allTypes)
-      : definitionEntries @allTypes @ts
+instance (Unrollable ts, AsDefinitionId t, HasSchema t ts) => Unrollable (t : ts) where
+  unroll = addDefinition (unroll @ts) (definition @t)
+
+deriveDefinitions :: forall ts. (Unrollable (UnrollAll ts)) => Definitions (UnrollAll ts)
+deriveDefinitions = unroll @(UnrollAll ts)

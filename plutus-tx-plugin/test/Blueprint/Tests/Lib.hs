@@ -28,7 +28,7 @@ import PlutusCore.Version (plcVersion110)
 import PlutusTx hiding (Typeable)
 import PlutusTx.Blueprint.Class (HasSchema (..))
 import PlutusTx.Blueprint.Definition (AsDefinitionId, definitionRef)
-import PlutusTx.Blueprint.Schema (Schema (SchemaBytes), emptyBytesSchema)
+import PlutusTx.Blueprint.Schema (Schema (..), emptyBytesSchema)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaComment (..), SchemaDescription (..),
                                              SchemaInfo (..), SchemaTitle (..), emptySchemaInfo)
 import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinString, emptyByteString)
@@ -48,11 +48,11 @@ goldenJson name cb = do
   pure $ goldenVsFile name golden actual (cb actual)
 
 data Params = MkParams
-  { myUnit              :: (),
-    myBool              :: Bool,
-    myInteger           :: Integer,
-    myBuiltinData       :: BuiltinData,
-    myBuiltinByteString :: BuiltinByteString
+  { myUnit              :: ()
+  , myBool              :: Bool
+  , myInteger           :: Integer
+  , myBuiltinData       :: BuiltinData
+  , myBuiltinByteString :: BuiltinByteString
   }
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
@@ -66,12 +66,12 @@ newtype Bytes (phantom :: Type) = MkAcmeBytes BuiltinByteString
   deriving newtype (ToData, FromData, UnsafeFromData)
 
 instance HasSchema (Bytes phantom) ts where
-  schema = SchemaBytes emptySchemaInfo {title = Just "SchemaBytes"} emptyBytesSchema
+  schema = SchemaBytes emptySchemaInfo{title = Just "SchemaBytes"} emptyBytesSchema
 
 {-# ANN MkDatumPayload (SchemaComment "MkDatumPayload") #-}
 data DatumPayload = MkDatumPayload
-  { myAwesomeDatum1 :: Integer,
-    myAwesomeDatum2 :: Bytes Void
+  { myAwesomeDatum1 :: Integer
+  , myAwesomeDatum2 :: Bytes Void
   }
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
@@ -103,29 +103,29 @@ serialisedScript =
     & Flat.flat
     & serialise
     & LBS.toStrict
-  where
-    {-# INLINEABLE typedValidator #-}
-    typedValidator :: Validator
-    typedValidator _params _datum _redeemer _context = False
+ where
+  {-# INLINEABLE typedValidator #-}
+  typedValidator :: Validator
+  typedValidator _params _datum _redeemer _context = False
 
-    {-# INLINEABLE untypedValidator #-}
-    untypedValidator :: Params -> BuiltinData -> BuiltinString -> BuiltinData -> ()
-    untypedValidator params datum redeemer ctx =
-      PlutusTx.check $ typedValidator params acmeDatum acmeRedeemer scriptContext
-      where
-        acmeDatum :: Datum = PlutusTx.unsafeFromBuiltinData datum
-        acmeRedeemer :: Redeemer = redeemer
-        scriptContext :: ScriptContext = PlutusTx.unsafeFromBuiltinData ctx
+  {-# INLINEABLE untypedValidator #-}
+  untypedValidator :: Params -> BuiltinData -> BuiltinString -> BuiltinData -> ()
+  untypedValidator params datum redeemer ctx =
+    PlutusTx.check $ typedValidator params acmeDatum acmeRedeemer scriptContext
+   where
+    acmeDatum :: Datum = PlutusTx.unsafeFromBuiltinData datum
+    acmeRedeemer :: Redeemer = redeemer
+    scriptContext :: ScriptContext = PlutusTx.unsafeFromBuiltinData ctx
 
-    validatorScript :: PlutusTx.CompiledCode (BuiltinData -> BuiltinString -> BuiltinData -> ())
-    validatorScript =
-      $$(PlutusTx.compile [||untypedValidator||])
-        `PlutusTx.unsafeApplyCode` PlutusTx.liftCode
-          plcVersion110
-          MkParams
-            { myUnit = (),
-              myBool = True,
-              myInteger = fromIntegral (maxBound @Int) + 1,
-              myBuiltinData = PlutusTx.toBuiltinData (3 :: Integer),
-              myBuiltinByteString = emptyByteString
-            }
+  validatorScript :: PlutusTx.CompiledCode (BuiltinData -> BuiltinString -> BuiltinData -> ())
+  validatorScript =
+    $$(PlutusTx.compile [||untypedValidator||])
+      `PlutusTx.unsafeApplyCode` PlutusTx.liftCode
+        plcVersion110
+        MkParams
+          { myUnit = ()
+          , myBool = True
+          , myInteger = fromIntegral (maxBound @Int) + 1
+          , myBuiltinData = PlutusTx.toBuiltinData (3 :: Integer)
+          , myBuiltinByteString = emptyByteString
+          }

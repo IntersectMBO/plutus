@@ -13,7 +13,7 @@ import Data.Aeson.Extra (buildObject, optionalField, requiredField)
 import Data.ByteString (ByteString)
 import Data.ByteString.Base16 qualified as Base16
 import Data.Kind (Type)
-import Data.List.NonEmpty (NonEmpty)
+import Data.List.NonEmpty qualified as NE
 import Data.Text (Text)
 import Data.Text.Encoding qualified as Text
 import PlutusCore.Crypto.Hash (blake2b_224)
@@ -35,7 +35,7 @@ data ValidatorBlueprint (referencedTypes :: [Type]) = MkValidatorBlueprint
   -- ^ A description of the redeemer format expected by this validator.
   , validatorDatum        :: Maybe (ArgumentBlueprint referencedTypes)
   -- ^ A description of the datum format expected by this validator.
-  , validatorParameters   :: Maybe (NonEmpty (ParameterBlueprint referencedTypes))
+  , validatorParameters   :: [ParameterBlueprint referencedTypes]
   -- ^ A list of parameters required by the script.
   , validatorCompiledCode :: Maybe ByteString
   -- ^ A full compiled and CBOR-encoded serialized flat script.
@@ -49,7 +49,7 @@ instance ToJSON (ValidatorBlueprint referencedTypes) where
         . requiredField "redeemer" validatorRedeemer
         . optionalField "description" validatorDescription
         . optionalField "datum" validatorDatum
-        . optionalField "parameters" validatorParameters
+        . optionalField "parameters" (NE.nonEmpty validatorParameters)
         . optionalField "compiledCode" (toHex <$> validatorCompiledCode)
         . optionalField "hash" (toHex . blake2b_224 <$> validatorCompiledCode)
    where
