@@ -15,6 +15,8 @@ import PlutusTx.Blueprint.Parameter (ParameterBlueprint (..))
 import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (PlutusV3))
 import PlutusTx.Blueprint.Preamble (Preamble (..))
 import PlutusTx.Blueprint.Purpose qualified as Purpose
+import PlutusTx.Blueprint.Validator (ValidatorBlueprint (..))
+import PlutusTx.Blueprint.Write (writeBlueprint)
 import Test.Tasty.Extras (TestNested, testNested)
 
 goldenTests :: TestNested
