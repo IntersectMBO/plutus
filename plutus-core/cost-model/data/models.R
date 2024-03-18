@@ -177,7 +177,7 @@ get.bench.data <- function(path) {
 }
 
 filter.and.check.nonempty <- function (frame, fname) {
-    ##    cat (sprintf ("Reading data for %s\n", fname))
+    ##  cat (sprintf ("Reading data for %s\n", fname))
     filtered <- filter (frame, name == fname)
     if (nrow(filtered) == 0) {
         stop ("No data found for ", fname)
@@ -295,7 +295,11 @@ fit.fan <- function(f, threshold=0.9, limit=20, do.plot=FALSE) {
 modelFun <- function(path) {
     data <- get.bench.data(path)
 
-    mk.result <- function(model, type, ...) { list(type=type, coefficients = coefficients(model), ...) }
+    ## Pair the coefficients of a model together with a type tag and possibly
+    ## some other data.  We return one of these to Haskell for every builtin.
+    mk.result <- function(model, type, ...) {
+        list(type=type, coefficients = coefficients(model), ...)
+    }
 
     ## Look for a single entry with the given name and return the 't' value
     ## (ie, the mean execution time) for that entry.  If <name> occurs multiple
