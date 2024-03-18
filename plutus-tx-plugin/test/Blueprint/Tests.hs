@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Blueprint.Tests where
 
@@ -69,5 +70,17 @@ contractBlueprint =
               }
           ]
     , contractDefinitions =
-        deriveDefinitions @[Params, Redeemer, Datum, Param2a, Param2b, Redeemer2, Datum2]
+        deriveDefinitions
+          @[ Params
+           , Param2a
+           , Param2b
+           , Redeemer
+           , Redeemer2
+           , Datum
+           , Datum2
+           , -- 'Bool' and 'Integer' have to be mentioned explicitly
+             -- because `Datum2` as an "AsData-type" unrolls to the 'BuiltinData' only.
+             Bool
+           , Integer
+           ]
     }

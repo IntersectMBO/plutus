@@ -58,7 +58,7 @@
       "datum": {
         "purpose": "mint",
         "schema": {
-          "$ref": "#/definitions/Integer"
+          "$ref": "#/definitions/Datum2"
         }
       },
       "parameters": [
@@ -114,6 +114,19 @@
           "index": 1
         }
       ]
+    },
+    "Datum2": {
+      "$comment": "Implemented using AsData",
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Integer"
+        },
+        {
+          "$ref": "#/definitions/Bool"
+        }
+      ],
+      "index": 0
     },
     "DatumPayload": {
       "$comment": "MkDatumPayload",

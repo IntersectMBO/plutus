@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -24,9 +25,10 @@ import Data.Kind (Type)
 import Data.Void (Void)
 import Flat qualified
 import GHC.Generics (Generic)
+import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Blueprint.Class (HasSchema (..))
-import PlutusTx.Blueprint.Definition (AsDefinitionId, definitionRef)
-import PlutusTx.Blueprint.Schema (Schema (..), emptyBytesSchema)
+import PlutusTx.Blueprint.Definition (AsDefinitionId, HasSchemaDefinition, definitionRef)
+import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..), emptyBytesSchema)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaComment (..), SchemaDescription (..),
                                              SchemaInfo (..), SchemaTitle (..), emptySchemaInfo)
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
@@ -135,7 +137,36 @@ newtype Param2b = MkParam2b Bool
 $(PlutusTx.makeLift ''Param2b)
 $(makeIsDataSchemaIndexed ''Param2b [('MkParam2b, 0)])
 
-type Datum2 = Integer
+$( PlutusTx.asData
+    [d|
+      data Datum2 = MkDatum2
+        { datum2integer :: Integer
+        , datum2bool :: Bool
+        }
+        deriving stock (Generic)
+        deriving anyclass (AsDefinitionId)
+      |]
+ )
+
+-- The TH splice above generates a 'Datum2' newtype wrapper around the 'BuiltinData'.
+-- Generically derived 'HasSchema Datum2' instance isn't useful as it describes such type
+-- as an opaque 'BuiltinData', so we provide a custom instance to show its structure.
+instance
+  ( HasSchemaDefinition Integer ts
+  , HasSchemaDefinition Bool ts
+  ) =>
+  HasSchema Datum2 ts
+  where
+  schema =
+    SchemaConstructor
+      emptySchemaInfo{comment = Just "Implemented using AsData"}
+      MkConstructorSchema
+        { index = 0
+        , fieldSchemas =
+            [ definitionRef @Integer @ts
+            , definitionRef @Bool @ts
+            ]
+        }
 
 type Redeemer2 = Integer
 
