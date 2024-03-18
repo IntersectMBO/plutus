@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP              #-}
+{-# LANGUAGE EmptyCase        #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE RecordWildCards  #-}
@@ -14,16 +15,22 @@ import Prelude
 import Data.Data (Data)
 import Data.List (nub)
 import Data.List.NonEmpty qualified as NE
+import Data.Set (Set)
+import Data.Text qualified as Text
 import GHC.Natural (naturalToInteger)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 import Numeric.Natural (Natural)
-import PlutusPrelude (for, (<<$>>))
+import PlutusPrelude (for, (<&>), (<<$>>))
+import PlutusTx.Blueprint.Argument (ArgumentBlueprint (..))
 import PlutusTx.Blueprint.Class (HasSchema (..))
 import PlutusTx.Blueprint.Definition (HasSchemaDefinition)
+import PlutusTx.Blueprint.Parameter (ParameterBlueprint (..))
+import PlutusTx.Blueprint.Purpose (Purpose)
 import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..))
 import PlutusTx.Blueprint.Schema.Annotation (SchemaAnn (..), SchemaComment, SchemaDescription,
-                                             SchemaInfo (..), SchemaTitle, annotationsToSchemaInfo)
+                                             SchemaInfo (..), SchemaTitle, annotationsToSchemaInfo,
+                                             schemaDescriptionToString, schemaTitleToString)
 import PlutusTx.IsData.TH (makeIsDataIndexed)
 
 {- |
@@ -85,9 +92,6 @@ makeHasSchemaInstance dataTypeName indices = do
     description <- MkSchemaAnnDescription <<$>> lookupAnn @SchemaDescription name
     comment <- MkSchemaAnnComment <<$>> lookupAnn @SchemaComment name
     pure $ title ++ description ++ comment
-    where
-      lookupAnn :: (Data a) => TH.Name -> TH.Q [a]
-      lookupAnn = TH.reifyAnnotations . TH.AnnLookupName
 
   -- | Make SchemaInfo from a list of schema annotations, failing in case of ambiguity.
   schemaInfoFromAnns :: [SchemaAnn] -> TH.Q SchemaInfo
@@ -117,3 +121,45 @@ mkSchemaClause ts ctorIndexes =
   mkSchemaConstructor (TH.ConstructorInfo{..}, info, naturalToInteger -> ctorIndex) = do
     fields <- for constructorFields $ \t -> [|definitionRef @($(pure t)) @($(pure ts))|]
     [|SchemaConstructor info (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))|]
+
+deriveParameterBlueprint :: TH.Name -> Set Purpose -> TH.ExpQ
+deriveParameterBlueprint tyName purpose = do
+  title <- Text.pack . schemaTitleToString <<$>> lookupSchemaTitle tyName
+  description <- Text.pack . schemaDescriptionToString <<$>> lookupSchemaDescription tyName
+  [| MkParameterBlueprint
+      { parameterTitle = title
+      , parameterDescription = description
+      , parameterPurpose = purpose
+      , parameterSchema = definitionRef @($(TH.conT tyName))
+      }
+    |]
+
+deriveArgumentBlueprint :: TH.Name -> Set Purpose -> TH.ExpQ
+deriveArgumentBlueprint tyName purpose = do
+  title <- Text.pack . schemaTitleToString <<$>> lookupSchemaTitle tyName
+  description <- Text.pack . schemaDescriptionToString <<$>> lookupSchemaDescription tyName
+  [| MkArgumentBlueprint
+      { argumentTitle = title
+      , argumentDescription = description
+      , argumentPurpose = purpose
+      , argumentSchema = definitionRef @($(TH.conT tyName))
+      }
+    |]
+
+----------------------------------------------------------------------------------------------------
+-- TH Utilities ------------------------------------------------------------------------------------
+
+lookupAnn :: (Data a) => TH.Name -> TH.Q [a]
+lookupAnn = TH.reifyAnnotations . TH.AnnLookupName
+
+lookupSchemaTitle :: TH.Name -> TH.Q (Maybe SchemaTitle)
+lookupSchemaTitle tyName = lookupAnn @SchemaTitle tyName <&> \case
+    [x] -> Just x
+    [] -> Nothing
+    _ -> fail $ "Multiple SchemTitle annotations found for " <> show tyName
+
+lookupSchemaDescription :: TH.Name -> TH.Q (Maybe SchemaDescription)
+lookupSchemaDescription tyName = lookupAnn @SchemaDescription tyName <&> \case
+    [x] -> Just x
+    [] -> Nothing
+    _ -> fail $ "Multiple SchemaDescription annotations found for " <> show tyName
