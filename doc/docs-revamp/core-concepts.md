@@ -7,6 +7,9 @@ date: 2024-03-12
 # Section 2. Core concepts
 
 ## Resources to inform this section: 
+- Blog: [Plutus Tx: compiling Haskell into Plutus Core](https://iohk.io/en/blog/posts/2021/02/02/plutus-tx-compiling-haskell-into-plutus-core/), by Michael Peyton Jones, Feb. 2021
+   - This is several years old, but the underlying essential definitions and concepts are still applicable. 
+- Draft document: [Smart contracts security and best practices](https://docs.google.com/document/d/1CrWYmG-I-Z2KeB06pPM9TqvjpSgpgt8e4ipLY9vJDKE/edit?usp=sharing) being prepared by Luka Kurnjek, Education team
 - [An Introduction to Plutus Core](https://blog.hachi.one/post/an-introduction-to-plutus-core/)
 
 ## Core concepts

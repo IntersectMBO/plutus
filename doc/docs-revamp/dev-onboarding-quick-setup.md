@@ -235,4 +235,128 @@ The use of `BuiltinData` as the datum and redeemer types allows for flexibility 
 
 ## Testing and deploying your smart contract 
 
-TODO
+*Question:*
+
+Luka Kurnjek is working on a book called _Mastering Cardano_. The chapter that focuses on Plutus security mentions the resources below. Are these resources still accurate and usable? Some of it relates to testing, some of it relates to basic definitions of concepts about what is Plutus, etc. 
+
+- Testing is a complex topic and it probably beyond the scope of this onboarding and quick setup guide. Instead, I suggest we write a few sentences referring people to other resources. Luka has about 20 pages written up about testing Plutus scripts. 
+
+- [Atlas](https://atlas-app.io/) is an application backend developed by GeniusYield and other companies. Lars is CTO of GeniusYield. Is it appropriate to refer readers to this resource instead of the PAB? 
+
+- Does it make sense to refer developers to the Plutus application backend (PAB) tool? Is it still usable? 
+
+- Is the MLabs [`plutus-simple-model`](https://github.com/mlabs-haskell/plutus-simple-model/tree/main) relevant for testing in the context of this first smart contract example? It talks about property tests. 
+
+- Similar question for [`cooked-validators`](https://github.com/tweag/cooked-validators) by Tweag. 
+   - "With `cooked-validators` you can test Cardano smart contracts (including Plutus v2 features) by writing potentially malicious offchain code. You can also use the library to write "normal" offchain code in a comfortable and flexible way."
+
+- Is this video still accurate? [The Plutus platform](https://youtu.be/usMPt8KpBeI?si=X9uQsQQI4hjVv4KX)
+   - It was recorded in July, 2020. I want to clarify which parts, if any, may no longer be true today. For example, does it depend on Plutus Tools? 
+
+- Is this blog article still accurate? [Plutus Application Backend (PAB): supporting DApp development on Cardano](https://iohk.io/en/blog/posts/2021/10/28/plutus-application-backend-pab-supporting-dapp-development-on-cardano/)
+   - Dated October, 2021
+
+
+
+
+## Another potential first smart contract example (from the _Mastering Cardano_ book being prepared by the Education team)
+
+### Vesting example 
+
+In this chapter, we will demonstrate a smart contract representing a vesting schema where a person sends a gift of ada to the smart contract and then the beneficiary can then reclaim his gift after a deadline that is set in the smart contract has passed. Let us look at the code.   
+
+```haskell
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+ 
+module Vesting where
+ 
+import           Data.Maybe                (fromJust)
+import           Plutus.V1.Ledger.Interval (contains)
+import           Plutus.V2.Ledger.Api      (BuiltinData, POSIXTime, 
+                                            PubKeyHash,
+                                            ScriptContext 
+                                            (scriptContextTxInfo),
+                                            TxInfo (txInfoValidRange),
+                                            Validator, from, 
+                                            mkValidatorScript)
+import           Plutus.V2.Ledger.Contexts (txSignedBy)
+import           PlutusTx                  (compile, unstableMakeIsData)
+import           PlutusTx.Prelude          (Bool, traceIfFalse, ($), (&&))
+import           Prelude                   (IO, String)
+import           Utilities                 (Network, posixTimeFromIso8601,
+                                            printDataToJSON,
+                                            validatorAddressBech32, wrap,
+                                            writeValidatorToFile)
+ 
+------------------------------------------------------------------------------
+------------------------------ ON-CHAIN / VALIDATOR --------------------------
+ 
+data VestingDatum = VestingDatum
+    { beneficiary :: PubKeyHash
+    , deadline    :: POSIXTime
+    }
+ 
+unstableMakeIsData ''VestingDatum
+ 
+{-# INLINABLE mkVestingValidator #-}
+mkVestingValidator :: VestingDatum -> () -> ScriptContext -> Bool
+mkVestingValidator dat () ctx = traceIfFalse "beneficiary's signature missing" signedByBeneficiary &&
+                                traceIfFalse "deadline not reached" deadlineReached
+  where
+    info :: TxInfo
+    info = scriptContextTxInfo ctx
+ 
+    signedByBeneficiary :: Bool
+    signedByBeneficiary = txSignedBy info $ beneficiary dat
+ 
+    deadlineReached :: Bool
+    deadlineReached = contains (from $ deadline dat) $ txInfoValidRange info
+ 
+{-# INLINABLE  mkWrappedVestingValidator #-}
+mkWrappedVestingValidator :: BuiltinData -> BuiltinData -> BuiltinData -> ()
+mkWrappedVestingValidator = wrap mkVestingValidator
+ 
+validator :: Validator
+validator = mkValidatorScript $$(compile [|| mkWrappedVestingValidator ||])
+ 
+------------------------------------------------------------------------------
+-------------------------------- HELPER FUNCTIONS ----------------------------
+ 
+saveVal :: IO ()
+saveVal = writeValidatorToFile "./assets/vesting.plutus" validator
+ 
+printVestingDatumJSON :: PubKeyHash -> String -> IO ()
+printVestingDatumJSON pkh time = printDataToJSON $ VestingDatum
+    { beneficiary = pkh
+    , deadline    = fromJust $ posixTimeFromIso8601 time
+    }
+```
+
+We see that for the validator we are using the typed version with a custom data type for the datum that we call VestingDatum. It contains the beneficiary which is of PubKeyHash type and the deadline which is of type POSIXTime. The validation logic says that the funds can be unlocked only when the deadline has been reached and the transaction is signed by the beneficiary. In the validation code we have the helper variables signedByBeneficiary and deadlineReached which are of type Bool. In the first variable, we use the helper function txSignedBy that takes in a transaction info and a public key hash and checks whether this transaction has been signed with this public key hash. In the second variable, we access the validity range of the transaction and check that it is contained inside the interval starting with the deadline and going to infinity. Then we wrap the validator function and compile it to a Validator type. In the helper functions section we have the saveVal function that writes the validator to a .plutus file. And then we also have the printVestingDatumJSON function that takes in a public key hash and a string which contains the time in ISO 8601 format and prints the datum in JSON format to the terminal. If we run this function and input a date and time together with a public key hash we get the following example output:   
+
+```
+Prelude> import Vesting
+Prelude Vesting> :set -XOverloadedStrings
+Prelude Vesting> import Plutus.V2.Ledger.Api
+Prelude Vesting Plutus.V1.Ledger.Api> 
+pkh1 = "cff6e39ec5b3cf84b1078976c98706b73774d2c5523af4daaf7c5109"
+Prelude Vesting Plutus.V1.Ledger.Api>
+printVestingDatumJSON pkh1 "2023-03-11T13:12:11.123Z"
+{
+	"constructor": 0,
+	"fields": [
+    		{
+        	      "bytes": "cff6e39ec5b3cf84b1078976c98706b73774d2c5523af4daaf7c5109"
+    		},
+    		{
+        	      "int": 1678540331123
+    		}
+	]
+}
+```
+
+This datum can then be stored in a JSON file and later used in off-chain code. In the examples we have seen so far, we had one specific validator that was a Haskell value of type Validator. If there was any variability in the contract, we model that by using the datum as in the vesting example where the datum contained the beneficiary and the deadline. 
+
