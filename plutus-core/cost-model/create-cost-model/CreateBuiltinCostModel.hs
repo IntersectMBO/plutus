@@ -1,8 +1,10 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE RecordWildCards       #-}
 
 module CreateBuiltinCostModel where
 
@@ -19,6 +21,7 @@ import Barbies (bmap, bsequence)
 import Control.Applicative (Const (Const, getConst))
 -- import Control.Exception (TypeError (TypeError))
 -- import Control.Monad.Catch (throwM)
+import Data.ByteString (ByteString)
 import Data.Coerce (coerce)
 import Data.Functor.Compose (Compose (Compose))
 import Data.SatInt
@@ -142,98 +145,102 @@ costModelsR bmfile rfile = do
 createBuiltinCostModel :: FilePath -> FilePath -> IO BuiltinCostModel
 createBuiltinCostModel bmfile rfile = do
   withEmbeddedR defaultConfig $ runRegion $ do
-    models <- costModelsR bmfile rfile
-    let getParams x y = x (getConst $ y models)
+    cpuModels <- costModelsR bmfile rfile
+    let
+      getParams readCF param1 param2 = do
+        let memModel = getId $ param1 builtinMemModels
+        cpuModel <- readCF $ getConst $ param2 cpuModels
+        pure $ CostingFun cpuModel memModel
 
     -- Integers
-    paramAddInteger                      <- getParams addInteger                paramAddInteger
-    paramSubtractInteger                 <- getParams subtractInteger           paramSubtractInteger
-    paramMultiplyInteger                 <- getParams multiplyInteger           paramMultiplyInteger
-    paramDivideInteger                   <- getParams divideInteger             paramDivideInteger
-    paramQuotientInteger                 <- getParams quotientInteger           paramQuotientInteger
-    paramRemainderInteger                <- getParams remainderInteger          paramRemainderInteger
-    paramModInteger                      <- getParams modInteger                paramModInteger
-    paramEqualsInteger                   <- getParams equalsInteger             paramEqualsInteger
-    paramLessThanInteger                 <- getParams lessThanInteger           paramLessThanInteger
-    paramLessThanEqualsInteger           <- getParams lessThanEqualsInteger     paramLessThanEqualsInteger
+    paramAddInteger                      <- getParams lcf2 paramAddInteger             paramAddInteger
+    paramSubtractInteger                 <- getParams lcf2 paramSubtractInteger        paramSubtractInteger
+    paramMultiplyInteger                 <- getParams lcf2 paramMultiplyInteger        paramMultiplyInteger
+    paramDivideInteger                   <- getParams lcf2 paramDivideInteger          paramDivideInteger
+    paramQuotientInteger                 <- getParams lcf2 paramQuotientInteger        paramQuotientInteger
+    paramRemainderInteger                <- getParams lcf2 paramRemainderInteger       paramRemainderInteger
+    paramModInteger                      <- getParams lcf2 paramModInteger             paramModInteger
+    paramEqualsInteger                   <- getParams lcf2 paramEqualsInteger          paramEqualsInteger
+    paramLessThanInteger                 <- getParams lcf2 paramLessThanInteger        paramLessThanInteger
+    paramLessThanEqualsInteger           <- getParams lcf2 paramLessThanEqualsInteger  paramLessThanEqualsInteger
     -- Bytestrings
-    paramAppendByteString                <- getParams appendByteString          paramAppendByteString
-    paramConsByteString                  <- getParams consByteString            paramConsByteString
-    paramSliceByteString                 <- getParams sliceByteString           paramSliceByteString
-    paramLengthOfByteString              <- getParams lengthOfByteString        paramLengthOfByteString
-    paramIndexByteString                 <- getParams indexByteString           paramIndexByteString
-    paramEqualsByteString                <- getParams equalsByteString          paramEqualsByteString
-    paramLessThanByteString              <- getParams lessThanByteString        paramLessThanByteString
-    paramLessThanEqualsByteString        <- getParams lessThanEqualsByteString  paramLessThanEqualsByteString
+    paramAppendByteString                <- getParams lcf2 paramAppendByteString          paramAppendByteString
+    paramConsByteString                  <- getParams lcf2 paramConsByteString            paramConsByteString
+    paramSliceByteString                 <- getParams lcf3 paramSliceByteString           paramSliceByteString
+    paramLengthOfByteString              <- getParams lcf1 paramLengthOfByteString        paramLengthOfByteString
+    paramIndexByteString                 <- getParams lcf2 paramIndexByteString           paramIndexByteString
+    paramEqualsByteString                <- getParams lcf2 paramEqualsByteString          paramEqualsByteString
+    paramLessThanByteString              <- getParams lcf2 paramLessThanByteString        paramLessThanByteString
+    paramLessThanEqualsByteString        <- getParams lcf2 paramLessThanEqualsByteString  paramLessThanEqualsByteString
     -- Cryptography and hashes
-    paramSha2_256                        <- getParams sha2_256                         paramSha2_256
-    paramSha3_256                        <- getParams sha3_256                         paramSha3_256
-    paramBlake2b_256                     <- getParams blake2b_256                      paramBlake2b_256
-    paramVerifyEd25519Signature          <- getParams verifyEd25519Signature           paramVerifyEd25519Signature
-    paramVerifyEcdsaSecp256k1Signature   <- getParams verifyEcdsaSecp256k1Signature    paramVerifyEcdsaSecp256k1Signature
-    paramVerifySchnorrSecp256k1Signature <- getParams verifySchnorrSecp256k1Signature  paramVerifySchnorrSecp256k1Signature
+    paramSha2_256                        <- getParams lcf1 paramSha2_256                         paramSha2_256
+    paramSha3_256                        <- getParams lcf1 paramSha3_256                         paramSha3_256
+    paramBlake2b_256                     <- getParams lcf1 paramBlake2b_256                      paramBlake2b_256
+    paramVerifyEd25519Signature          <- getParams lcf3 paramVerifyEd25519Signature           paramVerifyEd25519Signature
+    paramVerifyEcdsaSecp256k1Signature   <- getParams lcf3 paramVerifyEcdsaSecp256k1Signature    paramVerifyEcdsaSecp256k1Signature
+    paramVerifySchnorrSecp256k1Signature <- getParams lcf3 paramVerifySchnorrSecp256k1Signature  paramVerifySchnorrSecp256k1Signature
     -- Strings
-    paramAppendString                    <- getParams appendString  paramAppendString
-    paramEqualsString                    <- getParams equalsString  paramEqualsString
-    paramEncodeUtf8                      <- getParams encodeUtf8    paramEncodeUtf8
-    paramDecodeUtf8                      <- getParams decodeUtf8    paramDecodeUtf8
+    paramAppendString                    <- getParams lcf2 paramAppendString  paramAppendString
+    paramEqualsString                    <- getParams lcf2 paramEqualsString  paramEqualsString
+    paramEncodeUtf8                      <- getParams lcf1 paramEncodeUtf8    paramEncodeUtf8
+    paramDecodeUtf8                      <- getParams lcf1 paramDecodeUtf8    paramDecodeUtf8
     -- Bool
-    paramIfThenElse                      <- getParams ifThenElse  paramIfThenElse
+    paramIfThenElse                      <- getParams lcf3 paramIfThenElse     paramIfThenElse
     -- Unit
-    paramChooseUnit                      <- getParams chooseUnit  paramChooseUnit
+    paramChooseUnit                      <- getParams lcf2 paramChooseUnit     paramChooseUnit
     -- Tracing
-    paramTrace                           <- getParams trace       paramTrace
+    paramTrace                           <- getParams lcf2 paramTrace          paramTrace
     -- Pairs
-    paramFstPair                         <- getParams fstPair     paramFstPair
-    paramSndPair                         <- getParams sndPair     paramSndPair
+    paramFstPair                         <- getParams lcf1 paramFstPair        paramFstPair
+    paramSndPair                         <- getParams lcf1 paramSndPair        paramSndPair
     -- Lists
-    paramChooseList                      <- getParams chooseList  paramChooseList
-    paramMkCons                          <- getParams mkCons      paramMkCons
-    paramHeadList                        <- getParams headList    paramHeadList
-    paramTailList                        <- getParams tailList    paramTailList
-    paramNullList                        <- getParams nullList    paramNullList
+    paramChooseList                      <- getParams lcf3 paramChooseList     paramChooseList
+    paramMkCons                          <- getParams lcf2 paramMkCons         paramMkCons
+    paramHeadList                        <- getParams lcf1 paramHeadList       paramHeadList
+    paramTailList                        <- getParams lcf1 paramTailList       paramTailList
+    paramNullList                        <- getParams lcf1 paramNullList       paramNullList
     -- Data
-    paramChooseData                      <- getParams chooseData     paramChooseData
-    paramConstrData                      <- getParams constrData     paramConstrData
-    paramMapData                         <- getParams mapData        paramMapData
-    paramListData                        <- getParams listData       paramListData
-    paramIData                           <- getParams iData          paramIData
-    paramBData                           <- getParams bData          paramBData
-    paramUnConstrData                    <- getParams unConstrData   paramUnConstrData
-    paramUnMapData                       <- getParams unMapData      paramUnMapData
-    paramUnListData                      <- getParams unListData     paramUnListData
-    paramUnIData                         <- getParams unIData        paramUnIData
-    paramUnBData                         <- getParams unBData        paramUnBData
-    paramEqualsData                      <- getParams equalsData     paramEqualsData
-    paramSerialiseData                   <- getParams serialiseData  paramSerialiseData
+    paramChooseData                      <- getParams lcf6 paramChooseData     paramChooseData
+    paramConstrData                      <- getParams lcf2 paramConstrData     paramConstrData
+    paramMapData                         <- getParams lcf1 paramMapData        paramMapData
+    paramListData                        <- getParams lcf1 paramListData       paramListData
+    paramIData                           <- getParams lcf1 paramIData          paramIData
+    paramBData                           <- getParams lcf1 paramBData          paramBData
+    paramUnConstrData                    <- getParams lcf1 paramUnConstrData   paramUnConstrData
+    paramUnMapData                       <- getParams lcf1 paramUnMapData      paramUnMapData
+    paramUnListData                      <- getParams lcf1 paramUnListData     paramUnListData
+    paramUnIData                         <- getParams lcf1 paramUnIData        paramUnIData
+    paramUnBData                         <- getParams lcf1 paramUnBData        paramUnBData
+    paramEqualsData                      <- getParams lcf2 paramEqualsData     paramEqualsData
+    paramSerialiseData                   <- getParams lcf1 paramSerialiseData  paramSerialiseData
     -- Misc constructors
-    paramMkPairData                      <- getParams mkPairData     paramMkPairData
-    paramMkNilData                       <- getParams mkNilData      paramMkNilData
-    paramMkNilPairData                   <- getParams mkNilPairData  paramMkNilPairData
+    paramMkPairData                      <- getParams lcf2 paramMkPairData     paramMkPairData
+    paramMkNilData                       <- getParams lcf1 paramMkNilData      paramMkNilData
+    paramMkNilPairData                   <- getParams lcf1 paramMkNilPairData  paramMkNilPairData
     -- BLS12-381
-    paramBls12_381_G1_add                <- getParams bls12_381_G1_add          paramBls12_381_G1_add
-    paramBls12_381_G1_neg                <- getParams bls12_381_G1_neg          paramBls12_381_G1_neg
-    paramBls12_381_G1_scalarMul          <- getParams bls12_381_G1_scalarMul    paramBls12_381_G1_scalarMul
-    paramBls12_381_G1_equal              <- getParams bls12_381_G1_equal        paramBls12_381_G1_equal
-    paramBls12_381_G1_compress           <- getParams bls12_381_G1_compress     paramBls12_381_G1_compress
-    paramBls12_381_G1_uncompress         <- getParams bls12_381_G1_uncompress   paramBls12_381_G1_uncompress
-    paramBls12_381_G1_hashToGroup        <- getParams bls12_381_G1_hashToGroup  paramBls12_381_G1_hashToGroup
-    paramBls12_381_G2_add                <- getParams bls12_381_G2_add          paramBls12_381_G2_add
-    paramBls12_381_G2_neg                <- getParams bls12_381_G2_neg          paramBls12_381_G2_neg
-    paramBls12_381_G2_scalarMul          <- getParams bls12_381_G2_scalarMul    paramBls12_381_G2_scalarMul
-    paramBls12_381_G2_equal              <- getParams bls12_381_G2_equal        paramBls12_381_G2_equal
-    paramBls12_381_G2_compress           <- getParams bls12_381_G2_compress     paramBls12_381_G2_compress
-    paramBls12_381_G2_uncompress         <- getParams bls12_381_G2_uncompress   paramBls12_381_G2_uncompress
-    paramBls12_381_G2_hashToGroup        <- getParams bls12_381_G2_hashToGroup  paramBls12_381_G2_hashToGroup
-    paramBls12_381_millerLoop            <- getParams bls12_381_millerLoop      paramBls12_381_millerLoop
-    paramBls12_381_mulMlResult           <- getParams bls12_381_mulMlResult     paramBls12_381_mulMlResult
-    paramBls12_381_finalVerify           <- getParams bls12_381_finalVerify     paramBls12_381_finalVerify
+    paramBls12_381_G1_add                <- getParams lcf2 paramBls12_381_G1_add          paramBls12_381_G1_add
+    paramBls12_381_G1_neg                <- getParams lcf1 paramBls12_381_G1_neg          paramBls12_381_G1_neg
+    paramBls12_381_G1_scalarMul          <- getParams lcf2 paramBls12_381_G1_scalarMul    paramBls12_381_G1_scalarMul
+    paramBls12_381_G1_equal              <- getParams lcf2 paramBls12_381_G1_equal        paramBls12_381_G1_equal
+    paramBls12_381_G1_compress           <- getParams lcf1 paramBls12_381_G1_compress     paramBls12_381_G1_compress
+    paramBls12_381_G1_uncompress         <- getParams lcf1 paramBls12_381_G1_uncompress   paramBls12_381_G1_uncompress
+    paramBls12_381_G1_hashToGroup        <- getParams lcf2 paramBls12_381_G1_hashToGroup  paramBls12_381_G1_hashToGroup
+    paramBls12_381_G2_add                <- getParams lcf2 paramBls12_381_G2_add          paramBls12_381_G2_add
+    paramBls12_381_G2_neg                <- getParams lcf1 paramBls12_381_G2_neg          paramBls12_381_G2_neg
+    paramBls12_381_G2_scalarMul          <- getParams lcf2 paramBls12_381_G2_scalarMul    paramBls12_381_G2_scalarMul
+    paramBls12_381_G2_equal              <- getParams lcf2 paramBls12_381_G2_equal        paramBls12_381_G2_equal
+    paramBls12_381_G2_compress           <- getParams lcf1 paramBls12_381_G2_compress     paramBls12_381_G2_compress
+    paramBls12_381_G2_uncompress         <- getParams lcf1 paramBls12_381_G2_uncompress   paramBls12_381_G2_uncompress
+    paramBls12_381_G2_hashToGroup        <- getParams lcf2 paramBls12_381_G2_hashToGroup  paramBls12_381_G2_hashToGroup
+    paramBls12_381_millerLoop            <- getParams lcf2 paramBls12_381_millerLoop      paramBls12_381_millerLoop
+    paramBls12_381_mulMlResult           <- getParams lcf2 paramBls12_381_mulMlResult     paramBls12_381_mulMlResult
+    paramBls12_381_finalVerify           <- getParams lcf2 paramBls12_381_finalVerify     paramBls12_381_finalVerify
     -- More hashes
-    paramKeccak_256                      <- getParams keccak_256                paramKeccak_256
-    paramBlake2b_224                     <- getParams blake2b_224               paramBlake2b_224
+    paramKeccak_256                      <- getParams lcf1 paramKeccak_256           paramKeccak_256
+    paramBlake2b_224                     <- getParams lcf1 paramBlake2b_224          paramBlake2b_224
     -- Bitwise operations
-    paramByteStringToInteger             <- getParams byteStringToInteger       paramByteStringToInteger
-    paramIntegerToByteString             <- getParams integerToByteString       paramIntegerToByteString
+    paramByteStringToInteger             <- getParams lcf2 paramByteStringToInteger  paramByteStringToInteger
+    paramIntegerToByteString             <- getParams lcf3 paramIntegerToByteString  paramIntegerToByteString
 
     pure $ BuiltinCostModelBase {..}
 
@@ -369,347 +376,28 @@ loadSixVariableCostingFunction e = do
     "constant_cost" -> ModelSixArgumentsConstantCost <$> getConstant e
     _               -> error $ "Unknown six-variable model type: " ++ ty
 
+
+lcf1 :: MonadR m => SomeSEXP (Region m) -> m ModelOneArgument
+lcf1 = loadOneVariableCostingFunction
+
+lcf2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments
+lcf2 = loadTwoVariableCostingFunction
+
+lcf3 :: MonadR m => SomeSEXP (Region m) -> m ModelThreeArguments
+lcf3 = loadThreeVariableCostingFunction
+
+lcf6 :: MonadR m => SomeSEXP (Region m) -> m ModelSixArguments
+lcf6 = loadSixVariableCostingFunction
+
+
 boolMemModel :: ModelTwoArguments
 boolMemModel = ModelTwoArgumentsConstantCost 1
 
 memoryUsageAsCostingInteger :: ExMemoryUsage a => a -> CostingInteger
 memoryUsageAsCostingInteger = coerce . sumCostStream . flattenCostRose . memoryUsage
 
--- | The types of functions which take an R SEXP and extract a CPU model from
--- it, then pair it up with a memory costing function.
-type MakeCostingFun1 = forall m . MonadR m => SomeSEXP (Region m) -> m (CostingFun ModelOneArgument)
-type MakeCostingFun2 = forall m . MonadR m => SomeSEXP (Region m) -> m (CostingFun ModelTwoArguments)
-type MakeCostingFun3 = forall m . MonadR m => SomeSEXP (Region m) -> m (CostingFun ModelThreeArguments)
-type MakeCostingFun6 = forall m . MonadR m => SomeSEXP (Region m) -> m (CostingFun ModelSixArguments)
-
--- | Create a
-makeOneVariableCostingFunction :: ModelOneArgument -> MakeCostingFun1
-makeOneVariableCostingFunction memModel e =
-  CostingFun <$> (loadOneVariableCostingFunction e) <*> pure memModel
-
-makeTwoVariableCostingFunction :: ModelTwoArguments -> MakeCostingFun2
-makeTwoVariableCostingFunction memModel e =
-  CostingFun <$> (loadTwoVariableCostingFunction e) <*> pure memModel
-
-makeThreeVariableCostingFunction :: ModelThreeArguments -> MakeCostingFun3
-makeThreeVariableCostingFunction memModel e =
-  CostingFun <$> (loadThreeVariableCostingFunction e) <*> pure memModel
-
-makeSixVariableCostingFunction :: ModelSixArguments -> MakeCostingFun6
-makeSixVariableCostingFunction memModel e =
-  CostingFun <$> (loadSixVariableCostingFunction e) <*> pure memModel
-
----------------- Integers ----------------
-
-addInteger :: MakeCostingFun2
-addInteger =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsMaxSize $ OneVariableLinearFunction 1 1
-
-subtractInteger :: MakeCostingFun2
-subtractInteger =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsMaxSize $ OneVariableLinearFunction 1 1
-  -- The worst case is subtracting e.g. `minBound :: Int` - `maxBound :: Int`, which increases the memory usage by one.
-  -- (max x y) + 1
-
-multiplyInteger :: MakeCostingFun2
-multiplyInteger =
-  -- GMP requires multiplication (mpn_mul) to have x + y space.
-  -- x + y
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
-
-divideInteger :: MakeCostingFun2
-divideInteger =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
-
-quotientInteger :: MakeCostingFun2
-quotientInteger =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
-
-remainderInteger :: MakeCostingFun2
-remainderInteger = quotientInteger
-
-modInteger :: MakeCostingFun2
-modInteger = divideInteger
-
--- FIXME: should probably be piecewise (harmless, but may overprice some comparisons a bit)
-equalsInteger :: MakeCostingFun2
-equalsInteger =
-  makeTwoVariableCostingFunction boolMemModel
-
-lessThanInteger :: MakeCostingFun2
-lessThanInteger =
-  makeTwoVariableCostingFunction boolMemModel
-
-lessThanEqualsInteger :: MakeCostingFun2
-lessThanEqualsInteger =
-  makeTwoVariableCostingFunction boolMemModel
-
-
----------------- Bytestrings ----------------
-
-appendByteString :: MakeCostingFun2
-appendByteString =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
-
-consByteString :: MakeCostingFun2
-consByteString =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
-
-
-{- | Return a substring of a bytestring with a specified start point and length.
-   Plutus Core bytestrings are implemented using Data.ByteString, which
-   represents a (strict) bytestring as a C array of bytes together with a
-   pointer into that and a length.  The sliceByteString function is implemented
-   using 'take' and 'drop', and these work by modifying the pointer and length:
-   no bytes are copied so sliceByteString requires constant time and a constant
-   memory overhead.  There's a mismatch here because the Haskell model which we
-   defined for SliceByteString is linear in the length of the bytestring;
-   however we can still use that to model the constant cost inferred in the R
-   code.
--}
-sliceByteString :: MakeCostingFun3
-sliceByteString =
-  makeThreeVariableCostingFunction $ ModelThreeArgumentsLinearInZ $ OneVariableLinearFunction 4 0
-
-lengthOfByteString :: MakeCostingFun1
-lengthOfByteString =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 10
-
-indexByteString :: MakeCostingFun2
-indexByteString =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost 4
-
-equalsByteString :: MakeCostingFun2
-equalsByteString =
-  makeTwoVariableCostingFunction $ boolMemModel
-
-lessThanByteString :: MakeCostingFun2
-lessThanByteString =
-  makeTwoVariableCostingFunction boolMemModel
-
-lessThanEqualsByteString :: MakeCostingFun2
-lessThanEqualsByteString = lessThanByteString
-
-
----------------- Cryptography and hashes ----------------
-
-sha2_256 :: MakeCostingFun1
-sha2_256 =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost hashSize
-  where hashSize = memoryUsageAsCostingInteger $ Hash.sha2_256 ""
-
-sha3_256 :: MakeCostingFun1
-sha3_256 =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost hashSize
-  where hashSize = memoryUsageAsCostingInteger $ Hash.sha3_256 ""
-
-blake2b_224 :: MakeCostingFun1
-blake2b_224 =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost hashSize
-  where hashSize = memoryUsageAsCostingInteger $ Hash.blake2b_224 ""
-
-blake2b_256 :: MakeCostingFun1
-blake2b_256 =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost hashSize
-  where hashSize = memoryUsageAsCostingInteger $ Hash.blake2b_256 ""
-
-keccak_256 :: MakeCostingFun1
-keccak_256 =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost hashSize
-  where hashSize = memoryUsageAsCostingInteger $ Hash.keccak_256 ""
-
-
--- NB: the R model is based purely on the size of the second argument (since the
--- first and third are constant size), so we have to rearrange things a bit to
--- get it to work with a three-argument costing function.
-verifyEd25519Signature :: MakeCostingFun3
-verifyEd25519Signature =
-  makeThreeVariableCostingFunction $ ModelThreeArgumentsConstantCost 10
-
-verifyEcdsaSecp256k1Signature :: MakeCostingFun3
-verifyEcdsaSecp256k1Signature =
-  makeThreeVariableCostingFunction $ ModelThreeArgumentsConstantCost 10
-
-verifySchnorrSecp256k1Signature :: MakeCostingFun3
-verifySchnorrSecp256k1Signature =
-  makeThreeVariableCostingFunction $ ModelThreeArgumentsConstantCost 10
-
----------------- Strings ----------------
-
-appendString :: MakeCostingFun2
-appendString =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 4 1
-
-equalsString :: MakeCostingFun2
-equalsString =
-  makeTwoVariableCostingFunction boolMemModel
-
-encodeUtf8 :: MakeCostingFun1
-encodeUtf8 =
-  makeOneVariableCostingFunction $ ModelOneArgumentLinearCost $ OneVariableLinearFunction 4 2
-  -- In the worst case two UTF-16 bytes encode to three UTF-8
-  -- bytes, so two output words per input word should cover that.
-
-decodeUtf8 :: MakeCostingFun1
-decodeUtf8 =
-  makeOneVariableCostingFunction $ ModelOneArgumentLinearCost $ OneVariableLinearFunction 4 2
-  -- In the worst case one UTF-8 byte decodes to two UTF-16 bytes
-
----------------- Bool ----------------
-ifThenElse :: MakeCostingFun3
-ifThenElse =
-  makeThreeVariableCostingFunction $ ModelThreeArgumentsConstantCost 1
-
----------------- Unit ----------------
-
-chooseUnit :: MakeCostingFun2
-chooseUnit =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost 4
--- \() a -> a
-
----------------- Tracing ----------------
-
-trace :: MakeCostingFun2
-trace =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost 32
-
----------------- Pairs ----------------
-
-fstPair :: MakeCostingFun1
-fstPair =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- (x,_) -> x; but with lots of Some's etc.
-
-sndPair :: MakeCostingFun1
-sndPair =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- (_,y) -> y; but with lots of Some's etc.
-
----------------- Lists ----------------
-
-chooseList :: MakeCostingFun3
-chooseList =
-  makeThreeVariableCostingFunction $ ModelThreeArgumentsConstantCost 32
--- xs a b -> a if xs == [], b otherwise
-
-mkCons :: MakeCostingFun2
-mkCons =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost 32
--- x xs -> x:xs, but with a dynamic type check
-
-headList :: MakeCostingFun1
-headList =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- x:_ -> x, [] -> failure.  Successful case has fromValueOf etc.
-
-tailList :: MakeCostingFun1
-tailList =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- Like headList
-
-nullList :: MakeCostingFun1
-nullList =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- x::[a] -> Bool
-
----------------- Data ----------------
-
-chooseData :: MakeCostingFun6
-chooseData =
-  makeSixVariableCostingFunction $ ModelSixArgumentsConstantCost 32
--- chooseData d p q r s t u  returns one of the last six elements according to what d is.
-
-constrData :: MakeCostingFun2
-constrData =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost 32
--- Just applying Constr
-
-mapData :: MakeCostingFun1
-mapData =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- Just applying Map
-
-listData :: MakeCostingFun1
-listData =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- Just applying List
-
-iData :: MakeCostingFun1
-iData =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- Just applying I
-
-bData :: MakeCostingFun1
-bData =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- Just applying B
-
-unConstrData :: MakeCostingFun1
-unConstrData =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- Constr i ds -> (i,ds);  _ -> fail
-
-unMapData :: MakeCostingFun1
-unMapData =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- Map es -> es;  _ -> fail
-
-unListData :: MakeCostingFun1
-unListData =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- List ds -> ds;  _ -> fail
-
-unIData :: MakeCostingFun1
-unIData =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- I i -> i;  _ -> fail
-
-unBData :: MakeCostingFun1
-unBData =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- B b -> b;  _ -> fail
-
-equalsData :: MakeCostingFun2
-equalsData =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost 1
-  {- The size function for 'Data' counts the total number of nodes, and so is
-     potentially expensive.  Luckily laziness in the costing functions ensures
-     that it's only called if really necessary, so it'll be called here but not
-     in 'unBData' etc.  Doing the full traversal seems to increase validation times
-     by one or two percent, but we can't really avoid it here. -}
-  {- Note that the R code constructs this model in a non-standard way and then
-     returns a model that has been modified to look like a model for minimum sizes
-     so we can read it easily here. -}
-  {- Another complication is that 'equalsData' will always return False when the
-     arguments are of different size, but it's not clever enough to realise that
-     and return immediately, so it may perform a lot of computation even off the
-     diagonal.  The R model is generated from data on the diagonal, so we read
-     that in here and adjust it to be linear in 'min x_mem y_mem', since in the
-     worst case it may have to examine almost all of the smaller argument before
-     realising that the two arguments are different. -}
-
-serialiseData :: MakeCostingFun1
-serialiseData =
-  makeOneVariableCostingFunction $ ModelOneArgumentLinearCost $ OneVariableLinearFunction 0 2
-
----------------- Misc constructors ----------------
-
-mkPairData :: MakeCostingFun2
-mkPairData =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost 32
--- a b -> (a,b)
-
-mkNilData :: MakeCostingFun1
-mkNilData =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- () -> [] :: [Data]
-
-mkNilPairData :: MakeCostingFun1
-mkNilPairData =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost 32
--- () -> [] :: [(Data,Data)]
-
----------------- BLS12_381 operations ----------------
+hashMemModel :: (ByteString -> ByteString) -> ModelOneArgument
+hashMemModel f = ModelOneArgumentConstantCost $ memoryUsageAsCostingInteger $ f ""
 
 toMemSize :: Int -> CostingInteger
 toMemSize n = fromIntegral $ n `div` 8
@@ -742,85 +430,85 @@ g2CompressedSize = toMemSize G2.compressedSizeBytes
 mlResultMemSize :: CostingInteger
 mlResultMemSize = toMemSize Pairing.mlResultMemSizeBytes
 
-bls12_381_G1_add :: MakeCostingFun2
-bls12_381_G1_add =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost g1MemSize
+newtype Id a = Id { getId :: a }
 
-bls12_381_G1_neg :: MakeCostingFun1
-bls12_381_G1_neg =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost g1MemSize
+builtinMemModels :: BuiltinCostModelBase Id
+builtinMemModels = BuiltinCostModelBase
+  { paramAddInteger                      = Id $ ModelTwoArgumentsMaxSize $ OneVariableLinearFunction 1 1
+  , paramSubtractInteger                 = Id $ ModelTwoArgumentsMaxSize $ OneVariableLinearFunction 1 1
+  , paramMultiplyInteger                 = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
+  , paramDivideInteger                   = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
+  -- ^ Really?  We don't always have size(a/b) = size a - size b
+  , paramQuotientInteger                 = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
+  , paramRemainderInteger                = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
+  , paramModInteger                      = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
+  , paramEqualsInteger                   = Id $ boolMemModel
+  , paramLessThanInteger                 = Id $ boolMemModel
+  , paramLessThanEqualsInteger           = Id $ boolMemModel
+  , paramAppendByteString                = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
+  , paramConsByteString                  = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
+  , paramSliceByteString                 = Id $ ModelThreeArgumentsLinearInZ $ OneVariableLinearFunction 4 0
+  , paramLengthOfByteString              = Id $ ModelOneArgumentConstantCost 10
+  , paramIndexByteString                 = Id $ ModelTwoArgumentsConstantCost 4
+  , paramEqualsByteString                = Id $ boolMemModel
+  , paramLessThanByteString              = Id $ boolMemModel
+  , paramLessThanEqualsByteString        = Id $ boolMemModel
+  , paramSha2_256                        = Id $ hashMemModel Hash.sha2_256
+  , paramSha3_256                        = Id $ hashMemModel Hash.sha3_256
+  , paramBlake2b_256                     = Id $ hashMemModel Hash.blake2b_256
+  , paramVerifyEd25519Signature          = Id $ ModelThreeArgumentsConstantCost 10
+  , paramVerifyEcdsaSecp256k1Signature   = Id $ ModelThreeArgumentsConstantCost 10
+  , paramVerifySchnorrSecp256k1Signature = Id $ ModelThreeArgumentsConstantCost 10
+  , paramAppendString                    = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 4 1
+  , paramEqualsString                    = Id $ boolMemModel
+  , paramEncodeUtf8                      = Id $ ModelOneArgumentLinearCost $ OneVariableLinearFunction 4 2
+  , paramDecodeUtf8                      = Id $ ModelOneArgumentLinearCost $ OneVariableLinearFunction 4 2
+  , paramIfThenElse                      = Id $ ModelThreeArgumentsConstantCost 1
+  , paramChooseUnit                      = Id $ ModelTwoArgumentsConstantCost 4
+  , paramTrace                           = Id $ ModelTwoArgumentsConstantCost 32
+  , paramFstPair                         = Id $ ModelOneArgumentConstantCost 32
+  , paramSndPair                         = Id $ ModelOneArgumentConstantCost 32
+  , paramChooseList                      = Id $ ModelThreeArgumentsConstantCost 32
+  , paramMkCons                          = Id $ ModelTwoArgumentsConstantCost 32
+  , paramHeadList                        = Id $ ModelOneArgumentConstantCost 32
+  , paramTailList                        = Id $ ModelOneArgumentConstantCost 32
+  , paramNullList                        = Id $ ModelOneArgumentConstantCost 32
+  , paramChooseData                      = Id $ ModelSixArgumentsConstantCost 32
+  , paramConstrData                      = Id $ ModelTwoArgumentsConstantCost 32
+  , paramMapData                         = Id $ ModelOneArgumentConstantCost 32
+  , paramListData                        = Id $ ModelOneArgumentConstantCost 32
+  , paramIData                           = Id $ ModelOneArgumentConstantCost 32
+  , paramBData                           = Id $ ModelOneArgumentConstantCost 32
+  , paramUnConstrData                    = Id $ ModelOneArgumentConstantCost 32
+  , paramUnMapData                       = Id $ ModelOneArgumentConstantCost 32
+  , paramUnListData                      = Id $ ModelOneArgumentConstantCost 32
+  , paramUnIData                         = Id $ ModelOneArgumentConstantCost 32
+  , paramUnBData                         = Id $ ModelOneArgumentConstantCost 32
+  , paramEqualsData                      = Id $ ModelTwoArgumentsConstantCost 1
+  , paramMkPairData                      = Id $ ModelTwoArgumentsConstantCost 32
+  , paramMkNilData                       = Id $ ModelOneArgumentConstantCost 32
+  , paramMkNilPairData                   = Id $ ModelOneArgumentConstantCost 32
+  , paramSerialiseData                   = Id $ ModelOneArgumentLinearCost $ OneVariableLinearFunction 0 2
+  , paramBls12_381_G1_add                = Id $ ModelTwoArgumentsConstantCost g1MemSize
+  , paramBls12_381_G1_neg                = Id $ ModelOneArgumentConstantCost g1MemSize
+  , paramBls12_381_G1_scalarMul          = Id $ ModelTwoArgumentsConstantCost g1MemSize
+  , paramBls12_381_G1_equal              = Id $ boolMemModel
+  , paramBls12_381_G1_compress           = Id $ ModelOneArgumentConstantCost g1CompressedSize
+  , paramBls12_381_G1_uncompress         = Id $ ModelOneArgumentConstantCost g1MemSize
+  , paramBls12_381_G1_hashToGroup        = Id $ ModelTwoArgumentsConstantCost g1MemSize
+  , paramBls12_381_G2_add                = Id $ ModelTwoArgumentsConstantCost g2MemSize
+  , paramBls12_381_G2_neg                = Id $ ModelOneArgumentConstantCost g2MemSize
+  , paramBls12_381_G2_scalarMul          = Id $ ModelTwoArgumentsConstantCost g2MemSize
+  , paramBls12_381_G2_equal              = Id $ boolMemModel
+  , paramBls12_381_G2_compress           = Id $ ModelOneArgumentConstantCost g2CompressedSize
+  , paramBls12_381_G2_uncompress         = Id $ ModelOneArgumentConstantCost g2MemSize
+  , paramBls12_381_G2_hashToGroup        = Id $ ModelTwoArgumentsConstantCost g2MemSize
+  , paramBls12_381_millerLoop            = Id $ ModelTwoArgumentsConstantCost mlResultMemSize
+  , paramBls12_381_mulMlResult           = Id $ ModelTwoArgumentsConstantCost mlResultMemSize
+  , paramBls12_381_finalVerify           = Id $ boolMemModel
+  , paramBlake2b_224                     = Id $ hashMemModel Hash.blake2b_224
+  , paramKeccak_256                      = Id $ hashMemModel Hash.keccak_256
+  , paramIntegerToByteString             = Id $ ModelThreeArgumentsLiteralInYOrLinearInZ $ OneVariableLinearFunction 0 1
+  , paramByteStringToInteger             = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 0 1
+  }
 
-bls12_381_G1_scalarMul :: MakeCostingFun2
-bls12_381_G1_scalarMul =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost g1MemSize
-
-bls12_381_G1_equal :: MakeCostingFun2
-bls12_381_G1_equal =
-  makeTwoVariableCostingFunction boolMemModel
-
-bls12_381_G1_hashToGroup :: MakeCostingFun2
-bls12_381_G1_hashToGroup =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost g1MemSize
-
-bls12_381_G1_compress :: MakeCostingFun1
-bls12_381_G1_compress =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost g1CompressedSize
-
-bls12_381_G1_uncompress :: MakeCostingFun1
-bls12_381_G1_uncompress =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost g1MemSize
-
-bls12_381_G2_add :: MakeCostingFun2
-bls12_381_G2_add = makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost g2MemSize
-
-bls12_381_G2_neg :: MakeCostingFun1
-bls12_381_G2_neg =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost g2MemSize
-
-bls12_381_G2_scalarMul :: MakeCostingFun2
-bls12_381_G2_scalarMul =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost g2MemSize
-
-bls12_381_G2_equal :: MakeCostingFun2
-bls12_381_G2_equal =
-  makeTwoVariableCostingFunction boolMemModel
-
-bls12_381_G2_hashToGroup :: MakeCostingFun2
-bls12_381_G2_hashToGroup  =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost g2MemSize
-
-bls12_381_G2_compress :: MakeCostingFun1
-bls12_381_G2_compress =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost g2CompressedSize
-
-bls12_381_G2_uncompress :: MakeCostingFun1
-bls12_381_G2_uncompress =
-  makeOneVariableCostingFunction $ ModelOneArgumentConstantCost g2MemSize
-
-bls12_381_millerLoop :: MakeCostingFun2
-bls12_381_millerLoop =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost mlResultMemSize
-
-bls12_381_mulMlResult :: MakeCostingFun2
-bls12_381_mulMlResult =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsConstantCost mlResultMemSize
-
-bls12_381_finalVerify :: MakeCostingFun2
-bls12_381_finalVerify =
-  makeTwoVariableCostingFunction boolMemModel
-
----------------- Bitwise operations ----------------
-
-{-  Note that if we give `integerToByteString` a width argument w > 0 and a small
-integer n to be converted, the cost is based only on the size of n even though w
-could be considerably larger and some work will be required to pad the output to
-width w.  Experiments show that the padding cost is negligible in comparison to
-the conversion cost, so it's safe to base the cost purely on the size of n.
--}
-integerToByteString :: MakeCostingFun3
-integerToByteString =
-  makeThreeVariableCostingFunction $ ModelThreeArgumentsLiteralInYOrLinearInZ $ OneVariableLinearFunction 0 1
-
-byteStringToInteger :: MakeCostingFun2
-byteStringToInteger =
-  makeTwoVariableCostingFunction $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 0 1
