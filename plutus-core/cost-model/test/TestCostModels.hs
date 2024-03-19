@@ -167,7 +167,7 @@ testPredictOne haskellModelFun modelR1 = propertyR $ do
         let
             xD = fromSatInt x :: Double
         in
-          microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs))[[1]]|]
+          microToPico . fromSomeSEXP <$> [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger
     predictH x =
       coerce $ exBudgetCPU $ sumExBudgetStream $
@@ -197,7 +197,7 @@ testPredictTwo haskellModelFun modelR1 domain = propertyR $ do
         yD = fromSatInt y :: Double
       in
         microToPico . fromSomeSEXP <$>
-          [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+          [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger
     predictH x y =
       coerce $ exBudgetCPU $ sumExBudgetStream $
@@ -228,7 +228,7 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
         zD = fromSatInt z :: Double
       in
         microToPico . fromSomeSEXP <$>
-          [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
+          [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z =
       coerce $ exBudgetCPU $ sumExBudgetStream $
@@ -260,7 +260,7 @@ testPredictSix haskellModelFun modelR1 = propertyR $ do
         wD = fromSatInt w :: Double
       in
         microToPico . fromSomeSEXP <$>
-          [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
+          [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
                                           u_mem=uD_hs, v_mem=vD_hs, w_mem=wD_hs))[[1]]|]
     predictH :: CostingInteger
       -> CostingInteger

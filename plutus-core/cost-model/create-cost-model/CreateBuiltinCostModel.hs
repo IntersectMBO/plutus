@@ -265,7 +265,7 @@ getSubtype e = getString "subtype" e
 
 -- | Extract a named regression coefficient from an R object
 getCoeff :: MonadR m => String -> SomeSEXP (Region m) -> m CostingInteger
-getCoeff f e = microToPico . fromSomeSEXP  <$> [r| e_hs$coefficients[[f_hs]] |]
+getCoeff f e = microToPico . fromSomeSEXP  <$> [r| e_hs$model$coefficients[[f_hs]] |]
 
 -- | Extract some other parameter from an R object.  You can add arbitrary named
 -- parameters in mk.result in the R code and access them using this.  This can

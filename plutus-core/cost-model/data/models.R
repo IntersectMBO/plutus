@@ -185,7 +185,7 @@ filter.and.check.nonempty <- function (frame, fname) {
 
 }
 
-adjustModel <- function (m, fname) {
+adjustModel <- function (r, fname) {
     ## Given a linear model, check its coefficients and if any is negative then
     ## make it 1000 ps and issue a warning.  This is somewhat suspect but will
     ## prevent us from getting models which predict negative costs.  See also
@@ -200,12 +200,12 @@ adjustModel <- function (m, fname) {
         }
         else x
     }
-    v <- m$coefficients
-    m$coefficients <- mapply(ensurePositive, v, attr(v,"names"))
+    v <- r$model$coefficients
+    r$model$coefficients <- mapply(ensurePositive, v, attr(v,"names"))
     ## This will invalidate some of the information in the model (such as the
     ## residuals), but we don't use that anyway.  Maybe we should just return the
     ## vector of coefficients?
-    return (m)
+    return (r)
 }
 
 adjustModels <- function(models) {
@@ -298,7 +298,7 @@ modelFun <- function(path) {
     ## Pair the coefficients of a model together with a type tag and possibly
     ## some other data.  We return one of these to Haskell for every builtin.
     mk.result <- function(model, type, ...) {
-        list(type=type, coefficients = coefficients(model), ...)
+        list(type=type, model=model, ...)
     }
 
     ## Look for a single entry with the given name and return the 't' value
