@@ -270,7 +270,7 @@ applyEvaluate !_ val _ =
 -- MAYBE: runCekDeBruijn can be shared between original&debug ceks by passing a `enterComputeCek` func.
 runCekDeBruijn
     :: ThrowableBuiltins uni fun
-    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    => MachineParameters CekMachineCosts (BuiltinsRuntime fun (CekValue uni fun ann))
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> NTerm uni fun ann
@@ -327,7 +327,7 @@ mkCekTrans
     :: forall cost uni fun ann m s
     . ( ThrowableBuiltins uni fun
       , PrimMonad m, s ~ PrimState m) -- the outer monad that initializes the transition function
-    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    => MachineParameters CekMachineCosts (BuiltinsRuntime fun (CekValue uni fun ann))
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> Slippage

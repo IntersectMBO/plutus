@@ -35,7 +35,7 @@ typecheckAnd
        , Closed uni, uni `Everywhere` ExMemoryUsage
        )
     => BuiltinSemanticsVariant fun
-    -> (MachineParameters CekMachineCosts fun (CekValue uni fun ()) ->
+    -> (MachineParameters CekMachineCosts (BuiltinsRuntime fun (CekValue uni fun ())) ->
             UPLC.Term Name uni fun () -> a)
     -> CostingPart uni fun -> TPLC.Term TyName Name uni fun () -> m a
 typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do

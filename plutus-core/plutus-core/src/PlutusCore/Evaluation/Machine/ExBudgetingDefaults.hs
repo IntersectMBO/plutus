@@ -84,8 +84,9 @@ defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
-defaultCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
-defaultCekParameters = mkMachineParameters def defaultCekCostModel
+defaultCekParameters :: Typeable ann => MachineParameters CekMachineCosts (BuiltinsRuntime DefaultFun (CekValue DefaultUni DefaultFun ann))
+-- See Note [noinline for saving on ticks].
+defaultCekParameters = noinline mkMachineParameters def defaultCekCostModel
 
 {- Note [noinline for saving on ticks]
 We use 'noinline' purely for saving on simplifier ticks for definitions, whose performance doesn't
@@ -93,7 +94,7 @@ matter. Otherwise compilation for this module is slower and GHC may end up exhau
 ticks leading to a compilation error.
 -}
 
-unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts (BuiltinsRuntime DefaultFun (CekValue DefaultUni DefaultFun ann))
 unitCekParameters =
     -- See Note [noinline for saving on ticks].
     noinline mkMachineParameters def $
