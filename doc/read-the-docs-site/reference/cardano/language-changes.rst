@@ -29,7 +29,7 @@ The ``ScriptContext`` was extended to include the following information:
 Examples
 ------------
 
-- `PlutusV2 functionalities <https://github.com/IntersectMBO/cardano-node/blob/master/doc/reference/plutus/babbage-script-example.md>`_
+- `PlutusV2 functionalities <https://github.com/input-output-hk/cardano-node-wiki/blob/main/docs/reference/plutus/babbage-script-example.md>`_
 - `How to use reference inputs <https://github.com/perturbing/vasil-tests/blob/main/reference-inputs-cip-31.md>`_
 - `How to use inline datums <https://github.com/perturbing/vasil-tests/blob/main/inline-datums-cip-32.md>`_
 - `How to reference scripts <https://github.com/perturbing/vasil-tests/blob/main/referencing-scripts-cip-33.md>`_
@@ -53,14 +53,14 @@ Vasil
 
 All of the built-in types and functions from ``PlutusV1`` were added to ``PlutusV2``.
 
-The following built-in function was added to ``PlutusV2`` only (i.e., it is not available in ``PlutusV1``).
+The following built-in function was added to ``PlutusV2`` only (ie, it is not available in ``PlutusV1``).
 
 - ``serializeData`` (proposed in `CIP-42 <https://cips.cardano.org/cips/cip42/>`_)
 
 PlutusV3
 ~~~~~~~~~
 
-Plutus and cryptography teams at IOG, in collaboration with `MLabs <https://mlabs.city/>`_, continue to develop Plutus capabilities. Starting with the release of `Cardano node v8.8.0-pre <https://github.com/IntersectMBO/cardano-node/releases/tag/8.8.0-pre>`_, ``PlutusV3`` is available on `SanchoNet <https://sancho.network/>`_, introducing the Cardano community to governance features from `CIP-1694 <https://cips.cardano.org/cip/CIP-1694#goal>`_ in a controlled testnet environment. 
+Plutus and cryptography teams at IOG, in collaboration with `MLabs <https://mlabs.city/>`_, continue to develop Plutus capabilities. Starting with the release of `Cardano node v.8.8.0-pre <https://github.com/IntersectMBO/cardano-node/releases/tag/8.8.0-pre>`_, ``PlutusV3`` is available on `SanchoNet <https://sancho.network/>`_, introducing the Cardano community to governance features from `CIP-1694 <https://cips.cardano.org/cip/CIP-1694#goal>`_ in a controlled testnet environment. 
 
 ``PlutusV3`` is the new ledger language that enhances Plutus Core's cryptographic capabilities, offering the following benefits for the smart contract developer community: 
 
@@ -70,12 +70,12 @@ Plutus and cryptography teams at IOG, in collaboration with `MLabs <https://mlab
 - Well-known and optimal cryptographic algorithms
 - Support for porting of smart contracts from Ethereum
 - Creating sidechain bridges
-- Improving performance by adding a sums of products (SOPs) feature to support the direct encoding of differrent data types
+- Improving performance by adding a sums of products (SOPs) feature to support the direct encoding of differrent data types.
 
 Sums of products
 ~~~~~~~~~~~~~~~~
 
-``PlutusV3`` introduces sums of products --- a way of encoding data types that leads to smaller and cheaper scripts compared with `Scott encoding <https://en.wikipedia.org/wiki/Mogensen%E2%80%93Scott_encoding>`_, a common way of encoding data types in Plutus Core. 
+``PlutusV3`` introduces sums of products - a way of encoding data types that leads to smaller and cheaper scripts compared with `Scott encoding <https://en.wikipedia.org/wiki/Mogensen%E2%80%93Scott_encoding>`_, a common way of encoding data types in Plutus Core. 
 
 The sums of products approach aims to boost script efficiency and improve code generation for Plutus Core compilers. The changes involve new term constructors for packing fields into constructor values and efficient tag inspection for case branches, potentially running programs 30% faster. For an in-depth discussion, see `CIP-85 <https://cips.cardano.org/cip/CIP-0085>`_. 
 
@@ -91,7 +91,7 @@ New cryptographic primitives
 Bitwise primitives
 ~~~~~~~~~~~~~~~~~~~
 
-The introduction of `CIP-58 <https://cips.cardano.org/cip/CIP-0058>`_ bitwise primitives enable the following features: 
+PlutusV3 initially brings several new bitwise primitives (with more to come at later stages). The introduction of `CIP-58 <https://cips.cardano.org/cip/CIP-0058>`_ bitwise primitives will enable the following features: 
 
 - Very low-level bit manipulations within Plutus, supporting the ability to execute high-performance data manipulation operations. 
 - Supporting the implementation of secure and robust cryptographic algorithms within Plutus. 
