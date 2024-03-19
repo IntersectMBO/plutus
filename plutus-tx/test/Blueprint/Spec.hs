@@ -6,7 +6,9 @@
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
 
 module Blueprint.Spec where
@@ -17,11 +19,10 @@ import Data.Typeable ((:~:) (Refl))
 import GHC.Generics (Generic)
 import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Blueprint.Class (HasSchema (..))
-import PlutusTx.Blueprint.Definition (AsDefinitionId, Definitions, Unroll, UnrollAll,
+import PlutusTx.Blueprint.Definition (AsDefinitionId, Definitions, GenericUnroll, Unroll, UnrollAll,
                                       Unrollable (..))
 import PlutusTx.Blueprint.Schema (Schema (..))
 import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo)
-import PlutusTx.Builtins (BuiltinData)
 import PlutusTx.IsData ()
 
 ----------------------------------------------------------------------------------------------------
@@ -32,30 +33,35 @@ deriving stock instance (Generic Foo)
 deriving anyclass instance (AsDefinitionId Foo)
 instance HasSchema Foo ts where
   schema = SchemaBuiltInUnit emptySchemaInfo
+type instance Unroll Foo = GenericUnroll Foo
 
 data Bar = MkBar Baz Zap
 deriving stock instance (Generic Bar)
 deriving anyclass instance (AsDefinitionId Bar)
 instance HasSchema Bar ts where
   schema = SchemaBuiltInUnit emptySchemaInfo
+type instance Unroll Bar = GenericUnroll Bar
 
 data Baz = MkBaz Integer Integer
 deriving stock instance (Generic Baz)
 deriving anyclass instance (AsDefinitionId Baz)
 instance HasSchema Baz ts where
   schema = SchemaBuiltInUnit emptySchemaInfo
+type instance Unroll Baz = GenericUnroll Baz
 
 data Zap = MkZap Bool Integer Nop
 deriving stock instance (Generic Zap)
 deriving anyclass instance (AsDefinitionId Zap)
 instance HasSchema Zap ts where
   schema = SchemaBuiltInUnit emptySchemaInfo
+type instance Unroll Zap = GenericUnroll Zap
 
 data Nop = MkNop
 deriving stock instance (Generic Nop)
 deriving anyclass instance (AsDefinitionId Nop)
 instance HasSchema Nop ts where
   schema = SchemaBuiltInUnit emptySchemaInfo
+type instance Unroll Nop = GenericUnroll Nop
 
 $( PlutusTx.asData
     [d|
@@ -64,6 +70,7 @@ $( PlutusTx.asData
         deriving newtype (AsDefinitionId)
       |]
  )
+type instance Unroll Dat = '[Dat, Integer, Bool]
 
 ----------------------------------------------------------------------------------------------------
 -- Tests -------------------------------------------------------------------------------------------
@@ -89,5 +96,5 @@ testUnrollAll = Refl
 definitions :: Definitions [Foo, Bar, Zap, Nop, Integer, Bool, Baz]
 definitions = unroll @(UnrollAll '[Foo])
 
-testUnrollDat :: Unroll Dat :~: '[Dat, BuiltinData]
+testUnrollDat :: Unroll Dat :~: '[Dat, Integer, Bool]
 testUnrollDat = Refl

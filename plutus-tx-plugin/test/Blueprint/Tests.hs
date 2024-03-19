@@ -78,9 +78,5 @@ contractBlueprint =
            , Redeemer2
            , Datum
            , Datum2
-           , -- 'Bool' and 'Integer' have to be mentioned explicitly
-             -- because `Datum2` as an "AsData-type" unrolls to the 'BuiltinData' only.
-             Bool
-           , Integer
            ]
     }

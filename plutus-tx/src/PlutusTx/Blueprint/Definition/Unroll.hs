@@ -82,16 +82,20 @@ type family UnrollAll xs :: [Type] where
   consider types that are either end-user defined (and therefore have a generic representation) or
   built-in types that we explicitly list here as terminals in order not to get "stuck".
 -}
-type family Unroll (p :: Type) :: [Type] where
-  Unroll Int = '[Int]
-  Unroll Integer = '[Integer]
-  Unroll Text = '[Text]
-  Unroll BuiltinData = '[BuiltinData]
-  Unroll BuiltinUnit = '[BuiltinUnit]
-  Unroll BuiltinString = '[BuiltinString]
-  Unroll (BuiltinList a) = Prepend (BuiltinList a) (GUnroll (Rep a))
-  Unroll BuiltinByteString = '[BuiltinByteString]
-  Unroll p = Prepend p (GUnroll (Break (NoGeneric p) (Rep p)))
+type family Unroll (p :: Type) :: [Type]
+
+type instance Unroll () = '[()]
+type instance Unroll Int = '[Int]
+type instance Unroll Bool = '[Bool]
+type instance Unroll Integer = '[Integer]
+type instance Unroll Text = '[Text]
+type instance Unroll BuiltinData = '[BuiltinData]
+type instance Unroll BuiltinUnit = '[BuiltinUnit]
+type instance Unroll BuiltinString = '[BuiltinString]
+type instance Unroll (BuiltinList a) = Prepend (BuiltinList a) (GUnroll (Rep a))
+type instance Unroll BuiltinByteString = '[BuiltinByteString]
+
+type GenericUnroll p = Prepend p (GUnroll (Break (NoGeneric p) (Rep p)))
 
 -- | Detect stuck type family: https://blog.csongor.co.uk/report-stuck-families/#custom-type-errors
 type family Break e (rep :: Type -> Type) :: Type -> Type where

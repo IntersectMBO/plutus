@@ -11,6 +11,7 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
 
@@ -27,7 +28,8 @@ import Flat qualified
 import GHC.Generics (Generic)
 import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Blueprint.Class (HasSchema (..))
-import PlutusTx.Blueprint.Definition (AsDefinitionId, HasSchemaDefinition, definitionRef)
+import PlutusTx.Blueprint.Definition (AsDefinitionId, GenericUnroll, HasSchemaDefinition, Unroll,
+                                      definitionRef)
 import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..), emptyBytesSchema)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaComment (..), SchemaDescription (..),
                                              SchemaInfo (..), SchemaTitle (..), emptySchemaInfo)
@@ -59,6 +61,8 @@ data Params = MkParams
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
 
+type instance Unroll Params = GenericUnroll Params
+
 $(PlutusTx.makeLift ''Params)
 $(makeIsDataSchemaIndexed ''Params [('MkParams, 0)])
 
@@ -66,6 +70,8 @@ newtype Bytes (phantom :: Type) = MkAcmeBytes BuiltinByteString
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
   deriving newtype (ToData, FromData, UnsafeFromData)
+
+type instance Unroll (Bytes p) = GenericUnroll (Bytes p)
 
 instance HasSchema (Bytes phantom) ts where
   schema = SchemaBytes emptySchemaInfo{title = Just "SchemaBytes"} emptyBytesSchema
@@ -78,6 +84,8 @@ data DatumPayload = MkDatumPayload
   }
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
+
+type instance Unroll DatumPayload = GenericUnroll DatumPayload
 
 {-# ANN type Datum (SchemaTitle "Acme Datum") #-}
 {-# ANN type Datum (SchemaDescription "A datum that contains something awesome") #-}
@@ -93,6 +101,8 @@ data DatumPayload = MkDatumPayload
 data Datum = DatumLeft | DatumRight DatumPayload
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
+
+type instance Unroll Datum = GenericUnroll Datum
 
 {-# ANN type Redeemer (SchemaTitle "Acme Redeemer") #-}
 {-# ANN type Redeemer (SchemaDescription "A redeemer that does something awesome") #-}
@@ -129,6 +139,7 @@ newtype Param2a = MkParam2a Bool
 
 $(PlutusTx.makeLift ''Param2a)
 $(makeIsDataSchemaIndexed ''Param2a [('MkParam2a, 0)])
+type instance Unroll Param2a = GenericUnroll Param2a
 
 newtype Param2b = MkParam2b Bool
   deriving stock (Generic)
@@ -136,6 +147,7 @@ newtype Param2b = MkParam2b Bool
 
 $(PlutusTx.makeLift ''Param2b)
 $(makeIsDataSchemaIndexed ''Param2b [('MkParam2b, 0)])
+type instance Unroll Param2b = GenericUnroll Param2b
 
 $( PlutusTx.asData
     [d|
@@ -167,6 +179,8 @@ instance
             , definitionRef @Bool @ts
             ]
         }
+
+type instance Unroll Datum2 = '[Datum2, Integer, Bool]
 
 type Redeemer2 = Integer
 
