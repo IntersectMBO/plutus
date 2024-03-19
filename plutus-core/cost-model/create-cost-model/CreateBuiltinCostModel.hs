@@ -126,8 +126,9 @@ builtinCostModelNames = BuiltinCostModelBase
 
 -- | Loads the models from R.
 -- The "_hs" suffixes below make Haskell variables accessible inside [r| ... |]
-costModelsR :: MonadR m =>
-  FilePath
+costModelsR
+  :: MonadR m
+  => FilePath
   -> FilePath
   -> m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
 costModelsR bmfile rfile = do
@@ -143,7 +144,7 @@ costModelsR bmfile rfile = do
 -- | Creates the cost model from a CSV benchmarking results file and a file
 -- containing R modelling code.
 createBuiltinCostModel :: FilePath -> FilePath -> IO BuiltinCostModel
-createBuiltinCostModel bmfile rfile = do
+createBuiltinCostModel bmfile rfile =
   withEmbeddedR defaultConfig $ runRegion $ do
     cpuModels <- costModelsR bmfile rfile
     let
