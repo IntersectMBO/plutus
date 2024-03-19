@@ -24,14 +24,13 @@ import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce
 import UntypedPlutusCore.Transform.Cse
 import UntypedPlutusCore.Transform.FloatDelay
-import UntypedPlutusCore.Transform.ForceDelay
 import UntypedPlutusCore.Transform.Inline
 
 import Control.Lens.TH
 import Control.Monad
 import Data.List
 import Data.Typeable
-import UntypedPlutusCore.Transform.ForceApply (forceApply)
+import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 
 data SimplifyOpts name a = SimplifyOpts
     { _soMaxSimplifierIterations :: Int
@@ -84,8 +83,7 @@ simplifyTerm opts =
     simplifyStep :: Int -> Term name uni fun a -> m (Term name uni fun a)
     simplifyStep _ =
         floatDelay
-            >=> pure . forceDelayCancel
-            >=> pure . forceApply
+            >=> pure . forceDelay
             >=> pure . caseOfCase'
             >=> pure . caseReduce
             >=> inline (_soInlineConstants opts) (_soInlineHints opts)

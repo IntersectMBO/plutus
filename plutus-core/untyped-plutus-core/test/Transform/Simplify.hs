@@ -230,8 +230,8 @@ multiApp = runQuote $ do
 -- | The UPLC term in this test should come from the following TPLC term after erasing its types:
 -- @ (/\(p :: *) -> \(x : p) -> /\(q :: *) -> \(y : q) -> /\(r :: *) -> \(z : r) -> z) Int 1 Int 2 Int 3 @
 -- This case is simple in the sense that each type abstraction is followed by a single term abstraction.
-forceApplySimple :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-forceApplySimple = runQuote $ do
+forceDelaySimple :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceDelaySimple = runQuote $ do
   x <- freshName "x"
   y <- freshName "y"
   z <- freshName "z"
@@ -244,8 +244,8 @@ forceApplySimple = runQuote $ do
 
 -- | A test for the case when there are multiple applications between the 'Force' at the top
 -- and the 'Delay' at the top of the term inside the abstractions/applications.
-forceApplyMultiApply :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-forceApplyMultiApply = runQuote $ do
+forceDelayMultiApply :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceDelayMultiApply = runQuote $ do
   x1 <- freshName "x1"
   x2 <- freshName "x2"
   x3 <- freshName "x3"
@@ -265,8 +265,8 @@ forceApplyMultiApply = runQuote $ do
 
 -- | A test for the case when there are multiple type abstractions over a single term
 -- abstraction/application.
-forceApplyMultiForce :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-forceApplyMultiForce = runQuote $ do
+forceDelayMultiForce :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceDelayMultiForce = runQuote $ do
   x <- freshName "x"
   let one = mkConstant @Integer () 1
       term =
@@ -291,8 +291,8 @@ forceApplyMultiForce = runQuote $ do
 --
 -- @
 -- Note this term has multiple interleaved type and term instantiations/applications.
-forceApplyComplex :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-forceApplyComplex = runQuote $ do
+forceDelayComplex :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceDelayComplex = runQuote $ do
   x <- freshName "x"
   y1 <- freshName "y1"
   y2 <- freshName "y2"
@@ -444,10 +444,10 @@ test_simplify =
     , goldenVsSimplified "inlineImpure3" inlineImpure3
     , goldenVsSimplified "inlineImpure4" inlineImpure4
     , goldenVsSimplified "multiApp" multiApp
-    , goldenVsSimplified "forceApplySimple" forceApplySimple
-    , goldenVsSimplified "forceApplyMultiApply" forceApplyMultiApply
-    , goldenVsSimplified "forceApplyMultiForce" forceApplyMultiForce
-    , goldenVsSimplified "forceApplyComplex" forceApplyComplex
+    , goldenVsSimplified "forceDelaySimple" forceDelaySimple
+    , goldenVsSimplified "forceDelayMultiApply" forceDelayMultiApply
+    , goldenVsSimplified "forceDelayMultiForce" forceDelayMultiForce
+    , goldenVsSimplified "forceDelayComplex" forceDelayComplex
     , goldenVsCse "cse1" cse1
     , goldenVsCse "cse2" cse2
     , goldenVsCse "cse3" cse3
