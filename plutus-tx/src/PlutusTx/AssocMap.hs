@@ -19,7 +19,7 @@ module PlutusTx.AssocMap (
   empty,
   null,
   unsafeFromList,
-  fromListSafe,
+  safeFromList,
   toList,
   keys,
   elems,
@@ -55,6 +55,20 @@ import Prettyprinter (Pretty (..))
 
 -- See Note [Optimising Value].
 -- | A 'Map' of key-value pairs.
+-- A 'Map' is considered well-defined if there are no key collisions, meaning that each value
+-- is uniquely identified by a key.
+--
+-- Use 'safeFromList' to create well-defined 'Map's from arbitrary lists of pairs.
+--
+-- If cost minimisation is required, then you can use 'unsafeFromList' but you must
+-- be certain that the list you are converting to a 'Map' abides by the well-definedness condition.
+--
+-- Most operations on 'Map's are definedness-preserving, meaning that for the resulting 'Map' to be
+-- well-defined then the input 'Map'(s) have to also be well-defined. This is not checked explicitly
+-- unless mentioned in the documentation.
+--
+-- Take care when using 'fromBuiltinData' and 'unsafeFromBuiltinData', as neither function performs
+-- deduplication of the input collection and may create invalid 'Map's!
 newtype Map k v = Map {unMap :: [(k, v)]}
   deriving stock (Generic, Haskell.Eq, Haskell.Show, Data, TH.Lift)
   deriving newtype (Eq, Ord, NFData)
@@ -162,16 +176,17 @@ instance (Pretty k, Pretty v) => Pretty (Map k v) where
 
 {-# INLINEABLE unsafeFromList #-}
 -- | Unsafely create a 'Map' from a list of pairs. This should _only_ be applied to lists which
--- have been checked to not contain duplicate pairs or duplicate keys, otherwise the 'Map' invariant
--- will be broken. As usual, the "keys" are considered to be the first element of the pair.
+-- have been checked to not contain duplicate keys, otherwise the resulting 'Map' will contain
+-- conflicting entries (two entries sharing the same key).
+-- As usual, the "keys" are considered to be the first element of the pair.
 unsafeFromList :: [(k, v)] -> Map k v
 unsafeFromList = Map
 
-{-# INLINEABLE fromListSafe #-}
+{-# INLINEABLE safeFromList #-}
 -- | In case of duplicates, this function will keep only one entry (the one that precedes).
 -- In other words, this function de-duplicates the input list.
-fromListSafe :: Eq k => [(k, v)] -> Map k v
-fromListSafe = foldr (uncurry insert) empty
+safeFromList :: Eq k => [(k, v)] -> Map k v
+safeFromList = foldr (uncurry insert) empty
 
 {-# INLINEABLE toList #-}
 toList :: Map k v -> [(k, v)]
