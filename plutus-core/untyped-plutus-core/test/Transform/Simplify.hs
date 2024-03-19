@@ -228,7 +228,7 @@ multiApp = runQuote $ do
   pure app
 
 -- | The UPLC term in this test should come from the following TPLC term after erasing its types:
--- @ (/\(p :: *) -> \(x : p) -> /\(q :: *) -> \(y : q) -> /\(r :: *) -> \(z : r) -> z) Int 1 Int 2 Int 3 @
+-- > (/\(p :: *) -> \(x : p) -> /\(q :: *) -> \(y : q) -> /\(r :: *) -> \(z : r) -> z) Int 1 Int 2 Int 3
 -- This case is simple in the sense that each type abstraction is followed by a single term abstraction.
 forceDelaySimple :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 forceDelaySimple = runQuote $ do
@@ -280,16 +280,14 @@ forceDelayMultiForce = runQuote $ do
   pure term
 
 -- | The UPLC term in this test should come from the following TPLC term after erasing its types:
--- @
 --
--- (/\(p1 :: *) (p2 :: *) -> \(x : p2) ->
---   /\(q1 :: *) (q2 :: *) (q3 :: *) -> \(y1 : q1) (y2 : q2) (y3 : String) ->
---     /\(r :: *) -> \(z1 : r) -> \(z2 : r) ->
---       /\(t :: *) -> \(f : p1 -> q1 -> q2 -> String -> r -> r -> String) ->
---         f x y1 y2 y3 z1 z2
--- ) Int Int 1 Int String Int 2 "foo" "bar" Int 3 3 ByteString (funcVar : Int -> Int -> String -> String -> Int -> String)
+-- > (/\(p1 :: *) (p2 :: *) -> \(x : p2) ->
+-- >   /\(q1 :: *) (q2 :: *) (q3 :: *) -> \(y1 : q1) (y2 : q2) (y3 : String) ->
+-- >     /\(r :: *) -> \(z1 : r) -> \(z2 : r) ->
+-- >       /\(t :: *) -> \(f : p1 -> q1 -> q2 -> String -> r -> r -> String) ->
+-- >         f x y1 y2 y3 z1 z2
+-- > ) Int Int 1 Int String Int 2 "foo" "bar" Int 3 3 ByteString (funcVar : Int -> Int -> String -> String -> Int -> String)
 --
--- @
 -- Note this term has multiple interleaved type and term instantiations/applications.
 forceDelayComplex :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 forceDelayComplex = runQuote $ do

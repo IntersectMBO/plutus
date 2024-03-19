@@ -1,6 +1,6 @@
 {- | The 'ForceDelay' optimisation pushes 'Force' inside its direct 'Apply' subterms,
  removing any 'Delay' at the top of the body of the underlying lambda abstraction.
- For example, @force ((\x -> delay b) a)@ is transformed into @(\x -> b) a@.
+ For example, @force [(\x -> delay b) a]@ is transformed into @[(\x -> b) a]@.
  We also consider the case where the 'Force' is applied directly to the 'Delay' as
  the base case, i.e. the case when the applications of lambdas is empty.
  In such simple cases, the transformation is obviously correct, the question remains
@@ -14,7 +14,8 @@
 
  where @T1 ... Tn@ are lists of type variables (e.g. @T1@ could be @[t, q, p]@)
  and @X1 ... Xn@ are lists of term variables. Of course, each @/\@ and @\@ here would
- desugar to a sequence of type/term abstractions.
+ desugar to a sequence of type/term abstractions. Also @[ M P Q ]@ is iterated
+ term application, which, as usual, is left-associative.
 
  In order to reason about the proposed optimisation we need to consider such terms in
  the context of them being applied to some sequence of terms.
@@ -23,18 +24,19 @@
  (term)-lambda abstraction will be exactly reduced by the applications.
  For UPLC, this can happen only when the number of lambda abstracted variables is equal
  to the number of terms to which it will be applied.
- For example, @force (\x -> delay b) => (\x -> b)@ is invalid, since the former is @error@.
+ For example, @force (\\x -> delay b) => (\\x -> b)@ is invalid, since the former is @error@.
  The other case, we can see that applying the optimisation modifies the end result:
- >  force ((\x -> delay b) a1 a2) => (\x -> b) a1 a2 => b[x1:=a1] a2
+ >  force [(\x -> delay b) a1 a2] => [(\x -> b) a1 a2] => b[x1:=a1] a2
  >
  >  vs.
  >
- >  force ((\x -> delay b) a1 a2) => force ((delay b[x1:=a1]) a2) => error
+ >  force [(\x -> delay b) a1 a2] => force [(delay b[x1:=a1]) a2] => error
 
  To generalise, we consider the family of terms above applied to a family of types and
  terms:
- > (/\T1 -> \X1 ->  ... -> /\Tn -> \Xn -> body)
- >   T1 X1 ... Tn Xn
+ > [ (/\T1 -> \X1 ->  ... -> /\Tn -> \Xn -> body)
+ >     T1 X1 ... Tn Xn
+ > ]
 
  For brevity, the types and the terms to which the lambda applies are named the same as the
  bound variables, but of course this isn't necessary.
@@ -45,52 +47,52 @@
  where @delay^|A|@ means "apply delay |A| (the length of A) times".
 
  With the applications:
- > (force^|Tn| (... (force^|T3| ((force^|T2| ((force^|T1| original) X1)) X2)) X3 ...)) Xn
+ > [force^|Tn| (... [force^|T3| ([force^|T2| ([force^|T1| (original) X1]) X2]) X3] ...) Xn]
 
  After inlining @original@ we get:
- >  (force^|Tn|
+ >  [force^|Tn|
  >    (...
- >      ((force^|T3|
- >        ((force^|T2|
- >          ((force^|T1|
+ >      ([force^|T3|
+ >        ([force^|T2|
+ >          ([force^|T1|
  >            (delay^|T1|
  >              (\X1 ->
  >                 delay^|T2| (\X2 ->
  >                   delay^|T3| (\X3 ->
  >                     ... ->
  >                       delay^|Tn| (\Xn -> body)))))
- >           ) X1)) X2)) X3) ...)) Xn
+ >           X1]) X2]) X3]) ...) Xn]
 
- In the end, after applying the "UntypedPlutusCore.Transform.ForceDelay" optimisation:
- >  (force^|Tn|
+ In the end, after applying the base case optimisation:
+ >  [force^|Tn|
  >    (...
- >      (force^|T3|
- >        ((force^|T2|
- >          ((\X1 ->
+ >      ([force^|T3|
+ >        ([force^|T2|
+ >          ([(\X1 ->
  >            delay^|T2| (\X2 ->
  >              delay^|T3| (\X3 ->
  >                ... ->
- >                  delay^|Tn| (\Xn -> body)))))
- >       X1) X2)) X3 ...)) Xn
+ >                  delay^|Tn| (\Xn -> body))))
+ >          X1]) X2]) X3]) ...) Xn]
 
  Notice that the next two reduction steps (applying @X1@ and reducing @force (delay ...)@)
  produce an equivalent term to applying the transformation and then the reduction rule
  for application.
  This is easy to check, so we continue by showing what the "optimised term" looks like:
- >  (force^|Tn|
+ >  [force^|Tn|
  >    (...
- >      (force^|T3|
- >        ((\X1 -> \X2 ->
+ >      [force^|T3|
+ >        ([(\X1 -> \X2 ->
  >          delay^|T3| (\X3 ->
  >            ... ->
- >              delay^|Tn| (\Xn -> body))
- >       X1) X2)) X3 ...)) Xn
+ >              delay^|Tn| (\Xn -> body)))
+ >         X1 X2]) X3] ...) Xn]
 
  The term can be optimised further by "erasing" the @force^|T3|@ and @delay^|T3|@ pair,
  and so on until @Tn@.
 
  For examples of terms we can optimise, see the test cases in the
- "Transform.Simplify.forceApply*" module of the test suite.
+ "Transform.Simplify.forceDelay*" module of the test suite.
 
  Remark:
 
@@ -103,9 +105,9 @@
 
  Let's consider a version of this algorithm which only "pushes forces" down under the
  applications of lambdas, and the following term:
- > force (force [(\x1 -> delay [(\x2 -> delay [(\x3 -> body) 5]) 7]) 9])
+ > force (force ([(\x1 -> delay [(\x2 -> delay [(\x3 -> body) 5]) 7]) 9]))
  > ==> (push inner force)
- > force [(\x1 -> force (delay [(\x2 -> delay [(\x3 -> body) 5]) 7]) 9]
+ > force ([(\x1 -> force (delay [(\x2 -> delay [(\x3 -> body) 5]) 7]) 9])
  > ==> (push outer force)
  > [(\x1 -> force (force (delay [(\x2 -> delay [(\x3 -> body) 5]) 7])) 9]
 
@@ -113,7 +115,7 @@
  application of a @force@ over a series of lambdas and applications.
  To proceed, we need to introduce a separate pass which removes forces immediately
  followed by delays. For our example above this results in:
- > [(\x1 -> force [(\x2 -> delay [(\x3 -> body) 5]) 7]) 9]
+ > [(\x1 -> force ([(\x2 -> delay [(\x3 -> body) 5]) 7])) 9]
 
  As can be seen, to proceed with simplifying the term we need to run the "push" pass
  again.
