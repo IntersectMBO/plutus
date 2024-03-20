@@ -20,7 +20,7 @@ mkIterApp = foldl AppE
 
 {- | The genTest function generates calls to the appropriate "makeProp" functions: eg
 
-      $(genTest 3 "xyz") -> makeProp3 "xyz" xyz paramXyz models
+      $(genTest 3 "xyz") -> makeProp3 "xyz" paramXyz modelsH modelsR
 
    Appropriate variables/functions must be in scope when 'genTest' is called,
    but this should always be the case if it's used inside the 'tests' list in
