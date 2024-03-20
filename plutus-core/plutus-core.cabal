@@ -965,6 +965,7 @@ benchmark cost-model-test
   build-depends:
     , barbies
     , base              >=4.9   && <5
+    , bytestring
     , hedgehog
     , inline-r          >=1.0.1
     , mmorph

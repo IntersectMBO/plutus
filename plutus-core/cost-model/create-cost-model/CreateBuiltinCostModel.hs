@@ -1,12 +1,11 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE QuasiQuotes           #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE RecordWildCards   #-}
 
-module CreateBuiltinCostModel where
+module CreateBuiltinCostModel (createBuiltinCostModel)
+where
 
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
@@ -28,7 +27,7 @@ import Data.SatInt
 import Data.Text (Text)
 import Text.Printf (printf)
 
-import H.Prelude (MonadR, Region)
+import H.Prelude (MonadR, R, Region)
 import Language.R (SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, withEmbeddedR)
 import Language.R.QQ (r)
 
@@ -146,102 +145,106 @@ costModelsR bmfile rfile = do
 createBuiltinCostModel :: FilePath -> FilePath -> IO BuiltinCostModel
 createBuiltinCostModel bmfile rfile =
   withEmbeddedR defaultConfig $ runRegion $ do
-    cpuModels <- costModelsR bmfile rfile
+    cpuModels :: BuiltinCostModelBase (Const (SomeSEXP s)) <- costModelsR bmfile rfile
     let
-      getParams readCF param1 param2 = do
-        let memModel = getId $ param1 builtinMemModels
-        cpuModel <- readCF $ getConst $ param2 cpuModels
+      getParams
+        :: (SomeSEXP s -> R s model)
+        -> (forall f. BuiltinCostModelBase f -> f model)
+        -> R s (CostingFun model)
+      getParams readCF param = do
+        let memModel = getId $ param builtinMemModels
+        cpuModel <- readCF $ getConst $ param cpuModels
         pure $ CostingFun cpuModel memModel
 
     -- Integers
-    paramAddInteger                      <- getParams lcf2 paramAddInteger             paramAddInteger
-    paramSubtractInteger                 <- getParams lcf2 paramSubtractInteger        paramSubtractInteger
-    paramMultiplyInteger                 <- getParams lcf2 paramMultiplyInteger        paramMultiplyInteger
-    paramDivideInteger                   <- getParams lcf2 paramDivideInteger          paramDivideInteger
-    paramQuotientInteger                 <- getParams lcf2 paramQuotientInteger        paramQuotientInteger
-    paramRemainderInteger                <- getParams lcf2 paramRemainderInteger       paramRemainderInteger
-    paramModInteger                      <- getParams lcf2 paramModInteger             paramModInteger
-    paramEqualsInteger                   <- getParams lcf2 paramEqualsInteger          paramEqualsInteger
-    paramLessThanInteger                 <- getParams lcf2 paramLessThanInteger        paramLessThanInteger
-    paramLessThanEqualsInteger           <- getParams lcf2 paramLessThanEqualsInteger  paramLessThanEqualsInteger
+    paramAddInteger                      <- getParams readCF2 paramAddInteger
+    paramSubtractInteger                 <- getParams readCF2 paramSubtractInteger
+    paramMultiplyInteger                 <- getParams readCF2 paramMultiplyInteger
+    paramDivideInteger                   <- getParams readCF2 paramDivideInteger
+    paramQuotientInteger                 <- getParams readCF2 paramQuotientInteger
+    paramRemainderInteger                <- getParams readCF2 paramRemainderInteger
+    paramModInteger                      <- getParams readCF2 paramModInteger
+    paramEqualsInteger                   <- getParams readCF2 paramEqualsInteger
+    paramLessThanInteger                 <- getParams readCF2 paramLessThanInteger
+    paramLessThanEqualsInteger           <- getParams readCF2 paramLessThanEqualsInteger
     -- Bytestrings
-    paramAppendByteString                <- getParams lcf2 paramAppendByteString          paramAppendByteString
-    paramConsByteString                  <- getParams lcf2 paramConsByteString            paramConsByteString
-    paramSliceByteString                 <- getParams lcf3 paramSliceByteString           paramSliceByteString
-    paramLengthOfByteString              <- getParams lcf1 paramLengthOfByteString        paramLengthOfByteString
-    paramIndexByteString                 <- getParams lcf2 paramIndexByteString           paramIndexByteString
-    paramEqualsByteString                <- getParams lcf2 paramEqualsByteString          paramEqualsByteString
-    paramLessThanByteString              <- getParams lcf2 paramLessThanByteString        paramLessThanByteString
-    paramLessThanEqualsByteString        <- getParams lcf2 paramLessThanEqualsByteString  paramLessThanEqualsByteString
+    paramAppendByteString                <- getParams readCF2 paramAppendByteString
+    paramConsByteString                  <- getParams readCF2 paramConsByteString
+    paramSliceByteString                 <- getParams readCF3 paramSliceByteString
+    paramLengthOfByteString              <- getParams readCF1 paramLengthOfByteString
+    paramIndexByteString                 <- getParams readCF2 paramIndexByteString
+    paramEqualsByteString                <- getParams readCF2 paramEqualsByteString
+    paramLessThanByteString              <- getParams readCF2 paramLessThanByteString
+    paramLessThanEqualsByteString        <- getParams readCF2 paramLessThanEqualsByteString
     -- Cryptography and hashes
-    paramSha2_256                        <- getParams lcf1 paramSha2_256                         paramSha2_256
-    paramSha3_256                        <- getParams lcf1 paramSha3_256                         paramSha3_256
-    paramBlake2b_256                     <- getParams lcf1 paramBlake2b_256                      paramBlake2b_256
-    paramVerifyEd25519Signature          <- getParams lcf3 paramVerifyEd25519Signature           paramVerifyEd25519Signature
-    paramVerifyEcdsaSecp256k1Signature   <- getParams lcf3 paramVerifyEcdsaSecp256k1Signature    paramVerifyEcdsaSecp256k1Signature
-    paramVerifySchnorrSecp256k1Signature <- getParams lcf3 paramVerifySchnorrSecp256k1Signature  paramVerifySchnorrSecp256k1Signature
+    paramSha2_256                        <- getParams readCF1 paramSha2_256
+    paramSha3_256                        <- getParams readCF1 paramSha3_256
+    paramBlake2b_256                     <- getParams readCF1 paramBlake2b_256
+    paramVerifyEd25519Signature          <- getParams readCF3 paramVerifyEd25519Signature
+    paramVerifyEcdsaSecp256k1Signature   <- getParams readCF3 paramVerifyEcdsaSecp256k1Signature
+    paramVerifySchnorrSecp256k1Signature <- getParams readCF3 paramVerifySchnorrSecp256k1Signature
     -- Strings
-    paramAppendString                    <- getParams lcf2 paramAppendString  paramAppendString
-    paramEqualsString                    <- getParams lcf2 paramEqualsString  paramEqualsString
-    paramEncodeUtf8                      <- getParams lcf1 paramEncodeUtf8    paramEncodeUtf8
-    paramDecodeUtf8                      <- getParams lcf1 paramDecodeUtf8    paramDecodeUtf8
+    paramAppendString                    <- getParams readCF2 paramAppendString
+    paramEqualsString                    <- getParams readCF2 paramEqualsString
+    paramEncodeUtf8                      <- getParams readCF1 paramEncodeUtf8
+    paramDecodeUtf8                      <- getParams readCF1 paramDecodeUtf8
     -- Bool
-    paramIfThenElse                      <- getParams lcf3 paramIfThenElse     paramIfThenElse
+    paramIfThenElse                      <- getParams readCF3 paramIfThenElse
     -- Unit
-    paramChooseUnit                      <- getParams lcf2 paramChooseUnit     paramChooseUnit
+    paramChooseUnit                      <- getParams readCF2 paramChooseUnit
     -- Tracing
-    paramTrace                           <- getParams lcf2 paramTrace          paramTrace
+    paramTrace                           <- getParams readCF2 paramTrace
     -- Pairs
-    paramFstPair                         <- getParams lcf1 paramFstPair        paramFstPair
-    paramSndPair                         <- getParams lcf1 paramSndPair        paramSndPair
+    paramFstPair                         <- getParams readCF1 paramFstPair
+    paramSndPair                         <- getParams readCF1 paramSndPair
     -- Lists
-    paramChooseList                      <- getParams lcf3 paramChooseList     paramChooseList
-    paramMkCons                          <- getParams lcf2 paramMkCons         paramMkCons
-    paramHeadList                        <- getParams lcf1 paramHeadList       paramHeadList
-    paramTailList                        <- getParams lcf1 paramTailList       paramTailList
-    paramNullList                        <- getParams lcf1 paramNullList       paramNullList
+    paramChooseList                      <- getParams readCF3 paramChooseList
+    paramMkCons                          <- getParams readCF2 paramMkCons
+    paramHeadList                        <- getParams readCF1 paramHeadList
+    paramTailList                        <- getParams readCF1 paramTailList
+    paramNullList                        <- getParams readCF1 paramNullList
     -- Data
-    paramChooseData                      <- getParams lcf6 paramChooseData     paramChooseData
-    paramConstrData                      <- getParams lcf2 paramConstrData     paramConstrData
-    paramMapData                         <- getParams lcf1 paramMapData        paramMapData
-    paramListData                        <- getParams lcf1 paramListData       paramListData
-    paramIData                           <- getParams lcf1 paramIData          paramIData
-    paramBData                           <- getParams lcf1 paramBData          paramBData
-    paramUnConstrData                    <- getParams lcf1 paramUnConstrData   paramUnConstrData
-    paramUnMapData                       <- getParams lcf1 paramUnMapData      paramUnMapData
-    paramUnListData                      <- getParams lcf1 paramUnListData     paramUnListData
-    paramUnIData                         <- getParams lcf1 paramUnIData        paramUnIData
-    paramUnBData                         <- getParams lcf1 paramUnBData        paramUnBData
-    paramEqualsData                      <- getParams lcf2 paramEqualsData     paramEqualsData
-    paramSerialiseData                   <- getParams lcf1 paramSerialiseData  paramSerialiseData
+    paramChooseData                      <- getParams readCF6 paramChooseData
+    paramConstrData                      <- getParams readCF2 paramConstrData
+    paramMapData                         <- getParams readCF1 paramMapData
+    paramListData                        <- getParams readCF1 paramListData
+    paramIData                           <- getParams readCF1 paramIData
+    paramBData                           <- getParams readCF1 paramBData
+    paramUnConstrData                    <- getParams readCF1 paramUnConstrData
+    paramUnMapData                       <- getParams readCF1 paramUnMapData
+    paramUnListData                      <- getParams readCF1 paramUnListData
+    paramUnIData                         <- getParams readCF1 paramUnIData
+    paramUnBData                         <- getParams readCF1 paramUnBData
+    paramEqualsData                      <- getParams readCF2 paramEqualsData
+    paramSerialiseData                   <- getParams readCF1 paramSerialiseData
     -- Misc constructors
-    paramMkPairData                      <- getParams lcf2 paramMkPairData     paramMkPairData
-    paramMkNilData                       <- getParams lcf1 paramMkNilData      paramMkNilData
-    paramMkNilPairData                   <- getParams lcf1 paramMkNilPairData  paramMkNilPairData
+    paramMkPairData                      <- getParams readCF2 paramMkPairData
+    paramMkNilData                       <- getParams readCF1 paramMkNilData
+    paramMkNilPairData                   <- getParams readCF1 paramMkNilPairData
     -- BLS12-381
-    paramBls12_381_G1_add                <- getParams lcf2 paramBls12_381_G1_add          paramBls12_381_G1_add
-    paramBls12_381_G1_neg                <- getParams lcf1 paramBls12_381_G1_neg          paramBls12_381_G1_neg
-    paramBls12_381_G1_scalarMul          <- getParams lcf2 paramBls12_381_G1_scalarMul    paramBls12_381_G1_scalarMul
-    paramBls12_381_G1_equal              <- getParams lcf2 paramBls12_381_G1_equal        paramBls12_381_G1_equal
-    paramBls12_381_G1_compress           <- getParams lcf1 paramBls12_381_G1_compress     paramBls12_381_G1_compress
-    paramBls12_381_G1_uncompress         <- getParams lcf1 paramBls12_381_G1_uncompress   paramBls12_381_G1_uncompress
-    paramBls12_381_G1_hashToGroup        <- getParams lcf2 paramBls12_381_G1_hashToGroup  paramBls12_381_G1_hashToGroup
-    paramBls12_381_G2_add                <- getParams lcf2 paramBls12_381_G2_add          paramBls12_381_G2_add
-    paramBls12_381_G2_neg                <- getParams lcf1 paramBls12_381_G2_neg          paramBls12_381_G2_neg
-    paramBls12_381_G2_scalarMul          <- getParams lcf2 paramBls12_381_G2_scalarMul    paramBls12_381_G2_scalarMul
-    paramBls12_381_G2_equal              <- getParams lcf2 paramBls12_381_G2_equal        paramBls12_381_G2_equal
-    paramBls12_381_G2_compress           <- getParams lcf1 paramBls12_381_G2_compress     paramBls12_381_G2_compress
-    paramBls12_381_G2_uncompress         <- getParams lcf1 paramBls12_381_G2_uncompress   paramBls12_381_G2_uncompress
-    paramBls12_381_G2_hashToGroup        <- getParams lcf2 paramBls12_381_G2_hashToGroup  paramBls12_381_G2_hashToGroup
-    paramBls12_381_millerLoop            <- getParams lcf2 paramBls12_381_millerLoop      paramBls12_381_millerLoop
-    paramBls12_381_mulMlResult           <- getParams lcf2 paramBls12_381_mulMlResult     paramBls12_381_mulMlResult
-    paramBls12_381_finalVerify           <- getParams lcf2 paramBls12_381_finalVerify     paramBls12_381_finalVerify
+    paramBls12_381_G1_add                <- getParams readCF2 paramBls12_381_G1_add
+    paramBls12_381_G1_neg                <- getParams readCF1 paramBls12_381_G1_neg
+    paramBls12_381_G1_scalarMul          <- getParams readCF2 paramBls12_381_G1_scalarMul
+    paramBls12_381_G1_equal              <- getParams readCF2 paramBls12_381_G1_equal
+    paramBls12_381_G1_compress           <- getParams readCF1 paramBls12_381_G1_compress
+    paramBls12_381_G1_uncompress         <- getParams readCF1 paramBls12_381_G1_uncompress
+    paramBls12_381_G1_hashToGroup        <- getParams readCF2 paramBls12_381_G1_hashToGroup
+    paramBls12_381_G2_add                <- getParams readCF2 paramBls12_381_G2_add
+    paramBls12_381_G2_neg                <- getParams readCF1 paramBls12_381_G2_neg
+    paramBls12_381_G2_scalarMul          <- getParams readCF2 paramBls12_381_G2_scalarMul
+    paramBls12_381_G2_equal              <- getParams readCF2 paramBls12_381_G2_equal
+    paramBls12_381_G2_compress           <- getParams readCF1 paramBls12_381_G2_compress
+    paramBls12_381_G2_uncompress         <- getParams readCF1 paramBls12_381_G2_uncompress
+    paramBls12_381_G2_hashToGroup        <- getParams readCF2 paramBls12_381_G2_hashToGroup
+    paramBls12_381_millerLoop            <- getParams readCF2 paramBls12_381_millerLoop
+    paramBls12_381_mulMlResult           <- getParams readCF2 paramBls12_381_mulMlResult
+    paramBls12_381_finalVerify           <- getParams readCF2 paramBls12_381_finalVerify
     -- More hashes
-    paramKeccak_256                      <- getParams lcf1 paramKeccak_256           paramKeccak_256
-    paramBlake2b_224                     <- getParams lcf1 paramBlake2b_224          paramBlake2b_224
+    paramKeccak_256                      <- getParams readCF1 paramKeccak_256
+    paramBlake2b_224                     <- getParams readCF1 paramBlake2b_224
     -- Bitwise operations
-    paramByteStringToInteger             <- getParams lcf2 paramByteStringToInteger  paramByteStringToInteger
-    paramIntegerToByteString             <- getParams lcf3 paramIntegerToByteString  paramIntegerToByteString
+    paramByteStringToInteger             <- getParams readCF2 paramByteStringToInteger
+    paramIntegerToByteString             <- getParams readCF3 paramIntegerToByteString
 
     pure $ BuiltinCostModelBase {..}
 
@@ -316,15 +319,17 @@ readTwoVariableFunConstOr :: MonadR m => SomeSEXP (Region m) -> m ModelConstantO
 readTwoVariableFunConstOr e = do
   constantPart <- getExtraParam "const" e
   subtype <- getSubtype e
-  nonConstantPart <- loadTwoVariableCostingFunctionOfType subtype e
+  nonConstantPart <- readCF2AtType subtype e
   pure $ ModelConstantOrTwoArguments constantPart nonConstantPart
 
--- | Functions to read CPU costing functions from R.  There are some costing
--- function types which are currently only used for memory models (which are
--- constructed directly, not via R), and those won't be handled here.
+{- | Functions to read CPU costing functions from R.  There are some costing
+function types which are currently only used for memory models (which are
+constructed directly, not via R), and those won't be handled here.  These
+functions have short names to improve formatting elsewhere.
+-}
 
-loadOneVariableCostingFunction :: MonadR m => SomeSEXP (Region m) -> m ModelOneArgument
-loadOneVariableCostingFunction e = do
+readCF1 :: MonadR m => SomeSEXP (Region m) -> m ModelOneArgument
+readCF1 e = do
   ty <- getType e
   case ty of
     "constant_cost" -> ModelOneArgumentConstantCost <$> getConstant e
@@ -332,12 +337,13 @@ loadOneVariableCostingFunction e = do
     "linear_in_x"   -> ModelOneArgumentLinearCost <$> readOneVariableLinearFunction "x_mem" e  -- FIXME: duplicate
     _               -> error $ "Unknown one-variable model type: " ++ ty
 
--- | Load in a two-variable costing function of a given type.  We have to supply
--- the type as a parameter so that we can deal with nested costing functions
--- which have type and subtype tags.  This generality is currently only required
--- for two-variable costing functions.
-loadTwoVariableCostingFunctionOfType :: MonadR m => String -> SomeSEXP (Region m) -> m ModelTwoArguments
-loadTwoVariableCostingFunctionOfType ty e = do
+{- | Read in a two-variable costing function of a given type.  We have to supply
+ the type as a parameter so that we can deal with nested costing functions which
+ have type and subtype tags.  This generality is currently only required for
+ two-variable costing functions.
+-}
+readCF2AtType :: MonadR m => String -> SomeSEXP (Region m) -> m ModelTwoArguments
+readCF2AtType ty e = do
   case ty of
     "constant_cost"        -> ModelTwoArgumentsConstantCost       <$> getConstant e
     "linear_in_x"          -> ModelTwoArgumentsLinearInX          <$> readOneVariableLinearFunction "x_mem" e
@@ -353,13 +359,13 @@ loadTwoVariableCostingFunctionOfType ty e = do
     "quadratic_in_y"       -> ModelTwoArgumentsQuadraticInY       <$> readOneVariableQuadraticFunction "y_mem" e
     _                      -> error $ "Unknown two-variable model type: " ++ ty
 
-loadTwoVariableCostingFunction :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments
-loadTwoVariableCostingFunction e = do
+readCF2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments
+readCF2 e = do
   ty <- getType e
-  loadTwoVariableCostingFunctionOfType ty e
+  readCF2AtType ty e
 
-loadThreeVariableCostingFunction :: MonadR m => SomeSEXP (Region m) -> m ModelThreeArguments
-loadThreeVariableCostingFunction e = do
+readCF3 :: MonadR m => SomeSEXP (Region m) -> m ModelThreeArguments
+readCF3 e = do
   ty <- getType e
   case ty of
     "constant_cost"               -> ModelThreeArgumentsConstantCost          <$> getConstant e
@@ -370,26 +376,15 @@ loadThreeVariableCostingFunction e = do
     "literal_in_y_or_linear_in_z" -> ModelThreeArgumentsLiteralInYOrLinearInZ <$> error "literal"
     _                             -> error $ "Unknown three-variable model type: " ++ ty
 
-loadSixVariableCostingFunction :: MonadR m => SomeSEXP (Region m) -> m ModelSixArguments
-loadSixVariableCostingFunction e = do
+readCF6 :: MonadR m => SomeSEXP (Region m) -> m ModelSixArguments
+readCF6 e = do
   ty <- getType e
   case ty of
     "constant_cost" -> ModelSixArgumentsConstantCost <$> getConstant e
     _               -> error $ "Unknown six-variable model type: " ++ ty
 
 
-lcf1 :: MonadR m => SomeSEXP (Region m) -> m ModelOneArgument
-lcf1 = loadOneVariableCostingFunction
-
-lcf2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments
-lcf2 = loadTwoVariableCostingFunction
-
-lcf3 :: MonadR m => SomeSEXP (Region m) -> m ModelThreeArguments
-lcf3 = loadThreeVariableCostingFunction
-
-lcf6 :: MonadR m => SomeSEXP (Region m) -> m ModelSixArguments
-lcf6 = loadSixVariableCostingFunction
-
+-- Some utilities for calculating memory sizes.
 
 boolMemModel :: ModelTwoArguments
 boolMemModel = ModelTwoArgumentsConstantCost 1
@@ -512,4 +507,3 @@ builtinMemModels = BuiltinCostModelBase
   , paramIntegerToByteString             = Id $ ModelThreeArgumentsLiteralInYOrLinearInZ $ OneVariableLinearFunction 0 1
   , paramByteStringToInteger             = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 0 1
   }
-
