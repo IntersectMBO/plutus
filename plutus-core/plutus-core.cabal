@@ -935,7 +935,9 @@ executable generate-cost-model
     , text
 
   --    , exceptions
-  other-modules:  CreateBuiltinCostModel
+  other-modules:
+    BuiltinMemoryModels
+    CreateBuiltinCostModel
 
 -- The cost models for builtins are generated using R and converted into a JSON
 -- form that can later be used to construct Haskell functions.  This tests that

@@ -7,21 +7,13 @@
 module CreateBuiltinCostModel (createBuiltinCostModel)
 where
 
-import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
-import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
-import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
-import PlutusCore.Crypto.Hash qualified as Hash
+import BuiltinMemoryModels (Id (..), builtinMemoryModels)
+
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
-import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
-import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 import Barbies (bmap, bsequence)
 import Control.Applicative (Const (Const, getConst))
--- import Control.Exception (TypeError (TypeError))
--- import Control.Monad.Catch (throwM)
-import Data.ByteString (ByteString)
-import Data.Coerce (coerce)
 import Data.Functor.Compose (Compose (Compose))
 import Data.SatInt
 import Data.Text (Text)
@@ -152,7 +144,7 @@ createBuiltinCostModel bmfile rfile =
         -> (forall f. BuiltinCostModelBase f -> f model)
         -> R s (CostingFun model)
       getParams readCF param = do
-        let memModel = getId $ param builtinMemModels
+        let memModel = getId $ param builtinMemoryModels
         cpuModel <- readCF $ getConst $ param cpuModels
         pure $ CostingFun cpuModel memModel
 
@@ -382,128 +374,3 @@ readCF6 e = do
   case ty of
     "constant_cost" -> ModelSixArgumentsConstantCost <$> getConstant e
     _               -> error $ "Unknown six-variable model type: " ++ ty
-
-
--- Some utilities for calculating memory sizes.
-
-boolMemModel :: ModelTwoArguments
-boolMemModel = ModelTwoArgumentsConstantCost 1
-
-memoryUsageAsCostingInteger :: ExMemoryUsage a => a -> CostingInteger
-memoryUsageAsCostingInteger = coerce . sumCostStream . flattenCostRose . memoryUsage
-
-hashMemModel :: (ByteString -> ByteString) -> ModelOneArgument
-hashMemModel f = ModelOneArgumentConstantCost $ memoryUsageAsCostingInteger $ f ""
-
-toMemSize :: Int -> CostingInteger
-toMemSize n = fromIntegral $ n `div` 8
-
--- Group order is 255 bits -> 32 bytes (4 words).
--- Field size is 381 bits  -> 48 bytes (6 words)
--- (with three spare bits used for encoding purposes).
-
--- Sizes below from sizePoint, compressedSizePoint, and sizePT in
--- Crypto.EllipticCurve.BLS12_381.Internal
-
--- In-memory G1 points take up 144 bytes (18 words).
--- These are projective points, so we have *three* 48-byte coordinates.
-g1MemSize :: CostingInteger
-g1MemSize = toMemSize G1.memSizeBytes
-
--- Compressed G1 points take up 48 bytes (6 words)
-g1CompressedSize :: CostingInteger
-g1CompressedSize = toMemSize G1.compressedSizeBytes
-
--- In-memory G2 points take up 288 bytes (36 words)
-g2MemSize :: CostingInteger
-g2MemSize = toMemSize G2.memSizeBytes
-
--- Compressed G2 points take up 96 bytes (12 words)
-g2CompressedSize :: CostingInteger
-g2CompressedSize = toMemSize G2.compressedSizeBytes
-
--- In-memory G2 points take up 576 bytes (72 words)
-mlResultMemSize :: CostingInteger
-mlResultMemSize = toMemSize Pairing.mlResultMemSizeBytes
-
-newtype Id a = Id { getId :: a }
-
-builtinMemModels :: BuiltinCostModelBase Id
-builtinMemModels = BuiltinCostModelBase
-  { paramAddInteger                      = Id $ ModelTwoArgumentsMaxSize $ OneVariableLinearFunction 1 1
-  , paramSubtractInteger                 = Id $ ModelTwoArgumentsMaxSize $ OneVariableLinearFunction 1 1
-  , paramMultiplyInteger                 = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
-  , paramDivideInteger                   = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
-  -- ^ Really?  We don't always have size(a/b) = size a - size b
-  , paramQuotientInteger                 = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
-  , paramRemainderInteger                = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
-  , paramModInteger                      = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
-  , paramEqualsInteger                   = Id $ boolMemModel
-  , paramLessThanInteger                 = Id $ boolMemModel
-  , paramLessThanEqualsInteger           = Id $ boolMemModel
-  , paramAppendByteString                = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
-  , paramConsByteString                  = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
-  , paramSliceByteString                 = Id $ ModelThreeArgumentsLinearInZ $ OneVariableLinearFunction 4 0
-  , paramLengthOfByteString              = Id $ ModelOneArgumentConstantCost 10
-  , paramIndexByteString                 = Id $ ModelTwoArgumentsConstantCost 4
-  , paramEqualsByteString                = Id $ boolMemModel
-  , paramLessThanByteString              = Id $ boolMemModel
-  , paramLessThanEqualsByteString        = Id $ boolMemModel
-  , paramSha2_256                        = Id $ hashMemModel Hash.sha2_256
-  , paramSha3_256                        = Id $ hashMemModel Hash.sha3_256
-  , paramBlake2b_256                     = Id $ hashMemModel Hash.blake2b_256
-  , paramVerifyEd25519Signature          = Id $ ModelThreeArgumentsConstantCost 10
-  , paramVerifyEcdsaSecp256k1Signature   = Id $ ModelThreeArgumentsConstantCost 10
-  , paramVerifySchnorrSecp256k1Signature = Id $ ModelThreeArgumentsConstantCost 10
-  , paramAppendString                    = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 4 1
-  , paramEqualsString                    = Id $ boolMemModel
-  , paramEncodeUtf8                      = Id $ ModelOneArgumentLinearCost $ OneVariableLinearFunction 4 2
-  , paramDecodeUtf8                      = Id $ ModelOneArgumentLinearCost $ OneVariableLinearFunction 4 2
-  , paramIfThenElse                      = Id $ ModelThreeArgumentsConstantCost 1
-  , paramChooseUnit                      = Id $ ModelTwoArgumentsConstantCost 4
-  , paramTrace                           = Id $ ModelTwoArgumentsConstantCost 32
-  , paramFstPair                         = Id $ ModelOneArgumentConstantCost 32
-  , paramSndPair                         = Id $ ModelOneArgumentConstantCost 32
-  , paramChooseList                      = Id $ ModelThreeArgumentsConstantCost 32
-  , paramMkCons                          = Id $ ModelTwoArgumentsConstantCost 32
-  , paramHeadList                        = Id $ ModelOneArgumentConstantCost 32
-  , paramTailList                        = Id $ ModelOneArgumentConstantCost 32
-  , paramNullList                        = Id $ ModelOneArgumentConstantCost 32
-  , paramChooseData                      = Id $ ModelSixArgumentsConstantCost 32
-  , paramConstrData                      = Id $ ModelTwoArgumentsConstantCost 32
-  , paramMapData                         = Id $ ModelOneArgumentConstantCost 32
-  , paramListData                        = Id $ ModelOneArgumentConstantCost 32
-  , paramIData                           = Id $ ModelOneArgumentConstantCost 32
-  , paramBData                           = Id $ ModelOneArgumentConstantCost 32
-  , paramUnConstrData                    = Id $ ModelOneArgumentConstantCost 32
-  , paramUnMapData                       = Id $ ModelOneArgumentConstantCost 32
-  , paramUnListData                      = Id $ ModelOneArgumentConstantCost 32
-  , paramUnIData                         = Id $ ModelOneArgumentConstantCost 32
-  , paramUnBData                         = Id $ ModelOneArgumentConstantCost 32
-  , paramEqualsData                      = Id $ ModelTwoArgumentsConstantCost 1
-  , paramMkPairData                      = Id $ ModelTwoArgumentsConstantCost 32
-  , paramMkNilData                       = Id $ ModelOneArgumentConstantCost 32
-  , paramMkNilPairData                   = Id $ ModelOneArgumentConstantCost 32
-  , paramSerialiseData                   = Id $ ModelOneArgumentLinearCost $ OneVariableLinearFunction 0 2
-  , paramBls12_381_G1_add                = Id $ ModelTwoArgumentsConstantCost g1MemSize
-  , paramBls12_381_G1_neg                = Id $ ModelOneArgumentConstantCost g1MemSize
-  , paramBls12_381_G1_scalarMul          = Id $ ModelTwoArgumentsConstantCost g1MemSize
-  , paramBls12_381_G1_equal              = Id $ boolMemModel
-  , paramBls12_381_G1_compress           = Id $ ModelOneArgumentConstantCost g1CompressedSize
-  , paramBls12_381_G1_uncompress         = Id $ ModelOneArgumentConstantCost g1MemSize
-  , paramBls12_381_G1_hashToGroup        = Id $ ModelTwoArgumentsConstantCost g1MemSize
-  , paramBls12_381_G2_add                = Id $ ModelTwoArgumentsConstantCost g2MemSize
-  , paramBls12_381_G2_neg                = Id $ ModelOneArgumentConstantCost g2MemSize
-  , paramBls12_381_G2_scalarMul          = Id $ ModelTwoArgumentsConstantCost g2MemSize
-  , paramBls12_381_G2_equal              = Id $ boolMemModel
-  , paramBls12_381_G2_compress           = Id $ ModelOneArgumentConstantCost g2CompressedSize
-  , paramBls12_381_G2_uncompress         = Id $ ModelOneArgumentConstantCost g2MemSize
-  , paramBls12_381_G2_hashToGroup        = Id $ ModelTwoArgumentsConstantCost g2MemSize
-  , paramBls12_381_millerLoop            = Id $ ModelTwoArgumentsConstantCost mlResultMemSize
-  , paramBls12_381_mulMlResult           = Id $ ModelTwoArgumentsConstantCost mlResultMemSize
-  , paramBls12_381_finalVerify           = Id $ boolMemModel
-  , paramBlake2b_224                     = Id $ hashMemModel Hash.blake2b_224
-  , paramKeccak_256                      = Id $ hashMemModel Hash.keccak_256
-  , paramIntegerToByteString             = Id $ ModelThreeArgumentsLiteralInYOrLinearInZ $ OneVariableLinearFunction 0 1
-  , paramByteStringToInteger             = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 0 1
-  }
