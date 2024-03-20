@@ -1,6 +1,9 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
+-- | The memory models for the default set of builtins.  These are copied into
+-- builtinCostModel.json by generate-cost-model.
+
 module BuiltinMemoryModels (builtinMemoryModels, Id(..))
 where
 
@@ -15,8 +18,6 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 import Data.ByteString (ByteString)
 import Data.Coerce (coerce)
-
----------------- Memory usage cost models ----------------
 
 -- Some utilities for calculating memory sizes.
 
@@ -59,6 +60,8 @@ g2CompressedSize = toMemSize G2.compressedSizeBytes
 -- In-memory G2 points take up 576 bytes (72 words)
 mlResultMemSize :: CostingInteger
 mlResultMemSize = toMemSize Pairing.mlResultMemSizeBytes
+
+-- The memory models for the default builtins
 
 newtype Id a = Id { getId :: a }
 

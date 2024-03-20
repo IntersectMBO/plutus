@@ -32,9 +32,8 @@ genTest :: Int -> String -> Q Exp
 genTest n s =
     let makePropN = VarE $ mkName ("makeProp" ++ show n)
         testname  = LitE $ StringL s
-        fun       = VarE $ mkName "????"
         params    = VarE $ mkName ("param" ++ toUpper1 s)
-        models    = VarE $ mkName "models"
-    in pure $ mkIterApp makePropN [testname, fun, params, models]
-
+        modelsH   = VarE $ mkName "modelsH"
+        modelsR   = VarE $ mkName "modelsR"
+    in pure $ mkIterApp makePropN [testname, params, modelsH, modelsR]
 

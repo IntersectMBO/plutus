@@ -4,7 +4,7 @@
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module CreateBuiltinCostModel (createBuiltinCostModel)
+module CreateBuiltinCostModel (costModelsR, createBuiltinCostModel, microToPico)
 where
 
 import BuiltinMemoryModels (Id (..), builtinMemoryModels)
@@ -20,7 +20,7 @@ import Data.Text (Text)
 import Text.Printf (printf)
 
 import H.Prelude (MonadR, R, Region)
-import Language.R (SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, withEmbeddedR)
+import Language.R (SomeSEXP, fromSomeSEXP)
 import Language.R.QQ (r)
 
 -- | Convert microseconds represented as a float to picoseconds represented as a
@@ -132,14 +132,15 @@ costModelsR bmfile rfile = do
           in Compose $ fmap Const $ [r| list_hs [[n_hs]] |]
   bsequence $ bmap makeCostModelEntry builtinCostModelNames
 
--- | Creates the cost model from a CSV benchmarking results file and a file
--- containing R modelling code.
-createBuiltinCostModel :: FilePath -> FilePath -> IO BuiltinCostModel
-createBuiltinCostModel bmfile rfile =
-  withEmbeddedR defaultConfig $ runRegion $ do
-    cpuModels :: BuiltinCostModelBase (Const (SomeSEXP s)) <- costModelsR bmfile rfile
-    let
-      getParams
+{- | Creates the cost model from a CSV benchmarking results file and a file
+containing R modelling code.  Note that R must be initialised before this is
+called, typically like this:
+  withEmbeddedR defaultConfig $ runRegion $ createBuiltinCostModel ...
+-}
+createBuiltinCostModel :: FilePath -> FilePath -> R s (BuiltinCostModelBase CostingFun)
+createBuiltinCostModel bmfile rfile = do
+  cpuModels :: BuiltinCostModelBase (Const (SomeSEXP s)) <- costModelsR bmfile rfile
+  let getParams
         :: (SomeSEXP s -> R s model)
         -> (forall f. BuiltinCostModelBase f -> f model)
         -> R s (CostingFun model)
@@ -148,97 +149,97 @@ createBuiltinCostModel bmfile rfile =
         cpuModel <- readCF $ getConst $ param cpuModels
         pure $ CostingFun cpuModel memModel
 
-    -- Integers
-    paramAddInteger                      <- getParams readCF2 paramAddInteger
-    paramSubtractInteger                 <- getParams readCF2 paramSubtractInteger
-    paramMultiplyInteger                 <- getParams readCF2 paramMultiplyInteger
-    paramDivideInteger                   <- getParams readCF2 paramDivideInteger
-    paramQuotientInteger                 <- getParams readCF2 paramQuotientInteger
-    paramRemainderInteger                <- getParams readCF2 paramRemainderInteger
-    paramModInteger                      <- getParams readCF2 paramModInteger
-    paramEqualsInteger                   <- getParams readCF2 paramEqualsInteger
-    paramLessThanInteger                 <- getParams readCF2 paramLessThanInteger
-    paramLessThanEqualsInteger           <- getParams readCF2 paramLessThanEqualsInteger
-    -- Bytestrings
-    paramAppendByteString                <- getParams readCF2 paramAppendByteString
-    paramConsByteString                  <- getParams readCF2 paramConsByteString
-    paramSliceByteString                 <- getParams readCF3 paramSliceByteString
-    paramLengthOfByteString              <- getParams readCF1 paramLengthOfByteString
-    paramIndexByteString                 <- getParams readCF2 paramIndexByteString
-    paramEqualsByteString                <- getParams readCF2 paramEqualsByteString
-    paramLessThanByteString              <- getParams readCF2 paramLessThanByteString
-    paramLessThanEqualsByteString        <- getParams readCF2 paramLessThanEqualsByteString
-    -- Cryptography and hashes
-    paramSha2_256                        <- getParams readCF1 paramSha2_256
-    paramSha3_256                        <- getParams readCF1 paramSha3_256
-    paramBlake2b_256                     <- getParams readCF1 paramBlake2b_256
-    paramVerifyEd25519Signature          <- getParams readCF3 paramVerifyEd25519Signature
-    paramVerifyEcdsaSecp256k1Signature   <- getParams readCF3 paramVerifyEcdsaSecp256k1Signature
-    paramVerifySchnorrSecp256k1Signature <- getParams readCF3 paramVerifySchnorrSecp256k1Signature
-    -- Strings
-    paramAppendString                    <- getParams readCF2 paramAppendString
-    paramEqualsString                    <- getParams readCF2 paramEqualsString
-    paramEncodeUtf8                      <- getParams readCF1 paramEncodeUtf8
-    paramDecodeUtf8                      <- getParams readCF1 paramDecodeUtf8
-    -- Bool
-    paramIfThenElse                      <- getParams readCF3 paramIfThenElse
-    -- Unit
-    paramChooseUnit                      <- getParams readCF2 paramChooseUnit
-    -- Tracing
-    paramTrace                           <- getParams readCF2 paramTrace
-    -- Pairs
-    paramFstPair                         <- getParams readCF1 paramFstPair
-    paramSndPair                         <- getParams readCF1 paramSndPair
-    -- Lists
-    paramChooseList                      <- getParams readCF3 paramChooseList
-    paramMkCons                          <- getParams readCF2 paramMkCons
-    paramHeadList                        <- getParams readCF1 paramHeadList
-    paramTailList                        <- getParams readCF1 paramTailList
-    paramNullList                        <- getParams readCF1 paramNullList
-    -- Data
-    paramChooseData                      <- getParams readCF6 paramChooseData
-    paramConstrData                      <- getParams readCF2 paramConstrData
-    paramMapData                         <- getParams readCF1 paramMapData
-    paramListData                        <- getParams readCF1 paramListData
-    paramIData                           <- getParams readCF1 paramIData
-    paramBData                           <- getParams readCF1 paramBData
-    paramUnConstrData                    <- getParams readCF1 paramUnConstrData
-    paramUnMapData                       <- getParams readCF1 paramUnMapData
-    paramUnListData                      <- getParams readCF1 paramUnListData
-    paramUnIData                         <- getParams readCF1 paramUnIData
-    paramUnBData                         <- getParams readCF1 paramUnBData
-    paramEqualsData                      <- getParams readCF2 paramEqualsData
-    paramSerialiseData                   <- getParams readCF1 paramSerialiseData
-    -- Misc constructors
-    paramMkPairData                      <- getParams readCF2 paramMkPairData
-    paramMkNilData                       <- getParams readCF1 paramMkNilData
-    paramMkNilPairData                   <- getParams readCF1 paramMkNilPairData
-    -- BLS12-381
-    paramBls12_381_G1_add                <- getParams readCF2 paramBls12_381_G1_add
-    paramBls12_381_G1_neg                <- getParams readCF1 paramBls12_381_G1_neg
-    paramBls12_381_G1_scalarMul          <- getParams readCF2 paramBls12_381_G1_scalarMul
-    paramBls12_381_G1_equal              <- getParams readCF2 paramBls12_381_G1_equal
-    paramBls12_381_G1_compress           <- getParams readCF1 paramBls12_381_G1_compress
-    paramBls12_381_G1_uncompress         <- getParams readCF1 paramBls12_381_G1_uncompress
-    paramBls12_381_G1_hashToGroup        <- getParams readCF2 paramBls12_381_G1_hashToGroup
-    paramBls12_381_G2_add                <- getParams readCF2 paramBls12_381_G2_add
-    paramBls12_381_G2_neg                <- getParams readCF1 paramBls12_381_G2_neg
-    paramBls12_381_G2_scalarMul          <- getParams readCF2 paramBls12_381_G2_scalarMul
-    paramBls12_381_G2_equal              <- getParams readCF2 paramBls12_381_G2_equal
-    paramBls12_381_G2_compress           <- getParams readCF1 paramBls12_381_G2_compress
-    paramBls12_381_G2_uncompress         <- getParams readCF1 paramBls12_381_G2_uncompress
-    paramBls12_381_G2_hashToGroup        <- getParams readCF2 paramBls12_381_G2_hashToGroup
-    paramBls12_381_millerLoop            <- getParams readCF2 paramBls12_381_millerLoop
-    paramBls12_381_mulMlResult           <- getParams readCF2 paramBls12_381_mulMlResult
-    paramBls12_381_finalVerify           <- getParams readCF2 paramBls12_381_finalVerify
-    -- More hashes
-    paramKeccak_256                      <- getParams readCF1 paramKeccak_256
-    paramBlake2b_224                     <- getParams readCF1 paramBlake2b_224
-    -- Bitwise operations
-    paramByteStringToInteger             <- getParams readCF2 paramByteStringToInteger
-    paramIntegerToByteString             <- getParams readCF3 paramIntegerToByteString
+  -- Integers
+  paramAddInteger                      <- getParams readCF2 paramAddInteger
+  paramSubtractInteger                 <- getParams readCF2 paramSubtractInteger
+  paramMultiplyInteger                 <- getParams readCF2 paramMultiplyInteger
+  paramDivideInteger                   <- getParams readCF2 paramDivideInteger
+  paramQuotientInteger                 <- getParams readCF2 paramQuotientInteger
+  paramRemainderInteger                <- getParams readCF2 paramRemainderInteger
+  paramModInteger                      <- getParams readCF2 paramModInteger
+  paramEqualsInteger                   <- getParams readCF2 paramEqualsInteger
+  paramLessThanInteger                 <- getParams readCF2 paramLessThanInteger
+  paramLessThanEqualsInteger           <- getParams readCF2 paramLessThanEqualsInteger
+  -- Bytestrings
+  paramAppendByteString                <- getParams readCF2 paramAppendByteString
+  paramConsByteString                  <- getParams readCF2 paramConsByteString
+  paramSliceByteString                 <- getParams readCF3 paramSliceByteString
+  paramLengthOfByteString              <- getParams readCF1 paramLengthOfByteString
+  paramIndexByteString                 <- getParams readCF2 paramIndexByteString
+  paramEqualsByteString                <- getParams readCF2 paramEqualsByteString
+  paramLessThanByteString              <- getParams readCF2 paramLessThanByteString
+  paramLessThanEqualsByteString        <- getParams readCF2 paramLessThanEqualsByteString
+  -- Cryptography and hashes
+  paramSha2_256                        <- getParams readCF1 paramSha2_256
+  paramSha3_256                        <- getParams readCF1 paramSha3_256
+  paramBlake2b_256                     <- getParams readCF1 paramBlake2b_256
+  paramVerifyEd25519Signature          <- getParams readCF3 paramVerifyEd25519Signature
+  paramVerifyEcdsaSecp256k1Signature   <- getParams readCF3 paramVerifyEcdsaSecp256k1Signature
+  paramVerifySchnorrSecp256k1Signature <- getParams readCF3 paramVerifySchnorrSecp256k1Signature
+  -- Strings
+  paramAppendString                    <- getParams readCF2 paramAppendString
+  paramEqualsString                    <- getParams readCF2 paramEqualsString
+  paramEncodeUtf8                      <- getParams readCF1 paramEncodeUtf8
+  paramDecodeUtf8                      <- getParams readCF1 paramDecodeUtf8
+  -- Bool
+  paramIfThenElse                      <- getParams readCF3 paramIfThenElse
+  -- Unit
+  paramChooseUnit                      <- getParams readCF2 paramChooseUnit
+  -- Tracing
+  paramTrace                           <- getParams readCF2 paramTrace
+  -- Pairs
+  paramFstPair                         <- getParams readCF1 paramFstPair
+  paramSndPair                         <- getParams readCF1 paramSndPair
+  -- Lists
+  paramChooseList                      <- getParams readCF3 paramChooseList
+  paramMkCons                          <- getParams readCF2 paramMkCons
+  paramHeadList                        <- getParams readCF1 paramHeadList
+  paramTailList                        <- getParams readCF1 paramTailList
+  paramNullList                        <- getParams readCF1 paramNullList
+  -- Data
+  paramChooseData                      <- getParams readCF6 paramChooseData
+  paramConstrData                      <- getParams readCF2 paramConstrData
+  paramMapData                         <- getParams readCF1 paramMapData
+  paramListData                        <- getParams readCF1 paramListData
+  paramIData                           <- getParams readCF1 paramIData
+  paramBData                           <- getParams readCF1 paramBData
+  paramUnConstrData                    <- getParams readCF1 paramUnConstrData
+  paramUnMapData                       <- getParams readCF1 paramUnMapData
+  paramUnListData                      <- getParams readCF1 paramUnListData
+  paramUnIData                         <- getParams readCF1 paramUnIData
+  paramUnBData                         <- getParams readCF1 paramUnBData
+  paramEqualsData                      <- getParams readCF2 paramEqualsData
+  paramSerialiseData                   <- getParams readCF1 paramSerialiseData
+  -- Misc constructors
+  paramMkPairData                      <- getParams readCF2 paramMkPairData
+  paramMkNilData                       <- getParams readCF1 paramMkNilData
+  paramMkNilPairData                   <- getParams readCF1 paramMkNilPairData
+  -- BLS12-381
+  paramBls12_381_G1_add                <- getParams readCF2 paramBls12_381_G1_add
+  paramBls12_381_G1_neg                <- getParams readCF1 paramBls12_381_G1_neg
+  paramBls12_381_G1_scalarMul          <- getParams readCF2 paramBls12_381_G1_scalarMul
+  paramBls12_381_G1_equal              <- getParams readCF2 paramBls12_381_G1_equal
+  paramBls12_381_G1_compress           <- getParams readCF1 paramBls12_381_G1_compress
+  paramBls12_381_G1_uncompress         <- getParams readCF1 paramBls12_381_G1_uncompress
+  paramBls12_381_G1_hashToGroup        <- getParams readCF2 paramBls12_381_G1_hashToGroup
+  paramBls12_381_G2_add                <- getParams readCF2 paramBls12_381_G2_add
+  paramBls12_381_G2_neg                <- getParams readCF1 paramBls12_381_G2_neg
+  paramBls12_381_G2_scalarMul          <- getParams readCF2 paramBls12_381_G2_scalarMul
+  paramBls12_381_G2_equal              <- getParams readCF2 paramBls12_381_G2_equal
+  paramBls12_381_G2_compress           <- getParams readCF1 paramBls12_381_G2_compress
+  paramBls12_381_G2_uncompress         <- getParams readCF1 paramBls12_381_G2_uncompress
+  paramBls12_381_G2_hashToGroup        <- getParams readCF2 paramBls12_381_G2_hashToGroup
+  paramBls12_381_millerLoop            <- getParams readCF2 paramBls12_381_millerLoop
+  paramBls12_381_mulMlResult           <- getParams readCF2 paramBls12_381_mulMlResult
+  paramBls12_381_finalVerify           <- getParams readCF2 paramBls12_381_finalVerify
+  -- More hashes
+  paramKeccak_256                      <- getParams readCF1 paramKeccak_256
+  paramBlake2b_224                     <- getParams readCF1 paramBlake2b_224
+  -- Bitwise operations
+  paramByteStringToInteger             <- getParams readCF2 paramByteStringToInteger
+  paramIntegerToByteString             <- getParams readCF3 paramIntegerToByteString
 
-    pure $ BuiltinCostModelBase {..}
+  pure $ BuiltinCostModelBase {..}
 
 
 {- Extracting fields from R objects is a bit delicate. If you get a field name

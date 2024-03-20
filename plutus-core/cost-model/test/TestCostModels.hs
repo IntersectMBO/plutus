@@ -1,16 +1,9 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE QuasiQuotes         #-}
-{-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE RecordWildCards     #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -19,7 +12,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
-import CreateBuiltinCostModel
+import CreateBuiltinCostModel (costModelsR, createBuiltinCostModel, microToPico)
 import TH
 
 import Control.Applicative (Const, getConst)
@@ -92,6 +85,8 @@ memUsageGen =
 -- the benchmark data for the relevant builtin.
 type RModels s = BuiltinCostModelBase (Const (SomeSEXP s))
 
+type HModels = BuiltinCostModelBase CostingFun
+
 {- The region in the plane where we want to carry out tests for a two-dimensional
    model.  The Haskell versions of some of these models are defined in several
    pieces and we don't yet have corresponding piecewise R models, so we just
@@ -155,176 +150,171 @@ instance ExMemoryUsage ExM where
 -- runs both models with a bunch of ExMemory combinations and compares the
 -- outputs.
 testPredictOne
-    :: (SomeSEXP s -> R s (CostingFun ModelOneArgument))
-    -> Const (SomeSEXP s) a
-    -> Property
-testPredictOne haskellModelFun modelR1 = propertyR $ do
+  :: CostingFun ModelOneArgument
+  -> Const (SomeSEXP s) a
+  -> Property
+testPredictOne modelH modelR1 = propertyR $
   let modelR = getConst modelR1
-  modelH <- lift $ haskellModelFun modelR
-  let
-    predictR :: MonadR m => CostingInteger -> m CostingInteger
-    predictR x =
+      predictR :: MonadR m => CostingInteger -> m CostingInteger
+      predictR x =
         let
-            xD = fromSatInt x :: Double
+          xD = fromSatInt x :: Double
         in
           microToPico . fromSomeSEXP <$> [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs))[[1]]|]
-    predictH :: CostingInteger -> CostingInteger
-    predictH x =
-      coerce $ exBudgetCPU $ sumExBudgetStream $
+      predictH :: CostingInteger -> CostingInteger
+      predictH x =
+        coerce $ exBudgetCPU $ sumExBudgetStream $
         runCostingFunOneArgument modelH (ExM x)
-    sizeGen = memUsageGen
-  x <- forAll sizeGen
-  byR <- lift $ predictR x
-  -- Sometimes R gives us models which pass through the origin, so we have to allow zero cost
-  -- because of that
-  diff byR (>=) 0
-  diff byR (~=) (predictH x)
+      sizeGen = memUsageGen
+  in do
+    x <- forAll sizeGen
+    byR <- lift $ predictR x
+    -- Sometimes R gives us models which pass through the origin, so we have to allow zero cost
+    -- because of that
+    diff byR (>=) 0
+    diff byR (~=) (predictH x)
 
 testPredictTwo
-    :: forall s a .
-       (SomeSEXP s -> R s (CostingFun ModelTwoArguments))
+    :: CostingFun ModelTwoArguments
     -> Const (SomeSEXP s) a
     -> TestDomain
     -> Property
-testPredictTwo haskellModelFun modelR1 domain = propertyR $ do
+testPredictTwo modelH modelR1 domain = propertyR $
   let modelR = getConst modelR1
-  modelH <- lift $ haskellModelFun modelR
-  let
-    predictR :: MonadR m => CostingInteger -> CostingInteger -> m CostingInteger
-    predictR x y =
-      let
-        xD = fromSatInt x :: Double
-        yD = fromSatInt y :: Double
-      in
-        microToPico . fromSomeSEXP <$>
+      predictR :: MonadR m => CostingInteger -> CostingInteger -> m CostingInteger
+      predictR x y =
+        let
+          xD = fromSatInt x :: Double
+          yD = fromSatInt y :: Double
+        in
+          microToPico . fromSomeSEXP <$>
           [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
-    predictH :: CostingInteger -> CostingInteger -> CostingInteger
-    predictH x y =
-      coerce $ exBudgetCPU $ sumExBudgetStream $
+      predictH :: CostingInteger -> CostingInteger -> CostingInteger
+      predictH x y =
+        coerce $ exBudgetCPU $ sumExBudgetStream $
         runCostingFunTwoArguments modelH (ExM x) (ExM y)
-    sizeGen = case domain of
-                Everywhere    -> twoArgs
-                OnDiagonal    -> memUsageGen >>= \x -> pure (x,x)
-                BelowDiagonal -> Gen.filter (uncurry (>=)) twoArgs
+      sizeGen = case domain of
+                  Everywhere    -> twoArgs
+                  OnDiagonal    -> memUsageGen >>= \x -> pure (x,x)
+                  BelowDiagonal -> Gen.filter (uncurry (>=)) twoArgs
         where twoArgs = (,) <$> memUsageGen <*> memUsageGen
-  (x, y) <- forAll sizeGen
-  byR <- lift $ predictR x y
-  diff byR (>=) 0
-  diff byR (~=) (predictH x y)
+  in do
+    (x, y) <- forAll sizeGen
+    byR <- lift $ predictR x y
+    diff byR (>=) 0
+    diff byR (~=) (predictH x y)
 
 testPredictThree
-    :: (SomeSEXP s -> R s (CostingFun ModelThreeArguments))
+    :: CostingFun ModelThreeArguments
     -> Const (SomeSEXP s) a
     -> Property
-testPredictThree haskellModelFun modelR1 = propertyR $ do
+testPredictThree modelH modelR1 = propertyR $
   let modelR = getConst modelR1
-  modelH <- lift $ haskellModelFun modelR
-  let
-    predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
-    predictR x y z =
-      let
-        xD = fromSatInt x :: Double
-        yD = fromSatInt y :: Double
-        zD = fromSatInt z :: Double
-      in
-        microToPico . fromSomeSEXP <$>
-          [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
-    predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
-    predictH x y z =
-      coerce $ exBudgetCPU $ sumExBudgetStream $
+      predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
+      predictR x y z =
+        let
+          xD = fromSatInt x :: Double
+          yD = fromSatInt y :: Double
+          zD = fromSatInt z :: Double
+        in microToPico . fromSomeSEXP <$>
+              [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
+      predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
+      predictH x y z =
+        coerce $ exBudgetCPU $ sumExBudgetStream $
         runCostingFunThreeArguments modelH (ExM x) (ExM y) (ExM z)
-    sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
-  (x, y, z) <- forAll sizeGen
-  byR <- lift $ predictR x y z
-  diff byR (>=) 0
-  diff byR (~=) (predictH x y z)
+      sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
+  in do
+    (x, y, z) <- forAll sizeGen
+    byR <- lift $ predictR x y z
+    diff byR (>=) 0
+    diff byR (~=) (predictH x y z)
 
 
 testPredictSix
-    :: (SomeSEXP s -> R s (CostingFun ModelSixArguments))
+    :: CostingFun ModelSixArguments
     -> Const (SomeSEXP s) a
     -> Property
-testPredictSix haskellModelFun modelR1 = propertyR $ do
+testPredictSix modelH modelR1 = propertyR $
   let modelR = getConst modelR1
-  modelH <- lift $ haskellModelFun modelR
-  let
-    predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger
-             -> CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
-    predictR x y z u v  w =
-      let
-        xD = fromSatInt x :: Double
-        yD = fromSatInt y :: Double
-        zD = fromSatInt z :: Double
-        uD = fromSatInt u :: Double
-        vD = fromSatInt v :: Double
-        wD = fromSatInt w :: Double
-      in
-        microToPico . fromSomeSEXP <$>
+      predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger
+               -> CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
+      predictR x y z u v  w =
+        let
+          xD = fromSatInt x :: Double
+          yD = fromSatInt y :: Double
+          zD = fromSatInt z :: Double
+          uD = fromSatInt u :: Double
+          vD = fromSatInt v :: Double
+          wD = fromSatInt w :: Double
+        in
+          microToPico . fromSomeSEXP <$>
           [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
                                           u_mem=uD_hs, v_mem=vD_hs, w_mem=wD_hs))[[1]]|]
-    predictH :: CostingInteger
-      -> CostingInteger
-      -> CostingInteger
-      -> CostingInteger
-      -> CostingInteger
-      -> CostingInteger
-      -> CostingInteger
-    predictH x y z u v w =
-      coerce $ exBudgetCPU $ sumExBudgetStream $
+      predictH
+        :: CostingInteger
+        -> CostingInteger
+        -> CostingInteger
+        -> CostingInteger
+        -> CostingInteger
+        -> CostingInteger
+        -> CostingInteger
+      predictH x y z u v w =
+        coerce $ exBudgetCPU $ sumExBudgetStream $
         runCostingFunSixArguments modelH (ExM x) (ExM y) (ExM z) (ExM u) (ExM v) (ExM w)
-    sizeGen =
-      (,,,,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen
+      sizeGen =
+        (,,,,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen
         <*> memUsageGen
-  (x, y, z, u, v, w) <- forAll sizeGen
-  byR <- lift $ predictR x y z u v w
-  diff byR (>=) 0
-  diff byR (~=) (predictH x y z u v w)
-
+  in do
+    (x, y, z, u, v, w) <- forAll sizeGen
+    byR <- lift $ predictR x y z u v w
+    diff byR (>=) 0
+    diff byR (~=) (predictH x y z u v w)
 
 makeProp1
     :: String
-    -> (SomeSEXP s -> R s (CostingFun ModelOneArgument))
-    -> (RModels s -> Const (SomeSEXP s) b)
+    -> (forall f . BuiltinCostModelBase f -> f ModelOneArgument)
+    -> HModels
     -> RModels s
     -> (PropertyName, Property)
-makeProp1 name fun param models =
-    (fromString name, testPredictOne fun (param models))
+makeProp1 name param modelsH modelsR =
+    (fromString name, testPredictOne (param modelsH) (param modelsR))
 
 makeProp2
     :: String
-    -> (SomeSEXP s -> R s (CostingFun ModelTwoArguments))
-    -> (RModels s -> Const (SomeSEXP s) b)
+    -> (forall f . BuiltinCostModelBase f -> f ModelTwoArguments)
+    -> HModels
     -> RModels s
     -> TestDomain
     -> (PropertyName, Property)
-makeProp2 name fun param models domain =
-    (fromString name, testPredictTwo fun (param models) domain)
+makeProp2 name param modelsH modelsR domain =
+    (fromString name, testPredictTwo (param modelsH) (param modelsR) domain)
 
 makeProp3
     :: String
-    -> (SomeSEXP s -> R s (CostingFun ModelThreeArguments))
-    -> (RModels s -> Const (SomeSEXP s) b)
+    -> (forall f . BuiltinCostModelBase f -> f ModelThreeArguments)
+    -> HModels
     -> RModels s
     -> (PropertyName, Property)
-makeProp3 name fun param models =
-    (fromString name, testPredictThree fun (param models))
+makeProp3 name param modelsH modelsR  =
+    (fromString name, testPredictThree (param modelsH) (param modelsR))
 
 makeProp6
     :: String
-    -> (SomeSEXP s -> R s (CostingFun ModelSixArguments))
-    -> (RModels s -> Const (SomeSEXP s) b)
+    -> (forall f . BuiltinCostModelBase f -> f ModelSixArguments)
+    -> HModels
     -> RModels s
     -> (PropertyName, Property)
-makeProp6 name fun param models =
-    (fromString name, testPredictSix fun (param models))
+makeProp6 name param modelsH modelsR =
+    (fromString name, testPredictSix (param modelsH) (param modelsR))
 
 main :: IO ()
 main =
-    withEmbeddedR R.defaultConfig $ runRegion $ do
-      models <- CreateBuiltinCostModel.costModelsR DFP.benchingResultsFile DFP.rModelFile
-      H.io $ HH.defaultMain [checkSequential $ Group "Costing function tests" (tests models)]
-          where tests models =
-            -- 'models' doesn't appear explicitly below, but 'genTest' generates code which uses it.
+  withEmbeddedR defaultConfig $ runRegion $ do
+    modelsH <- CreateBuiltinCostModel.createBuiltinCostModel DFP.benchingResultsFile DFP.rModelFile
+    modelsR <- CreateBuiltinCostModel.costModelsR DFP.benchingResultsFile DFP.rModelFile
+    H.io $ HH.defaultMain [checkSequential $ Group "Costing function tests" (tests modelsH modelsR)]
+      where tests modelsH modelsR =
+            -- 'modelsR' and `modelsH' don't appear explicitly below, but 'genTest' generates code which uses them.
                     [ $(genTest 2 "addInteger")            Everywhere
                     , $(genTest 2 "subtractInteger")       Everywhere
                     , $(genTest 2 "multiplyInteger")       Everywhere
