@@ -7,7 +7,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 ## 1. [Introduction](introduction.md)
 ## 2. [Core concepts](core-concepts.md)
 ## 3. [Developer onboarding and quick setup](dev-onboarding-quick-setup.md)
-   - Draft content in place. Work in progress. 
+   - In review as of March 21. 
 ## 4. [Simple example](simple-example.md)
 ## 5. [Using Plutus Tx](using-plutus-tx.md)
 ## 6. [Working with scripts](working-with-scripts.md)
