@@ -151,6 +151,8 @@ For this example, we will walk through a smart contract that is designed to use 
    - `saveVal` is a helper function that saves and writes the validator script to a file. 
    - `printVestingDatumJSON` is a helper function to print the vesting datum in JSON format, given a public key hash and a deadline in ISO 8601 format.
 
+### Section 1: Importing the required modules and functions
+
 ```haskell
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -178,10 +180,11 @@ import           Utilities                 (Network, posixTimeFromIso8601,
                                             writeValidatorToFile)
 ```
 
-### Section 1: Importing the required modules and functions
 - What would be useful to say here about general practices for importing modules and functions? 
-- Add a link to relevant module reference info
+- Add links to relevant module reference info
 
+
+### Section 2.1: Defining the data type, public key hash, and deadline
 
 ```haskell
 ------------------------------------------------------------------------------
@@ -195,9 +198,9 @@ data VestingDatum = VestingDatum
 unstableMakeIsData ''VestingDatum
 ```
 
-### Section 2.1: Defining the data type, public key hash, and deadline
-
 This next section defines the `VestingDatum` data type that holds the beneficiary's public key hash, `PubKeyHash`, and the deadline, `POSIXTime`, for releasing the funds. It generates the required instance for `VestingDatum`, allowing the `VestingDatum` type to be used in the validator script. 
+
+### Section 2.2: Implementing the validator function
 
 ```haskell
 {-# INLINABLE mkVestingValidator #-}
@@ -215,19 +218,19 @@ mkVestingValidator dat () ctx = traceIfFalse "beneficiary's signature missing" s
     deadlineReached = contains (from $ deadline dat) $ txInfoValidRange info
 ```
 
-### Section 2.2: Implementing the validator function
-
 This section implements the core validator function, `mkVestingValidator`. It takes the `VestingDatum`, a unit value for the redeemer, and the `ScriptContext`. It returns a `Bool` that indicates whether the transaction is valid or not. 
 
 The validation logic says that the funds can be unlocked only when the deadline has been reached and the transaction has been signed by the beneficiary. 
 
 It extracts the transaction info from the script context and checks if the transaction is signed by the beneficiary, making sure that only the beneficiary can unlock the funds. Following that, it checks if the deadline has been reached, ensuring that the funds can be unlocked only after the specified deadline. 
 
-In the validation code we have the helper variables `signedByBeneficiary` and `deadlineReached` which are of type `Bool`. 
+In the validation code, we have the helper variables `signedByBeneficiary` and `deadlineReached` which are of type `Bool`. 
 
 In the first variable, we use the helper function `txSignedBy` that takes in transaction info and a public key hash and checks whether this transaction has been signed with this public key hash. 
 
 In the second variable, we access the validity range of the transaction and check that it is contained inside the interval starting with the deadline and going to infinity. 
+
+### Section 2.3: Wrapping the validator function and compiling it to a Validator type
 
 ```haskell
 {-# INLINABLE  mkWrappedVestingValidator #-}
@@ -238,13 +241,13 @@ validator :: Validator
 validator = mkValidatorScript $$(compile [|| mkWrappedVestingValidator ||])
 ```
 
-### Section 2.3: Wrapping the validator function and compiling it to a Validator type
-
 In this section, the code wraps the validator function, which is required by the Plutus compiler. 
 
 Next, the wrapped validator function is compiled to a Validator type, creating a compiled version of the validator script that can be used in transactions. `mkWrappedVestingValidator` is a wrapper for the validator function to conform to the expected type signature for Plutus validators. 
 
 The compiled validator script is ready for deployment on the blockchain. 
+
+### Section 3: Saving the compiled validator script and printing VestingDatum in JSON format
 
 ```haskell
 ------------------------------------------------------------------------------
@@ -259,8 +262,6 @@ printVestingDatumJSON pkh time = printDataToJSON $ VestingDatum
     , deadline    = fromJust $ posixTimeFromIso8601 time
     }
 ```
-
-### Section 3: Saving the compiled validator script and printing VestingDatum in JSON format
 
 These helper functions provide convenient ways to save the validator script to a file and print the `VestingDatum` in JSON format, which can be useful for testing and debugging purposes.
 
