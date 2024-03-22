@@ -34,8 +34,8 @@ import GHC.Magic (noinline)
 import PlutusPrelude
 
 -- | The default cost model for built-in functions.
-defaultBuiltinCostModel :: BuiltinSemanticsVariant DefaultFun -> BuiltinCostModel
-defaultBuiltinCostModel _ =
+defaultBuiltinCostModel :: BuiltinCostModel
+defaultBuiltinCostModel =
     $$(readJSONFromFile DFP.builtinCostModelFile)
 
 {- Note [Modifying the cost model]
@@ -76,14 +76,13 @@ defaultCekMachineCosts =
     evaluation the ledger passes a cost model to the Plutus Core evaluator using
     the `mkEvaluationContext` functions in PlutusLedgerApi.
 -}
-defaultCekCostModel
-    :: CostModel CekMachineCosts (BuiltinSemanticsVariant DefaultFun -> BuiltinCostModel)
+defaultCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 
 -- | The default cost model data.  This is exposed to the ledger, so let's not
 -- confuse anybody by mentioning the CEK machine
-defaultCostModelParams :: BuiltinSemanticsVariant DefaultFun -> Maybe CostModelParams
-defaultCostModelParams semvar = extractCostModelParams $ sequence defaultCekCostModel semvar
+defaultCostModelParams :: Maybe CostModelParams
+defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
 defaultCekParameters :: Typeable ann => MachineParameters CekMachineCosts (BuiltinsRuntime DefaultFun (CekValue DefaultUni DefaultFun ann))
 -- See Note [noinline for saving on ticks].
@@ -99,7 +98,7 @@ unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts (Builtins
 unitCekParameters =
     -- See Note [noinline for saving on ticks].
     noinline mkMachineParameters def $
-        CostModel unitCekMachineCosts (const unitCostBuiltinCostModel)
+        CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
 defaultBuiltinsRuntimeForSemanticsVariant
     :: HasMeaningIn DefaultUni term
