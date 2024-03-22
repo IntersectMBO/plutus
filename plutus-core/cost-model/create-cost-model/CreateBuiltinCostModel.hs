@@ -301,7 +301,7 @@ readTwoVariableLinearFunction var1 var2 e = do
 -- function to a general function.  This would change the JSON nesting.
 readTwoVariableFunConstOrLinear :: MonadR m => String -> SomeSEXP (Region m) -> m ModelConstantOrLinear
 readTwoVariableFunConstOrLinear var e = do
-  constantPart <- getExtraParam "const" e
+  constantPart <- getExtraParam "constant" e
   intercept <- Intercept <$> getCoeff "(Intercept)" e
   slope <- Slope <$> getCoeff var e
   pure $ ModelConstantOrLinear constantPart intercept slope
@@ -310,7 +310,7 @@ readTwoVariableFunConstOrLinear var e = do
 -- plane and something else elsewhere.
 readTwoVariableFunConstOr :: MonadR m => SomeSEXP (Region m) -> m ModelConstantOrTwoArguments
 readTwoVariableFunConstOr e = do
-  constantPart <- getExtraParam "const" e
+  constantPart <- getExtraParam "constant" e
   subtype <- getSubtype e
   nonConstantPart <- readCF2AtType subtype e
   pure $ ModelConstantOrTwoArguments constantPart nonConstantPart

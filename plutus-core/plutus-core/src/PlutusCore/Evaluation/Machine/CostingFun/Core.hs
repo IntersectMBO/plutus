@@ -18,13 +18,9 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
     , OneVariableLinearFunction(..)
     , TwoVariableLinearFunction(..)
     , OneVariableQuadraticFunction(..)
-    , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
     , ModelConstantOrLinear(..)
     , ModelConstantOrTwoArguments(..)
-    , ModelMultipliedSizes(..)
-    , ModelMinSize(..)
-    , ModelMaxSize(..)
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)
@@ -260,39 +256,16 @@ evaluateOneVariableQuadraticFunction
    (OneVariableQuadraticFunction (Coefficient0 c0) (Coefficient1 c1)  (Coefficient2 c2)) x =
        c0 + c1*x + c2*x*x
 
--- | s * (x + y) + I
-data ModelAddedSizes = ModelAddedSizes
-    { modelAddedSizesIntercept :: Intercept
-    , modelAddedSizesSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
 
+-- FIXME: we could use ModelConstantOrLinear for
+-- ModelTwoArgumentsSubtractedSizes instead, but that would change the order of
+-- the cost model parameters since the minimum value would come first instead of
+-- last.
 -- | s * (x - y) + I
 data ModelSubtractedSizes = ModelSubtractedSizes
     { modelSubtractedSizesIntercept :: Intercept
     , modelSubtractedSizesSlope     :: Slope
     , modelSubtractedSizesMinimum   :: CostingInteger
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
-
--- | s * (x * y) + I
-data ModelMultipliedSizes = ModelMultipliedSizes
-    { modelMultipliedSizesIntercept :: Intercept
-    , modelMultipliedSizesSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
-
--- | s * min(x, y) + I
-data ModelMinSize = ModelMinSize
-    { modelMinSizeIntercept :: Intercept
-    , modelMinSizeSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
-
--- | s * max(x, y) + I
-data ModelMaxSize = ModelMaxSize
-    { modelMaxSizeIntercept :: Intercept
-    , modelMaxSizeSlope     :: Slope
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -448,7 +421,7 @@ runTwoArgumentModel
 
 data ModelThreeArguments =
     ModelThreeArgumentsConstantCost          CostingInteger
-  | ModelThreeArgumentsAddedSizes            ModelAddedSizes
+  | ModelThreeArgumentsAddedSizes            OneVariableLinearFunction
   | ModelThreeArgumentsLinearInX             OneVariableLinearFunction
   | ModelThreeArgumentsLinearInY             OneVariableLinearFunction
   | ModelThreeArgumentsLinearInZ             OneVariableLinearFunction
@@ -468,7 +441,7 @@ runThreeArgumentModel
     -> CostStream
 runThreeArgumentModel (ModelThreeArgumentsConstantCost c) = lazy $ \_ _ _ -> CostLast c
 runThreeArgumentModel
-    (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) =
+    (ModelThreeArgumentsAddedSizes (OneVariableLinearFunction intercept slope)) =
         lazy $ \costs1 costs2 costs3 ->
             scaleLinearly intercept slope . addCostStream costs1 $ addCostStream costs2 costs3
 runThreeArgumentModel

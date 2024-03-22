@@ -436,7 +436,7 @@ modelFun <- function(path) {
             filter (x_mem > y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ I(x_mem * y_mem), filtered)
-        mk.result(m, "const_above_diagonal", const=0.1965, subtype="multiplied_sizes")
+        mk.result(m, "const_above_diagonal", constant=0.1965, subtype="multiplied_sizes")
         ## FIXME.  The `const` value above is the above-diagonal cost: infer it from the data.
     }
 
@@ -511,7 +511,7 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
-        mk.result(m, "linear_on_diagonal", const=0.245)
+        mk.result(m, "linear_on_diagonal", constant=0.245)
         ## FIXME.  The `const` value above is the above-diagonal cost: infer it from the data.
     }
 
@@ -570,7 +570,7 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
-        mk.result(m, "linear_on_diagonal", const=0.187)
+        mk.result(m, "linear_on_diagonal", constant=0.187)
         ## FIXME.  The `const` value above is the above-diagonal cost: infer it from the data.
     }
 
