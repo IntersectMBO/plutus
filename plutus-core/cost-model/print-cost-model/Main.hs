@@ -73,8 +73,8 @@ renderModel =
                                   , printf "then %s" $ intercalate "\n" (renderModel m)
                                   , printf "else %d" c
                                   ]
-     LinearOnDiagonal      f c -> [ "if x==y"
-                                  , printf "then %s" $ renderLinearFunction f "x"
+     ConstOffDiagonal      c m -> [ "if x==y"
+                                  , printf "then %s" $ intercalate "\n" (renderModel m)
                                   , printf "else %d" c
                                   ]
      -- ^ We're not properly indenting submodels in the above/below diagonal
