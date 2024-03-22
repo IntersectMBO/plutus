@@ -523,7 +523,7 @@ modelFun <- function(path) {
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
 
-        constant <- m$coefficients[["(Intercept)"]]
+        constant <- min(filtered$t)
         ## FIXME.  The `constant` value above is the above-diagonal cost, which we
         ## don't collect benchmarking data for.  Collect some data and infer it
 
@@ -586,7 +586,7 @@ modelFun <- function(path) {
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
 
-        constant <- m$coefficients[["(Intercept)"]]
+        constant <- min(filtered$t)
         ## FIXME.  The `constant` value above is the above-diagonal cost, which we
         ## don't collect benchmarking data for.  Collect some data and infer it
 
