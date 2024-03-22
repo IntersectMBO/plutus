@@ -55,9 +55,7 @@ data Model
     -- ^ Linear model in x-y plus minimum value for the case x-y < 0.
     | ConstAboveDiagonal    Integer Model
     | ConstBelowDiagonal    Integer Model
-    | LinearOnDiagonal      LinearFunction Integer
-      -- ^ Linear model for x=y together with a constant for the case x!=y; we
-      -- should probably allow a general model here.
+    | ConstOffDiagonal      Integer Model
       deriving stock (Show, Lift)
 
 {- The JSON representation consists of a list of pairs of (type, arguments)
@@ -101,8 +99,8 @@ instance FromJSON Model where
                   ConstAboveDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
                "const_below_diagonal"        ->
                   ConstBelowDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "linear_on_diagonal"          ->
-                  LinearOnDiagonal      <$> parseJSON args <*> objOf args .: "constant"
+               "const_off_diagonal"      ->
+                  ConstOffDiagonal      <$> objOf args .: "constant" <*> objOf args .: "model"
                _                             -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
 
                where objOf (Object o) = o

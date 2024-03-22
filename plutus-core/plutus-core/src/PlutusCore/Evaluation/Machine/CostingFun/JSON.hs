@@ -85,10 +85,10 @@ deriving via ModelJSON "oneVariableQuadraticFunction" OneVariableQuadraticFuncti
     instance FromJSON OneVariableQuadraticFunction
 deriving via ModelJSON "oneVariableQuadraticFunction" OneVariableQuadraticFunction
     instance ToJSON OneVariableQuadraticFunction
-deriving via ModelJSON "modelConstantOrLinear" ModelConstantOrLinear
-    instance FromJSON ModelConstantOrLinear
-deriving via ModelJSON "modelConstantOrLinear" ModelConstantOrLinear
-    instance ToJSON ModelConstantOrLinear
+deriving via ModelJSON "modelConstantOrOneArgument" ModelConstantOrOneArgument
+    instance FromJSON ModelConstantOrOneArgument
+deriving via ModelJSON "modelConstantOrOneArgument" ModelConstantOrOneArgument
+    instance ToJSON ModelConstantOrOneArgument
 deriving via ModelJSON "modelConstantOrTwoArguments" ModelConstantOrTwoArguments
     instance FromJSON ModelConstantOrTwoArguments
 deriving via ModelJSON "modelConstantOrTwoArguments" ModelConstantOrTwoArguments

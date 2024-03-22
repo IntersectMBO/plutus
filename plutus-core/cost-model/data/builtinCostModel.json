@@ -397,10 +397,15 @@
         "cpu": {
             "arguments": {
                 "constant": 245000,
-                "intercept": 216773,
-                "slope": 62
+                "model": {
+                    "arguments": {
+                        "intercept": 216773,
+                        "slope": 62
+                    },
+                    "type": "linear_in_x"
+                }
             },
-            "type": "linear_on_diagonal"
+            "type": "const_off_diagonal"
         },
         "memory": {
             "arguments": 1,
@@ -437,10 +442,15 @@
         "cpu": {
             "arguments": {
                 "constant": 187000,
-                "intercept": 1000,
-                "slope": 52998
+                "model": {
+                    "arguments": {
+                        "intercept": 1000,
+                        "slope": 52998
+                    },
+                    "type": "linear_in_x"
+                }
             },
-            "type": "linear_on_diagonal"
+            "type": "const_off_diagonal"
         },
         "memory": {
             "arguments": 1,

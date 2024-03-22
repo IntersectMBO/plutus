@@ -19,7 +19,7 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
     , TwoVariableLinearFunction(..)
     , OneVariableQuadraticFunction(..)
     , ModelSubtractedSizes(..)
-    , ModelConstantOrLinear(..)
+    , ModelConstantOrOneArgument(..)
     , ModelConstantOrTwoArguments(..)
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
@@ -257,7 +257,7 @@ evaluateOneVariableQuadraticFunction
        c0 + c1*x + c2*x*x
 
 
--- FIXME: we could use ModelConstantOrLinear for
+-- FIXME: we could use ModelConstantOrOneArgument for
 -- ModelTwoArgumentsSubtractedSizes instead, but that would change the order of
 -- the cost model parameters since the minimum value would come first instead of
 -- last.
@@ -269,11 +269,10 @@ data ModelSubtractedSizes = ModelSubtractedSizes
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
--- | if p then s*x else c; p depends on usage
-data ModelConstantOrLinear = ModelConstantOrLinear
-    { modelConstantOrLinearConstant  :: CostingInteger
-    , modelConstantOrLinearIntercept :: Intercept
-    , modelConstantOrLinearSlope     :: Slope
+-- | if p then f(x) else c; p depends on usage
+data ModelConstantOrOneArgument = ModelConstantOrOneArgument
+    { modelConstantOrOneArgumentConstant :: CostingInteger
+    , modelConstantOrOneArgumentModel    :: ModelOneArgument
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -286,19 +285,19 @@ data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
 
 
 data ModelTwoArguments =
-    ModelTwoArgumentsConstantCost       CostingInteger
-  | ModelTwoArgumentsLinearInX          OneVariableLinearFunction
-  | ModelTwoArgumentsLinearInY          OneVariableLinearFunction
-  | ModelTwoArgumentsLinearInXAndY      TwoVariableLinearFunction
-  | ModelTwoArgumentsAddedSizes         OneVariableLinearFunction
-  | ModelTwoArgumentsSubtractedSizes    ModelSubtractedSizes
-  | ModelTwoArgumentsMultipliedSizes    OneVariableLinearFunction
-  | ModelTwoArgumentsMinSize            OneVariableLinearFunction
-  | ModelTwoArgumentsMaxSize            OneVariableLinearFunction
-  | ModelTwoArgumentsLinearOnDiagonal   ModelConstantOrLinear
-  | ModelTwoArgumentsConstAboveDiagonal ModelConstantOrTwoArguments
-  | ModelTwoArgumentsConstBelowDiagonal ModelConstantOrTwoArguments
-  | ModelTwoArgumentsQuadraticInY       OneVariableQuadraticFunction
+    ModelTwoArgumentsConstantCost        CostingInteger
+  | ModelTwoArgumentsLinearInX           OneVariableLinearFunction
+  | ModelTwoArgumentsLinearInY           OneVariableLinearFunction
+  | ModelTwoArgumentsLinearInXAndY       TwoVariableLinearFunction
+  | ModelTwoArgumentsAddedSizes          OneVariableLinearFunction
+  | ModelTwoArgumentsSubtractedSizes     ModelSubtractedSizes
+  | ModelTwoArgumentsMultipliedSizes     OneVariableLinearFunction
+  | ModelTwoArgumentsMinSize             OneVariableLinearFunction
+  | ModelTwoArgumentsMaxSize             OneVariableLinearFunction
+  | ModelTwoArgumentsConstOffDiagonal    ModelConstantOrOneArgument
+  | ModelTwoArgumentsConstAboveDiagonal  ModelConstantOrTwoArguments
+  | ModelTwoArgumentsConstBelowDiagonal  ModelConstantOrTwoArguments
+  | ModelTwoArgumentsQuadraticInY        OneVariableQuadraticFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -383,13 +382,14 @@ runTwoArgumentModel
             scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
 runTwoArgumentModel
     -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
-    (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) =
-        lazy $ \costs1 costs2 -> do
-            let !size1 = sumCostStream costs1
-                !size2 = sumCostStream costs2
-            if size1 == size2
-                then scaleLinearly intercept slope $ CostLast size1
-                else CostLast c
+    (ModelTwoArgumentsConstOffDiagonal (ModelConstantOrOneArgument c m)) =
+        case runOneArgumentModel m of
+            !run -> lazy $ \costs1 costs2 -> do
+                let !size1 = sumCostStream costs1
+                    !size2 = sumCostStream costs2
+                if size1 /= size2
+                    then CostLast c
+                    else run (CostLast size1)
 runTwoArgumentModel
     -- Below the diagonal, return the constant. Above the diagonal, run the other model.
     (ModelTwoArgumentsConstBelowDiagonal (ModelConstantOrTwoArguments c m)) =

@@ -280,6 +280,15 @@ readOneVariableLinearFunction var e = do
   slope <- Slope <$> getCoeff var e
   pure $ OneVariableLinearFunction intercept slope
 
+-- | A one-variable costing function which is constant on one region of the
+-- plane and something else elsewhere.
+readOneVariableFunConstOr :: MonadR m => SomeSEXP (Region m) -> m ModelConstantOrOneArgument
+readOneVariableFunConstOr e = do
+  constantPart <- getExtraParam "constant" e
+  subtype <- getSubtype e
+  nonConstantPart <- readCF1AtType subtype e
+  pure $ ModelConstantOrOneArgument constantPart nonConstantPart
+
 -- | A costing function of the form a+sx.
 readOneVariableQuadraticFunction :: MonadR m => String -> SomeSEXP (Region m) -> m OneVariableQuadraticFunction
 readOneVariableQuadraticFunction var e = do
@@ -297,16 +306,6 @@ readTwoVariableLinearFunction var1 var2 e = do
   pure $ TwoVariableLinearFunction intercept slopeX slopeY
 
 -- | A two-variable costing function which is constant on one region of the
--- plane and linear in one variable elsewhere.  TODO: generalise from a linear
--- function to a general function.  This would change the JSON nesting.
-readTwoVariableFunConstOrLinear :: MonadR m => String -> SomeSEXP (Region m) -> m ModelConstantOrLinear
-readTwoVariableFunConstOrLinear var e = do
-  constantPart <- getExtraParam "constant" e
-  intercept <- Intercept <$> getCoeff "(Intercept)" e
-  slope <- Slope <$> getCoeff var e
-  pure $ ModelConstantOrLinear constantPart intercept slope
-
--- | A two-variable costing function which is constant on one region of the
 -- plane and something else elsewhere.
 readTwoVariableFunConstOr :: MonadR m => SomeSEXP (Region m) -> m ModelConstantOrTwoArguments
 readTwoVariableFunConstOr e = do
@@ -321,19 +320,23 @@ constructed directly, not via R), and those won't be handled here.  These
 functions have short names to improve formatting elsewhere.
 -}
 
-readCF1 :: MonadR m => SomeSEXP (Region m) -> m ModelOneArgument
-readCF1 e = do
-  ty <- getType e
+
+{- | Read in a one-variable costing function of a given type.  We have to supply
+ the type as a parameter so that we can deal with nested costing functions which
+ have type and subtype tags.
+-}
+readCF1AtType :: MonadR m => String -> SomeSEXP (Region m) -> m ModelOneArgument
+readCF1AtType ty e = do
   case ty of
     "constant_cost" -> ModelOneArgumentConstantCost <$> getConstant e
     "linear_in_x"   -> ModelOneArgumentLinearInX <$> readOneVariableLinearFunction "x_mem" e
     _               -> error $ "Unknown one-variable model type: " ++ ty
 
-{- | Read in a two-variable costing function of a given type.  We have to supply
- the type as a parameter so that we can deal with nested costing functions which
- have type and subtype tags.  This generality is currently only required for
- two-variable costing functions.
--}
+readCF1 :: MonadR m => SomeSEXP (Region m) -> m ModelOneArgument
+readCF1 e = do
+  ty <- getType e
+  readCF1AtType ty e
+
 readCF2AtType :: MonadR m => String -> SomeSEXP (Region m) -> m ModelTwoArguments
 readCF2AtType ty e = do
   case ty of
@@ -345,9 +348,9 @@ readCF2AtType ty e = do
     "multiplied_sizes"     -> ModelTwoArgumentsMultipliedSizes    <$> readOneVariableLinearFunction "I(x_mem * y_mem)" e
     "min_size"             -> ModelTwoArgumentsMinSize            <$> readOneVariableLinearFunction "pmin(x_mem, y_mem)" e
     "max_size"             -> ModelTwoArgumentsMaxSize            <$> readOneVariableLinearFunction "pmax(x_mem, y_mem)" e
-    "linear_on_diagonal"   -> ModelTwoArgumentsLinearOnDiagonal   <$> readTwoVariableFunConstOrLinear "x_mem" e
     "const_below_diagonal" -> ModelTwoArgumentsConstBelowDiagonal <$> readTwoVariableFunConstOr e
     "const_above_diagonal" -> ModelTwoArgumentsConstAboveDiagonal <$> readTwoVariableFunConstOr e
+    "const_off_diagonal"   -> ModelTwoArgumentsConstOffDiagonal   <$> readOneVariableFunConstOr e
     "quadratic_in_y"       -> ModelTwoArgumentsQuadraticInY       <$> readOneVariableQuadraticFunction "y_mem" e
     _                      -> error $ "Unknown two-variable model type: " ++ ty
 
