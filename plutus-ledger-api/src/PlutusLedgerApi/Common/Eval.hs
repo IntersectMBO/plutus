@@ -27,6 +27,7 @@ import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudget as Plutus
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
+import PlutusCore.Evaluation.Machine.MachineParameters (MachineParameters)
 import PlutusCore.Evaluation.Machine.MachineParameters.Default
 import PlutusCore.MkPlc qualified as UPLC
 import PlutusCore.Pretty
@@ -105,15 +106,20 @@ mkTermToEvaluate ll pv script args = do
     -- make sure that term is closed, i.e. well-scoped
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
-toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachineParameters
-toMachineParameters _ = machineParameters
+toMachineParameters
+    :: MajorProtocolVersion
+    -> EvaluationContext
+    -> MachineParameters
+        CekMachineCosts
+        (UPLC.BuiltinsRuntime DefaultFun (UPLC.CekValue DefaultUni DefaultFun ()))
+toMachineParameters pv ctx = ($ pv) <$> machineParameters ctx
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
 script.  This is so that they can be computed once and cached, rather than being recomputed on every
 evaluation.
 -}
 newtype EvaluationContext = EvaluationContext
-    { machineParameters :: DefaultMachineParameters
+    { machineParameters :: DefaultMachineParameters MajorProtocolVersion
     }
     deriving stock Generic
     deriving anyclass (NFData, NoThunks)
@@ -128,11 +134,11 @@ with the updated cost model parameters.
 -}
 mkDynEvaluationContext
     :: MonadError CostModelApplyError m
-    => BuiltinSemanticsVariant DefaultFun
+    => (MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun)
     -> Plutus.CostModelParams
     -> m EvaluationContext
-mkDynEvaluationContext semvar newCMP =
-    EvaluationContext <$> mkMachineParametersFor semvar newCMP
+mkDynEvaluationContext toSemVar newCMP =
+    EvaluationContext <$> mkMachineParametersFor toSemVar newCMP
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()

@@ -42,8 +42,9 @@ import PlutusCore.StdLib.Data.Unit
 import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.Conversion qualified as Conversion
-import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_Variant1Prop,
-                                                  ed25519_Variant2Prop, schnorrSecp256k1Prop)
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_Variant0Prop,
+                                                  ed25519_Variant1Prop, ed25519_Variant2Prop,
+                                                  schnorrSecp256k1Prop)
 
 
 import Control.Exception
@@ -771,6 +772,8 @@ test_ConsByteString =
             expr1 = mkIterAppNoAnn (builtin () (Left ConsByteString :: DefaultFunExt))
                     [cons @Integer asciiBangWrapped, cons @ByteString "hello world"]
         Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=?
+              typecheckEvaluateCekNoEmit (PairV DefaultFunSemanticsVariant0 def) defaultBuiltinCostModelExt expr1
+        Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=?
               typecheckEvaluateCekNoEmit (PairV DefaultFunSemanticsVariant1 def) defaultBuiltinCostModelExt expr1
         Right EvaluationFailure @=? typecheckEvaluateCekNoEmit
                   (PairV DefaultFunSemanticsVariant2 def) defaultBuiltinCostModelExt expr1
@@ -802,6 +805,12 @@ test_SignatureVerification :: TestTree
 test_SignatureVerification =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
   testGroup "Signature verification" $ [
+        testGroup "Ed25519 signatures (Variant0)"
+                      [ testPropertyNamed
+                        "Ed25519_Variant0 verification behaves correctly on all inputs"
+                        "ed25519_Variant0_correct"
+                        . property $ ed25519_Variant0Prop
+                      ],
         testGroup "Ed25519 signatures (Variant1)"
                       [ testPropertyNamed
                         "Ed25519_Variant1 verification behaves correctly on all inputs"

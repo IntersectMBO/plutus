@@ -16,8 +16,10 @@ import GHC.Exts (inline)
 -- | 'MachineParameters' instantiated at CEK-machine-specific types and default builtins.
 -- Encompasses everything we need for evaluating a UPLC program with default builtins using the CEK
 -- machine.
-type DefaultMachineParameters =
-    MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+type DefaultMachineParameters a =
+    MachineParameters
+        CekMachineCosts
+        (a -> BuiltinsRuntime DefaultFun (CekValue DefaultUni DefaultFun ()))
 
 {- Note [Inlining meanings of builtins]
 It's vitally important to inline the 'toBuiltinMeaning' method of a set of built-in functions as
@@ -57,11 +59,11 @@ inlining).
 -- times.
 mkMachineParametersFor
     :: MonadError CostModelApplyError m
-    => BuiltinSemanticsVariant DefaultFun
+    => (a -> BuiltinSemanticsVariant DefaultFun)
     -> CostModelParams
-    -> m DefaultMachineParameters
-mkMachineParametersFor semvar newCMP =
-    inline mkMachineParameters semvar <$>
+    -> m (DefaultMachineParameters a)
+mkMachineParametersFor toSemVar newCMP =
+    inline mkMachineParametersFun toSemVar <$>
         applyCostModelParams defaultCekCostModel newCMP
 -- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
 -- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down

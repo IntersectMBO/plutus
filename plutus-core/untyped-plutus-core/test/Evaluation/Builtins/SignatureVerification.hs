@@ -10,6 +10,7 @@
 
 module Evaluation.Builtins.SignatureVerification (
   ecdsaSecp256k1Prop,
+  ed25519_Variant0Prop,
   ed25519_Variant1Prop,
   ed25519_Variant2Prop,
   schnorrSecp256k1Prop,
@@ -74,6 +75,9 @@ ed25519Prop semvar = do
   cover 18 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
   cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
   runTestDataWith semvar testCase id VerifyEd25519Signature
+
+ed25519_Variant0Prop :: PropertyT IO ()
+ed25519_Variant0Prop = ed25519Prop DefaultFunSemanticsVariant0
 
 ed25519_Variant1Prop :: PropertyT IO ()
 ed25519_Variant1Prop = ed25519Prop DefaultFunSemanticsVariant1

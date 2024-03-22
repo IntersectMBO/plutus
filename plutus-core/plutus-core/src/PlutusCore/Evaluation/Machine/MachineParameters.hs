@@ -14,6 +14,7 @@ import Control.DeepSeq
 import Control.Lens
 import GHC.Exts (inline)
 import GHC.Generics
+import GHC.Magic (noinline)
 import NoThunks.Class
 
 {-| We need to account for the costs of evaluator steps and also built-in function
@@ -36,18 +37,13 @@ makeLenses ''CostModel
   cost model for builtins and their denotations.  This bundles one of those
   together with the cost model for evaluator steps.  The 'term' type will be
   CekValue when we're using this with the CEK machine. -}
-data MachineParameters machinecosts fun val =
+data MachineParameters machinecosts builtinsRuntime =
     MachineParameters {
       machineCosts    :: machinecosts
-    , builtinsRuntime :: BuiltinsRuntime fun val
+    , builtinsRuntime :: builtinsRuntime
     }
-    deriving stock Generic
-    deriving anyclass (NFData)
-
--- For some reason the generic instance gives incorrect nothunk errors,
--- see https://github.com/input-output-hk/nothunks/issues/24
-instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineParameters machinecosts fun val) where
-  wNoThunks ctx (MachineParameters costs runtime) = allNoThunks [ noThunks ctx costs, noThunks ctx runtime ]
+    deriving stock (Generic, Functor, Foldable, Traversable)
+    deriving anyclass (NFData, NoThunks)
 
 {- Note [The CostingPart constraint in mkMachineParameters]
 Discharging the @CostingPart uni fun ~ builtincosts@ constraint in 'mkMachineParameters' causes GHC
@@ -76,16 +72,27 @@ which makes sense: if @f@ receives all its type and term args then there's less 
 
 -- See Note [Inlining meanings of builtins].
 {-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}
-mkMachineParameters ::
+mkMachineParametersFun ::
     ( -- WARNING: do not discharge the equality constraint as that causes GHC to fail to inline the
       -- function at its call site, see Note [The CostingPart constraint in mkMachineParameters].
       CostingPart uni fun ~ builtincosts
     , HasMeaningIn uni val
     , ToBuiltinMeaning uni fun
     )
+    => (a -> BuiltinSemanticsVariant fun)
+    -> CostModel machinecosts builtincosts
+    -> MachineParameters machinecosts (a -> BuiltinsRuntime fun val)
+mkMachineParametersFun toSemVar (CostModel mchnCosts builtinCosts) =
+    MachineParameters mchnCosts $ \x -> inline toBuiltinsRuntime (toSemVar x) builtinCosts
+{-# INLINE mkMachineParameters #-}
+
+mkMachineParameters ::
+    ( CostingPart uni fun ~ builtincosts
+    , HasMeaningIn uni val
+    , ToBuiltinMeaning uni fun
+    )
     => BuiltinSemanticsVariant fun
     -> CostModel machinecosts builtincosts
-    -> MachineParameters machinecosts fun val
-mkMachineParameters semvar (CostModel mchnCosts builtinCosts) =
-    MachineParameters mchnCosts (inline toBuiltinsRuntime semvar builtinCosts)
-{-# INLINE mkMachineParameters #-}
+    -> MachineParameters machinecosts (BuiltinsRuntime fun val)
+-- See Note [noinline for saving on ticks].
+mkMachineParameters semVar = fmap ($ ()) . noinline mkMachineParametersFun (const semVar)
