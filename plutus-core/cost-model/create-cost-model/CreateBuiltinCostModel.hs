@@ -326,8 +326,7 @@ readCF1 e = do
   ty <- getType e
   case ty of
     "constant_cost" -> ModelOneArgumentConstantCost <$> getConstant e
-    "linear_cost"   -> ModelOneArgumentLinearCost <$> readOneVariableLinearFunction "x_mem" e
-    "linear_in_x"   -> ModelOneArgumentLinearCost <$> readOneVariableLinearFunction "x_mem" e  -- FIXME: duplicate
+    "linear_in_x"   -> ModelOneArgumentLinearInX <$> readOneVariableLinearFunction "x_mem" e
     _               -> error $ "Unknown one-variable model type: " ++ ty
 
 {- | Read in a two-variable costing function of a given type.  We have to supply

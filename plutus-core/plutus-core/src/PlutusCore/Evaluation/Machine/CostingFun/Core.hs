@@ -121,7 +121,7 @@ newtype Coefficient2 = Coefficient2
 
 data ModelOneArgument =
     ModelOneArgumentConstantCost CostingInteger
-    | ModelOneArgumentLinearCost OneVariableLinearFunction
+    | ModelOneArgumentLinearInX OneVariableLinearFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 instance Default ModelOneArgument where
@@ -211,7 +211,7 @@ runOneArgumentModel
     -> CostStream
 runOneArgumentModel (ModelOneArgumentConstantCost c) =
     lazy $ \_ -> CostLast c
-runOneArgumentModel (ModelOneArgumentLinearCost (OneVariableLinearFunction intercept slope)) =
+runOneArgumentModel (ModelOneArgumentLinearInX (OneVariableLinearFunction intercept slope)) =
     lazy $ \costs1 -> scaleLinearly intercept slope costs1
 {-# NOINLINE runOneArgumentModel #-}
 

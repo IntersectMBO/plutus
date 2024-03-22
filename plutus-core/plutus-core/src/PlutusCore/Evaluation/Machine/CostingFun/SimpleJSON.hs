@@ -45,13 +45,12 @@ data Model
     | MultipliedSizes       LinearFunction
     | MinSize               LinearFunction
     | MaxSize               LinearFunction
-    | LinearCost            LinearFunction
     | LinearInX             LinearFunction
     | LinearInY             LinearFunction
+    | LinearInZ             LinearFunction
     | LiteralInYOrLinearInZ LinearFunction
     | QuadraticInY          QuadraticFunction
     | QuadraticInZ          QuadraticFunction
-    | LinearInZ             LinearFunction
     | SubtractedSizes       LinearFunction Integer
     -- ^ Linear model in x-y plus minimum value for the case x-y < 0.
     | ConstAboveDiagonal    Integer Model
@@ -90,7 +89,6 @@ instance FromJSON Model where
                "min_size"                    -> MinSize               <$> parseJSON args
                "max_size"                    -> MaxSize               <$> parseJSON args
                "multiplied_sizes"            -> MultipliedSizes       <$> parseJSON args
-               "linear_cost"                 -> LinearCost            <$> parseJSON args
                "linear_in_x"                 -> LinearInX             <$> parseJSON args
                "linear_in_y"                 -> LinearInY             <$> parseJSON args
                "linear_in_z"                 -> LinearInZ             <$> parseJSON args

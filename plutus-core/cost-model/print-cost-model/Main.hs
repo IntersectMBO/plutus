@@ -50,7 +50,6 @@ renderModel =
      MultipliedSizes       f   -> [ renderLinearFunction f "(x*y)" ]
      MinSize               f   -> [ renderLinearFunction f "min(x,y)" ]
      MaxSize               f   -> [ renderLinearFunction f "max(x,y)" ]
-     LinearCost            f   -> [ renderLinearFunction f "x" ]
      LinearInX             f   -> [ renderLinearFunction f "x" ]
      LinearInY             f   -> [ renderLinearFunction f "y" ]
      LinearInZ             f   -> [ renderLinearFunction f "z" ]

@@ -63,7 +63,7 @@
                 "intercept": 117366,
                 "slope": 10475
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 4,
@@ -76,7 +76,7 @@
                 "intercept": 117366,
                 "slope": 10475
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 4,
@@ -344,14 +344,14 @@
                 "intercept": 497525,
                 "slope": 14068
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": {
                 "intercept": 4,
                 "slope": 2
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         }
     },
     "divideInteger": {
@@ -383,14 +383,14 @@
                 "intercept": 1000,
                 "slope": 28662
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": {
                 "intercept": 4,
                 "slope": 2
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         }
     },
     "equalsByteString": {
@@ -520,7 +520,7 @@
                 "intercept": 1927926,
                 "slope": 82523
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 4,
@@ -750,14 +750,14 @@
                 "intercept": 1159724,
                 "slope": 392670
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": {
                 "intercept": 0,
                 "slope": 2
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         }
     },
     "sha2_256": {
@@ -766,7 +766,7 @@
                 "intercept": 806990,
                 "slope": 30482
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 4,
@@ -779,7 +779,7 @@
                 "intercept": 1927926,
                 "slope": 82523
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 4,
