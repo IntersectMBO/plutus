@@ -1,10 +1,15 @@
+{-# LANGUAGE BangPatterns #-}
+
 -- | Defines the type of default machine parameters and a function for creating a value of the type.
 -- We keep them separate, because the function unfolds into multiple thousands of lines of Core that
 -- we need to be able to visually inspect, hence we dedicate a separate file to it.
 module PlutusCore.Evaluation.Machine.MachineParameters.Default where
 
+import PlutusPrelude
+
 import PlutusCore.Builtin
 import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -16,10 +21,8 @@ import GHC.Exts (inline)
 -- | 'MachineParameters' instantiated at CEK-machine-specific types and default builtins.
 -- Encompasses everything we need for evaluating a UPLC program with default builtins using the CEK
 -- machine.
-type DefaultMachineParameters a =
-    MachineParameters
-        CekMachineCosts
-        (a -> BuiltinsRuntime DefaultFun (CekValue DefaultUni DefaultFun ()))
+type DefaultMachineParameters =
+    MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
 
 {- Note [Inlining meanings of builtins]
 It's vitally important to inline the 'toBuiltinMeaning' method of a set of built-in functions as
@@ -58,13 +61,24 @@ inlining).
 -- This function is expensive, so its result needs to be cached if it's going to be used multiple
 -- times.
 mkMachineParametersFor
-    :: MonadError CostModelApplyError m
-    => (a -> BuiltinSemanticsVariant DefaultFun)
+    :: forall m a. MonadError CostModelApplyError m
+    => [BuiltinSemanticsVariant DefaultFun]
+    -> (a -> BuiltinSemanticsVariant DefaultFun)
     -> CostModelParams
-    -> m (DefaultMachineParameters a)
-mkMachineParametersFor toSemVar newCMP =
-    inline mkMachineParametersFun toSemVar <$>
-        applyCostModelParams defaultCekCostModel newCMP
+    -> m (a -> DefaultMachineParameters)
+mkMachineParametersFor semVars toSemVar newCMP =
+    getToCostModel <&> \toCostModel x ->
+        let !semVar = toSemVar x
+        in inline mkMachineParameters semVar $ toCostModel semVar
+  where
+    getToCostModel
+        :: m (BuiltinSemanticsVariant DefaultFun -> CostModel CekMachineCosts BuiltinCostModel)
+    getToCostModel = do
+        costModels <- for semVars $ \semVar ->
+            (,) semVar <$> applyCostModelParams (toCekCostModel semVar) newCMP
+        pure $ \semVar ->
+            fromMaybe (error "semantics variant not found") $
+                lookup semVar costModels
 -- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
 -- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down
 -- the line.

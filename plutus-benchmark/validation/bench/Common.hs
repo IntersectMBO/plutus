@@ -138,10 +138,16 @@ benchWith act = do
 mkEvalCtx :: EvaluationContext
 mkEvalCtx =
     case PLC.defaultCostModelParams of
-        -- The validation benchmarks were all created from PlutusV1 scripts
-        Just p -> case mkDynEvaluationContext (const PLC.DefaultFunSemanticsVariant1) p of
-            Right ec -> ec
-            Left err -> error $ show err
+        Just p ->
+            let errOrCtx =
+                    -- The validation benchmarks were all created from PlutusV1 scripts
+                    mkDynEvaluationContext
+                        [PLC.DefaultFunSemanticsVariant1]
+                        (const PLC.DefaultFunSemanticsVariant1)
+                        p
+            in case errOrCtx of
+                Right ec -> ec
+                Left err -> error $ show err
         Nothing -> error "Couldn't get cost model params"
 
 -- | Evaluate a term as it would be evaluated using the on-chain evaluator.

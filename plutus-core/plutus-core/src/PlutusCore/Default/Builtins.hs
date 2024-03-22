@@ -1079,7 +1079,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         = DefaultFunSemanticsVariant0
         | DefaultFunSemanticsVariant1
         | DefaultFunSemanticsVariant2
-        deriving stock (Enum, Bounded, Show)
+        deriving stock (Eq, Enum, Bounded, Show)
 
     -- Integers
     toBuiltinMeaning

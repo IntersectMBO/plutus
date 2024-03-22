@@ -32,6 +32,9 @@ a protocol update with the updated cost model parameters.
 mkEvaluationContext :: (MonadError CostModelApplyError m, MonadWriter [CostModelApplyWarn] m)
                     => [Integer] -- ^ the (updated) cost model parameters of the protocol
                     -> m EvaluationContext
-mkEvaluationContext = tagWithParamNames @V3.ParamName
-                    >=> pure . toCostModelParams
-                    >=> mkDynEvaluationContext (const Plutus.DefaultFunSemanticsVariant2)
+mkEvaluationContext =
+    tagWithParamNames @V3.ParamName
+    >=> pure . toCostModelParams
+    >=> mkDynEvaluationContext
+        [DefaultFunSemanticsVariant2]
+        (const Plutus.DefaultFunSemanticsVariant2)

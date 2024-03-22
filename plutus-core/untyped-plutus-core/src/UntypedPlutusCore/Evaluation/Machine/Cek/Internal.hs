@@ -599,7 +599,7 @@ transferArgStack (ConsStack arg rest) c = transferArgStack rest (FrameAwaitFunVa
 runCekM
     :: forall a cost uni fun ann
     . ThrowableBuiltins uni fun
-    => MachineParameters CekMachineCosts (BuiltinsRuntime fun (CekValue uni fun ann))
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s a)
@@ -868,7 +868,7 @@ enterComputeCek = computeCek
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCekDeBruijn
     :: ThrowableBuiltins uni fun
-    => MachineParameters CekMachineCosts (BuiltinsRuntime fun (CekValue uni fun ann))
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> NTerm uni fun ann
