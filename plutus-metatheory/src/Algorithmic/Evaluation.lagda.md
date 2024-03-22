@@ -1,10 +1,10 @@
-\begin{code}
+```
 module Algorithmic.Evaluation where
-\end{code}
+```
 
 ## Imports
 
-\begin{code}
+```
 open import Data.Nat using (ℕ;zero;suc)
 open import Relation.Binary.PropositionalEquality using (refl)
 open import Utils using (*;Either;inj₁;RuntimeError;return)
@@ -17,18 +17,18 @@ open _⊢_
 open import Algorithmic.ReductionEC using (Value;Error;_—↠_;_—→_;E-error)
 open import Algorithmic.ReductionEC.Progress using  (Progress;done;progress;step)
 open _—↠_
-\end{code}
+```
 
 ## Evaluation
 
 As previously, gas is specified by a natural number.
-\begin{code}
+```
 data Gas : Set where
   gas : ℕ → Gas
-\end{code}
+```
 When our evaluator returns a term `N`, it will either give evidence that
 `N` is a value or indicate that it ran out of gas.
-\begin{code}
+```
 data Finished {A : ∅ ⊢Nf⋆ *} :  (N : ∅ ⊢ A) →  Set where
 
    done : ∀ N → 
@@ -44,11 +44,11 @@ data Finished {A : ∅ ⊢Nf⋆ *} :  (N : ∅ ⊢ A) →  Set where
 
    -- is this actually possible?
 --   neutral : {L : ∅ ⊢ A} → Neutral L → Finished L
-\end{code}
+```
 Given a term `L` of type `A`, the evaluator will, for some `N`, return
 Ma reduction sequence from `L` to `N` and an indication of whether
 reduction finished.
-\begin{code}
+```
 data Steps : ∀ {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
 
   steps : {A : ∅ ⊢Nf⋆ *} {L N : ∅ ⊢ A}
@@ -58,16 +58,16 @@ data Steps : ∀ {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
     → Steps L
 
 
-\end{code}
+```
 
-\begin{code}
+```
 eval—→  : ∀{A : ∅ ⊢Nf⋆ *} → {t t' : ∅ ⊢ A} → t —→ t' →
   Steps t' → Steps t
 eval—→ p (steps ps q) = steps (trans—↠ p ps) q
-\end{code}
+```
 
 The evaluator takes gas and a term and returns the corresponding steps.
-\begin{code}
+```
 eval : ∀ {A : ∅ ⊢Nf⋆ *} → Gas → (M : ∅ ⊢ A) → Steps M
 evalProg : ∀{A : ∅ ⊢Nf⋆ *} → Gas → {t : ∅ ⊢ A} → Progress t → Steps t
 
@@ -84,5 +84,5 @@ stepper {A} t n with eval (gas n) t
 ... | steps x out-of-gas  = inj₁ gasError
 ... | steps x (error _)   = return (error A)
 
-\end{code}
+```
  

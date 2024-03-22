@@ -1,10 +1,10 @@
-\begin{code}
+```
 module Algorithmic.Examples where
-\end{code}
+```
 
 ## Imports
 
-\begin{code}
+```
 open import Utils using (*;_⇒_)
 open import Relation.Binary.PropositionalEquality using (refl) 
                                                   renaming (subst to substEq)
@@ -20,7 +20,7 @@ open _⊢_
 open _∋_
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.Stability using (stability)
-\end{code}
+```
 
 ## Examples
 
@@ -45,7 +45,7 @@ mycase = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 
 --
 
-\begin{code}
+```
 -- bound variable names inserted below are not meaningful
 module Scott where
 
@@ -122,7 +122,7 @@ module Scott where
 
   TwoPlusTwo : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
-\end{code}
+```
 
 eval (gas 10000000) Scott.Four
 
@@ -167,7 +167,7 @@ eval (gas 10000000) Scott.Two
 
 ### Church Numerals
 
-\begin{code}
+```
 module Church where
 
   N :  ∀{Φ} → Φ ⊢Nf⋆ *
@@ -204,7 +204,7 @@ module Church where
   TwoPlusTwo' = (Two ·⋆ N / refl) · Two · Succ
 
 open Church public
-\end{code}
+```
 
 -- Church "4"
 eval (gas 100000000) Four

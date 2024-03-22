@@ -1,8 +1,8 @@
-\begin{code}
+```
 module Scoped.RenamingSubstitution where
-\end{code}
+```
 
-\begin{code}
+```
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Fin using (Fin;zero;suc)
 open import Data.Vec using ([];_∷_)
@@ -17,9 +17,9 @@ open Weirdℕ
 open WeirdFin
 open import Builtin.Constant.Type using (TyCon)
 open TyCon
-\end{code}
+```
 
-\begin{code}
+```
 Ren⋆ : ℕ → ℕ → Set
 Ren⋆ m n = Fin m → Fin n
 
@@ -171,11 +171,11 @@ t [ u ] = sub ` (ext ` u) t
 
 _[_]⋆ : ∀{n}{w : Weirdℕ n} → ScopedTm (T w) → ScopedTy n → ScopedTm w
 t [ A ]⋆ = sub (ext⋆ ` A) (⋆ext `) t
-\end{code}
+```
 
 # Proofs
 
-\begin{code}
+```
 lift⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
   → (∀ x → ρ x ≡ ρ' x)
   → ∀ x → lift⋆ ρ x ≡ lift⋆ ρ' x
@@ -246,4 +246,4 @@ sub-cons σ t (S x) = σ x
 sub-cons⋆ : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'} → Sub w w' → Sub (T w) w'
 sub-cons⋆ σ (T x) = σ x
 
-\end{code}
+```

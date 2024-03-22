@@ -1,10 +1,10 @@
-\begin{code}
+```
 module Scoped.Extrication.RenamingSubstitution where
-\end{code}
+```
 
 erasure commutes with renaming/substitution
 
-\begin{code}
+```
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin;zero;suc)
 open import Data.Vec using (Vec;[];_∷_)
@@ -189,4 +189,4 @@ postulate
 
   lem[]⋆ : ∀{Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}(N : Γ ,⋆ K ⊢ B)(A : Φ ⊢Nf⋆ K)
     → extricate N SS.[ extricateNf⋆ A ]⋆ ≡ extricate (N As.[ A ]⋆)
-\end{code}
+```

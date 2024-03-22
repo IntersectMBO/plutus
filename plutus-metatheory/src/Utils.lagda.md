@@ -1,5 +1,4 @@
-
-\begin{code}
+```
 module Utils where
 
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂;subst)
@@ -57,13 +56,13 @@ cong₃ f refl refl refl = refl
                     (P : A → Set p) {x y} (p q : x ≡ y) z →
                     subst P p z ≡ subst P q z
 ≡-subst-removable P refl refl z = refl 
- \end{code}
+ ```
 
 The type `n ∔ n' ≡ m` 
 allows to take two naturals `n` and `n'` such that they sum m.
 It is helpful when one wants to do `m` things, while keeping track
 of the number of done things (`n`) and things to do (`n'`).
-\begin{code}
+```
 
 data _∔_≣_ : ℕ → ℕ → ℕ → Set where
   start : (n : ℕ) →  0 ∔ n ≣ n
@@ -227,7 +226,7 @@ postulate Bls12-381-G2-Element : Set
 postulate Bls12-381-MlResult : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.Pairing as Pairing #-}
 {-# COMPILE GHC Bls12-381-MlResult = type Pairing.MlResult #-}
-\end{code}
+```
 
 Kinds
 
@@ -235,18 +234,18 @@ The kind of types is `*`. Plutus core core is based on System Fω which
 is higher order so we have `⇒` for type level functions. We also have
 a kind called `#` which is used for sized integers and bytestrings.
 
-\begin{code}
+```
 data Kind : Set where
   *   : Kind               -- type
   ♯   : Kind               -- builtin
   _⇒_ : Kind → Kind → Kind -- function kind
 
 {-# COMPILE GHC Kind = data KIND (Star | Sharp | Arrow )         #-}
-\end{code}
+```
 
 Let `I`, `J`, `K` range over kinds:
-\begin{code}
+```
 variable
   I J K : Kind
-\end{code}
+```
  

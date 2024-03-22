@@ -262,6 +262,7 @@ instance MeetSemiLattice Value where
 
 {-# INLINABLE valueOf #-}
 -- | Get the quantity of the given currency in the 'Value'.
+-- Assumes that the underlying map doesn't contain duplicate keys.
 valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
 valueOf (Value mp) cur tn =
     case Map.lookup cur mp of
@@ -271,6 +272,8 @@ valueOf (Value mp) cur tn =
             Just v  -> v
 
 {-# INLINABLE currencySymbolValueOf #-}
+-- | Get the total value of the currency symbol in the 'Value' map.
+-- Assumes that the underlying map doesn't contain duplicate keys.
 currencySymbolValueOf :: Value -> CurrencySymbol -> Integer
 currencySymbolValueOf (Value mp) cur = case Map.lookup cur mp of
     Nothing     -> 0
@@ -290,8 +293,8 @@ singleton :: CurrencySymbol -> TokenName -> Integer -> Value
 singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 
 {-# INLINABLE lovelaceValue #-}
-lovelaceValue :: Lovelace -> Value
 -- | A 'Value' containing the given quantity of Lovelace.
+lovelaceValue :: Lovelace -> Value
 lovelaceValue = singleton adaSymbol adaToken . getLovelace
 
 {-# INLINABLE lovelaceValueOf #-}
@@ -310,7 +313,7 @@ assetClassValueOf :: Value -> AssetClass -> Integer
 assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
 
 {-# INLINABLE unionVal #-}
--- | Combine two 'Value' maps
+-- | Combine two 'Value' maps, assumes the well-definedness of the two maps.
 unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (These Integer Integer))
 unionVal (Value l) (Value r) =
     let
@@ -322,6 +325,8 @@ unionVal (Value l) (Value r) =
     in unThese <$> combined
 
 {-# INLINABLE unionWith #-}
+-- | Combine two 'Value' maps with the argument function.
+-- Assumes the well-definedness of the two maps.
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
 unionWith f ls rs =
     let
@@ -336,6 +341,7 @@ unionWith f ls rs =
 -- | Convert a 'Value' to a simple list, keeping only the non-zero amounts.
 -- Note that the result isn't sorted, meaning @v1 == v2@ doesn't generally imply
 -- @flattenValue v1 == flattenValue v2@.
+-- Also assumes that there are no duplicate keys in the 'Value' 'Map'.
 flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
 flattenValue v = goOuter [] (Map.toList $ getValue v)
   where
@@ -355,6 +361,8 @@ isZero :: Value -> Bool
 isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 
 {-# INLINABLE checkPred #-}
+-- | Checks whether a predicate holds for all the values in a 'Value'
+-- union. Assumes the well-definedness of the two underlying 'Map's.
 checkPred :: (These Integer Integer -> Bool) -> Value -> Value -> Bool
 checkPred f l r =
     let
@@ -417,8 +425,11 @@ split (Value mp) = (negate (Value neg), Value pos) where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
 
 {-# INLINABLE unordEqWith #-}
-{- | Check equality of two lists given a function checking whether a 'Value' is zero and a function
-checking equality of values.
+{- | Check equality of two lists of distinct key-value pairs, each value being uniquely
+identified by a key, given a function checking whether a 'Value' is zero and a function
+checking equality of values. Note that the caller must ensure that the two lists are
+well-defined in this sense. This is not checked or enforced in `unordEqWith`, and therefore
+it might yield undefined results for ill-defined input.
 
 This function recurses on both the lists in parallel and checks whether the key-value pairs are
 equal pointwise. If there is a mismatch, then it tries to find the left key-value pair in the right

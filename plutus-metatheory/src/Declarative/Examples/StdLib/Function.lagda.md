@@ -1,8 +1,8 @@
-\begin{code}
+```
 module Declarative.Examples.StdLib.Function where
-\end{code}
+```
 
-\begin{code}
+```
 open import Utils using (Kind;*;_⇒_)
 open import Type using (_⊢⋆_;Z;S)
 open _⊢⋆_
@@ -11,12 +11,12 @@ open _≡β_
 open import Declarative using (Ctx;_⊢_;_∋_)
 open _⊢_
 open _∋_
-\end{code}
+```
 
 These examples are pretty old and not used, I am only ensuring that they
 continue to typecheck
 
-\begin{code}
+```
 --/\ (A B :: *) -> \(x : A) (y : B) -> x
 const : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ Π (Π (` (S Z) ⇒ ` Z ⇒ ` (S Z)))
 const = Λ (Λ (ƛ (ƛ (` (S Z)))))
@@ -55,4 +55,4 @@ Z-comb : ∀{Φ}{Γ : Ctx Φ} →
   Γ ⊢ Π (Π (((` (S Z) ⇒ ` Z) ⇒ ` (S Z) ⇒ ` Z) ⇒ ` (S Z) ⇒ ` Z))
 Z-comb = Λ (Λ (ƛ (ƛ (` (S Z) · ƛ (conv (β≡β _ _) (unwrap0 (ƛ (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z))) (` (S Z))) · ` (S Z) · ` Z)) · wrap0 _ (conv (sym≡β (β≡β _ _)) (ƛ (` (S Z) · ƛ (conv (β≡β _ _) (unwrap0 (ƛ (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z))) (` (S Z))) · ` (S Z) · ` Z)))))))
 
-\end{code}
+```

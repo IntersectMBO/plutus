@@ -1,8 +1,8 @@
-\begin{code}
+```
 module Scoped.Extrication where
-\end{code}
+```
 
-\begin{code}
+```
 open import Data.Unit using (tt)
 open import Data.Fin using (Fin;zero;suc;toℕ)
 open import Data.Nat using (ℕ;zero;suc)
@@ -35,11 +35,11 @@ open WeirdFin
 import Builtin.Constant.Type as T
 import Builtin.Constant.Type as S
 open import Algorithmic using (ty2sty;⟦_⟧;ty≅sty₁)
-\end{code}
+```
 
 type level
 
-\begin{code}
+```
 len⋆ : Ctx⋆ → ℕ
 len⋆ ∅        = zero
 len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
@@ -73,10 +73,10 @@ extricateNf⋆ (SOP Tss)       = SOP (extricateNf⋆-VecList Tss)
 extricateNe⋆ (` α)    = ` (extricateVar⋆ α)
 extricateNe⋆ (n · n') = extricateNe⋆ n · extricateNf⋆ n'
 extricateNe⋆ (^ tc)   = con tc
-\end{code}
+```
 
 
-\begin{code}
+```
 len : ∀{Φ} → Ctx Φ → Weirdℕ (len⋆ Φ)
 len ∅        = Z
 len (Γ ,⋆ K) = T (len Γ)
@@ -123,4 +123,4 @@ extricate (builtin b / refl)      = builtin b
 extricate (constr e Tss refl x)     = constr (extricateNf⋆ (SOP Tss)) (toℕ e) (extricate-ConstrArgs x)
 extricate (case {A = A} x cases)  = case (extricateNf⋆ A) (extricate x) (extricate-Cases cases)
 extricate {Φ}{Γ} (error A)        = error (extricateNf⋆ A)
-\end{code}
+```

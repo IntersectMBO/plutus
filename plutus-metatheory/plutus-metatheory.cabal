@@ -14,7 +14,6 @@ category:      Development
 data-files:
   Plutus.agda-lib
   README.md
-  src/**/*.lagda
   src/**/*.lagda.md
 
 -- This makes cabal rebuild if any of these files change, which allow the

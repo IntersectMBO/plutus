@@ -1,8 +1,8 @@
-\begin{code}
+```
 module Scoped where
-\end{code}
+```
 
-\begin{code}
+```
 open import Data.Nat using (ℕ;zero;suc;∣_-_∣)
 open import Data.Fin using (Fin;zero;suc;toℕ) 
 open import Data.Integer.Show using () renaming (show to ishow)
@@ -29,9 +29,9 @@ open import Utils using (Kind;Maybe;nothing;just;maybe;Monad;Either;inj₁;inj�
 open Monad{{...}}
 
 open import RawU using (TyTag;TmCon;tmCon;tagCon2TmCon;tmCon2TagCon)
-\end{code}
+```
 
-\begin{code}
+```
 data ScopedTy (n : ℕ) : Set where
   `    : Fin n → ScopedTy n
   _⇒_  : ScopedTy n → ScopedTy n → ScopedTy n
@@ -339,9 +339,9 @@ scopeCheckTmList (x ∷ xs) = do
   x  ← scopeCheckTm x 
   xs ← scopeCheckTmList xs 
   return (x ∷ xs)
-\end{code}
+```
 
-\begin{code}
+```
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
 extricateScopeTyList : ∀{n} → List (ScopedTy n) → List RawTy
 extricateScopeTyListList : ∀{n} → List (List (ScopedTy n)) → List (List RawTy)
@@ -382,11 +382,11 @@ extricateScope (case A x cs) = case (extricateScopeTy A) (extricateScope x) (ext
 
 extricateScopeList [] = []
 extricateScopeList (x ∷ xs) = extricateScope x ∷ extricateScopeList xs
-\end{code}
+```
 
 -- UGLY PRINTING
 
-\begin{code}
+```
 uglyWeirdFin : ∀{n}{w : Weirdℕ n} → WeirdFin w → String
 uglyWeirdFin Z = "0"
 uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
@@ -427,4 +427,4 @@ ugly (wrap _ _ t) = "(wrap " ++ ugly t ++ ")"
 ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
 ugly (constr A i cs) = "constr" -- TODO: Do it better
 ugly (case A x cs)   = "case"   -- TODO: Do it better
-\end{code}
+```

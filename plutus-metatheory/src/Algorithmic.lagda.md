@@ -1,10 +1,10 @@
-\begin{code}
+```
 module Algorithmic where
-\end{code}
+```
 
 ## Imports
 
-\begin{code}
+```
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂;subst)
 
 open import Data.Empty using (⊥)
@@ -36,51 +36,51 @@ open import Builtin.Signature using (_⊢♯)
 open _⊢♯
 
 open import Algorithmic.Signature using (btype;⊢♯2TyNe♯)
-\end{code}
+```
 
 ## Fixity declarations
 
 To begin, we get all our infix declarations out of the way.
 We list separately operators for judgements, types, and terms.
-\begin{code}
+```
 infix  4 _∋_
 infix  4 _⊢_
 infixl 5 _,_
-\end{code}
+```
 
 ## Contexts and erasure
 
 We need to mutually define contexts and their
 erasure to type contexts.
-\begin{code}
+```
 --data Ctx : Set
 --∥_∥ : Ctx → Ctx⋆
-\end{code}
+```
 
 A context is either empty, or extends a context by
 a type variable of a given kind, or extends a context
 by a variable of a given type.
-\begin{code}
+```
 data Ctx : Ctx⋆ → Set where
   ∅    : Ctx ∅
   _,⋆_ : Ctx Φ → (J : Kind) → Ctx (Φ ,⋆ J)
   _,_  : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Ctx Φ
-\end{code}
+```
 Let `Γ` range over contexts.  In the last rule,
 the type is indexed by the erasure of the previous
 context to a type context and a kind.
 
 The erasure of a context is a type context.
-\begin{code}
+```
 --∥ ∅ ∥       =  ∅
 --∥ Γ ,⋆ J ∥  =  ∥ Γ ∥ ,⋆ J
 --∥ Γ , A ∥   =  ∥ Γ ∥
-\end{code}
+```
 
 ## Variables
 
 A variable is indexed by its context and type.
-\begin{code}
+```
 data _∋_ : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
 
   Z : ∀ {Γ} {A : Φ ⊢Nf⋆ *}
@@ -96,28 +96,28 @@ data _∋_ : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
     → Γ ∋ A
       -------------------
     → Γ ,⋆ K ∋ weakenNf A
-\end{code}
+```
           
 ## Semantic of constant terms
 
 We define a predicate ♯Kinded for kinds that ultimately end in ♯.
 
-\begin{code}
+```
 data ♯Kinded : Kind → Set where
    ♯ : ♯Kinded ♯
    K♯ : ∀{K J} → ♯Kinded J → ♯Kinded (K ⇒ J)
-\end{code}
+```
 
 There is no type of a ♯Kinded kind which takes more than two type arguments. 
 
-\begin{code}
+```
 lemma♯Kinded : ∀ {K K₁ K₂ J} → ♯Kinded J → ∅ ⊢Ne⋆ (K₂ ⇒ (K₁ ⇒ (K ⇒ J))) → ⊥
 lemma♯Kinded k (f · _) = lemma♯Kinded (K♯ k) f
-\end{code}
+```
 
 Closed types can be mapped into the signature universe and viceversa.
 
-\begin{code}
+```
 ty2sty : ∅ ⊢Nf⋆ ♯ → 0 ⊢♯
 ty2sty (ne (((f · _) · _) · _)) with lemma♯Kinded ♯ f 
 ... | ()
@@ -127,12 +127,12 @@ ty2sty (ne (^ (atomic x))) = atomic x
 
 sty2ty : 0 ⊢♯ → ∅ ⊢Nf⋆ ♯
 sty2ty t = ne (⊢♯2TyNe♯ t)
-\end{code}
+```
 
 Now we have functions `ty2sty` and `sty2ty`. We prove that they are inverses, and therefore
 define an isomorphism.
 
-\begin{code}
+```
 ty≅sty₁ : ∀ (A : ∅ ⊢Nf⋆ ♯) → A ≡ sty2ty (ty2sty A)
 ty≅sty₁ (ne (((f · _) · _) · _)) with  lemma♯Kinded ♯ f
 ... | ()
@@ -144,19 +144,19 @@ ty≅sty₂ : ∀ (A : 0 ⊢♯) →  A ≡ ty2sty (sty2ty A)
 ty≅sty₂ (atomic x) = refl
 ty≅sty₂ (list A) = cong list (ty≅sty₂ A)
 ty≅sty₂ (pair A B) = cong₂ pair (ty≅sty₂ A) (ty≅sty₂ B)
-\end{code}
+```
 
 The semantics of closed types of kind ♯ is given by the following 
 interpretation function
 
-\begin{code}
+```
 ⟦_⟧ : (ty : ∅ ⊢Nf⋆ ♯) → Set
 ⟦ ne (((f · _) · _) · _) ⟧ with lemma♯Kinded ♯ f 
 ... | ()
 ⟦ ne ((^ pair · x) · y) ⟧ = ⟦ x ⟧ U× ⟦ y ⟧
 ⟦ ne (^ list · x) ⟧ = UList ⟦ x ⟧
 ⟦ ne (^ (atomic x)) ⟧ = ⟦ x ⟧at
-\end{code}
+```
 
 All these types need to be able to be interfaced with Haskell, as this 
 interpretation function is used everywhere of type or a type tag needs to be 
@@ -175,22 +175,22 @@ A is restricted to kind ♯.
 
 The type of cases if a function consuming every type in a list.
 We construct it with the following function: 
-\begin{code}
+```
 mkCaseType : ∀{Φ} (A : Φ ⊢Nf⋆ *) → List (Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
 mkCaseType A = foldr _⇒_ A
-\end{code}
+```
 
 We declare two auxiliary datatypes, which are mutually recursive with the type of terms,
 for constructor arguments and cases.
 
-\begin{code}
+```
 ConstrArgs : (Γ : Ctx Φ) → List (Φ ⊢Nf⋆ *) → Set
 data Cases (Γ : Ctx Φ) (B : Φ ⊢Nf⋆ *) : ∀{n} → Vec (List (Φ ⊢Nf⋆ *)) n → Set 
-\end{code}
+```
 
 The actual type of terms
 
-\begin{code}
+```
 infixl 7 _·⋆_/_
 
 data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
@@ -291,11 +291,11 @@ data Cases Γ B where
        → (cs : Cases Γ B Tss)
          --------------------- 
        → Cases Γ B (Ts ∷ Tss) 
-\end{code}
+```
 
 Utility functions
 
-\begin{code}
+```
 conv∋ : ∀ {Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ≡ Γ'
  → A ≡ A'
@@ -335,4 +335,4 @@ constr-cong' :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{A : Vec (List (Φ ⊢Nf⋆ *)) n}
             → (q : subst (IList (Γ ⊢_)) p' cs' ≡ subst (IList (Γ ⊢_)) p cs)
             → constr i A p' cs' ≡ constr i A p cs
 constr-cong' refl refl refl = refl
-\end{code}
+```

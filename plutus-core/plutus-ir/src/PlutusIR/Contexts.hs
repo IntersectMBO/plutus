@@ -114,7 +114,7 @@ saturates (TypeAppContext _ _ ctx) (TypeParam:arities) = saturates ctx arities
 -- Param/arg mismatch
 saturates (TermAppContext{}) (TypeParam:_)             = Nothing
 saturates (TypeAppContext{}) (TermParam:_)             = Nothing
--- Arguments lef - undersaturated
+-- Arguments left - undersaturated
 saturates (TermAppContext{}) []                        = Just Oversaturated
 saturates (TypeAppContext{}) []                        = Just Oversaturated
 

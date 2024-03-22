@@ -1,8 +1,8 @@
-\begin{code}
+```
 module Type.BetaNBE.Soundness where
-\end{code}
+```
 
-\begin{code}
+```
 open import Function using (_∘_;id)
 open import Data.Sum using (inj₁;inj₂)
 open import Data.Product using (Σ;_×_;_,_)
@@ -20,14 +20,14 @@ open import Type.RenamingSubstitution
      using (Sub;sub;sub-cons;sub-id;sub-comp;sub-cong;sub-ren;sub-List;sub-VecList)
 open import Type.BetaNormal using (_⊢Ne⋆_;embNf;ren-embNf;embNe;ren-embNe;embNf-List;embNf-VecList)
 open import Type.BetaNBE using (Val;renVal;_·V_;reflect;reify;Env;_,,⋆_;fresh;eval;idEnv;nf;eval-List;eval-VecList)
-\end{code}
+```
 
 The Soundness Relation (SR) is a Kripke logical relation between types
 and their values. It is defined by induction on kinds. it says that a type
 is related to a value if when we reach ground kind (# or *) then the
 type is beta-eta-equal to the result of reifying the value.
 
-\begin{code}
+```
 SR : ∀{Φ} K → Φ ⊢⋆ K → Val Φ K → Set
 SR *       A v        = A ≡β embNf v
 SR ♯       A v        = A ≡β embNf v
@@ -42,9 +42,9 @@ SR (K ⇒ J) A (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
     → SR K u v
       -----------------------------------------------------
     → SR J (ren ρ (ƛ B) · u) (renVal ρ (inj₂ f) ·V v)
-\end{code}
+```
 
-\begin{code}
+```
 reflectSR : ∀{Φ K}{A : Φ ⊢⋆ K}{n : Φ ⊢Ne⋆ K}
   → A ≡β embNe n
     ------------------
@@ -65,18 +65,18 @@ reifySR {K = K ⇒ J} {v = inj₂ f} (A' , p , q) = trans≡β
   (trans≡β (≡2β (cong ƛ (trans (trans (sym (sub-id A')) (sub-cong (λ { Z → refl ; (S α) → refl}) A')) (sub-ren A'))))
            (ƛ≡β (trans≡β (sym≡β (β≡β _ _))
                          (reifySR (q S (reflectSR (refl≡β (` Z))))))))
-\end{code}
+```
 
 Lifting SR from ⊢⋆/Val to Sub/Env
 
-\begin{code}
+```
 SREnv : ∀{Φ Ψ} → Sub Φ Ψ → Env Φ Ψ → Set
 SREnv {Φ} σ η = ∀{K}(α : Φ ∋⋆ K) → SR K (σ α) (η α)
-\end{code}
+```
 
 Cons for SREnv
 
-\begin{code}
+```
 SR,,⋆ : ∀{Φ Ψ}{σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv σ η
   → ∀{K}{A : Ψ ⊢⋆ K}{v : Val Ψ K}
@@ -84,11 +84,11 @@ SR,,⋆ : ∀{Φ Ψ}{σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv (sub-cons σ A) (η ,,⋆ v)
 SR,,⋆ p q Z     = q
 SR,,⋆ p q (S α) = p α
-\end{code}
+```
 
 SR is closed under ≡β
 
-\begin{code}
+```
 subSR : ∀{Φ K}{A A' : Φ ⊢⋆ K}
   → A' ≡β A
   → {v : Val Φ K}
@@ -99,11 +99,11 @@ subSR {K = *}     p          q            = trans≡β p q
 subSR {K = ♯}     p          q            = trans≡β p q
 subSR {K = K ⇒ J} p {inj₁ n} q            = trans≡β p q
 subSR {K = K ⇒ J} p {inj₂ f} (A' , q , r) = _ , trans≡β p q , r
-\end{code}
+```
 
 renaming for SR
 
-\begin{code}
+```
 renSR : ∀{Φ Ψ}(ρ : Ren Φ Ψ){K}{A : Φ ⊢⋆ K}{v : Val Φ K}
   → SR K A v
     ---------------------------------
@@ -121,22 +121,22 @@ renSR ρ {K ⇒ J} {A} {inj₂ f} (A' , p , q) =
     (≡2β (cong₂ _·_ (cong ƛ (trans (sym (ren-comp A'))
                            (ren-cong (sym ∘ ext-comp) A'))) refl))
     (q (ρ' ∘ ρ) r)
-\end{code}
+```
 
 Extending via exts is the same the same as weakening and cons on ` Z
 
-\begin{code}
+```
 exts-sub-cons : ∀{Φ Ψ K J}
   → (σ : Sub Φ Ψ)
   → (α : Φ ,⋆ J ∋⋆ K)
   → exts σ α ≡ sub-cons (weaken ∘ σ) (` Z) α
 exts-sub-cons σ Z     = refl
 exts-sub-cons σ (S _) = refl
-\end{code}
+```
 
 SREnv is closed under (pointwise) equality of environments
 
-\begin{code}
+```
 subSREnv : ∀{Φ Ψ}{σ σ' : Sub Φ Ψ}
   → (∀{K}(α : Φ ∋⋆ K) → σ α ≡ σ' α)
   → {η : Env Φ Ψ}
@@ -144,12 +144,12 @@ subSREnv : ∀{Φ Ψ}{σ σ' : Sub Φ Ψ}
     -------------------------------
   → SREnv σ' η
 subSREnv p q α rewrite sym (p α) = q α
-\end{code}
+```
 
 SREnv is closed under exts/extending the env
 (note: would this be cleaner if we used exte?)
 
-\begin{code}
+```
 SRweak : ∀{Φ Ψ}{σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv σ η
   → ∀ {K}
@@ -157,11 +157,11 @@ SRweak : ∀{Φ Ψ}{σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv (exts σ) ((renVal S ∘ η) ,,⋆ fresh {σ = K})
 SRweak p = subSREnv (sym ∘ exts-sub-cons _)
                       (SR,,⋆ (renSR S ∘ p) (reflectSR (refl≡β (` Z)))) 
-\end{code}
+```
 
 SR is closed under ·V
 
-\begin{code}
+```
 SRApp : ∀{Φ K J}
   → {A : Φ ⊢⋆ (K ⇒ J)}
   → {f : Val Φ (K ⇒ J)}
@@ -179,11 +179,11 @@ SRApp {f = inj₂ f} (A' , p , q) r = subSR
       (≡2β (cong ƛ (trans (sym (ren-id A')) (ren-cong (sym ∘ ext-id) A')))))
     (refl≡β _))
   (q id r)
-\end{code}
+```
 
 Fundamental Theorem of Logical Relations for SR
 
-\begin{code}
+```
 evalSR : ∀{Φ Ψ K}(A : Φ ⊢⋆ K){σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv σ η
   → SR K (sub σ A) (eval A η)
@@ -225,18 +225,18 @@ evalSR-List [] p = _[≡]β_.nil[≡]β
 evalSR-List (x ∷ xs) p = _[≡]β_.cons[≡]β (evalSR x p) (evalSR-List xs p)
 evalSR-VecList [] p = _⟨[≡]⟩β_.nil⟨[≡]⟩β
 evalSR-VecList (xs ∷ xss) p = _⟨[≡]⟩β_.cons⟨[≡]⟩β (evalSR-List xs p) (evalSR-VecList xss p)
-\end{code}
+```
 
 Identity SREnv
 
-\begin{code}
+```
 idSR : ∀{Φ} → SREnv ` (idEnv Φ)
 idSR = reflectSR ∘ _≡β_.refl≡β ∘ `
-\end{code}
+```
 
 Soundness Result
 
-\begin{code}
+```
 soundness : ∀ {Φ J} → (A : Φ ⊢⋆ J) → A ≡β embNf (nf A)
 soundness A = trans≡β (≡2β (sym (sub-id A))) (reifySR (evalSR A idSR)) 
-\end{code}
+```

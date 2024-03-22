@@ -1,10 +1,10 @@
-\begin{code}
+```
 module Type.BetaNBE where
-\end{code}
+```
 
 ## Imports
 
-\begin{code}
+```
 
 open import Function using (_∘_;id)
 open import Data.Vec using (Vec;[];_∷_) renaming (map to vmap)
@@ -20,81 +20,81 @@ open _⊢Ne⋆_
 open import Type.RenamingSubstitution using (Ren)
 import Builtin.Constant.Type as Syn
 import Builtin.Constant.Type as Nf
-\end{code}
+```
 
 Values are defined by induction on kind. At kind # and * they are
 inert and defined to be just normal forms. At function kind they are
 either neutral or Kripke functions
 
-\begin{code}
+```
 Val : Ctx⋆ → Kind → Set
 Val Φ *       = Φ ⊢Nf⋆ *
 Val Φ ♯       = Φ ⊢Nf⋆ ♯
 Val Φ (σ ⇒ τ) = Φ ⊢Ne⋆ (σ ⇒ τ) ⊎ ∀ {Ψ} → Ren Φ Ψ → Val Ψ σ → Val Ψ τ
-\end{code}
+```
 
 We can embed neutral terms into values at any kind using reflect.
 reflect is quite simple in this version of NBE and not mutually
 defined with reify.
 
-\begin{code}
+```
 reflect : ∀{Φ σ} → Φ ⊢Ne⋆ σ → Val Φ σ
 reflect {σ = ♯}     n = ne n
 reflect {σ = *}     n = ne n
 reflect {σ = σ ⇒ τ} n = inj₁ n
-\end{code}
+```
 
 A shorthand for creating a new fresh variable as a value which we need
 in reify
 
-\begin{code}
+```
 fresh : ∀ {Φ σ} → Val (Φ ,⋆ σ) σ
 fresh = reflect (` Z)
-\end{code}
+```
 
 Renaming for values
 
-\begin{code}
+```
 renVal : ∀ {σ Φ Ψ} → Ren Φ Ψ → Val Φ σ → Val Ψ σ
 renVal {*}     ψ n        = renNf ψ n
 renVal {♯}     ψ n        = renNf ψ n
 renVal {σ ⇒ τ} ψ (inj₁ n) = inj₁ (renNe ψ n)
 renVal {σ ⇒ τ} ψ (inj₂ f) = inj₂ λ ρ' →  f (ρ' ∘ ψ)
-\end{code}
+```
 
 Weakening for values
 
-\begin{code}
+```
 weakenVal : ∀ {σ Φ K} → Val Φ σ → Val (Φ ,⋆ K) σ
 weakenVal = renVal S
-\end{code}
+```
 
 Reify takes a value and yields a normal form.
 
-\begin{code}
+```
 reify : ∀ {σ Φ} → Val Φ σ → Φ ⊢Nf⋆ σ
 reify {*}     n         = n
 reify {♯}     n         = n
 reify {σ ⇒ τ} (inj₁ n)  = ne n
 reify {σ ⇒ τ} (inj₂ f)  = ƛ (reify (f S fresh)) -- has a name been lost here?
-\end{code}
+```
 
 An environment is a mapping from variables to values
 
-\begin{code}
+```
 Env : Ctx⋆ → Ctx⋆ → Set
 Env Ψ Φ = ∀{J} → Ψ ∋⋆ J → Val Φ J
-\end{code}
+```
 
 'cons' for environments
 
-\begin{code}
+```
 _,,⋆_ : ∀{Ψ Φ} → (σ : Env Φ Ψ) → ∀{K}(A : Val Ψ K) → Env (Φ ,⋆ K) Ψ
 (σ ,,⋆ A) Z     = A
 (σ ,,⋆ A) (S α) = σ α
-\end{code}
+```
 
-\begin{code}
+```
 exte : ∀ {Φ Ψ} → Env Φ Ψ → (∀ {K} → Env (Φ ,⋆ K) (Ψ ,⋆ K))
 exte η = (weakenVal ∘ η) ,,⋆ fresh
 {-
@@ -103,7 +103,7 @@ exte η = (weakenVal ∘ η) ,,⋆ fresh
 exte η Z      = fresh
 exte η (S α)  = weakenVal (η α)
 -}
-\end{code}
+```
 
 
 Application for values. As values at function type can be semantic
@@ -116,11 +116,11 @@ the argument. In this case, the function and argument are in the same
 context so we do not need the Kripke extension, hence the identity
 renaming.
 
-\begin{code}
+```
 _·V_ : ∀{Φ K J} → Val Φ (K ⇒ J) → Val Φ K → Val Φ J
 inj₁ n ·V v = reflect (n · reify v)
 inj₂ f ·V v = f id v
-\end{code}
+```
 
 Evaluation a term in an environment yields a value. The most
 interesting cases are ƛ where we introduce a new Kripke function that
@@ -128,7 +128,7 @@ will evaluate when it receives an argument and Π/μ where we need to go
 under the binder and extend the environment before evaluating and
 reifying.
 
-\begin{code}
+```
 eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
 
 eval-List : ∀{Φ Ψ K} → List (Ψ ⊢⋆ K) → Env Ψ Φ → List (Val Φ K)
@@ -148,30 +148,30 @@ eval-List [] η = []
 eval-List (x ∷ xs) η = eval x η ∷ eval-List xs η
 eval-VecList [] η = []
 eval-VecList (Ts ∷ Tss) η = eval-List Ts η ∷ eval-VecList Tss η
-\end{code}
+```
 
 Identity environment
 
-\begin{code}
+```
 idEnv : ∀ Φ → Env Φ Φ
 idEnv Φ = reflect ∘ `
-\end{code}
+```
 
 Normalisating a term yields a normal form. We evaluate in the identity
 environment to yield a value in the same context as the original term
 and then reify to yield a normal form
 
-\begin{code}
+```
 nf : ∀{Φ K} → Φ ⊢⋆ K → Φ ⊢Nf⋆ K
 nf t = reify (eval t (idEnv _))
 
 nf-VecList :  ∀{Φ K n} → Vec (List (Φ ⊢⋆ K)) n → Vec (List (Φ ⊢Nf⋆ K)) n
 nf-VecList Tss =  vmap (map reify) (eval-VecList Tss (idEnv _))
-\end{code}
+```
 
 Some properties relating uses of lookup on VecList-functions with List-functions
 
-\begin{code}
+```
 module _ where
 
   open import Data.Fin using (Fin;zero;suc)
@@ -187,4 +187,4 @@ module _ where
               → lookup (eval-VecList Tss η) e ≡ eval-List (lookup Tss e) η
   lookup-eval-VecList zero (_ ∷ _) η = refl
   lookup-eval-VecList (suc e) (_ ∷ Tss) η = lookup-eval-VecList e Tss η
-\end{code}
+```

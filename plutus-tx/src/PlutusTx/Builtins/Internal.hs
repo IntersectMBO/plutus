@@ -10,6 +10,9 @@
 -- they're NOINLINE!
 {-# OPTIONS_GHC -O0 #-}
 
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use newtype instead of data" #-} -- See Note [Opaque builtin types]
+
 -- | This module contains the special Haskell names that are used to map to builtin types or functions
 -- in Plutus Core.
 --
@@ -22,13 +25,13 @@ import Data.ByteArray qualified as BA
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Coerce (coerce)
-import Data.Data
+import Data.Data (Data)
 import Data.Foldable qualified as Foldable
 import Data.Hashable (Hashable (..))
 import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
-import GHC.Generics
+import GHC.Generics (Generic)
 import PlutusCore.Bitwise.Convert qualified as Convert
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -397,7 +400,7 @@ tail (BuiltinList (_:xs)) = BuiltinList xs
 tail (BuiltinList [])     = Haskell.error "empty list"
 
 {-# NOINLINE chooseList #-}
-chooseList :: BuiltinList a -> b -> b-> b
+chooseList :: BuiltinList a -> b -> b -> b
 chooseList (BuiltinList [])    b1 _ = b1
 chooseList (BuiltinList (_:_)) _ b2 = b2
 
@@ -470,7 +473,7 @@ mkConstr i (BuiltinList args) = BuiltinData (PLC.Constr i (fmap builtinDataToDat
 
 {-# NOINLINE mkMap #-}
 mkMap :: BuiltinList (BuiltinPair BuiltinData BuiltinData) -> BuiltinData
-mkMap (BuiltinList es) = BuiltinData (PLC.Map $ (fmap p2p es))
+mkMap (BuiltinList es) = BuiltinData (PLC.Map (fmap p2p es))
   where
       p2p (BuiltinPair (d, d')) = (builtinDataToData d, builtinDataToData d')
 

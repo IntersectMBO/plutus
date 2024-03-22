@@ -1,8 +1,8 @@
-\begin{code}
+```
 module Raw where
-\end{code}
+```
 
-\begin{code}
+```
 open import Data.String using (String;_++_)
 open import Data.Nat using (ℕ;_≟_)
 open import Data.Integer using (ℤ)
@@ -21,11 +21,11 @@ open AtomicTyCon
 open import Utils using (Kind;*;♯;_⇒_;List;[];_∷_)
 open import RawU using (TagCon;tagCon;Tag;decTagCon)
 open Tag
-\end{code}
+```
 
 The raw un-scope-checked and un-type-checked syntax
 
-\begin{code}
+```
 data RawTy : Set
 
 data RawTyCon : Set
@@ -179,5 +179,5 @@ rawPrinter (case A arg cs) = "(case"  ++ rawTyPrinter A
 rawListPrinter [] = ""
 rawListPrinter (x ∷ []) = rawPrinter x
 rawListPrinter (x ∷ y ∷ xs) = rawPrinter x ++ " , " ++ rawListPrinter (y ∷ xs)                               
-\end{code}
+```
  
