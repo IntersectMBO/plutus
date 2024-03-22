@@ -205,6 +205,10 @@ adjustModel <- function (r, fname) {
     ## This will invalidate some of the information in the model (such as the
     ## residuals), but we don't use that anyway.  Maybe we should just return the
     ## vector of coefficients?
+
+    if (exists("constant",where=r)) {
+       if (r$constant < 0) r$constant=0.2 ## 0.2 ms = 200000 ps
+    }
     return (r)
 }
 
@@ -218,6 +222,7 @@ adjustModels <- function(models) {
     models2 <- lapply(names(models), adjustEntry)
     names(models2) <- names(models)
     # Can we just mutate the entries of `models` in place, leaving the names untouched?
+
     return(models2)
 }
 
@@ -430,14 +435,20 @@ modelFun <- function(path) {
     ## a good fit.
     divideIntegerModel <- {
         fname <- "DivideInteger"
-        filtered <- data %>%
+        filtered <- data %>%  ## Data below diagonal
             filter.and.check.nonempty(fname) %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             filter (x_mem > y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ I(x_mem * y_mem), filtered)
-        mk.result(m, "const_above_diagonal", constant=0.1965, subtype="multiplied_sizes")
-        ## FIXME.  The `const` value above is the above-diagonal cost: infer it from the data.
+
+       filtered2 <- data %>%  ## Data on or above diagonal: effectively constant time.
+            filter.and.check.nonempty(fname) %>%
+            filter(x_mem > 0 & y_mem > 0) %>%
+            filter (x_mem <= y_mem) %>%
+            discard.overhead ()
+        constant = mean(filtered2$t)
+        mk.result(m, "const_above_diagonal", constant=constant, subtype="multiplied_sizes")
     }
 
     quotientIntegerModel  <- divideIntegerModel
@@ -511,8 +522,12 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
-        mk.result(m, "const_off_diagonal", constant=0.245, subtype="linear_in_x")
-        ## FIXME.  The `const` value above is the above-diagonal cost: infer it from the data.
+
+        constant <- m$coefficients[["(Intercept)"]]
+        ## FIXME.  The `constant` value above is the above-diagonal cost, which we
+        ## don't collect benchmarking data for.  Collect some data and infer it
+
+        mk.result(m, "const_off_diagonal", constant=constant, subtype="linear_in_x")
     }
 
     lessThanByteStringModel <- {
@@ -570,8 +585,12 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
-        mk.result(m, "const_off_diagonal", constant=0.187, subtype="linear_in_x")
-        ## FIXME.  The `const` value above is the above-diagonal cost: infer it from the data.
+
+        constant <- m$coefficients[["(Intercept)"]]
+        ## FIXME.  The `constant` value above is the above-diagonal cost, which we
+        ## don't collect benchmarking data for.  Collect some data and infer it
+
+        mk.result(m, "const_off_diagonal", constant=constant, subtype="linear_in_x")
     }
 
     decodeUtf8Model <- linearInX ("DecodeUtf8")

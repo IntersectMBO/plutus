@@ -357,7 +357,7 @@
     "divideInteger": {
         "cpu": {
             "arguments": {
-                "constant": 196500,
+                "constant": 259549,
                 "model": {
                     "arguments": {
                         "intercept": 453240,
@@ -396,7 +396,7 @@
     "equalsByteString": {
         "cpu": {
             "arguments": {
-                "constant": 245000,
+                "constant": 216773,
                 "model": {
                     "arguments": {
                         "intercept": 216773,
@@ -441,7 +441,7 @@
     "equalsString": {
         "cpu": {
             "arguments": {
-                "constant": 187000,
+                "constant": 200000,
                 "model": {
                     "arguments": {
                         "intercept": 1000,
@@ -662,7 +662,7 @@
     "modInteger": {
         "cpu": {
             "arguments": {
-                "constant": 196500,
+                "constant": 259549,
                 "model": {
                     "arguments": {
                         "intercept": 453240,
@@ -711,7 +711,7 @@
     "quotientInteger": {
         "cpu": {
             "arguments": {
-                "constant": 196500,
+                "constant": 259549,
                 "model": {
                     "arguments": {
                         "intercept": 453240,
@@ -734,7 +734,7 @@
     "remainderInteger": {
         "cpu": {
             "arguments": {
-                "constant": 196500,
+                "constant": 259549,
                 "model": {
                     "arguments": {
                         "intercept": 453240,
