@@ -381,7 +381,7 @@ runTwoArgumentModel
         lazy $ \costs1 costs2 ->
             scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
 runTwoArgumentModel
-    -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
+    -- Off the diagonal, return the constant.  On the diagonal, run the other model.
     (ModelTwoArgumentsConstOffDiagonal (ModelConstantOrOneArgument c m)) =
         case runOneArgumentModel m of
             !run -> lazy $ \costs1 costs2 -> do

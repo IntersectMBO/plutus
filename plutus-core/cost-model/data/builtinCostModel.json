@@ -49,7 +49,7 @@
     },
     "bData": {
         "cpu": {
-            "arguments": 1001,
+            "arguments": 1000,
             "type": "constant_cost"
         },
         "memory": {
@@ -357,7 +357,7 @@
     "divideInteger": {
         "cpu": {
             "arguments": {
-                "constant": 259549,
+                "constant": 196500,
                 "model": {
                     "arguments": {
                         "intercept": 453240,
@@ -396,7 +396,7 @@
     "equalsByteString": {
         "cpu": {
             "arguments": {
-                "constant": 62013,
+                "constant": 245000,
                 "model": {
                     "arguments": {
                         "intercept": 216773,
@@ -441,7 +441,7 @@
     "equalsString": {
         "cpu": {
             "arguments": {
-                "constant": 157945,
+                "constant": 187000,
                 "model": {
                     "arguments": {
                         "intercept": 1000,
@@ -479,7 +479,7 @@
     },
     "iData": {
         "cpu": {
-            "arguments": 1001,
+            "arguments": 1000,
             "type": "constant_cost"
         },
         "memory": {
@@ -662,7 +662,7 @@
     "modInteger": {
         "cpu": {
             "arguments": {
-                "constant": 259549,
+                "constant": 196500,
                 "model": {
                     "arguments": {
                         "intercept": 453240,
@@ -711,7 +711,7 @@
     "quotientInteger": {
         "cpu": {
             "arguments": {
-                "constant": 259549,
+                "constant": 196500,
                 "model": {
                     "arguments": {
                         "intercept": 453240,
@@ -734,7 +734,7 @@
     "remainderInteger": {
         "cpu": {
             "arguments": {
-                "constant": 259549,
+                "constant": 196500,
                 "model": {
                     "arguments": {
                         "intercept": 453240,
@@ -799,8 +799,8 @@
     "sliceByteString": {
         "cpu": {
             "arguments": {
-                "intercept": 266994,
-                "slope": 11
+                "intercept": 265318,
+                "slope": 0
             },
             "type": "linear_in_z"
         },
