@@ -1,57 +1,45 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE OverloadedLists #-}
-{-# LANGUAGE TypeFamilies    #-}
-{-# LANGUAGE ViewPatterns    #-}
+{-# LANGUAGE ConstraintKinds    #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE OverloadedLists    #-}
+{-# LANGUAGE PatternSynonyms    #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE ViewPatterns       #-}
 
 module PlutusTx.DataList (
 
 ) where
 
-import PlutusTx.Builtins qualified as P
-import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.AsData qualified as AsData
 import PlutusTx.IsData qualified as P
 import PlutusTx.Prelude hiding (map)
 
 import GHC.Exts qualified as H
 
-newtype List a = List P.BuiltinData
-
-instance P.ToData (List a) where
-  {-# INLINEABLE toBuiltinData #-}
-  toBuiltinData (List l) = l
-
-instance P.FromData (List a) where
-  fromBuiltinData = Just . List
-
-instance P.UnsafeFromData (List a) where
-  unsafeFromBuiltinData = List
+AsData.asData
+  [d|
+    data List a = Nil | Cons a (List a)
+      deriving newtype (P.ToData, P.FromData, P.UnsafeFromData)
+  |]
 
 type DataElem a = (P.UnsafeFromData a, P.ToData a)
 
-instance (P.UnsafeFromData a, P.ToData a) => H.IsList (List a) where
+instance (DataElem a) => H.IsList (List a) where
     type Item (List a) = a
-    fromList = List . BI.mkList . go
-      where
-        go [] = BI.mkNilData BI.unitval
-        go (x : xs) =
-            BI.mkCons (P.toBuiltinData x) (go xs)
-    toList (List l) = go . BI.unsafeDataAsList $ l
-      where
-        go xs =
-            P.matchList
-                xs
-                []
-                (\hd tl -> P.unsafeFromBuiltinData hd : go tl)
+    fromList [] = Nil
+    fromList (x : xs) =
+      Cons x (H.fromList xs)
+    toList Nil         = []
+    toList (Cons x xs) = x : H.toList xs
 
--- cons
 (.:) :: (DataElem a) => a -> List a -> List a
-(.:) x xs = H.fromList $ x : H.toList xs
+(.:) = Cons
 
 -- empty List is overloaded as []
 
 -- examples of using overloaded syntax
 
-example0 :: (DataElem a) => List a
+example0 :: DataElem a => List a
 example0 = []
 
 example1 :: List Bool
@@ -61,8 +49,8 @@ example2 :: List Integer
 example2 = [1..10]
 
 -- examples of using overloaded pattern matching
-isSingleton :: (DataElem a) => List a -> Bool
-isSingleton [a] = True
+isSingleton :: DataElem a => List a -> Bool
+isSingleton [_] = True
 isSingleton _   = False
 
 map :: (DataElem a, DataElem b) => (a -> b) -> List a -> List b
