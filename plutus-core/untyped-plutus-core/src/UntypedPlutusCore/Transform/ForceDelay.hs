@@ -1,4 +1,6 @@
-{- | The 'ForceDelay' optimisation pushes 'Force' inside its direct 'Apply' subterms,
+{- Note [Cancelling interleaved Force-Delay pairs]
+
+ The 'ForceDelay' optimisation pushes 'Force' inside its direct 'Apply' subterms,
  removing any 'Delay' at the top of the body of the underlying lambda abstraction.
  For example, @force [(\x -> delay b) a]@ is transformed into @[(\x -> b) a]@.
  We also consider the case where the 'Force' is applied directly to the 'Delay' as
@@ -138,7 +140,6 @@ import UntypedPlutusCore.Core
 import Control.Lens (transformOf)
 import Control.Monad (guard)
 import Data.Foldable (foldl')
-import Data.Maybe (fromMaybe)
 
 {- | Traverses the term, for each node applying the optimisation
  detailed above. For implementation details see 'optimisationProcedure'.
@@ -153,7 +154,9 @@ processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case
     Force _ (Delay _ t) -> t
     original@(Force _ subTerm) ->
-        fromMaybe original (optimisationProcedure subTerm)
+        case optimisationProcedure subTerm of
+            Just result -> result
+            Nothing     -> original
     t -> t
 
 {- | Converts the subterm of a 'Force' into specialised types for representing
