@@ -6,20 +6,18 @@
 
 module PlutusCore.Name.UniqueMap (
   UniqueMap (..),
-insertByUnique,
-insertByName,
-singletonByName,
-insertNamed,
-insertByNameIndex,
-fromFoldable,
-fromUniques,
-fromNames,
-lookupUnique,
-lookupName,
-restrictKeys,
-foldr,
-lookupNameIndex,
-isEmpty,
+  insertByUnique,
+  insertByName,
+  singletonByName,
+  insertNamed,
+  insertByNameIndex,
+  fromFoldable,
+  fromUniques,
+  fromNames,
+  lookupUnique,
+  lookupName,
+  restrictKeys,
+  lookupNameIndex,
 ) where
 
 import Control.Lens (view)
@@ -38,7 +36,8 @@ import Prelude hiding (foldr)
 newtype UniqueMap unique a = UniqueMap
   { unUniqueMap :: IM.IntMap a
   }
-  deriving newtype (Show, Eq, Semigroup, Monoid, Functor)
+  deriving stock (Show, Eq)
+  deriving newtype (Semigroup, Monoid, Functor, Foldable)
 
 -- | Insert a value @a@ by a @unique@.
 insertByUnique ::
@@ -106,9 +105,6 @@ restrictKeys :: UniqueMap unique v -> UniqueSet unique -> UniqueMap unique v
 restrictKeys (UniqueMap m) (UniqueSet s) =
   UniqueMap $ IM.restrictKeys m s
 
-foldr :: (a -> b -> b) -> b -> UniqueMap unique a -> b
-foldr f unit (UniqueMap m) = IM.foldr f unit m
-
 {- | Look up a value by the index of the unique of a name.
 Unlike 'lookupUnique' and 'lookupName', this function does not provide any static guarantees,
 so you can for example look up a type-level name in a map from term-level uniques.
@@ -119,7 +115,3 @@ lookupNameIndex ::
   UniqueMap unique2 a ->
   Maybe a
 lookupNameIndex = lookupUnique . coerce . view unique
-
-{-# INLINE isEmpty #-}
-isEmpty :: UniqueMap unique a -> Bool
-isEmpty (UniqueMap m) = IM.null m

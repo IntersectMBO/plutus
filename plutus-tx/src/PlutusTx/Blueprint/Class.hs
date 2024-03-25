@@ -12,7 +12,8 @@ import Prelude hiding (maximum, minimum)
 
 import Data.Kind (Type)
 import PlutusTx.Blueprint.Schema (PairSchema (..), Schema (..), emptyBytesSchema,
-                                  emptyIntegerSchema, emptySchemaInfo)
+                                  emptyIntegerSchema)
+import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
 
 {- |

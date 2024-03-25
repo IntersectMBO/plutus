@@ -62,6 +62,7 @@ library
     PlutusTx.Blueprint.Preamble
     PlutusTx.Blueprint.Purpose
     PlutusTx.Blueprint.Schema
+    PlutusTx.Blueprint.Schema.Annotation
     PlutusTx.Blueprint.TH
     PlutusTx.Blueprint.Validator
     PlutusTx.Blueprint.Write
@@ -178,6 +179,7 @@ test-suite plutus-tx-test
   other-modules:
     Blueprint.Definition.Fixture
     Blueprint.Definition.Spec
+    Blueprint.Spec
     List.Spec
     Rational.Laws
     Rational.Laws.Additive

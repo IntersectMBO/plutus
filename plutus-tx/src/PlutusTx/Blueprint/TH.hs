@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP              #-}
+{-# LANGUAGE EmptyCase        #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE RecordWildCards  #-}
@@ -11,15 +12,25 @@ module PlutusTx.Blueprint.TH where
 
 import Prelude
 
+import Data.Data (Data)
 import Data.List (nub)
 import Data.List.NonEmpty qualified as NE
-import Data.Traversable (for)
-import GHC.Natural (Natural, naturalToInteger)
+import Data.Set (Set)
+import Data.Text qualified as Text
+import GHC.Natural (naturalToInteger)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
+import Numeric.Natural (Natural)
+import PlutusPrelude (for, (<&>), (<<$>>))
+import PlutusTx.Blueprint.Argument (ArgumentBlueprint (..))
 import PlutusTx.Blueprint.Class (HasSchema (..))
 import PlutusTx.Blueprint.Definition (HasSchemaDefinition)
-import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..), SchemaInfo (..))
+import PlutusTx.Blueprint.Parameter (ParameterBlueprint (..))
+import PlutusTx.Blueprint.Purpose (Purpose)
+import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..))
+import PlutusTx.Blueprint.Schema.Annotation (SchemaAnn (..), SchemaComment, SchemaDescription,
+                                             SchemaInfo (..), SchemaTitle, annotationsToSchemaInfo,
+                                             schemaDescriptionToString, schemaTitleToString)
 import PlutusTx.IsData.TH (makeIsDataIndexed)
 
 {- |
@@ -40,10 +51,15 @@ makeHasSchemaInstance dataTypeName indices = do
   let nonOverlapInstance = TH.InstanceD Nothing
 
   -- Lookup indices for all constructors of a data type.
-  indexedCons <- for (TH.datatypeCons dataTypeInfo) $ \ctorInfo ->
-    case lookup (TH.constructorName ctorInfo) indices of
-      Just index -> pure (ctorInfo, index)
-      Nothing    -> fail $ "No index given for constructor " ++ show (TH.constructorName ctorInfo)
+  indexedCons :: [(TH.ConstructorInfo, SchemaInfo, Natural)] <- do
+    for (TH.datatypeCons dataTypeInfo) $ \ctorInfo -> do
+      let ctorName = TH.constructorName ctorInfo
+      case lookup ctorName indices of
+        Nothing -> fail $ "No index given for constructor " ++ show (TH.constructorName ctorInfo)
+        Just index -> do
+          ctorSchemaAnns <- lookupSchemaAnns ctorName
+          schemaInfo <- schemaInfoFromAnns ctorSchemaAnns
+          pure (ctorInfo, schemaInfo, index)
 
   let tsType = TH.VarT (TH.mkName "referencedTypes")
 
@@ -52,7 +68,7 @@ makeHasSchemaInstance dataTypeName indices = do
         nub
           -- Every type in the constructor fields must have a schema definition.
           [ TH.classPred ''HasSchemaDefinition [fieldType, tsType]
-          | (TH.ConstructorInfo{constructorFields}, _index) <- indexedCons
+          | (TH.ConstructorInfo{constructorFields}, _info, _index) <- indexedCons
           , fieldType <- constructorFields
           ]
   -- Generate a 'schema' function for the instance with one clause.
@@ -68,9 +84,27 @@ makeHasSchemaInstance dataTypeName indices = do
       constraints
       (TH.classPred ''HasSchema [appliedType, tsType])
       [schemaPrag, schemaDecl]
+ where
+  -- Lookup all annotations (SchemaTitle, SchemdDescription, SchemaComment) attached to a name.
+  lookupSchemaAnns :: TH.Name -> TH.Q [SchemaAnn]
+  lookupSchemaAnns name = do
+    title <- MkSchemaAnnTitle <<$>> lookupAnn @SchemaTitle name
+    description <- MkSchemaAnnDescription <<$>> lookupAnn @SchemaDescription name
+    comment <- MkSchemaAnnComment <<$>> lookupAnn @SchemaComment name
+    pure $ title ++ description ++ comment
+
+  -- | Make SchemaInfo from a list of schema annotations, failing in case of ambiguity.
+  schemaInfoFromAnns :: [SchemaAnn] -> TH.Q SchemaInfo
+  schemaInfoFromAnns = either fail pure . annotationsToSchemaInfo
 
 -- | Make a clause for the 'schema' function.
-mkSchemaClause :: TH.Type -> [(TH.ConstructorInfo, Natural)] -> TH.ClauseQ
+mkSchemaClause ::
+  -- | The type for the 'HasSchema' instance.
+  TH.Type ->
+  -- | The constructors of the type with their schema infos and indices.
+  [(TH.ConstructorInfo, SchemaInfo, Natural)] ->
+  -- | The clause for the 'schema' function.
+  TH.ClauseQ
 mkSchemaClause ts ctorIndexes =
   case ctorIndexes of
     [] -> fail "At least one constructor index must be specified."
@@ -83,12 +117,49 @@ mkSchemaClause ts ctorIndexes =
     let whereDecls = []
     TH.clause patterns (TH.normalB body) whereDecls
 
-  mkSchemaConstructor :: (TH.ConstructorInfo, Natural) -> TH.ExpQ
-  mkSchemaConstructor (TH.ConstructorInfo{..}, naturalToInteger -> ctorIndex) = do
+  mkSchemaConstructor :: (TH.ConstructorInfo, SchemaInfo, Natural) -> TH.ExpQ
+  mkSchemaConstructor (TH.ConstructorInfo{..}, info, naturalToInteger -> ctorIndex) = do
     fields <- for constructorFields $ \t -> [|definitionRef @($(pure t)) @($(pure ts))|]
-    let name = TH.nameBase constructorName
-    [|
-      SchemaConstructor
-        (MkSchemaInfo Nothing Nothing (Just name))
-        (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))
-      |]
+    [|SchemaConstructor info (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))|]
+
+deriveParameterBlueprint :: TH.Name -> Set Purpose -> TH.ExpQ
+deriveParameterBlueprint tyName purpose = do
+  title <- Text.pack . schemaTitleToString <<$>> lookupSchemaTitle tyName
+  description <- Text.pack . schemaDescriptionToString <<$>> lookupSchemaDescription tyName
+  [| MkParameterBlueprint
+      { parameterTitle = title
+      , parameterDescription = description
+      , parameterPurpose = purpose
+      , parameterSchema = definitionRef @($(TH.conT tyName))
+      }
+    |]
+
+deriveArgumentBlueprint :: TH.Name -> Set Purpose -> TH.ExpQ
+deriveArgumentBlueprint tyName purpose = do
+  title <- Text.pack . schemaTitleToString <<$>> lookupSchemaTitle tyName
+  description <- Text.pack . schemaDescriptionToString <<$>> lookupSchemaDescription tyName
+  [| MkArgumentBlueprint
+      { argumentTitle = title
+      , argumentDescription = description
+      , argumentPurpose = purpose
+      , argumentSchema = definitionRef @($(TH.conT tyName))
+      }
+    |]
+
+----------------------------------------------------------------------------------------------------
+-- TH Utilities ------------------------------------------------------------------------------------
+
+lookupAnn :: (Data a) => TH.Name -> TH.Q [a]
+lookupAnn = TH.reifyAnnotations . TH.AnnLookupName
+
+lookupSchemaTitle :: TH.Name -> TH.Q (Maybe SchemaTitle)
+lookupSchemaTitle tyName = lookupAnn @SchemaTitle tyName <&> \case
+    [x] -> Just x
+    [] -> Nothing
+    _ -> fail $ "Multiple SchemTitle annotations found for " <> show tyName
+
+lookupSchemaDescription :: TH.Name -> TH.Q (Maybe SchemaDescription)
+lookupSchemaDescription tyName = lookupAnn @SchemaDescription tyName <&> \case
+    [x] -> Just x
+    [] -> Nothing
+    _ -> fail $ "Multiple SchemaDescription annotations found for " <> show tyName

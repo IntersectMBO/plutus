@@ -100,7 +100,7 @@ module PlutusLedgerApi.V2 (
 
   -- *** Association maps
   Map,
-  fromList,
+  unsafeFromList,
 
   -- *** Newtypes and hash types
   ScriptHash (..),
@@ -138,7 +138,7 @@ import PlutusLedgerApi.V2.ParamName
 import PlutusLedgerApi.V2.Tx (OutputDatum (..))
 
 import PlutusCore.Data qualified as PLC
-import PlutusTx.AssocMap (Map, fromList)
+import PlutusTx.AssocMap (Map, unsafeFromList)
 
 import Control.Monad.Except (MonadError)
 

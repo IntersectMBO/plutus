@@ -1,58 +1,29 @@
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Blueprint.Tests where
 
-import PlutusTx.Blueprint
 import Prelude
 
-import Blueprint.Tests.Lib qualified as Fixture
-import Control.Monad.Reader (asks)
+import Blueprint.Tests.Lib (Datum, Datum2, Param2a, Param2b, Params, Redeemer, Redeemer2,
+                            goldenJson, serialisedScript, validatorScript1, validatorScript2)
 import Data.Set qualified as Set
-import Data.Void (Void)
+import PlutusTx.Blueprint.Contract (ContractBlueprint (..))
+import PlutusTx.Blueprint.Definition (definitionRef, deriveDefinitions)
+import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (PlutusV3))
+import PlutusTx.Blueprint.Preamble (Preamble (..))
 import PlutusTx.Blueprint.Purpose qualified as Purpose
-import PlutusTx.Builtins (BuiltinByteString, BuiltinData)
-import System.FilePath ((</>))
-import Test.Tasty (TestName)
+import PlutusTx.Blueprint.TH (deriveArgumentBlueprint, deriveParameterBlueprint)
+import PlutusTx.Blueprint.Validator (ValidatorBlueprint (..))
+import PlutusTx.Blueprint.Write (writeBlueprint)
 import Test.Tasty.Extras (TestNested, testNested)
-import Test.Tasty.Golden (goldenVsFile)
 
 goldenTests :: TestNested
-goldenTests = testNested "Blueprint" [goldenBlueprint "Acme" contractBlueprint]
+goldenTests = testNested "Blueprint" [goldenJson "Acme" (`writeBlueprint` contractBlueprint)]
 
-goldenBlueprint :: TestName -> ContractBlueprint types -> TestNested
-goldenBlueprint name blueprint = do
-  goldenPath <- asks $ foldr (</>) name
-  let actual = goldenPath ++ ".actual.json"
-  let golden = goldenPath ++ ".golden.json"
-  pure $ goldenVsFile name golden actual (writeBlueprint actual blueprint)
-
-{- | All the data types exposed (directly or indirectly) by the type signature of the validator
-This type level list is used to:
-1. derive the schema definitions for the contract.
-2. make "safe" references to the [derived] schema definitions.
--}
-type ValidatorTypes =
-  [ Fixture.Datum
-  , Fixture.DatumPayload
-  , Fixture.Params
-  , Fixture.Redeemer
-  , Fixture.Bytes Void
-  , ()
-  , Bool
-  , Integer
-  , BuiltinData
-  , BuiltinByteString
-  ]
-
-contractBlueprint :: ContractBlueprint ValidatorTypes
+contractBlueprint :: ContractBlueprint
 contractBlueprint =
   MkContractBlueprint
     { contractId = Nothing
@@ -64,38 +35,39 @@ contractBlueprint =
           , preamblePlutusVersion = PlutusV3
           , preambleLicense = Just "MIT"
           }
-    , contractValidators = Set.singleton validatorBlueprint
-    , contractDefinitions = deriveSchemaDefinitions
-    }
-
-validatorBlueprint :: ValidatorBlueprint ValidatorTypes
-validatorBlueprint =
-  MkValidatorBlueprint
-    { validatorTitle = "Acme Validator"
-    , validatorDescription = Just "A validator that does something awesome"
-    , validatorParameters =
-        Just
-          $ pure
-            MkParameterBlueprint
-              { parameterTitle = Just "Acme Parameter"
-              , parameterDescription = Just "A parameter that does something awesome"
-              , parameterPurpose = Set.singleton Purpose.Spend
-              , parameterSchema = definitionRef @Fixture.Params
+    , contractValidators =
+        Set.fromList
+          [ MkValidatorBlueprint
+              { validatorTitle =
+                  "Acme Validator #1"
+              , validatorDescription =
+                  Just "A validator that does something awesome"
+              , validatorParameters =
+                  [$(deriveParameterBlueprint ''Params (Set.singleton Purpose.Spend))]
+              , validatorRedeemer =
+                  $(deriveArgumentBlueprint ''Redeemer (Set.singleton Purpose.Spend))
+              , validatorDatum =
+                  Just $(deriveArgumentBlueprint ''Datum (Set.singleton Purpose.Spend))
+              , validatorCompiledCode =
+                  Just (serialisedScript validatorScript1)
               }
-    , validatorRedeemer =
-        MkArgumentBlueprint
-          { argumentTitle = Just "Acme Redeemer"
-          , argumentDescription = Just "A redeemer that does something awesome"
-          , argumentPurpose = Set.fromList [Purpose.Spend, Purpose.Mint]
-          , argumentSchema = definitionRef @Fixture.Redeemer
-          }
-    , validatorDatum =
-        Just
-          MkArgumentBlueprint
-            { argumentTitle = Just "Acme Datum"
-            , argumentDescription = Just "A datum that contains something awesome"
-            , argumentPurpose = Set.singleton Purpose.Spend
-            , argumentSchema = definitionRef @Fixture.Datum
-            }
-    , validatorCompiledCode = Just Fixture.serialisedScript
+          , MkValidatorBlueprint
+              { validatorTitle =
+                  "Acme Validator #2"
+              , validatorDescription =
+                  Just "Another validator that does something awesome"
+              , validatorParameters =
+                  [ $(deriveParameterBlueprint ''Param2a (Set.singleton Purpose.Spend))
+                  , $(deriveParameterBlueprint ''Param2b (Set.singleton Purpose.Mint))
+                  ]
+              , validatorRedeemer =
+                  $(deriveArgumentBlueprint ''Redeemer2 (Set.singleton Purpose.Mint))
+              , validatorDatum =
+                  Just $(deriveArgumentBlueprint ''Datum2 (Set.singleton Purpose.Mint))
+              , validatorCompiledCode =
+                  Just (serialisedScript validatorScript2)
+              }
+          ]
+    , contractDefinitions =
+        deriveDefinitions @[Params, Redeemer, Datum, Param2a, Param2b, Redeemer2, Datum2]
     }

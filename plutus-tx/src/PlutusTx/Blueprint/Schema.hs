@@ -30,6 +30,7 @@ import Data.Text.Encoding qualified as Text
 import GHC.Generics (Generic)
 import Numeric.Natural (Natural)
 import PlutusTx.Blueprint.Definition.Id (DefinitionId, definitionIdToText)
+import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo, comment, description, title)
 import Prelude hiding (max, maximum, min, minimum)
 
 {- | Blueprint schema definition, as defined by the CIP-0057:
@@ -58,7 +59,7 @@ data Schema (referencedTypes :: [Type])
   | SchemaAllOf (NonEmpty (Schema referencedTypes))
   | SchemaNot (Schema referencedTypes)
   | SchemaDefinitionRef DefinitionId
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)
 
 deriving anyclass instance (Typeable referencedTypes) => Plated (Schema referencedTypes)
 
@@ -136,22 +137,11 @@ instance ToJSON (Schema referencedTypes) where
     dataType info ty = requiredField "dataType" ty (infoFields info)
 
     infoFields :: SchemaInfo -> Aeson.Object
-    infoFields MkSchemaInfo{title, description, comment} =
+    infoFields info =
       KeyMap.empty
-        & optionalField "title" title
-        & optionalField "description" description
-        & optionalField "$comment" comment
-
--- | Additional information optionally attached to any datatype schema definition.
-data SchemaInfo = MkSchemaInfo
-  { title       :: Maybe String
-  , description :: Maybe String
-  , comment     :: Maybe String
-  }
-  deriving stock (Eq, Show, Generic, Data)
-
-emptySchemaInfo :: SchemaInfo
-emptySchemaInfo = MkSchemaInfo{title = Nothing, description = Nothing, comment = Nothing}
+        & optionalField "title" (title info)
+        & optionalField "description" (description info)
+        & optionalField "$comment" (comment info)
 
 data IntegerSchema = MkIntegerSchema
   { multipleOf       :: Maybe Integer
@@ -165,7 +155,7 @@ data IntegerSchema = MkIntegerSchema
   , exclusiveMaximum :: Maybe Integer
   -- ^ An instance is valid only if it is strictly less than "exclusiveMaximum".
   }
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)
 
 emptyIntegerSchema :: IntegerSchema
 emptyIntegerSchema =
@@ -186,7 +176,7 @@ data BytesSchema = MkBytesSchema
   , maxLength :: Maybe Natural
   -- ^ An instance is valid if its length is less than, or equal to, this value.
   }
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)
 
 emptyBytesSchema :: BytesSchema
 emptyBytesSchema = MkBytesSchema{enum = [], minLength = Nothing, maxLength = Nothing}
@@ -202,7 +192,7 @@ data ListSchema (referencedTypes :: [Type]) = MkListSchema
   -- ^ If this value is false, the instance validates successfully.
   -- If it is set to True, the instance validates successfully if all of its elements are unique.
   }
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)
 
 mkListSchema :: Schema referencedTypes -> ListSchema referencedTypes
 mkListSchema schema =
@@ -223,7 +213,7 @@ data MapSchema (referencedTypes :: [Type]) = MkMapSchema
   , maxItems    :: Maybe Natural
   -- ^ A map instance is valid if its size is less than, or equal to, this value.
   }
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)
 
 data ConstructorSchema (referencedTypes :: [Type]) = MkConstructorSchema
   { index        :: Natural
@@ -231,7 +221,7 @@ data ConstructorSchema (referencedTypes :: [Type]) = MkConstructorSchema
   , fieldSchemas :: [Schema referencedTypes]
   -- ^ Field schemas
   }
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)
 
 data PairSchema (referencedTypes :: [Type]) = MkPairSchema
   { left  :: Schema referencedTypes
@@ -239,4 +229,4 @@ data PairSchema (referencedTypes :: [Type]) = MkPairSchema
   , right :: Schema referencedTypes
   -- ^ Schema of the second element
   }
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)

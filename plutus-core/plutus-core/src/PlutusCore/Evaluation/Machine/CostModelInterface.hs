@@ -137,6 +137,9 @@ and create the internal (nameful) representation of cost model parameters, by as
 to its value: see `PlutusLedgerApi.Common.ParamName.tagWithParamNames` and the `ParamName` datatypes in
 plutus-ledger-api.
 
+See https://github.com/IntersectMBO/cardano-ledger/issues/2902 for a discussion
+of these issues and the rationale for adopting the system described above.
+
 -}
 
 
