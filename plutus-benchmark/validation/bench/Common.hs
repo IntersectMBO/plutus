@@ -141,10 +141,7 @@ mkEvalCtx =
         Just p ->
             let errOrCtx =
                     -- The validation benchmarks were all created from PlutusV1 scripts
-                    mkDynEvaluationContext
-                        [PLC.DefaultFunSemanticsVariant1]
-                        (const PLC.DefaultFunSemanticsVariant1)
-                        p
+                    mkDynEvaluationContext (const PLC.DefaultFunSemanticsVariant1) p
             in case errOrCtx of
                 Right ec -> ec
                 Left err -> error $ show err

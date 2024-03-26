@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
 module PlutusLedgerApi.V3.EvaluationContext
     ( EvaluationContext
@@ -12,10 +13,23 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.V3.ParamName as V3
 
 import PlutusCore.Default as Plutus (BuiltinSemanticsVariant (DefaultFunSemanticsVariant2))
+import PlutusCore.Evaluation.Machine.MachineParameters.Default (SubDefaultFunSemanticsVariant (..))
 
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Writer.Strict
+
+data DefaultFunSemanticsVariant_V3
+    = DefaultFunSemanticsVariant2_V3
+    deriving stock (Bounded, Enum)
+
+instance SubDefaultFunSemanticsVariant DefaultFunSemanticsVariant_V3 where
+    toDefaultFunSemanticsVariant DefaultFunSemanticsVariant2_V3 = DefaultFunSemanticsVariant2
+
+    memoSemVarM f = do
+        r2 <- f DefaultFunSemanticsVariant2_V3
+        pure $ \case
+            DefaultFunSemanticsVariant2_V3 -> r2
 
 {-|  Build the 'EvaluationContext'.
 
@@ -36,5 +50,4 @@ mkEvaluationContext =
     tagWithParamNames @V3.ParamName
     >=> pure . toCostModelParams
     >=> mkDynEvaluationContext
-        [DefaultFunSemanticsVariant2]
-        (const Plutus.DefaultFunSemanticsVariant2)
+        (const DefaultFunSemanticsVariant2_V3)

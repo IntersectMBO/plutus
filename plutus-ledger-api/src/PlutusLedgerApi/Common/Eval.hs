@@ -23,7 +23,6 @@ module PlutusLedgerApi.Common.Eval
 
 import PlutusCore
 import PlutusCore.Data as Plutus
-import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudget as Plutus
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
@@ -127,13 +126,12 @@ IMPORTANT: The evaluation context of every Plutus version must be recreated upon
 with the updated cost model parameters.
 -}
 mkDynEvaluationContext
-    :: MonadError CostModelApplyError m
-    => [BuiltinSemanticsVariant DefaultFun]
-    -> (MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun)
+    :: (MonadError CostModelApplyError m, SubDefaultFunSemanticsVariant semVar)
+    => (MajorProtocolVersion -> semVar)
     -> Plutus.CostModelParams
     -> m EvaluationContext
-mkDynEvaluationContext semVars toSemVar newCMP =
-    EvaluationContext <$> mkMachineParametersFor semVars toSemVar newCMP
+mkDynEvaluationContext toSemVar newCMP =
+    EvaluationContext <$> mkMachineParametersFor toSemVar newCMP
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()

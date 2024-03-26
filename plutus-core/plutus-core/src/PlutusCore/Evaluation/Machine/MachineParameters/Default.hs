@@ -1,4 +1,6 @@
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase        #-}
 
 -- | Defines the type of default machine parameters and a function for creating a value of the type.
 -- We keep them separate, because the function unfolds into multiple thousands of lines of Core that
@@ -46,6 +48,22 @@ as we did have cases where sticking 'inline' on something that already had @INLI
 inlining).
 -}
 
+class (Bounded semVar, Enum semVar) => SubDefaultFunSemanticsVariant semVar where
+    toDefaultFunSemanticsVariant :: semVar -> BuiltinSemanticsVariant DefaultFun
+
+    memoSemVarM :: Monad m => (semVar -> m r) -> m (semVar -> r)
+
+instance SubDefaultFunSemanticsVariant (BuiltinSemanticsVariant DefaultFun) where
+    toDefaultFunSemanticsVariant = id
+    memoSemVarM f = do
+        r0 <- f DefaultFunSemanticsVariant0
+        r1 <- f DefaultFunSemanticsVariant1
+        r2 <- f DefaultFunSemanticsVariant2
+        pure $ \case
+            DefaultFunSemanticsVariant0 -> r0
+            DefaultFunSemanticsVariant1 -> r1
+            DefaultFunSemanticsVariant2 -> r2
+
 -- | Produce a 'DefaultMachineParameters' given the version of the default set of built-in functions
 -- and a 'CostModelParams', which gets applied on top of 'defaultCekCostModel'.
 --
@@ -61,24 +79,20 @@ inlining).
 -- This function is expensive, so its result needs to be cached if it's going to be used multiple
 -- times.
 mkMachineParametersFor
-    :: forall m a. MonadError CostModelApplyError m
-    => [BuiltinSemanticsVariant DefaultFun]
-    -> (a -> BuiltinSemanticsVariant DefaultFun)
+    :: forall m a semVar. (MonadError CostModelApplyError m, SubDefaultFunSemanticsVariant semVar)
+    => (a -> semVar)
     -> CostModelParams
     -> m (a -> DefaultMachineParameters)
-mkMachineParametersFor semVars toSemVar newCMP =
+mkMachineParametersFor toSemVar newCMP = do
+    let getToCostModel :: m (semVar -> CostModel CekMachineCosts BuiltinCostModel)
+        getToCostModel =
+            memoSemVarM $ \semVar ->
+                let !semVarDefFun = toDefaultFunSemanticsVariant semVar
+                in applyCostModelParams (toCekCostModel semVarDefFun) newCMP
     getToCostModel <&> \toCostModel x ->
         let !semVar = toSemVar x
-        in inline mkMachineParameters semVar $ toCostModel semVar
-  where
-    getToCostModel
-        :: m (BuiltinSemanticsVariant DefaultFun -> CostModel CekMachineCosts BuiltinCostModel)
-    getToCostModel = do
-        costModels <- for semVars $ \semVar ->
-            (,) semVar <$> applyCostModelParams (toCekCostModel semVar) newCMP
-        pure $ \semVar ->
-            fromMaybe (error "semantics variant not found") $
-                lookup semVar costModels
+            !semVarDefFun = toDefaultFunSemanticsVariant semVar
+        in inline mkMachineParameters semVarDefFun $ toCostModel semVar
 -- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
 -- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down
 -- the line.
