@@ -1,7 +1,7 @@
 ---
 title: "Developer onboarding and quick setup guide"
 description: "setting up and testing developer environment, writing first smart contract"
-date: 2024-03-21
+date: 2024-03-26
 ---
 
 # Section 3. Developer onboarding and quick setup guide
