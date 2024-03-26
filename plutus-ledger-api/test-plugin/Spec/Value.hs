@@ -147,7 +147,7 @@ currencyLongListOptions =
     ListTx.concatMap (maybe longCurrencyChunk pure) currencyListWithHooks
 
 listsToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> Value
-listsToValue = Value . AssocMap.fromList . ListTx.map (fmap AssocMap.fromList)
+listsToValue = Value . AssocMap.unsafeFromList . ListTx.map (fmap AssocMap.unsafeFromList)
 
 valueToLists :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]
 valueToLists = ListTx.map (fmap AssocMap.toList) . AssocMap.toList . getValue

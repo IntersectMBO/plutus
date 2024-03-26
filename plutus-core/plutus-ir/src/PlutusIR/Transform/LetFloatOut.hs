@@ -434,7 +434,7 @@ floatTerm binfo t =
 -- HELPERS
 
 maxPos :: PLC.UniqueMap k Pos -> Pos
-maxPos = UMap.foldr max topPos
+maxPos = foldr max topPos
 
 withDepth :: (r ~ MarkCtx tyname name uni fun a2, MonadReader r m)
           => (Depth -> Depth) -> m a -> m a

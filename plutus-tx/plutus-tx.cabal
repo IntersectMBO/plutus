@@ -179,6 +179,7 @@ test-suite plutus-tx-test
   other-modules:
     Blueprint.Definition.Fixture
     Blueprint.Definition.Spec
+    Blueprint.Spec
     List.Spec
     Rational.Laws
     Rational.Laws.Additive

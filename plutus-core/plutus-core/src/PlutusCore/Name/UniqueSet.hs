@@ -34,7 +34,8 @@ import PlutusCore.Name.Unique (HasUnique (..), Unique (Unique))
 newtype UniqueSet unique = UniqueSet
   { unUniqueSet :: IS.IntSet
   }
-  deriving newtype (Show, Eq, Semigroup, Monoid)
+  deriving stock (Show, Eq)
+  deriving newtype (Semigroup, Monoid)
 
 -- | Insert a @unique@.
 insertByUnique ::

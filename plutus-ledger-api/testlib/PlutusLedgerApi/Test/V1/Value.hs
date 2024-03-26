@@ -18,7 +18,7 @@ import Test.QuickCheck
 
 -- | Convert a list representation of a 'Value' to the 'Value'.
 listsToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> Value
-listsToValue = Value . AssocMap.fromList . ListTx.map (fmap AssocMap.fromList)
+listsToValue = Value . AssocMap.unsafeFromList . ListTx.map (fmap AssocMap.unsafeFromList)
 
 -- | Convert a 'Value' to its list representation.
 valueToLists :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]

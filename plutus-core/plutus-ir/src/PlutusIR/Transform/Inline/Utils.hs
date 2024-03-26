@@ -158,7 +158,7 @@ lookupType tn s = UMap.lookupName tn $ s ^. typeSubst . unTypeSubst
 
 -- | Check if the type substitution is empty.
 isTypeSubstEmpty :: InlinerState tyname name uni fun ann -> Bool
-isTypeSubstEmpty (InlinerState _ (TypeSubst tyEnv) _) = UMap.isEmpty tyEnv
+isTypeSubstEmpty (InlinerState _ (TypeSubst tyEnv) _) = null tyEnv
 
 -- | Insert the unprocessed type variable into the type substitution.
 extendType

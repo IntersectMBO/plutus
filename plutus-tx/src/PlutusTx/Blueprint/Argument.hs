@@ -28,7 +28,7 @@ data ArgumentBlueprint (referencedTypes :: [Type]) = MkArgumentBlueprint
   , argumentSchema      :: Schema referencedTypes
   -- ^ A Plutus Data Schema.
   }
-  deriving stock (Show, Eq)
+  deriving stock (Show, Eq, Ord)
 
 instance ToJSON (ArgumentBlueprint referencedTypes) where
   toJSON MkArgumentBlueprint{..} =
