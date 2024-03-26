@@ -34,4 +34,4 @@ mkEvaluationContext :: (MonadError CostModelApplyError m, MonadWriter [CostModel
                     -> m EvaluationContext
 mkEvaluationContext = tagWithParamNames @V3.ParamName
                     >=> pure . toCostModelParams
-                    >=> mkDynEvaluationContext Plutus.DefaultFunSemanticsVariant2
+                    >=> mkDynEvaluationContext (const Plutus.DefaultFunSemanticsVariant2)
