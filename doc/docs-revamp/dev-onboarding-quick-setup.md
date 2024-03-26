@@ -180,16 +180,13 @@ import           Utilities                 (Network, posixTimeFromIso8601,
                                             writeValidatorToFile)
 ```
 
-- What would be useful to say here about general practices for importing modules and functions? 
-- Add links to relevant module reference info
+When importing modules and functions in Plutus, import only what you need to keep the namespace clean, and comment on why certain imports are used for clarity. 
 
+See the [Plutus Haddock documentation](https://intersectmbo.github.io/plutus/master/) for definitions, short descriptions and source code for Plutus functions, types and type classes. 
 
 ### Section 2.1: Defining the data type, public key hash, and deadline
 
 ```haskell
-------------------------------------------------------------------------------
------------------------------- ON-CHAIN / VALIDATOR --------------------------
-
 data VestingDatum = VestingDatum
     { beneficiary :: PubKeyHash
     , deadline    :: POSIXTime
@@ -203,6 +200,8 @@ This next section defines the `VestingDatum` data type that holds the beneficiar
 ### Section 2.2: Implementing the validator function
 
 ```haskell
+------------------------------------------------------------------------------
+------------------------------ ON-CHAIN / VALIDATOR --------------------------
 {-# INLINABLE mkVestingValidator #-}
 mkVestingValidator :: VestingDatum -> () -> ScriptContext -> Bool
 mkVestingValidator dat () ctx = traceIfFalse "beneficiary's signature missing" signedByBeneficiary &&
