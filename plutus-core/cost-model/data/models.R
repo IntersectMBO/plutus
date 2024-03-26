@@ -455,6 +455,8 @@ modelFun <- function(path) {
     remainderIntegerModel <- divideIntegerModel
     modIntegerModel       <- divideIntegerModel
 
+    ## This could possibly be made constant away from the diagonal; it's harmless
+    ## to make it linear everywhere, but may overprice some comparisons a bit.
     equalsIntegerModel <- {
         fname <- "EqualsInteger"
         filtered <- data %>%
@@ -491,6 +493,8 @@ modelFun <- function(path) {
 
     ##### Bytestrings #####
 
+    ## Note that this is symmetrical in the arguments: a new bytestring is
+    ## created and the contents of both arguments are copied into it.
     appendByteStringModel <- {
         fname <- "AppendByteString"
         filtered <- data %>%
@@ -500,17 +504,15 @@ modelFun <- function(path) {
         m <- lm(t ~ I(x_mem + y_mem), filtered)
         mk.result(m, "added_sizes")
     }
-    ## Note that this is symmetrical in the arguments: a new bytestring is
-    ## created and the contents of both arguments are copied into it.
 
-    consByteStringModel  <- linearInY ("ConsByteString")
     ## Depends on the size of the second argument, which has to be copied into
     ## the destination.
+    consByteStringModel  <- linearInY ("ConsByteString")
 
-    sliceByteStringModel <- linearInZ ("SliceByteString")
     ## Bytetrings are immutable arrays with a pointer to the start and a length.
     ## SliceByteString just adjusts the pointer and length, so should be constant
     ## cost.  We've kept the linear model for compatibility reasons.
+    sliceByteStringModel <- linearInZ ("SliceByteString")
 
     lengthOfByteStringModel <- constantModel ("LengthOfByteString")  ## Just returns a field
     indexByteStringModel    <- constantModel ("IndexByteString")     ## Constant-time array access
@@ -587,8 +589,9 @@ modelFun <- function(path) {
         m <- lm(t ~ x_mem, filtered)
 
         constant <- min(filtered$t)
-        ## FIXME.  The `constant` value above is the above-diagonal cost, which we
-        ## don't collect benchmarking data for.  Collect some data and infer it
+        ## FIXME.  The `constant` value above is the above-diagonal cost, which
+        ## we don't collect benchmarking data for.  We might want to collect
+        ## some data and infer it.
 
         mk.result(m, "const_off_diagonal", constant=constant, subtype="linear_in_x")
     }
@@ -707,6 +710,12 @@ modelFun <- function(path) {
 
     ##### Bitwise operations #####
 
+    ## If we give `integerToByteString` a width argument w > 0 and a small
+    ## integer n to be converted, the cost is based only on the size of n even
+    ## though w could be considerably larger and some work will be required to
+    ## pad the output to width w.  Experiments show that the padding cost is
+    ## negligible in comparison to the conversion cost, so it's safe to base the
+    ## cost purely on the size of n.
     integerToByteStringModel <- {
         fname <- "IntegerToByteString"
         filtered <- data %>%

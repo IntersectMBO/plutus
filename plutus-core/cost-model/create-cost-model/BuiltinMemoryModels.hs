@@ -71,7 +71,6 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramSubtractInteger                 = Id $ ModelTwoArgumentsMaxSize $ OneVariableLinearFunction 1 1
   , paramMultiplyInteger                 = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
   , paramDivideInteger                   = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
-  -- ^ Really?  We don't always have size(a/b) = size a - size b
   , paramQuotientInteger                 = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
   , paramRemainderInteger                = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
   , paramModInteger                      = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
@@ -80,6 +79,8 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramLessThanEqualsInteger           = Id $ boolMemModel
   , paramAppendByteString                = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
   , paramConsByteString                  = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
+    -- sliceByteString doesn't actually allocate a new bytestring: it creates an
+    -- object containing a pointer into the original, together with a length.
   , paramSliceByteString                 = Id $ ModelThreeArgumentsLinearInZ $ OneVariableLinearFunction 4 0
   , paramLengthOfByteString              = Id $ ModelOneArgumentConstantCost 10
   , paramIndexByteString                 = Id $ ModelTwoArgumentsConstantCost 4
@@ -94,7 +95,10 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramVerifySchnorrSecp256k1Signature = Id $ ModelThreeArgumentsConstantCost 10
   , paramAppendString                    = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 4 1
   , paramEqualsString                    = Id $ boolMemModel
+  -- In the worst case two UTF-16 bytes encode to three UTF-8 bytes, so two
+  -- output words per input word should cover that.
   , paramEncodeUtf8                      = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 2
+  -- In the worst case one UTF-8 byte decodes to two UTF-16 bytes
   , paramDecodeUtf8                      = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 2
   , paramIfThenElse                      = Id $ ModelThreeArgumentsConstantCost  1
   , paramChooseUnit                      = Id $ ModelTwoArgumentsConstantCost    4
@@ -141,6 +145,9 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramBls12_381_finalVerify           = Id $ boolMemModel
   , paramBlake2b_224                     = Id $ hashMemModel Hash.blake2b_224
   , paramKeccak_256                      = Id $ hashMemModel Hash.keccak_256
+  -- integerToByteString e w n allocates a bytestring of length w if w is
+  -- nonzero and a bytestring just big enough to contain n otherwise, so we need
+  -- a special memory costing function to handle that.
   , paramIntegerToByteString             = Id $ ModelThreeArgumentsLiteralInYOrLinearInZ $ OneVariableLinearFunction 0 1
   , paramByteStringToInteger             = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 0 1
   }
