@@ -1,6 +1,7 @@
 {-# LANGUAGE BlockArguments    #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeFamilies      #-}
 
 module UntypedPlutusCore.Transform.Cse (cse) where
@@ -23,8 +24,10 @@ import Data.HashMap.Strict (HashMap)
 import Data.HashMap.Strict qualified as Map
 import Data.List.Extra (isSuffixOf, sortOn)
 import Data.Ord (Down (..))
+import Data.Proxy (Proxy (..))
 import Data.Traversable (for)
 import Data.Tuple.Extra (snd3, thd3)
+import PlutusCore.Arity (builtinArity)
 
 {- Note [CSE]
 
@@ -207,7 +210,6 @@ data CseCandidate uni fun ann = CseCandidate
 cse ::
   ( MonadQuote m
   , Hashable (Term Name uni fun ())
-  , Hashable fun
   , Rename (Term Name uni fun ann)
   , ToBuiltinMeaning uni fun
   ) =>
@@ -226,23 +228,8 @@ cse builtinSemanticsVariant t0 = do
           . filter ((> 1) . thd3)
           . join
           . Map.elems
-          $ countOccs (calcBuiltinArity t) builtinSemanticsVariant annotated
+          $ countOccs builtinSemanticsVariant annotated
   mkCseTerm commonSubexprs annotated
-
--- | The first pass. See Note [CSE].
-calcBuiltinArity ::
-  forall name uni fun ann.
-  (Hashable fun) =>
-  Term name uni fun ann ->
-  HashMap fun Int
-calcBuiltinArity = foldrOf termSubtermsDeep go Map.empty
-  where
-    go :: Term name uni fun ann -> HashMap fun Int -> HashMap fun Int
-    go = \case
-      t@Apply{}
-        | (Builtin _ fun, args) <- splitApplication t ->
-            Map.insertWith max fun (length args)
-      _ -> id
 
 -- | The second pass. See Note [CSE].
 annotate :: Term name uni fun ann -> Term name uni fun (Path, ann)
@@ -281,15 +268,14 @@ annotate = flip evalState 0 . flip runReaderT [] . go
 -- | The third pass. See Note [CSE].
 countOccs ::
   forall name uni fun ann.
-  (Hashable (Term name uni fun ()), Hashable fun, ToBuiltinMeaning uni fun) =>
-  HashMap fun Int ->
+  (Hashable (Term name uni fun ()), ToBuiltinMeaning uni fun) =>
   BuiltinSemanticsVariant fun ->
   Term name uni fun (Path, ann) ->
   -- | Here, the value of the inner map not only contains the count, but also contains
   -- the annotated term, corresponding to the term that is the key of the outer map.
   -- The annotated terms need to be recorded since they will be used for substitution.
   HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
-countOccs arityInfo builtinSemanticsVariant = foldrOf termSubtermsDeep addToMap Map.empty
+countOccs builtinSemanticsVariant = foldrOf termSubtermsDeep addToMap Map.empty
   where
     addToMap ::
       Term name uni fun (Path, ann) ->
@@ -317,7 +303,7 @@ countOccs arityInfo builtinSemanticsVariant = foldrOf termSubtermsDeep addToMap 
     isBuiltinSaturated =
       splitApplication >>> \case
         (Builtin _ fun, args) ->
-          length args >= Map.findWithDefault 0 fun arityInfo
+          length args >= length (builtinArity (Proxy @uni) builtinSemanticsVariant fun)
         _term -> True
 
     isForcingBuiltin = \case
