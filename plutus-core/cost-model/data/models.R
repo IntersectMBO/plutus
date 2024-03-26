@@ -177,7 +177,7 @@ get.bench.data <- function(path) {
 }
 
 filter.and.check.nonempty <- function (frame, fname) {
-    ##  cat (sprintf ("Reading data for %s\n", fname))
+    ## cat (sprintf ("Reading data for %s\n", fname))
     filtered <- filter (frame, name == fname)
     if (nrow(filtered) == 0) {
         stop ("No data found for ", fname)
