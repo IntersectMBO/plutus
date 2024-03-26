@@ -4,7 +4,9 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 -- Stripped-down version of PlutusIR.Purity
 module UntypedPlutusCore.Purity
@@ -18,8 +20,12 @@ module UntypedPlutusCore.Purity
   ) where
 
 import Data.DList qualified as DList
+import Data.Typeable (Proxy (..))
+import PlutusCore.Arity (builtinArity)
+import PlutusCore.Builtin.Meaning (ToBuiltinMeaning (..))
 import PlutusCore.Pretty (Pretty (pretty), PrettyBy (prettyBy))
 import Prettyprinter (vsep, (<+>))
+import UntypedPlutusCore.Core (splitApplication)
 import UntypedPlutusCore.Core.Type (Term (..))
 
 -- | Is this pure? Either yes, or maybe not.
@@ -73,10 +79,7 @@ unEvalOrder (EvalOrder ts) =
 evalThis :: EvalTerm name uni fun a -> EvalOrder name uni fun a
 evalThis = EvalOrder . DList.singleton
 
-instance
-  (PrettyBy config (Term name uni fun a))
-  => PrettyBy config (EvalOrder name uni fun a)
-  where
+instance (PrettyBy config (Term name uni fun a)) => PrettyBy config (EvalOrder name uni fun a) where
   prettyBy config eo = vsep $ fmap (prettyBy config) (unEvalOrder eo)
 
 {- | Given a term, return the order in which it and its sub-terms will be evaluated.
@@ -89,70 +92,90 @@ This makes some assumptions about the evaluator, in particular about the order i
 which we evaluate sub-terms, but these match the current evaluator and we are not
 planning on changing it.
 -}
-termEvaluationOrder :: forall name uni fun a. Term name uni fun a -> EvalOrder name uni fun a
-termEvaluationOrder = \case
-  t@(Apply _ fun arg) ->
-    -- first the function
-    termEvaluationOrder fun
-      -- then the arg
-      <> termEvaluationOrder arg
-      -- then the whole term, which means environment manipulation, so work
-      <> evalThis (EvalTerm Pure MaybeWork t)
-      <> case fun of
-        -- known function body
-        LamAbs _ _ body -> termEvaluationOrder body
-        -- unknown function body
-        _               -> evalThis Unknown
-  t@(Force _ dterm) ->
-    -- first delayed term
-    termEvaluationOrder dterm
-      -- then the whole term, which will mean forcing, so work
-      <> evalThis (EvalTerm Pure MaybeWork t)
-      <> case dterm of
-        -- known delayed term
-        Delay _ body -> termEvaluationOrder body
-        -- unknown delayed term
-        _            -> evalThis Unknown
-  t@(Constr _ _ ts) ->
-    -- first the arguments, in left-to-right order
-    foldMap termEvaluationOrder ts
-      -- then the whole term, which means constructing the value, so work
-      <> evalThis (EvalTerm Pure MaybeWork t)
-  t@(Case _ scrut _) ->
-    -- first the scrutinee
-    termEvaluationOrder scrut
-      -- then the whole term, which means finding the case so work
-      <> evalThis (EvalTerm Pure MaybeWork t)
-      -- then we go to an unknown scrutinee
-      <> evalThis Unknown
-  -- Leaf terms
-  t@Var{} ->
-    evalThis (EvalTerm Pure WorkFree t)
-  t@Error{} ->
-    -- definitely effectful! but not relevant from a work perspective
-    evalThis (EvalTerm MaybeImpure WorkFree t)
-      -- program terminates
-      <> evalThis Unknown
-  t@Builtin{} ->
-    evalThis (EvalTerm Pure WorkFree t)
-  t@Delay{} ->
-    evalThis (EvalTerm Pure WorkFree t)
-  t@LamAbs{} ->
-    evalThis (EvalTerm Pure WorkFree t)
-  t@Constant{} ->
-    evalThis (EvalTerm Pure WorkFree t)
+termEvaluationOrder
+  :: forall name uni fun a
+   . (ToBuiltinMeaning uni fun)
+  => BuiltinSemanticsVariant fun
+  -> Term name uni fun a
+  -> EvalOrder name uni fun a
+termEvaluationOrder builtinSemanticsVariant = goTerm
+ where
+  goTerm = \case
+    t@(splitApplication -> (Builtin _ann fun, args)) ->
+      foldMap (goTerm . snd) args <> evalOrder
+     where
+      evalOrder =
+        if length args < length (builtinArity @uni @fun (Proxy @uni) builtinSemanticsVariant fun)
+          then -- If it's unsaturated, we definitely don't do any work
+            evalThis (EvalTerm Pure WorkFree t)
+          else -- If it's saturated or oversaturated, we might have an effect here
+            evalThis (EvalTerm MaybeImpure MaybeWork t)
+    t@(Apply _ fun arg) ->
+      -- first the function
+      goTerm fun
+        -- then the arg
+        <> goTerm arg
+        -- then the whole term, which means environment manipulation, so work
+        <> evalThis (EvalTerm Pure MaybeWork t)
+        <> case fun of
+          -- known function body
+          LamAbs _ _ body -> goTerm body
+          -- unknown function body
+          _               -> evalThis Unknown
+    t@(Force _ dterm) ->
+      -- first delayed term
+      goTerm dterm
+        -- then the whole term, which will mean forcing, so work
+        <> evalThis (EvalTerm Pure MaybeWork t)
+        <> case dterm of
+          -- known delayed term
+          Delay _ body -> goTerm body
+          -- unknown delayed term
+          _            -> evalThis Unknown
+    t@(Constr _ _ ts) ->
+      -- first the arguments, in left-to-right order
+      foldMap goTerm ts
+        -- then the whole term, which means constructing the value, so work
+        <> evalThis (EvalTerm Pure MaybeWork t)
+    t@(Case _ scrut _) ->
+      -- first the scrutinee
+      goTerm scrut
+        -- then the whole term, which means finding the case so work
+        <> evalThis (EvalTerm Pure MaybeWork t)
+        -- then we go to an unknown scrutinee
+        <> evalThis Unknown
+    -- Leaf terms
+    t@Var{} ->
+      evalThis (EvalTerm Pure WorkFree t)
+    t@Error{} ->
+      -- definitely effectful! but not relevant from a work perspective
+      evalThis (EvalTerm MaybeImpure WorkFree t)
+        -- program terminates
+        <> evalThis Unknown
+    t@Builtin{} ->
+      evalThis (EvalTerm Pure WorkFree t)
+    t@Delay{} ->
+      evalThis (EvalTerm Pure WorkFree t)
+    t@LamAbs{} ->
+      evalThis (EvalTerm Pure WorkFree t)
+    t@Constant{} ->
+      evalThis (EvalTerm Pure WorkFree t)
 
 {- | Will evaluating this term have side effects (looping or error)?
 This is slightly wider than the definition of a value, as
 it includes applications that are known to be pure, as well as
 things that can't be returned from the machine (as they'd be ill-scoped).
 -}
-isPure :: Term name uni fun a -> Bool
-isPure t =
+isPure
+  :: (ToBuiltinMeaning uni fun)
+  => BuiltinSemanticsVariant fun
+  -> Term name uni fun a
+  -> Bool
+isPure builtinSemanticsVariant term =
   -- to work out if the term is pure, we see if we can look through
   -- the whole evaluation order without hitting something that might be
   -- effectful
-  go $ unEvalOrder (termEvaluationOrder t)
+  go (unEvalOrder (termEvaluationOrder builtinSemanticsVariant term))
  where
   go :: [EvalTerm name uni fun a] -> Bool
   go [] = True
@@ -169,12 +192,16 @@ isPure t =
 Note: The definition of 'work-free' is a little unclear, but the idea is that
 evaluating this term should do very a trivial amount of work.
 -}
-isWorkFree :: Term name uni fun a -> Bool
-isWorkFree t =
+isWorkFree
+  :: (ToBuiltinMeaning uni fun)
+  => BuiltinSemanticsVariant fun
+  -> Term name uni fun a
+  -> Bool
+isWorkFree builtinSemanticsVariant term =
   -- to work out if the term is pure, we see if we can look through
   -- the whole evaluation order without hitting something that might be
   -- effectful
-  go $ unEvalOrder (termEvaluationOrder t)
+  go (unEvalOrder (termEvaluationOrder builtinSemanticsVariant term))
  where
   go :: [EvalTerm name uni fun a] -> Bool
   go [] = True
