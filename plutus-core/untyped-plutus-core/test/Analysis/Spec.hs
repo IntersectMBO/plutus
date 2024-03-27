@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+
 module Analysis.Spec where
 
 import Test.Tasty.Extras
@@ -8,13 +8,15 @@ import PlutusCore qualified as PLC
 import PlutusCore.MkPlc
 import PlutusCore.Pretty (prettyPlcReadableDef)
 import PlutusCore.Quote
+import PlutusPrelude (def)
 import Test.Tasty
 import Test.Tasty.HUnit
 import UntypedPlutusCore
 import UntypedPlutusCore.Purity
 
 goldenEvalOrder :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestNested
-goldenEvalOrder name tm = nestedGoldenVsDoc name "" (prettyPlcReadableDef $ termEvaluationOrder tm)
+goldenEvalOrder name tm =
+  nestedGoldenVsDoc name "" (prettyPlcReadableDef $ termEvaluationOrder def tm)
 
 -- Should hit Unknown before trying to process the undefined. Shows
 -- that the computation is lazy
@@ -50,5 +52,6 @@ evalOrder :: TestTree
 evalOrder = runTestNestedIn ["untyped-plutus-core", "test", "Analysis"] $ testNested "evalOrder"
   [ goldenEvalOrder "letFun" letFun
   , goldenEvalOrder "letImpure" letImpure
-  , pure $ testCase "evalOrderLazy" $ 4 @=? length (unEvalOrder $ termEvaluationOrder dangerTerm)
+  , pure $ testCase "evalOrderLazy" $
+    4 @=? length (unEvalOrder $ termEvaluationOrder def dangerTerm)
   ]
