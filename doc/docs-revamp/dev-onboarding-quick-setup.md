@@ -120,7 +120,7 @@ To set up a Plutus project for our vesting contract, follow these steps:
 
 2. If you are using Nix, enter a Nix shell that provides the necessary development environment by running `nix develop` in your project directory. If you are not using Nix, make sure that all required C libraries are installed since PlutusTx depends on `cardano-base`, which in turn depends on cryptographic C libraries like `libblst`, `libsecp256k1`, and `libsodium`. 
 
-3. Create a new directory named `src` and a new file named `MinLovelaceValidator.hs` inside it. This is where we'll write our smart contract code using Plutus Tx.
+3. Create a new directory named `src` and a new file named `VestingContract.hs` inside it. This is where we'll write our smart contract code using Plutus Tx.
 
 ## First smart contract example
 
