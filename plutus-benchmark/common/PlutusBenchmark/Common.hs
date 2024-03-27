@@ -16,6 +16,8 @@ module PlutusBenchmark.Common
     , unsafeRunTermCek
     , runTermCek
     , cekResultMatchesHaskellValue
+    , mkEvalCtx
+    , evaluateCekLikeInProd
     , benchTermAgdaCek
     , benchProgramAgdaCek
     , TestSize (..)
@@ -29,14 +31,19 @@ where
 import Paths_plutus_benchmark as Export
 import PlutusBenchmark.ProtocolParameters as PP
 
+import PlutusLedgerApi.Common qualified as LedgerApi
+
+import PlutusTx qualified as Tx
+
 import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusTx qualified as Tx
+
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import MAlonzo.Code.Evaluator.Term (runUAgda)
 
@@ -156,6 +163,34 @@ cekResultMatchesHaskellValue
 cekResultMatchesHaskellValue term matches value =
     (unsafeRunTermCek term) `matches` (unsafeRunTermCek $ haskellValueToTerm value)
 
+-- | Create the evaluation context for the benchmarks. This doesn't exactly match how it's done
+-- on-chain, but that's okay because the evaluation context is cached by the ledger, so we're
+-- deliberately not including it in the benchmarks.
+mkEvalCtx :: LedgerApi.EvaluationContext
+mkEvalCtx =
+    case PLC.defaultCostModelParams of
+        Just p ->
+            let errOrCtx =
+                    -- The validation benchmarks were all created from PlutusV1 scripts
+                    LedgerApi.mkDynEvaluationContext (const DefaultFunSemanticsVariant1) p
+            in case errOrCtx of
+                Right ec -> ec
+                Left err -> error $ show err
+        Nothing -> error "Couldn't get cost model params"
+
+-- | Evaluate a term as it would be evaluated using the on-chain evaluator.
+evaluateCekLikeInProd
+    :: LedgerApi.EvaluationContext
+    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+    -> Either
+            (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+            (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
+evaluateCekLikeInProd evalCtx term = do
+    let (getRes, _, _) =
+            let pv = LedgerApi.ledgerLanguageIntroducedIn LedgerApi.PlutusV1
+            -- The validation benchmarks were all created from PlutusV1 scripts
+            in LedgerApi.evaluateTerm UPLC.restrictingEnormous pv LedgerApi.Quiet evalCtx term
+    getRes
 
 ---------------- Run a term or program using the plutus-metatheory CEK evaluator ----------------
 

@@ -79,6 +79,7 @@ library plutus-benchmark-common
     , filepath
     , flat               ^>=0.6
     , plutus-core        ^>=1.24
+    , plutus-ledger-api  ^>=1.24
     , plutus-metatheory
     , plutus-tx          ^>=1.24
     , tasty
@@ -141,6 +142,7 @@ benchmark nofib
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
+    , deepseq
     , nofib-internal
     , plutus-benchmark-common
 
@@ -262,7 +264,6 @@ benchmark validation
     , optparse-applicative
     , plutus-benchmark-common
     , plutus-core              ^>=1.24
-    , plutus-ledger-api        ^>=1.24
 
 ---------------- validation-decode ----------------
 
@@ -567,7 +568,6 @@ benchmark validation-agda-cek
     , optparse-applicative
     , plutus-benchmark-common
     , plutus-core              ^>=1.24
-    , plutus-ledger-api        ^>=1.24
 
 benchmark nofib-agda-cek
   import:         lang, ghc-version-support
