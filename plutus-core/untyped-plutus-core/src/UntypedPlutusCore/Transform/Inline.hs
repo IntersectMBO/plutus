@@ -118,18 +118,20 @@ type InliningConstraints name uni fun =
   )
 
 -- See Note [Differences from PIR inliner] 2
-data InlineInfo name a = InlineInfo
-  { _iiUsages          :: Usages.Usages
-  , _iiHints           :: InlineHints name a
-  , _iiInlineConstants :: Bool
+data InlineInfo name fun a = InlineInfo
+  { _iiUsages                  :: Usages.Usages
+  , _iiHints                   :: InlineHints name a
+  , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
+  , _iiInlineConstants         :: Bool
   }
+
 makeLenses ''InlineInfo
 
 -- Using a concrete monad makes a very large difference to the performance of this module
 -- (determined from profiling)
 
 -- | The monad the inliner runs in.
-type InlineM name uni fun a = ReaderT (InlineInfo name a) (StateT (S name uni fun a) Quote)
+type InlineM name uni fun a = ReaderT (InlineInfo name fun a) (StateT (S name uni fun a) Quote)
 
 -- | Look up the unprocessed variable in the substitution.
 lookupTerm ::
@@ -175,16 +177,16 @@ inline ::
   -- | inline constants
   Bool ->
   InlineHints name a ->
+  PLC.BuiltinSemanticsVariant fun ->
   Term name uni fun a ->
   m (Term name uni fun a)
-inline inlineConstants hints t =
-  let
-    inlineInfo :: InlineInfo name a
-    inlineInfo = InlineInfo usgs hints inlineConstants
-    usgs :: Usages.Usages
-    usgs = Usages.termUsages t
-   in
-    liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
+inline inlineConstants hints builtinSemanticsVariant t =
+  liftQuote $ flip evalStateT mempty $ runReaderT (processTerm t) InlineInfo
+    { _iiUsages = Usages.termUsages t
+    , _iiHints  = hints
+    , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
+    , _iiInlineConstants = inlineConstants
+    }
 
 -- See Note [Differences from PIR inliner] 3
 
@@ -259,7 +261,7 @@ processSingleBinding body (Def vd@(UVarDecl a n) rhs0) = do
         VarInfo
           { _varBinders = binders
           , _varRhs = rhs
-          , _varRhsBody = (Done (dupable rhsBody))
+          , _varRhsBody = Done (dupable rhsBody)
           }
       pure . Just $ Def vd rhs
     Nothing -> pure Nothing
@@ -323,8 +325,10 @@ shouldUnconditionallyInline n rhs body = do
       pure isTermPure &&^ acceptable inlineConstants rhs
 
 -- | Check if term is pure. See Note [Inlining and purity]
-checkPurity :: Term name uni fun a -> InlineM name uni fun a Bool
-checkPurity t = pure $ isPure t
+checkPurity :: PLC.ToBuiltinMeaning uni fun => Term name uni fun a -> InlineM name uni fun a Bool
+checkPurity t = do
+  builtinSemanticsVariant <- view iiBuiltinSemanticsVariant
+  pure $ isPure builtinSemanticsVariant t
 
 nameUsedAtMostOnce ::
   forall name uni fun a.
@@ -338,22 +342,25 @@ nameUsedAtMostOnce n = do
 
 isFirstVarBeforeEffects
     :: forall name uni fun ann. InliningConstraints name uni fun
-    => name -> Term name uni fun ann -> InlineM name uni fun ann Bool
+    => name
+    -> Term name uni fun ann
+    -> InlineM name uni fun ann Bool
 isFirstVarBeforeEffects n t = do
-    -- This can in the worst case traverse a lot of the term, which could lead to us
-    -- doing ~quadratic work as we process the program. However in practice most terms
-    -- have a relatively short evaluation order before we hit Unknown, so it's not too bad.
-    pure $ go (unEvalOrder (termEvaluationOrder t))
-    where
-      -- Found the variable we're looking for!
-      go ((EvalTerm _ _ (Var _ n')):_) | n == n' = True
-      -- Found a pure term, ignore it and continue
-      go ((EvalTerm Pure _ _):rest) = go rest
-      -- Found a possibly impure term, our variable is definitely not first
-      go ((EvalTerm MaybeImpure _ _):_) = False
-      -- Don't know, be conservative
-      go (Unknown:_) = False
-      go [] = False
+  builtinSemanticsVariant <- view iiBuiltinSemanticsVariant
+  -- This can in the worst case traverse a lot of the term, which could lead to us
+  -- doing ~quadratic work as we process the program. However in practice most terms
+  -- have a relatively short evaluation order before we hit Unknown, so it's not too bad.
+  pure $ go (unEvalOrder (termEvaluationOrder builtinSemanticsVariant t))
+  where
+    -- Found the variable we're looking for!
+    go ((EvalTerm _ _ (Var _ n')):_) | n == n' = True
+    -- Found a pure term, ignore it and continue
+    go ((EvalTerm Pure _ _):rest) = go rest
+    -- Found a possibly impure term, our variable is definitely not first
+    go ((EvalTerm MaybeImpure _ _):_) = False
+    -- Don't know, be conservative
+    go (Unknown:_) = False
+    go [] = False
 
 effectSafe ::
   forall name uni fun a.

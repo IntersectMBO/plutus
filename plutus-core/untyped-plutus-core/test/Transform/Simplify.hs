@@ -5,9 +5,11 @@
 module Transform.Simplify where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin (BuiltinSemanticsVariant)
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
 import PlutusCore.Quote
+import PlutusPrelude (Default (def))
 import UntypedPlutusCore
 
 import Control.Lens ((&), (.~))
@@ -227,6 +229,18 @@ multiApp = runQuote $ do
       app = mkIterAppNoAnn lam [mkConstant @Integer () 1, mkConstant @Integer () 2, mkConstant @Integer () 3]
   pure app
 
+forceDelayNoApps :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceDelayNoApps = runQuote $ do
+  let one = mkConstant @Integer () 1
+      term = Force () $ Delay () $ Force () $ Delay () $ Force () $ Delay () one
+  pure term
+
+forceDelayNoAppsLayered :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceDelayNoAppsLayered = runQuote $ do
+  let one = mkConstant @Integer () 1
+      term = Force () $ Force () $ Force () $ Delay () $ Delay () $ Delay () one
+  pure term
+
 -- | The UPLC term in this test should come from the following TPLC term after erasing its types:
 -- > (/\(p :: *) -> \(x : p) -> /\(q :: *) -> \(y : q) -> /\(r :: *) -> \(z : r) -> z) Int 1 Int 2 Int 3
 -- This case is simple in the sense that each type abstraction is followed by a single term abstraction.
@@ -405,6 +419,7 @@ goldenVsSimplified name =
           & soMaxSimplifierIterations .~ 1
           & soMaxCseIterations .~ 0
       )
+      (def :: BuiltinSemanticsVariant PLC.DefaultFun)
 
 goldenVsCse :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsCse name =
@@ -416,6 +431,7 @@ goldenVsCse name =
           & soMaxSimplifierIterations .~ 0
           & soMaxCseIterations .~ 1
       )
+      (def :: BuiltinSemanticsVariant PLC.DefaultFun)
 
 test_simplify :: TestTree
 test_simplify =
@@ -442,6 +458,8 @@ test_simplify =
     , goldenVsSimplified "inlineImpure3" inlineImpure3
     , goldenVsSimplified "inlineImpure4" inlineImpure4
     , goldenVsSimplified "multiApp" multiApp
+    , goldenVsSimplified "forceDelayNoApps" forceDelayNoApps
+    , goldenVsSimplified "forceDelayNoAppsLayered" forceDelayNoAppsLayered
     , goldenVsSimplified "forceDelaySimple" forceDelaySimple
     , goldenVsSimplified "forceDelayMultiApply" forceDelayMultiApply
     , goldenVsSimplified "forceDelayMultiForce" forceDelayMultiForce

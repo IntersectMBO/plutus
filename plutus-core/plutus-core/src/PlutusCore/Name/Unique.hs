@@ -6,17 +6,14 @@
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
 
-{- | Defines the 'Name' type used for identifiers in Plutus Core together with a technique
- to minimise the cost of 'Name' comparisons.
-
- A 'Name' is a piece of text used to identify a variable inside the Plutus Core languages.
+{- | A 'Name' is a datatype used to identify a variable inside the Plutus Core languages.
  Name comparisons are a fundamental part of the domain logic, and comparing 'Text' directly
  is inefficient. As a solution to this problem, we provide the 'Unique' type which is an
  integer associated to the 'Name', unique to each instantiation of the type. We can,
  therefore, compare the integers instead, which is obviously much more cost-effective.
 
- We distinguish between the names of term variables and type variables by defining wrappers
- over 'Name': 'TermName' and 'TyName'. Since the code we usually write is polymorphic in the
+ We distinguish between the names of term variables and type variables by defining the
+ 'TyName' wrapper over 'Name'. Since the code we usually write is polymorphic in the
  name type, we want to be able to define a class of names which have an associated 'Unique'.
  This class is 'HasUnique', see the definition below.
 -}

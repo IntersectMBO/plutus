@@ -1,4 +1,16 @@
 
+<a id='changelog-1.24.0.0'></a>
+# 1.24.0.0 — 2024-03-26
+
+## Added
+
+- Documented functions which unsafely construct `PlutusTx.AssocMap.Map`s, or depend on the precondition that the input `Map`s do not contain duplicate entries.
+
+## Changed
+
+- Renamed `PlutusTx.AssocMap.Map.fromList` to `PlutusTx.AssocMap.Map.unsafeFromList`.
+- Renamed `PlutusTx.AssocMap.Map.fromListSafe` to `PlutusTx.AssocMap.Map.safeFromList`.
+
 <a id='changelog-1.22.0.0'></a>
 # 1.22.0.0 — 2024-02-21
 
