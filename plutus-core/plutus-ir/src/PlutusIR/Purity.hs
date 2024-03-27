@@ -248,7 +248,7 @@ termEvaluationOrder binfo vinfo = goTerm
       -- TODO: previous definition of work-free included this, it's slightly
       -- unclear if we should do since we do update partial builtin meanings
       -- etc.
-      -- If it's unsaturated, we definitely don't, and don't do any work
+      -- If it's unsaturated, we definitely don't do any work
       Just Undersaturated -> pureWorkFree
       -- Don't know, be conservative
       Nothing             -> maybeImpureWork

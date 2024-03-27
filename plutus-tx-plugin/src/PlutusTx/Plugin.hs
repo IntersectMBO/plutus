@@ -50,6 +50,7 @@ import GHC.Types.TyThing qualified as GHC
 import GHC.Utils.Logger qualified as GHC
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Pretty as PLC
 import PlutusCore.Quote
