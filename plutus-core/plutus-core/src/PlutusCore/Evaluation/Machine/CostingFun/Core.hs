@@ -125,7 +125,7 @@ data ModelOneArgument =
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 instance Default ModelOneArgument where
-    def = ModelOneArgumentConstantCost 0
+    def = ModelOneArgumentConstantCost maxBound
 
 {- Note [runCostingFun* API]
 Costing functions take unlifted values, compute the 'ExMemory' of each of them and then invoke
@@ -330,7 +330,7 @@ data ModelTwoArguments =
     deriving anyclass (NFData)
 
 instance Default ModelTwoArguments where
-    def = ModelTwoArgumentsConstantCost 0
+    def = ModelTwoArgumentsConstantCost maxBound
 
 -- See Note [runCostingFun* API].
 runCostingFunTwoArguments
@@ -458,7 +458,7 @@ data ModelThreeArguments =
     deriving anyclass (NFData)
 
 instance Default ModelThreeArguments where
-    def = ModelThreeArgumentsConstantCost 0
+    def = ModelThreeArgumentsConstantCost maxBound
 
 runThreeArgumentModel
     :: ModelThreeArguments
@@ -528,7 +528,7 @@ data ModelFourArguments =
     deriving anyclass (NFData)
 
 instance Default ModelFourArguments where
-    def = ModelFourArgumentsConstantCost 0
+    def = ModelFourArgumentsConstantCost maxBound
 
 runFourArgumentModel
     :: ModelFourArguments
@@ -570,7 +570,7 @@ data ModelFiveArguments =
     deriving anyclass (NFData)
 
 instance Default ModelFiveArguments where
-    def = ModelFiveArgumentsConstantCost 0
+    def = ModelFiveArgumentsConstantCost maxBound
 
 runFiveArgumentModel
     :: ModelFiveArguments
@@ -614,7 +614,7 @@ data ModelSixArguments =
     deriving anyclass (NFData)
 
 instance Default ModelSixArguments where
-    def = ModelSixArgumentsConstantCost 0
+    def = ModelSixArgumentsConstantCost maxBound
 
 runSixArgumentModel
     :: ModelSixArguments
