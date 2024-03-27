@@ -318,8 +318,8 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode budgetMode traceMode
                      outputMode cekModel semvar) = do
-    prog <- readProgram ifmt inp
-    let term = void $ prog ^. UPLC.progTerm
+    prog2 <- readProgram ifmt inp
+    let term = void $ prog2 ^. UPLC.progTerm
         cekparams = case cekModel of
                     -- AST nodes are charged according to the default cost model
                     Default -> mkMachineParameters semvar PLC.defaultCekCostModel
