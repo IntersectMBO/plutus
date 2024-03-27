@@ -73,6 +73,8 @@ library
     PlutusTx.Code
     PlutusTx.Coverage
     PlutusTx.DataList
+    PlutusTx.DataMap
+    PlutusTx.DataPair
     PlutusTx.Either
     PlutusTx.Enum
     PlutusTx.Eq
