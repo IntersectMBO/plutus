@@ -6,7 +6,7 @@ date: 2024-03-26
 
 # Section 3. Developer onboarding and quick setup guide
 
-This guide's objective is to help you set up your development environment, test it, and write your first smart contract within an hour. 
+This guide's objective is to help you set up your development environment, test it, and write your first smart contract within an hour. This will be a simple vesting contract in which someone sends a gift of ada to a beneficiary. The beneficiary can access their gift only after a specific deadline has passed and the beneficiary has signed the contract. 
 
 ## Setting up and testing your development environment
 
@@ -101,7 +101,7 @@ Before we start building our vesting smart contract, let's go over the following
 In a vesting contract, the datum represents the state and conditions of the vesting agreement. It includes information such as the beneficiary's public key hash and the deadline for the vesting period. The datum is attached to the UTxO that holds the vested funds and is used by the contract's validator script to enforce the vesting conditions. It ensures that the funds can only be released to the beneficiary after the specified deadline has passed.
 
 ### Redeemer
-In the context of a vesting contract, the redeemer is typically not used, as the contract's logic does not require any additional input from the transaction. The validation of the transaction is based solely on the datum (vesting conditions) and the script context, such as checking if the deadline has passed and if the transaction is signed by the beneficiary. However, if required, a redeemer could be used to provide additional arguments to the validator script.
+A redeemer is a piece of data that is provided by the spending transaction. It is used by the validator script to make decisions during the validation process. The redeemer is used to pass dynamic information to the validator script that may not be known at the time the UTXO is created but is only known at the time the UTXO is being spent. In the context of a vesting contract, the redeemer is typically not used, since the contract's logic does not need any additional input from the transaction. Instead, the validation of the transaction is based solely on the datum (vesting conditions) and the script context, such as checking if the deadline has passed and if the transaction is signed by the beneficiary. However, if required, a redeemer could be used to provide additional arguments to the validator script.
 
 ### Script context
 The script context is crucial for a vesting contract as it provides information about the current state of the blockchain and the transaction being validated. The contract's validator script uses the script context to check if the current time has passed the vesting deadline and if the transaction is signed by the beneficiary. This information is necessary to determine whether the conditions for releasing the vested funds have been met.
@@ -183,6 +183,14 @@ import           Utilities                 (Network, posixTimeFromIso8601,
 When importing modules and functions in Plutus, import only what you need to keep the namespace clean, and comment on why certain imports are used for clarity. 
 
 See the [Plutus Haddock documentation](https://intersectmbo.github.io/plutus/master/) for definitions, short descriptions and source code for Plutus functions, types and type classes. 
+
+#### TODO: 
+
+- These points reflect feedback from Marshall: 
+- Add more descriptions and explanations about what is being imported in the above code. For example, is it a standard library or a different kind of library that refers to functions to manupulate data?
+- Introduce developers new to Plutus to anything that is being brought in from a standard library.
+- Explain each of the imports. Each description could have a link to that specific library component. Developers want to have a sense of why they are doing these imports, and if they are standard imports.
+- Include a brief explanation of `PlutusTx.Prelude`. 
 
 ### Section 2.1: Defining the data type, public key hash, and deadline
 
@@ -341,6 +349,8 @@ Remember to handle security aspects carefully, such as protecting private keys, 
 It's important to note that this is a simplified overview, and in practice, there may be additional steps and considerations depending on the specific requirements and tools used. 
 
 # Questions to address relating to testing and deploying smart contracts
+
+- *Feedback from Marshall: This onboarding quick setup document does NOT need to address testing.* 
 
 *Questions for clarification:*
 
