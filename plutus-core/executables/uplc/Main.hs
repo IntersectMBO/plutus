@@ -251,13 +251,15 @@ plutusOpts = hsubparser $
 ---------------- Optimisation ----------------
 
 -- | Run the UPLC optimisations
-runOptimisations:: OptimiseOptions -> IO ()
+runOptimisations :: OptimiseOptions -> IO ()
 runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
-    prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
-    simplified <- PLC.runQuoteT $ do
-                    renamed <- PLC.rename prog
-                    UPLC.simplifyProgram UPLC.defaultSimplifyOpts renamed
-    writeProgram outp ofmt mode simplified
+  prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
+  simplified <- PLC.runQuoteT $ do
+    renamed <- PLC.rename prog
+    let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
+        defaultBuiltinSemanticsVariant = def
+    UPLC.simplifyProgram UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
+  writeProgram outp ofmt mode simplified
 
 ---------------- Script application ----------------
 
@@ -265,7 +267,7 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
 -- scripts must be UPLC.Program objects.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((readProgram ifmt ::  Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
+  scripts <- mapM ((readProgram ifmt :: Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
   let appliedScript =
         case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
@@ -282,16 +284,15 @@ runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) =
     p:ds -> do
          prog@(UPLC.Program _ version _) :: UplcProg SrcSpan <- readProgram ifmt (FileInput p)
          args <- mapM (getDataObject version) ds
-         let prog' = () <$ prog
+         let prog' = void prog
              appliedScript = foldl1 (unsafeFromRight .* UPLC.applyProgram) (prog':args)
          writeProgram outp ofmt mode appliedScript
              where getDataObject :: UPLC.Version -> FilePath -> IO (UplcProg ())
                    getDataObject ver path = do
                      bs <- BSL.readFile path
                      case unflat bs of
-                       Left err -> fail ("Error reading " ++ show path ++ ": " ++ show err)
-                       Right (d :: Data) ->
-                           pure $ UPLC.Program () ver $ mkConstant () d
+                       Left err          -> fail ("Error reading " ++ show path ++ ": " ++ show err)
+                       Right (d :: Data) -> pure $ UPLC.Program () ver $ mkConstant () d
 
 ---------------- Benchmarking ----------------
 
@@ -300,7 +301,7 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
   prog <- readProgram ifmt inp
   let criterionConfig = defaultConfig {reportFile = Nothing, timeLimit = timeLim}
       cekparams = mkMachineParameters semvar PLC.defaultCekCostModel
-      getResult (x,_,_) = either (error . show) (\_ -> ()) x  -- Extract an evaluation result
+      getResult (x,_,_) = either (error . show) (const ()) x  -- Extract an evaluation result
       evaluate = getResult . Cek.runCekDeBruijn cekparams Cek.restrictingEnormous Cek.noEmitter
       -- readProgam throws away De Bruijn indices and returns an AST with Names;
       -- we have to put them back to get an AST with NamedDeBruijn names.
@@ -309,7 +310,7 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
       -- Big names slow things down
       !anonTerm = UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) term
       -- Big annotations slow things down
-      !unitAnnTerm = force (() <$ anonTerm)
+      !unitAnnTerm = force (void anonTerm)
   benchmarkWith criterionConfig $! whnf evaluate unitAnnTerm
 
 ---------------- Evaluation ----------------

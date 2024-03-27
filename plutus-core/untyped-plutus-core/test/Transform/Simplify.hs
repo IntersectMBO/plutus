@@ -5,9 +5,11 @@
 module Transform.Simplify where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin (BuiltinSemanticsVariant)
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
 import PlutusCore.Quote
+import PlutusPrelude (Default (def))
 import UntypedPlutusCore
 
 import Control.Lens ((&), (.~))
@@ -417,6 +419,7 @@ goldenVsSimplified name =
           & soMaxSimplifierIterations .~ 1
           & soMaxCseIterations .~ 0
       )
+      (def :: BuiltinSemanticsVariant PLC.DefaultFun)
 
 goldenVsCse :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsCse name =
@@ -428,6 +431,7 @@ goldenVsCse name =
           & soMaxSimplifierIterations .~ 0
           & soMaxCseIterations .~ 1
       )
+      (def :: BuiltinSemanticsVariant PLC.DefaultFun)
 
 test_simplify :: TestTree
 test_simplify =

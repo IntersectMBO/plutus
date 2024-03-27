@@ -1,6 +1,5 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -101,7 +100,7 @@ pOptimise :: Parser Bool
 pOptimise = flag True False
             (  long "dont-optimise"
             <> long "dont-optimize"
-            <> help ("Turn off optimisations")
+            <> help "Turn off optimisations"
             )
 
 pJustTest :: Parser Bool
@@ -133,7 +132,7 @@ pPirOptions = hsubparser $
                    "and test if it can be successfully compiled to PLC.")
            <> command "convert"
                   (info (Convert <$> pPirConvertOptions)
-                   (progDesc $ "Convert a program between textual and flat-named format."))
+                  (progDesc "Convert a program between textual and flat-named format."))
            <> command "optimise" (optimise "Run the PIR optimisation pipeline on the input.")
            <> command "optimize" (optimise "Same as 'optimise'.")
            <> command "print"
@@ -153,7 +152,7 @@ compileToPlc optimise p = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
     let ctx = getCtx plcTcConfig
     plcProg <- runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.compileProgram p
-    pure $ () <$ plcProg
+    pure $ void plcProg
   where
     getCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
       -> PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
@@ -169,7 +168,8 @@ compileToUplc optimise plcProg =
     let plcCompilerOpts =
             if optimise
             then PLC.defaultCompilationOpts
-            else PLC.defaultCompilationOpts & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
+            else PLC.defaultCompilationOpts
+                    & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
     in flip runReader plcCompilerOpts $ runQuoteT $ PLC.compileProgram plcProg
 
 loadPirAndCompile :: CompileOptions -> IO ()
@@ -177,7 +177,7 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
     pirProg <- readProgram (pirFormatToFormat ifmt) inp
     when test $ putStrLn "!!! Compiling"
     -- Now compile to plc, maybe optimising
-    case compileToPlc optimise (() <$ pirProg) of
+    case compileToPlc optimise (void pirProg) of
       Left pirError -> error $ show pirError
       Right plcProg ->
           case language of
@@ -213,7 +213,7 @@ runOptimisations (PirOptimiseOptions inp ifmt outp ofmt mode) = do
   case doOptimisations term of
     Left e  -> error $ show e
     Right t -> writeProgram outp (pirFormatToFormat ofmt) mode
-               (Program () PLC.latestVersion(() <$ t))
+               (Program () PLC.latestVersion(void t))
 
 
 ---------------- Analysis ----------------
@@ -229,7 +229,7 @@ loadPirAndAnalyse :: AnalyseOptions -> IO ()
 loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do
     -- load pir and make sure that it is globally unique (required for retained size)
     p :: PirProg PLC.SrcSpan <- readProgram (pirFormatToFormat ifmt) inp
-    let PIR.Program _ _ term = PLC.runQuote . PLC.rename $ () <$ p
+    let PIR.Program _ _ term = PLC.runQuote . PLC.rename $ void p
     putStrLn "!!! Analysing for retention"
     let
         -- all the variable names (tynames coerced to names)
