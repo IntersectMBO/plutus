@@ -113,8 +113,8 @@ import PlutusTx.Prelude (AdditiveGroup ((-)), AdditiveSemigroup ((+)), Bool (..)
                          not, otherwise, reverse, snd, ($), (&&), (++), (||))
 
 import PlutusLedgerApi.V2 qualified as Val
-import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.DataMap qualified as Map
 import Prelude qualified as Haskell
 
 
@@ -320,6 +320,7 @@ evalObservation env state obs = let
         FalseObs                -> False
 
 
+-- TODO: should avoid (non-data) list conversions in this func
 -- | Pick the first account with money in it.
 refundOne :: Accounts -> Maybe ((Party, Token, Integer), Accounts)
 refundOne accounts = case Map.toList accounts of

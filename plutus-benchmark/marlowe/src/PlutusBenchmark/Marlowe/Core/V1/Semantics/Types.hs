@@ -43,7 +43,7 @@ import GHC.Generics (Generic)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address (Network)
 import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..), TokenName)
 import PlutusTx.AsData (asData)
-import PlutusTx.AssocMap (Map)
+import PlutusTx.DataMap (Map)
 import PlutusTx.IsData (FromData, ToData, UnsafeFromData, makeIsDataIndexed, unstableMakeIsData)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude (Bool (..), BuiltinByteString, Eq (..), Integer, Ord ((<=), (>=)), any,
@@ -52,7 +52,7 @@ import PlutusTx.Prelude (Bool (..), BuiltinByteString, Eq (..), Integer, Ord ((<
 import PlutusLedgerApi.V1.Value qualified as Val
 import PlutusLedgerApi.V2 qualified as Ledger (Address (..), Credential (..), PubKeyHash (..),
                                                ScriptHash (..), StakingCredential (..))
-import PlutusTx.AssocMap qualified as Map
+import PlutusTx.DataMap qualified as Map
 import Prelude qualified as Haskell
 
 deriving stock instance Data POSIXTime
