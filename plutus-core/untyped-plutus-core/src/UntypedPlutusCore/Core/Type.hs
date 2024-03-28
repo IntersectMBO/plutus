@@ -28,7 +28,9 @@ module UntypedPlutusCore.Core.Type
 import Control.Lens
 import PlutusPrelude
 
+import Data.Primitive.SmallArray
 import Data.Word
+import GHC.Exts (fromList)
 import PlutusCore.Builtin qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc
@@ -85,7 +87,7 @@ data Term name uni fun ann
     -- TODO: try spine-strict list or strict list or vector
     -- See Note [Constr tag type]
     | Constr !ann !Word64 ![Term name uni fun ann]
-    | Case !ann !(Term name uni fun ann) ![Term name uni fun ann]
+    | Case !ann !(Term name uni fun ann) !(SmallArray (Term name uni fun ann))
     deriving stock (Functor, Generic)
 
 deriving stock instance (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -123,7 +125,7 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     iWrap    = \_ _ _ -> id
     error    = \ann _ -> Error ann
     constr   = \ann _ i es -> Constr ann i es
-    kase     = \ann _ arg cs -> Case ann arg cs
+    kase     = \ann _ arg cs -> Case ann arg $ fromList cs
 
 instance TPLC.HasConstant (Term name uni fun ()) where
     asConstant (Constant _ val) = pure val
