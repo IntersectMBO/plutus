@@ -1,0 +1,429 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE GADTs #-}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Module      :  Distribution.Simple.Program.Script</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- Copyright   :  Duncan Coutts 2009</span><span>
+</span><span id="line-6"></span><span class="hs-comment">--</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Maintainer  :  cabal-devel@haskell.org</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-9"></span><span class="hs-comment">--</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- This module provides an library interface to the @hc-pkg@ program.</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Currently only GHC and LHC have hc-pkg programs.</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.Program.Script</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Script.html#invocationAsSystemScript"><span class="hs-identifier">invocationAsSystemScript</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Script.html#invocationAsShellScript"><span class="hs-identifier">invocationAsShellScript</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Script.html#invocationAsBatchFile"><span class="hs-identifier">invocationAsBatchFile</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html"><span class="hs-identifier">Distribution.Simple.Program.Run</span></a></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html"><span class="hs-identifier">Distribution.Simple.Utils</span></a></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.System.html#/Distribution.System.html"><span class="hs-identifier">Distribution.System</span></a></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- | Generate a system script, either POSIX shell script or Windows batch file</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- as appropriate for the given system.</span><span>
+</span><span id="line-29"></span><span class="hs-comment">--</span><span>
+</span><span id="line-30"></span><span class="annot"><a href="Distribution.Simple.Program.Script.html#invocationAsSystemScript"><span class="hs-identifier hs-type">invocationAsSystemScript</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.System.html#OS/Distribution.System.html#OS"><span class="hs-identifier hs-type">OS</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-31"></span><span id="invocationAsSystemScript"><span class="annot"><span class="annottext">invocationAsSystemScript :: OS -&gt; ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Script.html#invocationAsSystemScript"><span class="hs-identifier hs-var hs-var">invocationAsSystemScript</span></a></span></span><span> </span><span class="annot"><span class="annottext">OS
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.System.html#Windows/Distribution.System.html#Windows"><span class="hs-identifier hs-var">Windows</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Script.html#invocationAsBatchFile"><span class="hs-identifier hs-var">invocationAsBatchFile</span></a></span><span>
+</span><span id="line-32"></span><span class="annot"><a href="Distribution.Simple.Program.Script.html#invocationAsSystemScript"><span class="hs-identifier hs-var">invocationAsSystemScript</span></a></span><span> </span><span class="annot"><span class="annottext">OS
+</span><span class="hs-identifier">_</span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Script.html#invocationAsShellScript"><span class="hs-identifier hs-var">invocationAsShellScript</span></a></span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- | Generate a POSIX shell script that invokes a program.</span><span>
+</span><span id="line-36"></span><span class="hs-comment">--</span><span>
+</span><span id="line-37"></span><span class="annot"><a href="Distribution.Simple.Program.Script.html#invocationAsShellScript"><span class="hs-identifier hs-type">invocationAsShellScript</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-38"></span><span id="invocationAsShellScript"><span class="annot"><span class="annottext">invocationAsShellScript :: ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Script.html#invocationAsShellScript"><span class="hs-identifier hs-var hs-var">invocationAsShellScript</span></a></span></span><span>
+</span><span id="line-39"></span><span>  </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><span class="annottext">progInvokePath :: ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var">progInvokePath</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351885"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351885"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><span class="annottext">progInvokeArgs :: ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var">progInvokeArgs</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351887"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351887"><span class="hs-identifier hs-var">args</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>    </span><span class="annot"><span class="annottext">progInvokeEnv :: ProgramInvocation -&gt; [(String, Maybe String)]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeEnv"><span class="hs-identifier hs-var">progInvokeEnv</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351889"><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351889"><span class="hs-identifier hs-var">envExtra</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>    </span><span class="annot"><span class="annottext">progInvokeCwd :: ProgramInvocation -&gt; Maybe String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeCwd"><span class="hs-identifier hs-var">progInvokeCwd</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351891"><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351891"><span class="hs-identifier hs-var">mcwd</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-44"></span><span>    </span><span class="annot"><span class="annottext">progInvokeInput :: ProgramInvocation -&gt; Maybe IOData
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeInput"><span class="hs-identifier hs-var">progInvokeInput</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351893"><span class="annot"><span class="annottext">Maybe IOData
+</span><a href="#local-6989586621679351893"><span class="hs-identifier hs-var">minput</span></a></span></span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#unlines/Data.OldList.html#unlines"><span class="hs-identifier hs-var">unlines</span></a></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String) -&gt; [String] -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-46"></span><span>          </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#!/bin/sh&quot;</span></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-47"></span><span>       </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">((String, Maybe String) -&gt; [String])
+-&gt; [(String, Maybe String)] -&gt; [String]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concatMap/Data.Foldable.html#concatMap"><span class="hs-identifier hs-var">concatMap</span></a></span><span> </span><span class="annot"><span class="annottext">(String, Maybe String) -&gt; [String]
+</span><a href="#local-6989586621679351896"><span class="hs-identifier hs-var">setEnv</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351889"><span class="hs-identifier hs-var">envExtra</span></a></span><span>
+</span><span id="line-48"></span><span>       </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;cd &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351897"><span class="hs-identifier hs-var">quote</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351898"><span class="hs-identifier hs-var">cwd</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679351898"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351898"><span class="hs-identifier hs-var">cwd</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Maybe String -&gt; [String]
+forall a. Maybe a -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.Maybe.html#maybeToList/Data.Maybe.html#maybeToList"><span class="hs-identifier hs-var">maybeToList</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351891"><span class="hs-identifier hs-var">mcwd</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-49"></span><span>       </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe IOData
+</span><a href="#local-6989586621679351893"><span class="hs-identifier hs-var">minput</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-50"></span><span>              </span><span class="annot"><span class="annottext">Maybe IOData
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-51"></span><span>              </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679351900"><span class="annot"><span class="annottext">IOData
+</span><a href="#local-6989586621679351900"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;printf '%s' &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351897"><span class="hs-identifier hs-var">quote</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IOData -&gt; String
+</span><a href="Distribution.Simple.Program.Script.html#iodataToText"><span class="hs-identifier hs-var">iodataToText</span></a></span><span> </span><span class="annot"><span class="annottext">IOData
+</span><a href="#local-6989586621679351900"><span class="hs-identifier hs-var">input</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; | &quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span>         </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#unwords/Data.OldList.html#unwords"><span class="hs-identifier hs-var">unwords</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; [String] -&gt; [String]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351897"><span class="hs-identifier hs-var">quote</span></a></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; [String]) -&gt; [String] -&gt; [String]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351885"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; [String]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351887"><span class="hs-identifier hs-var">args</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; \&quot;$@\&quot;&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-53"></span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-55"></span><span>    </span><span id="local-6989586621679351896"><span class="annot"><span class="annottext">setEnv :: (String, Maybe String) -&gt; [String]
+</span><a href="#local-6989586621679351896"><span class="hs-identifier hs-var hs-var">setEnv</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351903"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351903"><span class="hs-identifier hs-var">var</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;unset &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351903"><span class="hs-identifier hs-var">var</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;export &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351903"><span class="hs-identifier hs-var">var</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-56"></span><span>    </span><span class="annot"><a href="#local-6989586621679351896"><span class="hs-identifier hs-var">setEnv</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351904"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351904"><span class="hs-identifier hs-var">var</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679351905"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351905"><span class="hs-identifier hs-var">val</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;export &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351904"><span class="hs-identifier hs-var">var</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;=&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351897"><span class="hs-identifier hs-var">quote</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351905"><span class="hs-identifier hs-var">val</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span>    </span><span class="annot"><a href="#local-6989586621679351897"><span class="hs-identifier hs-type">quote</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-59"></span><span>    </span><span id="local-6989586621679351897"><span class="annot"><span class="annottext">quote :: String -&gt; String
+</span><a href="#local-6989586621679351897"><span class="hs-identifier hs-var hs-var">quote</span></a></span></span><span> </span><span id="local-6989586621679351906"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351906"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351907"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351906"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'&quot;</span></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span>    </span><span id="local-6989586621679351907"><span class="annot"><span class="annottext">escape :: String -&gt; String
+</span><a href="#local-6989586621679351907"><span class="hs-identifier hs-var hs-var">escape</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-62"></span><span>    </span><span class="annot"><a href="#local-6989586621679351907"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\''</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351908"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351908"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'\\''&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351907"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351908"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-63"></span><span>    </span><span class="annot"><a href="#local-6989586621679351907"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351909"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679351909"><span class="hs-identifier hs-var">c</span></a></span></span><span>   </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351910"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351910"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679351909"><span class="hs-identifier hs-var">c</span></a></span><span>        </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351907"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351910"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="annot"><a href="Distribution.Simple.Program.Script.html#iodataToText"><span class="hs-identifier hs-type">iodataToText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Utils.IOData.html#IOData"><span class="hs-identifier hs-type">IOData</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-66"></span><span id="iodataToText"><span class="annot"><span class="annottext">iodataToText :: IOData -&gt; String
+</span><a href="Distribution.Simple.Program.Script.html#iodataToText"><span class="hs-identifier hs-var hs-var">iodataToText</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.IOData.html#IODataText"><span class="hs-identifier hs-type">IODataText</span></a></span><span> </span><span id="local-6989586621679351912"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351912"><span class="hs-identifier hs-var">str</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351912"><span class="hs-identifier hs-var">str</span></a></span><span>
+</span><span id="line-67"></span><span class="annot"><a href="Distribution.Simple.Program.Script.html#iodataToText"><span class="hs-identifier hs-var">iodataToText</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.IOData.html#IODataBinary"><span class="hs-identifier hs-type">IODataBinary</span></a></span><span> </span><span id="local-6989586621679351914"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679351914"><span class="hs-identifier hs-var">lbs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#fromUTF8LBS/Distribution.Utils.Generic.html#fromUTF8LBS"><span class="hs-identifier hs-var">fromUTF8LBS</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679351914"><span class="hs-identifier hs-var">lbs</span></a></span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- | Generate a Windows batch file that invokes a program.</span><span>
+</span><span id="line-71"></span><span class="hs-comment">--</span><span>
+</span><span id="line-72"></span><span class="annot"><a href="Distribution.Simple.Program.Script.html#invocationAsBatchFile"><span class="hs-identifier hs-type">invocationAsBatchFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-73"></span><span id="invocationAsBatchFile"><span class="annot"><span class="annottext">invocationAsBatchFile :: ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Script.html#invocationAsBatchFile"><span class="hs-identifier hs-var hs-var">invocationAsBatchFile</span></a></span></span><span>
+</span><span id="line-74"></span><span>  </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-75"></span><span>    </span><span class="annot"><span class="annottext">progInvokePath :: ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var">progInvokePath</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351916"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351916"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-76"></span><span>    </span><span class="annot"><span class="annottext">progInvokeArgs :: ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var">progInvokeArgs</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351917"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351917"><span class="hs-identifier hs-var">args</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-77"></span><span>    </span><span class="annot"><span class="annottext">progInvokeEnv :: ProgramInvocation -&gt; [(String, Maybe String)]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeEnv"><span class="hs-identifier hs-var">progInvokeEnv</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351918"><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351918"><span class="hs-identifier hs-var">envExtra</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-78"></span><span>    </span><span class="annot"><span class="annottext">progInvokeCwd :: ProgramInvocation -&gt; Maybe String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeCwd"><span class="hs-identifier hs-var">progInvokeCwd</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351919"><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351919"><span class="hs-identifier hs-var">mcwd</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-79"></span><span>    </span><span class="annot"><span class="annottext">progInvokeInput :: ProgramInvocation -&gt; Maybe IOData
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeInput"><span class="hs-identifier hs-var">progInvokeInput</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351920"><span class="annot"><span class="annottext">Maybe IOData
+</span><a href="#local-6989586621679351920"><span class="hs-identifier hs-var">minput</span></a></span></span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#unlines/Data.OldList.html#unlines"><span class="hs-identifier hs-var">unlines</span></a></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String) -&gt; [String] -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-81"></span><span>          </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;@echo off&quot;</span></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-82"></span><span>       </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">((String, Maybe String) -&gt; String)
+-&gt; [(String, Maybe String)] -&gt; [String]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">(String, Maybe String) -&gt; String
+</span><a href="#local-6989586621679351921"><span class="hs-identifier hs-var">setEnv</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351918"><span class="hs-identifier hs-var">envExtra</span></a></span><span>
+</span><span id="line-83"></span><span>       </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;cd \&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351922"><span class="hs-identifier hs-var">cwd</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;&quot;</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679351922"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351922"><span class="hs-identifier hs-var">cwd</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Maybe String -&gt; [String]
+forall a. Maybe a -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.Maybe.html#maybeToList/Data.Maybe.html#maybeToList"><span class="hs-identifier hs-var">maybeToList</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351919"><span class="hs-identifier hs-var">mcwd</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-84"></span><span>       </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe IOData
+</span><a href="#local-6989586621679351920"><span class="hs-identifier hs-var">minput</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-85"></span><span>            </span><span class="annot"><span class="annottext">Maybe IOData
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>    </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-86"></span><span>                </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351916"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; [String] -&gt; String
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concatMap/Data.Foldable.html#concatMap"><span class="hs-identifier hs-var">concatMap</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">' '</span></span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351917"><span class="hs-identifier hs-var">args</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span>            </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679351923"><span class="annot"><span class="annottext">IOData
+</span><a href="#local-6989586621679351923"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-89"></span><span>                </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;(&quot;</span></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-90"></span><span>             </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;echo &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351925"><span class="hs-identifier hs-var">line</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679351925"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351925"><span class="hs-identifier hs-var">line</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#lines/Data.OldList.html#lines"><span class="hs-identifier hs-var">lines</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; [String]) -&gt; String -&gt; [String]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">IOData -&gt; String
+</span><a href="Distribution.Simple.Program.Script.html#iodataToText"><span class="hs-identifier hs-var">iodataToText</span></a></span><span> </span><span class="annot"><span class="annottext">IOData
+</span><a href="#local-6989586621679351923"><span class="hs-identifier hs-var">input</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-91"></span><span>             </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;) | &quot;</span></span><span>
+</span><span id="line-92"></span><span>               </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351916"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;&quot;</span></span><span>
+</span><span id="line-93"></span><span>               </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; [String] -&gt; String
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concatMap/Data.Foldable.html#concatMap"><span class="hs-identifier hs-var">concatMap</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679351927"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351927"><span class="hs-identifier hs-var">arg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">' '</span></span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351928"><span class="hs-identifier hs-var">quote</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351927"><span class="hs-identifier hs-var">arg</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351917"><span class="hs-identifier hs-var">args</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-96"></span><span>    </span><span id="local-6989586621679351921"><span class="annot"><span class="annottext">setEnv :: (String, Maybe String) -&gt; String
+</span><a href="#local-6989586621679351921"><span class="hs-identifier hs-var hs-var">setEnv</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351929"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351929"><span class="hs-identifier hs-var">var</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;set &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351929"><span class="hs-identifier hs-var">var</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;=&quot;</span></span><span>
+</span><span id="line-97"></span><span>    </span><span class="annot"><a href="#local-6989586621679351921"><span class="hs-identifier hs-var">setEnv</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351930"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351930"><span class="hs-identifier hs-var">var</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679351931"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351931"><span class="hs-identifier hs-var">val</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;set &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351930"><span class="hs-identifier hs-var">var</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;=&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351931"><span class="hs-identifier hs-var">val</span></a></span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span>    </span><span class="annot"><a href="#local-6989586621679351928"><span class="hs-identifier hs-type">quote</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-100"></span><span>    </span><span id="local-6989586621679351928"><span class="annot"><span class="annottext">quote :: String -&gt; String
+</span><a href="#local-6989586621679351928"><span class="hs-identifier hs-var hs-var">quote</span></a></span></span><span> </span><span id="local-6989586621679351932"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351932"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351933"><span class="hs-identifier hs-var">escapeQ</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351932"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;&quot;</span></span><span>
+</span><span id="line-101"></span><span>
+</span><span id="line-102"></span><span>    </span><span id="local-6989586621679351933"><span class="annot"><span class="annottext">escapeQ :: String -&gt; String
+</span><a href="#local-6989586621679351933"><span class="hs-identifier hs-var hs-var">escapeQ</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-103"></span><span>    </span><span class="annot"><a href="#local-6989586621679351933"><span class="hs-identifier hs-var">escapeQ</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351934"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351934"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;\&quot;\&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351933"><span class="hs-identifier hs-var">escapeQ</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351934"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-104"></span><span>    </span><span class="annot"><a href="#local-6989586621679351933"><span class="hs-identifier hs-var">escapeQ</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351935"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679351935"><span class="hs-identifier hs-var">c</span></a></span></span><span>  </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351936"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351936"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679351935"><span class="hs-identifier hs-var">c</span></a></span><span>         </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351933"><span class="hs-identifier hs-var">escapeQ</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351936"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-105"></span><span>
+</span><span id="line-106"></span><span>    </span><span id="local-6989586621679351924"><span class="annot"><span class="annottext">escape :: String -&gt; String
+</span><a href="#local-6989586621679351924"><span class="hs-identifier hs-var hs-var">escape</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-107"></span><span>    </span><span class="annot"><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'|'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351937"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351937"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;^|&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351937"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-108"></span><span>    </span><span class="annot"><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&lt;'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351938"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351938"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;^&lt;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351938"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-109"></span><span>    </span><span class="annot"><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&gt;'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351939"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351939"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;^&gt;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351939"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-110"></span><span>    </span><span class="annot"><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&amp;'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351940"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351940"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;^&amp;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351940"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-111"></span><span>    </span><span class="annot"><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'('</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351941"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351941"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;^(&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351941"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-112"></span><span>    </span><span class="annot"><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">')'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351942"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351942"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;^)&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351942"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-113"></span><span>    </span><span class="annot"><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'^'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351943"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351943"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;^^&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351943"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-114"></span><span>    </span><span class="annot"><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351944"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679351944"><span class="hs-identifier hs-var">c</span></a></span></span><span>  </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351945"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351945"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679351944"><span class="hs-identifier hs-var">c</span></a></span><span>     </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679351924"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351945"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-115"></span></pre></body></html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TypeFamilies #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Types.TargetInfo</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-3"></span><span>    </span><span class="annot"><a href="Distribution.Types.TargetInfo.html#TargetInfo"><span class="hs-identifier">TargetInfo</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-4"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html"><span class="hs-identifier">Distribution.Types.ComponentLocalBuildInfo</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#/Distribution.Types.Component.html"><span class="hs-identifier">Distribution.Types.Component</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#/Distribution.Types.UnitId.html"><span class="hs-identifier">Distribution.Types.UnitId</span></a></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#/Distribution.Compat.Graph.html"><span class="hs-identifier">Distribution.Compat.Graph</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#IsNode/Distribution.Compat.Graph.html#IsNode"><span class="hs-identifier">IsNode</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- | The 'TargetInfo' contains all the information necessary to build a</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- specific target (e.g., component/module/file) in a package.  In</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- principle, one can get the 'Component' from a</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- 'ComponentLocalBuildInfo' and 'LocalBuildInfo', but it is much more</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- convenient to have the component in hand.</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">data</span><span> </span><span id="TargetInfo"><span class="annot"><a href="Distribution.Types.TargetInfo.html#TargetInfo"><span class="hs-identifier hs-var">TargetInfo</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="TargetInfo"><span class="annot"><a href="Distribution.Types.TargetInfo.html#TargetInfo"><span class="hs-identifier hs-var">TargetInfo</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-21"></span><span>        </span><span id="targetCLBI"><span class="annot"><span class="annottext">TargetInfo -&gt; ComponentLocalBuildInfo
+</span><a href="Distribution.Types.TargetInfo.html#targetCLBI"><span class="hs-identifier hs-var hs-var">targetCLBI</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>        </span><span id="targetComponent"><span class="annot"><span class="annottext">TargetInfo -&gt; Component
+</span><a href="Distribution.Types.TargetInfo.html#targetComponent"><span class="hs-identifier hs-var hs-var">targetComponent</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#Component/Distribution.Types.Component.html#Component"><span class="hs-identifier hs-type">Component</span></a></span><span>
+</span><span id="line-23"></span><span>        </span><span class="hs-comment">-- TODO: BuildTargets supporting parsing these is dumb,</span><span>
+</span><span id="line-24"></span><span>        </span><span class="hs-comment">-- we don't have support for compiling single modules or</span><span>
+</span><span id="line-25"></span><span>        </span><span class="hs-comment">-- file paths. Accommodating it now is premature</span><span>
+</span><span id="line-26"></span><span>        </span><span class="hs-comment">-- generalization.  Figure it out later.</span><span>
+</span><span id="line-27"></span><span>        </span><span class="hs-comment">-- targetSub       :: Maybe (Either ModuleName FilePath)</span><span>
+</span><span id="line-28"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#IsNode/Distribution.Compat.Graph.html#IsNode"><span class="hs-identifier hs-type">IsNode</span></a></span><span> </span><span class="annot"><a href="Distribution.Types.TargetInfo.html#TargetInfo"><span class="hs-identifier hs-type">TargetInfo</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-keyword">type</span><span> </span><span id="Key"><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#Key/Distribution.Compat.Graph.html#Key"><span class="hs-identifier hs-var">Key</span></a></span></span><span> </span><span class="annot"><a href="Distribution.Types.TargetInfo.html#TargetInfo"><span class="hs-identifier hs-type">TargetInfo</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#UnitId/Distribution.Types.UnitId.html#UnitId"><span class="hs-identifier hs-type">UnitId</span></a></span><span>
+</span><span id="line-32"></span><span>    </span><span id="local-6989586621679344758"><span class="annot"><span class="annottext">nodeKey :: TargetInfo -&gt; Key TargetInfo
+</span><a href="#local-6989586621679344758"><span class="hs-identifier hs-var hs-var hs-var hs-var">nodeKey</span></a></span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; Key ComponentLocalBuildInfo
+ComponentLocalBuildInfo -&gt; UnitId
+forall a. IsNode a =&gt; a -&gt; Key a
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#nodeKey/Distribution.Compat.Graph.html#nodeKey"><span class="hs-identifier hs-var">nodeKey</span></a></span><span>       </span><span class="annot"><span class="annottext">(ComponentLocalBuildInfo -&gt; UnitId)
+-&gt; (TargetInfo -&gt; ComponentLocalBuildInfo) -&gt; TargetInfo -&gt; UnitId
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo -&gt; ComponentLocalBuildInfo
+</span><a href="Distribution.Types.TargetInfo.html#targetCLBI"><span class="hs-identifier hs-var">targetCLBI</span></a></span><span>
+</span><span id="line-33"></span><span>    </span><span id="local-6989586621679344762"><span class="annot"><span class="annottext">nodeNeighbors :: TargetInfo -&gt; [Key TargetInfo]
+</span><a href="#local-6989586621679344762"><span class="hs-identifier hs-var hs-var hs-var hs-var">nodeNeighbors</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; [Key ComponentLocalBuildInfo]
+ComponentLocalBuildInfo -&gt; [UnitId]
+forall a. IsNode a =&gt; a -&gt; [Key a]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#nodeNeighbors/Distribution.Compat.Graph.html#nodeNeighbors"><span class="hs-identifier hs-var">nodeNeighbors</span></a></span><span> </span><span class="annot"><span class="annottext">(ComponentLocalBuildInfo -&gt; [UnitId])
+-&gt; (TargetInfo -&gt; ComponentLocalBuildInfo)
+-&gt; TargetInfo
+-&gt; [UnitId]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo -&gt; ComponentLocalBuildInfo
+</span><a href="Distribution.Types.TargetInfo.html#targetCLBI"><span class="hs-identifier hs-var">targetCLBI</span></a></span><span>
+</span><span id="line-34"></span></pre></body></html>

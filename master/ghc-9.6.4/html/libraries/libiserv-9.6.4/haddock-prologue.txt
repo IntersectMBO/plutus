@@ -1,0 +1,1 @@
+Provides shared functionality between iserv and iserv-proxy.

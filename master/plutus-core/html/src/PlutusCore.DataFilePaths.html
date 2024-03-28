@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Various file paths used in plutus-core, currently all to do with the cost</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- model.</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">PlutusCore.DataFilePaths</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/template-haskell-2.20.0.0/src/System.FilePath.html"><span class="hs-identifier">System.FilePath</span></a></span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="annot"><a href="PlutusCore.DataFilePaths.html#costModelDataDir"><span class="hs-identifier hs-type">costModelDataDir</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-10"></span><span id="costModelDataDir"><span class="annot"><span class="annottext">costModelDataDir :: FilePath
+</span><a href="PlutusCore.DataFilePaths.html#costModelDataDir"><span class="hs-identifier hs-var hs-var">costModelDataDir</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;cost-model&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;data&quot;</span></span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="annot"><a href="PlutusCore.DataFilePaths.html#builtinCostModelFile"><span class="hs-identifier hs-type">builtinCostModelFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-13"></span><span id="builtinCostModelFile"><span class="annot"><span class="annottext">builtinCostModelFile :: FilePath
+</span><a href="PlutusCore.DataFilePaths.html#builtinCostModelFile"><span class="hs-identifier hs-var hs-var">builtinCostModelFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="PlutusCore.DataFilePaths.html#costModelDataDir"><span class="hs-identifier hs-var">costModelDataDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;builtinCostModel&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;json&quot;</span></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="annot"><a href="PlutusCore.DataFilePaths.html#cekMachineCostsFile"><span class="hs-identifier hs-type">cekMachineCostsFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-16"></span><span id="cekMachineCostsFile"><span class="annot"><span class="annottext">cekMachineCostsFile :: FilePath
+</span><a href="PlutusCore.DataFilePaths.html#cekMachineCostsFile"><span class="hs-identifier hs-var hs-var">cekMachineCostsFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="PlutusCore.DataFilePaths.html#costModelDataDir"><span class="hs-identifier hs-var">costModelDataDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;cekMachineCosts&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;json&quot;</span></span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="annot"><span class="hs-comment">-- | The file containing the R models: only needed for cost-model-test.</span></span><span>
+</span><span id="line-19"></span><span class="annot"><a href="PlutusCore.DataFilePaths.html#rModelFile"><span class="hs-identifier hs-type">rModelFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-20"></span><span id="rModelFile"><span class="annot"><span class="annottext">rModelFile :: FilePath
+</span><a href="PlutusCore.DataFilePaths.html#rModelFile"><span class="hs-identifier hs-var hs-var">rModelFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="PlutusCore.DataFilePaths.html#costModelDataDir"><span class="hs-identifier hs-var">costModelDataDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;models&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;R&quot;</span></span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- | The file containing the benchmark results for the built-in functions: only</span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- needed for cost-model-test.</span><span>
+</span><span id="line-24"></span><span class="annot"><a href="PlutusCore.DataFilePaths.html#benchingResultsFile"><span class="hs-identifier hs-type">benchingResultsFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-25"></span><span id="benchingResultsFile"><span class="annot"><span class="annottext">benchingResultsFile :: FilePath
+</span><a href="PlutusCore.DataFilePaths.html#benchingResultsFile"><span class="hs-identifier hs-var hs-var">benchingResultsFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="PlutusCore.DataFilePaths.html#costModelDataDir"><span class="hs-identifier hs-var">costModelDataDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;benching&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;csv&quot;</span></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span></pre></body></html>

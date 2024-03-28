@@ -1,0 +1,977 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE GADTs            #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE RankNTypes       #-}</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Module      :  Distribution.Simple.Program.Run</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- Copyright   :  Duncan Coutts 2009</span><span>
+</span><span id="line-9"></span><span class="hs-comment">--</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Maintainer  :  cabal-devel@haskell.org</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- This module provides a data type for program invocations and functions to</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- run them.</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.Program.Run</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier">ProgramInvocation</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#IOEncoding"><span class="hs-identifier">IOEncoding</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#emptyProgramInvocation"><span class="hs-identifier">emptyProgramInvocation</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#simpleProgramInvocation"><span class="hs-identifier">simpleProgramInvocation</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#programInvocation"><span class="hs-identifier">programInvocation</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#multiStageProgramInvocation"><span class="hs-identifier">multiStageProgramInvocation</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#runProgramInvocation"><span class="hs-identifier">runProgramInvocation</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#getProgramInvocationOutput"><span class="hs-identifier">getProgramInvocationOutput</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#getProgramInvocationLBS"><span class="hs-identifier">getProgramInvocationLBS</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#getProgramInvocationOutputAndErrors"><span class="hs-identifier">getProgramInvocationOutputAndErrors</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#getEffectiveEnvironment"><span class="hs-identifier">getEffectiveEnvironment</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Compat.Environment.html"><span class="hs-identifier">Distribution.Compat.Environment</span></a></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html"><span class="hs-identifier">Distribution.Simple.Program.Types</span></a></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html"><span class="hs-identifier">Distribution.Simple.Utils</span></a></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#/Distribution.Utils.Generic.html"><span class="hs-identifier">Distribution.Utils.Generic</span></a></span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html"><span class="hs-identifier">Distribution.Verbosity</span></a></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../filepath-1.4.200.1/src/System.FilePath.html#/System.FilePath.html"><span class="hs-identifier">System.FilePath</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#searchPathSeparator/System.FilePath.Posix.html#searchPathSeparator"><span class="hs-identifier">searchPathSeparator</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Lazy.html#/Data.ByteString.Lazy.html"><span class="hs-identifier">Data.ByteString.Lazy</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LBS</span></span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.html#/Data.Map.html"><span class="hs-identifier">Data.Map</span></a></span><span>             </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Map</span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- | Represents a specific invocation of a specific program.</span><span>
+</span><span id="line-47"></span><span class="hs-comment">--</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- This is used as an intermediate type between deciding how to call a program</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- and actually doing it. This provides the opportunity to the caller to</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- adjust how the program will be called. These invocations can either be run</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- directly or turned into shell or batch scripts.</span><span>
+</span><span id="line-52"></span><span class="hs-comment">--</span><span>
+</span><span id="line-53"></span><span class="hs-keyword">data</span><span> </span><span id="ProgramInvocation"><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-var">ProgramInvocation</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ProgramInvocation"><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-var">ProgramInvocation</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-54"></span><span>       </span><span id="progInvokePath"><span class="annot"><span class="annottext">ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var hs-var">progInvokePath</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-55"></span><span>       </span><span id="progInvokeArgs"><span class="annot"><span class="annottext">ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var hs-var">progInvokeArgs</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-56"></span><span>       </span><span id="progInvokeEnv"><span class="annot"><span class="annottext">ProgramInvocation -&gt; [(String, Maybe String)]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeEnv"><span class="hs-identifier hs-var hs-var">progInvokeEnv</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-57"></span><span>       </span><span class="hs-comment">-- Extra paths to add to PATH</span><span>
+</span><span id="line-58"></span><span>       </span><span id="progInvokePathEnv"><span class="annot"><span class="annottext">ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePathEnv"><span class="hs-identifier hs-var hs-var">progInvokePathEnv</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-59"></span><span>       </span><span id="progInvokeCwd"><span class="annot"><span class="annottext">ProgramInvocation -&gt; Maybe String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeCwd"><span class="hs-identifier hs-var hs-var">progInvokeCwd</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-60"></span><span>       </span><span id="progInvokeInput"><span class="annot"><span class="annottext">ProgramInvocation -&gt; Maybe IOData
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeInput"><span class="hs-identifier hs-var hs-var">progInvokeInput</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="Distribution.Utils.IOData.html#IOData"><span class="hs-identifier hs-type">IOData</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-61"></span><span>       </span><span id="progInvokeInputEncoding"><span class="annot"><span class="annottext">ProgramInvocation -&gt; IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeInputEncoding"><span class="hs-identifier hs-var hs-var">progInvokeInputEncoding</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#IOEncoding"><span class="hs-identifier hs-type">IOEncoding</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-comment">-- ^ TODO: remove this, make user decide when constructing 'progInvokeInput'.</span></span><span>
+</span><span id="line-62"></span><span>       </span><span id="progInvokeOutputEncoding"><span class="annot"><span class="annottext">ProgramInvocation -&gt; IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeOutputEncoding"><span class="hs-identifier hs-var hs-var">progInvokeOutputEncoding</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#IOEncoding"><span class="hs-identifier hs-type">IOEncoding</span></a></span><span>
+</span><span id="line-63"></span><span>     </span><span class="hs-special">}</span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="hs-keyword">data</span><span> </span><span id="IOEncoding"><span class="annot"><a href="Distribution.Simple.Program.Run.html#IOEncoding"><span class="hs-identifier hs-var">IOEncoding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="IOEncodingText"><span class="annot"><a href="Distribution.Simple.Program.Run.html#IOEncodingText"><span class="hs-identifier hs-var">IOEncodingText</span></a></span></span><span>   </span><span class="hs-comment">-- locale mode text</span><span>
+</span><span id="line-66"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span id="IOEncodingUTF8"><span class="annot"><a href="Distribution.Simple.Program.Run.html#IOEncodingUTF8"><span class="hs-identifier hs-var">IOEncodingUTF8</span></a></span></span><span>   </span><span class="hs-comment">-- always utf8</span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#encodeToIOData"><span class="hs-identifier hs-type">encodeToIOData</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#IOEncoding"><span class="hs-identifier hs-type">IOEncoding</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.IOData.html#IOData"><span class="hs-identifier hs-type">IOData</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.IOData.html#IOData"><span class="hs-identifier hs-type">IOData</span></a></span><span>
+</span><span id="line-69"></span><span id="encodeToIOData"><span class="annot"><span class="annottext">encodeToIOData :: IOEncoding -&gt; IOData -&gt; IOData
+</span><a href="Distribution.Simple.Program.Run.html#encodeToIOData"><span class="hs-identifier hs-var hs-var">encodeToIOData</span></a></span></span><span> </span><span class="annot"><span class="annottext">IOEncoding
+</span><span class="hs-identifier">_</span></span><span>              </span><span id="local-6989586621679351665"><span class="annot"><span class="annottext">iod :: IOData
+</span><a href="#local-6989586621679351665"><span class="hs-identifier hs-var">iod</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.IOData.html#IODataBinary"><span class="hs-identifier hs-type">IODataBinary</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IOData
+</span><a href="#local-6989586621679351665"><span class="hs-identifier hs-var">iod</span></a></span><span>
+</span><span id="line-70"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#encodeToIOData"><span class="hs-identifier hs-var">encodeToIOData</span></a></span><span> </span><span class="annot"><span class="annottext">IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#IOEncodingText"><span class="hs-identifier hs-var">IOEncodingText</span></a></span><span> </span><span id="local-6989586621679351667"><span class="annot"><span class="annottext">iod :: IOData
+</span><a href="#local-6989586621679351667"><span class="hs-identifier hs-var">iod</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.IOData.html#IODataText"><span class="hs-identifier hs-type">IODataText</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IOData
+</span><a href="#local-6989586621679351667"><span class="hs-identifier hs-var">iod</span></a></span><span>
+</span><span id="line-71"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#encodeToIOData"><span class="hs-identifier hs-var">encodeToIOData</span></a></span><span> </span><span class="annot"><span class="annottext">IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#IOEncodingUTF8"><span class="hs-identifier hs-var">IOEncodingUTF8</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.IOData.html#IODataText"><span class="hs-identifier hs-type">IODataText</span></a></span><span> </span><span id="local-6989586621679351669"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351669"><span class="hs-identifier hs-var">str</span></a></span></span><span class="hs-special">)</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; IOData
+</span><a href="Distribution.Utils.IOData.html#IODataBinary"><span class="hs-identifier hs-var">IODataBinary</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ByteString
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#toUTF8LBS/Distribution.Utils.Generic.html#toUTF8LBS"><span class="hs-identifier hs-var">toUTF8LBS</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351669"><span class="hs-identifier hs-var">str</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#emptyProgramInvocation"><span class="hs-identifier hs-type">emptyProgramInvocation</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span>
+</span><span id="line-74"></span><span id="emptyProgramInvocation"><span class="annot"><span class="annottext">emptyProgramInvocation :: ProgramInvocation
+</span><a href="Distribution.Simple.Program.Run.html#emptyProgramInvocation"><span class="hs-identifier hs-var hs-var">emptyProgramInvocation</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-75"></span><span>  </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-76"></span><span>    </span><span class="annot"><span class="annottext">progInvokePath :: String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var">progInvokePath</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-77"></span><span>    </span><span class="annot"><span class="annottext">progInvokeArgs :: [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var">progInvokeArgs</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-78"></span><span>    </span><span class="annot"><span class="annottext">progInvokeEnv :: [(String, Maybe String)]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeEnv"><span class="hs-identifier hs-var">progInvokeEnv</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-79"></span><span>    </span><span class="annot"><span class="annottext">progInvokePathEnv :: [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePathEnv"><span class="hs-identifier hs-var">progInvokePathEnv</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-80"></span><span>    </span><span class="annot"><span class="annottext">progInvokeCwd :: Maybe String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeCwd"><span class="hs-identifier hs-var">progInvokeCwd</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe String
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-81"></span><span>    </span><span class="annot"><span class="annottext">progInvokeInput :: Maybe IOData
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeInput"><span class="hs-identifier hs-var">progInvokeInput</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe IOData
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-82"></span><span>    </span><span class="annot"><span class="annottext">progInvokeInputEncoding :: IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeInputEncoding"><span class="hs-identifier hs-var">progInvokeInputEncoding</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#IOEncodingText"><span class="hs-identifier hs-var">IOEncodingText</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-83"></span><span>    </span><span class="annot"><span class="annottext">progInvokeOutputEncoding :: IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeOutputEncoding"><span class="hs-identifier hs-var">progInvokeOutputEncoding</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#IOEncodingText"><span class="hs-identifier hs-var">IOEncodingText</span></a></span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#simpleProgramInvocation"><span class="hs-identifier hs-type">simpleProgramInvocation</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span>
+</span><span id="line-87"></span><span id="simpleProgramInvocation"><span class="annot"><span class="annottext">simpleProgramInvocation :: String -&gt; [String] -&gt; ProgramInvocation
+</span><a href="Distribution.Simple.Program.Run.html#simpleProgramInvocation"><span class="hs-identifier hs-var hs-var">simpleProgramInvocation</span></a></span></span><span> </span><span id="local-6989586621679351671"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351671"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span id="local-6989586621679351672"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351672"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-88"></span><span>  </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="Distribution.Simple.Program.Run.html#emptyProgramInvocation"><span class="hs-identifier hs-var">emptyProgramInvocation</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-89"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var">progInvokePath</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679351671"><span class="hs-identifier hs-type">path</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-90"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var">progInvokeArgs</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679351672"><span class="hs-identifier hs-type">args</span></a></span><span>
+</span><span id="line-91"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-92"></span><span>
+</span><span id="line-93"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#programInvocation"><span class="hs-identifier hs-type">programInvocation</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#ConfiguredProgram"><span class="hs-identifier hs-type">ConfiguredProgram</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span>
+</span><span id="line-94"></span><span id="programInvocation"><span class="annot"><span class="annottext">programInvocation :: ConfiguredProgram -&gt; [String] -&gt; ProgramInvocation
+</span><a href="Distribution.Simple.Program.Run.html#programInvocation"><span class="hs-identifier hs-var hs-var">programInvocation</span></a></span></span><span> </span><span id="local-6989586621679351673"><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679351673"><span class="hs-identifier hs-var">prog</span></a></span></span><span> </span><span id="local-6989586621679351674"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351674"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-95"></span><span>  </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="Distribution.Simple.Program.Run.html#emptyProgramInvocation"><span class="hs-identifier hs-var">emptyProgramInvocation</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-96"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var">progInvokePath</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programPath"><span class="hs-identifier hs-type">programPath</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679351673"><span class="hs-identifier hs-type">prog</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-97"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var">progInvokeArgs</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programDefaultArgs"><span class="hs-identifier hs-var">programDefaultArgs</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679351673"><span class="hs-identifier hs-type">prog</span></a></span><span>
+</span><span id="line-98"></span><span>                  </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-type">++</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679351674"><span class="hs-identifier hs-type">args</span></a></span><span>
+</span><span id="line-99"></span><span>                  </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-type">++</span></a></span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programOverrideArgs"><span class="hs-identifier hs-var">programOverrideArgs</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679351673"><span class="hs-identifier hs-type">prog</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-100"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#progInvokeEnv"><span class="hs-identifier hs-var">progInvokeEnv</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programOverrideEnv"><span class="hs-identifier hs-var">programOverrideEnv</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679351673"><span class="hs-identifier hs-type">prog</span></a></span><span>
+</span><span id="line-101"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#runProgramInvocation"><span class="hs-identifier hs-type">runProgramInvocation</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-105"></span><span id="runProgramInvocation"><span class="annot"><span class="annottext">runProgramInvocation :: Verbosity -&gt; ProgramInvocation -&gt; IO ()
+</span><a href="Distribution.Simple.Program.Run.html#runProgramInvocation"><span class="hs-identifier hs-var hs-var">runProgramInvocation</span></a></span></span><span> </span><span id="local-6989586621679351679"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351679"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span>
+</span><span id="line-106"></span><span>  </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-107"></span><span>    </span><span class="annot"><span class="annottext">progInvokePath :: ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var">progInvokePath</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351680"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351680"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-108"></span><span>    </span><span class="annot"><span class="annottext">progInvokeArgs :: ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var">progInvokeArgs</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351681"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351681"><span class="hs-identifier hs-var">args</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-109"></span><span>    </span><span class="annot"><span class="annottext">progInvokeEnv :: ProgramInvocation -&gt; [(String, Maybe String)]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeEnv"><span class="hs-identifier hs-var">progInvokeEnv</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-110"></span><span>    </span><span class="annot"><span class="annottext">progInvokePathEnv :: ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePathEnv"><span class="hs-identifier hs-var">progInvokePathEnv</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-111"></span><span>    </span><span class="annot"><span class="annottext">progInvokeCwd :: ProgramInvocation -&gt; Maybe String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeCwd"><span class="hs-identifier hs-var">progInvokeCwd</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-112"></span><span>    </span><span class="annot"><span class="annottext">progInvokeInput :: ProgramInvocation -&gt; Maybe IOData
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeInput"><span class="hs-identifier hs-var">progInvokeInput</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe IOData
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>
+</span><span id="line-113"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-114"></span><span>  </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#rawSystemExit"><span class="hs-identifier hs-var">rawSystemExit</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351679"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351680"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351681"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-115"></span><span>
+</span><span id="line-116"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#runProgramInvocation"><span class="hs-identifier hs-var">runProgramInvocation</span></a></span><span> </span><span id="local-6989586621679351683"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351683"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span>
+</span><span id="line-117"></span><span>  </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-118"></span><span>    </span><span class="annot"><span class="annottext">progInvokePath :: ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var">progInvokePath</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351684"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351684"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-119"></span><span>    </span><span class="annot"><span class="annottext">progInvokeArgs :: ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var">progInvokeArgs</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351685"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351685"><span class="hs-identifier hs-var">args</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-120"></span><span>    </span><span class="annot"><span class="annottext">progInvokeEnv :: ProgramInvocation -&gt; [(String, Maybe String)]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeEnv"><span class="hs-identifier hs-var">progInvokeEnv</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351686"><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351686"><span class="hs-identifier hs-var">envOverrides</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-121"></span><span>    </span><span class="annot"><span class="annottext">progInvokePathEnv :: ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePathEnv"><span class="hs-identifier hs-var">progInvokePathEnv</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351687"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351687"><span class="hs-identifier hs-var">extraPath</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-122"></span><span>    </span><span class="annot"><span class="annottext">progInvokeCwd :: ProgramInvocation -&gt; Maybe String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeCwd"><span class="hs-identifier hs-var">progInvokeCwd</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351688"><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351688"><span class="hs-identifier hs-var">mcwd</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-123"></span><span>    </span><span class="annot"><span class="annottext">progInvokeInput :: ProgramInvocation -&gt; Maybe IOData
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeInput"><span class="hs-identifier hs-var">progInvokeInput</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe IOData
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-125"></span><span>    </span><span id="local-6989586621679351689"><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351689"><span class="hs-identifier hs-var">pathOverride</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)] -&gt; [String] -&gt; IO [(String, Maybe String)]
+</span><a href="Distribution.Simple.Program.Run.html#getExtraPathEnv"><span class="hs-identifier hs-var">getExtraPathEnv</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351686"><span class="hs-identifier hs-var">envOverrides</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351687"><span class="hs-identifier hs-var">extraPath</span></a></span><span>
+</span><span id="line-126"></span><span>    </span><span id="local-6989586621679351691"><span class="annot"><span class="annottext">Maybe [(String, String)]
+</span><a href="#local-6989586621679351691"><span class="hs-identifier hs-var">menv</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)] -&gt; IO (Maybe [(String, String)])
+</span><a href="Distribution.Simple.Program.Run.html#getEffectiveEnvironment"><span class="hs-identifier hs-var">getEffectiveEnvironment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351686"><span class="hs-identifier hs-var">envOverrides</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+-&gt; [(String, Maybe String)] -&gt; [(String, Maybe String)]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351689"><span class="hs-identifier hs-var">pathOverride</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-127"></span><span>    </span><span class="annot"><span class="annottext">IO ExitCode -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#maybeExit"><span class="hs-identifier hs-var">maybeExit</span></a></span><span> </span><span class="annot"><span class="annottext">(IO ExitCode -&gt; IO ()) -&gt; IO ExitCode -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+-&gt; String
+-&gt; [String]
+-&gt; Maybe String
+-&gt; Maybe [(String, String)]
+-&gt; Maybe Handle
+-&gt; Maybe Handle
+-&gt; Maybe Handle
+-&gt; IO ExitCode
+</span><a href="Distribution.Simple.Utils.html#rawSystemIOWithEnv"><span class="hs-identifier hs-var">rawSystemIOWithEnv</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351683"><span class="hs-identifier hs-var">verbosity</span></a></span><span>
+</span><span id="line-128"></span><span>                                   </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351684"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351685"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-129"></span><span>                                   </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351688"><span class="hs-identifier hs-var">mcwd</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [(String, String)]
+</span><a href="#local-6989586621679351691"><span class="hs-identifier hs-var">menv</span></a></span><span>
+</span><span id="line-130"></span><span>                                   </span><span class="annot"><span class="annottext">Maybe Handle
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Handle
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Handle
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>
+</span><span id="line-131"></span><span>
+</span><span id="line-132"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#runProgramInvocation"><span class="hs-identifier hs-var">runProgramInvocation</span></a></span><span> </span><span id="local-6989586621679351694"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351694"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span>
+</span><span id="line-133"></span><span>  </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-134"></span><span>    </span><span class="annot"><span class="annottext">progInvokePath :: ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var">progInvokePath</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351695"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351695"><span class="hs-identifier hs-var">path</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-135"></span><span>    </span><span class="annot"><span class="annottext">progInvokeArgs :: ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var">progInvokeArgs</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351696"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351696"><span class="hs-identifier hs-var">args</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-136"></span><span>    </span><span class="annot"><span class="annottext">progInvokeEnv :: ProgramInvocation -&gt; [(String, Maybe String)]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeEnv"><span class="hs-identifier hs-var">progInvokeEnv</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351697"><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351697"><span class="hs-identifier hs-var">envOverrides</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-137"></span><span>    </span><span class="annot"><span class="annottext">progInvokePathEnv :: ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePathEnv"><span class="hs-identifier hs-var">progInvokePathEnv</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351698"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351698"><span class="hs-identifier hs-var">extraPath</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-138"></span><span>    </span><span class="annot"><span class="annottext">progInvokeCwd :: ProgramInvocation -&gt; Maybe String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeCwd"><span class="hs-identifier hs-var">progInvokeCwd</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351699"><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351699"><span class="hs-identifier hs-var">mcwd</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-139"></span><span>    </span><span class="annot"><span class="annottext">progInvokeInput :: ProgramInvocation -&gt; Maybe IOData
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeInput"><span class="hs-identifier hs-var">progInvokeInput</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679351700"><span class="annot"><span class="annottext">IOData
+</span><a href="#local-6989586621679351700"><span class="hs-identifier hs-var">inputStr</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-140"></span><span>    </span><span class="annot"><span class="annottext">progInvokeInputEncoding :: ProgramInvocation -&gt; IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeInputEncoding"><span class="hs-identifier hs-var">progInvokeInputEncoding</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351701"><span class="annot"><span class="annottext">IOEncoding
+</span><a href="#local-6989586621679351701"><span class="hs-identifier hs-var">encoding</span></a></span></span><span>
+</span><span id="line-141"></span><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-142"></span><span>    </span><span id="local-6989586621679351702"><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351702"><span class="hs-identifier hs-var">pathOverride</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)] -&gt; [String] -&gt; IO [(String, Maybe String)]
+</span><a href="Distribution.Simple.Program.Run.html#getExtraPathEnv"><span class="hs-identifier hs-var">getExtraPathEnv</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351697"><span class="hs-identifier hs-var">envOverrides</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351698"><span class="hs-identifier hs-var">extraPath</span></a></span><span>
+</span><span id="line-143"></span><span>    </span><span id="local-6989586621679351703"><span class="annot"><span class="annottext">Maybe [(String, String)]
+</span><a href="#local-6989586621679351703"><span class="hs-identifier hs-var">menv</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)] -&gt; IO (Maybe [(String, String)])
+</span><a href="Distribution.Simple.Program.Run.html#getEffectiveEnvironment"><span class="hs-identifier hs-var">getEffectiveEnvironment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351697"><span class="hs-identifier hs-var">envOverrides</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+-&gt; [(String, Maybe String)] -&gt; [(String, Maybe String)]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351702"><span class="hs-identifier hs-var">pathOverride</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-144"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351704"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351704"><span class="hs-identifier hs-var">errors</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351705"><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679351705"><span class="hs-identifier hs-var">exitCode</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Verbosity
+-&gt; String
+-&gt; [String]
+-&gt; Maybe String
+-&gt; Maybe [(String, String)]
+-&gt; Maybe IOData
+-&gt; IODataMode ByteString
+-&gt; IO (ByteString, String, ExitCode)
+forall mode.
+KnownIODataMode mode =&gt;
+Verbosity
+-&gt; String
+-&gt; [String]
+-&gt; Maybe String
+-&gt; Maybe [(String, String)]
+-&gt; Maybe IOData
+-&gt; IODataMode mode
+-&gt; IO (mode, String, ExitCode)
+</span><a href="Distribution.Simple.Utils.html#rawSystemStdInOut"><span class="hs-identifier hs-var">rawSystemStdInOut</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351694"><span class="hs-identifier hs-var">verbosity</span></a></span><span>
+</span><span id="line-145"></span><span>                                    </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351695"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351696"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-146"></span><span>                                    </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351699"><span class="hs-identifier hs-var">mcwd</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [(String, String)]
+</span><a href="#local-6989586621679351703"><span class="hs-identifier hs-var">menv</span></a></span><span>
+</span><span id="line-147"></span><span>                                    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IOData -&gt; Maybe IOData
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">IOData
+</span><a href="#local-6989586621679351707"><span class="hs-identifier hs-var">input</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">IODataMode ByteString
+</span><a href="Distribution.Utils.IOData.html#IODataModeBinary"><span class="hs-identifier hs-var">IODataModeBinary</span></a></span><span>
+</span><span id="line-148"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#when/GHC.Base.html#when"><span class="hs-identifier hs-var">when</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679351705"><span class="hs-identifier hs-var">exitCode</span></a></span><span> </span><span class="annot"><span class="annottext">ExitCode -&gt; ExitCode -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">ExitCode
+</span><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#ExitSuccess/GHC.IO.Exception.html#ExitSuccess"><span class="hs-identifier hs-var">ExitSuccess</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-149"></span><span>      </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; IO ()
+forall a. Verbosity -&gt; String -&gt; IO a
+</span><a href="Distribution.Simple.Utils.html#die%27"><span class="hs-identifier hs-var">die'</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351694"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO ()) -&gt; String -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351695"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;' exited with an error:\n&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351704"><span class="hs-identifier hs-var">errors</span></a></span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-151"></span><span>    </span><span id="local-6989586621679351707"><span class="annot"><span class="annottext">input :: IOData
+</span><a href="#local-6989586621679351707"><span class="hs-identifier hs-var hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IOEncoding -&gt; IOData -&gt; IOData
+</span><a href="Distribution.Simple.Program.Run.html#encodeToIOData"><span class="hs-identifier hs-var">encodeToIOData</span></a></span><span> </span><span class="annot"><span class="annottext">IOEncoding
+</span><a href="#local-6989586621679351701"><span class="hs-identifier hs-var">encoding</span></a></span><span> </span><span class="annot"><span class="annottext">IOData
+</span><a href="#local-6989586621679351700"><span class="hs-identifier hs-var">inputStr</span></a></span><span>
+</span><span id="line-152"></span><span>
+</span><span id="line-153"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#getProgramInvocationOutput"><span class="hs-identifier hs-type">getProgramInvocationOutput</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-154"></span><span id="getProgramInvocationOutput"><span class="annot"><span class="annottext">getProgramInvocationOutput :: Verbosity -&gt; ProgramInvocation -&gt; IO String
+</span><a href="Distribution.Simple.Program.Run.html#getProgramInvocationOutput"><span class="hs-identifier hs-var hs-var">getProgramInvocationOutput</span></a></span></span><span> </span><span id="local-6989586621679351713"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351713"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span id="local-6989586621679351714"><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351714"><span class="hs-identifier hs-var">inv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-155"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679351715"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351715"><span class="hs-identifier hs-var">output</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351716"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351716"><span class="hs-identifier hs-var">errors</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351717"><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679351717"><span class="hs-identifier hs-var">exitCode</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; ProgramInvocation -&gt; IO (String, String, ExitCode)
+</span><a href="Distribution.Simple.Program.Run.html#getProgramInvocationOutputAndErrors"><span class="hs-identifier hs-var">getProgramInvocationOutputAndErrors</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351713"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351714"><span class="hs-identifier hs-var">inv</span></a></span><span>
+</span><span id="line-156"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#when/GHC.Base.html#when"><span class="hs-identifier hs-var">when</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679351717"><span class="hs-identifier hs-var">exitCode</span></a></span><span> </span><span class="annot"><span class="annottext">ExitCode -&gt; ExitCode -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">ExitCode
+</span><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#ExitSuccess/GHC.IO.Exception.html#ExitSuccess"><span class="hs-identifier hs-var">ExitSuccess</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-157"></span><span>      </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; IO ()
+forall a. Verbosity -&gt; String -&gt; IO a
+</span><a href="Distribution.Simple.Utils.html#die%27"><span class="hs-identifier hs-var">die'</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351713"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO ()) -&gt; String -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var">progInvokePath</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351714"><span class="hs-identifier hs-var">inv</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;' exited with an error:\n&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351716"><span class="hs-identifier hs-var">errors</span></a></span><span>
+</span><span id="line-158"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; IO String
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351715"><span class="hs-identifier hs-var">output</span></a></span><span>
+</span><span id="line-159"></span><span>
+</span><span id="line-160"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#getProgramInvocationLBS"><span class="hs-identifier hs-type">getProgramInvocationLBS</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Lazy.Internal.html#ByteString/Data.ByteString.Lazy.Internal.html#ByteString"><span class="hs-identifier hs-type">LBS.ByteString</span></a></span><span>
+</span><span id="line-161"></span><span id="getProgramInvocationLBS"><span class="annot"><span class="annottext">getProgramInvocationLBS :: Verbosity -&gt; ProgramInvocation -&gt; IO ByteString
+</span><a href="Distribution.Simple.Program.Run.html#getProgramInvocationLBS"><span class="hs-identifier hs-var hs-var">getProgramInvocationLBS</span></a></span></span><span> </span><span id="local-6989586621679351718"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351718"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span id="local-6989586621679351719"><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351719"><span class="hs-identifier hs-var">inv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-162"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679351720"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679351720"><span class="hs-identifier hs-var">output</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351721"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351721"><span class="hs-identifier hs-var">errors</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351722"><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679351722"><span class="hs-identifier hs-var">exitCode</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Verbosity
+-&gt; ProgramInvocation
+-&gt; IODataMode ByteString
+-&gt; IO (ByteString, String, ExitCode)
+forall mode.
+KnownIODataMode mode =&gt;
+Verbosity
+-&gt; ProgramInvocation
+-&gt; IODataMode mode
+-&gt; IO (mode, String, ExitCode)
+</span><a href="Distribution.Simple.Program.Run.html#getProgramInvocationIODataAndErrors"><span class="hs-identifier hs-var">getProgramInvocationIODataAndErrors</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351718"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351719"><span class="hs-identifier hs-var">inv</span></a></span><span> </span><span class="annot"><span class="annottext">IODataMode ByteString
+</span><a href="Distribution.Utils.IOData.html#IODataModeBinary"><span class="hs-identifier hs-var">IODataModeBinary</span></a></span><span>
+</span><span id="line-163"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#when/GHC.Base.html#when"><span class="hs-identifier hs-var">when</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679351722"><span class="hs-identifier hs-var">exitCode</span></a></span><span> </span><span class="annot"><span class="annottext">ExitCode -&gt; ExitCode -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">ExitCode
+</span><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#ExitSuccess/GHC.IO.Exception.html#ExitSuccess"><span class="hs-identifier hs-var">ExitSuccess</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-164"></span><span>      </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; IO ()
+forall a. Verbosity -&gt; String -&gt; IO a
+</span><a href="Distribution.Simple.Utils.html#die%27"><span class="hs-identifier hs-var">die'</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351718"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO ()) -&gt; String -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var">progInvokePath</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351719"><span class="hs-identifier hs-var">inv</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;' exited with an error:\n&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351721"><span class="hs-identifier hs-var">errors</span></a></span><span>
+</span><span id="line-165"></span><span>    </span><span class="annot"><span class="annottext">ByteString -&gt; IO ByteString
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679351720"><span class="hs-identifier hs-var">output</span></a></span><span>
+</span><span id="line-166"></span><span>
+</span><span id="line-167"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#getProgramInvocationOutputAndErrors"><span class="hs-identifier hs-type">getProgramInvocationOutputAndErrors</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span>
+</span><span id="line-168"></span><span>                                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#ExitCode/GHC.IO.Exception.html#ExitCode"><span class="hs-identifier hs-type">ExitCode</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-169"></span><span id="getProgramInvocationOutputAndErrors"><span class="annot"><span class="annottext">getProgramInvocationOutputAndErrors :: Verbosity -&gt; ProgramInvocation -&gt; IO (String, String, ExitCode)
+</span><a href="Distribution.Simple.Program.Run.html#getProgramInvocationOutputAndErrors"><span class="hs-identifier hs-var hs-var">getProgramInvocationOutputAndErrors</span></a></span></span><span> </span><span id="local-6989586621679351724"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351724"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span id="local-6989586621679351725"><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351725"><span class="hs-identifier hs-var">inv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ProgramInvocation -&gt; IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeOutputEncoding"><span class="hs-identifier hs-var">progInvokeOutputEncoding</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351725"><span class="hs-identifier hs-var">inv</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-170"></span><span>    </span><span class="annot"><span class="annottext">IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#IOEncodingText"><span class="hs-identifier hs-var">IOEncodingText</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-171"></span><span>        </span><span class="hs-special">(</span><span id="local-6989586621679351726"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351726"><span class="hs-identifier hs-var">output</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351727"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351727"><span class="hs-identifier hs-var">errors</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351728"><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679351728"><span class="hs-identifier hs-var">exitCode</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Verbosity
+-&gt; ProgramInvocation
+-&gt; IODataMode String
+-&gt; IO (String, String, ExitCode)
+forall mode.
+KnownIODataMode mode =&gt;
+Verbosity
+-&gt; ProgramInvocation
+-&gt; IODataMode mode
+-&gt; IO (mode, String, ExitCode)
+</span><a href="Distribution.Simple.Program.Run.html#getProgramInvocationIODataAndErrors"><span class="hs-identifier hs-var">getProgramInvocationIODataAndErrors</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351724"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351725"><span class="hs-identifier hs-var">inv</span></a></span><span> </span><span class="annot"><span class="annottext">IODataMode String
+</span><a href="Distribution.Utils.IOData.html#IODataModeText"><span class="hs-identifier hs-var">IODataModeText</span></a></span><span>
+</span><span id="line-172"></span><span>        </span><span class="annot"><span class="annottext">(String, String, ExitCode) -&gt; IO (String, String, ExitCode)
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351726"><span class="hs-identifier hs-var">output</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351727"><span class="hs-identifier hs-var">errors</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679351728"><span class="hs-identifier hs-var">exitCode</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-173"></span><span>    </span><span class="annot"><span class="annottext">IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#IOEncodingUTF8"><span class="hs-identifier hs-var">IOEncodingUTF8</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-174"></span><span>        </span><span class="hs-special">(</span><span id="local-6989586621679351730"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679351730"><span class="hs-identifier hs-var">output'</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351731"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351731"><span class="hs-identifier hs-var">errors</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351732"><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679351732"><span class="hs-identifier hs-var">exitCode</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Verbosity
+-&gt; ProgramInvocation
+-&gt; IODataMode ByteString
+-&gt; IO (ByteString, String, ExitCode)
+forall mode.
+KnownIODataMode mode =&gt;
+Verbosity
+-&gt; ProgramInvocation
+-&gt; IODataMode mode
+-&gt; IO (mode, String, ExitCode)
+</span><a href="Distribution.Simple.Program.Run.html#getProgramInvocationIODataAndErrors"><span class="hs-identifier hs-var">getProgramInvocationIODataAndErrors</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351724"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351725"><span class="hs-identifier hs-var">inv</span></a></span><span> </span><span class="annot"><span class="annottext">IODataMode ByteString
+</span><a href="Distribution.Utils.IOData.html#IODataModeBinary"><span class="hs-identifier hs-var">IODataModeBinary</span></a></span><span>
+</span><span id="line-175"></span><span>        </span><span class="annot"><span class="annottext">(String, String, ExitCode) -&gt; IO (String, String, ExitCode)
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#normaliseLineEndings/Distribution.Utils.Generic.html#normaliseLineEndings"><span class="hs-identifier hs-var">normaliseLineEndings</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#fromUTF8LBS/Distribution.Utils.Generic.html#fromUTF8LBS"><span class="hs-identifier hs-var">fromUTF8LBS</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679351730"><span class="hs-identifier hs-var">output'</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351731"><span class="hs-identifier hs-var">errors</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679351732"><span class="hs-identifier hs-var">exitCode</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-176"></span><span>
+</span><span id="line-177"></span><span id="local-6989586621679351530"><span class="annot"><a href="Distribution.Simple.Program.Run.html#getProgramInvocationIODataAndErrors"><span class="hs-identifier hs-type">getProgramInvocationIODataAndErrors</span></a></span><span>
+</span><span id="line-178"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Utils.IOData.html#KnownIODataMode"><span class="hs-identifier hs-type">KnownIODataMode</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679351530"><span class="hs-identifier hs-type">mode</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.IOData.html#IODataMode"><span class="hs-identifier hs-type">IODataMode</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679351530"><span class="hs-identifier hs-type">mode</span></a></span><span>
+</span><span id="line-179"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679351530"><span class="hs-identifier hs-type">mode</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#ExitCode/GHC.IO.Exception.html#ExitCode"><span class="hs-identifier hs-type">ExitCode</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-180"></span><span id="getProgramInvocationIODataAndErrors"><span class="annot"><span class="annottext">getProgramInvocationIODataAndErrors :: forall mode.
+KnownIODataMode mode =&gt;
+Verbosity
+-&gt; ProgramInvocation
+-&gt; IODataMode mode
+-&gt; IO (mode, String, ExitCode)
+</span><a href="Distribution.Simple.Program.Run.html#getProgramInvocationIODataAndErrors"><span class="hs-identifier hs-var hs-var">getProgramInvocationIODataAndErrors</span></a></span></span><span>
+</span><span id="line-181"></span><span>  </span><span id="local-6989586621679351741"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351741"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span>
+</span><span id="line-182"></span><span>  </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span>
+</span><span id="line-183"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">progInvokePath :: ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var">progInvokePath</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351742"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351742"><span class="hs-identifier hs-var">path</span></a></span></span><span>
+</span><span id="line-184"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">progInvokeArgs :: ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var">progInvokeArgs</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351743"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351743"><span class="hs-identifier hs-var">args</span></a></span></span><span>
+</span><span id="line-185"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">progInvokeEnv :: ProgramInvocation -&gt; [(String, Maybe String)]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeEnv"><span class="hs-identifier hs-var">progInvokeEnv</span></a></span><span>           </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351744"><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351744"><span class="hs-identifier hs-var">envOverrides</span></a></span></span><span>
+</span><span id="line-186"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">progInvokePathEnv :: ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePathEnv"><span class="hs-identifier hs-var">progInvokePathEnv</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351745"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351745"><span class="hs-identifier hs-var">extraPath</span></a></span></span><span>
+</span><span id="line-187"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">progInvokeCwd :: ProgramInvocation -&gt; Maybe String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeCwd"><span class="hs-identifier hs-var">progInvokeCwd</span></a></span><span>           </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351746"><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351746"><span class="hs-identifier hs-var">mcwd</span></a></span></span><span>
+</span><span id="line-188"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">progInvokeInput :: ProgramInvocation -&gt; Maybe IOData
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeInput"><span class="hs-identifier hs-var">progInvokeInput</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351747"><span class="annot"><span class="annottext">Maybe IOData
+</span><a href="#local-6989586621679351747"><span class="hs-identifier hs-var">minputStr</span></a></span></span><span>
+</span><span id="line-189"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">progInvokeInputEncoding :: ProgramInvocation -&gt; IOEncoding
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeInputEncoding"><span class="hs-identifier hs-var">progInvokeInputEncoding</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679351748"><span class="annot"><span class="annottext">IOEncoding
+</span><a href="#local-6989586621679351748"><span class="hs-identifier hs-var">encoding</span></a></span></span><span>
+</span><span id="line-190"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-191"></span><span>  </span><span id="local-6989586621679351749"><span class="annot"><span class="annottext">IODataMode mode
+</span><a href="#local-6989586621679351749"><span class="hs-identifier hs-var">mode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-192"></span><span>    </span><span id="local-6989586621679351750"><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351750"><span class="hs-identifier hs-var">pathOverride</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)] -&gt; [String] -&gt; IO [(String, Maybe String)]
+</span><a href="Distribution.Simple.Program.Run.html#getExtraPathEnv"><span class="hs-identifier hs-var">getExtraPathEnv</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351744"><span class="hs-identifier hs-var">envOverrides</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351745"><span class="hs-identifier hs-var">extraPath</span></a></span><span>
+</span><span id="line-193"></span><span>    </span><span id="local-6989586621679351751"><span class="annot"><span class="annottext">Maybe [(String, String)]
+</span><a href="#local-6989586621679351751"><span class="hs-identifier hs-var">menv</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)] -&gt; IO (Maybe [(String, String)])
+</span><a href="Distribution.Simple.Program.Run.html#getEffectiveEnvironment"><span class="hs-identifier hs-var">getEffectiveEnvironment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351744"><span class="hs-identifier hs-var">envOverrides</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+-&gt; [(String, Maybe String)] -&gt; [(String, Maybe String)]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351750"><span class="hs-identifier hs-var">pathOverride</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-194"></span><span>    </span><span class="annot"><span class="annottext">Verbosity
+-&gt; String
+-&gt; [String]
+-&gt; Maybe String
+-&gt; Maybe [(String, String)]
+-&gt; Maybe IOData
+-&gt; IODataMode mode
+-&gt; IO (mode, String, ExitCode)
+forall mode.
+KnownIODataMode mode =&gt;
+Verbosity
+-&gt; String
+-&gt; [String]
+-&gt; Maybe String
+-&gt; Maybe [(String, String)]
+-&gt; Maybe IOData
+-&gt; IODataMode mode
+-&gt; IO (mode, String, ExitCode)
+</span><a href="Distribution.Simple.Utils.html#rawSystemStdInOut"><span class="hs-identifier hs-var">rawSystemStdInOut</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679351741"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351742"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351743"><span class="hs-identifier hs-var">args</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351746"><span class="hs-identifier hs-var">mcwd</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [(String, String)]
+</span><a href="#local-6989586621679351751"><span class="hs-identifier hs-var">menv</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe IOData
+</span><a href="#local-6989586621679351752"><span class="hs-identifier hs-var">input</span></a></span><span> </span><span class="annot"><span class="annottext">IODataMode mode
+</span><a href="#local-6989586621679351749"><span class="hs-identifier hs-var">mode</span></a></span><span>
+</span><span id="line-195"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-196"></span><span>    </span><span id="local-6989586621679351752"><span class="annot"><span class="annottext">input :: Maybe IOData
+</span><a href="#local-6989586621679351752"><span class="hs-identifier hs-var hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IOEncoding -&gt; IOData -&gt; IOData
+</span><a href="Distribution.Simple.Program.Run.html#encodeToIOData"><span class="hs-identifier hs-var">encodeToIOData</span></a></span><span> </span><span class="annot"><span class="annottext">IOEncoding
+</span><a href="#local-6989586621679351748"><span class="hs-identifier hs-var">encoding</span></a></span><span> </span><span class="annot"><span class="annottext">(IOData -&gt; IOData) -&gt; Maybe IOData -&gt; Maybe IOData
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/Data.Functor.html#%3C%24%3E/Data.Functor.html#%3C%24%3E"><span class="hs-operator hs-var">&lt;$&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe IOData
+</span><a href="#local-6989586621679351747"><span class="hs-identifier hs-var">minputStr</span></a></span><span>
+</span><span id="line-197"></span><span>
+</span><span id="line-198"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#getExtraPathEnv"><span class="hs-identifier hs-type">getExtraPathEnv</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-199"></span><span id="getExtraPathEnv"><span class="annot"><span class="annottext">getExtraPathEnv :: [(String, Maybe String)] -&gt; [String] -&gt; IO [(String, Maybe String)]
+</span><a href="Distribution.Simple.Program.Run.html#getExtraPathEnv"><span class="hs-identifier hs-var hs-var">getExtraPathEnv</span></a></span></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)] -&gt; IO [(String, Maybe String)]
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-200"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#getExtraPathEnv"><span class="hs-identifier hs-var">getExtraPathEnv</span></a></span><span> </span><span id="local-6989586621679351754"><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351754"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span id="local-6989586621679351755"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351755"><span class="hs-identifier hs-var">extras</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-201"></span><span>    </span><span id="local-6989586621679351756"><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351756"><span class="hs-identifier hs-var">mb_path</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [(String, Maybe String)] -&gt; Maybe (Maybe String)
+forall a b. Eq a =&gt; a -&gt; [(a, b)] -&gt; Maybe b
+</span><a href="../../base-4.18.2.0/src/GHC.List.html#lookup/GHC.List.html#lookup"><span class="hs-identifier hs-var">lookup</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;PATH&quot;</span></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351754"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-202"></span><span>                </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679351758"><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351758"><span class="hs-identifier hs-var">x</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe String -&gt; IO (Maybe String)
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351758"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-203"></span><span>                </span><span class="annot"><span class="annottext">Maybe (Maybe String)
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO (Maybe String)
+</span><a href="../../base-4.18.2.0/src/System.Environment.html#lookupEnv/System.Environment.html#lookupEnv"><span class="hs-identifier hs-var">lookupEnv</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;PATH&quot;</span></span><span>
+</span><span id="line-204"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679351760"><span class="annot"><span class="annottext">extra :: String
+</span><a href="#local-6989586621679351760"><span class="hs-identifier hs-var hs-var">extra</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; String
+forall a. [a] -&gt; [[a]] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#intercalate/Data.OldList.html#intercalate"><span class="hs-identifier hs-var">intercalate</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#searchPathSeparator/System.FilePath.Posix.html#searchPathSeparator"><span class="hs-identifier hs-var">searchPathSeparator</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351755"><span class="hs-identifier hs-var">extras</span></a></span><span>
+</span><span id="line-205"></span><span>        </span><span id="local-6989586621679351762"><span class="annot"><span class="annottext">path' :: String
+</span><a href="#local-6989586621679351762"><span class="hs-identifier hs-var hs-var">path'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679351756"><span class="hs-identifier hs-var">mb_path</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-206"></span><span>                    </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351760"><span class="hs-identifier hs-var">extra</span></a></span><span>
+</span><span id="line-207"></span><span>                    </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679351763"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351763"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351760"><span class="hs-identifier hs-var">extra</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#searchPathSeparator/System.FilePath.Posix.html#searchPathSeparator"><span class="hs-identifier hs-var">searchPathSeparator</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351763"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-208"></span><span>    </span><span class="annot"><span class="annottext">[(String, Maybe String)] -&gt; IO [(String, Maybe String)]
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;PATH&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe String
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351762"><span class="hs-identifier hs-var">path'</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-209"></span><span>
+</span><span id="line-210"></span><span class="hs-comment">-- | Return the current environment extended with the given overrides.</span><span>
+</span><span id="line-211"></span><span class="hs-comment">-- If an entry is specified twice in @overrides@, the second entry takes</span><span>
+</span><span id="line-212"></span><span class="hs-comment">-- precedence.</span><span>
+</span><span id="line-213"></span><span class="hs-comment">--</span><span>
+</span><span id="line-214"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#getEffectiveEnvironment"><span class="hs-identifier hs-type">getEffectiveEnvironment</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-215"></span><span>                        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-216"></span><span id="getEffectiveEnvironment"><span class="annot"><span class="annottext">getEffectiveEnvironment :: [(String, Maybe String)] -&gt; IO (Maybe [(String, String)])
+</span><a href="Distribution.Simple.Program.Run.html#getEffectiveEnvironment"><span class="hs-identifier hs-var hs-var">getEffectiveEnvironment</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe [(String, String)] -&gt; IO (Maybe [(String, String)])
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe [(String, String)]
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>
+</span><span id="line-217"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#getEffectiveEnvironment"><span class="hs-identifier hs-var">getEffectiveEnvironment</span></a></span><span> </span><span id="local-6989586621679351764"><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351764"><span class="hs-identifier hs-var">overrides</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-218"></span><span>    </span><span class="annot"><span class="annottext">([(String, String)] -&gt; Maybe [(String, String)])
+-&gt; IO [(String, String)] -&gt; IO (Maybe [(String, String)])
+forall a b. (a -&gt; b) -&gt; IO a -&gt; IO b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#fmap/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(String, String)] -&gt; Maybe [(String, String)]
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">([(String, String)] -&gt; Maybe [(String, String)])
+-&gt; ([(String, String)] -&gt; [(String, String)])
+-&gt; [(String, String)]
+-&gt; Maybe [(String, String)]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Map String String -&gt; [(String, String)]
+forall k a. Map k a -&gt; [(k, a)]
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#toList/Data.Map.Internal.html#toList"><span class="hs-identifier hs-var">Map.toList</span></a></span><span> </span><span class="annot"><span class="annottext">(Map String String -&gt; [(String, String)])
+-&gt; ([(String, String)] -&gt; Map String String)
+-&gt; [(String, String)]
+-&gt; [(String, String)]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)] -&gt; Map String String -&gt; Map String String
+forall {t :: * -&gt; *} {k} {a}.
+(Foldable t, Ord k) =&gt;
+t (k, Maybe a) -&gt; Map k a -&gt; Map k a
+</span><a href="#local-6989586621679351767"><span class="hs-identifier hs-var">apply</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Maybe String)]
+</span><a href="#local-6989586621679351764"><span class="hs-identifier hs-var">overrides</span></a></span><span> </span><span class="annot"><span class="annottext">(Map String String -&gt; Map String String)
+-&gt; ([(String, String)] -&gt; Map String String)
+-&gt; [(String, String)]
+-&gt; Map String String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, String)] -&gt; Map String String
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#fromList/Data.Map.Internal.html#fromList"><span class="hs-identifier hs-var">Map.fromList</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">IO [(String, String)]
+</span><a href="Distribution.Compat.Environment.html#getEnvironment"><span class="hs-identifier hs-var">getEnvironment</span></a></span><span>
+</span><span id="line-219"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-220"></span><span>    </span><span id="local-6989586621679351767"><span class="annot"><span class="annottext">apply :: t (k, Maybe a) -&gt; Map k a -&gt; Map k a
+</span><a href="#local-6989586621679351767"><span class="hs-identifier hs-var hs-var">apply</span></a></span></span><span> </span><span id="local-6989586621679351777"><span class="annot"><span class="annottext">t (k, Maybe a)
+</span><a href="#local-6989586621679351777"><span class="hs-identifier hs-var">os</span></a></span></span><span> </span><span id="local-6989586621679351778"><span class="annot"><span class="annottext">Map k a
+</span><a href="#local-6989586621679351778"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Map k a -&gt; (k, Maybe a) -&gt; Map k a)
+-&gt; Map k a -&gt; t (k, Maybe a) -&gt; Map k a
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#foldl%27/Data.Foldable.html#foldl%27"><span class="hs-identifier hs-var">foldl'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">((k, Maybe a) -&gt; Map k a -&gt; Map k a)
+-&gt; Map k a -&gt; (k, Maybe a) -&gt; Map k a
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#flip/GHC.Base.html#flip"><span class="hs-identifier hs-var">flip</span></a></span><span> </span><span class="annot"><span class="annottext">(k, Maybe a) -&gt; Map k a -&gt; Map k a
+forall {k} {a}. Ord k =&gt; (k, Maybe a) -&gt; Map k a -&gt; Map k a
+</span><a href="#local-6989586621679351781"><span class="hs-identifier hs-var">update</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Map k a
+</span><a href="#local-6989586621679351778"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">t (k, Maybe a)
+</span><a href="#local-6989586621679351777"><span class="hs-identifier hs-var">os</span></a></span><span>
+</span><span id="line-221"></span><span>    </span><span id="local-6989586621679351781"><span class="annot"><span class="annottext">update :: (k, Maybe a) -&gt; Map k a -&gt; Map k a
+</span><a href="#local-6989586621679351781"><span class="hs-identifier hs-var hs-var">update</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351787"><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679351787"><span class="hs-identifier hs-var">var</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">k -&gt; Map k a -&gt; Map k a
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#delete/Data.Map.Internal.html#delete"><span class="hs-identifier hs-var">Map.delete</span></a></span><span> </span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679351787"><span class="hs-identifier hs-var">var</span></a></span><span>
+</span><span id="line-222"></span><span>    </span><span class="annot"><a href="#local-6989586621679351781"><span class="hs-identifier hs-var">update</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351789"><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679351789"><span class="hs-identifier hs-var">var</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679351790"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679351790"><span class="hs-identifier hs-var">val</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">k -&gt; a -&gt; Map k a -&gt; Map k a
+forall k a. Ord k =&gt; k -&gt; a -&gt; Map k a -&gt; Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#insert/Data.Map.Internal.html#insert"><span class="hs-identifier hs-var">Map.insert</span></a></span><span> </span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679351789"><span class="hs-identifier hs-var">var</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679351790"><span class="hs-identifier hs-var">val</span></a></span><span>
+</span><span id="line-223"></span><span>
+</span><span id="line-224"></span><span class="hs-comment">-- | Like the unix xargs program. Useful for when we've got very long command</span><span>
+</span><span id="line-225"></span><span class="hs-comment">-- lines that might overflow an OS limit on command line length and so you</span><span>
+</span><span id="line-226"></span><span class="hs-comment">-- need to invoke a command multiple times to get all the args in.</span><span>
+</span><span id="line-227"></span><span class="hs-comment">--</span><span>
+</span><span id="line-228"></span><span class="hs-comment">-- It takes four template invocations corresponding to the simple, initial,</span><span>
+</span><span id="line-229"></span><span class="hs-comment">-- middle and last invocations. If the number of args given is small enough</span><span>
+</span><span id="line-230"></span><span class="hs-comment">-- that we can get away with just a single invocation then the simple one is</span><span>
+</span><span id="line-231"></span><span class="hs-comment">-- used:</span><span>
+</span><span id="line-232"></span><span class="hs-comment">--</span><span>
+</span><span id="line-233"></span><span class="hs-comment">-- &gt; $ simple args</span><span>
+</span><span id="line-234"></span><span class="hs-comment">--</span><span>
+</span><span id="line-235"></span><span class="hs-comment">-- If the number of args given means that we need to use multiple invocations</span><span>
+</span><span id="line-236"></span><span class="hs-comment">-- then the templates for the initial, middle and last invocations are used:</span><span>
+</span><span id="line-237"></span><span class="hs-comment">--</span><span>
+</span><span id="line-238"></span><span class="hs-comment">-- &gt; $ initial args_0</span><span>
+</span><span id="line-239"></span><span class="hs-comment">-- &gt; $ middle  args_1</span><span>
+</span><span id="line-240"></span><span class="hs-comment">-- &gt; $ middle  args_2</span><span>
+</span><span id="line-241"></span><span class="hs-comment">-- &gt;   ...</span><span>
+</span><span id="line-242"></span><span class="hs-comment">-- &gt; $ final   args_n</span><span>
+</span><span id="line-243"></span><span class="hs-comment">--</span><span>
+</span><span id="line-244"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#multiStageProgramInvocation"><span class="hs-identifier hs-type">multiStageProgramInvocation</span></a></span><span>
+</span><span id="line-245"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span>
+</span><span id="line-246"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-247"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-248"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-249"></span><span id="multiStageProgramInvocation"><span class="annot"><span class="annottext">multiStageProgramInvocation :: ProgramInvocation
+-&gt; (ProgramInvocation, ProgramInvocation, ProgramInvocation)
+-&gt; [String]
+-&gt; [ProgramInvocation]
+</span><a href="Distribution.Simple.Program.Run.html#multiStageProgramInvocation"><span class="hs-identifier hs-var hs-var">multiStageProgramInvocation</span></a></span></span><span> </span><span id="local-6989586621679351792"><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351792"><span class="hs-identifier hs-var">simple</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351793"><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351793"><span class="hs-identifier hs-var">initial</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351794"><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351794"><span class="hs-identifier hs-var">middle</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351795"><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351795"><span class="hs-identifier hs-var">final</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679351796"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351796"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-250"></span><span>
+</span><span id="line-251"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679351805"><span class="annot"><span class="annottext">argSize :: ProgramInvocation -&gt; Int
+</span><a href="#local-6989586621679351805"><span class="hs-identifier hs-var hs-var">argSize</span></a></span></span><span> </span><span id="local-6989586621679351806"><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351806"><span class="hs-identifier hs-var">inv</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#length/Data.Foldable.html#length"><span class="hs-identifier hs-var">length</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ProgramInvocation -&gt; String
+</span><a href="Distribution.Simple.Program.Run.html#progInvokePath"><span class="hs-identifier hs-var">progInvokePath</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351806"><span class="hs-identifier hs-var">inv</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-252"></span><span>                   </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2B/GHC.Num.html#%2B"><span class="hs-operator hs-var">+</span></a></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; String -&gt; Int) -&gt; Int -&gt; [String] -&gt; Int
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#foldl%27/Data.Foldable.html#foldl%27"><span class="hs-identifier hs-var">foldl'</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679351809"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351809"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679351810"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351810"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#length/Data.Foldable.html#length"><span class="hs-identifier hs-var">length</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351810"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2B/GHC.Num.html#%2B"><span class="hs-operator hs-var">+</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2B/GHC.Num.html#%2B"><span class="hs-operator hs-var">+</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351809"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ProgramInvocation -&gt; [String]
+</span><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var">progInvokeArgs</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351806"><span class="hs-identifier hs-var">inv</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-253"></span><span>      </span><span id="local-6989586621679351811"><span class="annot"><span class="annottext">fixedArgSize :: Int
+</span><a href="#local-6989586621679351811"><span class="hs-identifier hs-var hs-var">fixedArgSize</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int
+forall a. Ord a =&gt; [a] -&gt; a
+forall (t :: * -&gt; *) a. (Foldable t, Ord a) =&gt; t a -&gt; a
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#maximum/Data.Foldable.html#maximum"><span class="hs-identifier hs-var">maximum</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ProgramInvocation -&gt; Int) -&gt; [ProgramInvocation] -&gt; [Int]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation -&gt; Int
+</span><a href="#local-6989586621679351805"><span class="hs-identifier hs-var">argSize</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351792"><span class="hs-identifier hs-var">simple</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351793"><span class="hs-identifier hs-var">initial</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351794"><span class="hs-identifier hs-var">middle</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351795"><span class="hs-identifier hs-var">final</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-254"></span><span>      </span><span id="local-6989586621679351813"><span class="annot"><span class="annottext">chunkSize :: Int
+</span><a href="#local-6989586621679351813"><span class="hs-identifier hs-var hs-var">chunkSize</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="Distribution.Simple.Program.Run.html#maxCommandLineSize"><span class="hs-identifier hs-var">maxCommandLineSize</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#-/GHC.Num.html#-"><span class="hs-glyph hs-var">-</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351811"><span class="hs-identifier hs-var">fixedArgSize</span></a></span><span>
+</span><span id="line-255"></span><span>
+</span><span id="line-256"></span><span>   </span><span class="hs-keyword">in</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [String] -&gt; [[String]]
+forall a. Int -&gt; [[a]] -&gt; [[[a]]]
+</span><a href="#local-6989586621679351815"><span class="hs-identifier hs-var">splitChunks</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351813"><span class="hs-identifier hs-var">chunkSize</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351796"><span class="hs-identifier hs-var">args</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-257"></span><span>        </span><span class="hs-special">[</span><span class="hs-special">]</span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351792"><span class="hs-identifier hs-var">simple</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-258"></span><span>
+</span><span id="line-259"></span><span>        </span><span class="hs-special">[</span><span id="local-6989586621679351816"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351816"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351792"><span class="hs-identifier hs-var">simple</span></a></span><span>  </span><span class="annot"><span class="annottext">ProgramInvocation -&gt; [String] -&gt; ProgramInvocation
+</span><a href="#local-6989586621679351817"><span class="hs-operator hs-var">`appendArgs`</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351816"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-260"></span><span>
+</span><span id="line-261"></span><span>        </span><span class="hs-special">(</span><span id="local-6989586621679351818"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351818"><span class="hs-identifier hs-var">c</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351819"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351819"><span class="hs-identifier hs-var">c2</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351820"><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679351820"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351821"><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679351821"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679351822"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351822"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">NonEmpty [String] -&gt; ([[String]], [String])
+forall a. NonEmpty a -&gt; ([a], a)
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#unsnocNE/Distribution.Utils.Generic.html#unsnocNE"><span class="hs-identifier hs-var">unsnocNE</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351819"><span class="hs-identifier hs-var">c2</span></a></span><span class="annot"><span class="annottext">[String] -&gt; [[String]] -&gt; NonEmpty [String]
+forall a. a -&gt; [a] -&gt; NonEmpty a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3A%7C/GHC.Base.html#%3A%7C"><span class="hs-operator hs-var">:|</span></a></span><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679351820"><span class="hs-identifier hs-var">cs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-262"></span><span>             </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351793"><span class="hs-identifier hs-var">initial</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramInvocation -&gt; [String] -&gt; ProgramInvocation
+</span><a href="#local-6989586621679351817"><span class="hs-operator hs-var">`appendArgs`</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351818"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-263"></span><span>          </span><span class="annot"><span class="annottext">[ProgramInvocation] -&gt; [ProgramInvocation] -&gt; [ProgramInvocation]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351794"><span class="hs-identifier hs-var">middle</span></a></span><span>  </span><span class="annot"><span class="annottext">ProgramInvocation -&gt; [String] -&gt; ProgramInvocation
+</span><a href="#local-6989586621679351817"><span class="hs-operator hs-var">`appendArgs`</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351825"><span class="hs-identifier hs-var">c'</span></a></span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679351825"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351825"><span class="hs-identifier hs-var">c'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[[String]]
+</span><a href="#local-6989586621679351821"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-264"></span><span>          </span><span class="annot"><span class="annottext">[ProgramInvocation] -&gt; [ProgramInvocation] -&gt; [ProgramInvocation]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351795"><span class="hs-identifier hs-var">final</span></a></span><span>   </span><span class="annot"><span class="annottext">ProgramInvocation -&gt; [String] -&gt; ProgramInvocation
+</span><a href="#local-6989586621679351817"><span class="hs-operator hs-var">`appendArgs`</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351822"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-265"></span><span>
+</span><span id="line-266"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-267"></span><span>    </span><span class="annot"><a href="#local-6989586621679351817"><span class="hs-identifier hs-type">appendArgs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#ProgramInvocation"><span class="hs-identifier hs-type">ProgramInvocation</span></a></span><span>
+</span><span id="line-268"></span><span>    </span><span id="local-6989586621679351826"><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351826"><span class="hs-identifier hs-var">inv</span></a></span></span><span> </span><span id="local-6989586621679351817"><span class="annot"><span class="annottext">appendArgs :: ProgramInvocation -&gt; [String] -&gt; ProgramInvocation
+</span><a href="#local-6989586621679351817"><span class="hs-operator hs-var hs-var">`appendArgs`</span></a></span></span><span> </span><span id="local-6989586621679351827"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679351827"><span class="hs-keyword hs-var">as</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ProgramInvocation
+</span><a href="#local-6989586621679351826"><span class="hs-identifier hs-var">inv</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var">progInvokeArgs</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html#progInvokeArgs"><span class="hs-identifier hs-var">progInvokeArgs</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679351826"><span class="hs-identifier hs-type">inv</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-type">++</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679351827"><span class="hs-keyword hs-type">as</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-269"></span><span>
+</span><span id="line-270"></span><span>    </span><span id="local-6989586621679351570"><span class="annot"><a href="#local-6989586621679351815"><span class="hs-identifier hs-type">splitChunks</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679351570"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679351570"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span class="hs-special">]</span></span><span>
+</span><span id="line-271"></span><span>    </span><span id="local-6989586621679351815"><span class="annot"><span class="annottext">splitChunks :: forall a. Int -&gt; [[a]] -&gt; [[[a]]]
+</span><a href="#local-6989586621679351815"><span class="hs-identifier hs-var hs-var">splitChunks</span></a></span></span><span> </span><span id="local-6989586621679351829"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351829"><span class="hs-identifier hs-var">len</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([[a]] -&gt; Maybe ([[a]], [[a]])) -&gt; [[a]] -&gt; [[[a]]]
+forall b a. (b -&gt; Maybe (a, b)) -&gt; b -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#unfoldr/Data.OldList.html#unfoldr"><span class="hs-identifier hs-var">unfoldr</span></a></span><span> </span><span class="annot"><span class="annottext">(([[a]] -&gt; Maybe ([[a]], [[a]])) -&gt; [[a]] -&gt; [[[a]]])
+-&gt; ([[a]] -&gt; Maybe ([[a]], [[a]])) -&gt; [[a]] -&gt; [[[a]]]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679351831"><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351831"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-272"></span><span>      </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">[[a]] -&gt; Bool
+forall a. [a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#null/Data.Foldable.html#null"><span class="hs-identifier hs-var">null</span></a></span><span> </span><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351831"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Maybe ([[a]], [[a]])
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>
+</span><span id="line-273"></span><span>                </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">([[a]], [[a]]) -&gt; Maybe ([[a]], [[a]])
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; [[a]] -&gt; ([[a]], [[a]])
+forall a. Int -&gt; [[a]] -&gt; ([[a]], [[a]])
+</span><a href="#local-6989586621679351833"><span class="hs-identifier hs-var">chunk</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351829"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351831"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-274"></span><span>
+</span><span id="line-275"></span><span>    </span><span id="local-6989586621679351577"><span class="annot"><a href="#local-6989586621679351833"><span class="hs-identifier hs-type">chunk</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679351577"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679351577"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679351577"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span class="hs-special">)</span></span><span>
+</span><span id="line-276"></span><span>    </span><span id="local-6989586621679351833"><span class="annot"><span class="annottext">chunk :: forall a. Int -&gt; [[a]] -&gt; ([[a]], [[a]])
+</span><a href="#local-6989586621679351833"><span class="hs-identifier hs-var hs-var">chunk</span></a></span></span><span> </span><span id="local-6989586621679351838"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351838"><span class="hs-identifier hs-var">len</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351839"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679351839"><span class="hs-identifier hs-var">s</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[[a]]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#length/Data.Foldable.html#length"><span class="hs-identifier hs-var">length</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679351839"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351838"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; ([[a]], [[a]])
+forall a. HasCallStack =&gt; String -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Err.html#error/GHC.Err.html#error"><span class="hs-identifier hs-var">error</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679351841"><span class="hs-identifier hs-var">toolong</span></a></span><span>
+</span><span id="line-277"></span><span>    </span><span class="annot"><a href="#local-6989586621679351833"><span class="hs-identifier hs-var">chunk</span></a></span><span> </span><span id="local-6989586621679351842"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351842"><span class="hs-identifier hs-var">len</span></a></span></span><span> </span><span id="local-6989586621679351843"><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351843"><span class="hs-identifier hs-var">ss</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[[a]] -&gt; Int -&gt; [[a]] -&gt; ([[a]], [[a]])
+forall a. [[a]] -&gt; Int -&gt; [[a]] -&gt; ([[a]], [[a]])
+</span><a href="#local-6989586621679351844"><span class="hs-identifier hs-var">chunk'</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351842"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351843"><span class="hs-identifier hs-var">ss</span></a></span><span>
+</span><span id="line-278"></span><span>
+</span><span id="line-279"></span><span>    </span><span id="local-6989586621679351582"><span class="annot"><a href="#local-6989586621679351844"><span class="hs-identifier hs-type">chunk'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679351582"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679351582"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679351582"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679351582"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span class="hs-special">)</span></span><span>
+</span><span id="line-280"></span><span>    </span><span id="local-6989586621679351844"><span class="annot"><span class="annottext">chunk' :: forall a. [[a]] -&gt; Int -&gt; [[a]] -&gt; ([[a]], [[a]])
+</span><a href="#local-6989586621679351844"><span class="hs-identifier hs-var hs-var">chunk'</span></a></span></span><span> </span><span id="local-6989586621679351850"><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351850"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span id="local-6989586621679351851"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351851"><span class="hs-identifier hs-var">len</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679351852"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679351852"><span class="hs-identifier hs-var">s</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679351853"><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351853"><span class="hs-identifier hs-var">ss</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-281"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351854"><span class="hs-identifier hs-var">len'</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351851"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[[a]] -&gt; Int -&gt; [[a]] -&gt; ([[a]], [[a]])
+forall a. [[a]] -&gt; Int -&gt; [[a]] -&gt; ([[a]], [[a]])
+</span><a href="#local-6989586621679351844"><span class="hs-identifier hs-var">chunk'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679351852"><span class="hs-identifier hs-var">s</span></a></span><span class="annot"><span class="annottext">[a] -&gt; [[a]] -&gt; [[a]]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351850"><span class="hs-identifier hs-var">acc</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351851"><span class="hs-identifier hs-var">len</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#-/GHC.Num.html#-"><span class="hs-glyph hs-var">-</span></a></span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679351854"><span class="hs-identifier hs-var">len'</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#-/GHC.Num.html#-"><span class="hs-glyph hs-var">-</span></a></span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351853"><span class="hs-identifier hs-var">ss</span></a></span><span>
+</span><span id="line-282"></span><span>      </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679351854"><span class="annot"><span class="annottext">len' :: Int
+</span><a href="#local-6989586621679351854"><span class="hs-identifier hs-var hs-var">len'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#length/Data.Foldable.html#length"><span class="hs-identifier hs-var">length</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679351852"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-283"></span><span>    </span><span class="annot"><a href="#local-6989586621679351844"><span class="hs-identifier hs-var">chunk'</span></a></span><span> </span><span id="local-6989586621679351856"><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351856"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span>   </span><span id="local-6989586621679351857"><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351857"><span class="hs-identifier hs-var">ss</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[a]] -&gt; [[a]]
+forall a. [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.List.html#reverse/GHC.List.html#reverse"><span class="hs-identifier hs-var">reverse</span></a></span><span> </span><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351856"><span class="hs-identifier hs-var">acc</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[a]]
+</span><a href="#local-6989586621679351857"><span class="hs-identifier hs-var">ss</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-284"></span><span>
+</span><span id="line-285"></span><span>    </span><span id="local-6989586621679351841"><span class="annot"><span class="annottext">toolong :: String
+</span><a href="#local-6989586621679351841"><span class="hs-identifier hs-var hs-var">toolong</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;multiStageProgramInvocation: a single program arg is larger &quot;</span></span><span>
+</span><span id="line-286"></span><span>           </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;than the maximum command line length!&quot;</span></span><span>
+</span><span id="line-287"></span><span>
+</span><span id="line-288"></span><span>
+</span><span id="line-289"></span><span class="hs-comment">--FIXME: discover this at configure time or runtime on unix</span><span>
+</span><span id="line-290"></span><span class="hs-comment">-- The value is 32k on Windows and posix specifies a minimum of 4k</span><span>
+</span><span id="line-291"></span><span class="hs-comment">-- but all sensible unixes use more than 4k.</span><span>
+</span><span id="line-292"></span><span class="hs-comment">-- we could use getSysVar ArgumentLimit but that's in the unix lib</span><span>
+</span><span id="line-293"></span><span class="hs-comment">--</span><span>
+</span><span id="line-294"></span><span class="annot"><a href="Distribution.Simple.Program.Run.html#maxCommandLineSize"><span class="hs-identifier hs-type">maxCommandLineSize</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-295"></span><span id="maxCommandLineSize"><span class="annot"><span class="annottext">maxCommandLineSize :: Int
+</span><a href="Distribution.Simple.Program.Run.html#maxCommandLineSize"><span class="hs-identifier hs-var hs-var">maxCommandLineSize</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">30</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2A/GHC.Num.html#%2A"><span class="hs-operator hs-var">*</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1024</span></span><span>
+</span><span id="line-296"></span></pre></body></html>

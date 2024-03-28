@@ -1,0 +1,293 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE Rank2Types #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Utils.LogProgress</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-5"></span><span>    </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier">LogProgress</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#runLogProgress"><span class="hs-identifier">runLogProgress</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#warnProgress"><span class="hs-identifier">warnProgress</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#infoProgress"><span class="hs-identifier">infoProgress</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#dieProgress"><span class="hs-identifier">dieProgress</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#addProgressCtx"><span class="hs-identifier">addProgressCtx</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Utils.Progress.html"><span class="hs-identifier">Distribution.Utils.Progress</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html"><span class="hs-identifier">Distribution.Verbosity</span></a></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html"><span class="hs-identifier">Distribution.Simple.Utils</span></a></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.html#/Text.PrettyPrint.html"><span class="hs-identifier">Text.PrettyPrint</span></a></span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">type</span><span> </span><span id="CtxMsg"><span class="annot"><a href="Distribution.Utils.LogProgress.html#CtxMsg"><span class="hs-identifier hs-var">CtxMsg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">type</span><span> </span><span id="LogMsg"><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogMsg"><span class="hs-identifier hs-var">LogMsg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">type</span><span> </span><span id="ErrMsg"><span class="annot"><a href="Distribution.Utils.LogProgress.html#ErrMsg"><span class="hs-identifier hs-var">ErrMsg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">data</span><span> </span><span id="LogEnv"><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogEnv"><span class="hs-identifier hs-var">LogEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="LogEnv"><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogEnv"><span class="hs-identifier hs-var">LogEnv</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-26"></span><span>        </span><span id="le_verbosity"><span class="annot"><span class="annottext">LogEnv -&gt; Verbosity
+</span><a href="Distribution.Utils.LogProgress.html#le_verbosity"><span class="hs-identifier hs-var hs-var">le_verbosity</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>        </span><span id="le_context"><span class="annot"><span class="annottext">LogEnv -&gt; [LogMsg]
+</span><a href="Distribution.Utils.LogProgress.html#le_context"><span class="hs-identifier hs-var hs-var">le_context</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Utils.LogProgress.html#CtxMsg"><span class="hs-identifier hs-type">CtxMsg</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-28"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-comment">-- | The 'Progress' monad with specialized logging and</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- error messages.</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">newtype</span><span> </span><span id="LogProgress"><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-var">LogProgress</span></a></span></span><span> </span><span id="local-6989586621679350331"><span class="annot"><a href="#local-6989586621679350331"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="LogProgress"><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-var">LogProgress</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="unLogProgress"><span class="annot"><span class="annottext">forall a. LogProgress a -&gt; LogEnv -&gt; Progress LogMsg LogMsg a
+</span><a href="Distribution.Utils.LogProgress.html#unLogProgress"><span class="hs-identifier hs-var hs-var">unLogProgress</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogEnv"><span class="hs-identifier hs-type">LogEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.Progress.html#Progress"><span class="hs-identifier hs-type">Progress</span></a></span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogMsg"><span class="hs-identifier hs-type">LogMsg</span></a></span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#ErrMsg"><span class="hs-identifier hs-type">ErrMsg</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679350331"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679350420"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#Functor/GHC.Base.html#Functor"><span class="hs-identifier hs-type">Functor</span></a></span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-35"></span><span>    </span><span id="local-6989586621679350428"><span class="annot"><span class="annottext">fmap :: forall a b. (a -&gt; b) -&gt; LogProgress a -&gt; LogProgress b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#fmap/GHC.Base.html#fmap"><span class="hs-identifier hs-var hs-var hs-var hs-var">fmap</span></a></span></span><span> </span><span id="local-6989586621679350429"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679350429"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span id="local-6989586621679350430"><span class="annot"><span class="annottext">LogEnv -&gt; Progress LogMsg LogMsg a
+</span><a href="#local-6989586621679350430"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(LogEnv -&gt; Progress LogMsg LogMsg b) -&gt; LogProgress b
+forall a. (LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-var">LogProgress</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Progress LogMsg LogMsg a -&gt; Progress LogMsg LogMsg b)
+-&gt; (LogEnv -&gt; Progress LogMsg LogMsg a)
+-&gt; LogEnv
+-&gt; Progress LogMsg LogMsg b
+forall a b. (a -&gt; b) -&gt; (LogEnv -&gt; a) -&gt; LogEnv -&gt; b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#fmap/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; b) -&gt; Progress LogMsg LogMsg a -&gt; Progress LogMsg LogMsg b
+forall a b.
+(a -&gt; b) -&gt; Progress LogMsg LogMsg a -&gt; Progress LogMsg LogMsg b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#fmap/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679350429"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LogEnv -&gt; Progress LogMsg LogMsg a
+</span><a href="#local-6989586621679350430"><span class="hs-identifier hs-var">m</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679350436"><span id="local-6989586621679350440"><span id="local-6989586621679350443"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#Applicative/GHC.Base.html#Applicative"><span class="hs-identifier hs-type">Applicative</span></a></span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-38"></span><span>    </span><span id="local-6989586621679350449"><span class="annot"><span class="annottext">pure :: forall a. a -&gt; LogProgress a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#pure/GHC.Base.html#pure"><span class="hs-identifier hs-var hs-var hs-var hs-var">pure</span></a></span></span><span> </span><span id="local-6989586621679350450"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679350450"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+forall a. (LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-var">LogProgress</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Progress LogMsg LogMsg a -&gt; LogEnv -&gt; Progress LogMsg LogMsg a
+forall a. a -&gt; LogEnv -&gt; a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#pure/GHC.Base.html#pure"><span class="hs-identifier hs-var">pure</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; Progress LogMsg LogMsg a
+forall a. a -&gt; Progress LogMsg LogMsg a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#pure/GHC.Base.html#pure"><span class="hs-identifier hs-var">pure</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679350450"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>    </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span id="local-6989586621679350453"><span class="annot"><span class="annottext">LogEnv -&gt; Progress LogMsg LogMsg (a -&gt; b)
+</span><a href="#local-6989586621679350453"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679350454"><span class="annot"><span class="annottext">&lt;*&gt; :: forall a b. LogProgress (a -&gt; b) -&gt; LogProgress a -&gt; LogProgress b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%2A%3E/GHC.Base.html#%3C%2A%3E"><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;*&gt;</span></a></span></span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span id="local-6989586621679350455"><span class="annot"><span class="annottext">LogEnv -&gt; Progress LogMsg LogMsg a
+</span><a href="#local-6989586621679350455"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(LogEnv -&gt; Progress LogMsg LogMsg b) -&gt; LogProgress b
+forall a. (LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-var">LogProgress</span></a></span><span> </span><span class="annot"><span class="annottext">((LogEnv -&gt; Progress LogMsg LogMsg b) -&gt; LogProgress b)
+-&gt; (LogEnv -&gt; Progress LogMsg LogMsg b) -&gt; LogProgress b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679350456"><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350456"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">LogEnv -&gt; Progress LogMsg LogMsg (a -&gt; b)
+</span><a href="#local-6989586621679350453"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350456"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Progress LogMsg LogMsg (a -&gt; b)
+-&gt; Progress LogMsg LogMsg a -&gt; Progress LogMsg LogMsg b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m (a -&gt; b) -&gt; m a -&gt; m b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#ap/GHC.Base.html#ap"><span class="hs-operator hs-var">`ap`</span></a></span><span> </span><span class="annot"><span class="annottext">LogEnv -&gt; Progress LogMsg LogMsg a
+</span><a href="#local-6989586621679350455"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350456"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679350462"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#Monad/GHC.Base.html#Monad"><span class="hs-identifier hs-type">Monad</span></a></span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-42"></span><span>    </span><span id="local-6989586621679350468"><span class="annot"><span class="annottext">return :: forall a. a -&gt; LogProgress a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var hs-var hs-var hs-var">return</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; LogProgress a
+forall a. a -&gt; LogProgress a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#pure/GHC.Base.html#pure"><span class="hs-identifier hs-var">pure</span></a></span><span>
+</span><span id="line-43"></span><span>    </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span id="local-6989586621679350470"><span class="annot"><span class="annottext">LogEnv -&gt; Progress LogMsg LogMsg a
+</span><a href="#local-6989586621679350470"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span id="local-6989586621679350471"><span class="annot"><span class="annottext">&gt;&gt;= :: forall a b. LogProgress a -&gt; (a -&gt; LogProgress b) -&gt; LogProgress b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3E%3E%3D/GHC.Base.html#%3E%3E%3D"><span class="hs-operator hs-var hs-var hs-var hs-var">&gt;&gt;=</span></a></span></span><span> </span><span id="local-6989586621679350472"><span class="annot"><span class="annottext">a -&gt; LogProgress b
+</span><a href="#local-6989586621679350472"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(LogEnv -&gt; Progress LogMsg LogMsg b) -&gt; LogProgress b
+forall a. (LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-var">LogProgress</span></a></span><span> </span><span class="annot"><span class="annottext">((LogEnv -&gt; Progress LogMsg LogMsg b) -&gt; LogProgress b)
+-&gt; (LogEnv -&gt; Progress LogMsg LogMsg b) -&gt; LogProgress b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679350473"><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350473"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">LogEnv -&gt; Progress LogMsg LogMsg a
+</span><a href="#local-6989586621679350470"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350473"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">Progress LogMsg LogMsg a
+-&gt; (a -&gt; Progress LogMsg LogMsg b) -&gt; Progress LogMsg LogMsg b
+forall a b.
+Progress LogMsg LogMsg a
+-&gt; (a -&gt; Progress LogMsg LogMsg b) -&gt; Progress LogMsg LogMsg b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3E%3E%3D/GHC.Base.html#%3E%3E%3D"><span class="hs-operator hs-var">&gt;&gt;=</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679350474"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679350474"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">LogProgress b -&gt; LogEnv -&gt; Progress LogMsg LogMsg b
+forall a. LogProgress a -&gt; LogEnv -&gt; Progress LogMsg LogMsg a
+</span><a href="Distribution.Utils.LogProgress.html#unLogProgress"><span class="hs-identifier hs-var">unLogProgress</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; LogProgress b
+</span><a href="#local-6989586621679350472"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679350474"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350473"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- | Run 'LogProgress', outputting traces according to 'Verbosity',</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- 'die' if there is an error.</span><span>
+</span><span id="line-47"></span><span id="local-6989586621679350376"><span class="annot"><a href="Distribution.Utils.LogProgress.html#runLogProgress"><span class="hs-identifier hs-type">runLogProgress</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679350376"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679350376"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-48"></span><span id="runLogProgress"><span class="annot"><span class="annottext">runLogProgress :: forall a. Verbosity -&gt; LogProgress a -&gt; IO a
+</span><a href="Distribution.Utils.LogProgress.html#runLogProgress"><span class="hs-identifier hs-var hs-var">runLogProgress</span></a></span></span><span> </span><span id="local-6989586621679350477"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679350477"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span id="local-6989586621679350478"><span class="annot"><span class="annottext">LogEnv -&gt; Progress LogMsg LogMsg a
+</span><a href="#local-6989586621679350478"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-49"></span><span>    </span><span class="annot"><span class="annottext">(LogMsg -&gt; IO a -&gt; IO a)
+-&gt; (LogMsg -&gt; IO a)
+-&gt; (a -&gt; IO a)
+-&gt; Progress LogMsg LogMsg a
+-&gt; IO a
+forall step a fail done.
+(step -&gt; a -&gt; a)
+-&gt; (fail -&gt; a) -&gt; (done -&gt; a) -&gt; Progress step fail done -&gt; a
+</span><a href="Distribution.Utils.Progress.html#foldProgress"><span class="hs-identifier hs-var">foldProgress</span></a></span><span> </span><span class="annot"><span class="annottext">LogMsg -&gt; IO a -&gt; IO a
+forall a. LogMsg -&gt; IO a -&gt; IO a
+</span><a href="#local-6989586621679350480"><span class="hs-identifier hs-var">step_fn</span></a></span><span> </span><span class="annot"><span class="annottext">LogMsg -&gt; IO a
+forall a. LogMsg -&gt; IO a
+</span><a href="#local-6989586621679350481"><span class="hs-identifier hs-var">fail_fn</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; IO a
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LogEnv -&gt; Progress LogMsg LogMsg a
+</span><a href="#local-6989586621679350478"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350482"><span class="hs-identifier hs-var">env</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-51"></span><span>    </span><span id="local-6989586621679350482"><span class="annot"><span class="annottext">env :: LogEnv
+</span><a href="#local-6989586621679350482"><span class="hs-identifier hs-var hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogEnv"><span class="hs-identifier hs-type">LogEnv</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-52"></span><span>        </span><span class="annot"><span class="annottext">le_verbosity :: Verbosity
+</span><a href="Distribution.Utils.LogProgress.html#le_verbosity"><span class="hs-identifier hs-var">le_verbosity</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679350477"><span class="hs-identifier hs-var">verbosity</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-53"></span><span>        </span><span class="annot"><span class="annottext">le_context :: [LogMsg]
+</span><a href="Distribution.Utils.LogProgress.html#le_context"><span class="hs-identifier hs-var">le_context</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-54"></span><span>      </span><span class="hs-special">}</span><span>
+</span><span id="line-55"></span><span>    </span><span id="local-6989586621679350382"><span class="annot"><a href="#local-6989586621679350480"><span class="hs-identifier hs-type">step_fn</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogMsg"><span class="hs-identifier hs-type">LogMsg</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679350382"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679350382"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-56"></span><span>    </span><span id="local-6989586621679350480"><span class="annot"><span class="annottext">step_fn :: forall a. LogMsg -&gt; IO a -&gt; IO a
+</span><a href="#local-6989586621679350480"><span class="hs-identifier hs-var hs-var">step_fn</span></a></span></span><span> </span><span id="local-6989586621679350484"><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350484"><span class="hs-identifier hs-var">doc</span></a></span></span><span> </span><span id="local-6989586621679350485"><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679350485"><span class="hs-identifier hs-var">go</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-57"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/System.IO.html#putStrLn/System.IO.html#putStrLn"><span class="hs-identifier hs-var">putStrLn</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LogMsg -&gt; String
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#render/Text.PrettyPrint.HughesPJ.html#render"><span class="hs-identifier hs-var">render</span></a></span><span> </span><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350484"><span class="hs-identifier hs-var">doc</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span>        </span><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679350485"><span class="hs-identifier hs-var">go</span></a></span><span>
+</span><span id="line-59"></span><span>    </span><span id="local-6989586621679350383"><span class="annot"><a href="#local-6989586621679350481"><span class="hs-identifier hs-type">fail_fn</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679350383"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-60"></span><span>    </span><span id="local-6989586621679350481"><span class="annot"><span class="annottext">fail_fn :: forall a. LogMsg -&gt; IO a
+</span><a href="#local-6989586621679350481"><span class="hs-identifier hs-var hs-var">fail_fn</span></a></span></span><span> </span><span id="local-6989586621679350488"><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350488"><span class="hs-identifier hs-var">doc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-61"></span><span>        </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; IO a
+forall a. Verbosity -&gt; String -&gt; IO a
+</span><a href="Distribution.Simple.Utils.html#dieNoWrap"><span class="hs-identifier hs-var">dieNoWrap</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679350477"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LogMsg -&gt; String
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#render/Text.PrettyPrint.HughesPJ.html#render"><span class="hs-identifier hs-var">render</span></a></span><span> </span><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350488"><span class="hs-identifier hs-var">doc</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span class="annot"><span class="hs-comment">-- | Output a warning trace message in 'LogProgress'.</span></span><span>
+</span><span id="line-64"></span><span class="annot"><a href="Distribution.Utils.LogProgress.html#warnProgress"><span class="hs-identifier hs-type">warnProgress</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span id="warnProgress"><span class="annot"><span class="annottext">warnProgress :: LogMsg -&gt; LogProgress ()
+</span><a href="Distribution.Utils.LogProgress.html#warnProgress"><span class="hs-identifier hs-var hs-var">warnProgress</span></a></span></span><span> </span><span id="local-6989586621679350490"><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350490"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(LogEnv -&gt; Progress LogMsg LogMsg ()) -&gt; LogProgress ()
+forall a. (LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-var">LogProgress</span></a></span><span> </span><span class="annot"><span class="annottext">((LogEnv -&gt; Progress LogMsg LogMsg ()) -&gt; LogProgress ())
+-&gt; (LogEnv -&gt; Progress LogMsg LogMsg ()) -&gt; LogProgress ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679350491"><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350491"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-66"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; Progress LogMsg LogMsg () -&gt; Progress LogMsg LogMsg ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#when/GHC.Base.html#when"><span class="hs-identifier hs-var">when</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LogEnv -&gt; Verbosity
+</span><a href="Distribution.Utils.LogProgress.html#le_verbosity"><span class="hs-identifier hs-var">le_verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350491"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; Verbosity -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="Distribution.Verbosity.html#normal"><span class="hs-identifier hs-var">normal</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Progress LogMsg LogMsg () -&gt; Progress LogMsg LogMsg ())
+-&gt; Progress LogMsg LogMsg () -&gt; Progress LogMsg LogMsg ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-67"></span><span>        </span><span class="annot"><span class="annottext">LogMsg -&gt; Progress LogMsg LogMsg ()
+forall step fail. step -&gt; Progress step fail ()
+</span><a href="Distribution.Utils.Progress.html#stepProgress"><span class="hs-identifier hs-var">stepProgress</span></a></span><span> </span><span class="annot"><span class="annottext">(LogMsg -&gt; Progress LogMsg LogMsg ())
+-&gt; LogMsg -&gt; Progress LogMsg LogMsg ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-68"></span><span>            </span><span class="annot"><span class="annottext">LogMsg -&gt; Int -&gt; LogMsg -&gt; LogMsg
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#hang/Text.PrettyPrint.HughesPJ.html#hang"><span class="hs-identifier hs-var">hang</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; LogMsg
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Warning:&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">4</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[LogMsg] -&gt; LogMsg -&gt; LogMsg
+</span><a href="Distribution.Utils.LogProgress.html#formatMsg"><span class="hs-identifier hs-var">formatMsg</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LogEnv -&gt; [LogMsg]
+</span><a href="Distribution.Utils.LogProgress.html#le_context"><span class="hs-identifier hs-var">le_context</span></a></span><span> </span><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350491"><span class="hs-identifier hs-var">env</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350490"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="annot"><span class="hs-comment">-- | Output an informational trace message in 'LogProgress'.</span></span><span>
+</span><span id="line-71"></span><span class="annot"><a href="Distribution.Utils.LogProgress.html#infoProgress"><span class="hs-identifier hs-type">infoProgress</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span id="infoProgress"><span class="annot"><span class="annottext">infoProgress :: LogMsg -&gt; LogProgress ()
+</span><a href="Distribution.Utils.LogProgress.html#infoProgress"><span class="hs-identifier hs-var hs-var">infoProgress</span></a></span></span><span> </span><span id="local-6989586621679350498"><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350498"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(LogEnv -&gt; Progress LogMsg LogMsg ()) -&gt; LogProgress ()
+forall a. (LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-var">LogProgress</span></a></span><span> </span><span class="annot"><span class="annottext">((LogEnv -&gt; Progress LogMsg LogMsg ()) -&gt; LogProgress ())
+-&gt; (LogEnv -&gt; Progress LogMsg LogMsg ()) -&gt; LogProgress ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679350499"><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350499"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-73"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; Progress LogMsg LogMsg () -&gt; Progress LogMsg LogMsg ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#when/GHC.Base.html#when"><span class="hs-identifier hs-var">when</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LogEnv -&gt; Verbosity
+</span><a href="Distribution.Utils.LogProgress.html#le_verbosity"><span class="hs-identifier hs-var">le_verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350499"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; Verbosity -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="Distribution.Verbosity.html#verbose"><span class="hs-identifier hs-var">verbose</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Progress LogMsg LogMsg () -&gt; Progress LogMsg LogMsg ())
+-&gt; Progress LogMsg LogMsg () -&gt; Progress LogMsg LogMsg ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-74"></span><span>        </span><span class="annot"><span class="annottext">LogMsg -&gt; Progress LogMsg LogMsg ()
+forall step fail. step -&gt; Progress step fail ()
+</span><a href="Distribution.Utils.Progress.html#stepProgress"><span class="hs-identifier hs-var">stepProgress</span></a></span><span> </span><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350498"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="annot"><span class="hs-comment">-- | Fail the computation with an error message.</span></span><span>
+</span><span id="line-77"></span><span id="local-6989586621679350392"><span class="annot"><a href="Distribution.Utils.LogProgress.html#dieProgress"><span class="hs-identifier hs-type">dieProgress</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679350392"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-78"></span><span id="dieProgress"><span class="annot"><span class="annottext">dieProgress :: forall a. LogMsg -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#dieProgress"><span class="hs-identifier hs-var hs-var">dieProgress</span></a></span></span><span> </span><span id="local-6989586621679350501"><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350501"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+forall a. (LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-var">LogProgress</span></a></span><span> </span><span class="annot"><span class="annottext">((LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a)
+-&gt; (LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679350502"><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350502"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-79"></span><span>    </span><span class="annot"><span class="annottext">LogMsg -&gt; Progress LogMsg LogMsg a
+forall fail step done. fail -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#failProgress"><span class="hs-identifier hs-var">failProgress</span></a></span><span> </span><span class="annot"><span class="annottext">(LogMsg -&gt; Progress LogMsg LogMsg a)
+-&gt; LogMsg -&gt; Progress LogMsg LogMsg a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-80"></span><span>        </span><span class="annot"><span class="annottext">LogMsg -&gt; Int -&gt; LogMsg -&gt; LogMsg
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#hang/Text.PrettyPrint.HughesPJ.html#hang"><span class="hs-identifier hs-var">hang</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; LogMsg
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Error:&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">4</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[LogMsg] -&gt; LogMsg -&gt; LogMsg
+</span><a href="Distribution.Utils.LogProgress.html#formatMsg"><span class="hs-identifier hs-var">formatMsg</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LogEnv -&gt; [LogMsg]
+</span><a href="Distribution.Utils.LogProgress.html#le_context"><span class="hs-identifier hs-var">le_context</span></a></span><span> </span><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350502"><span class="hs-identifier hs-var">env</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350501"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-81"></span><span>
+</span><span id="line-82"></span><span class="annot"><span class="hs-comment">-- | Format a message with context. (Something simple for now.)</span></span><span>
+</span><span id="line-83"></span><span class="annot"><a href="Distribution.Utils.LogProgress.html#formatMsg"><span class="hs-identifier hs-type">formatMsg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Utils.LogProgress.html#CtxMsg"><span class="hs-identifier hs-type">CtxMsg</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span>
+</span><span id="line-84"></span><span id="formatMsg"><span class="annot"><span class="annottext">formatMsg :: [LogMsg] -&gt; LogMsg -&gt; LogMsg
+</span><a href="Distribution.Utils.LogProgress.html#formatMsg"><span class="hs-identifier hs-var hs-var">formatMsg</span></a></span></span><span> </span><span id="local-6989586621679350504"><span class="annot"><span class="annottext">[LogMsg]
+</span><a href="#local-6989586621679350504"><span class="hs-identifier hs-var">ctx</span></a></span></span><span> </span><span id="local-6989586621679350505"><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350505"><span class="hs-identifier hs-var">doc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350505"><span class="hs-identifier hs-var">doc</span></a></span><span> </span><span class="annot"><span class="annottext">LogMsg -&gt; LogMsg -&gt; LogMsg
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span> </span><span class="annot"><span class="annottext">[LogMsg] -&gt; LogMsg
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#vcat/Text.PrettyPrint.HughesPJ.html#vcat"><span class="hs-identifier hs-var">vcat</span></a></span><span> </span><span class="annot"><span class="annottext">[LogMsg]
+</span><a href="#local-6989586621679350504"><span class="hs-identifier hs-var">ctx</span></a></span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="annot"><span class="hs-comment">-- | Add a message to the error/warning context.</span></span><span>
+</span><span id="line-87"></span><span id="local-6989586621679350397"><span class="annot"><a href="Distribution.Utils.LogProgress.html#addProgressCtx"><span class="hs-identifier hs-type">addProgressCtx</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#CtxMsg"><span class="hs-identifier hs-type">CtxMsg</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679350397"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679350397"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-88"></span><span id="addProgressCtx"><span class="annot"><span class="annottext">addProgressCtx :: forall a. LogMsg -&gt; LogProgress a -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#addProgressCtx"><span class="hs-identifier hs-var hs-var">addProgressCtx</span></a></span></span><span> </span><span id="local-6989586621679350508"><span class="annot"><span class="annottext">LogMsg
+</span><a href="#local-6989586621679350508"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span id="local-6989586621679350509"><span class="annot"><span class="annottext">LogEnv -&gt; Progress LogMsg LogMsg a
+</span><a href="#local-6989586621679350509"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+forall a. (LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-var">LogProgress</span></a></span><span> </span><span class="annot"><span class="annottext">((LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a)
+-&gt; (LogEnv -&gt; Progress LogMsg LogMsg a) -&gt; LogProgress a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679350510"><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350510"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-89"></span><span>    </span><span class="annot"><span class="annottext">LogEnv -&gt; Progress LogMsg LogMsg a
+</span><a href="#local-6989586621679350509"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">LogEnv
+</span><a href="#local-6989586621679350510"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#le_context"><span class="hs-identifier hs-var">le_context</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679350508"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#le_context"><span class="hs-identifier hs-var">le_context</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679350510"><span class="hs-identifier hs-type">env</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-90"></span></pre></body></html>

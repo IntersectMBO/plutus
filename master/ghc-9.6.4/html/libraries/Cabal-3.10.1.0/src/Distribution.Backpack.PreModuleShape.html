@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveDataTypeable #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Backpack.PreModuleShape</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-5"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#PreModuleShape"><span class="hs-identifier">PreModuleShape</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#toPreModuleShape"><span class="hs-identifier">toPreModuleShape</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#renamePreModuleShape"><span class="hs-identifier">renamePreModuleShape</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#mixLinkPreModuleShape"><span class="hs-identifier">mixLinkPreModuleShape</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Set.html#/Data.Set.html"><span class="hs-identifier">Data.Set</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Set</span></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.html#/Data.Map.html"><span class="hs-identifier">Data.Map</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Map</span></span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModuleShape.html"><span class="hs-identifier">Distribution.Backpack.ModuleShape</span></a></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.IncludeRenaming.html#/Distribution.Types.IncludeRenaming.html"><span class="hs-identifier">Distribution.Types.IncludeRenaming</span></a></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ModuleRenaming.html#/Distribution.Types.ModuleRenaming.html"><span class="hs-identifier">Distribution.Types.ModuleRenaming</span></a></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#/Distribution.ModuleName.html"><span class="hs-identifier">Distribution.ModuleName</span></a></span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">data</span><span> </span><span id="PreModuleShape"><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#PreModuleShape"><span class="hs-identifier hs-var">PreModuleShape</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="PreModuleShape"><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#PreModuleShape"><span class="hs-identifier hs-var">PreModuleShape</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-23"></span><span>        </span><span id="preModShapeProvides"><span class="annot"><span class="annottext">PreModuleShape -&gt; Set ModuleName
+</span><a href="Distribution.Backpack.PreModuleShape.html#preModShapeProvides"><span class="hs-identifier hs-var hs-var">preModShapeProvides</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Set.Internal.html#Set/Data.Set.Internal.html#Set"><span class="hs-identifier hs-type">Set</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#ModuleName/Distribution.ModuleName.html#ModuleName"><span class="hs-identifier hs-type">ModuleName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>        </span><span id="preModShapeRequires"><span class="annot"><span class="annottext">PreModuleShape -&gt; Set ModuleName
+</span><a href="Distribution.Backpack.PreModuleShape.html#preModShapeRequires"><span class="hs-identifier hs-var hs-var">preModShapeRequires</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Set.Internal.html#Set/Data.Set.Internal.html#Set"><span class="hs-identifier hs-type">Set</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#ModuleName/Distribution.ModuleName.html#ModuleName"><span class="hs-identifier hs-type">ModuleName</span></a></span><span>
+</span><span id="line-25"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-26"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679338749"><span id="local-6989586621679338755"><span class="annot"><span class="annottext">PreModuleShape -&gt; PreModuleShape -&gt; Bool
+(PreModuleShape -&gt; PreModuleShape -&gt; Bool)
+-&gt; (PreModuleShape -&gt; PreModuleShape -&gt; Bool) -&gt; Eq PreModuleShape
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: PreModuleShape -&gt; PreModuleShape -&gt; Bool
+== :: PreModuleShape -&gt; PreModuleShape -&gt; Bool
+$c/= :: PreModuleShape -&gt; PreModuleShape -&gt; Bool
+/= :: PreModuleShape -&gt; PreModuleShape -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679338761"><span id="local-6989586621679338769"><span id="local-6989586621679338773"><span class="annot"><span class="annottext">Int -&gt; PreModuleShape -&gt; ShowS
+[PreModuleShape] -&gt; ShowS
+PreModuleShape -&gt; String
+(Int -&gt; PreModuleShape -&gt; ShowS)
+-&gt; (PreModuleShape -&gt; String)
+-&gt; ([PreModuleShape] -&gt; ShowS)
+-&gt; Show PreModuleShape
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; PreModuleShape -&gt; ShowS
+showsPrec :: Int -&gt; PreModuleShape -&gt; ShowS
+$cshow :: PreModuleShape -&gt; String
+show :: PreModuleShape -&gt; String
+$cshowList :: [PreModuleShape] -&gt; ShowS
+showList :: [PreModuleShape] -&gt; ShowS
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679338778"><span id="local-6989586621679338780"><span class="annot"><span class="annottext">(forall x. PreModuleShape -&gt; Rep PreModuleShape x)
+-&gt; (forall x. Rep PreModuleShape x -&gt; PreModuleShape)
+-&gt; Generic PreModuleShape
+forall x. Rep PreModuleShape x -&gt; PreModuleShape
+forall x. PreModuleShape -&gt; Rep PreModuleShape x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. PreModuleShape -&gt; Rep PreModuleShape x
+from :: forall x. PreModuleShape -&gt; Rep PreModuleShape x
+$cto :: forall x. Rep PreModuleShape x -&gt; PreModuleShape
+to :: forall x. Rep PreModuleShape x -&gt; PreModuleShape
+</span><a href="../../base-4.18.2.0/src/GHC.Generics.html#Generic/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></a></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#toPreModuleShape"><span class="hs-identifier hs-type">toPreModuleShape</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModuleShape.html#ModuleShape"><span class="hs-identifier hs-type">ModuleShape</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#PreModuleShape"><span class="hs-identifier hs-type">PreModuleShape</span></a></span><span>
+</span><span id="line-29"></span><span id="toPreModuleShape"><span class="annot"><span class="annottext">toPreModuleShape :: ModuleShape -&gt; PreModuleShape
+</span><a href="Distribution.Backpack.PreModuleShape.html#toPreModuleShape"><span class="hs-identifier hs-var hs-var">toPreModuleShape</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.ModuleShape.html#ModuleShape"><span class="hs-identifier hs-type">ModuleShape</span></a></span><span> </span><span id="local-6989586621679338784"><span class="annot"><span class="annottext">OpenModuleSubst
+</span><a href="#local-6989586621679338784"><span class="hs-identifier hs-var">provs</span></a></span></span><span> </span><span id="local-6989586621679338785"><span class="annot"><span class="annottext">Set ModuleName
+</span><a href="#local-6989586621679338785"><span class="hs-identifier hs-var">reqs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Set ModuleName -&gt; Set ModuleName -&gt; PreModuleShape
+</span><a href="Distribution.Backpack.PreModuleShape.html#PreModuleShape"><span class="hs-identifier hs-var">PreModuleShape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">OpenModuleSubst -&gt; Set ModuleName
+forall k a. Map k a -&gt; Set k
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#keysSet/Data.Map.Internal.html#keysSet"><span class="hs-identifier hs-var">Map.keysSet</span></a></span><span> </span><span class="annot"><span class="annottext">OpenModuleSubst
+</span><a href="#local-6989586621679338784"><span class="hs-identifier hs-var">provs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Set ModuleName
+</span><a href="#local-6989586621679338785"><span class="hs-identifier hs-var">reqs</span></a></span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#renamePreModuleShape"><span class="hs-identifier hs-type">renamePreModuleShape</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#PreModuleShape"><span class="hs-identifier hs-type">PreModuleShape</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.IncludeRenaming.html#IncludeRenaming/Distribution.Types.IncludeRenaming.html#IncludeRenaming"><span class="hs-identifier hs-type">IncludeRenaming</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#PreModuleShape"><span class="hs-identifier hs-type">PreModuleShape</span></a></span><span>
+</span><span id="line-32"></span><span id="renamePreModuleShape"><span class="annot"><span class="annottext">renamePreModuleShape :: PreModuleShape -&gt; IncludeRenaming -&gt; PreModuleShape
+</span><a href="Distribution.Backpack.PreModuleShape.html#renamePreModuleShape"><span class="hs-identifier hs-var hs-var">renamePreModuleShape</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#PreModuleShape"><span class="hs-identifier hs-type">PreModuleShape</span></a></span><span> </span><span id="local-6989586621679338787"><span class="annot"><span class="annottext">Set ModuleName
+</span><a href="#local-6989586621679338787"><span class="hs-identifier hs-var">provs</span></a></span></span><span> </span><span id="local-6989586621679338788"><span class="annot"><span class="annottext">Set ModuleName
+</span><a href="#local-6989586621679338788"><span class="hs-identifier hs-var">reqs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.IncludeRenaming.html#IncludeRenaming/Distribution.Types.IncludeRenaming.html#IncludeRenaming"><span class="hs-identifier hs-type">IncludeRenaming</span></a></span><span> </span><span id="local-6989586621679338790"><span class="annot"><span class="annottext">ModuleRenaming
+</span><a href="#local-6989586621679338790"><span class="hs-identifier hs-var">prov_rn</span></a></span></span><span> </span><span id="local-6989586621679338791"><span class="annot"><span class="annottext">ModuleRenaming
+</span><a href="#local-6989586621679338791"><span class="hs-identifier hs-var">req_rn</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-33"></span><span>    </span><span class="annot"><span class="annottext">Set ModuleName -&gt; Set ModuleName -&gt; PreModuleShape
+</span><a href="Distribution.Backpack.PreModuleShape.html#PreModuleShape"><span class="hs-identifier hs-var">PreModuleShape</span></a></span><span>
+</span><span id="line-34"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[ModuleName] -&gt; Set ModuleName
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span><a href="../../containers-0.6.7/src/Data.Set.Internal.html#fromList/Data.Set.Internal.html#fromList"><span class="hs-identifier hs-var">Set.fromList</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ModuleName -&gt; Maybe ModuleName) -&gt; [ModuleName] -&gt; [ModuleName]
+forall a b. (a -&gt; Maybe b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/Data.Maybe.html#mapMaybe/Data.Maybe.html#mapMaybe"><span class="hs-identifier hs-var">mapMaybe</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName -&gt; Maybe ModuleName
+</span><a href="#local-6989586621679338794"><span class="hs-identifier hs-var">prov_fn</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Set ModuleName -&gt; [ModuleName]
+forall a. Set a -&gt; [a]
+</span><a href="../../containers-0.6.7/src/Data.Set.Internal.html#toList/Data.Set.Internal.html#toList"><span class="hs-identifier hs-var">Set.toList</span></a></span><span> </span><span class="annot"><span class="annottext">Set ModuleName
+</span><a href="#local-6989586621679338787"><span class="hs-identifier hs-var">provs</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ModuleName -&gt; ModuleName) -&gt; Set ModuleName -&gt; Set ModuleName
+forall b a. Ord b =&gt; (a -&gt; b) -&gt; Set a -&gt; Set b
+</span><a href="../../containers-0.6.7/src/Data.Set.Internal.html#map/Data.Set.Internal.html#map"><span class="hs-identifier hs-var">Set.map</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName -&gt; ModuleName
+</span><a href="#local-6989586621679338797"><span class="hs-identifier hs-var">req_fn</span></a></span><span> </span><span class="annot"><span class="annottext">Set ModuleName
+</span><a href="#local-6989586621679338788"><span class="hs-identifier hs-var">reqs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-37"></span><span>    </span><span id="local-6989586621679338794"><span class="annot"><span class="annottext">prov_fn :: ModuleName -&gt; Maybe ModuleName
+</span><a href="#local-6989586621679338794"><span class="hs-identifier hs-var hs-var">prov_fn</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ModuleRenaming -&gt; ModuleName -&gt; Maybe ModuleName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ModuleRenaming.html#interpModuleRenaming/Distribution.Types.ModuleRenaming.html#interpModuleRenaming"><span class="hs-identifier hs-var">interpModuleRenaming</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleRenaming
+</span><a href="#local-6989586621679338790"><span class="hs-identifier hs-var">prov_rn</span></a></span><span>
+</span><span id="line-38"></span><span>    </span><span id="local-6989586621679338797"><span class="annot"><span class="annottext">req_fn :: ModuleName -&gt; ModuleName
+</span><a href="#local-6989586621679338797"><span class="hs-identifier hs-var hs-var">req_fn</span></a></span></span><span> </span><span id="local-6989586621679338799"><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679338799"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ModuleName -&gt; Maybe ModuleName -&gt; ModuleName
+forall a. a -&gt; Maybe a -&gt; a
+</span><a href="../../base-4.18.2.0/src/Data.Maybe.html#fromMaybe/Data.Maybe.html#fromMaybe"><span class="hs-identifier hs-var">fromMaybe</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679338799"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleRenaming -&gt; ModuleName -&gt; Maybe ModuleName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ModuleRenaming.html#interpModuleRenaming/Distribution.Types.ModuleRenaming.html#interpModuleRenaming"><span class="hs-identifier hs-var">interpModuleRenaming</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleRenaming
+</span><a href="#local-6989586621679338791"><span class="hs-identifier hs-var">req_rn</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679338799"><span class="hs-identifier hs-var">k</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#mixLinkPreModuleShape"><span class="hs-identifier hs-type">mixLinkPreModuleShape</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#PreModuleShape"><span class="hs-identifier hs-type">PreModuleShape</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.PreModuleShape.html#PreModuleShape"><span class="hs-identifier hs-type">PreModuleShape</span></a></span><span>
+</span><span id="line-41"></span><span id="mixLinkPreModuleShape"><span class="annot"><span class="annottext">mixLinkPreModuleShape :: [PreModuleShape] -&gt; PreModuleShape
+</span><a href="Distribution.Backpack.PreModuleShape.html#mixLinkPreModuleShape"><span class="hs-identifier hs-var hs-var">mixLinkPreModuleShape</span></a></span></span><span> </span><span id="local-6989586621679338801"><span class="annot"><span class="annottext">[PreModuleShape]
+</span><a href="#local-6989586621679338801"><span class="hs-identifier hs-var">shapes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Set ModuleName -&gt; Set ModuleName -&gt; PreModuleShape
+</span><a href="Distribution.Backpack.PreModuleShape.html#PreModuleShape"><span class="hs-identifier hs-var">PreModuleShape</span></a></span><span> </span><span class="annot"><span class="annottext">Set ModuleName
+</span><a href="#local-6989586621679338802"><span class="hs-identifier hs-var">provs</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Set ModuleName -&gt; Set ModuleName -&gt; Set ModuleName
+forall a. Ord a =&gt; Set a -&gt; Set a -&gt; Set a
+</span><a href="../../containers-0.6.7/src/Data.Set.Internal.html#difference/Data.Set.Internal.html#difference"><span class="hs-identifier hs-var">Set.difference</span></a></span><span> </span><span class="annot"><span class="annottext">Set ModuleName
+</span><a href="#local-6989586621679338804"><span class="hs-identifier hs-var">reqs</span></a></span><span> </span><span class="annot"><span class="annottext">Set ModuleName
+</span><a href="#local-6989586621679338802"><span class="hs-identifier hs-var">provs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-43"></span><span>    </span><span id="local-6989586621679338802"><span class="annot"><span class="annottext">provs :: Set ModuleName
+</span><a href="#local-6989586621679338802"><span class="hs-identifier hs-var hs-var">provs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Set ModuleName] -&gt; Set ModuleName
+forall (f :: * -&gt; *) a. (Foldable f, Ord a) =&gt; f (Set a) -&gt; Set a
+</span><a href="../../containers-0.6.7/src/Data.Set.Internal.html#unions/Data.Set.Internal.html#unions"><span class="hs-identifier hs-var">Set.unions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(PreModuleShape -&gt; Set ModuleName)
+-&gt; [PreModuleShape] -&gt; [Set ModuleName]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">PreModuleShape -&gt; Set ModuleName
+</span><a href="Distribution.Backpack.PreModuleShape.html#preModShapeProvides"><span class="hs-identifier hs-var">preModShapeProvides</span></a></span><span> </span><span class="annot"><span class="annottext">[PreModuleShape]
+</span><a href="#local-6989586621679338801"><span class="hs-identifier hs-var">shapes</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>    </span><span id="local-6989586621679338804"><span class="annot"><span class="annottext">reqs :: Set ModuleName
+</span><a href="#local-6989586621679338804"><span class="hs-identifier hs-var hs-var">reqs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Set ModuleName] -&gt; Set ModuleName
+forall (f :: * -&gt; *) a. (Foldable f, Ord a) =&gt; f (Set a) -&gt; Set a
+</span><a href="../../containers-0.6.7/src/Data.Set.Internal.html#unions/Data.Set.Internal.html#unions"><span class="hs-identifier hs-var">Set.unions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(PreModuleShape -&gt; Set ModuleName)
+-&gt; [PreModuleShape] -&gt; [Set ModuleName]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">PreModuleShape -&gt; Set ModuleName
+</span><a href="Distribution.Backpack.PreModuleShape.html#preModShapeRequires"><span class="hs-identifier hs-var">preModShapeRequires</span></a></span><span> </span><span class="annot"><span class="annottext">[PreModuleShape]
+</span><a href="#local-6989586621679338801"><span class="hs-identifier hs-var">shapes</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span></pre></body></html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-3"></span><span class="annot"><span class="hs-comment">-- | Extremely simple JSON helper. Don't do anything too fancy with this!</span></span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Utils.Json</span><span>
+</span><span id="line-6"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier">Json</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-7"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator">(.=)</span></a></span><span>
+</span><span id="line-8"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html#renderJson"><span class="hs-identifier">renderJson</span></a></span><span>
+</span><span id="line-9"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Lazy.html#/Data.ByteString.Lazy.html"><span class="hs-identifier">Data.ByteString.Lazy</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LBS</span></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.html#/Data.ByteString.Builder.html"><span class="hs-identifier">Data.ByteString.Builder</span></a></span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.Internal.html#Builder/Data.ByteString.Builder.Internal.html#Builder"><span class="hs-identifier">Builder</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.html#stringUtf8/Data.ByteString.Builder.html#stringUtf8"><span class="hs-identifier">stringUtf8</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.ASCII.html#intDec/Data.ByteString.Builder.ASCII.html#intDec"><span class="hs-identifier">intDec</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.html#toLazyByteString/Data.ByteString.Builder.html#toLazyByteString"><span class="hs-identifier">toLazyByteString</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">data</span><span> </span><span id="Json"><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier hs-var">Json</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="JsonArray"><span class="annot"><a href="Distribution.Utils.Json.html#JsonArray"><span class="hs-identifier hs-var">JsonArray</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier hs-type">Json</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-17"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="JsonBool"><span class="annot"><a href="Distribution.Utils.Json.html#JsonBool"><span class="hs-identifier hs-var">JsonBool</span></a></span></span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-18"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="JsonNull"><span class="annot"><a href="Distribution.Utils.Json.html#JsonNull"><span class="hs-identifier hs-var">JsonNull</span></a></span></span><span>
+</span><span id="line-19"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="JsonNumber"><span class="annot"><a href="Distribution.Utils.Json.html#JsonNumber"><span class="hs-identifier hs-var">JsonNumber</span></a></span></span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-comment">-- No support for Floats, Doubles just yet</span><span>
+</span><span id="line-20"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="JsonObject"><span class="annot"><a href="Distribution.Utils.Json.html#JsonObject"><span class="hs-identifier hs-var">JsonObject</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier hs-type">Json</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-21"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="JsonString"><span class="annot"><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span></span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679344915"><span id="local-6989586621679344934"><span id="local-6989586621679344938"><span class="annot"><span class="annottext">Int -&gt; Json -&gt; ShowS
+[Json] -&gt; ShowS
+Json -&gt; String
+(Int -&gt; Json -&gt; ShowS)
+-&gt; (Json -&gt; String) -&gt; ([Json] -&gt; ShowS) -&gt; Show Json
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Json -&gt; ShowS
+showsPrec :: Int -&gt; Json -&gt; ShowS
+$cshow :: Json -&gt; String
+show :: Json -&gt; String
+$cshowList :: [Json] -&gt; ShowS
+showList :: [Json] -&gt; ShowS
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="annot"><span class="hs-comment">-- | Convert a 'Json' into a 'ByteString'</span></span><span>
+</span><span id="line-25"></span><span class="annot"><a href="Distribution.Utils.Json.html#renderJson"><span class="hs-identifier hs-type">renderJson</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier hs-type">Json</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Lazy.Internal.html#ByteString/Data.ByteString.Lazy.Internal.html#ByteString"><span class="hs-identifier hs-type">LBS.ByteString</span></a></span><span>
+</span><span id="line-26"></span><span id="renderJson"><span class="annot"><span class="annottext">renderJson :: Json -&gt; ByteString
+</span><a href="Distribution.Utils.Json.html#renderJson"><span class="hs-identifier hs-var hs-var">renderJson</span></a></span></span><span> </span><span id="local-6989586621679344944"><span class="annot"><span class="annottext">Json
+</span><a href="#local-6989586621679344944"><span class="hs-identifier hs-var">json</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Builder -&gt; ByteString
+</span><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.html#toLazyByteString/Data.ByteString.Builder.html#toLazyByteString"><span class="hs-identifier hs-var">toLazyByteString</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Json -&gt; Builder
+</span><a href="#local-6989586621679344945"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Json
+</span><a href="#local-6989586621679344944"><span class="hs-identifier hs-var">json</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-28"></span><span>    </span><span id="local-6989586621679344945"><span class="annot"><span class="annottext">go :: Json -&gt; Builder
+</span><a href="#local-6989586621679344945"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Json.html#JsonArray"><span class="hs-identifier hs-type">JsonArray</span></a></span><span> </span><span id="local-6989586621679344957"><span class="annot"><span class="annottext">[Json]
+</span><a href="#local-6989586621679344957"><span class="hs-identifier hs-var">objs</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span>
+</span><span id="line-29"></span><span>      </span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder -&gt; Builder
+</span><a href="Distribution.Utils.Json.html#surround"><span class="hs-identifier hs-var">surround</span></a></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;[&quot;</span></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;]&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Builder -&gt; Builder) -&gt; Builder -&gt; Builder
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">[Builder] -&gt; Builder
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#mconcat/GHC.Base.html#mconcat"><span class="hs-identifier hs-var">mconcat</span></a></span><span> </span><span class="annot"><span class="annottext">([Builder] -&gt; Builder) -&gt; [Builder] -&gt; Builder
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; [Builder] -&gt; [Builder]
+forall a. a -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#intersperse/Data.OldList.html#intersperse"><span class="hs-identifier hs-var">intersperse</span></a></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;,&quot;</span></span><span> </span><span class="annot"><span class="annottext">([Builder] -&gt; [Builder]) -&gt; [Builder] -&gt; [Builder]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">(Json -&gt; Builder) -&gt; [Json] -&gt; [Builder]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">Json -&gt; Builder
+</span><a href="#local-6989586621679344945"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">[Json]
+</span><a href="#local-6989586621679344957"><span class="hs-identifier hs-var">objs</span></a></span><span>
+</span><span id="line-30"></span><span>    </span><span class="annot"><a href="#local-6989586621679344945"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Json.html#JsonBool"><span class="hs-identifier hs-type">JsonBool</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">)</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Builder
+</span><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.html#stringUtf8/Data.ByteString.Builder.html#stringUtf8"><span class="hs-identifier hs-var">stringUtf8</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;true&quot;</span></span><span>
+</span><span id="line-31"></span><span>    </span><span class="annot"><a href="#local-6989586621679344945"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Json.html#JsonBool"><span class="hs-identifier hs-type">JsonBool</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Builder
+</span><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.html#stringUtf8/Data.ByteString.Builder.html#stringUtf8"><span class="hs-identifier hs-var">stringUtf8</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;false&quot;</span></span><span>
+</span><span id="line-32"></span><span>    </span><span class="annot"><a href="#local-6989586621679344945"><span class="hs-identifier hs-var">go</span></a></span><span>  </span><span class="annot"><span class="annottext">Json
+</span><a href="Distribution.Utils.Json.html#JsonNull"><span class="hs-identifier hs-var">JsonNull</span></a></span><span>          </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Builder
+</span><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.html#stringUtf8/Data.ByteString.Builder.html#stringUtf8"><span class="hs-identifier hs-var">stringUtf8</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;null&quot;</span></span><span>
+</span><span id="line-33"></span><span>    </span><span class="annot"><a href="#local-6989586621679344945"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Json.html#JsonNumber"><span class="hs-identifier hs-type">JsonNumber</span></a></span><span> </span><span id="local-6989586621679344960"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679344960"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Builder
+</span><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.ASCII.html#intDec/Data.ByteString.Builder.ASCII.html#intDec"><span class="hs-identifier hs-var">intDec</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679344960"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><a href="#local-6989586621679344945"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Json.html#JsonObject"><span class="hs-identifier hs-type">JsonObject</span></a></span><span> </span><span id="local-6989586621679344961"><span class="annot"><span class="annottext">[(String, Json)]
+</span><a href="#local-6989586621679344961"><span class="hs-identifier hs-var">attrs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-35"></span><span>      </span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder -&gt; Builder
+</span><a href="Distribution.Utils.Json.html#surround"><span class="hs-identifier hs-var">surround</span></a></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;{&quot;</span></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;}&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Builder -&gt; Builder) -&gt; Builder -&gt; Builder
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">[Builder] -&gt; Builder
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#mconcat/GHC.Base.html#mconcat"><span class="hs-identifier hs-var">mconcat</span></a></span><span> </span><span class="annot"><span class="annottext">([Builder] -&gt; Builder) -&gt; [Builder] -&gt; Builder
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; [Builder] -&gt; [Builder]
+forall a. a -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#intersperse/Data.OldList.html#intersperse"><span class="hs-identifier hs-var">intersperse</span></a></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;,&quot;</span></span><span> </span><span class="annot"><span class="annottext">([Builder] -&gt; [Builder]) -&gt; [Builder] -&gt; [Builder]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">((String, Json) -&gt; Builder) -&gt; [(String, Json)] -&gt; [Builder]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">(String, Json) -&gt; Builder
+</span><a href="#local-6989586621679344962"><span class="hs-identifier hs-var">render</span></a></span><span> </span><span class="annot"><span class="annottext">[(String, Json)]
+</span><a href="#local-6989586621679344961"><span class="hs-identifier hs-var">attrs</span></a></span><span>
+</span><span id="line-36"></span><span>      </span><span class="hs-keyword">where</span><span>
+</span><span id="line-37"></span><span>        </span><span id="local-6989586621679344962"><span class="annot"><span class="annottext">render :: (String, Json) -&gt; Builder
+</span><a href="#local-6989586621679344962"><span class="hs-identifier hs-var hs-var">render</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679344969"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344969"><span class="hs-identifier hs-var">k</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679344970"><span class="annot"><span class="annottext">Json
+</span><a href="#local-6989586621679344970"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder -&gt; Builder
+</span><a href="Distribution.Utils.Json.html#surround"><span class="hs-identifier hs-var">surround</span></a></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;\&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;\&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Builder -&gt; Builder) -&gt; Builder -&gt; Builder
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; Builder
+</span><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.html#stringUtf8/Data.ByteString.Builder.html#stringUtf8"><span class="hs-identifier hs-var">stringUtf8</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ShowS
+</span><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344969"><span class="hs-identifier hs-var">k</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%3E/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;:&quot;</span></span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%3E/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Json -&gt; Builder
+</span><a href="#local-6989586621679344945"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Json
+</span><a href="#local-6989586621679344970"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-38"></span><span>    </span><span class="annot"><a href="#local-6989586621679344945"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-type">JsonString</span></a></span><span> </span><span id="local-6989586621679344972"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344972"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Builder -&gt; Builder -&gt; Builder -&gt; Builder
+</span><a href="Distribution.Utils.Json.html#surround"><span class="hs-identifier hs-var">surround</span></a></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;\&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;\&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Builder -&gt; Builder) -&gt; Builder -&gt; Builder
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; Builder
+</span><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.html#stringUtf8/Data.ByteString.Builder.html#stringUtf8"><span class="hs-identifier hs-var">stringUtf8</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ShowS
+</span><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344972"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="annot"><a href="Distribution.Utils.Json.html#surround"><span class="hs-identifier hs-type">surround</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.Internal.html#Builder/Data.ByteString.Builder.Internal.html#Builder"><span class="hs-identifier hs-type">Builder</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.Internal.html#Builder/Data.ByteString.Builder.Internal.html#Builder"><span class="hs-identifier hs-type">Builder</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.Internal.html#Builder/Data.ByteString.Builder.Internal.html#Builder"><span class="hs-identifier hs-type">Builder</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Builder.Internal.html#Builder/Data.ByteString.Builder.Internal.html#Builder"><span class="hs-identifier hs-type">Builder</span></a></span><span>
+</span><span id="line-41"></span><span id="surround"><span class="annot"><span class="annottext">surround :: Builder -&gt; Builder -&gt; Builder -&gt; Builder
+</span><a href="Distribution.Utils.Json.html#surround"><span class="hs-identifier hs-var hs-var">surround</span></a></span></span><span> </span><span id="local-6989586621679344973"><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679344973"><span class="hs-identifier hs-var">begin</span></a></span></span><span> </span><span id="local-6989586621679344974"><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679344974"><span class="hs-identifier hs-var">end</span></a></span></span><span> </span><span id="local-6989586621679344975"><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679344975"><span class="hs-identifier hs-var">middle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Builder] -&gt; Builder
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#mconcat/GHC.Base.html#mconcat"><span class="hs-identifier hs-var">mconcat</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679344973"><span class="hs-identifier hs-var">begin</span></a></span><span> </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679344975"><span class="hs-identifier hs-var">middle</span></a></span><span> </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679344974"><span class="hs-identifier hs-var">end</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="annot"><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-type">escape</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-44"></span><span id="escape"><span class="annot"><span class="annottext">escape :: ShowS
+</span><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var hs-var">escape</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\&quot;'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679344976"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344976"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\\&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%3E/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ShowS
+</span><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344976"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-45"></span><span class="annot"><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\\'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679344977"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344977"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\\\&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%3E/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ShowS
+</span><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344977"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-46"></span><span class="annot"><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\b'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679344978"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344978"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\b&quot;</span></span><span>  </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%3E/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ShowS
+</span><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344978"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-47"></span><span class="annot"><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\f'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679344979"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344979"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\f&quot;</span></span><span>  </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%3E/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ShowS
+</span><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344979"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-48"></span><span class="annot"><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\n'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679344980"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344980"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\n&quot;</span></span><span>  </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%3E/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ShowS
+</span><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344980"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-49"></span><span class="annot"><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\r'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679344981"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344981"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\r&quot;</span></span><span>  </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%3E/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ShowS
+</span><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344981"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-50"></span><span class="annot"><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\t'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679344982"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344982"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\t&quot;</span></span><span>  </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%3E/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ShowS
+</span><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344982"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-51"></span><span class="annot"><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679344983"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679344983"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679344984"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344984"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679344983"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; ShowS
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">ShowS
+</span><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344984"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-52"></span><span class="annot"><a href="Distribution.Utils.Json.html#escape"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+forall a. Monoid a =&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#mempty/GHC.Base.html#mempty"><span class="hs-identifier hs-var">mempty</span></a></span><span>
+</span><span id="line-53"></span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- | A shorthand for building up 'JsonObject's</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- &gt;&gt;&gt; JsonObject [ &quot;a&quot; .= JsonNumber 42, &quot;b&quot; .= JsonBool True ]</span><span>
+</span><span id="line-56"></span><span class="hs-comment">-- JsonObject [(&quot;a&quot;,JsonNumber 42),(&quot;b&quot;,JsonBool True)]</span><span>
+</span><span id="line-57"></span><span class="annot"><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-type">(.=)</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier hs-type">Json</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier hs-type">Json</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span id="local-6989586621679344985"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344985"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span id=".%3D"><span class="annot"><span class="annottext">.= :: String -&gt; Json -&gt; (String, Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var hs-var">.=</span></a></span></span><span> </span><span id="local-6989586621679344986"><span class="annot"><span class="annottext">Json
+</span><a href="#local-6989586621679344986"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679344985"><span class="hs-identifier hs-var">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Json
+</span><a href="#local-6989586621679344986"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span></pre></body></html>

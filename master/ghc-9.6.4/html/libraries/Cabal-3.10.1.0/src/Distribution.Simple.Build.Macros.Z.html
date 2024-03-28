@@ -1,0 +1,501 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.Build.Macros.Z</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#render"><span class="hs-identifier">render</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#Z"><span class="hs-identifier">Z</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#ZPackage"><span class="hs-identifier">ZPackage</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#ZTool"><span class="hs-identifier">ZTool</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.ZinzaPrelude.html"><span class="hs-identifier">Distribution.ZinzaPrelude</span></a></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">data</span><span> </span><span id="Z"><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#Z"><span class="hs-identifier hs-var">Z</span></a></span></span><span>
+</span><span id="line-5"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="Z"><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#Z"><span class="hs-identifier hs-var">Z</span></a></span></span><span> </span><span class="hs-special">{</span><span id="zPackages"><span class="annot"><span class="annottext">Z -&gt; [ZPackage]
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackages"><span class="hs-identifier hs-var hs-var">zPackages</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#ZPackage"><span class="hs-identifier hs-type">ZPackage</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>         </span><span id="zTools"><span class="annot"><span class="annottext">Z -&gt; [ZTool]
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zTools"><span class="hs-identifier hs-var hs-var">zTools</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#ZTool"><span class="hs-identifier hs-type">ZTool</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>         </span><span id="zPackageKey"><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackageKey"><span class="hs-identifier hs-var hs-var">zPackageKey</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>         </span><span id="zComponentId"><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zComponentId"><span class="hs-identifier hs-var hs-var">zComponentId</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>         </span><span id="zPackageVersion"><span class="annot"><span class="annottext">Z -&gt; Version
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackageVersion"><span class="hs-identifier hs-var hs-var">zPackageVersion</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Version.html#Version/Distribution.Types.Version.html#Version"><span class="hs-identifier hs-type">Version</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>         </span><span id="zNotNull"><span class="annot"><span class="annottext">Z -&gt; String -&gt; Bool
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zNotNull"><span class="hs-identifier hs-var hs-var">zNotNull</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>         </span><span id="zManglePkgName"><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zManglePkgName"><span class="hs-identifier hs-var hs-var">zManglePkgName</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#PackageName/Distribution.Types.PackageName.html#PackageName"><span class="hs-identifier hs-type">PackageName</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>         </span><span id="zMangleStr"><span class="annot"><span class="annottext">Z -&gt; String -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zMangleStr"><span class="hs-identifier hs-var hs-var">zMangleStr</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">)</span><span class="hs-special">}</span><span>
+</span><span id="line-13"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679348377"><span id="local-6989586621679348379"><span class="annot"><span class="annottext">(forall x. Z -&gt; Rep Z x) -&gt; (forall x. Rep Z x -&gt; Z) -&gt; Generic Z
+forall x. Rep Z x -&gt; Z
+forall x. Z -&gt; Rep Z x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Z -&gt; Rep Z x
+from :: forall x. Z -&gt; Rep Z x
+$cto :: forall x. Rep Z x -&gt; Z
+to :: forall x. Rep Z x -&gt; Z
+</span><a href="../../base-4.18.2.0/src/GHC.Generics.html#Generic/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></a></span></span></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">data</span><span> </span><span id="ZPackage"><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#ZPackage"><span class="hs-identifier hs-var">ZPackage</span></a></span></span><span>
+</span><span id="line-15"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="ZPackage"><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#ZPackage"><span class="hs-identifier hs-var">ZPackage</span></a></span></span><span> </span><span class="hs-special">{</span><span id="zpkgName"><span class="annot"><span class="annottext">ZPackage -&gt; PackageName
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgName"><span class="hs-identifier hs-var hs-var">zpkgName</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#PackageName/Distribution.Types.PackageName.html#PackageName"><span class="hs-identifier hs-type">PackageName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>                </span><span id="zpkgVersion"><span class="annot"><span class="annottext">ZPackage -&gt; Version
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgVersion"><span class="hs-identifier hs-var hs-var">zpkgVersion</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Version.html#Version/Distribution.Types.Version.html#Version"><span class="hs-identifier hs-type">Version</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>                </span><span id="zpkgX"><span class="annot"><span class="annottext">ZPackage -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgX"><span class="hs-identifier hs-var hs-var">zpkgX</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>                </span><span id="zpkgY"><span class="annot"><span class="annottext">ZPackage -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgY"><span class="hs-identifier hs-var hs-var">zpkgY</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>                </span><span id="zpkgZ"><span class="annot"><span class="annottext">ZPackage -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgZ"><span class="hs-identifier hs-var hs-var">zpkgZ</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679348389"><span id="local-6989586621679348391"><span class="annot"><span class="annottext">(forall x. ZPackage -&gt; Rep ZPackage x)
+-&gt; (forall x. Rep ZPackage x -&gt; ZPackage) -&gt; Generic ZPackage
+forall x. Rep ZPackage x -&gt; ZPackage
+forall x. ZPackage -&gt; Rep ZPackage x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. ZPackage -&gt; Rep ZPackage x
+from :: forall x. ZPackage -&gt; Rep ZPackage x
+$cto :: forall x. Rep ZPackage x -&gt; ZPackage
+to :: forall x. Rep ZPackage x -&gt; ZPackage
+</span><a href="../../base-4.18.2.0/src/GHC.Generics.html#Generic/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></a></span></span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">data</span><span> </span><span id="ZTool"><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#ZTool"><span class="hs-identifier hs-var">ZTool</span></a></span></span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="ZTool"><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#ZTool"><span class="hs-identifier hs-var">ZTool</span></a></span></span><span> </span><span class="hs-special">{</span><span id="ztoolName"><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolName"><span class="hs-identifier hs-var hs-var">ztoolName</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>             </span><span id="ztoolVersion"><span class="annot"><span class="annottext">ZTool -&gt; Version
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolVersion"><span class="hs-identifier hs-var hs-var">ztoolVersion</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Version.html#Version/Distribution.Types.Version.html#Version"><span class="hs-identifier hs-type">Version</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>             </span><span id="ztoolX"><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolX"><span class="hs-identifier hs-var hs-var">ztoolX</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>             </span><span id="ztoolY"><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolY"><span class="hs-identifier hs-var hs-var">ztoolY</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>             </span><span id="ztoolZ"><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolZ"><span class="hs-identifier hs-var hs-var">ztoolZ</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-27"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679348400"><span id="local-6989586621679348402"><span class="annot"><span class="annottext">(forall x. ZTool -&gt; Rep ZTool x)
+-&gt; (forall x. Rep ZTool x -&gt; ZTool) -&gt; Generic ZTool
+forall x. Rep ZTool x -&gt; ZTool
+forall x. ZTool -&gt; Rep ZTool x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. ZTool -&gt; Rep ZTool x
+from :: forall x. ZTool -&gt; Rep ZTool x
+$cto :: forall x. Rep ZTool x -&gt; ZTool
+to :: forall x. Rep ZTool x -&gt; ZTool
+</span><a href="../../base-4.18.2.0/src/GHC.Generics.html#Generic/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></a></span></span></span><span>
+</span><span id="line-28"></span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#render"><span class="hs-identifier hs-type">render</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#Z"><span class="hs-identifier hs-type">Z</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-29"></span><span id="render"><span class="annot"><span class="annottext">render :: Z -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#render"><span class="hs-identifier hs-var hs-var">render</span></a></span></span><span> </span><span id="local-6989586621679348404"><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Writer () -&gt; String
+forall a. Writer a -&gt; String
+</span><a href="Distribution.ZinzaPrelude.html#execWriter"><span class="hs-identifier hs-var">execWriter</span></a></span><span> </span><span class="annot"><span class="annottext">(Writer () -&gt; String) -&gt; Writer () -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-30"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;/* DO NOT EDIT: This file is automatically generated by Cabal */\n&quot;</span></span><span>
+</span><span id="line-31"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-32"></span><span>  </span><span class="annot"><span class="annottext">[ZPackage] -&gt; (ZPackage -&gt; Writer ()) -&gt; Writer ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m ()
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#forM_/Data.Foldable.html#forM_"><span class="hs-identifier hs-var">forM_</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; [ZPackage]
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackages"><span class="hs-identifier hs-var">zPackages</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((ZPackage -&gt; Writer ()) -&gt; Writer ())
+-&gt; (ZPackage -&gt; Writer ()) -&gt; Writer ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679348408"><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-33"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;/* package &quot;</span></span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageName -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; PackageName
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgName"><span class="hs-identifier hs-var">zpkgName</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;-&quot;</span></span><span>
+</span><span id="line-36"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; Version
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgVersion"><span class="hs-identifier hs-var">zpkgVersion</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; */\n&quot;</span></span><span>
+</span><span id="line-38"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#ifndef VERSION_&quot;</span></span><span>
+</span><span id="line-39"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; PackageName
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgName"><span class="hs-identifier hs-var">zpkgName</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#define VERSION_&quot;</span></span><span>
+</span><span id="line-42"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; PackageName
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgName"><span class="hs-identifier hs-var">zpkgName</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; \&quot;&quot;</span></span><span>
+</span><span id="line-44"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; Version
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgVersion"><span class="hs-identifier hs-var">zpkgVersion</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;\n&quot;</span></span><span>
+</span><span id="line-46"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#endif /* VERSION_&quot;</span></span><span>
+</span><span id="line-47"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; PackageName
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgName"><span class="hs-identifier hs-var">zpkgName</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; */\n&quot;</span></span><span>
+</span><span id="line-49"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#ifndef MIN_VERSION_&quot;</span></span><span>
+</span><span id="line-50"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; PackageName
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgName"><span class="hs-identifier hs-var">zpkgName</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-52"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#define MIN_VERSION_&quot;</span></span><span>
+</span><span id="line-53"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; PackageName
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgName"><span class="hs-identifier hs-var">zpkgName</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;(major1,major2,minor) (\\\n&quot;</span></span><span>
+</span><span id="line-55"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  (major1) &lt;  &quot;</span></span><span>
+</span><span id="line-56"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgX"><span class="hs-identifier hs-var">zpkgX</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; || \\\n&quot;</span></span><span>
+</span><span id="line-58"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  (major1) == &quot;</span></span><span>
+</span><span id="line-59"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgX"><span class="hs-identifier hs-var">zpkgX</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-60"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; &amp;&amp; (major2) &lt;  &quot;</span></span><span>
+</span><span id="line-61"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgY"><span class="hs-identifier hs-var">zpkgY</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; || \\\n&quot;</span></span><span>
+</span><span id="line-63"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  (major1) == &quot;</span></span><span>
+</span><span id="line-64"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgX"><span class="hs-identifier hs-var">zpkgX</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; &amp;&amp; (major2) == &quot;</span></span><span>
+</span><span id="line-66"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgY"><span class="hs-identifier hs-var">zpkgY</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-67"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; &amp;&amp; (minor) &lt;= &quot;</span></span><span>
+</span><span id="line-68"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgZ"><span class="hs-identifier hs-var">zpkgZ</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-69"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;)\n&quot;</span></span><span>
+</span><span id="line-70"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#endif /* MIN_VERSION_&quot;</span></span><span>
+</span><span id="line-71"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZPackage -&gt; PackageName
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgName"><span class="hs-identifier hs-var">zpkgName</span></a></span><span> </span><span class="annot"><span class="annottext">ZPackage
+</span><a href="#local-6989586621679348408"><span class="hs-identifier hs-var">z_var0_pkg</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; */\n&quot;</span></span><span>
+</span><span id="line-73"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-74"></span><span>  </span><span class="annot"><span class="annottext">[ZTool] -&gt; (ZTool -&gt; Writer ()) -&gt; Writer ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m ()
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#forM_/Data.Foldable.html#forM_"><span class="hs-identifier hs-var">forM_</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; [ZTool]
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zTools"><span class="hs-identifier hs-var">zTools</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((ZTool -&gt; Writer ()) -&gt; Writer ())
+-&gt; (ZTool -&gt; Writer ()) -&gt; Writer ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679348410"><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-75"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;/* tool &quot;</span></span><span>
+</span><span id="line-76"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolName"><span class="hs-identifier hs-var">ztoolName</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;-&quot;</span></span><span>
+</span><span id="line-78"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; Version
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolVersion"><span class="hs-identifier hs-var">ztoolVersion</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-79"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; */\n&quot;</span></span><span>
+</span><span id="line-80"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#ifndef TOOL_VERSION_&quot;</span></span><span>
+</span><span id="line-81"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zMangleStr"><span class="hs-identifier hs-var">zMangleStr</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolName"><span class="hs-identifier hs-var">ztoolName</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-83"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#define TOOL_VERSION_&quot;</span></span><span>
+</span><span id="line-84"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zMangleStr"><span class="hs-identifier hs-var">zMangleStr</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolName"><span class="hs-identifier hs-var">ztoolName</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-85"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; \&quot;&quot;</span></span><span>
+</span><span id="line-86"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; Version
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolVersion"><span class="hs-identifier hs-var">ztoolVersion</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-87"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;\n&quot;</span></span><span>
+</span><span id="line-88"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#endif /* TOOL_VERSION_&quot;</span></span><span>
+</span><span id="line-89"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zMangleStr"><span class="hs-identifier hs-var">zMangleStr</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolName"><span class="hs-identifier hs-var">ztoolName</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; */\n&quot;</span></span><span>
+</span><span id="line-91"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#ifndef MIN_TOOL_VERSION_&quot;</span></span><span>
+</span><span id="line-92"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zMangleStr"><span class="hs-identifier hs-var">zMangleStr</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolName"><span class="hs-identifier hs-var">ztoolName</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-93"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-94"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#define MIN_TOOL_VERSION_&quot;</span></span><span>
+</span><span id="line-95"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zMangleStr"><span class="hs-identifier hs-var">zMangleStr</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolName"><span class="hs-identifier hs-var">ztoolName</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-96"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;(major1,major2,minor) (\\\n&quot;</span></span><span>
+</span><span id="line-97"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  (major1) &lt;  &quot;</span></span><span>
+</span><span id="line-98"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolX"><span class="hs-identifier hs-var">ztoolX</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-99"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; || \\\n&quot;</span></span><span>
+</span><span id="line-100"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  (major1) == &quot;</span></span><span>
+</span><span id="line-101"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolX"><span class="hs-identifier hs-var">ztoolX</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-102"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; &amp;&amp; (major2) &lt;  &quot;</span></span><span>
+</span><span id="line-103"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolY"><span class="hs-identifier hs-var">ztoolY</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; || \\\n&quot;</span></span><span>
+</span><span id="line-105"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  (major1) == &quot;</span></span><span>
+</span><span id="line-106"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolX"><span class="hs-identifier hs-var">ztoolX</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-107"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; &amp;&amp; (major2) == &quot;</span></span><span>
+</span><span id="line-108"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolY"><span class="hs-identifier hs-var">ztoolY</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-109"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; &amp;&amp; (minor) &lt;= &quot;</span></span><span>
+</span><span id="line-110"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolZ"><span class="hs-identifier hs-var">ztoolZ</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-111"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;)\n&quot;</span></span><span>
+</span><span id="line-112"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#endif /* MIN_TOOL_VERSION_&quot;</span></span><span>
+</span><span id="line-113"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zMangleStr"><span class="hs-identifier hs-var">zMangleStr</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ZTool -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolName"><span class="hs-identifier hs-var">ztoolName</span></a></span><span> </span><span class="annot"><span class="annottext">ZTool
+</span><a href="#local-6989586621679348410"><span class="hs-identifier hs-var">z_var1_tool</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; */\n&quot;</span></span><span>
+</span><span id="line-115"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String -&gt; Bool
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zNotNull"><span class="hs-identifier hs-var">zNotNull</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackageKey"><span class="hs-identifier hs-var">zPackageKey</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-117"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-118"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#ifndef CURRENT_PACKAGE_KEY\n&quot;</span></span><span>
+</span><span id="line-119"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#define CURRENT_PACKAGE_KEY \&quot;&quot;</span></span><span>
+</span><span id="line-120"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackageKey"><span class="hs-identifier hs-var">zPackageKey</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-121"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;\n&quot;</span></span><span>
+</span><span id="line-122"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#endif /* CURRENT_packageKey */\n&quot;</span></span><span>
+</span><span id="line-123"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-125"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-126"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String -&gt; Bool
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zNotNull"><span class="hs-identifier hs-var">zNotNull</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zComponentId"><span class="hs-identifier hs-var">zComponentId</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-127"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-128"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#ifndef CURRENT_COMPONENT_ID\n&quot;</span></span><span>
+</span><span id="line-129"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#define CURRENT_COMPONENT_ID \&quot;&quot;</span></span><span>
+</span><span id="line-130"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zComponentId"><span class="hs-identifier hs-var">zComponentId</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-131"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;\n&quot;</span></span><span>
+</span><span id="line-132"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#endif /* CURRENT_COMPONENT_ID */\n&quot;</span></span><span>
+</span><span id="line-133"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-134"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-135"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-136"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#ifndef CURRENT_PACKAGE_VERSION\n&quot;</span></span><span>
+</span><span id="line-137"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#define CURRENT_PACKAGE_VERSION \&quot;&quot;</span></span><span>
+</span><span id="line-138"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Version
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackageVersion"><span class="hs-identifier hs-var">zPackageVersion</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348404"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-139"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;\n&quot;</span></span><span>
+</span><span id="line-140"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#endif /* CURRENT_PACKAGE_VERSION */\n&quot;</span></span><span>
+</span><span id="line-141"></span></pre></body></html>

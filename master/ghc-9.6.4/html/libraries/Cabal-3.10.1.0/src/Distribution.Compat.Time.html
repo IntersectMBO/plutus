@@ -1,0 +1,487 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveDataTypeable #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-7"></span><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Compat.Time</span><span>
+</span><span id="line-10"></span><span>       </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier">ModTime</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- Needed for testing</span><span>
+</span><span id="line-11"></span><span>       </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#getModTime"><span class="hs-identifier">getModTime</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#getFileAge"><span class="hs-identifier">getFileAge</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#getCurTime"><span class="hs-identifier">getCurTime</span></a></span><span>
+</span><span id="line-12"></span><span>       </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#posixSecondsToModTime"><span class="hs-identifier">posixSecondsToModTime</span></a></span><span>
+</span><span id="line-13"></span><span>       </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#calibrateMtimeChangeDelay"><span class="hs-identifier">calibrateMtimeChangeDelay</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>       </span><span class="hs-keyword">where</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../directory-1.3.8.1/src/System.Directory.html#/System.Directory.html"><span class="hs-identifier">System.Directory</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../directory-1.3.8.1/src/System.Directory.html#getModificationTime/System.Directory.html#getModificationTime"><span class="hs-identifier">getModificationTime</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html"><span class="hs-identifier">Distribution.Simple.Utils</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#withTempDirectory"><span class="hs-identifier">withTempDirectory</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html"><span class="hs-identifier">Distribution.Verbosity</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#silent"><span class="hs-identifier">silent</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../filepath-1.4.200.1/src/System.FilePath.html#/System.FilePath.html"><span class="hs-identifier">System.FilePath</span></a></span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../time-1.12.2/src/Data.Time.Clock.POSIX.html#/Data.Time.Clock.POSIX.html"><span class="hs-identifier">Data.Time.Clock.POSIX</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../time-1.12.2/src/Data.Time.Clock.Internal.POSIXTime.html#POSIXTime/Data.Time.Clock.Internal.POSIXTime.html#POSIXTime"><span class="hs-identifier">POSIXTime</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../time-1.12.2/src/Data.Time.Clock.POSIX.html#getPOSIXTime/Data.Time.Clock.POSIX.html#getPOSIXTime"><span class="hs-identifier">getPOSIXTime</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../time-1.12.2/src/Data.Time.html#/Data.Time.html"><span class="hs-identifier">Data.Time</span></a></span><span>             </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../time-1.12.2/src/Data.Time.Clock.Internal.UTCDiff.html#diffUTCTime/Data.Time.Clock.Internal.UTCDiff.html#diffUTCTime"><span class="hs-identifier">diffUTCTime</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../time-1.12.2/src/Data.Time.Clock.POSIX.html#getCurrentTime/Data.Time.Clock.POSIX.html#getCurrentTime"><span class="hs-identifier">getCurrentTime</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../time-1.12.2/src/Data.Time.Clock.POSIX.html#/Data.Time.Clock.POSIX.html"><span class="hs-identifier">Data.Time.Clock.POSIX</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../time-1.12.2/src/Data.Time.Clock.Internal.POSIXTime.html#posixDayLength/Data.Time.Clock.Internal.POSIXTime.html#posixDayLength"><span class="hs-identifier">posixDayLength</span></a></span><span> </span><span class="hs-special">)</span><span class="hs-cpp">
+
+
+#if defined mingw32_HOST_OS
+</span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Prelude</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Bits</span><span>          </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator">.|.</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">unsafeShiftL</span><span class="hs-special">)</span><span class="hs-cpp">
+#if MIN_VERSION_base(4,7,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Bits</span><span>          </span><span class="hs-special">(</span><span class="hs-identifier">finiteBitSize</span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Bits</span><span>          </span><span class="hs-special">(</span><span class="hs-identifier">bitSize</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-41"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Foreign</span><span>            </span><span class="hs-special">(</span><span> </span><span class="hs-identifier">allocaBytes</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">peekByteOff</span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">System.IO.Error</span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-identifier">mkIOError</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">doesNotExistErrorType</span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">System.Win32.Types</span><span> </span><span class="hs-special">(</span><span> </span><span class="hs-identifier">BOOL</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">DWORD</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">LPCTSTR</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">LPVOID</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">withTString</span><span> </span><span class="hs-special">)</span><span class="hs-cpp">
+
+#else
+</span><span>
+</span><span id="line-47"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../unix-2.8.4.0/src/System.Posix.Files.html#/System.Posix.Files.html"><span class="hs-identifier">System.Posix.Files</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../unix-2.8.4.0/src/System.Posix.Files.Common.html#FileStatus/System.Posix.Files.Common.html#FileStatus"><span class="hs-identifier">FileStatus</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../unix-2.8.4.0/src/System.Posix.Files.html#getFileStatus/System.Posix.Files.html#getFileStatus"><span class="hs-identifier">getFileStatus</span></a></span><span> </span><span class="hs-special">)</span><span class="hs-cpp">
+
+#if MIN_VERSION_unix(2,6,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../unix-2.8.4.0/src/System.Posix.Files.html#/System.Posix.Files.html"><span class="hs-identifier">System.Posix.Files</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../unix-2.8.4.0/src/System.Posix.Files.Common.html#modificationTimeHiRes/System.Posix.Files.Common.html#modificationTimeHiRes"><span class="hs-identifier">modificationTimeHiRes</span></a></span><span> </span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">System.Posix.Files</span><span> </span><span class="hs-special">(</span><span> </span><span class="hs-identifier">modificationTime</span><span> </span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- | An opaque type representing a file's modification time, represented</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- internally as a 64-bit unsigned integer in the Windows UTC format.</span><span>
+</span><span id="line-59"></span><span class="hs-keyword">newtype</span><span> </span><span id="ModTime"><span class="annot"><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-var">ModTime</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ModTime"><span class="annot"><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-var">ModTime</span></a></span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Word.html#Word64/GHC.Word.html#Word64"><span class="hs-identifier hs-type">Word64</span></a></span><span>
+</span><span id="line-60"></span><span>                </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679379784"><span id="local-6989586621679379789"><span id="local-6989586621679379793"><span class="annot"><span class="annottext">Get ModTime
+[ModTime] -&gt; Put
+ModTime -&gt; Put
+(ModTime -&gt; Put)
+-&gt; Get ModTime -&gt; ([ModTime] -&gt; Put) -&gt; Binary ModTime
+forall t. (t -&gt; Put) -&gt; Get t -&gt; ([t] -&gt; Put) -&gt; Binary t
+$cput :: ModTime -&gt; Put
+put :: ModTime -&gt; Put
+$cget :: Get ModTime
+get :: Get ModTime
+$cputList :: [ModTime] -&gt; Put
+putList :: [ModTime] -&gt; Put
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Binary</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679379799"><span id="local-6989586621679379801"><span class="annot"><span class="annottext">(forall x. ModTime -&gt; Rep ModTime x)
+-&gt; (forall x. Rep ModTime x -&gt; ModTime) -&gt; Generic ModTime
+forall x. Rep ModTime x -&gt; ModTime
+forall x. ModTime -&gt; Rep ModTime x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. ModTime -&gt; Rep ModTime x
+from :: forall x. ModTime -&gt; Rep ModTime x
+$cto :: forall x. Rep ModTime x -&gt; ModTime
+to :: forall x. Rep ModTime x -&gt; ModTime
+</span><a href="../../base-4.18.2.0/src/GHC.Generics.html#Generic/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></a></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679379805"><span id="local-6989586621679379810"><span class="annot"><span class="annottext">ModTime
+ModTime -&gt; ModTime -&gt; Bounded ModTime
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: ModTime
+minBound :: ModTime
+$cmaxBound :: ModTime
+maxBound :: ModTime
+</span><a href="../../base-4.18.2.0/src/GHC.Enum.html#Bounded/GHC.Enum.html#Bounded"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></a></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679379816"><span id="local-6989586621679379821"><span class="annot"><span class="annottext">ModTime -&gt; ModTime -&gt; Bool
+(ModTime -&gt; ModTime -&gt; Bool)
+-&gt; (ModTime -&gt; ModTime -&gt; Bool) -&gt; Eq ModTime
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ModTime -&gt; ModTime -&gt; Bool
+== :: ModTime -&gt; ModTime -&gt; Bool
+$c/= :: ModTime -&gt; ModTime -&gt; Bool
+/= :: ModTime -&gt; ModTime -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679379829"><span id="local-6989586621679379834"><span id="local-6989586621679379838"><span id="local-6989586621679379842"><span id="local-6989586621679379846"><span id="local-6989586621679379850"><span id="local-6989586621679379854"><span class="annot"><span class="annottext">Eq ModTime
+Eq ModTime =&gt;
+(ModTime -&gt; ModTime -&gt; Ordering)
+-&gt; (ModTime -&gt; ModTime -&gt; Bool)
+-&gt; (ModTime -&gt; ModTime -&gt; Bool)
+-&gt; (ModTime -&gt; ModTime -&gt; Bool)
+-&gt; (ModTime -&gt; ModTime -&gt; Bool)
+-&gt; (ModTime -&gt; ModTime -&gt; ModTime)
+-&gt; (ModTime -&gt; ModTime -&gt; ModTime)
+-&gt; Ord ModTime
+ModTime -&gt; ModTime -&gt; Bool
+ModTime -&gt; ModTime -&gt; Ordering
+ModTime -&gt; ModTime -&gt; ModTime
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: ModTime -&gt; ModTime -&gt; Ordering
+compare :: ModTime -&gt; ModTime -&gt; Ordering
+$c&lt; :: ModTime -&gt; ModTime -&gt; Bool
+&lt; :: ModTime -&gt; ModTime -&gt; Bool
+$c&lt;= :: ModTime -&gt; ModTime -&gt; Bool
+&lt;= :: ModTime -&gt; ModTime -&gt; Bool
+$c&gt; :: ModTime -&gt; ModTime -&gt; Bool
+&gt; :: ModTime -&gt; ModTime -&gt; Bool
+$c&gt;= :: ModTime -&gt; ModTime -&gt; Bool
+&gt;= :: ModTime -&gt; ModTime -&gt; Bool
+$cmax :: ModTime -&gt; ModTime -&gt; ModTime
+max :: ModTime -&gt; ModTime -&gt; ModTime
+$cmin :: ModTime -&gt; ModTime -&gt; ModTime
+min :: ModTime -&gt; ModTime -&gt; ModTime
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Typeable.Internal.html#Typeable/Data.Typeable.Internal.html#Typeable"><span class="hs-identifier hs-type">Typeable</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679379862"><span id="local-6989586621679379869"><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Structured.html#Structured/Distribution.Utils.Structured.html#Structured"><span class="hs-identifier hs-type">Structured</span></a></span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-type">ModTime</span></a></span></span></span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679379898"><span id="local-6989586621679379903"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-type">Show</span></a></span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-type">ModTime</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-65"></span><span>  </span><span id="local-6989586621679379908"><span class="annot"><span class="annottext">show :: ModTime -&gt; String
+</span><a href="#local-6989586621679379908"><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-type">ModTime</span></a></span><span> </span><span id="local-6989586621679379910"><span class="annot"><span class="annottext">Word64
+</span><a href="#local-6989586621679379910"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#show/GHC.Show.html#show"><span class="hs-identifier hs-var">show</span></a></span><span> </span><span class="annot"><span class="annottext">Word64
+</span><a href="#local-6989586621679379910"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679379913"><span id="local-6989586621679379917"><span id="local-6989586621679379920"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Read.html#Read/GHC.Read.html#Read"><span class="hs-identifier hs-type">Read</span></a></span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-type">ModTime</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-68"></span><span>  </span><span id="local-6989586621679379927"><span class="annot"><span class="annottext">readsPrec :: Int -&gt; ReadS ModTime
+</span><a href="#local-6989586621679379927"><span class="hs-identifier hs-var hs-var hs-var hs-var">readsPrec</span></a></span></span><span> </span><span id="local-6989586621679379929"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679379929"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679379930"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379930"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((Word64, String) -&gt; (ModTime, String))
+-&gt; [(Word64, String)] -&gt; [(ModTime, String)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Word64 -&gt; ModTime) -&gt; (Word64, String) -&gt; (ModTime, String)
+forall b c d. (b -&gt; c) -&gt; (b, d) -&gt; (c, d)
+forall (a :: * -&gt; * -&gt; *) b c d.
+Arrow a =&gt;
+a b c -&gt; a (b, d) (c, d)
+</span><a href="../../base-4.18.2.0/src/Control.Arrow.html#first/Control.Arrow.html#first"><span class="hs-identifier hs-var">first</span></a></span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; ModTime
+</span><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-var">ModTime</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; ReadS Word64
+forall a. Read a =&gt; Int -&gt; ReadS a
+</span><a href="../../base-4.18.2.0/src/GHC.Read.html#readsPrec/GHC.Read.html#readsPrec"><span class="hs-identifier hs-var">readsPrec</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679379929"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379930"><span class="hs-identifier hs-var">str</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- | Return modification time of the given file. Works around the low clock</span><span>
+</span><span id="line-71"></span><span class="hs-comment">-- resolution problem that 'getModificationTime' has on GHC &lt; 7.8.</span><span>
+</span><span id="line-72"></span><span class="hs-comment">--</span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- This is a modified version of the code originally written for Shake by Neil</span><span>
+</span><span id="line-74"></span><span class="hs-comment">-- Mitchell. See module Development.Shake.FileInfo.</span><span>
+</span><span id="line-75"></span><span class="annot"><a href="Distribution.Compat.Time.html#getModTime"><span class="hs-identifier hs-type">getModTime</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-type">ModTime</span></a></span><span class="hs-cpp">
+
+#if defined mingw32_HOST_OS
+</span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- Directly against the Win32 API.</span><span>
+</span><span id="line-80"></span><span class="hs-identifier">getModTime</span><span> </span><span class="hs-identifier">path</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">allocaBytes</span><span> </span><span class="hs-identifier">size_WIN32_FILE_ATTRIBUTE_DATA</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-glyph">\</span><span class="hs-identifier">info</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-81"></span><span>  </span><span class="hs-identifier">res</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-identifier">getFileAttributesEx</span><span> </span><span class="hs-identifier">path</span><span> </span><span class="hs-identifier">info</span><span>
+</span><span id="line-82"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-identifier">not</span><span> </span><span class="hs-identifier">res</span><span>
+</span><span id="line-83"></span><span>    </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-84"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span class="hs-identifier">err</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">mkIOError</span><span> </span><span class="hs-identifier">doesNotExistErrorType</span><span>
+</span><span id="line-85"></span><span>                </span><span class="hs-string">&quot;Distribution.Compat.Time.getModTime&quot;</span><span>
+</span><span id="line-86"></span><span>                </span><span class="hs-identifier">Nothing</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Just</span><span> </span><span class="hs-identifier">path</span><span class="hs-special">)</span><span>
+</span><span id="line-87"></span><span>      </span><span class="hs-identifier">ioError</span><span> </span><span class="hs-identifier">err</span><span>
+</span><span id="line-88"></span><span>    </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-89"></span><span>      </span><span class="hs-identifier">dwLow</span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-identifier">peekByteOff</span><span> </span><span class="hs-identifier">info</span><span>
+</span><span id="line-90"></span><span>                </span><span class="hs-identifier">index_WIN32_FILE_ATTRIBUTE_DATA_ftLastWriteTime_dwLowDateTime</span><span>
+</span><span id="line-91"></span><span>      </span><span class="hs-identifier">dwHigh</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-identifier">peekByteOff</span><span> </span><span class="hs-identifier">info</span><span>
+</span><span id="line-92"></span><span>                </span><span class="hs-identifier">index_WIN32_FILE_ATTRIBUTE_DATA_ftLastWriteTime_dwHighDateTime</span><span class="hs-cpp">
+#if MIN_VERSION_base(4,7,0)
+</span><span>      </span><span class="hs-keyword">let</span><span> </span><span class="hs-identifier">qwTime</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-95"></span><span>            </span><span class="hs-special">(</span><span class="hs-identifier">fromIntegral</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">dwHigh</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">DWORD</span><span class="hs-special">)</span><span> </span><span class="hs-special">`</span><span class="hs-identifier">unsafeShiftL</span><span class="hs-special">`</span><span> </span><span class="hs-identifier">finiteBitSize</span><span> </span><span class="hs-identifier">dwHigh</span><span class="hs-special">)</span><span>
+</span><span id="line-96"></span><span>            </span><span class="hs-operator">.|.</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">fromIntegral</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">dwLow</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">DWORD</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span>      </span><span class="hs-keyword">let</span><span> </span><span class="hs-identifier">qwTime</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-99"></span><span>            </span><span class="hs-special">(</span><span class="hs-identifier">fromIntegral</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">dwHigh</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">DWORD</span><span class="hs-special">)</span><span> </span><span class="hs-special">`</span><span class="hs-identifier">unsafeShiftL</span><span class="hs-special">`</span><span> </span><span class="hs-identifier">bitSize</span><span> </span><span class="hs-identifier">dwHigh</span><span class="hs-special">)</span><span>
+</span><span id="line-100"></span><span>            </span><span class="hs-operator">.|.</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">fromIntegral</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">dwLow</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">DWORD</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>      </span><span class="hs-identifier">return</span><span> </span><span class="hs-operator">$!</span><span> </span><span class="hs-identifier">ModTime</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">qwTime</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">Word64</span><span class="hs-special">)</span><span class="hs-cpp">
+
+#ifdef x86_64_HOST_ARCH
+</span><span class="hs-cpp">#define CALLCONV ccall
+</span><span class="hs-cpp">#else
+</span><span class="hs-cpp">#define CALLCONV stdcall
+</span><span class="hs-cpp">#endif
+</span><span>
+</span><span id="line-110"></span><span class="hs-keyword">foreign</span><span> </span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">CALLCONV</span><span> </span><span class="hs-string">&quot;windows.h GetFileAttributesExW&quot;</span><span>
+</span><span id="line-111"></span><span>  </span><span class="hs-identifier">c_getFileAttributesEx</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">LPCTSTR</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Int32</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">LPVOID</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Prelude.IO</span><span> </span><span class="hs-identifier">BOOL</span><span>
+</span><span id="line-112"></span><span>
+</span><span id="line-113"></span><span class="hs-identifier">getFileAttributesEx</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">String</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">LPVOID</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">IO</span><span> </span><span class="hs-identifier">BOOL</span><span>
+</span><span id="line-114"></span><span class="hs-identifier">getFileAttributesEx</span><span> </span><span class="hs-identifier">path</span><span> </span><span class="hs-identifier">lpFileInformation</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-115"></span><span>  </span><span class="hs-identifier">withTString</span><span> </span><span class="hs-identifier">path</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-glyph">\</span><span class="hs-identifier">c_path</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-116"></span><span>      </span><span class="hs-identifier">c_getFileAttributesEx</span><span> </span><span class="hs-identifier">c_path</span><span> </span><span class="hs-identifier">getFileExInfoStandard</span><span> </span><span class="hs-identifier">lpFileInformation</span><span>
+</span><span id="line-117"></span><span>
+</span><span id="line-118"></span><span class="hs-identifier">getFileExInfoStandard</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">Int32</span><span>
+</span><span id="line-119"></span><span class="hs-identifier">getFileExInfoStandard</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-number">0</span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span class="hs-identifier">size_WIN32_FILE_ATTRIBUTE_DATA</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">Int</span><span>
+</span><span id="line-122"></span><span class="hs-identifier">size_WIN32_FILE_ATTRIBUTE_DATA</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-number">36</span><span>
+</span><span id="line-123"></span><span>
+</span><span id="line-124"></span><span class="hs-identifier">index_WIN32_FILE_ATTRIBUTE_DATA_ftLastWriteTime_dwLowDateTime</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">Int</span><span>
+</span><span id="line-125"></span><span class="hs-identifier">index_WIN32_FILE_ATTRIBUTE_DATA_ftLastWriteTime_dwLowDateTime</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-number">20</span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span class="hs-identifier">index_WIN32_FILE_ATTRIBUTE_DATA_ftLastWriteTime_dwHighDateTime</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">Int</span><span>
+</span><span id="line-128"></span><span class="hs-identifier">index_WIN32_FILE_ATTRIBUTE_DATA_ftLastWriteTime_dwHighDateTime</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-number">24</span><span class="hs-cpp">
+
+#else
+</span><span>
+</span><span id="line-132"></span><span class="hs-comment">-- Directly against the unix library.</span><span>
+</span><span id="line-133"></span><span id="getModTime"><span class="annot"><span class="annottext">getModTime :: String -&gt; IO ModTime
+</span><a href="Distribution.Compat.Time.html#getModTime"><span class="hs-identifier hs-var hs-var">getModTime</span></a></span></span><span> </span><span id="local-6989586621679379932"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379932"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-134"></span><span>    </span><span id="local-6989586621679379933"><span class="annot"><span class="annottext">FileStatus
+</span><a href="#local-6989586621679379933"><span class="hs-identifier hs-var">st</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO FileStatus
+</span><a href="../../unix-2.8.4.0/src/System.Posix.Files.html#getFileStatus/System.Posix.Files.html#getFileStatus"><span class="hs-identifier hs-var">getFileStatus</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379932"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-135"></span><span>    </span><span class="annot"><span class="annottext">ModTime -&gt; IO ModTime
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">(ModTime -&gt; IO ModTime) -&gt; ModTime -&gt; IO ModTime
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24%21/GHC.Base.html#%24%21"><span class="hs-operator hs-var">$!</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FileStatus -&gt; ModTime
+</span><a href="Distribution.Compat.Time.html#extractFileTime"><span class="hs-identifier hs-var">extractFileTime</span></a></span><span> </span><span class="annot"><span class="annottext">FileStatus
+</span><a href="#local-6989586621679379933"><span class="hs-identifier hs-var">st</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-136"></span><span>
+</span><span id="line-137"></span><span class="annot"><a href="Distribution.Compat.Time.html#extractFileTime"><span class="hs-identifier hs-type">extractFileTime</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../unix-2.8.4.0/src/System.Posix.Files.Common.html#FileStatus/System.Posix.Files.Common.html#FileStatus"><span class="hs-identifier hs-type">FileStatus</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-type">ModTime</span></a></span><span>
+</span><span id="line-138"></span><span id="extractFileTime"><span class="annot"><span class="annottext">extractFileTime :: FileStatus -&gt; ModTime
+</span><a href="Distribution.Compat.Time.html#extractFileTime"><span class="hs-identifier hs-var hs-var">extractFileTime</span></a></span></span><span> </span><span id="local-6989586621679379936"><span class="annot"><span class="annottext">FileStatus
+</span><a href="#local-6989586621679379936"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NominalDiffTime -&gt; ModTime
+</span><a href="Distribution.Compat.Time.html#posixTimeToModTime"><span class="hs-identifier hs-var">posixTimeToModTime</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FileStatus -&gt; NominalDiffTime
+</span><a href="../../unix-2.8.4.0/src/System.Posix.Files.Common.html#modificationTimeHiRes/System.Posix.Files.Common.html#modificationTimeHiRes"><span class="hs-identifier hs-var">modificationTimeHiRes</span></a></span><span> </span><span class="annot"><span class="annottext">FileStatus
+</span><a href="#local-6989586621679379936"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+
+#endif
+</span><span>
+</span><span id="line-142"></span><span class="annot"><a href="Distribution.Compat.Time.html#windowsTick"><span class="hs-identifier hs-type">windowsTick</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#secToUnixEpoch"><span class="hs-identifier hs-type">secToUnixEpoch</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Word.html#Word64/GHC.Word.html#Word64"><span class="hs-identifier hs-type">Word64</span></a></span><span>
+</span><span id="line-143"></span><span id="windowsTick"><span class="annot"><span class="annottext">windowsTick :: Word64
+</span><a href="Distribution.Compat.Time.html#windowsTick"><span class="hs-identifier hs-var hs-var">windowsTick</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word64
+</span><span class="hs-number">10000000</span></span><span>
+</span><span id="line-144"></span><span id="secToUnixEpoch"><span class="annot"><span class="annottext">secToUnixEpoch :: Word64
+</span><a href="Distribution.Compat.Time.html#secToUnixEpoch"><span class="hs-identifier hs-var hs-var">secToUnixEpoch</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word64
+</span><span class="hs-number">11644473600</span></span><span>
+</span><span id="line-145"></span><span>
+</span><span id="line-146"></span><span class="annot"><span class="hs-comment">-- | Convert POSIX seconds to ModTime.</span></span><span>
+</span><span id="line-147"></span><span class="annot"><a href="Distribution.Compat.Time.html#posixSecondsToModTime"><span class="hs-identifier hs-type">posixSecondsToModTime</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Int.html#Int64/GHC.Int.html#Int64"><span class="hs-identifier hs-type">Int64</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-type">ModTime</span></a></span><span>
+</span><span id="line-148"></span><span id="posixSecondsToModTime"><span class="annot"><span class="annottext">posixSecondsToModTime :: Int64 -&gt; ModTime
+</span><a href="Distribution.Compat.Time.html#posixSecondsToModTime"><span class="hs-identifier hs-var hs-var">posixSecondsToModTime</span></a></span></span><span> </span><span id="local-6989586621679379940"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679379940"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-149"></span><span>  </span><span class="annot"><span class="annottext">Word64 -&gt; ModTime
+</span><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-var">ModTime</span></a></span><span> </span><span class="annot"><span class="annottext">(Word64 -&gt; ModTime) -&gt; Word64 -&gt; ModTime
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64 -&gt; Word64
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Real.html#fromIntegral/GHC.Real.html#fromIntegral"><span class="hs-identifier hs-var">fromIntegral</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679379940"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Word.html#Word64/GHC.Word.html#Word64"><span class="hs-identifier hs-type">Word64</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; Word64 -&gt; Word64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2B/GHC.Num.html#%2B"><span class="hs-operator hs-var">+</span></a></span><span> </span><span class="annot"><span class="annottext">Word64
+</span><a href="Distribution.Compat.Time.html#secToUnixEpoch"><span class="hs-identifier hs-var">secToUnixEpoch</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; Word64 -&gt; Word64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2A/GHC.Num.html#%2A"><span class="hs-operator hs-var">*</span></a></span><span> </span><span class="annot"><span class="annottext">Word64
+</span><a href="Distribution.Compat.Time.html#windowsTick"><span class="hs-identifier hs-var">windowsTick</span></a></span><span>
+</span><span id="line-150"></span><span>
+</span><span id="line-151"></span><span class="annot"><span class="hs-comment">-- | Convert 'POSIXTime' to 'ModTime'.</span></span><span>
+</span><span id="line-152"></span><span class="annot"><a href="Distribution.Compat.Time.html#posixTimeToModTime"><span class="hs-identifier hs-type">posixTimeToModTime</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../time-1.12.2/src/Data.Time.Clock.Internal.POSIXTime.html#POSIXTime/Data.Time.Clock.Internal.POSIXTime.html#POSIXTime"><span class="hs-identifier hs-type">POSIXTime</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-type">ModTime</span></a></span><span>
+</span><span id="line-153"></span><span id="posixTimeToModTime"><span class="annot"><span class="annottext">posixTimeToModTime :: NominalDiffTime -&gt; ModTime
+</span><a href="Distribution.Compat.Time.html#posixTimeToModTime"><span class="hs-identifier hs-var hs-var">posixTimeToModTime</span></a></span></span><span> </span><span id="local-6989586621679379943"><span class="annot"><span class="annottext">NominalDiffTime
+</span><a href="#local-6989586621679379943"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; ModTime
+</span><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-var">ModTime</span></a></span><span> </span><span class="annot"><span class="annottext">(Word64 -&gt; ModTime) -&gt; Word64 -&gt; ModTime
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">NominalDiffTime -&gt; Word64
+forall b. Integral b =&gt; NominalDiffTime -&gt; b
+forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Real.html#ceiling/GHC.Real.html#ceiling"><span class="hs-identifier hs-var">ceiling</span></a></span><span> </span><span class="annot"><span class="annottext">(NominalDiffTime -&gt; Word64) -&gt; NominalDiffTime -&gt; Word64
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">NominalDiffTime
+</span><a href="#local-6989586621679379943"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">NominalDiffTime -&gt; NominalDiffTime -&gt; NominalDiffTime
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2A/GHC.Num.html#%2A"><span class="hs-operator hs-var">*</span></a></span><span> </span><span class="annot"><span class="annottext">NominalDiffTime
+</span><span class="hs-number">1e7</span></span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- 100 ns precision</span><span>
+</span><span id="line-154"></span><span>                       </span><span class="annot"><span class="annottext">Word64 -&gt; Word64 -&gt; Word64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2B/GHC.Num.html#%2B"><span class="hs-operator hs-var">+</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Word64
+</span><a href="Distribution.Compat.Time.html#secToUnixEpoch"><span class="hs-identifier hs-var">secToUnixEpoch</span></a></span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; Word64 -&gt; Word64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2A/GHC.Num.html#%2A"><span class="hs-operator hs-var">*</span></a></span><span> </span><span class="annot"><span class="annottext">Word64
+</span><a href="Distribution.Compat.Time.html#windowsTick"><span class="hs-identifier hs-var">windowsTick</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-155"></span><span>
+</span><span id="line-156"></span><span class="annot"><span class="hs-comment">-- | Return age of given file in days.</span></span><span>
+</span><span id="line-157"></span><span class="annot"><a href="Distribution.Compat.Time.html#getFileAge"><span class="hs-identifier hs-type">getFileAge</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-158"></span><span id="getFileAge"><span class="annot"><span class="annottext">getFileAge :: String -&gt; IO Double
+</span><a href="Distribution.Compat.Time.html#getFileAge"><span class="hs-identifier hs-var hs-var">getFileAge</span></a></span></span><span> </span><span id="local-6989586621679379945"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379945"><span class="hs-identifier hs-var">file</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-159"></span><span>  </span><span id="local-6989586621679379946"><span class="annot"><span class="annottext">UTCTime
+</span><a href="#local-6989586621679379946"><span class="hs-identifier hs-var">t0</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO UTCTime
+</span><a href="../../directory-1.3.8.1/src/System.Directory.html#getModificationTime/System.Directory.html#getModificationTime"><span class="hs-identifier hs-var">getModificationTime</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379945"><span class="hs-identifier hs-var">file</span></a></span><span>
+</span><span id="line-160"></span><span>  </span><span id="local-6989586621679379947"><span class="annot"><span class="annottext">UTCTime
+</span><a href="#local-6989586621679379947"><span class="hs-identifier hs-var">t1</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO UTCTime
+</span><a href="../../time-1.12.2/src/Data.Time.Clock.POSIX.html#getCurrentTime/Data.Time.Clock.POSIX.html#getCurrentTime"><span class="hs-identifier hs-var">getCurrentTime</span></a></span><span>
+</span><span id="line-161"></span><span>  </span><span class="annot"><span class="annottext">Double -&gt; IO Double
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; IO Double) -&gt; Double -&gt; IO Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">NominalDiffTime -&gt; Double
+forall a b. (Real a, Fractional b) =&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Real.html#realToFrac/GHC.Real.html#realToFrac"><span class="hs-identifier hs-var">realToFrac</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">UTCTime
+</span><a href="#local-6989586621679379947"><span class="hs-identifier hs-var">t1</span></a></span><span> </span><span class="annot"><span class="annottext">UTCTime -&gt; UTCTime -&gt; NominalDiffTime
+</span><a href="../../time-1.12.2/src/Data.Time.Clock.Internal.UTCDiff.html#diffUTCTime/Data.Time.Clock.Internal.UTCDiff.html#diffUTCTime"><span class="hs-operator hs-var">`diffUTCTime`</span></a></span><span> </span><span class="annot"><span class="annottext">UTCTime
+</span><a href="#local-6989586621679379946"><span class="hs-identifier hs-var">t0</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Real.html#%2F/GHC.Real.html#%2F"><span class="hs-operator hs-var">/</span></a></span><span> </span><span class="annot"><span class="annottext">NominalDiffTime -&gt; Double
+forall a b. (Real a, Fractional b) =&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Real.html#realToFrac/GHC.Real.html#realToFrac"><span class="hs-identifier hs-var">realToFrac</span></a></span><span> </span><span class="annot"><span class="annottext">NominalDiffTime
+</span><a href="../../time-1.12.2/src/Data.Time.Clock.Internal.POSIXTime.html#posixDayLength/Data.Time.Clock.Internal.POSIXTime.html#posixDayLength"><span class="hs-identifier hs-var">posixDayLength</span></a></span><span>
+</span><span id="line-162"></span><span>
+</span><span id="line-163"></span><span class="annot"><span class="hs-comment">-- | Return the current time as 'ModTime'.</span></span><span>
+</span><span id="line-164"></span><span class="annot"><a href="Distribution.Compat.Time.html#getCurTime"><span class="hs-identifier hs-type">getCurTime</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="Distribution.Compat.Time.html#ModTime"><span class="hs-identifier hs-type">ModTime</span></a></span><span>
+</span><span id="line-165"></span><span id="getCurTime"><span class="annot"><span class="annottext">getCurTime :: IO ModTime
+</span><a href="Distribution.Compat.Time.html#getCurTime"><span class="hs-identifier hs-var hs-var">getCurTime</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NominalDiffTime -&gt; ModTime
+</span><a href="Distribution.Compat.Time.html#posixTimeToModTime"><span class="hs-identifier hs-var">posixTimeToModTime</span></a></span><span> </span><span class="annot"><span class="annottext">(NominalDiffTime -&gt; ModTime) -&gt; IO NominalDiffTime -&gt; IO ModTime
+forall a b. (a -&gt; b) -&gt; IO a -&gt; IO b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#fmap/GHC.Base.html#fmap"><span class="hs-operator hs-var">`fmap`</span></a></span><span> </span><span class="annot"><span class="annottext">IO NominalDiffTime
+</span><a href="../../time-1.12.2/src/Data.Time.Clock.POSIX.html#getPOSIXTime/Data.Time.Clock.POSIX.html#getPOSIXTime"><span class="hs-identifier hs-var">getPOSIXTime</span></a></span><span> </span><span class="hs-comment">-- Uses 'gettimeofday'.</span><span>
+</span><span id="line-166"></span><span>
+</span><span id="line-167"></span><span class="hs-comment">-- | Based on code written by Neil Mitchell for Shake. See</span><span>
+</span><span id="line-168"></span><span class="hs-comment">-- 'sleepFileTimeCalibrate' in 'Test.Type'.  Returns a pair</span><span>
+</span><span id="line-169"></span><span class="hs-comment">-- of microsecond values: first, the maximum delay seen, and the</span><span>
+</span><span id="line-170"></span><span class="hs-comment">-- recommended delay to use before testing for file modification change.</span><span>
+</span><span id="line-171"></span><span class="hs-comment">-- The returned delay is never smaller</span><span>
+</span><span id="line-172"></span><span class="hs-comment">-- than 10 ms, but never larger than 1 second.</span><span>
+</span><span id="line-173"></span><span class="annot"><a href="Distribution.Compat.Time.html#calibrateMtimeChangeDelay"><span class="hs-identifier hs-type">calibrateMtimeChangeDelay</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span>
+</span><span id="line-174"></span><span id="calibrateMtimeChangeDelay"><span class="annot"><span class="annottext">calibrateMtimeChangeDelay :: IO (Int, Int)
+</span><a href="Distribution.Compat.Time.html#calibrateMtimeChangeDelay"><span class="hs-identifier hs-var hs-var">calibrateMtimeChangeDelay</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-175"></span><span>  </span><span class="annot"><span class="annottext">Verbosity
+-&gt; String -&gt; String -&gt; (String -&gt; IO (Int, Int)) -&gt; IO (Int, Int)
+forall a. Verbosity -&gt; String -&gt; String -&gt; (String -&gt; IO a) -&gt; IO a
+</span><a href="Distribution.Simple.Utils.html#withTempDirectory"><span class="hs-identifier hs-var">withTempDirectory</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="Distribution.Verbosity.html#silent"><span class="hs-identifier hs-var">silent</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;calibration-&quot;</span></span><span> </span><span class="annot"><span class="annottext">((String -&gt; IO (Int, Int)) -&gt; IO (Int, Int))
+-&gt; (String -&gt; IO (Int, Int)) -&gt; IO (Int, Int)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679379949"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379949"><span class="hs-identifier hs-var">dir</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-176"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679379950"><span class="annot"><span class="annottext">fileName :: String
+</span><a href="#local-6989586621679379950"><span class="hs-identifier hs-var hs-var">fileName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379949"><span class="hs-identifier hs-var">dir</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;probe&quot;</span></span><span>
+</span><span id="line-177"></span><span>    </span><span id="local-6989586621679379952"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679379952"><span class="hs-identifier hs-var">mtimes</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; (Int -&gt; IO Int) -&gt; IO [Int]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+t a -&gt; (a -&gt; f b) -&gt; f (t b)
+</span><a href="../../base-4.18.2.0/src/Data.Traversable.html#for/Data.Traversable.html#for"><span class="hs-identifier hs-var">for</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-glyph">..</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">25</span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">((Int -&gt; IO Int) -&gt; IO [Int]) -&gt; (Int -&gt; IO Int) -&gt; IO [Int]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679379954"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679379954"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-glyph">::</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; IO Int
+</span><a href="#local-6989586621679379955"><span class="hs-identifier hs-var">time</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO Int) -&gt; IO () -&gt; IO Int
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-178"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; String -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/System.IO.html#writeFile/System.IO.html#writeFile"><span class="hs-identifier hs-var">writeFile</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379950"><span class="hs-identifier hs-var">fileName</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO ()) -&gt; String -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#show/GHC.Show.html#show"><span class="hs-identifier hs-var">show</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679379954"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-179"></span><span>      </span><span id="local-6989586621679379957"><span class="annot"><span class="annottext">ModTime
+</span><a href="#local-6989586621679379957"><span class="hs-identifier hs-var">t0</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO ModTime
+</span><a href="Distribution.Compat.Time.html#getModTime"><span class="hs-identifier hs-var">getModTime</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379950"><span class="hs-identifier hs-var">fileName</span></a></span><span>
+</span><span id="line-180"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679379970"><span class="annot"><span class="annottext">spin :: a -&gt; IO ()
+</span><a href="#local-6989586621679379970"><span class="hs-identifier hs-var hs-var">spin</span></a></span></span><span> </span><span id="local-6989586621679379971"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679379971"><span class="hs-identifier hs-var">j</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-181"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; String -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/System.IO.html#writeFile/System.IO.html#writeFile"><span class="hs-identifier hs-var">writeFile</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379950"><span class="hs-identifier hs-var">fileName</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO ()) -&gt; String -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">(Int, a) -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#show/GHC.Show.html#show"><span class="hs-identifier hs-var">show</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679379954"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679379971"><span class="hs-identifier hs-var">j</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-182"></span><span>            </span><span id="local-6989586621679379972"><span class="annot"><span class="annottext">ModTime
+</span><a href="#local-6989586621679379972"><span class="hs-identifier hs-var">t1</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO ModTime
+</span><a href="Distribution.Compat.Time.html#getModTime"><span class="hs-identifier hs-var">getModTime</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379950"><span class="hs-identifier hs-var">fileName</span></a></span><span>
+</span><span id="line-183"></span><span>            </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/Control.Monad.html#unless/Control.Monad.html#unless"><span class="hs-identifier hs-var">unless</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModTime
+</span><a href="#local-6989586621679379957"><span class="hs-identifier hs-var">t0</span></a></span><span> </span><span class="annot"><span class="annottext">ModTime -&gt; ModTime -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">ModTime
+</span><a href="#local-6989586621679379972"><span class="hs-identifier hs-var">t1</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; IO ()
+</span><a href="#local-6989586621679379970"><span class="hs-identifier hs-var">spin</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; IO ()) -&gt; a -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679379971"><span class="hs-identifier hs-var">j</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2B/GHC.Num.html#%2B"><span class="hs-operator hs-var">+</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
+</span><span id="line-184"></span><span>      </span><span class="annot"><span class="annottext">Int -&gt; IO ()
+forall {a}. (Show a, Num a) =&gt; a -&gt; IO ()
+</span><a href="#local-6989586621679379970"><span class="hs-identifier hs-var">spin</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span class="hs-glyph">::</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span>
+</span><span id="line-185"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679379979"><span class="annot"><span class="annottext">mtimeChange :: Int
+</span><a href="#local-6989586621679379979"><span class="hs-identifier hs-var hs-var">mtimeChange</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int
+forall a. Ord a =&gt; [a] -&gt; a
+forall (t :: * -&gt; *) a. (Foldable t, Ord a) =&gt; t a -&gt; a
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#maximum/Data.Foldable.html#maximum"><span class="hs-identifier hs-var">maximum</span></a></span><span> </span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679379952"><span class="hs-identifier hs-var">mtimes</span></a></span><span>
+</span><span id="line-186"></span><span>        </span><span id="local-6989586621679379987"><span class="annot"><span class="annottext">mtimeChange' :: Int
+</span><a href="#local-6989586621679379987"><span class="hs-identifier hs-var hs-var">mtimeChange'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Ord a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">min</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1000000</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int) -&gt; Int -&gt; Int
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Ord a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">max</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">10000</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679379979"><span class="hs-identifier hs-var">mtimeChange</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2A/GHC.Num.html#%2A"><span class="hs-operator hs-var">*</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span>
+</span><span id="line-187"></span><span>    </span><span class="annot"><span class="annottext">(Int, Int) -&gt; IO (Int, Int)
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679379979"><span class="hs-identifier hs-var">mtimeChange</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679379987"><span class="hs-identifier hs-var">mtimeChange'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-188"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-189"></span><span>    </span><span class="annot"><a href="#local-6989586621679379955"><span class="hs-identifier hs-type">time</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-190"></span><span>    </span><span id="local-6989586621679379955"><span class="annot"><span class="annottext">time :: IO () -&gt; IO Int
+</span><a href="#local-6989586621679379955"><span class="hs-identifier hs-var hs-var">time</span></a></span></span><span> </span><span id="local-6989586621679379990"><span class="annot"><span class="annottext">IO ()
+</span><a href="#local-6989586621679379990"><span class="hs-identifier hs-var">act</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-191"></span><span>      </span><span id="local-6989586621679379991"><span class="annot"><span class="annottext">UTCTime
+</span><a href="#local-6989586621679379991"><span class="hs-identifier hs-var">t0</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO UTCTime
+</span><a href="../../time-1.12.2/src/Data.Time.Clock.POSIX.html#getCurrentTime/Data.Time.Clock.POSIX.html#getCurrentTime"><span class="hs-identifier hs-var">getCurrentTime</span></a></span><span>
+</span><span id="line-192"></span><span>      </span><span class="annot"><span class="annottext">IO ()
+</span><a href="#local-6989586621679379990"><span class="hs-identifier hs-var">act</span></a></span><span>
+</span><span id="line-193"></span><span>      </span><span id="local-6989586621679379992"><span class="annot"><span class="annottext">UTCTime
+</span><a href="#local-6989586621679379992"><span class="hs-identifier hs-var">t1</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO UTCTime
+</span><a href="../../time-1.12.2/src/Data.Time.Clock.POSIX.html#getCurrentTime/Data.Time.Clock.POSIX.html#getCurrentTime"><span class="hs-identifier hs-var">getCurrentTime</span></a></span><span>
+</span><span id="line-194"></span><span>      </span><span class="annot"><span class="annottext">Int -&gt; IO Int
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; IO Int)
+-&gt; (NominalDiffTime -&gt; Int) -&gt; NominalDiffTime -&gt; IO Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">NominalDiffTime -&gt; Int
+forall b. Integral b =&gt; NominalDiffTime -&gt; b
+forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Real.html#ceiling/GHC.Real.html#ceiling"><span class="hs-identifier hs-var">ceiling</span></a></span><span> </span><span class="annot"><span class="annottext">(NominalDiffTime -&gt; IO Int) -&gt; NominalDiffTime -&gt; IO Int
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24%21/GHC.Base.html#%24%21"><span class="hs-operator hs-var">$!</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">UTCTime
+</span><a href="#local-6989586621679379992"><span class="hs-identifier hs-var">t1</span></a></span><span> </span><span class="annot"><span class="annottext">UTCTime -&gt; UTCTime -&gt; NominalDiffTime
+</span><a href="../../time-1.12.2/src/Data.Time.Clock.Internal.UTCDiff.html#diffUTCTime/Data.Time.Clock.Internal.UTCDiff.html#diffUTCTime"><span class="hs-operator hs-var">`diffUTCTime`</span></a></span><span> </span><span class="annot"><span class="annottext">UTCTime
+</span><a href="#local-6989586621679379991"><span class="hs-identifier hs-var">t0</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">NominalDiffTime -&gt; NominalDiffTime -&gt; NominalDiffTime
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2A/GHC.Num.html#%2A"><span class="hs-operator hs-var">*</span></a></span><span> </span><span class="annot"><span class="annottext">NominalDiffTime
+</span><span class="hs-number">1e6</span></span><span> </span><span class="hs-comment">-- microseconds</span><span>
+</span><span id="line-195"></span></pre></body></html>

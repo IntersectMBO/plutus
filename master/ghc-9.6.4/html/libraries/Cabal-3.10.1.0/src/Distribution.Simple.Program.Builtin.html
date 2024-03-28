@@ -1,0 +1,732 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- Module      :  Distribution.Simple.Program.Builtin</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Copyright   :  Isaac Jones 2006, Duncan Coutts 2007-2009</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Maintainer  :  cabal-devel@haskell.org</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-8"></span><span class="hs-comment">--</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- The module defines all the known built-in 'Program's.</span><span>
+</span><span id="line-10"></span><span class="hs-comment">--</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Where possible we try to find their version numbers.</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.Program.Builtin</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><span class="hs-comment">-- * The collection of unconfigured and configured programs</span></span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#builtinPrograms"><span class="hs-identifier">builtinPrograms</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Programs that Cabal knows about</span></span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#ghcProgram"><span class="hs-identifier">ghcProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#ghcPkgProgram"><span class="hs-identifier">ghcPkgProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#runghcProgram"><span class="hs-identifier">runghcProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#ghcjsProgram"><span class="hs-identifier">ghcjsProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#ghcjsPkgProgram"><span class="hs-identifier">ghcjsPkgProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#hmakeProgram"><span class="hs-identifier">hmakeProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#jhcProgram"><span class="hs-identifier">jhcProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#haskellSuiteProgram"><span class="hs-identifier">haskellSuiteProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#haskellSuitePkgProgram"><span class="hs-identifier">haskellSuitePkgProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#uhcProgram"><span class="hs-identifier">uhcProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-29"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#gccProgram"><span class="hs-identifier">gccProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#arProgram"><span class="hs-identifier">arProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-31"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#stripProgram"><span class="hs-identifier">stripProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-32"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#happyProgram"><span class="hs-identifier">happyProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-33"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#alexProgram"><span class="hs-identifier">alexProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#hsc2hsProgram"><span class="hs-identifier">hsc2hsProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#c2hsProgram"><span class="hs-identifier">c2hsProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-36"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#cpphsProgram"><span class="hs-identifier">cpphsProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-37"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#hscolourProgram"><span class="hs-identifier">hscolourProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-38"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#doctestProgram"><span class="hs-identifier">doctestProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-39"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#haddockProgram"><span class="hs-identifier">haddockProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#greencardProgram"><span class="hs-identifier">greencardProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#ldProgram"><span class="hs-identifier">ldProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#tarProgram"><span class="hs-identifier">tarProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#cppProgram"><span class="hs-identifier">cppProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-44"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#pkgConfigProgram"><span class="hs-identifier">pkgConfigProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-45"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#hpcProgram"><span class="hs-identifier">hpcProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-49"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.GHC.html"><span class="hs-identifier">Distribution.Simple.Program.GHC</span></a></span><span>
+</span><span id="line-52"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Find.html"><span class="hs-identifier">Distribution.Simple.Program.Find</span></a></span><span>
+</span><span id="line-53"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Internal.html"><span class="hs-identifier">Distribution.Simple.Program.Internal</span></a></span><span>
+</span><span id="line-54"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Run.html"><span class="hs-identifier">Distribution.Simple.Program.Run</span></a></span><span>
+</span><span id="line-55"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html"><span class="hs-identifier">Distribution.Simple.Program.Types</span></a></span><span>
+</span><span id="line-56"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html"><span class="hs-identifier">Distribution.Simple.Utils</span></a></span><span>
+</span><span id="line-57"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html"><span class="hs-identifier">Distribution.Verbosity</span></a></span><span>
+</span><span id="line-58"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Version.html#/Distribution.Version.html"><span class="hs-identifier">Distribution.Version</span></a></span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.html#/Data.Map.html"><span class="hs-identifier">Data.Map</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Map</span></span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span class="hs-comment">-- ------------------------------------------------------------</span><span>
+</span><span id="line-63"></span><span class="annot"><span class="hs-comment">-- * Known programs</span></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- ------------------------------------------------------------</span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- | The default list of programs.</span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- These programs are typically used internally to Cabal.</span><span>
+</span><span id="line-68"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#builtinPrograms"><span class="hs-identifier hs-type">builtinPrograms</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-69"></span><span id="builtinPrograms"><span class="annot"><span class="annottext">builtinPrograms :: [Program]
+</span><a href="Distribution.Simple.Program.Builtin.html#builtinPrograms"><span class="hs-identifier hs-var hs-var">builtinPrograms</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-70"></span><span>    </span><span class="hs-special">[</span><span>
+</span><span id="line-71"></span><span>    </span><span class="hs-comment">-- compilers and related progs</span><span>
+</span><span id="line-72"></span><span>      </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#ghcProgram"><span class="hs-identifier hs-var">ghcProgram</span></a></span><span>
+</span><span id="line-73"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#runghcProgram"><span class="hs-identifier hs-var">runghcProgram</span></a></span><span>
+</span><span id="line-74"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#ghcPkgProgram"><span class="hs-identifier hs-var">ghcPkgProgram</span></a></span><span>
+</span><span id="line-75"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#ghcjsProgram"><span class="hs-identifier hs-var">ghcjsProgram</span></a></span><span>
+</span><span id="line-76"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#ghcjsPkgProgram"><span class="hs-identifier hs-var">ghcjsPkgProgram</span></a></span><span>
+</span><span id="line-77"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#haskellSuiteProgram"><span class="hs-identifier hs-var">haskellSuiteProgram</span></a></span><span>
+</span><span id="line-78"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#haskellSuitePkgProgram"><span class="hs-identifier hs-var">haskellSuitePkgProgram</span></a></span><span>
+</span><span id="line-79"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#hmakeProgram"><span class="hs-identifier hs-var">hmakeProgram</span></a></span><span>
+</span><span id="line-80"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#jhcProgram"><span class="hs-identifier hs-var">jhcProgram</span></a></span><span>
+</span><span id="line-81"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#uhcProgram"><span class="hs-identifier hs-var">uhcProgram</span></a></span><span>
+</span><span id="line-82"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#hpcProgram"><span class="hs-identifier hs-var">hpcProgram</span></a></span><span>
+</span><span id="line-83"></span><span>    </span><span class="hs-comment">-- preprocessors</span><span>
+</span><span id="line-84"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#hscolourProgram"><span class="hs-identifier hs-var">hscolourProgram</span></a></span><span>
+</span><span id="line-85"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#doctestProgram"><span class="hs-identifier hs-var">doctestProgram</span></a></span><span>
+</span><span id="line-86"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#haddockProgram"><span class="hs-identifier hs-var">haddockProgram</span></a></span><span>
+</span><span id="line-87"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#happyProgram"><span class="hs-identifier hs-var">happyProgram</span></a></span><span>
+</span><span id="line-88"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#alexProgram"><span class="hs-identifier hs-var">alexProgram</span></a></span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#hsc2hsProgram"><span class="hs-identifier hs-var">hsc2hsProgram</span></a></span><span>
+</span><span id="line-90"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#c2hsProgram"><span class="hs-identifier hs-var">c2hsProgram</span></a></span><span>
+</span><span id="line-91"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#cpphsProgram"><span class="hs-identifier hs-var">cpphsProgram</span></a></span><span>
+</span><span id="line-92"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#greencardProgram"><span class="hs-identifier hs-var">greencardProgram</span></a></span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-comment">-- platform toolchain</span><span>
+</span><span id="line-94"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#gccProgram"><span class="hs-identifier hs-var">gccProgram</span></a></span><span>
+</span><span id="line-95"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#arProgram"><span class="hs-identifier hs-var">arProgram</span></a></span><span>
+</span><span id="line-96"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#stripProgram"><span class="hs-identifier hs-var">stripProgram</span></a></span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#ldProgram"><span class="hs-identifier hs-var">ldProgram</span></a></span><span>
+</span><span id="line-98"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#tarProgram"><span class="hs-identifier hs-var">tarProgram</span></a></span><span>
+</span><span id="line-99"></span><span>    </span><span class="hs-comment">-- configuration tools</span><span>
+</span><span id="line-100"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#pkgConfigProgram"><span class="hs-identifier hs-var">pkgConfigProgram</span></a></span><span>
+</span><span id="line-101"></span><span>    </span><span class="hs-special">]</span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#ghcProgram"><span class="hs-identifier hs-type">ghcProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-104"></span><span id="ghcProgram"><span class="annot"><span class="annottext">ghcProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#ghcProgram"><span class="hs-identifier hs-var hs-var">ghcProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;ghc&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-105"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--numeric-version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#id/GHC.Base.html#id"><span class="hs-identifier hs-type">id</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-106"></span><span>
+</span><span id="line-107"></span><span>    </span><span class="hs-comment">-- Workaround for https://gitlab.haskell.org/ghc/ghc/-/issues/8825</span><span>
+</span><span id="line-108"></span><span>    </span><span class="hs-comment">-- (spurious warning on non-english locales)</span><span>
+</span><span id="line-109"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programPostConf"><span class="hs-identifier hs-var">programPostConf</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357086"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679357086"><span class="hs-identifier hs-var">_verbosity</span></a></span></span><span> </span><span id="local-6989586621679357087"><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679357087"><span class="hs-identifier hs-var">ghcProg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-110"></span><span>    </span><span class="hs-keyword">do</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679357088"><span class="annot"><span class="annottext">ghcProg' :: ConfiguredProgram
+</span><a href="#local-6989586621679357088"><span class="hs-identifier hs-var hs-var">ghcProg'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679357087"><span class="hs-identifier hs-var">ghcProg</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-111"></span><span>             </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programOverrideEnv"><span class="hs-identifier hs-var">programOverrideEnv</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-string">&quot;LANGUAGE&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;en&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span><span>                                  </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programOverrideEnv"><span class="hs-identifier hs-var">programOverrideEnv</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679357087"><span class="hs-identifier hs-type">ghcProg</span></a></span><span>
+</span><span id="line-113"></span><span>             </span><span class="hs-special">}</span><span>
+</span><span id="line-114"></span><span>           </span><span class="hs-comment">-- Only the 7.8 branch seems to be affected. Fixed in 7.8.4.</span><span>
+</span><span id="line-115"></span><span>           </span><span id="local-6989586621679357090"><span class="annot"><span class="annottext">affectedVersionRange :: VersionRange
+</span><a href="#local-6989586621679357090"><span class="hs-identifier hs-var hs-var">affectedVersionRange</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">VersionRange -&gt; VersionRange -&gt; VersionRange
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.VersionRange.Internal.html#intersectVersionRanges/Distribution.Types.VersionRange.Internal.html#intersectVersionRanges"><span class="hs-identifier hs-var">intersectVersionRanges</span></a></span><span>
+</span><span id="line-116"></span><span>                                  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version -&gt; VersionRange
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.VersionRange.Internal.html#laterVersion/Distribution.Types.VersionRange.Internal.html#laterVersion"><span class="hs-identifier hs-var">laterVersion</span></a></span><span>   </span><span class="annot"><span class="annottext">(Version -&gt; VersionRange) -&gt; Version -&gt; VersionRange
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Version
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Version.html#mkVersion/Distribution.Types.Version.html#mkVersion"><span class="hs-identifier hs-var">mkVersion</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">7</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">8</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-117"></span><span>                                  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version -&gt; VersionRange
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.VersionRange.Internal.html#earlierVersion/Distribution.Types.VersionRange.Internal.html#earlierVersion"><span class="hs-identifier hs-var">earlierVersion</span></a></span><span> </span><span class="annot"><span class="annottext">(Version -&gt; VersionRange) -&gt; Version -&gt; VersionRange
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Version
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Version.html#mkVersion/Distribution.Types.Version.html#mkVersion"><span class="hs-identifier hs-var">mkVersion</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">7</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">8</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">4</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-118"></span><span>       </span><span class="annot"><span class="annottext">ConfiguredProgram -&gt; IO ConfiguredProgram
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">(ConfiguredProgram -&gt; IO ConfiguredProgram)
+-&gt; ConfiguredProgram -&gt; IO ConfiguredProgram
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram
+-&gt; (Version -&gt; ConfiguredProgram)
+-&gt; Maybe Version
+-&gt; ConfiguredProgram
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><a href="../../base-4.18.2.0/src/Data.Maybe.html#maybe/Data.Maybe.html#maybe"><span class="hs-identifier hs-var">maybe</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679357087"><span class="hs-identifier hs-var">ghcProg</span></a></span><span>
+</span><span id="line-119"></span><span>         </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679357096"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679357096"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Version -&gt; VersionRange -&gt; Bool
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.VersionRange.html#withinRange/Distribution.Types.VersionRange.html#withinRange"><span class="hs-identifier hs-var">withinRange</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679357096"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">VersionRange
+</span><a href="#local-6989586621679357090"><span class="hs-identifier hs-var">affectedVersionRange</span></a></span><span>
+</span><span id="line-120"></span><span>                </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679357088"><span class="hs-identifier hs-var">ghcProg'</span></a></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679357087"><span class="hs-identifier hs-var">ghcProg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-121"></span><span>         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ConfiguredProgram -&gt; Maybe Version
+</span><a href="Distribution.Simple.Program.Types.html#programVersion"><span class="hs-identifier hs-var">programVersion</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679357087"><span class="hs-identifier hs-var">ghcProg</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-122"></span><span>
+</span><span id="line-123"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programNormaliseArgs"><span class="hs-identifier hs-var">programNormaliseArgs</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.GHC.html#normaliseGhcArgs"><span class="hs-identifier hs-type">normaliseGhcArgs</span></a></span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-125"></span><span>
+</span><span id="line-126"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#runghcProgram"><span class="hs-identifier hs-type">runghcProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-127"></span><span id="runghcProgram"><span class="annot"><span class="annottext">runghcProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#runghcProgram"><span class="hs-identifier hs-var hs-var">runghcProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;runghc&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-128"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357101"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357101"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-129"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357101"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-130"></span><span>        </span><span class="hs-comment">-- &quot;runghc 7.10.3&quot;</span><span>
+</span><span id="line-131"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679357103"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357103"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357103"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-132"></span><span>        </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-133"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-134"></span><span>
+</span><span id="line-135"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#ghcPkgProgram"><span class="hs-identifier hs-type">ghcPkgProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-136"></span><span id="ghcPkgProgram"><span class="annot"><span class="annottext">ghcPkgProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#ghcPkgProgram"><span class="hs-identifier hs-var hs-var">ghcPkgProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;ghc-pkg&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-137"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357104"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357104"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-138"></span><span>      </span><span class="hs-comment">-- Invoking &quot;ghc-pkg --version&quot; gives a string like</span><span>
+</span><span id="line-139"></span><span>      </span><span class="hs-comment">-- &quot;GHC package manager version 6.4.1&quot;</span><span>
+</span><span id="line-140"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357104"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-141"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679357105"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357105"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357105"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-142"></span><span>        </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-143"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-144"></span><span>
+</span><span id="line-145"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#ghcjsProgram"><span class="hs-identifier hs-type">ghcjsProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-146"></span><span id="ghcjsProgram"><span class="annot"><span class="annottext">ghcjsProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#ghcjsProgram"><span class="hs-identifier hs-var hs-var">ghcjsProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;ghcjs&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-147"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--numeric-ghcjs-version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#id/GHC.Base.html#id"><span class="hs-identifier hs-type">id</span></a></span><span>
+</span><span id="line-148"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-149"></span><span>
+</span><span id="line-150"></span><span class="hs-comment">-- note: version is the version number of the GHC version that ghcjs-pkg was built with</span><span>
+</span><span id="line-151"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#ghcjsPkgProgram"><span class="hs-identifier hs-type">ghcjsPkgProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-152"></span><span id="ghcjsPkgProgram"><span class="annot"><span class="annottext">ghcjsPkgProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#ghcjsPkgProgram"><span class="hs-identifier hs-var hs-var">ghcjsPkgProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;ghcjs-pkg&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-153"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357106"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357106"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-154"></span><span>      </span><span class="hs-comment">-- Invoking &quot;ghcjs-pkg --version&quot; gives a string like</span><span>
+</span><span id="line-155"></span><span>      </span><span class="hs-comment">-- &quot;GHCJS package manager version 6.4.1&quot;</span><span>
+</span><span id="line-156"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357106"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-157"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679357107"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357107"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357107"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-158"></span><span>        </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-159"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-160"></span><span>
+</span><span id="line-161"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#hmakeProgram"><span class="hs-identifier hs-type">hmakeProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-162"></span><span id="hmakeProgram"><span class="annot"><span class="annottext">hmakeProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#hmakeProgram"><span class="hs-identifier hs-var hs-var">hmakeProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;hmake&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-163"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357108"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357108"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-164"></span><span>    </span><span class="hs-comment">-- Invoking &quot;hmake --version&quot; gives a string line</span><span>
+</span><span id="line-165"></span><span>    </span><span class="hs-comment">-- &quot;/usr/local/bin/hmake: 3.13 (2006-11-01)&quot;</span><span>
+</span><span id="line-166"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357108"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-167"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679357109"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357109"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357109"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-168"></span><span>        </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-169"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-170"></span><span>
+</span><span id="line-171"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#jhcProgram"><span class="hs-identifier hs-type">jhcProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-172"></span><span id="jhcProgram"><span class="annot"><span class="annottext">jhcProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#jhcProgram"><span class="hs-identifier hs-var hs-var">jhcProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;jhc&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-173"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357110"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357110"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-174"></span><span>    </span><span class="hs-comment">-- invoking &quot;jhc --version&quot; gives a string like</span><span>
+</span><span id="line-175"></span><span>    </span><span class="hs-comment">-- &quot;jhc 0.3.20080208 (wubgipkamcep-2)</span><span>
+</span><span id="line-176"></span><span>    </span><span class="hs-comment">-- compiled by ghc-6.8 on a x86_64 running linux&quot;</span><span>
+</span><span id="line-177"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357110"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-178"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679357111"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357111"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357111"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-179"></span><span>        </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-180"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-181"></span><span>
+</span><span id="line-182"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#uhcProgram"><span class="hs-identifier hs-type">uhcProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-183"></span><span id="uhcProgram"><span class="annot"><span class="annottext">uhcProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#uhcProgram"><span class="hs-identifier hs-var hs-var">uhcProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;uhc&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-184"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version-dotted&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#id/GHC.Base.html#id"><span class="hs-identifier hs-type">id</span></a></span><span>
+</span><span id="line-185"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-186"></span><span>
+</span><span id="line-187"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#hpcProgram"><span class="hs-identifier hs-type">hpcProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-188"></span><span id="hpcProgram"><span class="annot"><span class="annottext">hpcProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#hpcProgram"><span class="hs-identifier hs-var hs-var">hpcProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;hpc&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-189"></span><span>    </span><span class="hs-special">{</span><span>
+</span><span id="line-190"></span><span>        </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357112"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357112"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-191"></span><span>            </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357112"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-192"></span><span>                </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679357113"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357113"><span class="hs-identifier hs-var">ver</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357113"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-193"></span><span>                </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-194"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-195"></span><span>
+</span><span id="line-196"></span><span class="hs-comment">-- This represents a haskell-suite compiler. Of course, the compiler</span><span>
+</span><span id="line-197"></span><span class="hs-comment">-- itself probably is not called &quot;haskell-suite&quot;, so this is not a real</span><span>
+</span><span id="line-198"></span><span class="hs-comment">-- program. (But we don't know statically the name of the actual compiler,</span><span>
+</span><span id="line-199"></span><span class="hs-comment">-- so this is the best we can do.)</span><span>
+</span><span id="line-200"></span><span class="hs-comment">--</span><span>
+</span><span id="line-201"></span><span class="hs-comment">-- Having this Program value serves two purposes:</span><span>
+</span><span id="line-202"></span><span class="hs-comment">--</span><span>
+</span><span id="line-203"></span><span class="hs-comment">-- 1. We can accept options for the compiler in the form of</span><span>
+</span><span id="line-204"></span><span class="hs-comment">--</span><span>
+</span><span id="line-205"></span><span class="hs-comment">--   --haskell-suite-option(s)=...</span><span>
+</span><span id="line-206"></span><span class="hs-comment">--</span><span>
+</span><span id="line-207"></span><span class="hs-comment">-- 2. We can find a program later using this static id (with</span><span>
+</span><span id="line-208"></span><span class="hs-comment">-- requireProgram).</span><span>
+</span><span id="line-209"></span><span class="hs-comment">--</span><span>
+</span><span id="line-210"></span><span class="hs-comment">-- The path to the real compiler is found and recorded in the ProgramDb</span><span>
+</span><span id="line-211"></span><span class="hs-comment">-- during the configure phase.</span><span>
+</span><span id="line-212"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#haskellSuiteProgram"><span class="hs-identifier hs-type">haskellSuiteProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-213"></span><span id="haskellSuiteProgram"><span class="annot"><span class="annottext">haskellSuiteProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#haskellSuiteProgram"><span class="hs-identifier hs-var hs-var">haskellSuiteProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;haskell-suite&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-214"></span><span>    </span><span class="hs-comment">-- pretend that the program exists, otherwise it won't be in the</span><span>
+</span><span id="line-215"></span><span>    </span><span class="hs-comment">-- &quot;configured&quot; state</span><span>
+</span><span id="line-216"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindLocation"><span class="hs-identifier hs-var">programFindLocation</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357115"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679357115"><span class="hs-identifier hs-var">_verbosity</span></a></span></span><span> </span><span id="local-6989586621679357116"><span class="annot"><span class="annottext">ProgramSearchPath
+</span><a href="#local-6989586621679357116"><span class="hs-identifier hs-var">_searchPath</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-217"></span><span>      </span><span class="annot"><span class="annottext">Maybe (String, [String]) -&gt; IO (Maybe (String, [String]))
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">(Maybe (String, [String]) -&gt; IO (Maybe (String, [String])))
+-&gt; Maybe (String, [String]) -&gt; IO (Maybe (String, [String]))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">(String, [String]) -&gt; Maybe (String, [String])
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;haskell-suite-dummy-location&quot;</span></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-218"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-219"></span><span>
+</span><span id="line-220"></span><span class="hs-comment">-- This represent a haskell-suite package manager. See the comments for</span><span>
+</span><span id="line-221"></span><span class="hs-comment">-- haskellSuiteProgram.</span><span>
+</span><span id="line-222"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#haskellSuitePkgProgram"><span class="hs-identifier hs-type">haskellSuitePkgProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-223"></span><span id="haskellSuitePkgProgram"><span class="annot"><span class="annottext">haskellSuitePkgProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#haskellSuitePkgProgram"><span class="hs-identifier hs-var hs-var">haskellSuitePkgProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;haskell-suite-pkg&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-224"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindLocation"><span class="hs-identifier hs-var">programFindLocation</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357117"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679357117"><span class="hs-identifier hs-var">_verbosity</span></a></span></span><span> </span><span id="local-6989586621679357118"><span class="annot"><span class="annottext">ProgramSearchPath
+</span><a href="#local-6989586621679357118"><span class="hs-identifier hs-var">_searchPath</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-225"></span><span>      </span><span class="annot"><span class="annottext">Maybe (String, [String]) -&gt; IO (Maybe (String, [String]))
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">(Maybe (String, [String]) -&gt; IO (Maybe (String, [String])))
+-&gt; Maybe (String, [String]) -&gt; IO (Maybe (String, [String]))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">(String, [String]) -&gt; Maybe (String, [String])
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;haskell-suite-pkg-dummy-location&quot;</span></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-226"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-227"></span><span>
+</span><span id="line-228"></span><span>
+</span><span id="line-229"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#happyProgram"><span class="hs-identifier hs-type">happyProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-230"></span><span id="happyProgram"><span class="annot"><span class="annottext">happyProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#happyProgram"><span class="hs-identifier hs-var hs-var">happyProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;happy&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-231"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357119"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357119"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-232"></span><span>      </span><span class="hs-comment">-- Invoking &quot;happy --version&quot; gives a string like</span><span>
+</span><span id="line-233"></span><span>      </span><span class="hs-comment">-- &quot;Happy Version 1.16 Copyright (c) ....&quot;</span><span>
+</span><span id="line-234"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357119"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-235"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679357120"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357120"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357120"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-236"></span><span>        </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-237"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-238"></span><span>
+</span><span id="line-239"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#alexProgram"><span class="hs-identifier hs-type">alexProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-240"></span><span id="alexProgram"><span class="annot"><span class="annottext">alexProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#alexProgram"><span class="hs-identifier hs-var hs-var">alexProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;alex&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-241"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357121"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357121"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-242"></span><span>      </span><span class="hs-comment">-- Invoking &quot;alex --version&quot; gives a string like</span><span>
+</span><span id="line-243"></span><span>      </span><span class="hs-comment">-- &quot;Alex version 2.1.0, (c) 2003 Chris Dornan and Simon Marlow&quot;</span><span>
+</span><span id="line-244"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357121"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-245"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679357122"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357122"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; String -&gt; String
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.List.html#takeWhile/GHC.List.html#takeWhile"><span class="hs-identifier hs-var">takeWhile</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679357124"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679357124"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Unicode.html#isDigit/GHC.Unicode.html#isDigit"><span class="hs-identifier hs-var">isDigit</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679357124"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679357124"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'.'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357122"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-246"></span><span>        </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-247"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-248"></span><span>
+</span><span id="line-249"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#gccProgram"><span class="hs-identifier hs-type">gccProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-250"></span><span id="gccProgram"><span class="annot"><span class="annottext">gccProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#gccProgram"><span class="hs-identifier hs-var hs-var">gccProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;gcc&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-251"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;-dumpversion&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#id/GHC.Base.html#id"><span class="hs-identifier hs-type">id</span></a></span><span>
+</span><span id="line-252"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-253"></span><span>
+</span><span id="line-254"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#arProgram"><span class="hs-identifier hs-type">arProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-255"></span><span id="arProgram"><span class="annot"><span class="annottext">arProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#arProgram"><span class="hs-identifier hs-var hs-var">arProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;ar&quot;</span></span><span>
+</span><span id="line-256"></span><span>
+</span><span id="line-257"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#stripProgram"><span class="hs-identifier hs-type">stripProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-258"></span><span id="stripProgram"><span class="annot"><span class="annottext">stripProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#stripProgram"><span class="hs-identifier hs-var hs-var">stripProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;strip&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-259"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357127"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679357127"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-260"></span><span>      </span><span class="annot"><span class="annottext">String
+-&gt; (String -&gt; String) -&gt; Verbosity -&gt; String -&gt; IO (Maybe Version)
+</span><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-var">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="Distribution.Simple.Program.Internal.html#stripExtractVersion"><span class="hs-identifier hs-var">stripExtractVersion</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Verbosity -&gt; Verbosity
+</span><a href="Distribution.Verbosity.html#lessVerbose"><span class="hs-identifier hs-var">lessVerbose</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679357127"><span class="hs-identifier hs-var">verbosity</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-261"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-262"></span><span>
+</span><span id="line-263"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#hsc2hsProgram"><span class="hs-identifier hs-type">hsc2hsProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-264"></span><span id="hsc2hsProgram"><span class="annot"><span class="annottext">hsc2hsProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#hsc2hsProgram"><span class="hs-identifier hs-var hs-var">hsc2hsProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;hsc2hs&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-265"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-266"></span><span>      </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357130"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357130"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-267"></span><span>        </span><span class="hs-comment">-- Invoking &quot;hsc2hs --version&quot; gives a string like &quot;hsc2hs version 0.66&quot;</span><span>
+</span><span id="line-268"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357130"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-269"></span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679357131"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357131"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357131"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-270"></span><span>          </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-271"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-272"></span><span>
+</span><span id="line-273"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#c2hsProgram"><span class="hs-identifier hs-type">c2hsProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-274"></span><span id="c2hsProgram"><span class="annot"><span class="annottext">c2hsProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#c2hsProgram"><span class="hs-identifier hs-var hs-var">c2hsProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;c2hs&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-275"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--numeric-version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#id/GHC.Base.html#id"><span class="hs-identifier hs-type">id</span></a></span><span>
+</span><span id="line-276"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-277"></span><span>
+</span><span id="line-278"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#cpphsProgram"><span class="hs-identifier hs-type">cpphsProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-279"></span><span id="cpphsProgram"><span class="annot"><span class="annottext">cpphsProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#cpphsProgram"><span class="hs-identifier hs-var hs-var">cpphsProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;cpphs&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-280"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357132"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357132"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-281"></span><span>      </span><span class="hs-comment">-- Invoking &quot;cpphs --version&quot; gives a string like &quot;cpphs 1.3&quot;</span><span>
+</span><span id="line-282"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357132"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-283"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679357133"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357133"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357133"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-284"></span><span>        </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-285"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-286"></span><span>
+</span><span id="line-287"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#hscolourProgram"><span class="hs-identifier hs-type">hscolourProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-288"></span><span id="hscolourProgram"><span class="annot"><span class="annottext">hscolourProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#hscolourProgram"><span class="hs-identifier hs-var hs-var">hscolourProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;hscolour&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-289"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindLocation"><span class="hs-identifier hs-var">programFindLocation</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357134"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679357134"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span id="local-6989586621679357135"><span class="annot"><span class="annottext">ProgramSearchPath
+</span><a href="#local-6989586621679357135"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Verbosity
+-&gt; ProgramSearchPath -&gt; String -&gt; IO (Maybe (String, [String]))
+</span><a href="Distribution.Simple.Program.Find.html#findProgramOnSearchPath"><span class="hs-identifier hs-var">findProgramOnSearchPath</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679357134"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramSearchPath
+</span><a href="#local-6989586621679357135"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;HsColour&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-290"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;-version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357137"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357137"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-291"></span><span>      </span><span class="hs-comment">-- Invoking &quot;HsColour -version&quot; gives a string like &quot;HsColour 1.7&quot;</span><span>
+</span><span id="line-292"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357137"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-293"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679357138"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357138"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357138"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-294"></span><span>        </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-295"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-296"></span><span>
+</span><span id="line-297"></span><span class="hs-comment">-- TODO: Ensure that doctest is built against the same GHC as the one</span><span>
+</span><span id="line-298"></span><span class="hs-comment">--       that's being used.  Same for haddock.  @phadej pointed this out.</span><span>
+</span><span id="line-299"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#doctestProgram"><span class="hs-identifier hs-type">doctestProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-300"></span><span id="doctestProgram"><span class="annot"><span class="annottext">doctestProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#doctestProgram"><span class="hs-identifier hs-var hs-var">doctestProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;doctest&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-301"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindLocation"><span class="hs-identifier hs-var">programFindLocation</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357139"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679357139"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span id="local-6989586621679357140"><span class="annot"><span class="annottext">ProgramSearchPath
+</span><a href="#local-6989586621679357140"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Verbosity
+-&gt; ProgramSearchPath -&gt; String -&gt; IO (Maybe (String, [String]))
+</span><a href="Distribution.Simple.Program.Find.html#findProgramOnSearchPath"><span class="hs-identifier hs-var">findProgramOnSearchPath</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679357139"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramSearchPath
+</span><a href="#local-6989586621679357140"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;doctest&quot;</span></span><span>
+</span><span id="line-302"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357141"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357141"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-303"></span><span>         </span><span class="hs-comment">-- &quot;doctest version 0.11.2&quot;</span><span>
+</span><span id="line-304"></span><span>         </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357141"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-305"></span><span>           </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679357142"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357142"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357142"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-306"></span><span>           </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-307"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-308"></span><span>
+</span><span id="line-309"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#haddockProgram"><span class="hs-identifier hs-type">haddockProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-310"></span><span id="haddockProgram"><span class="annot"><span class="annottext">haddockProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#haddockProgram"><span class="hs-identifier hs-var hs-var">haddockProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;haddock&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-311"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-type">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357143"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357143"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-312"></span><span>      </span><span class="hs-comment">-- Invoking &quot;haddock --version&quot; gives a string like</span><span>
+</span><span id="line-313"></span><span>      </span><span class="hs-comment">-- &quot;Haddock version 0.8, (c) Simon Marlow 2006&quot;</span><span>
+</span><span id="line-314"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#words/Data.OldList.html#words"><span class="hs-identifier hs-var">words</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357143"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-315"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679357144"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357144"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; String -&gt; String
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.List.html#takeWhile/GHC.List.html#takeWhile"><span class="hs-identifier hs-var">takeWhile</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; String -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#elem/Data.Foldable.html#elem"><span class="hs-operator hs-var">`elem`</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'.'</span></span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'0'</span></span><span class="hs-glyph">..</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'9'</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357144"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-316"></span><span>        </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-317"></span><span>
+</span><span id="line-318"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programNormaliseArgs"><span class="hs-identifier hs-var">programNormaliseArgs</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="annot"><span class="annottext">Maybe Version
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679357146"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679357146"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679357146"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-319"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-320"></span><span>
+</span><span id="line-321"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#greencardProgram"><span class="hs-identifier hs-type">greencardProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-322"></span><span id="greencardProgram"><span class="annot"><span class="annottext">greencardProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#greencardProgram"><span class="hs-identifier hs-var hs-var">greencardProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;greencard&quot;</span></span><span>
+</span><span id="line-323"></span><span>
+</span><span id="line-324"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#ldProgram"><span class="hs-identifier hs-type">ldProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-325"></span><span id="ldProgram"><span class="annot"><span class="annottext">ldProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#ldProgram"><span class="hs-identifier hs-var hs-var">ldProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;ld&quot;</span></span><span>
+</span><span id="line-326"></span><span>
+</span><span id="line-327"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#tarProgram"><span class="hs-identifier hs-type">tarProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-328"></span><span id="tarProgram"><span class="annot"><span class="annottext">tarProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#tarProgram"><span class="hs-identifier hs-var hs-var">tarProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;tar&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-329"></span><span>  </span><span class="hs-comment">-- See #1901. Some versions of 'tar' (OpenBSD, NetBSD, ...) don't support the</span><span>
+</span><span id="line-330"></span><span>  </span><span class="hs-comment">-- '--format' option.</span><span>
+</span><span id="line-331"></span><span>  </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programPostConf"><span class="hs-identifier hs-var">programPostConf</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679357147"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679357147"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span id="local-6989586621679357148"><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679357148"><span class="hs-identifier hs-var">tarProg</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-332"></span><span>     </span><span id="local-6989586621679357149"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357149"><span class="hs-identifier hs-var">tarHelpOutput</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; ProgramInvocation -&gt; IO String
+</span><a href="Distribution.Simple.Program.Run.html#getProgramInvocationOutput"><span class="hs-identifier hs-var">getProgramInvocationOutput</span></a></span><span>
+</span><span id="line-333"></span><span>                      </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679357147"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ConfiguredProgram -&gt; [String] -&gt; ProgramInvocation
+</span><a href="Distribution.Simple.Program.Run.html#programInvocation"><span class="hs-identifier hs-var">programInvocation</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679357148"><span class="hs-identifier hs-var">tarProg</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;--help&quot;</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-334"></span><span>                      </span><span class="hs-comment">-- Some versions of tar don't support '--help'.</span><span>
+</span><span id="line-335"></span><span>                      </span><span class="annot"><span class="annottext">IO String -&gt; (IOException -&gt; IO String) -&gt; IO String
+forall a. IO a -&gt; (IOException -&gt; IO a) -&gt; IO a
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Exception.html#catchIO/Distribution.Compat.Exception.html#catchIO"><span class="hs-operator hs-var">`catchIO`</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="annot"><span class="annottext">IOException
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-336"></span><span>     </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679357153"><span class="annot"><span class="annottext">k :: String
+</span><a href="#local-6989586621679357153"><span class="hs-identifier hs-var hs-var">k</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Supports --format&quot;</span></span><span>
+</span><span id="line-337"></span><span>         </span><span id="local-6989586621679357155"><span class="annot"><span class="annottext">v :: String
+</span><a href="#local-6989586621679357155"><span class="hs-identifier hs-var hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;--format&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#isInfixOf/Data.OldList.html#isInfixOf"><span class="hs-operator hs-var">`isInfixOf`</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357149"><span class="hs-identifier hs-var">tarHelpOutput</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;YES&quot;</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;NO&quot;</span></span><span>
+</span><span id="line-338"></span><span>         </span><span id="local-6989586621679357161"><span class="annot"><span class="annottext">m :: Map String String
+</span><a href="#local-6989586621679357161"><span class="hs-identifier hs-var hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Map String String -&gt; Map String String
+forall k a. Ord k =&gt; k -&gt; a -&gt; Map k a -&gt; Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#insert/Data.Map.Internal.html#insert"><span class="hs-identifier hs-var">Map.insert</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357153"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679357155"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ConfiguredProgram -&gt; Map String String
+</span><a href="Distribution.Simple.Program.Types.html#programProperties"><span class="hs-identifier hs-var">programProperties</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679357148"><span class="hs-identifier hs-var">tarProg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-339"></span><span>     </span><span class="annot"><span class="annottext">ConfiguredProgram -&gt; IO ConfiguredProgram
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">(ConfiguredProgram -&gt; IO ConfiguredProgram)
+-&gt; ConfiguredProgram -&gt; IO ConfiguredProgram
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679357148"><span class="hs-identifier hs-var">tarProg</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programProperties"><span class="hs-identifier hs-var">programProperties</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679357161"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-340"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-341"></span><span>
+</span><span id="line-342"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#cppProgram"><span class="hs-identifier hs-type">cppProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-343"></span><span id="cppProgram"><span class="annot"><span class="annottext">cppProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#cppProgram"><span class="hs-identifier hs-var hs-var">cppProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;cpp&quot;</span></span><span>
+</span><span id="line-344"></span><span>
+</span><span id="line-345"></span><span class="annot"><a href="Distribution.Simple.Program.Builtin.html#pkgConfigProgram"><span class="hs-identifier hs-type">pkgConfigProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-346"></span><span id="pkgConfigProgram"><span class="annot"><span class="annottext">pkgConfigProgram :: Program
+</span><a href="Distribution.Simple.Program.Builtin.html#pkgConfigProgram"><span class="hs-identifier hs-var hs-var">pkgConfigProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Program
+</span><a href="Distribution.Simple.Program.Types.html#simpleProgram"><span class="hs-identifier hs-var">simpleProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;pkg-config&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-347"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#programFindVersion"><span class="hs-identifier hs-var">programFindVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#findProgramVersion"><span class="hs-identifier hs-type">findProgramVersion</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;--version&quot;</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#id/GHC.Base.html#id"><span class="hs-identifier hs-type">id</span></a></span><span>
+</span><span id="line-348"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-349"></span></pre></body></html>

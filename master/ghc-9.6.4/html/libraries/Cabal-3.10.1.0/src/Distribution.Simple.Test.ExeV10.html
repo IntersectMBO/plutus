@@ -1,0 +1,699 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.Test.ExeV10</span><span>
+</span><span id="line-5"></span><span>       </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Distribution.Simple.Test.ExeV10.html#runTest"><span class="hs-identifier">runTest</span></a></span><span>
+</span><span id="line-6"></span><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnqualComponentName.html#/Distribution.Types.UnqualComponentName.html"><span class="hs-identifier">Distribution.Types.UnqualComponentName</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Compat.Environment.html"><span class="hs-identifier">Distribution.Compat.Environment</span></a></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.PackageDescription.html#/Distribution.PackageDescription.html"><span class="hs-identifier">Distribution.PackageDescription</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">PD</span></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Build.PathsModule.html"><span class="hs-identifier">Distribution.Simple.Build.PathsModule</span></a></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.BuildPaths.html"><span class="hs-identifier">Distribution.Simple.BuildPaths</span></a></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html"><span class="hs-identifier">Distribution.Simple.Compiler</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Hpc.html"><span class="hs-identifier">Distribution.Simple.Hpc</span></a></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html"><span class="hs-identifier">Distribution.Simple.InstallDirs</span></a></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html"><span class="hs-identifier">Distribution.Simple.LocalBuildInfo</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LBI</span></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html"><span class="hs-identifier">Distribution.Types.LocalBuildInfo</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LBI</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html"><span class="hs-identifier">Distribution.Simple.Setup</span></a></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Test.Log.html"><span class="hs-identifier">Distribution.Simple.Test.Log</span></a></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html"><span class="hs-identifier">Distribution.Simple.Utils</span></a></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.System.html#/Distribution.System.html"><span class="hs-identifier">Distribution.System</span></a></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html"><span class="hs-identifier">Distribution.TestSuite</span></a></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#/Distribution.Pretty.html"><span class="hs-identifier">Distribution.Pretty</span></a></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html"><span class="hs-identifier">Distribution.Verbosity</span></a></span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../directory-1.3.8.1/src/System.Directory.html#/System.Directory.html"><span class="hs-identifier">System.Directory</span></a></span><span>
+</span><span id="line-30"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../directory-1.3.8.1/src/System.Directory.html#createDirectoryIfMissing/System.Directory.html#createDirectoryIfMissing"><span class="hs-identifier">createDirectoryIfMissing</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../directory-1.3.8.1/src/System.Directory.html#doesDirectoryExist/System.Directory.html#doesDirectoryExist"><span class="hs-identifier">doesDirectoryExist</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../directory-1.3.8.1/src/System.Directory.html#doesFileExist/System.Directory.html#doesFileExist"><span class="hs-identifier">doesFileExist</span></a></span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../directory-1.3.8.1/src/System.Directory.html#getCurrentDirectory/System.Directory.html#getCurrentDirectory"><span class="hs-identifier">getCurrentDirectory</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../directory-1.3.8.1/src/System.Directory.html#removeDirectoryRecursive/System.Directory.html#removeDirectoryRecursive"><span class="hs-identifier">removeDirectoryRecursive</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../filepath-1.4.200.1/src/System.FilePath.html#/System.FilePath.html"><span class="hs-identifier">System.FilePath</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator">(&lt;/&gt;)</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C.%3E/System.FilePath.Posix.html#%3C.%3E"><span class="hs-operator">(&lt;.&gt;)</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/System.IO.html#/System.IO.html"><span class="hs-identifier">System.IO</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.StdHandles.html#stdout/GHC.IO.StdHandles.html#stdout"><span class="hs-identifier">stdout</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.StdHandles.html#stderr/GHC.IO.StdHandles.html#stderr"><span class="hs-identifier">stderr</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../process-1.6.17.0/src/System.Process.html#/System.Process.html"><span class="hs-identifier">System.Process</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../process-1.6.17.0/src/System.Process.Internals.html#createPipe/System.Process.Internals.html#createPipe"><span class="hs-identifier">createPipe</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Lazy.html#/Data.ByteString.Lazy.html"><span class="hs-identifier">Data.ByteString.Lazy</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LBS</span></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="annot"><a href="Distribution.Simple.Test.ExeV10.html#runTest"><span class="hs-identifier hs-type">runTest</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PD.PackageDescription</span></a></span><span>
+</span><span id="line-39"></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LBI.LocalBuildInfo</span></a></span><span>
+</span><span id="line-40"></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">LBI.ComponentLocalBuildInfo</span></a></span><span>
+</span><span id="line-41"></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html#TestFlags"><span class="hs-identifier hs-type">TestFlags</span></a></span><span>
+</span><span id="line-42"></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuite.html#TestSuite/Distribution.Types.TestSuite.html#TestSuite"><span class="hs-identifier hs-type">PD.TestSuite</span></a></span><span>
+</span><span id="line-43"></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="Distribution.Simple.Test.Log.html#TestSuiteLog"><span class="hs-identifier hs-type">TestSuiteLog</span></a></span><span>
+</span><span id="line-44"></span><span id="runTest"><span class="annot"><span class="annottext">runTest :: PackageDescription
+-&gt; LocalBuildInfo
+-&gt; ComponentLocalBuildInfo
+-&gt; TestFlags
+-&gt; TestSuite
+-&gt; IO TestSuiteLog
+</span><a href="Distribution.Simple.Test.ExeV10.html#runTest"><span class="hs-identifier hs-var hs-var">runTest</span></a></span></span><span> </span><span id="local-6989586621679376223"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679376223"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span> </span><span id="local-6989586621679376224"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376224"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679376225"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679376225"><span class="hs-identifier hs-var">clbi</span></a></span></span><span> </span><span id="local-6989586621679376226"><span class="annot"><span class="annottext">TestFlags
+</span><a href="#local-6989586621679376226"><span class="hs-identifier hs-var">flags</span></a></span></span><span> </span><span id="local-6989586621679376227"><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679376227"><span class="hs-identifier hs-var">suite</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-45"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679376228"><span class="annot"><span class="annottext">isCoverageEnabled :: Bool
+</span><a href="#local-6989586621679376228"><span class="hs-identifier hs-var hs-var">isCoverageEnabled</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Bool
+</span><a href="Distribution.Types.LocalBuildInfo.html#testCoverage"><span class="hs-identifier hs-var">LBI.testCoverage</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376224"><span class="hs-identifier hs-var">lbi</span></a></span><span>
+</span><span id="line-46"></span><span>        </span><span id="local-6989586621679376230"><span class="annot"><span class="annottext">way :: Way
+</span><a href="#local-6989586621679376230"><span class="hs-identifier hs-var hs-var">way</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Way
+</span><a href="Distribution.Simple.Hpc.html#guessWay"><span class="hs-identifier hs-var">guessWay</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376224"><span class="hs-identifier hs-var">lbi</span></a></span><span>
+</span><span id="line-47"></span><span>        </span><span id="local-6989586621679376232"><span class="annot"><span class="annottext">tixDir_ :: FilePath
+</span><a href="#local-6989586621679376232"><span class="hs-identifier hs-var hs-var">tixDir_</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Way -&gt; FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.Hpc.html#tixDir"><span class="hs-identifier hs-var">tixDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376234"><span class="hs-identifier hs-var">distPref</span></a></span><span> </span><span class="annot"><span class="annottext">Way
+</span><a href="#local-6989586621679376230"><span class="hs-identifier hs-var">way</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376235"><span class="hs-identifier hs-var">testName'</span></a></span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span>    </span><span id="local-6989586621679376236"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376236"><span class="hs-identifier hs-var">pwd</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO FilePath
+</span><a href="../../directory-1.3.8.1/src/System.Directory.html#getCurrentDirectory/System.Directory.html#getCurrentDirectory"><span class="hs-identifier hs-var">getCurrentDirectory</span></a></span><span>
+</span><span id="line-50"></span><span>    </span><span id="local-6989586621679376237"><span class="annot"><span class="annottext">[(FilePath, FilePath)]
+</span><a href="#local-6989586621679376237"><span class="hs-identifier hs-var">existingEnv</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO [(FilePath, FilePath)]
+</span><a href="Distribution.Compat.Environment.html#getEnvironment"><span class="hs-identifier hs-var">getEnvironment</span></a></span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679376239"><span class="annot"><span class="annottext">cmd :: FilePath
+</span><a href="#local-6989586621679376239"><span class="hs-identifier hs-var hs-var">cmd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; FilePath
+</span><a href="Distribution.Types.LocalBuildInfo.html#buildDir"><span class="hs-identifier hs-var">LBI.buildDir</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376224"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376235"><span class="hs-identifier hs-var">testName'</span></a></span><span>
+</span><span id="line-53"></span><span>                  </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376235"><span class="hs-identifier hs-var">testName'</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C.%3E/System.FilePath.Posix.html#%3C.%3E"><span class="hs-operator hs-var">&lt;.&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Platform -&gt; FilePath
+</span><a href="Distribution.Simple.BuildPaths.html#exeExtension"><span class="hs-identifier hs-var">exeExtension</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Platform
+</span><a href="Distribution.Types.LocalBuildInfo.html#hostPlatform"><span class="hs-identifier hs-var">LBI.hostPlatform</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376224"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span>    </span><span class="hs-comment">-- Check that the test executable exists.</span><span>
+</span><span id="line-55"></span><span>    </span><span id="local-6989586621679376243"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679376243"><span class="hs-identifier hs-var">exists</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; IO Bool
+</span><a href="../../directory-1.3.8.1/src/System.Directory.html#doesFileExist/System.Directory.html#doesFileExist"><span class="hs-identifier hs-var">doesFileExist</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376239"><span class="hs-identifier hs-var">cmd</span></a></span><span>
+</span><span id="line-56"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/Control.Monad.html#unless/Control.Monad.html#unless"><span class="hs-identifier hs-var">unless</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679376243"><span class="hs-identifier hs-var">exists</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; FilePath -&gt; IO ()
+forall a. Verbosity -&gt; FilePath -&gt; IO a
+</span><a href="Distribution.Simple.Utils.html#die%27"><span class="hs-identifier hs-var">die'</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679376246"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;Could not find test program \&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376239"><span class="hs-identifier hs-var">cmd</span></a></span><span>
+</span><span id="line-57"></span><span>                          </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;\&quot;. Did you build the package first?&quot;</span></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-comment">-- Remove old .tix files if appropriate.</span><span>
+</span><span id="line-60"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/Control.Monad.html#unless/Control.Monad.html#unless"><span class="hs-identifier hs-var">unless</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Flag Bool -&gt; Bool
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag Bool -&gt; Bool) -&gt; Flag Bool -&gt; Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">TestFlags -&gt; Flag Bool
+</span><a href="Distribution.Simple.Setup.html#testKeepTix"><span class="hs-identifier hs-var">testKeepTix</span></a></span><span> </span><span class="annot"><span class="annottext">TestFlags
+</span><a href="#local-6989586621679376226"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-61"></span><span>        </span><span id="local-6989586621679376249"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679376249"><span class="hs-identifier hs-var">exists'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; IO Bool
+</span><a href="../../directory-1.3.8.1/src/System.Directory.html#doesDirectoryExist/System.Directory.html#doesDirectoryExist"><span class="hs-identifier hs-var">doesDirectoryExist</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376232"><span class="hs-identifier hs-var">tixDir_</span></a></span><span>
+</span><span id="line-62"></span><span>        </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#when/GHC.Base.html#when"><span class="hs-identifier hs-var">when</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679376249"><span class="hs-identifier hs-var">exists'</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; IO ()
+</span><a href="../../directory-1.3.8.1/src/System.Directory.html#removeDirectoryRecursive/System.Directory.html#removeDirectoryRecursive"><span class="hs-identifier hs-var">removeDirectoryRecursive</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376232"><span class="hs-identifier hs-var">tixDir_</span></a></span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-comment">-- Create directory for HPC files.</span><span>
+</span><span id="line-65"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; FilePath -&gt; IO ()
+</span><a href="../../directory-1.3.8.1/src/System.Directory.html#createDirectoryIfMissing/System.Directory.html#createDirectoryIfMissing"><span class="hs-identifier hs-var">createDirectoryIfMissing</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376232"><span class="hs-identifier hs-var">tixDir_</span></a></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span>    </span><span class="hs-comment">-- Write summary notices indicating start of test suite</span><span>
+</span><span id="line-68"></span><span>    </span><span class="annot"><span class="annottext">Verbosity -&gt; FilePath -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#notice"><span class="hs-identifier hs-var">notice</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679376246"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.Test.Log.html#summarizeSuiteStart"><span class="hs-identifier hs-var">summarizeSuiteStart</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; FilePath) -&gt; FilePath -&gt; FilePath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376235"><span class="hs-identifier hs-var">testName'</span></a></span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span>    </span><span class="hs-comment">-- Run the test executable</span><span>
+</span><span id="line-72"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679376253"><span class="annot"><span class="annottext">opts :: [FilePath]
+</span><a href="#local-6989586621679376253"><span class="hs-identifier hs-var hs-var">opts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PathTemplate -&gt; FilePath) -&gt; [PathTemplate] -&gt; [FilePath]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageDescription
+-&gt; LocalBuildInfo -&gt; TestSuite -&gt; PathTemplate -&gt; FilePath
+</span><a href="Distribution.Simple.Test.ExeV10.html#testOption"><span class="hs-identifier hs-var">testOption</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679376223"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376224"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679376227"><span class="hs-identifier hs-var">suite</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-73"></span><span>                   </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TestFlags -&gt; [PathTemplate]
+</span><a href="Distribution.Simple.Setup.html#testOptions"><span class="hs-identifier hs-var">testOptions</span></a></span><span> </span><span class="annot"><span class="annottext">TestFlags
+</span><a href="#local-6989586621679376226"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-74"></span><span>        </span><span id="local-6989586621679376256"><span class="annot"><span class="annottext">dataDirPath :: FilePath
+</span><a href="#local-6989586621679376256"><span class="hs-identifier hs-var hs-var">dataDirPath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376236"><span class="hs-identifier hs-var">pwd</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#dataDir/Distribution.Types.PackageDescription.html#dataDir"><span class="hs-identifier hs-var">PD.dataDir</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679376223"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span>
+</span><span id="line-75"></span><span>        </span><span id="local-6989586621679376258"><span class="annot"><span class="annottext">tixFile :: FilePath
+</span><a href="#local-6989586621679376258"><span class="hs-identifier hs-var hs-var">tixFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376236"><span class="hs-identifier hs-var">pwd</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Way -&gt; FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.Hpc.html#tixFilePath"><span class="hs-identifier hs-var">tixFilePath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376234"><span class="hs-identifier hs-var">distPref</span></a></span><span> </span><span class="annot"><span class="annottext">Way
+</span><a href="#local-6989586621679376230"><span class="hs-identifier hs-var">way</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376235"><span class="hs-identifier hs-var">testName'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-76"></span><span>        </span><span id="local-6989586621679376260"><span class="annot"><span class="annottext">pkgPathEnv :: [(FilePath, FilePath)]
+</span><a href="#local-6989586621679376260"><span class="hs-identifier hs-var hs-var">pkgPathEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageDescription -&gt; FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.Build.PathsModule.html#pkgPathEnvVar"><span class="hs-identifier hs-var">pkgPathEnvVar</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679376223"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;datadir&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376256"><span class="hs-identifier hs-var">dataDirPath</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>                   </span><span class="annot"><span class="annottext">(FilePath, FilePath)
+-&gt; [(FilePath, FilePath)] -&gt; [(FilePath, FilePath)]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[(FilePath, FilePath)]
+</span><a href="#local-6989586621679376237"><span class="hs-identifier hs-var">existingEnv</span></a></span><span>
+</span><span id="line-78"></span><span>        </span><span id="local-6989586621679376262"><span class="annot"><span class="annottext">shellEnv :: [(FilePath, FilePath)]
+</span><a href="#local-6989586621679376262"><span class="hs-identifier hs-var hs-var">shellEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;HPCTIXFILE&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376258"><span class="hs-identifier hs-var">tixFile</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679376228"><span class="hs-identifier hs-var">isCoverageEnabled</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[(FilePath, FilePath)]
+-&gt; [(FilePath, FilePath)] -&gt; [(FilePath, FilePath)]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">[(FilePath, FilePath)]
+</span><a href="#local-6989586621679376260"><span class="hs-identifier hs-var">pkgPathEnv</span></a></span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span>    </span><span class="hs-comment">-- Add (DY)LD_LIBRARY_PATH if needed</span><span>
+</span><span id="line-81"></span><span>    </span><span id="local-6989586621679376263"><span class="annot"><span class="annottext">[(FilePath, FilePath)]
+</span><a href="#local-6989586621679376263"><span class="hs-identifier hs-var">shellEnv'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Bool
+</span><a href="Distribution.Types.LocalBuildInfo.html#withDynExe"><span class="hs-identifier hs-var">LBI.withDynExe</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376224"><span class="hs-identifier hs-var">lbi</span></a></span><span>
+</span><span id="line-82"></span><span>                    </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.System.html#Platform/Distribution.System.html#Platform"><span class="hs-identifier hs-type">Platform</span></a></span><span> </span><span class="annot"><span class="annottext">Arch
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679376266"><span class="annot"><span class="annottext">OS
+</span><a href="#local-6989586621679376266"><span class="hs-identifier hs-var">os</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Platform
+</span><a href="Distribution.Types.LocalBuildInfo.html#hostPlatform"><span class="hs-identifier hs-var">LBI.hostPlatform</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376224"><span class="hs-identifier hs-var">lbi</span></a></span><span>
+</span><span id="line-83"></span><span>                            </span><span id="local-6989586621679376267"><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679376267"><span class="hs-identifier hs-var">paths</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Bool
+-&gt; Bool
+-&gt; LocalBuildInfo
+-&gt; ComponentLocalBuildInfo
+-&gt; IO [FilePath]
+</span><a href="Distribution.Simple.LocalBuildInfo.html#depLibraryPaths"><span class="hs-identifier hs-var">LBI.depLibraryPaths</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376224"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679376225"><span class="hs-identifier hs-var">clbi</span></a></span><span>
+</span><span id="line-84"></span><span>                            </span><span class="annot"><span class="annottext">[(FilePath, FilePath)] -&gt; IO [(FilePath, FilePath)]
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">OS
+-&gt; [FilePath] -&gt; [(FilePath, FilePath)] -&gt; [(FilePath, FilePath)]
+</span><a href="Distribution.Simple.Utils.html#addLibraryPath"><span class="hs-identifier hs-var">addLibraryPath</span></a></span><span> </span><span class="annot"><span class="annottext">OS
+</span><a href="#local-6989586621679376266"><span class="hs-identifier hs-var">os</span></a></span><span> </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679376267"><span class="hs-identifier hs-var">paths</span></a></span><span> </span><span class="annot"><span class="annottext">[(FilePath, FilePath)]
+</span><a href="#local-6989586621679376262"><span class="hs-identifier hs-var">shellEnv</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-85"></span><span>                    </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">[(FilePath, FilePath)] -&gt; IO [(FilePath, FilePath)]
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">[(FilePath, FilePath)]
+</span><a href="#local-6989586621679376262"><span class="hs-identifier hs-var">shellEnv</span></a></span><span>
+</span><span id="line-86"></span><span>
+</span><span id="line-87"></span><span>    </span><span class="hs-comment">-- Output logger</span><span>
+</span><span id="line-88"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679376270"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679376270"><span class="hs-identifier hs-var">wOut</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679376271"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679376271"><span class="hs-identifier hs-var">wErr</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679376272"><span class="annot"><span class="annottext">IO ByteString
+</span><a href="#local-6989586621679376272"><span class="hs-identifier hs-var">getLogText</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TestShowDetails
+</span><a href="#local-6989586621679376273"><span class="hs-identifier hs-var">details</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-89"></span><span>        </span><span class="annot"><span class="annottext">TestShowDetails
+</span><a href="Distribution.Simple.Setup.html#Direct"><span class="hs-identifier hs-var">Direct</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(Handle, Handle, IO ByteString)
+-&gt; IO (Handle, Handle, IO ByteString)
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Handle
+</span><a href="../../base-4.18.2.0/src/GHC.IO.StdHandles.html#stdout/GHC.IO.StdHandles.html#stdout"><span class="hs-identifier hs-var">stdout</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="../../base-4.18.2.0/src/GHC.IO.StdHandles.html#stderr/GHC.IO.StdHandles.html#stderr"><span class="hs-identifier hs-var">stderr</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; IO ByteString
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Lazy.html#empty/Data.ByteString.Lazy.html#empty"><span class="hs-identifier hs-var">LBS.empty</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span>        </span><span class="annot"><span class="annottext">TestShowDetails
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-91"></span><span>            </span><span class="hs-special">(</span><span id="local-6989586621679376276"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679376276"><span class="hs-identifier hs-var">rOut</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679376277"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679376277"><span class="hs-identifier hs-var">wOut</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Handle, Handle)
+</span><a href="../../process-1.6.17.0/src/System.Process.Internals.html#createPipe/System.Process.Internals.html#createPipe"><span class="hs-identifier hs-var">createPipe</span></a></span><span>
+</span><span id="line-92"></span><span>
+</span><span id="line-93"></span><span>            </span><span class="annot"><span class="annottext">(Handle, Handle, IO ByteString)
+-&gt; IO (Handle, Handle, IO ByteString)
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">((Handle, Handle, IO ByteString)
+ -&gt; IO (Handle, Handle, IO ByteString))
+-&gt; (Handle, Handle, IO ByteString)
+-&gt; IO (Handle, Handle, IO ByteString)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">,</span><span class="hs-special">,</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679376277"><span class="hs-identifier hs-var">wOut</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679376277"><span class="hs-identifier hs-var">wOut</span></a></span><span> </span><span class="annot"><span class="annottext">(IO ByteString -&gt; (Handle, Handle, IO ByteString))
+-&gt; IO ByteString -&gt; (Handle, Handle, IO ByteString)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-94"></span><span>                </span><span class="hs-comment">-- Read test executables' output</span><span>
+</span><span id="line-95"></span><span>                </span><span id="local-6989586621679376278"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679376278"><span class="hs-identifier hs-var">logText</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO ByteString
+</span><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Lazy.html#hGetContents/Data.ByteString.Lazy.html#hGetContents"><span class="hs-identifier hs-var">LBS.hGetContents</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679376276"><span class="hs-identifier hs-var">rOut</span></a></span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span>                </span><span class="hs-comment">-- '--show-details=streaming': print the log output in another thread</span><span>
+</span><span id="line-98"></span><span>                </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#when/GHC.Base.html#when"><span class="hs-identifier hs-var">when</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TestShowDetails
+</span><a href="#local-6989586621679376273"><span class="hs-identifier hs-var">details</span></a></span><span> </span><span class="annot"><span class="annottext">TestShowDetails -&gt; TestShowDetails -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">TestShowDetails
+</span><a href="Distribution.Simple.Setup.html#Streaming"><span class="hs-identifier hs-var">Streaming</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; IO ()
+</span><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Lazy.html#putStr/Data.ByteString.Lazy.html#putStr"><span class="hs-identifier hs-var">LBS.putStr</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679376278"><span class="hs-identifier hs-var">logText</span></a></span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span><span>                </span><span class="hs-comment">-- drain the output.</span><span>
+</span><span id="line-101"></span><span>                </span><span class="annot"><span class="annottext">ByteString -&gt; IO ByteString
+forall a. a -&gt; IO a
+</span><a href="../../base-4.18.2.0/src/GHC.IO.html#evaluate/GHC.IO.html#evaluate"><span class="hs-identifier hs-var">evaluate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString -&gt; ByteString
+forall a. NFData a =&gt; a -&gt; a
+</span><a href="../../deepseq-1.4.8.1/src/Control.DeepSeq.html#force/Control.DeepSeq.html#force"><span class="hs-identifier hs-var">force</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679376278"><span class="hs-identifier hs-var">logText</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679376284"><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679376284"><span class="hs-identifier hs-var">exit</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679376285"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679376285"><span class="hs-identifier hs-var">logText</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TestFlags -&gt; Flag FilePath
+</span><a href="Distribution.Simple.Setup.html#testWrapper"><span class="hs-identifier hs-var">testWrapper</span></a></span><span> </span><span class="annot"><span class="annottext">TestFlags
+</span><a href="#local-6989586621679376226"><span class="hs-identifier hs-var">flags</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-104"></span><span>        </span><span class="annot"><a href="Distribution.Simple.Flag.html#Flag"><span class="hs-identifier hs-type">Flag</span></a></span><span> </span><span id="local-6989586621679376288"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376288"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Verbosity
+-&gt; FilePath
+-&gt; [FilePath]
+-&gt; Maybe FilePath
+-&gt; Maybe [(FilePath, FilePath)]
+-&gt; IO ByteString
+-&gt; Maybe Handle
+-&gt; Maybe Handle
+-&gt; Maybe Handle
+-&gt; IO (ExitCode, ByteString)
+forall a.
+Verbosity
+-&gt; FilePath
+-&gt; [FilePath]
+-&gt; Maybe FilePath
+-&gt; Maybe [(FilePath, FilePath)]
+-&gt; IO a
+-&gt; Maybe Handle
+-&gt; Maybe Handle
+-&gt; Maybe Handle
+-&gt; IO (ExitCode, a)
+</span><a href="Distribution.Simple.Utils.html#rawSystemIOWithEnvAndAction"><span class="hs-identifier hs-var">rawSystemIOWithEnvAndAction</span></a></span><span>
+</span><span id="line-105"></span><span>            </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679376246"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376288"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376239"><span class="hs-identifier hs-var">cmd</span></a></span><span class="annot"><span class="annottext">FilePath -&gt; [FilePath] -&gt; [FilePath]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679376253"><span class="hs-identifier hs-var">opts</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(FilePath, FilePath)] -&gt; Maybe [(FilePath, FilePath)]
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">[(FilePath, FilePath)]
+</span><a href="#local-6989586621679376263"><span class="hs-identifier hs-var">shellEnv'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-106"></span><span>            </span><span class="annot"><span class="annottext">IO ByteString
+</span><a href="#local-6989586621679376272"><span class="hs-identifier hs-var">getLogText</span></a></span><span>
+</span><span id="line-107"></span><span>            </span><span class="hs-comment">-- these handles are automatically closed</span><span>
+</span><span id="line-108"></span><span>            </span><span class="annot"><span class="annottext">Maybe Handle
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Handle -&gt; Maybe Handle
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679376270"><span class="hs-identifier hs-var">wOut</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Handle -&gt; Maybe Handle
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679376271"><span class="hs-identifier hs-var">wErr</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span>        </span><span class="annot"><span class="annottext">Flag FilePath
+</span><a href="Distribution.Simple.Flag.html#NoFlag"><span class="hs-identifier hs-var">NoFlag</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Verbosity
+-&gt; FilePath
+-&gt; [FilePath]
+-&gt; Maybe FilePath
+-&gt; Maybe [(FilePath, FilePath)]
+-&gt; IO ByteString
+-&gt; Maybe Handle
+-&gt; Maybe Handle
+-&gt; Maybe Handle
+-&gt; IO (ExitCode, ByteString)
+forall a.
+Verbosity
+-&gt; FilePath
+-&gt; [FilePath]
+-&gt; Maybe FilePath
+-&gt; Maybe [(FilePath, FilePath)]
+-&gt; IO a
+-&gt; Maybe Handle
+-&gt; Maybe Handle
+-&gt; Maybe Handle
+-&gt; IO (ExitCode, a)
+</span><a href="Distribution.Simple.Utils.html#rawSystemIOWithEnvAndAction"><span class="hs-identifier hs-var">rawSystemIOWithEnvAndAction</span></a></span><span>
+</span><span id="line-111"></span><span>            </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679376246"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376239"><span class="hs-identifier hs-var">cmd</span></a></span><span> </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679376253"><span class="hs-identifier hs-var">opts</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(FilePath, FilePath)] -&gt; Maybe [(FilePath, FilePath)]
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">[(FilePath, FilePath)]
+</span><a href="#local-6989586621679376263"><span class="hs-identifier hs-var">shellEnv'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span><span>            </span><span class="annot"><span class="annottext">IO ByteString
+</span><a href="#local-6989586621679376272"><span class="hs-identifier hs-var">getLogText</span></a></span><span>
+</span><span id="line-113"></span><span>            </span><span class="hs-comment">-- these handles are automatically closed</span><span>
+</span><span id="line-114"></span><span>            </span><span class="annot"><span class="annottext">Maybe Handle
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Handle -&gt; Maybe Handle
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679376270"><span class="hs-identifier hs-var">wOut</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Handle -&gt; Maybe Handle
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679376271"><span class="hs-identifier hs-var">wErr</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>
+</span><span id="line-116"></span><span>    </span><span class="hs-comment">-- Generate TestSuiteLog from executable exit code and a machine-</span><span>
+</span><span id="line-117"></span><span>    </span><span class="hs-comment">-- readable test log.</span><span>
+</span><span id="line-118"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679376291"><span class="annot"><span class="annottext">suiteLog :: TestSuiteLog
+</span><a href="#local-6989586621679376291"><span class="hs-identifier hs-var hs-var">suiteLog</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ExitCode -&gt; TestSuiteLog
+</span><a href="#local-6989586621679376292"><span class="hs-identifier hs-var">buildLog</span></a></span><span> </span><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679376284"><span class="hs-identifier hs-var">exit</span></a></span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span>    </span><span class="hs-comment">-- Write summary notice to log file indicating start of test suite</span><span>
+</span><span id="line-121"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/System.IO.html#appendFile/System.IO.html#appendFile"><span class="hs-identifier hs-var">appendFile</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TestSuiteLog -&gt; FilePath
+</span><a href="Distribution.Simple.Test.Log.html#logFile"><span class="hs-identifier hs-var">logFile</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuiteLog
+</span><a href="#local-6989586621679376291"><span class="hs-identifier hs-var">suiteLog</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.Test.Log.html#summarizeSuiteStart"><span class="hs-identifier hs-var">summarizeSuiteStart</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376235"><span class="hs-identifier hs-var">testName'</span></a></span><span>
+</span><span id="line-122"></span><span>
+</span><span id="line-123"></span><span>    </span><span class="hs-comment">-- Append contents of temporary log file to the final human-</span><span>
+</span><span id="line-124"></span><span>    </span><span class="hs-comment">-- readable log file</span><span>
+</span><span id="line-125"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; ByteString -&gt; IO ()
+</span><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Lazy.html#appendFile/Data.ByteString.Lazy.html#appendFile"><span class="hs-identifier hs-var">LBS.appendFile</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TestSuiteLog -&gt; FilePath
+</span><a href="Distribution.Simple.Test.Log.html#logFile"><span class="hs-identifier hs-var">logFile</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuiteLog
+</span><a href="#local-6989586621679376291"><span class="hs-identifier hs-var">suiteLog</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679376285"><span class="hs-identifier hs-var">logText</span></a></span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span>    </span><span class="hs-comment">-- Write end-of-suite summary notice to log file</span><span>
+</span><span id="line-128"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/System.IO.html#appendFile/System.IO.html#appendFile"><span class="hs-identifier hs-var">appendFile</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TestSuiteLog -&gt; FilePath
+</span><a href="Distribution.Simple.Test.Log.html#logFile"><span class="hs-identifier hs-var">logFile</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuiteLog
+</span><a href="#local-6989586621679376291"><span class="hs-identifier hs-var">suiteLog</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuiteLog -&gt; FilePath
+</span><a href="Distribution.Simple.Test.Log.html#summarizeSuiteFinish"><span class="hs-identifier hs-var">summarizeSuiteFinish</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuiteLog
+</span><a href="#local-6989586621679376291"><span class="hs-identifier hs-var">suiteLog</span></a></span><span>
+</span><span id="line-129"></span><span>
+</span><span id="line-130"></span><span>    </span><span class="hs-comment">-- Show the contents of the human-readable log file on the terminal</span><span>
+</span><span id="line-131"></span><span>    </span><span class="hs-comment">-- if there is a failure and/or detailed output is requested</span><span>
+</span><span id="line-132"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679376304"><span class="annot"><span class="annottext">whenPrinting :: IO () -&gt; IO ()
+</span><a href="#local-6989586621679376304"><span class="hs-identifier hs-var hs-var">whenPrinting</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#when/GHC.Base.html#when"><span class="hs-identifier hs-var">when</span></a></span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; IO () -&gt; IO ()) -&gt; Bool -&gt; IO () -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-133"></span><span>            </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">TestShowDetails
+</span><a href="#local-6989586621679376273"><span class="hs-identifier hs-var">details</span></a></span><span> </span><span class="annot"><span class="annottext">TestShowDetails -&gt; TestShowDetails -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">TestShowDetails
+</span><a href="Distribution.Simple.Setup.html#Always"><span class="hs-identifier hs-var">Always</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span>
+</span><span id="line-134"></span><span>              </span><span class="annot"><span class="annottext">TestShowDetails
+</span><a href="#local-6989586621679376273"><span class="hs-identifier hs-var">details</span></a></span><span> </span><span class="annot"><span class="annottext">TestShowDetails -&gt; TestShowDetails -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">TestShowDetails
+</span><a href="Distribution.Simple.Setup.html#Failures"><span class="hs-identifier hs-var">Failures</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TestLogs -&gt; Bool
+</span><a href="Distribution.Simple.Test.Log.html#suitePassed"><span class="hs-identifier hs-var">suitePassed</span></a></span><span> </span><span class="annot"><span class="annottext">(TestLogs -&gt; Bool) -&gt; TestLogs -&gt; Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuiteLog -&gt; TestLogs
+</span><a href="Distribution.Simple.Test.Log.html#testLogs"><span class="hs-identifier hs-var">testLogs</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuiteLog
+</span><a href="#local-6989586621679376291"><span class="hs-identifier hs-var">suiteLog</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-135"></span><span>            </span><span class="hs-comment">-- verbosity overrides show-details</span><span>
+</span><span id="line-136"></span><span>            </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679376246"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; Verbosity -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="Distribution.Verbosity.html#normal"><span class="hs-identifier hs-var">normal</span></a></span><span>
+</span><span id="line-137"></span><span>    </span><span class="annot"><span class="annottext">IO () -&gt; IO ()
+</span><a href="#local-6989586621679376304"><span class="hs-identifier hs-var">whenPrinting</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-138"></span><span>        </span><span class="annot"><span class="annottext">ByteString -&gt; IO ()
+</span><a href="../../bytestring-0.11.5.3/src/Data.ByteString.Lazy.html#putStr/Data.ByteString.Lazy.html#putStr"><span class="hs-identifier hs-var">LBS.putStr</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679376285"><span class="hs-identifier hs-var">logText</span></a></span><span>
+</span><span id="line-139"></span><span>        </span><span class="annot"><span class="annottext">Char -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/System.IO.html#putChar/System.IO.html#putChar"><span class="hs-identifier hs-var">putChar</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\n'</span></span><span>
+</span><span id="line-140"></span><span>
+</span><span id="line-141"></span><span>    </span><span class="hs-comment">-- Write summary notice to terminal indicating end of test suite</span><span>
+</span><span id="line-142"></span><span>    </span><span class="annot"><span class="annottext">Verbosity -&gt; FilePath -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#notice"><span class="hs-identifier hs-var">notice</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679376246"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuiteLog -&gt; FilePath
+</span><a href="Distribution.Simple.Test.Log.html#summarizeSuiteFinish"><span class="hs-identifier hs-var">summarizeSuiteFinish</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuiteLog
+</span><a href="#local-6989586621679376291"><span class="hs-identifier hs-var">suiteLog</span></a></span><span>
+</span><span id="line-143"></span><span>
+</span><span id="line-144"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; IO () -&gt; IO ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#when/GHC.Base.html#when"><span class="hs-identifier hs-var">when</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679376228"><span class="hs-identifier hs-var">isCoverageEnabled</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; IO () -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-145"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; Maybe Library
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#library/Distribution.Types.PackageDescription.html#library"><span class="hs-identifier hs-var">PD.library</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679376223"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-146"></span><span>            </span><span class="annot"><span class="annottext">Maybe Library
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-147"></span><span>                </span><span class="annot"><span class="annottext">Verbosity -&gt; FilePath -&gt; IO ()
+forall a. Verbosity -&gt; FilePath -&gt; IO a
+</span><a href="Distribution.Simple.Utils.html#die%27"><span class="hs-identifier hs-var">die'</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679376246"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;Test coverage is only supported for packages with a library component.&quot;</span></span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span>            </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679376315"><span class="annot"><span class="annottext">Library
+</span><a href="#local-6989586621679376315"><span class="hs-identifier hs-var">library</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-150"></span><span>                </span><span class="annot"><span class="annottext">Verbosity
+-&gt; LocalBuildInfo
+-&gt; FilePath
+-&gt; FilePath
+-&gt; TestSuite
+-&gt; Library
+-&gt; IO ()
+</span><a href="Distribution.Simple.Hpc.html#markupTest"><span class="hs-identifier hs-var">markupTest</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679376246"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376224"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376234"><span class="hs-identifier hs-var">distPref</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageIdentifier -&gt; FilePath
+forall a. Pretty a =&gt; a -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="annot"><span class="annottext">(PackageIdentifier -&gt; FilePath) -&gt; PackageIdentifier -&gt; FilePath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageIdentifier
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#package/Distribution.Types.PackageDescription.html#package"><span class="hs-identifier hs-var">PD.package</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679376223"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679376227"><span class="hs-identifier hs-var">suite</span></a></span><span> </span><span class="annot"><span class="annottext">Library
+</span><a href="#local-6989586621679376315"><span class="hs-identifier hs-var">library</span></a></span><span>
+</span><span id="line-151"></span><span>
+</span><span id="line-152"></span><span>    </span><span class="annot"><span class="annottext">TestSuiteLog -&gt; IO TestSuiteLog
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuiteLog
+</span><a href="#local-6989586621679376291"><span class="hs-identifier hs-var">suiteLog</span></a></span><span>
+</span><span id="line-153"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-154"></span><span>    </span><span id="local-6989586621679376235"><span class="annot"><span class="annottext">testName' :: FilePath
+</span><a href="#local-6989586621679376235"><span class="hs-identifier hs-var hs-var">testName'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">UnqualComponentName -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnqualComponentName.html#unUnqualComponentName/Distribution.Types.UnqualComponentName.html#unUnqualComponentName"><span class="hs-identifier hs-var">unUnqualComponentName</span></a></span><span> </span><span class="annot"><span class="annottext">(UnqualComponentName -&gt; FilePath)
+-&gt; UnqualComponentName -&gt; FilePath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuite -&gt; UnqualComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuite.html#testName/Distribution.Types.TestSuite.html#testName"><span class="hs-identifier hs-var">PD.testName</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679376227"><span class="hs-identifier hs-var">suite</span></a></span><span>
+</span><span id="line-155"></span><span>
+</span><span id="line-156"></span><span>    </span><span id="local-6989586621679376234"><span class="annot"><span class="annottext">distPref :: FilePath
+</span><a href="#local-6989586621679376234"><span class="hs-identifier hs-var hs-var">distPref</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Flag FilePath -&gt; FilePath
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag FilePath -&gt; FilePath) -&gt; Flag FilePath -&gt; FilePath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">TestFlags -&gt; Flag FilePath
+</span><a href="Distribution.Simple.Setup.html#testDistPref"><span class="hs-identifier hs-var">testDistPref</span></a></span><span> </span><span class="annot"><span class="annottext">TestFlags
+</span><a href="#local-6989586621679376226"><span class="hs-identifier hs-var">flags</span></a></span><span>
+</span><span id="line-157"></span><span>    </span><span id="local-6989586621679376246"><span class="annot"><span class="annottext">verbosity :: Verbosity
+</span><a href="#local-6989586621679376246"><span class="hs-identifier hs-var hs-var">verbosity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Flag Verbosity -&gt; Verbosity
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag Verbosity -&gt; Verbosity) -&gt; Flag Verbosity -&gt; Verbosity
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">TestFlags -&gt; Flag Verbosity
+</span><a href="Distribution.Simple.Setup.html#testVerbosity"><span class="hs-identifier hs-var">testVerbosity</span></a></span><span> </span><span class="annot"><span class="annottext">TestFlags
+</span><a href="#local-6989586621679376226"><span class="hs-identifier hs-var">flags</span></a></span><span>
+</span><span id="line-158"></span><span>    </span><span id="local-6989586621679376273"><span class="annot"><span class="annottext">details :: TestShowDetails
+</span><a href="#local-6989586621679376273"><span class="hs-identifier hs-var hs-var">details</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Flag TestShowDetails -&gt; TestShowDetails
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag TestShowDetails -&gt; TestShowDetails)
+-&gt; Flag TestShowDetails -&gt; TestShowDetails
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">TestFlags -&gt; Flag TestShowDetails
+</span><a href="Distribution.Simple.Setup.html#testShowDetails"><span class="hs-identifier hs-var">testShowDetails</span></a></span><span> </span><span class="annot"><span class="annottext">TestFlags
+</span><a href="#local-6989586621679376226"><span class="hs-identifier hs-var">flags</span></a></span><span>
+</span><span id="line-159"></span><span>    </span><span id="local-6989586621679376330"><span class="annot"><span class="annottext">testLogDir :: FilePath
+</span><a href="#local-6989586621679376330"><span class="hs-identifier hs-var hs-var">testLogDir</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376234"><span class="hs-identifier hs-var">distPref</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;test&quot;</span></span><span>
+</span><span id="line-160"></span><span>
+</span><span id="line-161"></span><span>    </span><span id="local-6989586621679376292"><span class="annot"><span class="annottext">buildLog :: ExitCode -&gt; TestSuiteLog
+</span><a href="#local-6989586621679376292"><span class="hs-identifier hs-var hs-var">buildLog</span></a></span></span><span> </span><span id="local-6989586621679376333"><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679376333"><span class="hs-identifier hs-var">exit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-162"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679376336"><span class="annot"><span class="annottext">r :: Result
+</span><a href="#local-6989586621679376336"><span class="hs-identifier hs-var hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679376333"><span class="hs-identifier hs-var">exit</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-163"></span><span>                    </span><span class="annot"><span class="annottext">ExitCode
+</span><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#ExitSuccess/GHC.IO.Exception.html#ExitSuccess"><span class="hs-identifier hs-var">ExitSuccess</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Result
+</span><a href="Distribution.TestSuite.html#Pass"><span class="hs-identifier hs-var">Pass</span></a></span><span>
+</span><span id="line-164"></span><span>                    </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#ExitFailure/GHC.IO.Exception.html#ExitFailure"><span class="hs-identifier hs-type">ExitFailure</span></a></span><span> </span><span id="local-6989586621679376340"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679376340"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Result
+</span><a href="Distribution.TestSuite.html#Fail"><span class="hs-identifier hs-var">Fail</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; Result) -&gt; FilePath -&gt; Result
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;exit code: &quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; FilePath
+forall a. Show a =&gt; a -&gt; FilePath
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#show/GHC.Show.html#show"><span class="hs-identifier hs-var">show</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679376340"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-165"></span><span>            </span><span class="hs-comment">--n = unUnqualComponentName $ PD.testName suite</span><span>
+</span><span id="line-166"></span><span>            </span><span id="local-6989586621679376343"><span class="annot"><span class="annottext">l :: TestLogs
+</span><a href="#local-6989586621679376343"><span class="hs-identifier hs-var hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Test.Log.html#TestLog"><span class="hs-identifier hs-type">TestLog</span></a></span><span>
+</span><span id="line-167"></span><span>                </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">testName :: FilePath
+</span><a href="Distribution.Simple.Test.Log.html#testName"><span class="hs-identifier hs-var">testName</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376235"><span class="hs-identifier hs-var">testName'</span></a></span><span>
+</span><span id="line-168"></span><span>                </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">testOptionsReturned :: [(FilePath, FilePath)]
+</span><a href="Distribution.Simple.Test.Log.html#testOptionsReturned"><span class="hs-identifier hs-var">testOptionsReturned</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-169"></span><span>                </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">testResult :: Result
+</span><a href="Distribution.Simple.Test.Log.html#testResult"><span class="hs-identifier hs-var">testResult</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Result
+</span><a href="#local-6989586621679376336"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-170"></span><span>                </span><span class="hs-special">}</span><span>
+</span><span id="line-171"></span><span>        </span><span class="hs-keyword">in</span><span> </span><span class="annot"><a href="Distribution.Simple.Test.Log.html#TestSuiteLog"><span class="hs-identifier hs-type">TestSuiteLog</span></a></span><span>
+</span><span id="line-172"></span><span>                </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">testSuiteName :: UnqualComponentName
+</span><a href="Distribution.Simple.Test.Log.html#testSuiteName"><span class="hs-identifier hs-var">testSuiteName</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TestSuite -&gt; UnqualComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuite.html#testName/Distribution.Types.TestSuite.html#testName"><span class="hs-identifier hs-var">PD.testName</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679376227"><span class="hs-identifier hs-var">suite</span></a></span><span>
+</span><span id="line-173"></span><span>                </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">testLogs :: TestLogs
+</span><a href="Distribution.Simple.Test.Log.html#testLogs"><span class="hs-identifier hs-var">testLogs</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TestLogs
+</span><a href="#local-6989586621679376343"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-174"></span><span>                </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">logFile :: FilePath
+</span><a href="Distribution.Simple.Test.Log.html#logFile"><span class="hs-identifier hs-var">logFile</span></a></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-175"></span><span>                    </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376330"><span class="hs-identifier hs-var">testLogDir</span></a></span><span>
+</span><span id="line-176"></span><span>                    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">PathTemplate
+-&gt; PackageDescription
+-&gt; LocalBuildInfo
+-&gt; FilePath
+-&gt; TestLogs
+-&gt; FilePath
+</span><a href="Distribution.Simple.Test.Log.html#testSuiteLogPath"><span class="hs-identifier hs-var">testSuiteLogPath</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Flag PathTemplate -&gt; PathTemplate
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag PathTemplate -&gt; PathTemplate)
+-&gt; Flag PathTemplate -&gt; PathTemplate
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">TestFlags -&gt; Flag PathTemplate
+</span><a href="Distribution.Simple.Setup.html#testHumanLog"><span class="hs-identifier hs-var">testHumanLog</span></a></span><span> </span><span class="annot"><span class="annottext">TestFlags
+</span><a href="#local-6989586621679376226"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-177"></span><span>                                         </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679376223"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376224"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679376235"><span class="hs-identifier hs-var">testName'</span></a></span><span> </span><span class="annot"><span class="annottext">TestLogs
+</span><a href="#local-6989586621679376343"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-178"></span><span>                </span><span class="hs-special">}</span><span>
+</span><span id="line-179"></span><span>
+</span><span id="line-180"></span><span class="hs-comment">-- TODO: This is abusing the notion of a 'PathTemplate'.  The result isn't</span><span>
+</span><span id="line-181"></span><span class="hs-comment">-- necessarily a path.</span><span>
+</span><span id="line-182"></span><span class="annot"><a href="Distribution.Simple.Test.ExeV10.html#testOption"><span class="hs-identifier hs-type">testOption</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PD.PackageDescription</span></a></span><span>
+</span><span id="line-183"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LBI.LocalBuildInfo</span></a></span><span>
+</span><span id="line-184"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuite.html#TestSuite/Distribution.Types.TestSuite.html#TestSuite"><span class="hs-identifier hs-type">PD.TestSuite</span></a></span><span>
+</span><span id="line-185"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#PathTemplate"><span class="hs-identifier hs-type">PathTemplate</span></a></span><span>
+</span><span id="line-186"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-187"></span><span id="testOption"><span class="annot"><span class="annottext">testOption :: PackageDescription
+-&gt; LocalBuildInfo -&gt; TestSuite -&gt; PathTemplate -&gt; FilePath
+</span><a href="Distribution.Simple.Test.ExeV10.html#testOption"><span class="hs-identifier hs-var hs-var">testOption</span></a></span></span><span> </span><span id="local-6989586621679376352"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679376352"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span> </span><span id="local-6989586621679376353"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376353"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679376354"><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679376354"><span class="hs-identifier hs-var">suite</span></a></span></span><span> </span><span id="local-6989586621679376355"><span class="annot"><span class="annottext">PathTemplate
+</span><a href="#local-6989586621679376355"><span class="hs-identifier hs-var">template</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-188"></span><span>    </span><span class="annot"><span class="annottext">PathTemplate -&gt; FilePath
+</span><a href="Distribution.Simple.InstallDirs.html#fromPathTemplate"><span class="hs-identifier hs-var">fromPathTemplate</span></a></span><span> </span><span class="annot"><span class="annottext">(PathTemplate -&gt; FilePath) -&gt; PathTemplate -&gt; FilePath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">PathTemplateEnv -&gt; PathTemplate -&gt; PathTemplate
+</span><a href="Distribution.Simple.InstallDirs.html#substPathTemplate"><span class="hs-identifier hs-var">substPathTemplate</span></a></span><span> </span><span class="annot"><span class="annottext">PathTemplateEnv
+</span><a href="#local-6989586621679376358"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">PathTemplate
+</span><a href="#local-6989586621679376355"><span class="hs-identifier hs-var">template</span></a></span><span>
+</span><span id="line-189"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-190"></span><span>    </span><span id="local-6989586621679376358"><span class="annot"><span class="annottext">env :: PathTemplateEnv
+</span><a href="#local-6989586621679376358"><span class="hs-identifier hs-var hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageIdentifier
+-&gt; UnitId -&gt; CompilerInfo -&gt; Platform -&gt; PathTemplateEnv
+</span><a href="Distribution.Simple.InstallDirs.html#initialPathTemplateEnv"><span class="hs-identifier hs-var">initialPathTemplateEnv</span></a></span><span>
+</span><span id="line-191"></span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageIdentifier
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#package/Distribution.Types.PackageDescription.html#package"><span class="hs-identifier hs-var">PD.package</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679376352"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; UnitId
+</span><a href="Distribution.Types.LocalBuildInfo.html#localUnitId"><span class="hs-identifier hs-var">LBI.localUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376353"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-192"></span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Compiler -&gt; CompilerInfo
+</span><a href="Distribution.Simple.Compiler.html#compilerInfo"><span class="hs-identifier hs-var">compilerInfo</span></a></span><span> </span><span class="annot"><span class="annottext">(Compiler -&gt; CompilerInfo) -&gt; Compiler -&gt; CompilerInfo
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Compiler
+</span><a href="Distribution.Types.LocalBuildInfo.html#compiler"><span class="hs-identifier hs-var">LBI.compiler</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376353"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Platform
+</span><a href="Distribution.Types.LocalBuildInfo.html#hostPlatform"><span class="hs-identifier hs-var">LBI.hostPlatform</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679376353"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">PathTemplateEnv -&gt; PathTemplateEnv -&gt; PathTemplateEnv
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span>
+</span><span id="line-193"></span><span>          </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">PathTemplateVariable
+</span><a href="Distribution.Simple.InstallDirs.Internal.html#TestSuiteNameVar"><span class="hs-identifier hs-var">TestSuiteNameVar</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; PathTemplate
+</span><a href="Distribution.Simple.InstallDirs.html#toPathTemplate"><span class="hs-identifier hs-var">toPathTemplate</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; PathTemplate) -&gt; FilePath -&gt; PathTemplate
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnqualComponentName.html#unUnqualComponentName/Distribution.Types.UnqualComponentName.html#unUnqualComponentName"><span class="hs-identifier hs-var">unUnqualComponentName</span></a></span><span> </span><span class="annot"><span class="annottext">(UnqualComponentName -&gt; FilePath)
+-&gt; UnqualComponentName -&gt; FilePath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuite -&gt; UnqualComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuite.html#testName/Distribution.Types.TestSuite.html#testName"><span class="hs-identifier hs-var">PD.testName</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679376354"><span class="hs-identifier hs-var">suite</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-194"></span></pre></body></html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Distribution.Compat.CreatePipe</title><link href="linuwial.css" rel="stylesheet" type="text/css" title="Linuwial" /><link rel="stylesheet" type="text/css" href="quick-jump.css" /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700" /><script src="haddock-bundle.min.js" async="async" type="text/javascript"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script></head><body><div id="package-header"><span class="caption">Cabal-3.10.1.0: A framework for packaging Haskell software</span><ul class="links" id="page-menu"><li><a href="src/Distribution.Compat.CreatePipe.html">Source</a></li><li><a href="index.html">Contents</a></li><li><a href="doc-index.html">Index</a></li></ul></div><div id="content"><div id="module-header"><table class="info"><tr><th>Safe Haskell</th><td>Safe-Inferred</td></tr><tr><th>Language</th><td>Haskell2010</td></tr></table><p class="caption">Distribution.Compat.CreatePipe</p></div><div id="description"><p class="caption">Description</p><div class="doc"><div class="warning"><p>Deprecated: Use System.Process from package process directly</p></div></div></div><div id="synopsis"><details id="syn"><summary>Synopsis</summary><ul class="details-toggle" data-details-id="syn"><li class="src short"><a href="#v:createPipe">createPipe</a> :: <a href="../Cabal-syntax-3.10.1.0/Distribution-Compat-Prelude.html#t:IO" title="Distribution.Compat.Prelude">IO</a> (<a href="../base-4.18.2.0/GHC-IO-Handle.html#t:Handle" title="GHC.IO.Handle">Handle</a>, <a href="../base-4.18.2.0/GHC-IO-Handle.html#t:Handle" title="GHC.IO.Handle">Handle</a>)</li></ul></details></div><div id="interface"><h1>Documentation</h1><div class="top"><p class="src"><a id="v:createPipe" class="def">createPipe</a> :: <a href="../Cabal-syntax-3.10.1.0/Distribution-Compat-Prelude.html#t:IO" title="Distribution.Compat.Prelude">IO</a> (<a href="../base-4.18.2.0/GHC-IO-Handle.html#t:Handle" title="GHC.IO.Handle">Handle</a>, <a href="../base-4.18.2.0/GHC-IO-Handle.html#t:Handle" title="GHC.IO.Handle">Handle</a>) <a href="../process-1.6.17.0/src/System.Process.Internals.html#createPipe" class="link">Source</a> <a href="#v:createPipe" class="selflink">#</a></p><div class="doc"><p>Create a pipe for interprocess communication and return a
+ <code>(readEnd, writeEnd)</code> <code><a href="../base-4.18.2.0/GHC-IO-Handle.html#t:Handle" title="GHC.IO.Handle">Handle</a></code> pair.</p><ul><li>WinIO Support</li></ul><p>When this function is used with WinIO enabled it's the caller's
+ responsibility to register the handles with the I/O manager.
+ If this is not done the operation will deadlock.  Association can
+ be done as follows:</p><pre>    #if defined(<strong>IO_MANAGER_WINIO</strong>)
+    import GHC.IO.SubSystem ((<a href="!">!</a>))
+    import GHC.IO.Handle.Windows (handleToHANDLE)
+    import GHC.Event.Windows (associateHandle')
+    #endif
+
+    ...
+
+    #if defined (<strong>IO_MANAGER_WINIO</strong>)
+    return () <a href="!">!</a> (do
+      associateHandle' =<a href="&lt;">handleToHANDLE &lt;handle</a>)
+    #endif
+</pre><p>Only associate handles that you are in charge of read/writing to.
+ Do not associate handles passed to another process.  It's the
+ process's reponsibility to register the handle if it supports
+ async access.</p><p><em>Since: process-1.2.1.0</em></p></div></div></div></div><div id="footer"><p>Produced by <a href="http://www.haskell.org/haddock/">Haddock</a> version 2.29.2</p></div></body></html>

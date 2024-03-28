@@ -1,0 +1,525 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- editorconfig-checker-disable-file</span><span>
+</span><span id="line-2"></span><span class="annot"><span class="hs-comment">-- | The exceptions that an abstract machine can throw.</span></span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- appears in the generated instances</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# OPTIONS_GHC -Wno-overlapping-patterns #-}</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-pragma">{-# LANGUAGE DataKinds              #-}</span><span>
+</span><span id="line-8"></span><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass         #-}</span><span>
+</span><span id="line-9"></span><span class="hs-pragma">{-# LANGUAGE FlexibleInstances      #-}</span><span>
+</span><span id="line-10"></span><span class="hs-pragma">{-# LANGUAGE FunctionalDependencies #-}</span><span>
+</span><span id="line-11"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings      #-}</span><span>
+</span><span id="line-12"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell        #-}</span><span>
+</span><span id="line-13"></span><span class="hs-pragma">{-# LANGUAGE TypeFamilies           #-}</span><span>
+</span><span id="line-14"></span><span class="hs-pragma">{-# LANGUAGE TypeOperators          #-}</span><span>
+</span><span id="line-15"></span><span class="hs-pragma">{-# LANGUAGE UndecidableInstances   #-}</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">PlutusCore.Evaluation.Machine.Exception</span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#UnliftingError"><span class="hs-identifier">UnliftingError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#AsUnliftingError"><span class="hs-identifier">AsUnliftingError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinError"><span class="hs-identifier">BuiltinError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#MachineError"><span class="hs-identifier">MachineError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#AsMachineError"><span class="hs-identifier">AsMachineError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#EvaluationError"><span class="hs-identifier">EvaluationError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#AsEvaluationError"><span class="hs-identifier">AsEvaluationError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"><span class="hs-identifier">ErrorWithCause</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#EvaluationException"><span class="hs-identifier">EvaluationException</span></a></span><span>
+</span><span id="line-27"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#throwNotAConstant"><span class="hs-identifier">throwNotAConstant</span></a></span><span>
+</span><span id="line-28"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">throwing</span></span><span>
+</span><span id="line-29"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">throwing_</span></span><span>
+</span><span id="line-30"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.ErrorWithCause.html#throwingWithCause"><span class="hs-identifier">throwingWithCause</span></a></span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#extractEvaluationResult"><span class="hs-identifier">extractEvaluationResult</span></a></span><span>
+</span><span id="line-32"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#unsafeExtractEvaluationResult"><span class="hs-identifier">unsafeExtractEvaluationResult</span></a></span><span>
+</span><span id="line-33"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="PlutusPrelude.html"><span class="hs-identifier">PlutusPrelude</span></a></span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html"><span class="hs-identifier">PlutusCore.Builtin.Result</span></a></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.ErrorWithCause.html"><span class="hs-identifier">PlutusCore.Evaluation.ErrorWithCause</span></a></span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Result.html"><span class="hs-identifier">PlutusCore.Evaluation.Result</span></a></span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="PlutusCore.Pretty.html"><span class="hs-identifier">PlutusCore.Pretty</span></a></span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Lens</span></span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Data.Either.Extras.html"><span class="hs-identifier">Data.Either.Extras</span></a></span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Word.html"><span class="hs-identifier">Data.Word</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Word.html#Word64"><span class="hs-identifier">Word64</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Prettyprinter</span></span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="annot"><span class="hs-comment">-- | Errors which can occur during a run of an abstract machine.</span></span><span>
+</span><span id="line-48"></span><span class="hs-keyword">data</span><span> </span><span id="MachineError"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#MachineError"><span class="hs-identifier hs-var">MachineError</span></a></span></span><span> </span><span id="local-6989586621681488855"><span class="annot"><a href="#local-6989586621681488855"><span class="hs-identifier hs-type">fun</span></a></span></span><span>
+</span><span id="line-49"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="NonPolymorphicInstantiationMachineError"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#NonPolymorphicInstantiationMachineError"><span class="hs-identifier hs-var">NonPolymorphicInstantiationMachineError</span></a></span></span><span>
+</span><span id="line-50"></span><span>      </span><span class="annot"><span class="hs-comment">-- ^ An attempt to reduce a not immediately reducible type instantiation.</span></span><span>
+</span><span id="line-51"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="NonWrapUnwrappedMachineError"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#NonWrapUnwrappedMachineError"><span class="hs-identifier hs-var">NonWrapUnwrappedMachineError</span></a></span></span><span>
+</span><span id="line-52"></span><span>      </span><span class="annot"><span class="hs-comment">-- ^ An attempt to unwrap a not wrapped term.</span></span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="NonFunctionalApplicationMachineError"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#NonFunctionalApplicationMachineError"><span class="hs-identifier hs-var">NonFunctionalApplicationMachineError</span></a></span></span><span>
+</span><span id="line-54"></span><span>      </span><span class="annot"><span class="hs-comment">-- ^ An attempt to reduce a not immediately reducible application.</span></span><span>
+</span><span id="line-55"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="OpenTermEvaluatedMachineError"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#OpenTermEvaluatedMachineError"><span class="hs-identifier hs-var">OpenTermEvaluatedMachineError</span></a></span></span><span>
+</span><span id="line-56"></span><span>      </span><span class="annot"><span class="hs-comment">-- ^ An attempt to evaluate an open term.</span></span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="UnliftingMachineError"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#UnliftingMachineError"><span class="hs-identifier hs-var">UnliftingMachineError</span></a></span></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#UnliftingError"><span class="hs-identifier hs-type">UnliftingError</span></a></span><span>
+</span><span id="line-58"></span><span>      </span><span class="annot"><span class="hs-comment">-- ^ An attempt to compute a constant application resulted in 'ConstAppError'.</span></span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="BuiltinTermArgumentExpectedMachineError"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#BuiltinTermArgumentExpectedMachineError"><span class="hs-identifier hs-var">BuiltinTermArgumentExpectedMachineError</span></a></span></span><span>
+</span><span id="line-60"></span><span>      </span><span class="annot"><span class="hs-comment">-- ^ A builtin expected a term argument, but something else was received</span></span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="UnexpectedBuiltinTermArgumentMachineError"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#UnexpectedBuiltinTermArgumentMachineError"><span class="hs-identifier hs-var">UnexpectedBuiltinTermArgumentMachineError</span></a></span></span><span>
+</span><span id="line-62"></span><span>      </span><span class="annot"><span class="hs-comment">-- ^ A builtin received a term argument when something else was expected</span></span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="UnknownBuiltin"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#UnknownBuiltin"><span class="hs-identifier hs-var">UnknownBuiltin</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621681488855"><span class="hs-identifier hs-type">fun</span></a></span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="NonConstrScrutinized"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#NonConstrScrutinized"><span class="hs-identifier hs-var">NonConstrScrutinized</span></a></span></span><span>
+</span><span id="line-65"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="MissingCaseBranch"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#MissingCaseBranch"><span class="hs-identifier hs-var">MissingCaseBranch</span></a></span></span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Word.html#Word64"><span class="hs-identifier hs-type">Word64</span></a></span><span>
+</span><span id="line-66"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621681489057"><span id="local-6989586621681489068"><span id="local-6989586621681489072"><span class="annot"><span class="annottext">Int -&gt; MachineError fun -&gt; ShowS
+[MachineError fun] -&gt; ShowS
+MachineError fun -&gt; String
+(Int -&gt; MachineError fun -&gt; ShowS)
+-&gt; (MachineError fun -&gt; String)
+-&gt; ([MachineError fun] -&gt; ShowS)
+-&gt; Show (MachineError fun)
+forall fun. Show fun =&gt; Int -&gt; MachineError fun -&gt; ShowS
+forall fun. Show fun =&gt; [MachineError fun] -&gt; ShowS
+forall fun. Show fun =&gt; MachineError fun -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall fun. Show fun =&gt; Int -&gt; MachineError fun -&gt; ShowS
+showsPrec :: Int -&gt; MachineError fun -&gt; ShowS
+$cshow :: forall fun. Show fun =&gt; MachineError fun -&gt; String
+show :: MachineError fun -&gt; String
+$cshowList :: forall fun. Show fun =&gt; [MachineError fun] -&gt; ShowS
+showList :: [MachineError fun] -&gt; ShowS
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621681489077"><span id="local-6989586621681489084"><span class="annot"><span class="annottext">MachineError fun -&gt; MachineError fun -&gt; Bool
+(MachineError fun -&gt; MachineError fun -&gt; Bool)
+-&gt; (MachineError fun -&gt; MachineError fun -&gt; Bool)
+-&gt; Eq (MachineError fun)
+forall fun. Eq fun =&gt; MachineError fun -&gt; MachineError fun -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall fun. Eq fun =&gt; MachineError fun -&gt; MachineError fun -&gt; Bool
+== :: MachineError fun -&gt; MachineError fun -&gt; Bool
+$c/= :: forall fun. Eq fun =&gt; MachineError fun -&gt; MachineError fun -&gt; Bool
+/= :: MachineError fun -&gt; MachineError fun -&gt; Bool
+</span><a href="../../../ghc-9.6.4/html/libraries/ghc-prim-0.10.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621681489089"><span id="local-6989586621681489091"><span class="annot"><span class="annottext">(forall a b. (a -&gt; b) -&gt; MachineError a -&gt; MachineError b)
+-&gt; (forall a b. a -&gt; MachineError b -&gt; MachineError a)
+-&gt; Functor MachineError
+forall a b. a -&gt; MachineError b -&gt; MachineError a
+forall a b. (a -&gt; b) -&gt; MachineError a -&gt; MachineError b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; MachineError a -&gt; MachineError b
+fmap :: forall a b. (a -&gt; b) -&gt; MachineError a -&gt; MachineError b
+$c&lt;$ :: forall a b. a -&gt; MachineError b -&gt; MachineError a
+&lt;$ :: forall a b. a -&gt; MachineError b -&gt; MachineError a
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#Functor"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></a></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621681489095"><span id="local-6989586621681489097"><span class="annot"><span class="annottext">(forall x. MachineError fun -&gt; Rep (MachineError fun) x)
+-&gt; (forall x. Rep (MachineError fun) x -&gt; MachineError fun)
+-&gt; Generic (MachineError fun)
+forall x. Rep (MachineError fun) x -&gt; MachineError fun
+forall x. MachineError fun -&gt; Rep (MachineError fun) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall fun x. Rep (MachineError fun) x -&gt; MachineError fun
+forall fun x. MachineError fun -&gt; Rep (MachineError fun) x
+$cfrom :: forall fun x. MachineError fun -&gt; Rep (MachineError fun) x
+from :: forall x. MachineError fun -&gt; Rep (MachineError fun) x
+$cto :: forall fun x. Rep (MachineError fun) x -&gt; MachineError fun
+to :: forall x. Rep (MachineError fun) x -&gt; MachineError fun
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></a></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-67"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621681489102"><span class="annot"><span class="annottext">MachineError fun -&gt; ()
+(MachineError fun -&gt; ()) -&gt; NFData (MachineError fun)
+forall fun. NFData fun =&gt; MachineError fun -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: forall fun. NFData fun =&gt; MachineError fun -&gt; ()
+rnf :: MachineError fun -&gt; ()
+</span><a href="../../../ghc-9.6.4/html/libraries/deepseq-1.4.8.1/src/Control.DeepSeq.html#NFData"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- | The type of errors (all of them) which can occur during evaluation</span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- (some are used-caused, some are internal).</span><span>
+</span><span id="line-71"></span><span class="hs-keyword">data</span><span> </span><span id="EvaluationError"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#EvaluationError"><span class="hs-identifier hs-var">EvaluationError</span></a></span></span><span> </span><span id="local-6989586621681488857"><span class="annot"><a href="#local-6989586621681488857"><span class="hs-identifier hs-type">user</span></a></span></span><span> </span><span id="local-6989586621681488858"><span class="annot"><a href="#local-6989586621681488858"><span class="hs-identifier hs-type">internal</span></a></span></span><span>
+</span><span id="line-72"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="InternalEvaluationError"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#InternalEvaluationError"><span class="hs-identifier hs-var">InternalEvaluationError</span></a></span></span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="#local-6989586621681488858"><span class="hs-identifier hs-type">internal</span></a></span><span>
+</span><span id="line-73"></span><span>      </span><span class="annot"><span class="hs-comment">-- ^ Indicates bugs.</span></span><span>
+</span><span id="line-74"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="UserEvaluationError"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#UserEvaluationError"><span class="hs-identifier hs-var">UserEvaluationError</span></a></span></span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="#local-6989586621681488857"><span class="hs-identifier hs-type">user</span></a></span><span>
+</span><span id="line-75"></span><span>      </span><span class="annot"><span class="hs-comment">-- ^ Indicates user errors.</span></span><span>
+</span><span id="line-76"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621681489148"><span id="local-6989586621681489154"><span id="local-6989586621681489158"><span class="annot"><span class="annottext">Int -&gt; EvaluationError user internal -&gt; ShowS
+[EvaluationError user internal] -&gt; ShowS
+EvaluationError user internal -&gt; String
+(Int -&gt; EvaluationError user internal -&gt; ShowS)
+-&gt; (EvaluationError user internal -&gt; String)
+-&gt; ([EvaluationError user internal] -&gt; ShowS)
+-&gt; Show (EvaluationError user internal)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall user internal.
+(Show internal, Show user) =&gt;
+Int -&gt; EvaluationError user internal -&gt; ShowS
+forall user internal.
+(Show internal, Show user) =&gt;
+[EvaluationError user internal] -&gt; ShowS
+forall user internal.
+(Show internal, Show user) =&gt;
+EvaluationError user internal -&gt; String
+$cshowsPrec :: forall user internal.
+(Show internal, Show user) =&gt;
+Int -&gt; EvaluationError user internal -&gt; ShowS
+showsPrec :: Int -&gt; EvaluationError user internal -&gt; ShowS
+$cshow :: forall user internal.
+(Show internal, Show user) =&gt;
+EvaluationError user internal -&gt; String
+show :: EvaluationError user internal -&gt; String
+$cshowList :: forall user internal.
+(Show internal, Show user) =&gt;
+[EvaluationError user internal] -&gt; ShowS
+showList :: [EvaluationError user internal] -&gt; ShowS
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621681489163"><span id="local-6989586621681489167"><span class="annot"><span class="annottext">EvaluationError user internal
+-&gt; EvaluationError user internal -&gt; Bool
+(EvaluationError user internal
+ -&gt; EvaluationError user internal -&gt; Bool)
+-&gt; (EvaluationError user internal
+    -&gt; EvaluationError user internal -&gt; Bool)
+-&gt; Eq (EvaluationError user internal)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall user internal.
+(Eq internal, Eq user) =&gt;
+EvaluationError user internal
+-&gt; EvaluationError user internal -&gt; Bool
+$c== :: forall user internal.
+(Eq internal, Eq user) =&gt;
+EvaluationError user internal
+-&gt; EvaluationError user internal -&gt; Bool
+== :: EvaluationError user internal
+-&gt; EvaluationError user internal -&gt; Bool
+$c/= :: forall user internal.
+(Eq internal, Eq user) =&gt;
+EvaluationError user internal
+-&gt; EvaluationError user internal -&gt; Bool
+/= :: EvaluationError user internal
+-&gt; EvaluationError user internal -&gt; Bool
+</span><a href="../../../ghc-9.6.4/html/libraries/ghc-prim-0.10.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621681489171"><span id="local-6989586621681489173"><span class="annot"><span class="annottext">(forall a b.
+ (a -&gt; b) -&gt; EvaluationError user a -&gt; EvaluationError user b)
+-&gt; (forall a b.
+    a -&gt; EvaluationError user b -&gt; EvaluationError user a)
+-&gt; Functor (EvaluationError user)
+forall a b. a -&gt; EvaluationError user b -&gt; EvaluationError user a
+forall a b.
+(a -&gt; b) -&gt; EvaluationError user a -&gt; EvaluationError user b
+forall user a b.
+a -&gt; EvaluationError user b -&gt; EvaluationError user a
+forall user a b.
+(a -&gt; b) -&gt; EvaluationError user a -&gt; EvaluationError user b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall user a b.
+(a -&gt; b) -&gt; EvaluationError user a -&gt; EvaluationError user b
+fmap :: forall a b.
+(a -&gt; b) -&gt; EvaluationError user a -&gt; EvaluationError user b
+$c&lt;$ :: forall user a b.
+a -&gt; EvaluationError user b -&gt; EvaluationError user a
+&lt;$ :: forall a b. a -&gt; EvaluationError user b -&gt; EvaluationError user a
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#Functor"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></a></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621681489176"><span id="local-6989586621681489178"><span class="annot"><span class="annottext">(forall x.
+ EvaluationError user internal
+ -&gt; Rep (EvaluationError user internal) x)
+-&gt; (forall x.
+    Rep (EvaluationError user internal) x
+    -&gt; EvaluationError user internal)
+-&gt; Generic (EvaluationError user internal)
+forall x.
+Rep (EvaluationError user internal) x
+-&gt; EvaluationError user internal
+forall x.
+EvaluationError user internal
+-&gt; Rep (EvaluationError user internal) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall user internal x.
+Rep (EvaluationError user internal) x
+-&gt; EvaluationError user internal
+forall user internal x.
+EvaluationError user internal
+-&gt; Rep (EvaluationError user internal) x
+$cfrom :: forall user internal x.
+EvaluationError user internal
+-&gt; Rep (EvaluationError user internal) x
+from :: forall x.
+EvaluationError user internal
+-&gt; Rep (EvaluationError user internal) x
+$cto :: forall user internal x.
+Rep (EvaluationError user internal) x
+-&gt; EvaluationError user internal
+to :: forall x.
+Rep (EvaluationError user internal) x
+-&gt; EvaluationError user internal
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></a></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621681489183"><span class="annot"><span class="annottext">EvaluationError user internal -&gt; ()
+(EvaluationError user internal -&gt; ())
+-&gt; NFData (EvaluationError user internal)
+forall a. (a -&gt; ()) -&gt; NFData a
+forall user internal.
+(NFData internal, NFData user) =&gt;
+EvaluationError user internal -&gt; ()
+$crnf :: forall user internal.
+(NFData internal, NFData user) =&gt;
+EvaluationError user internal -&gt; ()
+rnf :: EvaluationError user internal -&gt; ()
+</span><a href="../../../ghc-9.6.4/html/libraries/deepseq-1.4.8.1/src/Control.DeepSeq.html#NFData"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span id="AsEvaluationError"><span id="AsMachineError"><span id="local-6989586621681488854"><span id="local-6989586621681488855"><span id="local-6989586621681488856"><span id="local-6989586621681488857"><span id="local-6989586621681488858"><span id="local-6989586621681489197"><span id="local-6989586621681489207"><span id="local-6989586621681489216"><span id="local-6989586621681489225"><span id="local-6989586621681489234"><span id="local-6989586621681489243"><span id="local-6989586621681489252"><span id="local-6989586621681489261"><span id="local-6989586621681489270"><span id="local-6989586621681489279"><span id="local-6989586621681489289"><span id="local-6989586621681489299"><span id="local-6989586621681489309"><span id="local-6989586621681489313"><span id="local-6989586621681489319"><span id="local-6989586621681489325"><span id="local-6989586621681489329"><span id="local-6989586621681489335"><span id="local-6989586621681489341"><span id="local-6989586621681489347"><span id="local-6989586621681489353"><span id="local-6989586621681489359"><span id="local-6989586621681489365"><span id="local-6989586621681489371"><span id="local-6989586621681489377"><span id="local-6989586621681489383"><span id="_EvaluationError"><span id="_InternalEvaluationError"><span id="_UserEvaluationError"><span id="_MachineError"><span id="_NonPolymorphicInstantiationMachineError"><span id="_NonWrapUnwrappedMachineError"><span id="_NonFunctionalApplicationMachineError"><span id="_OpenTermEvaluatedMachineError"><span id="_UnliftingMachineError"><span id="_BuiltinTermArgumentExpectedMachineError"><span id="_UnexpectedBuiltinTermArgumentMachineError"><span id="_UnknownBuiltin"><span id="_NonConstrScrutinized"><span id="_MissingCaseBranch"><span class="hs-identifier">mtraverse</span><span> </span><span class="hs-identifier">makeClassyPrisms</span><span>
+</span><span id="line-80"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">MachineError</span><span>
+</span><span id="line-81"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">EvaluationError</span><span>
+</span><span id="line-82"></span><span>    </span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621681488949"><span id="local-6989586621681488950"><span id="local-6989586621681488951"><span id="local-6989586621681489432"><span id="local-6989586621681489441"><span id="local-6989586621681489449"><span id="local-6989586621681489457"><span id="local-6989586621681489465"><span id="local-6989586621681489473"><span id="local-6989586621681489481"><span id="local-6989586621681489489"><span id="local-6989586621681489497"><span id="local-6989586621681489505"><span class="annot"><a href="#local-6989586621681488949"><span class="hs-identifier hs-type">internal</span></a></span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/ghc-prim-0.10.0/src/GHC.Types.html#~"><span class="hs-operator hs-type">~</span></a></span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#MachineError"><span class="hs-identifier hs-type">MachineError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488950"><span class="hs-identifier hs-type">fun</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#AsMachineError"><span class="hs-identifier hs-type">AsMachineError</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#EvaluationError"><span class="hs-identifier hs-type">EvaluationError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488951"><span class="hs-identifier hs-type">user</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488949"><span class="hs-identifier hs-type">internal</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621681488950"><span class="hs-identifier hs-type">fun</span></a></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-85"></span><span>    </span><span id="local-6989586621681489520"><span class="annot"><span class="annottext">_MachineError :: Prism' (EvaluationError user internal) (MachineError fun)
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#_MachineError"><span class="hs-identifier hs-var hs-var hs-var hs-var">_MachineError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">p (MachineError fun) (f (MachineError fun))
+-&gt; p (EvaluationError user internal)
+     (f (EvaluationError user internal))
+forall r user internal.
+AsEvaluationError r user internal =&gt;
+Prism' r internal
+Prism' (EvaluationError user internal) (MachineError fun)
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#_InternalEvaluationError"><span class="hs-identifier hs-var">_InternalEvaluationError</span></a></span><span>
+</span><span id="line-86"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621681488961"><span id="local-6989586621681488962"><span id="local-6989586621681489524"><span class="annot"><a href="PlutusCore.Builtin.Result.html#AsUnliftingError"><span class="hs-identifier hs-type">AsUnliftingError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488961"><span class="hs-identifier hs-type">internal</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#AsUnliftingError"><span class="hs-identifier hs-type">AsUnliftingError</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#EvaluationError"><span class="hs-identifier hs-type">EvaluationError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488962"><span class="hs-identifier hs-type">user</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488961"><span class="hs-identifier hs-type">internal</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-87"></span><span>    </span><span id="local-6989586621681489540"><span class="annot"><span class="annottext">_UnliftingError :: Prism' (EvaluationError user internal) UnliftingError
+</span><a href="#local-6989586621681489540"><span class="hs-identifier hs-var hs-var hs-var hs-var">_UnliftingError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">p internal (f internal)
+-&gt; p (EvaluationError user internal)
+     (f (EvaluationError user internal))
+forall r user internal.
+AsEvaluationError r user internal =&gt;
+Prism' r internal
+Prism' (EvaluationError user internal) internal
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#_InternalEvaluationError"><span class="hs-identifier hs-var">_InternalEvaluationError</span></a></span><span> </span><span class="annot"><span class="annottext">(p internal (f internal)
+ -&gt; p (EvaluationError user internal)
+      (f (EvaluationError user internal)))
+-&gt; (p UnliftingError (f UnliftingError) -&gt; p internal (f internal))
+-&gt; p UnliftingError (f UnliftingError)
+-&gt; p (EvaluationError user internal)
+     (f (EvaluationError user internal))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">p UnliftingError (f UnliftingError) -&gt; p internal (f internal)
+forall r. AsUnliftingError r =&gt; Prism' r UnliftingError
+Prism' internal UnliftingError
+</span><a href="PlutusCore.Builtin.Result.html#_UnliftingError"><span class="hs-identifier hs-var">_UnliftingError</span></a></span><span>
+</span><span id="line-88"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621681488968"><span id="local-6989586621681489544"><span class="annot"><a href="PlutusCore.Builtin.Result.html#AsUnliftingError"><span class="hs-identifier hs-type">AsUnliftingError</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#MachineError"><span class="hs-identifier hs-type">MachineError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488968"><span class="hs-identifier hs-type">fun</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-89"></span><span>    </span><span id="local-6989586621681489556"><span class="annot"><span class="annottext">_UnliftingError :: Prism' (MachineError fun) UnliftingError
+</span><a href="PlutusCore.Builtin.Result.html#_UnliftingError"><span class="hs-identifier hs-var hs-var hs-var hs-var">_UnliftingError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">p UnliftingError (f UnliftingError)
+-&gt; p (MachineError fun) (f (MachineError fun))
+forall r fun. AsMachineError r fun =&gt; Prism' r UnliftingError
+Prism' (MachineError fun) UnliftingError
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#_UnliftingMachineError"><span class="hs-identifier hs-var">_UnliftingMachineError</span></a></span><span>
+</span><span id="line-90"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621681488975"><span id="local-6989586621681488976"><span class="annot"><a href="PlutusCore.Evaluation.Result.html#AsEvaluationFailure"><span class="hs-identifier hs-type">AsEvaluationFailure</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488975"><span class="hs-identifier hs-type">user</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Result.html#AsEvaluationFailure"><span class="hs-identifier hs-type">AsEvaluationFailure</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#EvaluationError"><span class="hs-identifier hs-type">EvaluationError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488975"><span class="hs-identifier hs-type">user</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488976"><span class="hs-identifier hs-type">internal</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-91"></span><span>    </span><span id="local-6989586621681489569"><span class="annot"><span class="annottext">_EvaluationFailure :: Prism' (EvaluationError user internal) ()
+</span><a href="#local-6989586621681489569"><span class="hs-identifier hs-var hs-var hs-var hs-var">_EvaluationFailure</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">p user (f user)
+-&gt; p (EvaluationError user internal)
+     (f (EvaluationError user internal))
+forall r user internal.
+AsEvaluationError r user internal =&gt;
+Prism' r user
+Prism' (EvaluationError user internal) user
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#_UserEvaluationError"><span class="hs-identifier hs-var">_UserEvaluationError</span></a></span><span> </span><span class="annot"><span class="annottext">(p user (f user)
+ -&gt; p (EvaluationError user internal)
+      (f (EvaluationError user internal)))
+-&gt; (p () (f ()) -&gt; p user (f user))
+-&gt; p () (f ())
+-&gt; p (EvaluationError user internal)
+     (f (EvaluationError user internal))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">p () (f ()) -&gt; p user (f user)
+forall err. AsEvaluationFailure err =&gt; Prism' err ()
+Prism' user ()
+</span><a href="PlutusCore.Evaluation.Result.html#_EvaluationFailure"><span class="hs-identifier hs-var">_EvaluationFailure</span></a></span><span>
+</span><span id="line-92"></span><span>
+</span><span id="line-93"></span><span class="hs-keyword">type</span><span> </span><span id="EvaluationException"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#EvaluationException"><span class="hs-identifier hs-var">EvaluationException</span></a></span></span><span> </span><span id="local-6989586621681489571"><span class="annot"><a href="#local-6989586621681489571"><span class="hs-identifier hs-type">user</span></a></span></span><span> </span><span id="local-6989586621681489572"><span class="annot"><a href="#local-6989586621681489572"><span class="hs-identifier hs-type">internal</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-94"></span><span>    </span><span class="annot"><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"><span class="hs-identifier hs-type">ErrorWithCause</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#EvaluationError"><span class="hs-identifier hs-type">EvaluationError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681489571"><span class="hs-identifier hs-type">user</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681489572"><span class="hs-identifier hs-type">internal</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-95"></span><span>
+</span><span id="line-96"></span><span class="hs-comment">{- Note [Ignoring context in UserEvaluationError]
+The UserEvaluationError error has a term argument, but
+extractEvaluationResult just discards this and returns
+EvaluationFailure.  This means that, for example, if we use the `plc`
+command to execute a program containing a division by zero, plc exits
+silently without reporting that anything has gone wrong (but returning
+a non-zero exit code to the shell via `exitFailure`).  This is because
+UserEvaluationError is used in cases when a PLC program itself goes
+wrong (for example, a failure due to `(error)`, a failure during
+builtin evaluation, or exceeding the gas limit).  This is used to
+signal unsuccessful in validation and so is not regarded as a real
+error; in contrast, machine errors, typechecking failures,
+and so on are genuine errors and we report their context if available.
+ -}</span><span>
+</span><span id="line-110"></span><span>
+</span><span id="line-111"></span><span class="annot"><span class="hs-comment">-- | Turn any 'UserEvaluationError' into an 'EvaluationFailure'.</span></span><span>
+</span><span id="line-112"></span><span id="local-6989586621681488979"><span id="local-6989586621681488980"><span id="local-6989586621681488981"><span id="local-6989586621681488983"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#extractEvaluationResult"><span class="hs-identifier hs-type">extractEvaluationResult</span></a></span><span>
+</span><span id="line-113"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Either.html#Either"><span class="hs-identifier hs-type">Either</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#EvaluationException"><span class="hs-identifier hs-type">EvaluationException</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488979"><span class="hs-identifier hs-type">user</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488980"><span class="hs-identifier hs-type">internal</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488981"><span class="hs-identifier hs-type">term</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621681488983"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Either.html#Either"><span class="hs-identifier hs-type">Either</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"><span class="hs-identifier hs-type">ErrorWithCause</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488980"><span class="hs-identifier hs-type">internal</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488981"><span class="hs-identifier hs-type">term</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Result.html#EvaluationResult"><span class="hs-identifier hs-type">EvaluationResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488983"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span></span><span>
+</span><span id="line-115"></span><span id="extractEvaluationResult"><span class="annot"><span class="annottext">extractEvaluationResult :: forall user internal term a.
+Either (EvaluationException user internal term) a
+-&gt; Either (ErrorWithCause internal term) (EvaluationResult a)
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#extractEvaluationResult"><span class="hs-identifier hs-var hs-var">extractEvaluationResult</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Either.html#Right"><span class="hs-identifier hs-type">Right</span></a></span><span> </span><span id="local-6989586621681489574"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681489574"><span class="hs-identifier hs-var">term</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">EvaluationResult a
+-&gt; Either (ErrorWithCause internal term) (EvaluationResult a)
+forall a b. b -&gt; Either a b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Either.html#Right"><span class="hs-identifier hs-var">Right</span></a></span><span> </span><span class="annot"><span class="annottext">(EvaluationResult a
+ -&gt; Either (ErrorWithCause internal term) (EvaluationResult a))
+-&gt; EvaluationResult a
+-&gt; Either (ErrorWithCause internal term) (EvaluationResult a)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; EvaluationResult a
+forall a. a -&gt; EvaluationResult a
+</span><a href="PlutusCore.Evaluation.Result.html#EvaluationSuccess"><span class="hs-identifier hs-var">EvaluationSuccess</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681489574"><span class="hs-identifier hs-var">term</span></a></span><span>
+</span><span id="line-116"></span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#extractEvaluationResult"><span class="hs-identifier hs-var">extractEvaluationResult</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Either.html#Left"><span class="hs-identifier hs-type">Left</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"><span class="hs-identifier hs-type">ErrorWithCause</span></a></span><span> </span><span id="local-6989586621681489577"><span class="annot"><span class="annottext">EvaluationError user internal
+</span><a href="#local-6989586621681489577"><span class="hs-identifier hs-var">evalErr</span></a></span></span><span> </span><span id="local-6989586621681489578"><span class="annot"><span class="annottext">Maybe term
+</span><a href="#local-6989586621681489578"><span class="hs-identifier hs-var">cause</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">EvaluationError user internal
+</span><a href="#local-6989586621681489577"><span class="hs-identifier hs-var">evalErr</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-117"></span><span>    </span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#InternalEvaluationError"><span class="hs-identifier hs-type">InternalEvaluationError</span></a></span><span> </span><span id="local-6989586621681489579"><span class="annot"><span class="annottext">internal
+</span><a href="#local-6989586621681489579"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ErrorWithCause internal term
+-&gt; Either (ErrorWithCause internal term) (EvaluationResult a)
+forall a b. a -&gt; Either a b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Either.html#Left"><span class="hs-identifier hs-var">Left</span></a></span><span>  </span><span class="annot"><span class="annottext">(ErrorWithCause internal term
+ -&gt; Either (ErrorWithCause internal term) (EvaluationResult a))
+-&gt; ErrorWithCause internal term
+-&gt; Either (ErrorWithCause internal term) (EvaluationResult a)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">internal -&gt; Maybe term -&gt; ErrorWithCause internal term
+forall err cause. err -&gt; Maybe cause -&gt; ErrorWithCause err cause
+</span><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"><span class="hs-identifier hs-var">ErrorWithCause</span></a></span><span> </span><span class="annot"><span class="annottext">internal
+</span><a href="#local-6989586621681489579"><span class="hs-identifier hs-var">err</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe term
+</span><a href="#local-6989586621681489578"><span class="hs-identifier hs-var">cause</span></a></span><span>
+</span><span id="line-118"></span><span>    </span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#UserEvaluationError"><span class="hs-identifier hs-type">UserEvaluationError</span></a></span><span> </span><span class="annot"><span class="annottext">user
+</span><span class="hs-identifier">_</span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">EvaluationResult a
+-&gt; Either (ErrorWithCause internal term) (EvaluationResult a)
+forall a b. b -&gt; Either a b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Either.html#Right"><span class="hs-identifier hs-var">Right</span></a></span><span> </span><span class="annot"><span class="annottext">(EvaluationResult a
+ -&gt; Either (ErrorWithCause internal term) (EvaluationResult a))
+-&gt; EvaluationResult a
+-&gt; Either (ErrorWithCause internal term) (EvaluationResult a)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">EvaluationResult a
+forall a. EvaluationResult a
+</span><a href="PlutusCore.Evaluation.Result.html#EvaluationFailure"><span class="hs-identifier hs-var">EvaluationFailure</span></a></span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span id="local-6989586621681488996"><span id="local-6989586621681488998"><span id="local-6989586621681488999"><span id="local-6989586621681489000"><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#unsafeExtractEvaluationResult"><span class="hs-identifier hs-type">unsafeExtractEvaluationResult</span></a></span><span>
+</span><span id="line-121"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Pretty.Plc.html#PrettyPlc"><span class="hs-identifier hs-type">PrettyPlc</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488996"><span class="hs-identifier hs-type">internal</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Pretty.Plc.html#PrettyPlc"><span class="hs-identifier hs-type">PrettyPlc</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488998"><span class="hs-identifier hs-type">term</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Typeable.Internal.html#Typeable"><span class="hs-identifier hs-type">Typeable</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488996"><span class="hs-identifier hs-type">internal</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Typeable.Internal.html#Typeable"><span class="hs-identifier hs-type">Typeable</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488998"><span class="hs-identifier hs-type">term</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-122"></span><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Either.html#Either"><span class="hs-identifier hs-type">Either</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#EvaluationException"><span class="hs-identifier hs-type">EvaluationException</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488999"><span class="hs-identifier hs-type">user</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488996"><span class="hs-identifier hs-type">internal</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681488998"><span class="hs-identifier hs-type">term</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621681489000"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-123"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Result.html#EvaluationResult"><span class="hs-identifier hs-type">EvaluationResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681489000"><span class="hs-identifier hs-type">a</span></a></span></span></span></span></span><span>
+</span><span id="line-124"></span><span id="unsafeExtractEvaluationResult"><span class="annot"><span class="annottext">unsafeExtractEvaluationResult :: forall internal term user a.
+(PrettyPlc internal, PrettyPlc term, Typeable internal,
+ Typeable term) =&gt;
+Either (EvaluationException user internal term) a
+-&gt; EvaluationResult a
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#unsafeExtractEvaluationResult"><span class="hs-identifier hs-var hs-var">unsafeExtractEvaluationResult</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Either (ErrorWithCause internal term) (EvaluationResult a)
+-&gt; EvaluationResult a
+forall e a. Exception e =&gt; Either e a -&gt; a
+</span><a href="Data.Either.Extras.html#unsafeFromEither"><span class="hs-identifier hs-var">unsafeFromEither</span></a></span><span> </span><span class="annot"><span class="annottext">(Either (ErrorWithCause internal term) (EvaluationResult a)
+ -&gt; EvaluationResult a)
+-&gt; (Either (EvaluationException user internal term) a
+    -&gt; Either (ErrorWithCause internal term) (EvaluationResult a))
+-&gt; Either (EvaluationException user internal term) a
+-&gt; EvaluationResult a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Either (EvaluationException user internal term) a
+-&gt; Either (ErrorWithCause internal term) (EvaluationResult a)
+forall user internal term a.
+Either (EvaluationException user internal term) a
+-&gt; Either (ErrorWithCause internal term) (EvaluationResult a)
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#extractEvaluationResult"><span class="hs-identifier hs-var">extractEvaluationResult</span></a></span><span>
+</span><span id="line-125"></span><span>
+</span><span id="line-126"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621681489020"><span id="local-6989586621681489021"><span id="local-6989586621681489591"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasPrettyDefaults</span></span><span> </span><span class="annot"><a href="#local-6989586621681489020"><span class="hs-identifier hs-type">config</span></a></span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/ghc-prim-0.10.0/src/GHC.Types.html#~"><span class="hs-operator hs-type">~</span></a></span><span> </span><span class="hs-special">'</span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/ghc-prim-0.10.0/src/GHC.Types.html#True"><span class="hs-identifier hs-type">True</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="#local-6989586621681489021"><span class="hs-identifier hs-type">fun</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-127"></span><span>            </span><span class="annot"><span class="hs-identifier hs-type">PrettyBy</span></span><span> </span><span class="annot"><a href="#local-6989586621681489020"><span class="hs-identifier hs-type">config</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#MachineError"><span class="hs-identifier hs-type">MachineError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681489021"><span class="hs-identifier hs-type">fun</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-128"></span><span>    </span><span id="local-6989586621681489613"><span class="annot"><span class="annottext">prettyBy :: forall ann. config -&gt; MachineError fun -&gt; Doc ann
+</span><a href="#local-6989586621681489613"><span class="hs-identifier hs-var hs-var hs-var hs-var">prettyBy</span></a></span></span><span> </span><span class="annot"><span class="annottext">config
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="annot"><span class="annottext">MachineError fun
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#NonPolymorphicInstantiationMachineError"><span class="hs-identifier hs-var">NonPolymorphicInstantiationMachineError</span></a></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-129"></span><span>        </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Attempted to instantiate a non-polymorphic term.&quot;</span></span><span>
+</span><span id="line-130"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">prettyBy</span></span><span> </span><span class="annot"><span class="annottext">config
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="annot"><span class="annottext">MachineError fun
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#NonWrapUnwrappedMachineError"><span class="hs-identifier hs-var">NonWrapUnwrappedMachineError</span></a></span><span>          </span><span class="hs-glyph">=</span><span>
+</span><span id="line-131"></span><span>        </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Cannot unwrap a not wrapped term.&quot;</span></span><span>
+</span><span id="line-132"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">prettyBy</span></span><span> </span><span class="annot"><span class="annottext">config
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="annot"><span class="annottext">MachineError fun
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#NonFunctionalApplicationMachineError"><span class="hs-identifier hs-var">NonFunctionalApplicationMachineError</span></a></span><span>   </span><span class="hs-glyph">=</span><span>
+</span><span id="line-133"></span><span>        </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Attempted to apply a non-function.&quot;</span></span><span>
+</span><span id="line-134"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">prettyBy</span></span><span> </span><span class="annot"><span class="annottext">config
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="annot"><span class="annottext">MachineError fun
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#OpenTermEvaluatedMachineError"><span class="hs-identifier hs-var">OpenTermEvaluatedMachineError</span></a></span><span>         </span><span class="hs-glyph">=</span><span>
+</span><span id="line-135"></span><span>        </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Cannot evaluate an open term&quot;</span></span><span>
+</span><span id="line-136"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">prettyBy</span></span><span> </span><span class="annot"><span class="annottext">config
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="annot"><span class="annottext">MachineError fun
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#BuiltinTermArgumentExpectedMachineError"><span class="hs-identifier hs-var">BuiltinTermArgumentExpectedMachineError</span></a></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-137"></span><span>        </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;A builtin expected a term argument, but something else was received&quot;</span></span><span>
+</span><span id="line-138"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">prettyBy</span></span><span> </span><span class="annot"><span class="annottext">config
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="annot"><span class="annottext">MachineError fun
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#UnexpectedBuiltinTermArgumentMachineError"><span class="hs-identifier hs-var">UnexpectedBuiltinTermArgumentMachineError</span></a></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-139"></span><span>        </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;A builtin received a term argument when something else was expected&quot;</span></span><span>
+</span><span id="line-140"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">prettyBy</span></span><span> </span><span class="annot"><span class="annottext">config
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#UnliftingMachineError"><span class="hs-identifier hs-type">UnliftingMachineError</span></a></span><span> </span><span id="local-6989586621681489615"><span class="annot"><span class="annottext">UnliftingError
+</span><a href="#local-6989586621681489615"><span class="hs-identifier hs-var">unliftingError</span></a></span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span>
+</span><span id="line-141"></span><span>        </span><span class="annot"><span class="annottext">UnliftingError -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. UnliftingError -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">UnliftingError
+</span><a href="#local-6989586621681489615"><span class="hs-identifier hs-var">unliftingError</span></a></span><span>
+</span><span id="line-142"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">prettyBy</span></span><span> </span><span class="annot"><span class="annottext">config
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#UnknownBuiltin"><span class="hs-identifier hs-type">UnknownBuiltin</span></a></span><span> </span><span id="local-6989586621681489617"><span class="annot"><span class="annottext">fun
+</span><a href="#local-6989586621681489617"><span class="hs-identifier hs-var">fun</span></a></span></span><span class="hs-special">)</span><span>                  </span><span class="hs-glyph">=</span><span>
+</span><span id="line-143"></span><span>        </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Encountered an unknown built-in function:&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">fun -&gt; Doc ann
+forall ann. fun -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">fun
+</span><a href="#local-6989586621681489617"><span class="hs-identifier hs-var">fun</span></a></span><span>
+</span><span id="line-144"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">prettyBy</span></span><span> </span><span class="annot"><span class="annottext">config
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="annot"><span class="annottext">MachineError fun
+</span><a href="PlutusCore.Evaluation.Machine.Exception.html#NonConstrScrutinized"><span class="hs-identifier hs-var">NonConstrScrutinized</span></a></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-145"></span><span>        </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;A non-constructor value was scrutinized in a case expression&quot;</span></span><span>
+</span><span id="line-146"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">prettyBy</span></span><span> </span><span class="annot"><span class="annottext">config
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#MissingCaseBranch"><span class="hs-identifier hs-type">MissingCaseBranch</span></a></span><span> </span><span id="local-6989586621681489619"><span class="annot"><span class="annottext">Word64
+</span><a href="#local-6989586621681489619"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-147"></span><span>        </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Case expression missing the branch required by the scrutinee tag:&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">Word64 -&gt; Doc ann
+forall ann. Word64 -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Word64
+</span><a href="#local-6989586621681489619"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-150"></span><span>        </span><span id="local-6989586621681489030"><span id="local-6989586621681489031"><span id="local-6989586621681489032"><span id="local-6989586621681489625"><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HasPrettyDefaults</span></span><span> </span><span class="annot"><a href="#local-6989586621681489030"><span class="hs-identifier hs-type">config</span></a></span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/ghc-prim-0.10.0/src/GHC.Types.html#~"><span class="hs-operator hs-type">~</span></a></span><span> </span><span class="hs-special">'</span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/ghc-prim-0.10.0/src/GHC.Types.html#True"><span class="hs-identifier hs-type">True</span></a></span><span>
+</span><span id="line-151"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PrettyBy</span></span><span> </span><span class="annot"><a href="#local-6989586621681489030"><span class="hs-identifier hs-type">config</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681489031"><span class="hs-identifier hs-type">internal</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="#local-6989586621681489032"><span class="hs-identifier hs-type">user</span></a></span><span>
+</span><span id="line-152"></span><span>        </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">PrettyBy</span></span><span> </span><span class="annot"><a href="#local-6989586621681489030"><span class="hs-identifier hs-type">config</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#EvaluationError"><span class="hs-identifier hs-type">EvaluationError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681489032"><span class="hs-identifier hs-type">user</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681489031"><span class="hs-identifier hs-type">internal</span></a></span><span class="hs-special">)</span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-153"></span><span>    </span><span id="local-6989586621681489641"><span class="annot"><span class="annottext">prettyBy :: forall ann. config -&gt; EvaluationError user internal -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">prettyBy</span></span></span><span> </span><span id="local-6989586621681489642"><span class="annot"><span class="annottext">config
+</span><a href="#local-6989586621681489642"><span class="hs-identifier hs-var">config</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#InternalEvaluationError"><span class="hs-identifier hs-type">InternalEvaluationError</span></a></span><span> </span><span id="local-6989586621681489643"><span class="annot"><span class="annottext">internal
+</span><a href="#local-6989586621681489643"><span class="hs-identifier hs-var">err</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Foldable.html#fold"><span class="hs-identifier hs-var">fold</span></a></span><span>
+</span><span id="line-154"></span><span>        </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;error:&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">hardline</span></span><span>
+</span><span id="line-155"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">config -&gt; internal -&gt; Doc ann
+forall ann. config -&gt; internal -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">prettyBy</span></span><span> </span><span class="annot"><span class="annottext">config
+</span><a href="#local-6989586621681489642"><span class="hs-identifier hs-var">config</span></a></span><span> </span><span class="annot"><span class="annottext">internal
+</span><a href="#local-6989586621681489643"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-156"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-157"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">prettyBy</span></span><span> </span><span class="annot"><span class="annottext">config
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Evaluation.Machine.Exception.html#UserEvaluationError"><span class="hs-identifier hs-type">UserEvaluationError</span></a></span><span> </span><span id="local-6989586621681489646"><span class="annot"><span class="annottext">user
+</span><a href="#local-6989586621681489646"><span class="hs-identifier hs-var">err</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Foldable.html#fold"><span class="hs-identifier hs-var">fold</span></a></span><span>
+</span><span id="line-158"></span><span>        </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;User error:&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">hardline</span></span><span>
+</span><span id="line-159"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">user -&gt; Doc ann
+forall ann. user -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">user
+</span><a href="#local-6989586621681489646"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-160"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-161"></span></pre></body></html>

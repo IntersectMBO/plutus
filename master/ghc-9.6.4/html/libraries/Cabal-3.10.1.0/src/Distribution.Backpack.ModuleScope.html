@@ -1,0 +1,387 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveFunctor #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveTraversable #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DeriveFoldable #-}</span><span>
+</span><span id="line-4"></span><span class="annot"><span class="hs-comment">-- | See &lt;https://github.com/ezyang/ghc-proposals/blob/backpack/proposals/0000-backpack.rst&gt;</span></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Backpack.ModuleScope</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Module scopes</span></span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleScope"><span class="hs-identifier">ModuleScope</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleProvides"><span class="hs-identifier">ModuleProvides</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleRequires"><span class="hs-identifier">ModuleRequires</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleSource"><span class="hs-identifier">ModuleSource</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#dispModuleSource"><span class="hs-identifier">dispModuleSource</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#WithSource"><span class="hs-identifier">WithSource</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#unWithSource"><span class="hs-identifier">unWithSource</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#getSource"><span class="hs-identifier">getSource</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleWithSource"><span class="hs-identifier">ModuleWithSource</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#emptyModuleScope"><span class="hs-identifier">emptyModuleScope</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#/Distribution.ModuleName.html"><span class="hs-identifier">Distribution.ModuleName</span></a></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.IncludeRenaming.html#/Distribution.Types.IncludeRenaming.html"><span class="hs-identifier">Distribution.Types.IncludeRenaming</span></a></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#/Distribution.Types.PackageName.html"><span class="hs-identifier">Distribution.Types.PackageName</span></a></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#/Distribution.Types.ComponentName.html"><span class="hs-identifier">Distribution.Types.ComponentName</span></a></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#/Distribution.Types.LibraryName.html"><span class="hs-identifier">Distribution.Types.LibraryName</span></a></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#/Distribution.Pretty.html"><span class="hs-identifier">Distribution.Pretty</span></a></span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Backpack.html#/Distribution.Backpack.html"><span class="hs-identifier">Distribution.Backpack</span></a></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModSubst.html"><span class="hs-identifier">Distribution.Backpack.ModSubst</span></a></span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.html#/Data.Map.html"><span class="hs-identifier">Data.Map</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Map</span></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.html#/Text.PrettyPrint.html"><span class="hs-identifier">Text.PrettyPrint</span></a></span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-comment">-----------------------------------------------------------------------</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- Module scopes</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- Why is ModuleProvides so complicated?  The basic problem is that</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- we want to support this:</span><span>
+</span><span id="line-41"></span><span class="hs-comment">--</span><span>
+</span><span id="line-42"></span><span class="hs-comment">--  package p where</span><span>
+</span><span id="line-43"></span><span class="hs-comment">--      include q (A)</span><span>
+</span><span id="line-44"></span><span class="hs-comment">--      include r (A)</span><span>
+</span><span id="line-45"></span><span class="hs-comment">--      module B where</span><span>
+</span><span id="line-46"></span><span class="hs-comment">--          import &quot;q&quot; A</span><span>
+</span><span id="line-47"></span><span class="hs-comment">--          import &quot;r&quot; A</span><span>
+</span><span id="line-48"></span><span class="hs-comment">--</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- Specifically, in Cabal today it is NOT an error have two modules in</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- scope with the same identifier.  So we need to preserve this for</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- Backpack.  The modification is that an ambiguous module name is</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- OK... as long as it is NOT used to fill a requirement!</span><span>
+</span><span id="line-53"></span><span class="hs-comment">--</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- So as a first try, we might try deferring unifying provisions that</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- are being glommed together, and check for equality after the fact.</span><span>
+</span><span id="line-56"></span><span class="hs-comment">-- But this doesn't work, because what if a multi-module provision</span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- is used to fill a requirement?!  So you do the equality test</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- IMMEDIATELY before a requirement fill happens... or never at all.</span><span>
+</span><span id="line-59"></span><span class="hs-comment">--</span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- Alternate strategy: go ahead and unify, and then if it is revealed</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- that some requirements got filled &quot;out-of-thin-air&quot;, error.</span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | A 'ModuleScope' describes the modules and requirements that</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- are in-scope as we are processing a Cabal package.  Unlike</span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- a 'ModuleShape', there may be multiple modules in scope at</span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- the same 'ModuleName'; this is only an error if we attempt</span><span>
+</span><span id="line-68"></span><span class="hs-comment">-- to use those modules to fill a requirement.  A 'ModuleScope'</span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- can influence the 'ModuleShape' via a reexport.</span><span>
+</span><span id="line-70"></span><span class="hs-keyword">data</span><span> </span><span id="ModuleScope"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleScope"><span class="hs-identifier hs-var">ModuleScope</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ModuleScope"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleScope"><span class="hs-identifier hs-var">ModuleScope</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-71"></span><span>    </span><span id="modScopeProvides"><span class="annot"><span class="annottext">ModuleScope -&gt; ModuleProvides
+</span><a href="Distribution.Backpack.ModuleScope.html#modScopeProvides"><span class="hs-identifier hs-var hs-var">modScopeProvides</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleProvides"><span class="hs-identifier hs-type">ModuleProvides</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-72"></span><span>    </span><span id="modScopeRequires"><span class="annot"><span class="annottext">ModuleScope -&gt; ModuleProvides
+</span><a href="Distribution.Backpack.ModuleScope.html#modScopeRequires"><span class="hs-identifier hs-var hs-var">modScopeRequires</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleRequires"><span class="hs-identifier hs-type">ModuleRequires</span></a></span><span>
+</span><span id="line-73"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span class="annot"><span class="hs-comment">-- | An empty 'ModuleScope'.</span></span><span>
+</span><span id="line-76"></span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#emptyModuleScope"><span class="hs-identifier hs-type">emptyModuleScope</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleScope"><span class="hs-identifier hs-type">ModuleScope</span></a></span><span>
+</span><span id="line-77"></span><span id="emptyModuleScope"><span class="annot"><span class="annottext">emptyModuleScope :: ModuleScope
+</span><a href="Distribution.Backpack.ModuleScope.html#emptyModuleScope"><span class="hs-identifier hs-var hs-var">emptyModuleScope</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ModuleProvides -&gt; ModuleProvides -&gt; ModuleScope
+</span><a href="Distribution.Backpack.ModuleScope.html#ModuleScope"><span class="hs-identifier hs-var">ModuleScope</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleProvides
+forall k a. Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#empty/Data.Map.Internal.html#empty"><span class="hs-identifier hs-var">Map.empty</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleProvides
+forall k a. Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#empty/Data.Map.Internal.html#empty"><span class="hs-identifier hs-var">Map.empty</span></a></span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- | Every 'Module' in scope at a 'ModuleName' is annotated with</span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- the 'PackageName' it comes from.</span><span>
+</span><span id="line-81"></span><span class="hs-keyword">type</span><span> </span><span id="ModuleProvides"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleProvides"><span class="hs-identifier hs-var">ModuleProvides</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.Internal.html#Map/Data.Map.Internal.html#Map"><span class="hs-identifier hs-type">Map</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#ModuleName/Distribution.ModuleName.html#ModuleName"><span class="hs-identifier hs-type">ModuleName</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleWithSource"><span class="hs-identifier hs-type">ModuleWithSource</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-82"></span><span class="annot"><span class="hs-comment">-- | INVARIANT: entries for ModuleName m, have msrc_module is OpenModuleVar m</span></span><span>
+</span><span id="line-83"></span><span class="hs-keyword">type</span><span> </span><span id="ModuleRequires"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleRequires"><span class="hs-identifier hs-var">ModuleRequires</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.Internal.html#Map/Data.Map.Internal.html#Map"><span class="hs-identifier hs-type">Map</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#ModuleName/Distribution.ModuleName.html#ModuleName"><span class="hs-identifier hs-type">ModuleName</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleWithSource"><span class="hs-identifier hs-type">ModuleWithSource</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-84"></span><span class="hs-comment">-- TODO: consider newtping the two types above.</span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="hs-comment">-- | Description of where a module participating in mixin linking came</span><span>
+</span><span id="line-87"></span><span class="hs-comment">-- from.</span><span>
+</span><span id="line-88"></span><span class="hs-keyword">data</span><span> </span><span id="ModuleSource"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleSource"><span class="hs-identifier hs-var">ModuleSource</span></a></span></span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="FromMixins"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#FromMixins"><span class="hs-identifier hs-var">FromMixins</span></a></span></span><span>         </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#PackageName/Distribution.Types.PackageName.html#PackageName"><span class="hs-identifier hs-type">PackageName</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier hs-type">ComponentName</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.IncludeRenaming.html#IncludeRenaming/Distribution.Types.IncludeRenaming.html#IncludeRenaming"><span class="hs-identifier hs-type">IncludeRenaming</span></a></span><span>
+</span><span id="line-90"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="FromBuildDepends"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#FromBuildDepends"><span class="hs-identifier hs-var">FromBuildDepends</span></a></span></span><span>   </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#PackageName/Distribution.Types.PackageName.html#PackageName"><span class="hs-identifier hs-type">PackageName</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier hs-type">ComponentName</span></a></span><span>
+</span><span id="line-91"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="FromExposedModules"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#FromExposedModules"><span class="hs-identifier hs-var">FromExposedModules</span></a></span></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#ModuleName/Distribution.ModuleName.html#ModuleName"><span class="hs-identifier hs-type">ModuleName</span></a></span><span>
+</span><span id="line-92"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="FromOtherModules"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#FromOtherModules"><span class="hs-identifier hs-var">FromOtherModules</span></a></span></span><span>   </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#ModuleName/Distribution.ModuleName.html#ModuleName"><span class="hs-identifier hs-type">ModuleName</span></a></span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="FromSignatures"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#FromSignatures"><span class="hs-identifier hs-var">FromSignatures</span></a></span></span><span>     </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#ModuleName/Distribution.ModuleName.html#ModuleName"><span class="hs-identifier hs-type">ModuleName</span></a></span><span>
+</span><span id="line-94"></span><span class="hs-comment">-- We don't have line numbers, but if we did, we'd want to record that</span><span>
+</span><span id="line-95"></span><span class="hs-comment">-- too</span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span class="hs-comment">-- TODO: Deduplicate this with Distribution.Backpack.UnifyM.ci_msg</span><span>
+</span><span id="line-98"></span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#dispModuleSource"><span class="hs-identifier hs-type">dispModuleSource</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleSource"><span class="hs-identifier hs-type">ModuleSource</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span>
+</span><span id="line-99"></span><span id="dispModuleSource"><span class="annot"><span class="annottext">dispModuleSource :: ModuleSource -&gt; Doc
+</span><a href="Distribution.Backpack.ModuleScope.html#dispModuleSource"><span class="hs-identifier hs-var hs-var">dispModuleSource</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#FromMixins"><span class="hs-identifier hs-type">FromMixins</span></a></span><span> </span><span id="local-6989586621679338230"><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679338230"><span class="hs-identifier hs-var">pn</span></a></span></span><span> </span><span id="local-6989586621679338231"><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679338231"><span class="hs-identifier hs-var">cn</span></a></span></span><span> </span><span id="local-6989586621679338232"><span class="annot"><span class="annottext">IncludeRenaming
+</span><a href="#local-6989586621679338232"><span class="hs-identifier hs-var">incls</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;mixins:&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; ComponentName -&gt; Doc
+</span><a href="Distribution.Backpack.ModuleScope.html#dispComponent"><span class="hs-identifier hs-var">dispComponent</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679338230"><span class="hs-identifier hs-var">pn</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679338231"><span class="hs-identifier hs-var">cn</span></a></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">IncludeRenaming -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">IncludeRenaming
+</span><a href="#local-6989586621679338232"><span class="hs-identifier hs-var">incls</span></a></span><span>
+</span><span id="line-101"></span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#dispModuleSource"><span class="hs-identifier hs-var">dispModuleSource</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#FromBuildDepends"><span class="hs-identifier hs-type">FromBuildDepends</span></a></span><span> </span><span id="local-6989586621679338237"><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679338237"><span class="hs-identifier hs-var">pn</span></a></span></span><span> </span><span id="local-6989586621679338238"><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679338238"><span class="hs-identifier hs-var">cn</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;build-depends:&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; ComponentName -&gt; Doc
+</span><a href="Distribution.Backpack.ModuleScope.html#dispComponent"><span class="hs-identifier hs-var">dispComponent</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679338237"><span class="hs-identifier hs-var">pn</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679338238"><span class="hs-identifier hs-var">cn</span></a></span><span>
+</span><span id="line-103"></span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#dispModuleSource"><span class="hs-identifier hs-var">dispModuleSource</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#FromExposedModules"><span class="hs-identifier hs-type">FromExposedModules</span></a></span><span> </span><span id="local-6989586621679338239"><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679338239"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;exposed-modules:&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679338239"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><span id="line-105"></span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#dispModuleSource"><span class="hs-identifier hs-var">dispModuleSource</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#FromOtherModules"><span class="hs-identifier hs-type">FromOtherModules</span></a></span><span> </span><span id="local-6989586621679338240"><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679338240"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-106"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;other-modules:&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679338240"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><span id="line-107"></span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#dispModuleSource"><span class="hs-identifier hs-var">dispModuleSource</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#FromSignatures"><span class="hs-identifier hs-type">FromSignatures</span></a></span><span> </span><span id="local-6989586621679338241"><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679338241"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-108"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;signatures:&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679338241"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span class="hs-comment">-- Dependency</span><span>
+</span><span id="line-111"></span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#dispComponent"><span class="hs-identifier hs-type">dispComponent</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#PackageName/Distribution.Types.PackageName.html#PackageName"><span class="hs-identifier hs-type">PackageName</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier hs-type">ComponentName</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span>
+</span><span id="line-112"></span><span id="dispComponent"><span class="annot"><span class="annottext">dispComponent :: PackageName -&gt; ComponentName -&gt; Doc
+</span><a href="Distribution.Backpack.ModuleScope.html#dispComponent"><span class="hs-identifier hs-var hs-var">dispComponent</span></a></span></span><span> </span><span id="local-6989586621679338242"><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679338242"><span class="hs-identifier hs-var">pn</span></a></span></span><span> </span><span id="local-6989586621679338243"><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679338243"><span class="hs-identifier hs-var">cn</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-113"></span><span>    </span><span class="hs-comment">-- NB: This syntax isn't quite the source syntax, but it</span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-comment">-- should be clear enough.  To do source syntax, we'd</span><span>
+</span><span id="line-115"></span><span>    </span><span class="hs-comment">-- need to know what the package we're linking is.</span><span>
+</span><span id="line-116"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679338243"><span class="hs-identifier hs-var">cn</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-117"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CLibName/Distribution.Types.ComponentName.html#CLibName"><span class="hs-identifier hs-type">CLibName</span></a></span><span> </span><span class="annot"><span class="annottext">LibraryName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#LMainLibName/Distribution.Types.LibraryName.html#LMainLibName"><span class="hs-identifier hs-var">LMainLibName</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679338242"><span class="hs-identifier hs-var">pn</span></a></span><span>
+</span><span id="line-118"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CLibName/Distribution.Types.ComponentName.html#CLibName"><span class="hs-identifier hs-type">CLibName</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#LSubLibName/Distribution.Types.LibraryName.html#LSubLibName"><span class="hs-identifier hs-type">LSubLibName</span></a></span><span> </span><span id="local-6989586621679338247"><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679338247"><span class="hs-identifier hs-var">ucn</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679338242"><span class="hs-identifier hs-var">pn</span></a></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#%3C%3C%3E%3E/Distribution.Compat.Prelude.html#%3C%3C%3E%3E"><span class="hs-operator hs-var">&lt;&lt;&gt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#colon/Text.PrettyPrint.HughesPJ.html#colon"><span class="hs-identifier hs-var">colon</span></a></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#%3C%3C%3E%3E/Distribution.Compat.Prelude.html#%3C%3C%3E%3E"><span class="hs-operator hs-var">&lt;&lt;&gt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679338247"><span class="hs-identifier hs-var">ucn</span></a></span><span>
+</span><span id="line-119"></span><span>        </span><span class="hs-comment">-- Case below shouldn't happen</span><span>
+</span><span id="line-120"></span><span>        </span><span class="annot"><span class="annottext">ComponentName
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679338242"><span class="hs-identifier hs-var">pn</span></a></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#parens/Text.PrettyPrint.HughesPJ.html#parens"><span class="hs-identifier hs-var">parens</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679338243"><span class="hs-identifier hs-var">cn</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-121"></span><span>
+</span><span id="line-122"></span><span class="annot"><span class="hs-comment">-- | An 'OpenModule', annotated with where it came from in a Cabal file.</span></span><span>
+</span><span id="line-123"></span><span class="hs-keyword">data</span><span> </span><span id="WithSource"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#WithSource"><span class="hs-identifier hs-var">WithSource</span></a></span></span><span> </span><span id="local-6989586621679338200"><span class="annot"><a href="#local-6989586621679338200"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="WithSource"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#WithSource"><span class="hs-identifier hs-var">WithSource</span></a></span></span><span> </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleSource"><span class="hs-identifier hs-type">ModuleSource</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338200"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-124"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679338255"><span id="local-6989586621679338257"><span class="annot"><span class="annottext">(forall a b. (a -&gt; b) -&gt; WithSource a -&gt; WithSource b)
+-&gt; (forall a b. a -&gt; WithSource b -&gt; WithSource a)
+-&gt; Functor WithSource
+forall a b. a -&gt; WithSource b -&gt; WithSource a
+forall a b. (a -&gt; b) -&gt; WithSource a -&gt; WithSource b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; WithSource a -&gt; WithSource b
+fmap :: forall a b. (a -&gt; b) -&gt; WithSource a -&gt; WithSource b
+$c&lt;$ :: forall a b. a -&gt; WithSource b -&gt; WithSource a
+&lt;$ :: forall a b. a -&gt; WithSource b -&gt; WithSource a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#Functor/GHC.Base.html#Functor"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></a></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679338261"><span id="local-6989586621679338267"><span id="local-6989586621679338270"><span id="local-6989586621679338275"><span id="local-6989586621679338277"><span id="local-6989586621679338280"><span id="local-6989586621679338283"><span id="local-6989586621679338286"><span id="local-6989586621679338289"><span id="local-6989586621679338292"><span id="local-6989586621679338295"><span id="local-6989586621679338297"><span id="local-6989586621679338300"><span id="local-6989586621679338305"><span id="local-6989586621679338310"><span id="local-6989586621679338315"><span id="local-6989586621679338320"><span class="annot"><span class="annottext">(forall m. Monoid m =&gt; WithSource m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; WithSource a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; WithSource a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; WithSource a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; WithSource a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; WithSource a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; WithSource a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; WithSource a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; WithSource a -&gt; a)
+-&gt; (forall a. WithSource a -&gt; [a])
+-&gt; (forall a. WithSource a -&gt; Bool)
+-&gt; (forall a. WithSource a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; WithSource a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; WithSource a -&gt; a)
+-&gt; (forall a. Ord a =&gt; WithSource a -&gt; a)
+-&gt; (forall a. Num a =&gt; WithSource a -&gt; a)
+-&gt; (forall a. Num a =&gt; WithSource a -&gt; a)
+-&gt; Foldable WithSource
+forall a. Eq a =&gt; a -&gt; WithSource a -&gt; Bool
+forall a. Num a =&gt; WithSource a -&gt; a
+forall a. Ord a =&gt; WithSource a -&gt; a
+forall m. Monoid m =&gt; WithSource m -&gt; m
+forall a. WithSource a -&gt; Bool
+forall a. WithSource a -&gt; Int
+forall a. WithSource a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; WithSource a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; WithSource a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; WithSource a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; WithSource a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+$cfold :: forall m. Monoid m =&gt; WithSource m -&gt; m
+fold :: forall m. Monoid m =&gt; WithSource m -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; WithSource a -&gt; m
+foldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; WithSource a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; WithSource a -&gt; m
+foldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; WithSource a -&gt; m
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; WithSource a -&gt; b
+foldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; WithSource a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; WithSource a -&gt; b
+foldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; WithSource a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; WithSource a -&gt; b
+foldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; WithSource a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; WithSource a -&gt; b
+foldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; WithSource a -&gt; b
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; WithSource a -&gt; a
+foldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; WithSource a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; WithSource a -&gt; a
+foldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; WithSource a -&gt; a
+$ctoList :: forall a. WithSource a -&gt; [a]
+toList :: forall a. WithSource a -&gt; [a]
+$cnull :: forall a. WithSource a -&gt; Bool
+null :: forall a. WithSource a -&gt; Bool
+$clength :: forall a. WithSource a -&gt; Int
+length :: forall a. WithSource a -&gt; Int
+$celem :: forall a. Eq a =&gt; a -&gt; WithSource a -&gt; Bool
+elem :: forall a. Eq a =&gt; a -&gt; WithSource a -&gt; Bool
+$cmaximum :: forall a. Ord a =&gt; WithSource a -&gt; a
+maximum :: forall a. Ord a =&gt; WithSource a -&gt; a
+$cminimum :: forall a. Ord a =&gt; WithSource a -&gt; a
+minimum :: forall a. Ord a =&gt; WithSource a -&gt; a
+$csum :: forall a. Num a =&gt; WithSource a -&gt; a
+sum :: forall a. Num a =&gt; WithSource a -&gt; a
+$cproduct :: forall a. Num a =&gt; WithSource a -&gt; a
+product :: forall a. Num a =&gt; WithSource a -&gt; a
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#Foldable/Data.Foldable.html#Foldable"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Foldable</span></a></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679338330"><span id="local-6989586621679338335"><span id="local-6989586621679338341"><span id="local-6989586621679338346"><span class="annot"><span class="annottext">Functor WithSource
+Foldable WithSource
+(Functor WithSource, Foldable WithSource) =&gt;
+(forall (f :: * -&gt; *) a b.
+ Applicative f =&gt;
+ (a -&gt; f b) -&gt; WithSource a -&gt; f (WithSource b))
+-&gt; (forall (f :: * -&gt; *) a.
+    Applicative f =&gt;
+    WithSource (f a) -&gt; f (WithSource a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; WithSource a -&gt; m (WithSource b))
+-&gt; (forall (m :: * -&gt; *) a.
+    Monad m =&gt;
+    WithSource (m a) -&gt; m (WithSource a))
+-&gt; Traversable WithSource
+forall (t :: * -&gt; *).
+(Functor t, Foldable t) =&gt;
+(forall (f :: * -&gt; *) a b.
+ Applicative f =&gt;
+ (a -&gt; f b) -&gt; t a -&gt; f (t b))
+-&gt; (forall (f :: * -&gt; *) a. Applicative f =&gt; t (f a) -&gt; f (t a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; t a -&gt; m (t b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; t (m a) -&gt; m (t a))
+-&gt; Traversable t
+forall (m :: * -&gt; *) a.
+Monad m =&gt;
+WithSource (m a) -&gt; m (WithSource a)
+forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+WithSource (f a) -&gt; f (WithSource a)
+forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; WithSource a -&gt; m (WithSource b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; WithSource a -&gt; f (WithSource b)
+$ctraverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; WithSource a -&gt; f (WithSource b)
+traverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; WithSource a -&gt; f (WithSource b)
+$csequenceA :: forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+WithSource (f a) -&gt; f (WithSource a)
+sequenceA :: forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+WithSource (f a) -&gt; f (WithSource a)
+$cmapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; WithSource a -&gt; m (WithSource b)
+mapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; WithSource a -&gt; m (WithSource b)
+$csequence :: forall (m :: * -&gt; *) a.
+Monad m =&gt;
+WithSource (m a) -&gt; m (WithSource a)
+sequence :: forall (m :: * -&gt; *) a.
+Monad m =&gt;
+WithSource (m a) -&gt; m (WithSource a)
+</span><a href="../../base-4.18.2.0/src/Data.Traversable.html#Traversable/Data.Traversable.html#Traversable"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Traversable</span></a></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-125"></span><span id="local-6989586621679338191"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#unWithSource"><span class="hs-identifier hs-type">unWithSource</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#WithSource"><span class="hs-identifier hs-type">WithSource</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338191"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679338191"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-126"></span><span id="unWithSource"><span class="annot"><span class="annottext">unWithSource :: forall a. WithSource a -&gt; a
+</span><a href="Distribution.Backpack.ModuleScope.html#unWithSource"><span class="hs-identifier hs-var hs-var">unWithSource</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#WithSource"><span class="hs-identifier hs-type">WithSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleSource
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679338352"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679338352"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679338352"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-127"></span><span id="local-6989586621679338193"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#getSource"><span class="hs-identifier hs-type">getSource</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#WithSource"><span class="hs-identifier hs-type">WithSource</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338193"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleSource"><span class="hs-identifier hs-type">ModuleSource</span></a></span></span><span>
+</span><span id="line-128"></span><span id="getSource"><span class="annot"><span class="annottext">getSource :: forall a. WithSource a -&gt; ModuleSource
+</span><a href="Distribution.Backpack.ModuleScope.html#getSource"><span class="hs-identifier hs-var hs-var">getSource</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#WithSource"><span class="hs-identifier hs-type">WithSource</span></a></span><span> </span><span id="local-6989586621679338353"><span class="annot"><span class="annottext">ModuleSource
+</span><a href="#local-6989586621679338353"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ModuleSource
+</span><a href="#local-6989586621679338353"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-129"></span><span class="hs-keyword">type</span><span> </span><span id="ModuleWithSource"><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#ModuleWithSource"><span class="hs-identifier hs-var">ModuleWithSource</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#WithSource"><span class="hs-identifier hs-type">WithSource</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Backpack.html#OpenModule/Distribution.Backpack.html#OpenModule"><span class="hs-identifier hs-type">OpenModule</span></a></span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679338199"><span class="annot"><a href="Distribution.Backpack.ModSubst.html#ModSubst"><span class="hs-identifier hs-type">ModSubst</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338199"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModSubst.html#ModSubst"><span class="hs-identifier hs-type">ModSubst</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#WithSource"><span class="hs-identifier hs-type">WithSource</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338199"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-132"></span><span>    </span><span id="local-6989586621679338359"><span class="annot"><span class="annottext">modSubst :: OpenModuleSubst -&gt; WithSource a -&gt; WithSource a
+</span><a href="#local-6989586621679338359"><span class="hs-identifier hs-var hs-var hs-var hs-var">modSubst</span></a></span></span><span> </span><span id="local-6989586621679338361"><span class="annot"><span class="annottext">OpenModuleSubst
+</span><a href="#local-6989586621679338361"><span class="hs-identifier hs-var">subst</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html#WithSource"><span class="hs-identifier hs-type">WithSource</span></a></span><span> </span><span id="local-6989586621679338362"><span class="annot"><span class="annottext">ModuleSource
+</span><a href="#local-6989586621679338362"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679338363"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679338363"><span class="hs-identifier hs-var">m</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ModuleSource -&gt; a -&gt; WithSource a
+forall a. ModuleSource -&gt; a -&gt; WithSource a
+</span><a href="Distribution.Backpack.ModuleScope.html#WithSource"><span class="hs-identifier hs-var">WithSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleSource
+</span><a href="#local-6989586621679338362"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">OpenModuleSubst -&gt; a -&gt; a
+forall a. ModSubst a =&gt; OpenModuleSubst -&gt; a -&gt; a
+</span><a href="Distribution.Backpack.ModSubst.html#modSubst"><span class="hs-identifier hs-var">modSubst</span></a></span><span> </span><span class="annot"><span class="annottext">OpenModuleSubst
+</span><a href="#local-6989586621679338361"><span class="hs-identifier hs-var">subst</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679338363"><span class="hs-identifier hs-var">m</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-133"></span></pre></body></html>

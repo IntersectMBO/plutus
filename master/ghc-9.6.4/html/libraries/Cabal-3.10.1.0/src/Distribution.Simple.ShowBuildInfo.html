@@ -1,0 +1,525 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- |</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- This module defines a simple JSON-based format for exporting basic</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- information about a Cabal package and the compiler configuration Cabal</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- would use to build it. This can be produced with the</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- @cabal build --enable-build-info@ command.</span><span>
+</span><span id="line-6"></span><span class="hs-comment">--</span><span>
+</span><span id="line-7"></span><span class="hs-comment">--</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- This format is intended for consumption by external tooling and should</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- therefore be rather stable. Moreover, this allows tooling users to avoid</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- linking against Cabal. This is an important advantage as direct API usage</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- tends to be rather fragile in the presence of user-initiated upgrades of</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- Cabal.</span><span>
+</span><span id="line-13"></span><span class="hs-comment">--</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Below is an example of the output this module produces,</span><span>
+</span><span id="line-15"></span><span class="hs-comment">--</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- { &quot;cabal-lib-version&quot;: &quot;1.23.0.0&quot;,</span><span>
+</span><span id="line-18"></span><span class="hs-comment">--   &quot;compiler&quot;: {</span><span>
+</span><span id="line-19"></span><span class="hs-comment">--     &quot;flavour&quot;: &quot;GHC&quot;,</span><span>
+</span><span id="line-20"></span><span class="hs-comment">--     &quot;compiler-id&quot;: &quot;ghc-7.10.2&quot;,</span><span>
+</span><span id="line-21"></span><span class="hs-comment">--     &quot;path&quot;: &quot;/usr/bin/ghc&quot;,</span><span>
+</span><span id="line-22"></span><span class="hs-comment">--   },</span><span>
+</span><span id="line-23"></span><span class="hs-comment">--   &quot;components&quot;: [</span><span>
+</span><span id="line-24"></span><span class="hs-comment">--     { &quot;type&quot;: &quot;lib&quot;,</span><span>
+</span><span id="line-25"></span><span class="hs-comment">--       &quot;name&quot;: &quot;lib:Cabal&quot;,</span><span>
+</span><span id="line-26"></span><span class="hs-comment">--       &quot;compiler-args&quot;:</span><span>
+</span><span id="line-27"></span><span class="hs-comment">--         [&quot;-O&quot;, &quot;-XHaskell98&quot;, &quot;-Wall&quot;,</span><span>
+</span><span id="line-28"></span><span class="hs-comment">--          &quot;-package-id&quot;, &quot;parallel-3.2.0.6-b79c38c5c25fff77f3ea7271851879eb&quot;]</span><span>
+</span><span id="line-29"></span><span class="hs-comment">--       &quot;modules&quot;: [&quot;Project.ModA&quot;, &quot;Project.ModB&quot;, &quot;Paths_project&quot;],</span><span>
+</span><span id="line-30"></span><span class="hs-comment">--       &quot;src-files&quot;: [],</span><span>
+</span><span id="line-31"></span><span class="hs-comment">--       &quot;src-dirs&quot;: [&quot;src&quot;]</span><span>
+</span><span id="line-32"></span><span class="hs-comment">--     }</span><span>
+</span><span id="line-33"></span><span class="hs-comment">--   ]</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- }</span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-36"></span><span class="hs-comment">--</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- The output format needs to be validated against 'doc/json-schemas/build-info.schema.json'.</span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- If the format changes, update the schema as well!</span><span>
+</span><span id="line-39"></span><span class="hs-comment">--</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- The @cabal-lib-version@ property provides the version of the Cabal library</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- which generated the output. The @compiler@ property gives some basic</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- information about the compiler Cabal would use to compile the package.</span><span>
+</span><span id="line-43"></span><span class="hs-comment">--</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- The @components@ property gives a list of the Cabal 'Component's defined by</span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- the package. Each has,</span><span>
+</span><span id="line-46"></span><span class="hs-comment">--</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- * @type@: the type of the component (one of @lib@, @exe@,</span><span>
+</span><span id="line-48"></span><span class="hs-comment">--   @test@, @bench@, or @flib@)</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- * @name@: a string serving to uniquely identify the component within the</span><span>
+</span><span id="line-50"></span><span class="hs-comment">--   package.</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- * @compiler-args@: the command-line arguments Cabal would pass to the</span><span>
+</span><span id="line-52"></span><span class="hs-comment">--   compiler to compile the component</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- * @modules@: the modules belonging to the component</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- * @src-dirs@: a list of directories where the modules might be found</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- * @src-files@: any other Haskell sources needed by the component</span><span>
+</span><span id="line-56"></span><span class="hs-comment">--</span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- Note: At the moment this is only supported when using the GHC compiler.</span><span>
+</span><span id="line-58"></span><span class="hs-comment">--</span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.ShowBuildInfo</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-63"></span><span>  </span><span class="annot"><a href="Distribution.Simple.ShowBuildInfo.html#mkBuildInfo"><span class="hs-identifier">mkBuildInfo</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.ShowBuildInfo.html#mkBuildInfo%27"><span class="hs-identifier">mkBuildInfo'</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.ShowBuildInfo.html#mkCompilerInfo"><span class="hs-identifier">mkCompilerInfo</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.ShowBuildInfo.html#mkComponentInfo"><span class="hs-identifier">mkComponentInfo</span></a></span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../filepath-1.4.200.1/src/System.FilePath.html#/System.FilePath.html"><span class="hs-identifier">System.FilePath</span></a></span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-69"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Distribution.Simple.GHC.html"><span class="hs-identifier">Distribution.Simple.GHC</span></a></span><span>   </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">GHC</span></span><span>
+</span><span id="line-72"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.GHC.html"><span class="hs-identifier">Distribution.Simple.Program.GHC</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">GHC</span></span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.PackageDescription.html#/Distribution.PackageDescription.html"><span class="hs-identifier">Distribution.PackageDescription</span></a></span><span>
+</span><span id="line-75"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compiler.html#/Distribution.Compiler.html"><span class="hs-identifier">Distribution.Compiler</span></a></span><span>
+</span><span id="line-76"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html"><span class="hs-identifier">Distribution.Verbosity</span></a></span><span>
+</span><span id="line-77"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html"><span class="hs-identifier">Distribution.Simple.Compiler</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.Compiler.html#Compiler"><span class="hs-identifier">Compiler</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#showCompilerId"><span class="hs-identifier">showCompilerId</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#compilerFlavor"><span class="hs-identifier">compilerFlavor</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.html"><span class="hs-identifier">Distribution.Simple.Program</span></a></span><span>
+</span><span id="line-79"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html"><span class="hs-identifier">Distribution.Simple.Setup</span></a></span><span>
+</span><span id="line-80"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html"><span class="hs-identifier">Distribution.Simple.Utils</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.Utils.html#cabalVersion"><span class="hs-identifier">cabalVersion</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-81"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html"><span class="hs-identifier">Distribution.Utils.Json</span></a></span><span>
+</span><span id="line-82"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#/Distribution.Types.Component.html"><span class="hs-identifier">Distribution.Types.Component</span></a></span><span>
+</span><span id="line-83"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html"><span class="hs-identifier">Distribution.Types.ComponentLocalBuildInfo</span></a></span><span>
+</span><span id="line-84"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html"><span class="hs-identifier">Distribution.Types.LocalBuildInfo</span></a></span><span>
+</span><span id="line-85"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Types.TargetInfo.html"><span class="hs-identifier">Distribution.Types.TargetInfo</span></a></span><span>
+</span><span id="line-86"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Text.html#/Distribution.Text.html"><span class="hs-identifier">Distribution.Text</span></a></span><span>
+</span><span id="line-87"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#/Distribution.Pretty.html"><span class="hs-identifier">Distribution.Pretty</span></a></span><span>
+</span><span id="line-88"></span><span>
+</span><span id="line-89"></span><span class="hs-comment">-- | Construct a JSON document describing the build information for a</span><span>
+</span><span id="line-90"></span><span class="hs-comment">-- package.</span><span>
+</span><span id="line-91"></span><span class="annot"><a href="Distribution.Simple.ShowBuildInfo.html#mkBuildInfo"><span class="hs-identifier hs-type">mkBuildInfo</span></a></span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>            </span><span class="annot"><span class="hs-comment">-- ^ The source directory of the package</span></span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span>  </span><span class="annot"><span class="hs-comment">-- ^ Mostly information from the .cabal file</span></span><span>
+</span><span id="line-94"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>      </span><span class="annot"><span class="hs-comment">-- ^ Configuration information</span></span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html#BuildFlags"><span class="hs-identifier hs-type">BuildFlags</span></a></span><span>          </span><span class="annot"><span class="hs-comment">-- ^ Flags that the user passed to build</span></span><span>
+</span><span id="line-96"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.Program.Types.html#ConfiguredProgram"><span class="hs-identifier hs-type">ConfiguredProgram</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#Compiler"><span class="hs-identifier hs-type">Compiler</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-97"></span><span>  </span><span class="hs-comment">-- ^ Compiler information.</span><span>
+</span><span id="line-98"></span><span>  </span><span class="hs-comment">-- Needs to be passed explicitly, as we can't extract that information here</span><span>
+</span><span id="line-99"></span><span>  </span><span class="hs-comment">-- without some partial function.</span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Types.TargetInfo.html#TargetInfo"><span class="hs-identifier hs-type">TargetInfo</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-101"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier hs-type">Json</span></a></span><span class="hs-special">)</span><span>    </span><span class="annot"><span class="hs-comment">-- ^ Json representation of buildinfo alongside generated warnings</span></span><span>
+</span><span id="line-102"></span><span id="mkBuildInfo"><span class="annot"><span class="annottext">mkBuildInfo :: [Char]
+-&gt; PackageDescription
+-&gt; LocalBuildInfo
+-&gt; BuildFlags
+-&gt; (ConfiguredProgram, Compiler)
+-&gt; [TargetInfo]
+-&gt; ([[Char]], Json)
+</span><a href="Distribution.Simple.ShowBuildInfo.html#mkBuildInfo"><span class="hs-identifier hs-var hs-var">mkBuildInfo</span></a></span></span><span> </span><span id="local-6989586621679375001"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679375001"><span class="hs-identifier hs-var">wdir</span></a></span></span><span> </span><span id="local-6989586621679375002"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679375002"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span> </span><span id="local-6989586621679375003"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679375003"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679375004"><span class="annot"><span class="annottext">BuildFlags
+</span><a href="#local-6989586621679375004"><span class="hs-identifier hs-var">_flags</span></a></span></span><span> </span><span id="local-6989586621679375005"><span class="annot"><span class="annottext">(ConfiguredProgram, Compiler)
+</span><a href="#local-6989586621679375005"><span class="hs-identifier hs-var">compilerInfo</span></a></span></span><span> </span><span id="local-6989586621679375006"><span class="annot"><span class="annottext">[TargetInfo]
+</span><a href="#local-6989586621679375006"><span class="hs-identifier hs-var">targetsToBuild</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679375007"><span class="hs-identifier hs-var">warnings</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[([Char], Json)] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonObject"><span class="hs-identifier hs-var">JsonObject</span></a></span><span> </span><span class="annot"><span class="annottext">[([Char], Json)]
+</span><a href="#local-6989586621679375009"><span class="hs-identifier hs-var">buildInfoFields</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-103"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-104"></span><span>    </span><span id="local-6989586621679375009"><span class="annot"><span class="annottext">buildInfoFields :: [([Char], Json)]
+</span><a href="#local-6989586621679375009"><span class="hs-identifier hs-var hs-var">buildInfoFields</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Json -&gt; [Json] -&gt; [([Char], Json)]
+</span><a href="Distribution.Simple.ShowBuildInfo.html#mkBuildInfo%27"><span class="hs-identifier hs-var">mkBuildInfo'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ConfiguredProgram -&gt; Compiler -&gt; Json)
+-&gt; (ConfiguredProgram, Compiler) -&gt; Json
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><a href="../../base-4.18.2.0/src/Data.Tuple.html#uncurry/Data.Tuple.html#uncurry"><span class="hs-identifier hs-var">uncurry</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram -&gt; Compiler -&gt; Json
+</span><a href="Distribution.Simple.ShowBuildInfo.html#mkCompilerInfo"><span class="hs-identifier hs-var">mkCompilerInfo</span></a></span><span> </span><span class="annot"><span class="annottext">(ConfiguredProgram, Compiler)
+</span><a href="#local-6989586621679375005"><span class="hs-identifier hs-var">compilerInfo</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Json]
+</span><a href="#local-6989586621679375011"><span class="hs-identifier hs-var">componentInfos</span></a></span><span>
+</span><span id="line-105"></span><span>    </span><span id="local-6989586621679375012"><span class="annot"><span class="annottext">componentInfosWithWarnings :: [([[Char]], Json)]
+</span><a href="#local-6989586621679375012"><span class="hs-identifier hs-var hs-var">componentInfosWithWarnings</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(TargetInfo -&gt; ([[Char]], Json))
+-&gt; [TargetInfo] -&gt; [([[Char]], Json)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char]
+-&gt; PackageDescription
+-&gt; LocalBuildInfo
+-&gt; ComponentLocalBuildInfo
+-&gt; ([[Char]], Json)
+</span><a href="Distribution.Simple.ShowBuildInfo.html#mkComponentInfo"><span class="hs-identifier hs-var">mkComponentInfo</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679375001"><span class="hs-identifier hs-var">wdir</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679375002"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679375003"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">(ComponentLocalBuildInfo -&gt; ([[Char]], Json))
+-&gt; (TargetInfo -&gt; ComponentLocalBuildInfo)
+-&gt; TargetInfo
+-&gt; ([[Char]], Json)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo -&gt; ComponentLocalBuildInfo
+</span><a href="Distribution.Types.TargetInfo.html#targetCLBI"><span class="hs-identifier hs-var">targetCLBI</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[TargetInfo]
+</span><a href="#local-6989586621679375006"><span class="hs-identifier hs-var">targetsToBuild</span></a></span><span>
+</span><span id="line-106"></span><span>    </span><span id="local-6989586621679375011"><span class="annot"><span class="annottext">componentInfos :: [Json]
+</span><a href="#local-6989586621679375011"><span class="hs-identifier hs-var hs-var">componentInfos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(([[Char]], Json) -&gt; Json) -&gt; [([[Char]], Json)] -&gt; [Json]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">([[Char]], Json) -&gt; Json
+forall a b. (a, b) -&gt; b
+</span><a href="../../base-4.18.2.0/src/Data.Tuple.html#snd/Data.Tuple.html#snd"><span class="hs-identifier hs-var">snd</span></a></span><span> </span><span class="annot"><span class="annottext">[([[Char]], Json)]
+</span><a href="#local-6989586621679375012"><span class="hs-identifier hs-var">componentInfosWithWarnings</span></a></span><span>
+</span><span id="line-107"></span><span>    </span><span id="local-6989586621679375007"><span class="annot"><span class="annottext">warnings :: [[Char]]
+</span><a href="#local-6989586621679375007"><span class="hs-identifier hs-var hs-var">warnings</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(([[Char]], Json) -&gt; [[Char]]) -&gt; [([[Char]], Json)] -&gt; [[Char]]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concatMap/Data.Foldable.html#concatMap"><span class="hs-identifier hs-var">concatMap</span></a></span><span> </span><span class="annot"><span class="annottext">([[Char]], Json) -&gt; [[Char]]
+forall a b. (a, b) -&gt; a
+</span><a href="../../base-4.18.2.0/src/Data.Tuple.html#fst/Data.Tuple.html#fst"><span class="hs-identifier hs-var">fst</span></a></span><span> </span><span class="annot"><span class="annottext">[([[Char]], Json)]
+</span><a href="#local-6989586621679375012"><span class="hs-identifier hs-var">componentInfosWithWarnings</span></a></span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span class="hs-comment">-- | A variant of 'mkBuildInfo' if you need to call 'mkCompilerInfo' and</span><span>
+</span><span id="line-110"></span><span class="hs-comment">-- 'mkComponentInfo' yourself.</span><span>
+</span><span id="line-111"></span><span class="hs-comment">--</span><span>
+</span><span id="line-112"></span><span class="hs-comment">-- If you change the format or any name in the output json, don't forget to update</span><span>
+</span><span id="line-113"></span><span class="hs-comment">-- the schema at @\/doc\/json-schemas\/build-info.schema.json@ and the docs of</span><span>
+</span><span id="line-114"></span><span class="hs-comment">-- @--enable-build-info@\/@--disable-build-info@.</span><span>
+</span><span id="line-115"></span><span class="annot"><a href="Distribution.Simple.ShowBuildInfo.html#mkBuildInfo%27"><span class="hs-identifier hs-type">mkBuildInfo'</span></a></span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier hs-type">Json</span></a></span><span>   </span><span class="annot"><span class="hs-comment">-- ^ The 'Json' from 'mkCompilerInfo'</span></span><span>
+</span><span id="line-117"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier hs-type">Json</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="hs-comment">-- ^ The 'Json' from 'mkComponentInfo'</span></span><span>
+</span><span id="line-118"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier hs-type">Json</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-119"></span><span id="mkBuildInfo%27"><span class="annot"><span class="annottext">mkBuildInfo' :: Json -&gt; [Json] -&gt; [([Char], Json)]
+</span><a href="Distribution.Simple.ShowBuildInfo.html#mkBuildInfo%27"><span class="hs-identifier hs-var hs-var">mkBuildInfo'</span></a></span></span><span> </span><span id="local-6989586621679375020"><span class="annot"><span class="annottext">Json
+</span><a href="#local-6989586621679375020"><span class="hs-identifier hs-var">compilerInfo</span></a></span></span><span> </span><span id="local-6989586621679375021"><span class="annot"><span class="annottext">[Json]
+</span><a href="#local-6989586621679375021"><span class="hs-identifier hs-var">componentInfos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-120"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;cabal-lib-version&quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version -&gt; [Char]
+forall a. Pretty a =&gt; a -&gt; [Char]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Text.html#display/Distribution.Text.html#display"><span class="hs-identifier hs-var">display</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="Distribution.Simple.Utils.html#cabalVersion"><span class="hs-identifier hs-var">cabalVersion</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-121"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;compiler&quot;</span></span><span>          </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">Json
+</span><a href="#local-6989586621679375020"><span class="hs-identifier hs-var">compilerInfo</span></a></span><span>
+</span><span id="line-122"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;components&quot;</span></span><span>        </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Json] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonArray"><span class="hs-identifier hs-var">JsonArray</span></a></span><span> </span><span class="annot"><span class="annottext">[Json]
+</span><a href="#local-6989586621679375021"><span class="hs-identifier hs-var">componentInfos</span></a></span><span>
+</span><span id="line-123"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-124"></span><span>
+</span><span id="line-125"></span><span class="annot"><a href="Distribution.Simple.ShowBuildInfo.html#mkCompilerInfo"><span class="hs-identifier hs-type">mkCompilerInfo</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html#ConfiguredProgram"><span class="hs-identifier hs-type">ConfiguredProgram</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#Compiler"><span class="hs-identifier hs-type">Compiler</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier hs-type">Json</span></a></span><span>
+</span><span id="line-126"></span><span id="mkCompilerInfo"><span class="annot"><span class="annottext">mkCompilerInfo :: ConfiguredProgram -&gt; Compiler -&gt; Json
+</span><a href="Distribution.Simple.ShowBuildInfo.html#mkCompilerInfo"><span class="hs-identifier hs-var hs-var">mkCompilerInfo</span></a></span></span><span> </span><span id="local-6989586621679375026"><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679375026"><span class="hs-identifier hs-var">compilerProgram</span></a></span></span><span> </span><span id="local-6989586621679375027"><span class="annot"><span class="annottext">Compiler
+</span><a href="#local-6989586621679375027"><span class="hs-identifier hs-var">compilerInfo</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[([Char], Json)] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonObject"><span class="hs-identifier hs-var">JsonObject</span></a></span><span>
+</span><span id="line-127"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;flavour&quot;</span></span><span>     </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">CompilerFlavor -&gt; [Char]
+forall a. Pretty a =&gt; a -&gt; [Char]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="annot"><span class="annottext">(CompilerFlavor -&gt; [Char]) -&gt; CompilerFlavor -&gt; [Char]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Compiler -&gt; CompilerFlavor
+</span><a href="Distribution.Simple.Compiler.html#compilerFlavor"><span class="hs-identifier hs-var">compilerFlavor</span></a></span><span> </span><span class="annot"><span class="annottext">Compiler
+</span><a href="#local-6989586621679375027"><span class="hs-identifier hs-var">compilerInfo</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-128"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;compiler-id&quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Compiler -&gt; [Char]
+</span><a href="Distribution.Simple.Compiler.html#showCompilerId"><span class="hs-identifier hs-var">showCompilerId</span></a></span><span> </span><span class="annot"><span class="annottext">Compiler
+</span><a href="#local-6989586621679375027"><span class="hs-identifier hs-var">compilerInfo</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-129"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;path&quot;</span></span><span>        </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ConfiguredProgram -&gt; [Char]
+</span><a href="Distribution.Simple.Program.Types.html#programPath"><span class="hs-identifier hs-var">programPath</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679375026"><span class="hs-identifier hs-var">compilerProgram</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-130"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-131"></span><span>
+</span><span id="line-132"></span><span class="annot"><a href="Distribution.Simple.ShowBuildInfo.html#mkComponentInfo"><span class="hs-identifier hs-type">mkComponentInfo</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Utils.Json.html#Json"><span class="hs-identifier hs-type">Json</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-133"></span><span id="mkComponentInfo"><span class="annot"><span class="annottext">mkComponentInfo :: [Char]
+-&gt; PackageDescription
+-&gt; LocalBuildInfo
+-&gt; ComponentLocalBuildInfo
+-&gt; ([[Char]], Json)
+</span><a href="Distribution.Simple.ShowBuildInfo.html#mkComponentInfo"><span class="hs-identifier hs-var hs-var">mkComponentInfo</span></a></span></span><span> </span><span id="local-6989586621679375030"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679375030"><span class="hs-identifier hs-var">wdir</span></a></span></span><span> </span><span id="local-6989586621679375031"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679375031"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span> </span><span id="local-6989586621679375032"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679375032"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679375033"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679375033"><span class="hs-identifier hs-var">clbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679375034"><span class="hs-identifier hs-var">warnings</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[([Char], Json)] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonObject"><span class="hs-identifier hs-var">JsonObject</span></a></span><span> </span><span class="annot"><span class="annottext">([([Char], Json)] -&gt; Json) -&gt; [([Char], Json)] -&gt; Json
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-134"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;type&quot;</span></span><span>          </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679375035"><span class="hs-identifier hs-var">compType</span></a></span><span>
+</span><span id="line-135"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;name&quot;</span></span><span>          </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentName -&gt; [Char]
+forall a. Pretty a =&gt; a -&gt; [Char]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679375036"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-136"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;unit-id&quot;</span></span><span>       </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">UnitId -&gt; [Char]
+forall a. Pretty a =&gt; a -&gt; [Char]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="annot"><span class="annottext">(UnitId -&gt; [Char]) -&gt; UnitId -&gt; [Char]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; UnitId
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentUnitId"><span class="hs-identifier hs-var">componentUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679375033"><span class="hs-identifier hs-var">clbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-137"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;compiler-args&quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Json] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonArray"><span class="hs-identifier hs-var">JsonArray</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">([Char] -&gt; Json) -&gt; [[Char]] -&gt; [Json]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679375038"><span class="hs-identifier hs-var">compilerArgs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-138"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;modules&quot;</span></span><span>       </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Json] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonArray"><span class="hs-identifier hs-var">JsonArray</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ModuleName -&gt; Json) -&gt; [ModuleName] -&gt; [Json]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; Json) -&gt; (ModuleName -&gt; [Char]) -&gt; ModuleName -&gt; Json
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName -&gt; [Char]
+forall a. Pretty a =&gt; a -&gt; [Char]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Text.html#display/Distribution.Text.html#display"><span class="hs-identifier hs-var">display</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ModuleName]
+</span><a href="#local-6989586621679375039"><span class="hs-identifier hs-var">modules</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-139"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;src-files&quot;</span></span><span>     </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Json] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonArray"><span class="hs-identifier hs-var">JsonArray</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">([Char] -&gt; Json) -&gt; [[Char]] -&gt; [Json]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679375040"><span class="hs-identifier hs-var">sourceFiles</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-140"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;hs-src-dirs&quot;</span></span><span>   </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Json] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonArray"><span class="hs-identifier hs-var">JsonArray</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(SymbolicPath PackageDir SourceDir -&gt; Json)
+-&gt; [SymbolicPath PackageDir SourceDir] -&gt; [Json]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; Json)
+-&gt; (SymbolicPath PackageDir SourceDir -&gt; [Char])
+-&gt; SymbolicPath PackageDir SourceDir
+-&gt; Json
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">SymbolicPath PackageDir SourceDir -&gt; [Char]
+forall a. Pretty a =&gt; a -&gt; [Char]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([SymbolicPath PackageDir SourceDir] -&gt; [Json])
+-&gt; [SymbolicPath PackageDir SourceDir] -&gt; [Json]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo -&gt; [SymbolicPath PackageDir SourceDir]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#hsSourceDirs/Distribution.Types.BuildInfo.html#hsSourceDirs"><span class="hs-identifier hs-var">hsSourceDirs</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679375042"><span class="hs-identifier hs-var">bi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-141"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;src-dir&quot;</span></span><span>       </span><span class="annot"><span class="annottext">[Char] -&gt; Json -&gt; ([Char], Json)
+</span><a href="Distribution.Utils.Json.html#.%3D"><span class="hs-operator hs-var">.=</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; [Char]
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#addTrailingPathSeparator/System.FilePath.Posix.html#addTrailingPathSeparator"><span class="hs-identifier hs-var">addTrailingPathSeparator</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679375030"><span class="hs-identifier hs-var">wdir</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[([Char], Json)] -&gt; [([Char], Json)] -&gt; [([Char], Json)]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%3E/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">[([Char], Json)]
+</span><a href="#local-6989586621679375044"><span class="hs-identifier hs-var">cabalFile</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-143"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-144"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679375034"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679375034"><span class="hs-identifier hs-var">warnings</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679375038"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679375038"><span class="hs-identifier hs-var">compilerArgs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">BuildInfo
+-&gt; LocalBuildInfo
+-&gt; ComponentLocalBuildInfo
+-&gt; ([[Char]], [[Char]])
+</span><a href="Distribution.Simple.ShowBuildInfo.html#getCompilerArgs"><span class="hs-identifier hs-var">getCompilerArgs</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679375042"><span class="hs-identifier hs-var">bi</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679375032"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679375033"><span class="hs-identifier hs-var">clbi</span></a></span><span>
+</span><span id="line-145"></span><span>    </span><span id="local-6989586621679375036"><span class="annot"><span class="annottext">name :: ComponentName
+</span><a href="#local-6989586621679375036"><span class="hs-identifier hs-var hs-var">name</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; ComponentName
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentLocalName"><span class="hs-identifier hs-var">componentLocalName</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679375033"><span class="hs-identifier hs-var">clbi</span></a></span><span>
+</span><span id="line-146"></span><span>    </span><span id="local-6989586621679375042"><span class="annot"><span class="annottext">bi :: BuildInfo
+</span><a href="#local-6989586621679375042"><span class="hs-identifier hs-var hs-var">bi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Component -&gt; BuildInfo
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentBuildInfo/Distribution.Types.Component.html#componentBuildInfo"><span class="hs-identifier hs-var">componentBuildInfo</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679375048"><span class="hs-identifier hs-var">comp</span></a></span><span>
+</span><span id="line-147"></span><span>    </span><span class="hs-comment">-- If this error happens, a cabal invariant has been violated</span><span>
+</span><span id="line-148"></span><span>    </span><span id="local-6989586621679375048"><span class="annot"><span class="annottext">comp :: Component
+</span><a href="#local-6989586621679375048"><span class="hs-identifier hs-var hs-var">comp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Component -&gt; Maybe Component -&gt; Component
+forall a. a -&gt; Maybe a -&gt; a
+</span><a href="../../base-4.18.2.0/src/Data.Maybe.html#fromMaybe/Data.Maybe.html#fromMaybe"><span class="hs-identifier hs-var">fromMaybe</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; Component
+forall a. HasCallStack =&gt; [Char] -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Err.html#error/GHC.Err.html#error"><span class="hs-identifier hs-var">error</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; Component) -&gt; [Char] -&gt; Component
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;mkBuildInfo: no component &quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName -&gt; [Char]
+forall a. Pretty a =&gt; a -&gt; [Char]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679375036"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Maybe Component -&gt; Component) -&gt; Maybe Component -&gt; Component
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; ComponentName -&gt; Maybe Component
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#lookupComponent/Distribution.Types.PackageDescription.html#lookupComponent"><span class="hs-identifier hs-var">lookupComponent</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679375031"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679375036"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-149"></span><span>    </span><span id="local-6989586621679375035"><span class="annot"><span class="annottext">compType :: [Char]
+</span><a href="#local-6989586621679375035"><span class="hs-identifier hs-var hs-var">compType</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679375048"><span class="hs-identifier hs-var">comp</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-150"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CLib/Distribution.Types.Component.html#CLib"><span class="hs-identifier hs-type">CLib</span></a></span><span> </span><span class="annot"><span class="annottext">Library
+</span><span class="hs-identifier">_</span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;lib&quot;</span></span><span>
+</span><span id="line-151"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CExe/Distribution.Types.Component.html#CExe"><span class="hs-identifier hs-type">CExe</span></a></span><span> </span><span class="annot"><span class="annottext">Executable
+</span><span class="hs-identifier">_</span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;exe&quot;</span></span><span>
+</span><span id="line-152"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CTest/Distribution.Types.Component.html#CTest"><span class="hs-identifier hs-type">CTest</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuite
+</span><span class="hs-identifier">_</span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;test&quot;</span></span><span>
+</span><span id="line-153"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CBench/Distribution.Types.Component.html#CBench"><span class="hs-identifier hs-type">CBench</span></a></span><span> </span><span class="annot"><span class="annottext">Benchmark
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;bench&quot;</span></span><span>
+</span><span id="line-154"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CFLib/Distribution.Types.Component.html#CFLib"><span class="hs-identifier hs-type">CFLib</span></a></span><span> </span><span class="annot"><span class="annottext">ForeignLib
+</span><span class="hs-identifier">_</span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;flib&quot;</span></span><span>
+</span><span id="line-155"></span><span>    </span><span id="local-6989586621679375039"><span class="annot"><span class="annottext">modules :: [ModuleName]
+</span><a href="#local-6989586621679375039"><span class="hs-identifier hs-var hs-var">modules</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679375048"><span class="hs-identifier hs-var">comp</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-156"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CLib/Distribution.Types.Component.html#CLib"><span class="hs-identifier hs-type">CLib</span></a></span><span> </span><span id="local-6989586621679375067"><span class="annot"><span class="annottext">Library
+</span><a href="#local-6989586621679375067"><span class="hs-identifier hs-var">lib</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Library -&gt; [ModuleName]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Library.html#explicitLibModules/Distribution.Types.Library.html#explicitLibModules"><span class="hs-identifier hs-var">explicitLibModules</span></a></span><span> </span><span class="annot"><span class="annottext">Library
+</span><a href="#local-6989586621679375067"><span class="hs-identifier hs-var">lib</span></a></span><span>
+</span><span id="line-157"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CExe/Distribution.Types.Component.html#CExe"><span class="hs-identifier hs-type">CExe</span></a></span><span> </span><span id="local-6989586621679375069"><span class="annot"><span class="annottext">Executable
+</span><a href="#local-6989586621679375069"><span class="hs-identifier hs-var">exe</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Executable -&gt; [ModuleName]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Executable.html#exeModules/Distribution.Types.Executable.html#exeModules"><span class="hs-identifier hs-var">exeModules</span></a></span><span> </span><span class="annot"><span class="annottext">Executable
+</span><a href="#local-6989586621679375069"><span class="hs-identifier hs-var">exe</span></a></span><span>
+</span><span id="line-158"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CTest/Distribution.Types.Component.html#CTest"><span class="hs-identifier hs-type">CTest</span></a></span><span> </span><span id="local-6989586621679375071"><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679375071"><span class="hs-identifier hs-var">test</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-159"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TestSuite -&gt; TestSuiteInterface
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuite.html#testInterface/Distribution.Types.TestSuite.html#testInterface"><span class="hs-identifier hs-var">testInterface</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679375071"><span class="hs-identifier hs-var">test</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-160"></span><span>          </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuiteInterface.html#TestSuiteExeV10/Distribution.Types.TestSuiteInterface.html#TestSuiteExeV10"><span class="hs-identifier hs-type">TestSuiteExeV10</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-161"></span><span>          </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuiteInterface.html#TestSuiteLibV09/Distribution.Types.TestSuiteInterface.html#TestSuiteLibV09"><span class="hs-identifier hs-type">TestSuiteLibV09</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679375075"><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679375075"><span class="hs-identifier hs-var">modName</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679375075"><span class="hs-identifier hs-var">modName</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-162"></span><span>          </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuiteInterface.html#TestSuiteUnsupported/Distribution.Types.TestSuiteInterface.html#TestSuiteUnsupported"><span class="hs-identifier hs-type">TestSuiteUnsupported</span></a></span><span> </span><span class="annot"><span class="annottext">TestType
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-163"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CBench/Distribution.Types.Component.html#CBench"><span class="hs-identifier hs-type">CBench</span></a></span><span> </span><span id="local-6989586621679375077"><span class="annot"><span class="annottext">Benchmark
+</span><a href="#local-6989586621679375077"><span class="hs-identifier hs-var">bench</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Benchmark -&gt; [ModuleName]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Benchmark.html#benchmarkModules/Distribution.Types.Benchmark.html#benchmarkModules"><span class="hs-identifier hs-var">benchmarkModules</span></a></span><span> </span><span class="annot"><span class="annottext">Benchmark
+</span><a href="#local-6989586621679375077"><span class="hs-identifier hs-var">bench</span></a></span><span>
+</span><span id="line-164"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CFLib/Distribution.Types.Component.html#CFLib"><span class="hs-identifier hs-type">CFLib</span></a></span><span> </span><span id="local-6989586621679375079"><span class="annot"><span class="annottext">ForeignLib
+</span><a href="#local-6989586621679375079"><span class="hs-identifier hs-var">flib</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ForeignLib -&gt; [ModuleName]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ForeignLib.html#foreignLibModules/Distribution.Types.ForeignLib.html#foreignLibModules"><span class="hs-identifier hs-var">foreignLibModules</span></a></span><span> </span><span class="annot"><span class="annottext">ForeignLib
+</span><a href="#local-6989586621679375079"><span class="hs-identifier hs-var">flib</span></a></span><span>
+</span><span id="line-165"></span><span>    </span><span id="local-6989586621679375040"><span class="annot"><span class="annottext">sourceFiles :: [[Char]]
+</span><a href="#local-6989586621679375040"><span class="hs-identifier hs-var hs-var">sourceFiles</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679375048"><span class="hs-identifier hs-var">comp</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-166"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CLib/Distribution.Types.Component.html#CLib"><span class="hs-identifier hs-type">CLib</span></a></span><span> </span><span class="annot"><span class="annottext">Library
+</span><span class="hs-identifier">_</span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-167"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CExe/Distribution.Types.Component.html#CExe"><span class="hs-identifier hs-type">CExe</span></a></span><span> </span><span id="local-6989586621679375081"><span class="annot"><span class="annottext">Executable
+</span><a href="#local-6989586621679375081"><span class="hs-identifier hs-var">exe</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Executable -&gt; [Char]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Executable.html#modulePath/Distribution.Types.Executable.html#modulePath"><span class="hs-identifier hs-var">modulePath</span></a></span><span> </span><span class="annot"><span class="annottext">Executable
+</span><a href="#local-6989586621679375081"><span class="hs-identifier hs-var">exe</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-168"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CTest/Distribution.Types.Component.html#CTest"><span class="hs-identifier hs-type">CTest</span></a></span><span> </span><span id="local-6989586621679375083"><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679375083"><span class="hs-identifier hs-var">test</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-169"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TestSuite -&gt; TestSuiteInterface
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuite.html#testInterface/Distribution.Types.TestSuite.html#testInterface"><span class="hs-identifier hs-var">testInterface</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679375083"><span class="hs-identifier hs-var">test</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-170"></span><span>          </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuiteInterface.html#TestSuiteExeV10/Distribution.Types.TestSuiteInterface.html#TestSuiteExeV10"><span class="hs-identifier hs-type">TestSuiteExeV10</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679375084"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679375084"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679375084"><span class="hs-identifier hs-var">fp</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-171"></span><span>          </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuiteInterface.html#TestSuiteLibV09/Distribution.Types.TestSuiteInterface.html#TestSuiteLibV09"><span class="hs-identifier hs-type">TestSuiteLibV09</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-172"></span><span>          </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuiteInterface.html#TestSuiteUnsupported/Distribution.Types.TestSuiteInterface.html#TestSuiteUnsupported"><span class="hs-identifier hs-type">TestSuiteUnsupported</span></a></span><span> </span><span class="annot"><span class="annottext">TestType
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-173"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CBench/Distribution.Types.Component.html#CBench"><span class="hs-identifier hs-type">CBench</span></a></span><span> </span><span id="local-6989586621679375085"><span class="annot"><span class="annottext">Benchmark
+</span><a href="#local-6989586621679375085"><span class="hs-identifier hs-var">bench</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Benchmark -&gt; BenchmarkInterface
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Benchmark.html#benchmarkInterface/Distribution.Types.Benchmark.html#benchmarkInterface"><span class="hs-identifier hs-var">benchmarkInterface</span></a></span><span> </span><span class="annot"><span class="annottext">Benchmark
+</span><a href="#local-6989586621679375085"><span class="hs-identifier hs-var">bench</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-174"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BenchmarkInterface.html#BenchmarkExeV10/Distribution.Types.BenchmarkInterface.html#BenchmarkExeV10"><span class="hs-identifier hs-type">BenchmarkExeV10</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679375088"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679375088"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679375088"><span class="hs-identifier hs-var">fp</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-175"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BenchmarkInterface.html#BenchmarkUnsupported/Distribution.Types.BenchmarkInterface.html#BenchmarkUnsupported"><span class="hs-identifier hs-type">BenchmarkUnsupported</span></a></span><span> </span><span class="annot"><span class="annottext">BenchmarkType
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-176"></span><span>
+</span><span id="line-177"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CFLib/Distribution.Types.Component.html#CFLib"><span class="hs-identifier hs-type">CFLib</span></a></span><span> </span><span class="annot"><span class="annottext">ForeignLib
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-178"></span><span>    </span><span id="local-6989586621679375044"><span class="annot"><span class="annottext">cabalFile :: [([Char], Json)]
+</span><a href="#local-6989586621679375044"><span class="hs-identifier hs-var hs-var">cabalFile</span></a></span></span><span>
+</span><span id="line-179"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679375091"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679375091"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Maybe [Char]
+</span><a href="Distribution.Types.LocalBuildInfo.html#pkgDescrFile"><span class="hs-identifier hs-var">pkgDescrFile</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679375032"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;cabal-file&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Json
+</span><a href="Distribution.Utils.Json.html#JsonString"><span class="hs-identifier hs-var">JsonString</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679375091"><span class="hs-identifier hs-var">fp</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-180"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#otherwise/GHC.Base.html#otherwise"><span class="hs-identifier hs-var">otherwise</span></a></span><span>                   </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-181"></span><span>
+</span><span id="line-182"></span><span class="hs-comment">-- | Get the command-line arguments that would be passed</span><span>
+</span><span id="line-183"></span><span class="hs-comment">-- to the compiler to build the given component.</span><span>
+</span><span id="line-184"></span><span class="annot"><a href="Distribution.Simple.ShowBuildInfo.html#getCompilerArgs"><span class="hs-identifier hs-type">getCompilerArgs</span></a></span><span>
+</span><span id="line-185"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#BuildInfo/Distribution.Types.BuildInfo.html#BuildInfo"><span class="hs-identifier hs-type">BuildInfo</span></a></span><span>
+</span><span id="line-186"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-187"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span>
+</span><span id="line-188"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-189"></span><span id="getCompilerArgs"><span class="annot"><span class="annottext">getCompilerArgs :: BuildInfo
+-&gt; LocalBuildInfo
+-&gt; ComponentLocalBuildInfo
+-&gt; ([[Char]], [[Char]])
+</span><a href="Distribution.Simple.ShowBuildInfo.html#getCompilerArgs"><span class="hs-identifier hs-var hs-var">getCompilerArgs</span></a></span></span><span> </span><span id="local-6989586621679375093"><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679375093"><span class="hs-identifier hs-var">bi</span></a></span></span><span> </span><span id="local-6989586621679375094"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679375094"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679375095"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679375095"><span class="hs-identifier hs-var">clbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-190"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Compiler -&gt; CompilerFlavor
+</span><a href="Distribution.Simple.Compiler.html#compilerFlavor"><span class="hs-identifier hs-var">compilerFlavor</span></a></span><span> </span><span class="annot"><span class="annottext">(Compiler -&gt; CompilerFlavor) -&gt; Compiler -&gt; CompilerFlavor
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Compiler
+</span><a href="Distribution.Types.LocalBuildInfo.html#compiler"><span class="hs-identifier hs-var">compiler</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679375094"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-191"></span><span>      </span><span class="annot"><span class="annottext">CompilerFlavor
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compiler.html#GHC/Distribution.Compiler.html#GHC"><span class="hs-identifier hs-var">GHC</span></a></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679375098"><span class="hs-identifier hs-var">ghc</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-192"></span><span>      </span><span class="annot"><span class="annottext">CompilerFlavor
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compiler.html#GHCJS/Distribution.Compiler.html#GHCJS"><span class="hs-identifier hs-var">GHCJS</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679375098"><span class="hs-identifier hs-var">ghc</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-193"></span><span>      </span><span id="local-6989586621679375100"><span class="annot"><span class="annottext">CompilerFlavor
+</span><a href="#local-6989586621679375100"><span class="hs-identifier hs-var">c</span></a></span></span><span>     </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-194"></span><span>        </span><span class="hs-special">(</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;ShowBuildInfo.getCompilerArgs: Don't know how to get build &quot;</span></span><span>
+</span><span id="line-195"></span><span>          </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot; arguments for compiler &quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">CompilerFlavor -&gt; [Char]
+forall a. Show a =&gt; a -&gt; [Char]
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#show/GHC.Show.html#show"><span class="hs-identifier hs-var">show</span></a></span><span> </span><span class="annot"><span class="annottext">CompilerFlavor
+</span><a href="#local-6989586621679375100"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-196"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-197"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-198"></span><span>    </span><span class="hs-comment">-- This is absolutely awful</span><span>
+</span><span id="line-199"></span><span>    </span><span id="local-6989586621679375098"><span class="annot"><span class="annottext">ghc :: [[Char]]
+</span><a href="#local-6989586621679375098"><span class="hs-identifier hs-var hs-var">ghc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Compiler -&gt; Platform -&gt; GhcOptions -&gt; [[Char]]
+</span><a href="Distribution.Simple.Program.GHC.html#renderGhcOptions"><span class="hs-identifier hs-var">GHC.renderGhcOptions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Compiler
+</span><a href="Distribution.Types.LocalBuildInfo.html#compiler"><span class="hs-identifier hs-var">compiler</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679375094"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Platform
+</span><a href="Distribution.Types.LocalBuildInfo.html#hostPlatform"><span class="hs-identifier hs-var">hostPlatform</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679375094"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">GhcOptions
+</span><a href="#local-6989586621679375104"><span class="hs-identifier hs-var">baseOpts</span></a></span><span>
+</span><span id="line-200"></span><span>      </span><span class="hs-keyword">where</span><span>
+</span><span id="line-201"></span><span>        </span><span id="local-6989586621679375104"><span class="annot"><span class="annottext">baseOpts :: GhcOptions
+</span><a href="#local-6989586621679375104"><span class="hs-identifier hs-var hs-var">baseOpts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Verbosity
+-&gt; LocalBuildInfo
+-&gt; BuildInfo
+-&gt; ComponentLocalBuildInfo
+-&gt; [Char]
+-&gt; GhcOptions
+</span><a href="Distribution.Simple.GHC.html#componentGhcOptions"><span class="hs-identifier hs-var">GHC.componentGhcOptions</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="Distribution.Verbosity.html#normal"><span class="hs-identifier hs-var">normal</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679375094"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679375093"><span class="hs-identifier hs-var">bi</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679375095"><span class="hs-identifier hs-var">clbi</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; [Char]
+</span><a href="Distribution.Types.LocalBuildInfo.html#buildDir"><span class="hs-identifier hs-var">buildDir</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679375094"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-202"></span></pre></body></html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveDataTypeable #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards #-}</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.GHC.EnvironmentParser</span><span>
+</span><span id="line-8"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Distribution.Simple.GHC.EnvironmentParser.html#parseGhcEnvironmentFile"><span class="hs-identifier">parseGhcEnvironmentFile</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.GHC.EnvironmentParser.html#readGhcEnvironmentFile"><span class="hs-identifier">readGhcEnvironmentFile</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.GHC.EnvironmentParser.html#ParseErrorExc"><span class="hs-identifier">ParseErrorExc</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html"><span class="hs-identifier">Distribution.Simple.Compiler</span></a></span><span>
+</span><span id="line-14"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#PackageDB"><span class="hs-identifier">PackageDB</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.GHC.Internal.html"><span class="hs-identifier">Distribution.Simple.GHC.Internal</span></a></span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Distribution.Simple.GHC.Internal.html#GhcEnvironmentFileEntry"><span class="hs-identifier">GhcEnvironmentFileEntry</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#/Distribution.Types.UnitId.html"><span class="hs-identifier">Distribution.Types.UnitId</span></a></span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#mkUnitId/Distribution.Types.UnitId.html#mkUnitId"><span class="hs-identifier">mkUnitId</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../parsec-3.1.16.1/src/Text.Parsec.html#/Text.Parsec.html"><span class="hs-identifier">Text.Parsec</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">P</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../parsec-3.1.16.1/src/Text.Parsec.String.html#/Text.Parsec.String.html"><span class="hs-identifier">Text.Parsec.String</span></a></span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../parsec-3.1.16.1/src/Text.Parsec.String.html#Parser/Text.Parsec.String.html#Parser"><span class="hs-identifier">Parser</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../parsec-3.1.16.1/src/Text.Parsec.String.html#parseFromFile/Text.Parsec.String.html#parseFromFile"><span class="hs-identifier">parseFromFile</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="annot"><a href="Distribution.Simple.GHC.EnvironmentParser.html#parseEnvironmentFileLine"><span class="hs-identifier hs-type">parseEnvironmentFileLine</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../parsec-3.1.16.1/src/Text.Parsec.String.html#Parser/Text.Parsec.String.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="Distribution.Simple.GHC.Internal.html#GhcEnvironmentFileEntry"><span class="hs-identifier hs-type">GhcEnvironmentFileEntry</span></a></span><span>
+</span><span id="line-25"></span><span id="parseEnvironmentFileLine"><span class="annot"><span class="annottext">parseEnvironmentFileLine :: Parser GhcEnvironmentFileEntry
+</span><a href="Distribution.Simple.GHC.EnvironmentParser.html#parseEnvironmentFileLine"><span class="hs-identifier hs-var hs-var">parseEnvironmentFileLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>      </span><span class="annot"><span class="annottext">String -&gt; GhcEnvironmentFileEntry
+</span><a href="Distribution.Simple.GHC.Internal.html#GhcEnvFileComment"><span class="hs-identifier hs-var">GhcEnvFileComment</span></a></span><span>             </span><span class="annot"><span class="annottext">(String -&gt; GhcEnvironmentFileEntry)
+-&gt; ParsecT String () Identity String
+-&gt; Parser GhcEnvironmentFileEntry
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/Data.Functor.html#%3C%24%3E/Data.Functor.html#%3C%24%3E"><span class="hs-operator hs-var">&lt;$&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity String
+forall {u}. ParsecT String u Identity String
+</span><a href="#local-6989586621679371350"><span class="hs-identifier hs-var">comment</span></a></span><span>
+</span><span id="line-26"></span><span>                       </span><span class="annot"><span class="annottext">Parser GhcEnvironmentFileEntry
+-&gt; Parser GhcEnvironmentFileEntry -&gt; Parser GhcEnvironmentFileEntry
+forall a.
+ParsecT String () Identity a
+-&gt; ParsecT String () Identity a -&gt; ParsecT String () Identity a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%7C%3E/GHC.Base.html#%3C%7C%3E"><span class="hs-operator hs-var">&lt;|&gt;</span></a></span><span>      </span><span class="annot"><span class="annottext">UnitId -&gt; GhcEnvironmentFileEntry
+</span><a href="Distribution.Simple.GHC.Internal.html#GhcEnvFilePackageId"><span class="hs-identifier hs-var">GhcEnvFilePackageId</span></a></span><span>           </span><span class="annot"><span class="annottext">(UnitId -&gt; GhcEnvironmentFileEntry)
+-&gt; ParsecT String () Identity UnitId
+-&gt; Parser GhcEnvironmentFileEntry
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/Data.Functor.html#%3C%24%3E/Data.Functor.html#%3C%24%3E"><span class="hs-operator hs-var">&lt;$&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity UnitId
+forall {u}. ParsecT String u Identity UnitId
+</span><a href="#local-6989586621679371353"><span class="hs-identifier hs-var">unitId</span></a></span><span>
+</span><span id="line-27"></span><span>                       </span><span class="annot"><span class="annottext">Parser GhcEnvironmentFileEntry
+-&gt; Parser GhcEnvironmentFileEntry -&gt; Parser GhcEnvironmentFileEntry
+forall a.
+ParsecT String () Identity a
+-&gt; ParsecT String () Identity a -&gt; ParsecT String () Identity a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%7C%3E/GHC.Base.html#%3C%7C%3E"><span class="hs-operator hs-var">&lt;|&gt;</span></a></span><span>      </span><span class="annot"><span class="annottext">PackageDB -&gt; GhcEnvironmentFileEntry
+</span><a href="Distribution.Simple.GHC.Internal.html#GhcEnvFilePackageDb"><span class="hs-identifier hs-var">GhcEnvFilePackageDb</span></a></span><span>           </span><span class="annot"><span class="annottext">(PackageDB -&gt; GhcEnvironmentFileEntry)
+-&gt; ParsecT String () Identity PackageDB
+-&gt; Parser GhcEnvironmentFileEntry
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/Data.Functor.html#%3C%24%3E/Data.Functor.html#%3C%24%3E"><span class="hs-operator hs-var">&lt;$&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity PackageDB
+forall {u}. ParsecT String u Identity PackageDB
+</span><a href="#local-6989586621679371355"><span class="hs-identifier hs-var">packageDb</span></a></span><span>
+</span><span id="line-28"></span><span>                       </span><span class="annot"><span class="annottext">Parser GhcEnvironmentFileEntry
+-&gt; Parser GhcEnvironmentFileEntry -&gt; Parser GhcEnvironmentFileEntry
+forall a.
+ParsecT String () Identity a
+-&gt; ParsecT String () Identity a -&gt; ParsecT String () Identity a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%7C%3E/GHC.Base.html#%3C%7C%3E"><span class="hs-operator hs-var">&lt;|&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">GhcEnvironmentFileEntry -&gt; Parser GhcEnvironmentFileEntry
+forall a. a -&gt; ParsecT String () Identity a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#pure/GHC.Base.html#pure"><span class="hs-identifier hs-var">pure</span></a></span><span> </span><span class="annot"><span class="annottext">GhcEnvironmentFileEntry
+</span><a href="Distribution.Simple.GHC.Internal.html#GhcEnvFileClearPackageDbStack"><span class="hs-identifier hs-var">GhcEnvFileClearPackageDbStack</span></a></span><span> </span><span class="annot"><span class="annottext">Parser GhcEnvironmentFileEntry
+-&gt; ParsecT String () Identity String
+-&gt; Parser GhcEnvironmentFileEntry
+forall a b.
+ParsecT String () Identity a
+-&gt; ParsecT String () Identity b -&gt; ParsecT String () Identity a
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%2A/GHC.Base.html#%3C%2A"><span class="hs-operator hs-var">&lt;*</span></a></span><span>  </span><span class="annot"><span class="annottext">ParsecT String () Identity String
+forall {u}. ParsecT String u Identity String
+</span><a href="#local-6989586621679371358"><span class="hs-identifier hs-var">clearDb</span></a></span><span>
+</span><span id="line-29"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-30"></span><span>        </span><span id="local-6989586621679371350"><span class="annot"><span class="annottext">comment :: ParsecT String u Identity String
+</span><a href="#local-6989586621679371350"><span class="hs-identifier hs-var hs-var">comment</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT String u Identity String
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+String -&gt; ParsecT s u m String
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#string/Text.Parsec.Char.html#string"><span class="hs-identifier hs-var">P.string</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;--&quot;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity String
+-&gt; ParsecT String u Identity String
+-&gt; ParsecT String u Identity String
+forall a b.
+ParsecT String u Identity a
+-&gt; ParsecT String u Identity b -&gt; ParsecT String u Identity b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2A%3E/GHC.Base.html#%2A%3E"><span class="hs-operator hs-var">*&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity Char -&gt; ParsecT String u Identity String
+forall s u (m :: * -&gt; *) a. ParsecT s u m a -&gt; ParsecT s u m [a]
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Prim.html#many/Text.Parsec.Prim.html#many"><span class="hs-identifier hs-var">P.many</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT String u Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+String -&gt; ParsecT s u m Char
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#noneOf/Text.Parsec.Char.html#noneOf"><span class="hs-identifier hs-var">P.noneOf</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\r\n&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span>        </span><span id="local-6989586621679371353"><span class="annot"><span class="annottext">unitId :: ParsecT String u Identity UnitId
+</span><a href="#local-6989586621679371353"><span class="hs-identifier hs-var hs-var">unitId</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity UnitId
+-&gt; ParsecT String u Identity UnitId
+forall s u (m :: * -&gt; *) a. ParsecT s u m a -&gt; ParsecT s u m a
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Prim.html#try/Text.Parsec.Prim.html#try"><span class="hs-identifier hs-var">P.try</span></a></span><span> </span><span class="annot"><span class="annottext">(ParsecT String u Identity UnitId
+ -&gt; ParsecT String u Identity UnitId)
+-&gt; ParsecT String u Identity UnitId
+-&gt; ParsecT String u Identity UnitId
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT String u Identity String
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+String -&gt; ParsecT s u m String
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#string/Text.Parsec.Char.html#string"><span class="hs-identifier hs-var">P.string</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;package-id&quot;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity String
+-&gt; ParsecT String u Identity () -&gt; ParsecT String u Identity ()
+forall a b.
+ParsecT String u Identity a
+-&gt; ParsecT String u Identity b -&gt; ParsecT String u Identity b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2A%3E/GHC.Base.html#%2A%3E"><span class="hs-operator hs-var">*&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity ()
+forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m ()
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#spaces/Text.Parsec.Char.html#spaces"><span class="hs-identifier hs-var">P.spaces</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity ()
+-&gt; ParsecT String u Identity UnitId
+-&gt; ParsecT String u Identity UnitId
+forall a b.
+ParsecT String u Identity a
+-&gt; ParsecT String u Identity b -&gt; ParsecT String u Identity b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2A%3E/GHC.Base.html#%2A%3E"><span class="hs-operator hs-var">*&gt;</span></a></span><span>
+</span><span id="line-32"></span><span>            </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; UnitId
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#mkUnitId/Distribution.Types.UnitId.html#mkUnitId"><span class="hs-identifier hs-var">mkUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; UnitId)
+-&gt; ParsecT String u Identity String
+-&gt; ParsecT String u Identity UnitId
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/Data.Functor.html#%3C%24%3E/Data.Functor.html#%3C%24%3E"><span class="hs-operator hs-var">&lt;$&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity Char -&gt; ParsecT String u Identity String
+forall s (m :: * -&gt; *) t u a.
+Stream s m t =&gt;
+ParsecT s u m a -&gt; ParsecT s u m [a]
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Combinator.html#many1/Text.Parsec.Combinator.html#many1"><span class="hs-identifier hs-var">P.many1</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; ParsecT String u Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+(Char -&gt; Bool) -&gt; ParsecT s u m Char
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#satisfy/Text.Parsec.Char.html#satisfy"><span class="hs-identifier hs-var">P.satisfy</span></a></span><span> </span><span class="annot"><span class="annottext">((Char -&gt; Bool) -&gt; ParsecT String u Identity Char)
+-&gt; (Char -&gt; Bool) -&gt; ParsecT String u Identity Char
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679371388"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679371388"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Unicode.html#isAlphaNum/GHC.Unicode.html#isAlphaNum"><span class="hs-identifier hs-var">isAlphaNum</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679371388"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679371388"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#elem/Data.Foldable.html#elem"><span class="hs-operator hs-var">`elem`</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;-_.+&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>        </span><span id="local-6989586621679371355"><span class="annot"><span class="annottext">packageDb :: ParsecT String u Identity PackageDB
+</span><a href="#local-6989586621679371355"><span class="hs-identifier hs-var hs-var">packageDb</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT String u Identity String
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+String -&gt; ParsecT s u m String
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#string/Text.Parsec.Char.html#string"><span class="hs-identifier hs-var">P.string</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;global-package-db&quot;</span></span><span>      </span><span class="annot"><span class="annottext">ParsecT String u Identity String
+-&gt; ParsecT String u Identity PackageDB
+-&gt; ParsecT String u Identity PackageDB
+forall a b.
+ParsecT String u Identity a
+-&gt; ParsecT String u Identity b -&gt; ParsecT String u Identity b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2A%3E/GHC.Base.html#%2A%3E"><span class="hs-operator hs-var">*&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDB -&gt; ParsecT String u Identity PackageDB
+forall a. a -&gt; ParsecT String u Identity a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#pure/GHC.Base.html#pure"><span class="hs-identifier hs-var">pure</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDB
+</span><a href="Distribution.Simple.Compiler.html#GlobalPackageDB"><span class="hs-identifier hs-var">GlobalPackageDB</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span>                </span><span class="annot"><span class="annottext">ParsecT String u Identity PackageDB
+-&gt; ParsecT String u Identity PackageDB
+-&gt; ParsecT String u Identity PackageDB
+forall a.
+ParsecT String u Identity a
+-&gt; ParsecT String u Identity a -&gt; ParsecT String u Identity a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%7C%3E/GHC.Base.html#%3C%7C%3E"><span class="hs-operator hs-var">&lt;|&gt;</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT String u Identity String
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+String -&gt; ParsecT s u m String
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#string/Text.Parsec.Char.html#string"><span class="hs-identifier hs-var">P.string</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;user-package-db&quot;</span></span><span>        </span><span class="annot"><span class="annottext">ParsecT String u Identity String
+-&gt; ParsecT String u Identity PackageDB
+-&gt; ParsecT String u Identity PackageDB
+forall a b.
+ParsecT String u Identity a
+-&gt; ParsecT String u Identity b -&gt; ParsecT String u Identity b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2A%3E/GHC.Base.html#%2A%3E"><span class="hs-operator hs-var">*&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDB -&gt; ParsecT String u Identity PackageDB
+forall a. a -&gt; ParsecT String u Identity a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#pure/GHC.Base.html#pure"><span class="hs-identifier hs-var">pure</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDB
+</span><a href="Distribution.Simple.Compiler.html#UserPackageDB"><span class="hs-identifier hs-var">UserPackageDB</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span>                </span><span class="annot"><span class="annottext">ParsecT String u Identity PackageDB
+-&gt; ParsecT String u Identity PackageDB
+-&gt; ParsecT String u Identity PackageDB
+forall a.
+ParsecT String u Identity a
+-&gt; ParsecT String u Identity a -&gt; ParsecT String u Identity a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%7C%3E/GHC.Base.html#%3C%7C%3E"><span class="hs-operator hs-var">&lt;|&gt;</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT String u Identity String
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+String -&gt; ParsecT s u m String
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#string/Text.Parsec.Char.html#string"><span class="hs-identifier hs-var">P.string</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;package-db&quot;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity String
+-&gt; ParsecT String u Identity () -&gt; ParsecT String u Identity ()
+forall a b.
+ParsecT String u Identity a
+-&gt; ParsecT String u Identity b -&gt; ParsecT String u Identity b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2A%3E/GHC.Base.html#%2A%3E"><span class="hs-operator hs-var">*&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity ()
+forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m ()
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#spaces/Text.Parsec.Char.html#spaces"><span class="hs-identifier hs-var">P.spaces</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity ()
+-&gt; ParsecT String u Identity PackageDB
+-&gt; ParsecT String u Identity PackageDB
+forall a b.
+ParsecT String u Identity a
+-&gt; ParsecT String u Identity b -&gt; ParsecT String u Identity b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2A%3E/GHC.Base.html#%2A%3E"><span class="hs-operator hs-var">*&gt;</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; PackageDB
+</span><a href="Distribution.Simple.Compiler.html#SpecificPackageDB"><span class="hs-identifier hs-var">SpecificPackageDB</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; PackageDB)
+-&gt; ParsecT String u Identity String
+-&gt; ParsecT String u Identity PackageDB
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/Data.Functor.html#%3C%24%3E/Data.Functor.html#%3C%24%3E"><span class="hs-operator hs-var">&lt;$&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity Char -&gt; ParsecT String u Identity String
+forall s (m :: * -&gt; *) t u a.
+Stream s m t =&gt;
+ParsecT s u m a -&gt; ParsecT s u m [a]
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Combinator.html#many1/Text.Parsec.Combinator.html#many1"><span class="hs-identifier hs-var">P.many1</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT String u Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+String -&gt; ParsecT s u m Char
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#noneOf/Text.Parsec.Char.html#noneOf"><span class="hs-identifier hs-var">P.noneOf</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\r\n&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity PackageDB
+-&gt; ParsecT String u Identity Char
+-&gt; ParsecT String u Identity PackageDB
+forall a b.
+ParsecT String u Identity a
+-&gt; ParsecT String u Identity b -&gt; ParsecT String u Identity a
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%2A/GHC.Base.html#%3C%2A"><span class="hs-operator hs-var">&lt;*</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity Char -&gt; ParsecT String u Identity Char
+forall s (m :: * -&gt; *) t u a.
+Stream s m t =&gt;
+ParsecT s u m a -&gt; ParsecT s u m a
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Prim.html#lookAhead/Text.Parsec.Prim.html#lookAhead"><span class="hs-identifier hs-var">P.lookAhead</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity Char
+forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m Char
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#endOfLine/Text.Parsec.Char.html#endOfLine"><span class="hs-identifier hs-var">P.endOfLine</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>        </span><span id="local-6989586621679371358"><span class="annot"><span class="annottext">clearDb :: ParsecT String u Identity String
+</span><a href="#local-6989586621679371358"><span class="hs-identifier hs-var hs-var">clearDb</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT String u Identity String
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+String -&gt; ParsecT s u m String
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#string/Text.Parsec.Char.html#string"><span class="hs-identifier hs-var">P.string</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;clear-package-db&quot;</span></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">newtype</span><span> </span><span id="ParseErrorExc"><span class="annot"><a href="Distribution.Simple.GHC.EnvironmentParser.html#ParseErrorExc"><span class="hs-identifier hs-var">ParseErrorExc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ParseErrorExc"><span class="annot"><a href="Distribution.Simple.GHC.EnvironmentParser.html#ParseErrorExc"><span class="hs-identifier hs-var">ParseErrorExc</span></a></span></span><span> </span><span class="annot"><a href="../../parsec-3.1.16.1/src/Text.Parsec.Error.html#ParseError/Text.Parsec.Error.html#ParseError"><span class="hs-identifier hs-type">P.ParseError</span></a></span><span>
+</span><span id="line-39"></span><span>                      </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679371424"><span id="local-6989586621679371430"><span id="local-6989586621679371434"><span class="annot"><span class="annottext">Int -&gt; ParseErrorExc -&gt; ShowS
+[ParseErrorExc] -&gt; ShowS
+ParseErrorExc -&gt; String
+(Int -&gt; ParseErrorExc -&gt; ShowS)
+-&gt; (ParseErrorExc -&gt; String)
+-&gt; ([ParseErrorExc] -&gt; ShowS)
+-&gt; Show ParseErrorExc
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ParseErrorExc -&gt; ShowS
+showsPrec :: Int -&gt; ParseErrorExc -&gt; ShowS
+$cshow :: ParseErrorExc -&gt; String
+show :: ParseErrorExc -&gt; String
+$cshowList :: [ParseErrorExc] -&gt; ShowS
+showList :: [ParseErrorExc] -&gt; ShowS
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Typeable.Internal.html#Typeable/Data.Typeable.Internal.html#Typeable"><span class="hs-identifier hs-type">Typeable</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679371442"><span id="local-6989586621679371445"><span id="local-6989586621679371448"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Exception.Type.html#Exception/GHC.Exception.Type.html#Exception"><span class="hs-identifier hs-type">Exception</span></a></span><span> </span><span class="annot"><a href="Distribution.Simple.GHC.EnvironmentParser.html#ParseErrorExc"><span class="hs-identifier hs-type">ParseErrorExc</span></a></span></span></span></span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="annot"><a href="Distribution.Simple.GHC.EnvironmentParser.html#parseGhcEnvironmentFile"><span class="hs-identifier hs-type">parseGhcEnvironmentFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../parsec-3.1.16.1/src/Text.Parsec.String.html#Parser/Text.Parsec.String.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Simple.GHC.Internal.html#GhcEnvironmentFileEntry"><span class="hs-identifier hs-type">GhcEnvironmentFileEntry</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-44"></span><span id="parseGhcEnvironmentFile"><span class="annot"><span class="annottext">parseGhcEnvironmentFile :: Parser [GhcEnvironmentFileEntry]
+</span><a href="Distribution.Simple.GHC.EnvironmentParser.html#parseGhcEnvironmentFile"><span class="hs-identifier hs-var hs-var">parseGhcEnvironmentFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser GhcEnvironmentFileEntry
+</span><a href="Distribution.Simple.GHC.EnvironmentParser.html#parseEnvironmentFileLine"><span class="hs-identifier hs-var">parseEnvironmentFileLine</span></a></span><span> </span><span class="annot"><span class="annottext">Parser GhcEnvironmentFileEntry
+-&gt; ParsecT String () Identity Char
+-&gt; Parser [GhcEnvironmentFileEntry]
+forall s (m :: * -&gt; *) t u a sep.
+Stream s m t =&gt;
+ParsecT s u m a -&gt; ParsecT s u m sep -&gt; ParsecT s u m [a]
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Combinator.html#sepEndBy/Text.Parsec.Combinator.html#sepEndBy"><span class="hs-operator hs-var">`P.sepEndBy`</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity Char
+forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m Char
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Char.html#endOfLine/Text.Parsec.Char.html#endOfLine"><span class="hs-identifier hs-var">P.endOfLine</span></a></span><span> </span><span class="annot"><span class="annottext">Parser [GhcEnvironmentFileEntry]
+-&gt; ParsecT String () Identity ()
+-&gt; Parser [GhcEnvironmentFileEntry]
+forall a b.
+ParsecT String () Identity a
+-&gt; ParsecT String () Identity b -&gt; ParsecT String () Identity a
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%2A/GHC.Base.html#%3C%2A"><span class="hs-operator hs-var">&lt;*</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String () Identity ()
+forall s (m :: * -&gt; *) t u.
+(Stream s m t, Show t) =&gt;
+ParsecT s u m ()
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Combinator.html#eof/Text.Parsec.Combinator.html#eof"><span class="hs-identifier hs-var">P.eof</span></a></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="annot"><a href="Distribution.Simple.GHC.EnvironmentParser.html#readGhcEnvironmentFile"><span class="hs-identifier hs-type">readGhcEnvironmentFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Simple.GHC.Internal.html#GhcEnvironmentFileEntry"><span class="hs-identifier hs-type">GhcEnvironmentFileEntry</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-47"></span><span id="readGhcEnvironmentFile"><span class="annot"><span class="annottext">readGhcEnvironmentFile :: String -&gt; IO [GhcEnvironmentFileEntry]
+</span><a href="Distribution.Simple.GHC.EnvironmentParser.html#readGhcEnvironmentFile"><span class="hs-identifier hs-var hs-var">readGhcEnvironmentFile</span></a></span></span><span> </span><span id="local-6989586621679371454"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679371454"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-48"></span><span>    </span><span class="annot"><span class="annottext">(ParseError -&gt; IO [GhcEnvironmentFileEntry])
+-&gt; ([GhcEnvironmentFileEntry] -&gt; IO [GhcEnvironmentFileEntry])
+-&gt; Either ParseError [GhcEnvironmentFileEntry]
+-&gt; IO [GhcEnvironmentFileEntry]
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span><a href="../../base-4.18.2.0/src/Data.Either.html#either/Data.Either.html#either"><span class="hs-identifier hs-var">either</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParseErrorExc -&gt; IO [GhcEnvironmentFileEntry]
+forall e a. Exception e =&gt; e -&gt; IO a
+</span><a href="../../base-4.18.2.0/src/GHC.IO.html#throwIO/GHC.IO.html#throwIO"><span class="hs-identifier hs-var">throwIO</span></a></span><span> </span><span class="annot"><span class="annottext">(ParseErrorExc -&gt; IO [GhcEnvironmentFileEntry])
+-&gt; (ParseError -&gt; ParseErrorExc)
+-&gt; ParseError
+-&gt; IO [GhcEnvironmentFileEntry]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">ParseError -&gt; ParseErrorExc
+</span><a href="Distribution.Simple.GHC.EnvironmentParser.html#ParseErrorExc"><span class="hs-identifier hs-var">ParseErrorExc</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[GhcEnvironmentFileEntry] -&gt; IO [GhcEnvironmentFileEntry]
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">(Either ParseError [GhcEnvironmentFileEntry]
+ -&gt; IO [GhcEnvironmentFileEntry])
+-&gt; IO (Either ParseError [GhcEnvironmentFileEntry])
+-&gt; IO [GhcEnvironmentFileEntry]
+forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; m a -&gt; m b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3D%3C%3C/GHC.Base.html#%3D%3C%3C"><span class="hs-operator hs-var">=&lt;&lt;</span></a></span><span>
+</span><span id="line-49"></span><span>        </span><span class="annot"><span class="annottext">Parser [GhcEnvironmentFileEntry]
+-&gt; String -&gt; IO (Either ParseError [GhcEnvironmentFileEntry])
+forall a. Parser a -&gt; String -&gt; IO (Either ParseError a)
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.String.html#parseFromFile/Text.Parsec.String.html#parseFromFile"><span class="hs-identifier hs-var">parseFromFile</span></a></span><span> </span><span class="annot"><span class="annottext">Parser [GhcEnvironmentFileEntry]
+</span><a href="Distribution.Simple.GHC.EnvironmentParser.html#parseGhcEnvironmentFile"><span class="hs-identifier hs-var">parseGhcEnvironmentFile</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679371454"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-50"></span></pre></body></html>

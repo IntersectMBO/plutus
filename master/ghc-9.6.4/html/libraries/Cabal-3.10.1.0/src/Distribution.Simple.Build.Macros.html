@@ -1,0 +1,290 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- Module      :  Distribution.Simple.Build.Macros</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Copyright   :  Simon Marlow 2008</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Maintainer  :  cabal-devel@haskell.org</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-8"></span><span class="hs-comment">--</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Generate cabal_macros.h - CPP macros for package version testing</span><span>
+</span><span id="line-10"></span><span class="hs-comment">--</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- When using CPP you get</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- &gt; VERSION_&lt;package&gt;</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- &gt; MIN_VERSION_&lt;package&gt;(A,B,C)</span><span>
+</span><span id="line-15"></span><span class="hs-comment">--</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- for each /package/ in @build-depends@, which is true if the version of</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- /package/ in use is @&gt;= A.B.C@, using the normal ordering on version</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- numbers.</span><span>
+</span><span id="line-19"></span><span class="hs-comment">--</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- TODO Figure out what to do about backpack and internal libraries. It is very</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- suspicious that this stuff works with munged package identifiers</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.Build.Macros</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-23"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Build.Macros.html#generateCabalMacrosHeader"><span class="hs-identifier">generateCabalMacrosHeader</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Build.Macros.html#generatePackageVersionMacros"><span class="hs-identifier">generatePackageVersionMacros</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Version.html#/Distribution.Version.html"><span class="hs-identifier">Distribution.Version</span></a></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.PackageDescription.html#/Distribution.PackageDescription.html"><span class="hs-identifier">Distribution.PackageDescription</span></a></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html"><span class="hs-identifier">Distribution.Simple.LocalBuildInfo</span></a></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Db.html"><span class="hs-identifier">Distribution.Simple.Program.Db</span></a></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Types.html"><span class="hs-identifier">Distribution.Simple.Program.Types</span></a></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.MungedPackageId.html#/Distribution.Types.MungedPackageId.html"><span class="hs-identifier">Distribution.Types.MungedPackageId</span></a></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.MungedPackageName.html#/Distribution.Types.MungedPackageName.html"><span class="hs-identifier">Distribution.Types.MungedPackageName</span></a></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#/Distribution.Pretty.html"><span class="hs-identifier">Distribution.Pretty</span></a></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html"><span class="hs-identifier">Distribution.Simple.Build.Macros.Z</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Z</span></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- | The contents of the @cabal_macros.h@ for the given configured package.</span><span>
+</span><span id="line-42"></span><span class="hs-comment">--</span><span>
+</span><span id="line-43"></span><span class="annot"><a href="Distribution.Simple.Build.Macros.html#generateCabalMacrosHeader"><span class="hs-identifier hs-type">generateCabalMacrosHeader</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-44"></span><span id="generateCabalMacrosHeader"><span class="annot"><span class="annottext">generateCabalMacrosHeader :: PackageDescription
+-&gt; LocalBuildInfo -&gt; ComponentLocalBuildInfo -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.html#generateCabalMacrosHeader"><span class="hs-identifier hs-var hs-var">generateCabalMacrosHeader</span></a></span></span><span> </span><span id="local-6989586621679365650"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365650"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span> </span><span id="local-6989586621679365651"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365651"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365652"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365652"><span class="hs-identifier hs-var">clbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#render"><span class="hs-identifier hs-var">Z.render</span></a></span><span> </span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#Z"><span class="hs-identifier hs-type">Z.Z</span></a></span><span>
+</span><span id="line-45"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">zPackages :: [ZPackage]
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackages"><span class="hs-identifier hs-var">Z.zPackages</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PackageId -&gt; ZPackage) -&gt; [PackageId] -&gt; [ZPackage]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">PackageId -&gt; ZPackage
+</span><a href="Distribution.Simple.Build.Macros.html#mkZPackage"><span class="hs-identifier hs-var">mkZPackage</span></a></span><span> </span><span class="annot"><span class="annottext">([PackageId] -&gt; [ZPackage]) -&gt; [PackageId] -&gt; [ZPackage]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageId
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#package/Distribution.Types.PackageDescription.html#package"><span class="hs-identifier hs-var">package</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365650"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span> </span><span class="annot"><span class="annottext">PackageId -&gt; [PackageId] -&gt; [PackageId]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">((UnitId, MungedPackageId) -&gt; PackageId)
+-&gt; [(UnitId, MungedPackageId)] -&gt; [PackageId]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">(UnitId, MungedPackageId) -&gt; PackageId
+forall {a}. (a, MungedPackageId) -&gt; PackageId
+</span><a href="#local-6989586621679365658"><span class="hs-identifier hs-var">getPid</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; [(UnitId, MungedPackageId)]
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentPackageDeps"><span class="hs-identifier hs-var">componentPackageDeps</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365652"><span class="hs-identifier hs-var">clbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zTools :: [ZTool]
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zTools"><span class="hs-identifier hs-var">Z.zTools</span></a></span><span>           </span><span class="hs-glyph">=</span><span>
+</span><span id="line-47"></span><span>        </span><span class="hs-special">[</span><span> </span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#ZTool"><span class="hs-identifier hs-type">Z.ZTool</span></a></span><span>
+</span><span id="line-48"></span><span>            </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">ztoolName :: String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolName"><span class="hs-identifier hs-var">Z.ztoolName</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram -&gt; String
+</span><a href="Distribution.Simple.Program.Types.html#programId"><span class="hs-identifier hs-var">programId</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679365664"><span class="hs-identifier hs-var">prog</span></a></span><span>
+</span><span id="line-49"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ztoolVersion :: Version
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolVersion"><span class="hs-identifier hs-var">Z.ztoolVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679365666"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-50"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ztoolX :: String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolX"><span class="hs-identifier hs-var">Z.ztoolX</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365668"><span class="hs-identifier hs-var">major1</span></a></span><span>
+</span><span id="line-51"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ztoolY :: String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolY"><span class="hs-identifier hs-var">Z.ztoolY</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365670"><span class="hs-identifier hs-var">major2</span></a></span><span>
+</span><span id="line-52"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ztoolZ :: String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#ztoolZ"><span class="hs-identifier hs-var">Z.ztoolZ</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365672"><span class="hs-identifier hs-var">minor</span></a></span><span>
+</span><span id="line-53"></span><span>            </span><span class="hs-special">}</span><span>
+</span><span id="line-54"></span><span>        </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679365664"><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679365664"><span class="hs-identifier hs-var">prog</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ProgramDb -&gt; [ConfiguredProgram]
+</span><a href="Distribution.Simple.Program.Db.html#configuredPrograms"><span class="hs-identifier hs-var">configuredPrograms</span></a></span><span> </span><span class="annot"><span class="annottext">(ProgramDb -&gt; [ConfiguredProgram])
+-&gt; ProgramDb -&gt; [ConfiguredProgram]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; ProgramDb
+</span><a href="Distribution.Types.LocalBuildInfo.html#withPrograms"><span class="hs-identifier hs-var">withPrograms</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365651"><span class="hs-identifier hs-var">lbi</span></a></span><span>
+</span><span id="line-55"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="local-6989586621679365666"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679365666"><span class="hs-identifier hs-var">ver</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Maybe Version -&gt; [Version]
+forall a. Maybe a -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.Maybe.html#maybeToList/Data.Maybe.html#maybeToList"><span class="hs-identifier hs-var">maybeToList</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ConfiguredProgram -&gt; Maybe Version
+</span><a href="Distribution.Simple.Program.Types.html#programVersion"><span class="hs-identifier hs-var">programVersion</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679365664"><span class="hs-identifier hs-var">prog</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-56"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679365668"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365668"><span class="hs-identifier hs-var">major1</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679365670"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365670"><span class="hs-identifier hs-var">major2</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679365672"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365672"><span class="hs-identifier hs-var">minor</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version -&gt; (String, String, String)
+</span><a href="Distribution.Simple.Build.Macros.html#majorMinor"><span class="hs-identifier hs-var">majorMinor</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679365666"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-57"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-58"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zPackageKey :: String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackageKey"><span class="hs-identifier hs-var">Z.zPackageKey</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365652"><span class="hs-identifier hs-var">clbi</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-59"></span><span>        </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#LibComponentLocalBuildInfo"><span class="hs-identifier hs-type">LibComponentLocalBuildInfo</span></a></span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; String
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentCompatPackageKey"><span class="hs-identifier hs-var">componentCompatPackageKey</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365652"><span class="hs-identifier hs-var">clbi</span></a></span><span>
+</span><span id="line-60"></span><span>        </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><span class="hs-identifier">_</span></span><span>                            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zComponentId :: String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zComponentId"><span class="hs-identifier hs-var">Z.zComponentId</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ComponentId -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; ComponentId
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentComponentId"><span class="hs-identifier hs-var">componentComponentId</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365652"><span class="hs-identifier hs-var">clbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zPackageVersion :: Version
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackageVersion"><span class="hs-identifier hs-var">Z.zPackageVersion</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageId -&gt; Version
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#pkgVersion/Distribution.Types.PackageId.html#pkgVersion"><span class="hs-identifier hs-var">pkgVersion</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageId
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#package/Distribution.Types.PackageDescription.html#package"><span class="hs-identifier hs-var">package</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365650"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zNotNull :: String -&gt; Bool
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zNotNull"><span class="hs-identifier hs-var">Z.zNotNull</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; Bool) -&gt; (String -&gt; Bool) -&gt; String -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; Bool
+forall a. [a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#null/Data.Foldable.html#null"><span class="hs-identifier hs-var">null</span></a></span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zManglePkgName :: PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zManglePkgName"><span class="hs-identifier hs-var">Z.zManglePkgName</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Char) -&gt; String -&gt; String
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char
+</span><a href="Distribution.Simple.Build.Macros.html#fixchar"><span class="hs-identifier hs-var">fixchar</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String)
+-&gt; (PackageName -&gt; String) -&gt; PackageName -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#unPackageName/Distribution.Types.PackageName.html#unPackageName"><span class="hs-identifier hs-var">unPackageName</span></a></span><span>
+</span><span id="line-65"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zMangleStr :: String -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zMangleStr"><span class="hs-identifier hs-var">Z.zMangleStr</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Char) -&gt; String -&gt; String
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char
+</span><a href="Distribution.Simple.Build.Macros.html#fixchar"><span class="hs-identifier hs-var">fixchar</span></a></span><span>
+</span><span id="line-66"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-67"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-68"></span><span>    </span><span id="local-6989586621679365658"><span class="annot"><span class="annottext">getPid :: (a, MungedPackageId) -&gt; PackageId
+</span><a href="#local-6989586621679365658"><span class="hs-identifier hs-var hs-var">getPid</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.MungedPackageId.html#MungedPackageId/Distribution.Types.MungedPackageId.html#MungedPackageId"><span class="hs-identifier hs-type">MungedPackageId</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.MungedPackageName.html#MungedPackageName/Distribution.Types.MungedPackageName.html#MungedPackageName"><span class="hs-identifier hs-type">MungedPackageName</span></a></span><span> </span><span id="local-6989586621679365696"><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679365696"><span class="hs-identifier hs-var">pn</span></a></span></span><span> </span><span class="annot"><span class="annottext">LibraryName
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679365697"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679365697"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-69"></span><span>       </span><span class="hs-comment">-- NB: Drop the library name! We're just reporting package versions.</span><span>
+</span><span id="line-70"></span><span>       </span><span class="hs-comment">-- This would have to be revisited if you are allowed to depend</span><span>
+</span><span id="line-71"></span><span>       </span><span class="hs-comment">-- on different versions of the same package</span><span>
+</span><span id="line-72"></span><span>        </span><span class="annot"><span class="annottext">PackageName -&gt; Version -&gt; PackageId
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageIdentifier/Distribution.Types.PackageId.html#PackageIdentifier"><span class="hs-identifier hs-var">PackageIdentifier</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679365696"><span class="hs-identifier hs-var">pn</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679365697"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span class="hs-comment">-- | Helper function that generates just the @VERSION_pkg@ and @MIN_VERSION_pkg@</span><span>
+</span><span id="line-75"></span><span class="hs-comment">-- macros for a list of package ids (usually used with the specific deps of</span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- a configured package).</span><span>
+</span><span id="line-77"></span><span class="hs-comment">--</span><span>
+</span><span id="line-78"></span><span class="annot"><a href="Distribution.Simple.Build.Macros.html#generatePackageVersionMacros"><span class="hs-identifier hs-type">generatePackageVersionMacros</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Version.html#Version/Distribution.Types.Version.html#Version"><span class="hs-identifier hs-type">Version</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageId/Distribution.Types.PackageId.html#PackageId"><span class="hs-identifier hs-type">PackageId</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-79"></span><span id="generatePackageVersionMacros"><span class="annot"><span class="annottext">generatePackageVersionMacros :: Version -&gt; [PackageId] -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.html#generatePackageVersionMacros"><span class="hs-identifier hs-var hs-var">generatePackageVersionMacros</span></a></span></span><span> </span><span id="local-6989586621679365699"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679365699"><span class="hs-identifier hs-var">ver</span></a></span></span><span> </span><span id="local-6989586621679365700"><span class="annot"><span class="annottext">[PackageId]
+</span><a href="#local-6989586621679365700"><span class="hs-identifier hs-var">pkgids</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#render"><span class="hs-identifier hs-var">Z.render</span></a></span><span> </span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#Z"><span class="hs-identifier hs-type">Z.Z</span></a></span><span>
+</span><span id="line-80"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">zPackages :: [ZPackage]
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackages"><span class="hs-identifier hs-var">Z.zPackages</span></a></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PackageId -&gt; ZPackage) -&gt; [PackageId] -&gt; [ZPackage]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">PackageId -&gt; ZPackage
+</span><a href="Distribution.Simple.Build.Macros.html#mkZPackage"><span class="hs-identifier hs-var">mkZPackage</span></a></span><span> </span><span class="annot"><span class="annottext">[PackageId]
+</span><a href="#local-6989586621679365700"><span class="hs-identifier hs-var">pkgids</span></a></span><span>
+</span><span id="line-81"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zTools :: [ZTool]
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zTools"><span class="hs-identifier hs-var">Z.zTools</span></a></span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-82"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zPackageKey :: String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackageKey"><span class="hs-identifier hs-var">Z.zPackageKey</span></a></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-83"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zComponentId :: String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zComponentId"><span class="hs-identifier hs-var">Z.zComponentId</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-84"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zPackageVersion :: Version
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zPackageVersion"><span class="hs-identifier hs-var">Z.zPackageVersion</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679365699"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-85"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zNotNull :: String -&gt; Bool
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zNotNull"><span class="hs-identifier hs-var">Z.zNotNull</span></a></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; Bool) -&gt; (String -&gt; Bool) -&gt; String -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; Bool
+forall a. [a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#null/Data.Foldable.html#null"><span class="hs-identifier hs-var">null</span></a></span><span>
+</span><span id="line-86"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zManglePkgName :: PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zManglePkgName"><span class="hs-identifier hs-var">Z.zManglePkgName</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Char) -&gt; String -&gt; String
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char
+</span><a href="Distribution.Simple.Build.Macros.html#fixchar"><span class="hs-identifier hs-var">fixchar</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String)
+-&gt; (PackageName -&gt; String) -&gt; PackageName -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#unPackageName/Distribution.Types.PackageName.html#unPackageName"><span class="hs-identifier hs-var">unPackageName</span></a></span><span>
+</span><span id="line-87"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zMangleStr :: String -&gt; String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zMangleStr"><span class="hs-identifier hs-var">Z.zMangleStr</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Char) -&gt; String -&gt; String
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char
+</span><a href="Distribution.Simple.Build.Macros.html#fixchar"><span class="hs-identifier hs-var">fixchar</span></a></span><span>
+</span><span id="line-88"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-89"></span><span>
+</span><span id="line-90"></span><span class="annot"><a href="Distribution.Simple.Build.Macros.html#mkZPackage"><span class="hs-identifier hs-type">mkZPackage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageId/Distribution.Types.PackageId.html#PackageId"><span class="hs-identifier hs-type">PackageId</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#ZPackage"><span class="hs-identifier hs-type">Z.ZPackage</span></a></span><span>
+</span><span id="line-91"></span><span id="mkZPackage"><span class="annot"><span class="annottext">mkZPackage :: PackageId -&gt; ZPackage
+</span><a href="Distribution.Simple.Build.Macros.html#mkZPackage"><span class="hs-identifier hs-var hs-var">mkZPackage</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageIdentifier/Distribution.Types.PackageId.html#PackageIdentifier"><span class="hs-identifier hs-type">PackageIdentifier</span></a></span><span> </span><span id="local-6989586621679365701"><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679365701"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621679365702"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679365702"><span class="hs-identifier hs-var">ver</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Build.Macros.Z.html#ZPackage"><span class="hs-identifier hs-type">Z.ZPackage</span></a></span><span>
+</span><span id="line-92"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">zpkgName :: PackageName
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgName"><span class="hs-identifier hs-var">Z.zpkgName</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679365701"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zpkgVersion :: Version
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgVersion"><span class="hs-identifier hs-var">Z.zpkgVersion</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679365702"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-94"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zpkgX :: String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgX"><span class="hs-identifier hs-var">Z.zpkgX</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365707"><span class="hs-identifier hs-var">major1</span></a></span><span>
+</span><span id="line-95"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zpkgY :: String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgY"><span class="hs-identifier hs-var">Z.zpkgY</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365709"><span class="hs-identifier hs-var">major2</span></a></span><span>
+</span><span id="line-96"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">zpkgZ :: String
+</span><a href="Distribution.Simple.Build.Macros.Z.html#zpkgZ"><span class="hs-identifier hs-var">Z.zpkgZ</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365711"><span class="hs-identifier hs-var">minor</span></a></span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-98"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-99"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679365707"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365707"><span class="hs-identifier hs-var">major1</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679365709"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365709"><span class="hs-identifier hs-var">major2</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679365711"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365711"><span class="hs-identifier hs-var">minor</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Version -&gt; (String, String, String)
+</span><a href="Distribution.Simple.Build.Macros.html#majorMinor"><span class="hs-identifier hs-var">majorMinor</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679365702"><span class="hs-identifier hs-var">ver</span></a></span><span>
+</span><span id="line-100"></span><span>
+</span><span id="line-101"></span><span class="annot"><a href="Distribution.Simple.Build.Macros.html#majorMinor"><span class="hs-identifier hs-type">majorMinor</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Version.html#Version/Distribution.Types.Version.html#Version"><span class="hs-identifier hs-type">Version</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-102"></span><span id="majorMinor"><span class="annot"><span class="annottext">majorMinor :: Version -&gt; (String, String, String)
+</span><a href="Distribution.Simple.Build.Macros.html#majorMinor"><span class="hs-identifier hs-var hs-var">majorMinor</span></a></span></span><span> </span><span id="local-6989586621679365712"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679365712"><span class="hs-identifier hs-var">ver</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; String) -&gt; [Int] -&gt; [String]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#show/GHC.Show.html#show"><span class="hs-identifier hs-var">show</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version -&gt; [Int]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Version.html#versionNumbers/Distribution.Types.Version.html#versionNumbers"><span class="hs-identifier hs-var">versionNumbers</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679365712"><span class="hs-identifier hs-var">ver</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-103"></span><span>        </span><span class="hs-special">[</span><span class="hs-special">]</span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;0&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;0&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;0&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span>        </span><span class="hs-special">[</span><span id="local-6989586621679365715"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365715"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">]</span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365715"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span>   </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;0&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;0&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-105"></span><span>        </span><span class="hs-special">[</span><span id="local-6989586621679365716"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365716"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679365717"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365717"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">]</span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365716"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span>   </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365717"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">,</span><span>   </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;0&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-106"></span><span>        </span><span class="hs-special">(</span><span id="local-6989586621679365718"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365718"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679365719"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365719"><span class="hs-identifier hs-var">y</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679365720"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365720"><span class="hs-identifier hs-var">z</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365718"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span>   </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365719"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">,</span><span>   </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365720"><span class="hs-identifier hs-var">z</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-107"></span><span>
+</span><span id="line-108"></span><span class="annot"><a href="Distribution.Simple.Build.Macros.html#fixchar"><span class="hs-identifier hs-type">fixchar</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-109"></span><span id="fixchar"><span class="annot"><span class="annottext">fixchar :: Char -&gt; Char
+</span><a href="Distribution.Simple.Build.Macros.html#fixchar"><span class="hs-identifier hs-var hs-var">fixchar</span></a></span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'-'</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'_'</span></span><span>
+</span><span id="line-110"></span><span class="annot"><a href="Distribution.Simple.Build.Macros.html#fixchar"><span class="hs-identifier hs-var">fixchar</span></a></span><span> </span><span id="local-6989586621679365721"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679365721"><span class="hs-identifier hs-var">c</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679365721"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-111"></span></pre></body></html>

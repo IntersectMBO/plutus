@@ -1,0 +1,384 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.XHtml.Extras</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html"><span class="hs-identifier">Text.XHtml.Internals</span></a></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.XHtml.Strict.Elements.html"><span class="hs-identifier">Text.XHtml.Strict.Elements</span></a></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.XHtml.Strict.Attributes.html"><span class="hs-identifier">Text.XHtml.Strict.Attributes</span></a></span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-comment">--</span><span>
+</span><span id="line-8"></span><span class="annot"><span class="hs-comment">-- * Converting strings to HTML</span></span><span>
+</span><span id="line-9"></span><span class="hs-comment">--</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- | Convert a 'String' to 'Html', converting</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--   characters that need to be escaped to HTML entities.</span><span>
+</span><span id="line-13"></span><span class="annot"><a href="Text.XHtml.Extras.html#stringToHtml"><span class="hs-identifier hs-type">stringToHtml</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-14"></span><span id="stringToHtml"><span class="annot"><span class="annottext">stringToHtml :: String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#stringToHtml"><span class="hs-identifier hs-var hs-var">stringToHtml</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+</span><a href="Text.XHtml.Internals.html#primHtml"><span class="hs-identifier hs-var">primHtml</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Html) -&gt; (String -&gt; String) -&gt; String -&gt; Html
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="Text.XHtml.Internals.html#stringToHtmlString"><span class="hs-identifier hs-var">stringToHtmlString</span></a></span><span> </span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="annot"><span class="hs-comment">-- | This converts a string, but keeps spaces as non-line-breakable.</span></span><span>
+</span><span id="line-17"></span><span class="annot"><a href="Text.XHtml.Extras.html#lineToHtml"><span class="hs-identifier hs-type">lineToHtml</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-18"></span><span id="lineToHtml"><span class="annot"><span class="annottext">lineToHtml :: String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#lineToHtml"><span class="hs-identifier hs-var hs-var">lineToHtml</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+</span><a href="Text.XHtml.Internals.html#primHtml"><span class="hs-identifier hs-var">primHtml</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Html) -&gt; (String -&gt; String) -&gt; String -&gt; Html
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">(Char -&gt; String) -&gt; String -&gt; String
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concatMap/Data.Foldable.html#concatMap"><span class="hs-identifier hs-var">concatMap</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String
+</span><a href="#local-6989586621679036094"><span class="hs-identifier hs-var">htmlizeChar2</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; (String -&gt; String) -&gt; String -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="Text.XHtml.Internals.html#stringToHtmlString"><span class="hs-identifier hs-var">stringToHtmlString</span></a></span><span> </span><span>
+</span><span id="line-19"></span><span>   </span><span class="hs-keyword">where</span><span> </span><span>
+</span><span id="line-20"></span><span>      </span><span id="local-6989586621679036094"><span class="annot"><span class="annottext">htmlizeChar2 :: Char -&gt; String
+</span><a href="#local-6989586621679036094"><span class="hs-identifier hs-var hs-var">htmlizeChar2</span></a></span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">' '</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&amp;nbsp;&quot;</span></span><span>
+</span><span id="line-21"></span><span>      </span><span class="annot"><a href="#local-6989586621679036094"><span class="hs-identifier hs-var">htmlizeChar2</span></a></span><span> </span><span id="local-6989586621679036095"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679036095"><span class="hs-identifier hs-var">c</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679036095"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- | This converts a string, but keeps spaces as non-line-breakable,</span><span>
+</span><span id="line-24"></span><span class="hs-comment">--   and adds line breaks between each of the strings in the input list.</span><span>
+</span><span id="line-25"></span><span class="annot"><a href="Text.XHtml.Extras.html#linesToHtml"><span class="hs-identifier hs-type">linesToHtml</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-26"></span><span id="linesToHtml"><span class="annot"><span class="annottext">linesToHtml :: [String] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#linesToHtml"><span class="hs-identifier hs-var hs-var">linesToHtml</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html
+</span><a href="Text.XHtml.Internals.html#noHtml"><span class="hs-identifier hs-var">noHtml</span></a></span><span>
+</span><span id="line-27"></span><span class="annot"><a href="Text.XHtml.Extras.html#linesToHtml"><span class="hs-identifier hs-var">linesToHtml</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679036098"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036098"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#lineToHtml"><span class="hs-identifier hs-var">lineToHtml</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036098"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-28"></span><span class="annot"><a href="Text.XHtml.Extras.html#linesToHtml"><span class="hs-identifier hs-var">linesToHtml</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679036099"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036099"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679036100"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679036100"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#lineToHtml"><span class="hs-identifier hs-var">lineToHtml</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036099"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a b. (HTML a, HTML b) =&gt; a -&gt; b -&gt; Html
+</span><a href="Text.XHtml.Internals.html#%2B%2B%2B"><span class="hs-operator hs-var">+++</span></a></span><span> </span><span class="annot"><span class="annottext">Html
+</span><a href="Text.XHtml.Strict.Elements.html#br"><span class="hs-identifier hs-var">br</span></a></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a b. (HTML a, HTML b) =&gt; a -&gt; b -&gt; Html
+</span><a href="Text.XHtml.Internals.html#%2B%2B%2B"><span class="hs-operator hs-var">+++</span></a></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#linesToHtml"><span class="hs-identifier hs-var">linesToHtml</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679036100"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-comment">--</span><span>
+</span><span id="line-31"></span><span class="annot"><span class="hs-comment">-- * Html abbreviations</span></span><span>
+</span><span id="line-32"></span><span class="hs-comment">--</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="annot"><a href="Text.XHtml.Extras.html#primHtmlChar"><span class="hs-identifier hs-type">primHtmlChar</span></a></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="annot"><span class="hs-comment">-- | Copyright sign.</span></span><span>
+</span><span id="line-37"></span><span class="annot"><a href="Text.XHtml.Extras.html#copyright"><span class="hs-identifier hs-type">copyright</span></a></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="annot"><span class="hs-comment">-- | Non-breaking space.</span></span><span>
+</span><span id="line-40"></span><span class="annot"><a href="Text.XHtml.Extras.html#spaceHtml"><span class="hs-identifier hs-type">spaceHtml</span></a></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-41"></span><span class="annot"><a href="Text.XHtml.Extras.html#bullet"><span class="hs-identifier hs-type">bullet</span></a></span><span>        </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span id="primHtmlChar"><span class="annot"><span class="annottext">primHtmlChar :: String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#primHtmlChar"><span class="hs-identifier hs-var hs-var">primHtmlChar</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span> </span><span id="local-6989586621679036107"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036107"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+</span><a href="Text.XHtml.Internals.html#primHtml"><span class="hs-identifier hs-var">primHtml</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&amp;&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036107"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;;&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span id="copyright"><span class="annot"><span class="annottext">copyright :: Html
+</span><a href="Text.XHtml.Extras.html#copyright"><span class="hs-identifier hs-var hs-var">copyright</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#primHtmlChar"><span class="hs-identifier hs-var">primHtmlChar</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;copy&quot;</span></span><span>
+</span><span id="line-46"></span><span id="spaceHtml"><span class="annot"><span class="annottext">spaceHtml :: Html
+</span><a href="Text.XHtml.Extras.html#spaceHtml"><span class="hs-identifier hs-var hs-var">spaceHtml</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#primHtmlChar"><span class="hs-identifier hs-var">primHtmlChar</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;nbsp&quot;</span></span><span>
+</span><span id="line-47"></span><span id="bullet"><span class="annot"><span class="annottext">bullet :: Html
+</span><a href="Text.XHtml.Extras.html#bullet"><span class="hs-identifier hs-var hs-var">bullet</span></a></span></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#primHtmlChar"><span class="hs-identifier hs-var">primHtmlChar</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#149&quot;</span></span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="annot"><span class="hs-comment">-- | Same as 'paragraph'.</span></span><span>
+</span><span id="line-50"></span><span class="annot"><a href="Text.XHtml.Extras.html#p"><span class="hs-identifier hs-type">p</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-51"></span><span id="p"><span class="annot"><span class="annottext">p :: Html -&gt; Html
+</span><a href="Text.XHtml.Extras.html#p"><span class="hs-identifier hs-var hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#paragraph"><span class="hs-identifier hs-var">paragraph</span></a></span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="hs-comment">--</span><span>
+</span><span id="line-54"></span><span class="annot"><span class="hs-comment">-- * Hotlinks</span></span><span>
+</span><span id="line-55"></span><span class="hs-comment">--</span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-keyword">type</span><span> </span><span id="URL"><span class="annot"><a href="Text.XHtml.Extras.html#URL"><span class="hs-identifier hs-var">URL</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-keyword">data</span><span> </span><span id="HotLink"><span class="annot"><a href="Text.XHtml.Extras.html#HotLink"><span class="hs-identifier hs-var">HotLink</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="HotLink"><span class="annot"><a href="Text.XHtml.Extras.html#HotLink"><span class="hs-identifier hs-var">HotLink</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-60"></span><span>      </span><span id="hotLinkURL"><span class="annot"><span class="annottext">HotLink -&gt; String
+</span><a href="Text.XHtml.Extras.html#hotLinkURL"><span class="hs-identifier hs-var hs-var">hotLinkURL</span></a></span></span><span>        </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.XHtml.Extras.html#URL"><span class="hs-identifier hs-type">URL</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-61"></span><span>      </span><span id="hotLinkContents"><span class="annot"><span class="annottext">HotLink -&gt; Html
+</span><a href="Text.XHtml.Extras.html#hotLinkContents"><span class="hs-identifier hs-var hs-var">hotLinkContents</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-62"></span><span>      </span><span id="hotLinkAttributes"><span class="annot"><span class="annottext">HotLink -&gt; [HtmlAttr]
+</span><a href="Text.XHtml.Extras.html#hotLinkAttributes"><span class="hs-identifier hs-var hs-var">hotLinkAttributes</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.XHtml.Internals.html#HtmlAttr"><span class="hs-identifier hs-type">HtmlAttr</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-63"></span><span>      </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679036116"><span id="local-6989586621679036127"><span id="local-6989586621679036131"><span class="annot"><span class="annottext">Int -&gt; HotLink -&gt; String -&gt; String
+[HotLink] -&gt; String -&gt; String
+HotLink -&gt; String
+(Int -&gt; HotLink -&gt; String -&gt; String)
+-&gt; (HotLink -&gt; String)
+-&gt; ([HotLink] -&gt; String -&gt; String)
+-&gt; Show HotLink
+forall a.
+(Int -&gt; a -&gt; String -&gt; String)
+-&gt; (a -&gt; String) -&gt; ([a] -&gt; String -&gt; String) -&gt; Show a
+$cshowsPrec :: Int -&gt; HotLink -&gt; String -&gt; String
+showsPrec :: Int -&gt; HotLink -&gt; String -&gt; String
+$cshow :: HotLink -&gt; String
+show :: HotLink -&gt; String
+$cshowList :: [HotLink] -&gt; String -&gt; String
+showList :: [HotLink] -&gt; String -&gt; String
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679036138"><span class="annot"><a href="Text.XHtml.Internals.html#HTML"><span class="hs-identifier hs-type">HTML</span></a></span><span> </span><span class="annot"><a href="Text.XHtml.Extras.html#HotLink"><span class="hs-identifier hs-type">HotLink</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-66"></span><span>      </span><span id="local-6989586621679036144"><span class="annot"><span class="annottext">toHtml :: HotLink -&gt; Html
+</span><a href="#local-6989586621679036144"><span class="hs-identifier hs-var hs-var hs-var hs-var">toHtml</span></a></span></span><span> </span><span id="local-6989586621679036146"><span class="annot"><span class="annottext">HotLink
+</span><a href="#local-6989586621679036146"><span class="hs-identifier hs-var">hl</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#anchor"><span class="hs-identifier hs-var">anchor</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; [HtmlAttr] -&gt; Html -&gt; Html
+forall a. ADDATTRS a =&gt; a -&gt; [HtmlAttr] -&gt; a
+</span><a href="Text.XHtml.Internals.html#%21"><span class="hs-operator hs-var">!</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#href"><span class="hs-identifier hs-var">href</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HotLink -&gt; String
+</span><a href="Text.XHtml.Extras.html#hotLinkURL"><span class="hs-identifier hs-var">hotLinkURL</span></a></span><span> </span><span class="annot"><span class="annottext">HotLink
+</span><a href="#local-6989586621679036146"><span class="hs-identifier hs-var">hl</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">HtmlAttr -&gt; [HtmlAttr] -&gt; [HtmlAttr]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">HotLink -&gt; [HtmlAttr]
+</span><a href="Text.XHtml.Extras.html#hotLinkAttributes"><span class="hs-identifier hs-var">hotLinkAttributes</span></a></span><span> </span><span class="annot"><span class="annottext">HotLink
+</span><a href="#local-6989586621679036146"><span class="hs-identifier hs-var">hl</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-67"></span><span>                      </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span> </span><span class="annot"><span class="annottext">HotLink -&gt; Html
+</span><a href="Text.XHtml.Extras.html#hotLinkContents"><span class="hs-identifier hs-var">hotLinkContents</span></a></span><span> </span><span class="annot"><span class="annottext">HotLink
+</span><a href="#local-6989586621679036146"><span class="hs-identifier hs-var">hl</span></a></span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#ADDATTRS"><span class="hs-identifier hs-type">ADDATTRS</span></a></span><span> </span><span class="annot"><a href="Text.XHtml.Extras.html#HotLink"><span class="hs-identifier hs-type">HotLink</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-70"></span><span>      </span><span id="local-6989586621679036154"><span class="annot"><span class="annottext">HotLink
+</span><a href="#local-6989586621679036154"><span class="hs-identifier hs-var">hl</span></a></span></span><span> </span><span id="local-6989586621679036155"><span class="annot"><span class="annottext">! :: HotLink -&gt; [HtmlAttr] -&gt; HotLink
+</span><a href="Text.XHtml.Internals.html#%21"><span class="hs-operator hs-var hs-var hs-var hs-var">!</span></a></span></span><span> </span><span id="local-6989586621679036156"><span class="annot"><span class="annottext">[HtmlAttr]
+</span><a href="#local-6989586621679036156"><span class="hs-identifier hs-var">attr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HotLink
+</span><a href="#local-6989586621679036154"><span class="hs-identifier hs-var">hl</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><a href="Text.XHtml.Extras.html#hotLinkAttributes"><span class="hs-identifier hs-var">hotLinkAttributes</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Text.XHtml.Extras.html#hotLinkAttributes"><span class="hs-identifier hs-var">hotLinkAttributes</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036154"><span class="hs-identifier hs-type">hl</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-type">++</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036156"><span class="hs-identifier hs-type">attr</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span class="annot"><a href="Text.XHtml.Extras.html#hotlink"><span class="hs-identifier hs-type">hotlink</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.XHtml.Extras.html#URL"><span class="hs-identifier hs-type">URL</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Extras.html#HotLink"><span class="hs-identifier hs-type">HotLink</span></a></span><span>
+</span><span id="line-73"></span><span id="hotlink"><span class="annot"><span class="annottext">hotlink :: String -&gt; Html -&gt; HotLink
+</span><a href="Text.XHtml.Extras.html#hotlink"><span class="hs-identifier hs-var hs-var">hotlink</span></a></span></span><span> </span><span id="local-6989586621679036158"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036158"><span class="hs-identifier hs-var">url</span></a></span></span><span> </span><span id="local-6989586621679036159"><span class="annot"><span class="annottext">Html
+</span><a href="#local-6989586621679036159"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Text.XHtml.Extras.html#HotLink"><span class="hs-identifier hs-type">HotLink</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-74"></span><span>      </span><span class="annot"><span class="annottext">hotLinkURL :: String
+</span><a href="Text.XHtml.Extras.html#hotLinkURL"><span class="hs-identifier hs-var">hotLinkURL</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036158"><span class="hs-identifier hs-var">url</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-75"></span><span>      </span><span class="annot"><span class="annottext">hotLinkContents :: Html
+</span><a href="Text.XHtml.Extras.html#hotLinkContents"><span class="hs-identifier hs-var">hotLinkContents</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html
+</span><a href="#local-6989586621679036159"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-76"></span><span>      </span><span class="annot"><span class="annottext">hotLinkAttributes :: [HtmlAttr]
+</span><a href="Text.XHtml.Extras.html#hotLinkAttributes"><span class="hs-identifier hs-var">hotLinkAttributes</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- </span><span>
+</span><span id="line-80"></span><span class="annot"><span class="hs-comment">-- * Lists</span></span><span>
+</span><span id="line-81"></span><span class="hs-comment">--</span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="hs-comment">-- (Abridged from Erik Meijer's Original Html library)</span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span id="local-6989586621679036058"><span class="annot"><a href="Text.XHtml.Extras.html#ordList"><span class="hs-identifier hs-type">ordList</span></a></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.Internals.html#HTML"><span class="hs-identifier hs-type">HTML</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036058"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679036058"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span></span><span>
+</span><span id="line-86"></span><span id="ordList"><span class="annot"><span class="annottext">ordList :: forall a. HTML a =&gt; [a] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#ordList"><span class="hs-identifier hs-var hs-var">ordList</span></a></span></span><span> </span><span id="local-6989586621679036164"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679036164"><span class="hs-identifier hs-var">items</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#olist"><span class="hs-identifier hs-var">olist</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; [Html] -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; Html) -&gt; [a] -&gt; [Html]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#li"><span class="hs-identifier hs-var">li</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; a -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679036164"><span class="hs-identifier hs-var">items</span></a></span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span id="local-6989586621679036167"><span class="annot"><a href="Text.XHtml.Extras.html#unordList"><span class="hs-identifier hs-type">unordList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.Internals.html#HTML"><span class="hs-identifier hs-type">HTML</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036167"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679036167"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span></span><span>
+</span><span id="line-89"></span><span id="unordList"><span class="annot"><span class="annottext">unordList :: forall a. HTML a =&gt; [a] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#unordList"><span class="hs-identifier hs-var hs-var">unordList</span></a></span></span><span> </span><span id="local-6989586621679036172"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679036172"><span class="hs-identifier hs-var">items</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#ulist"><span class="hs-identifier hs-var">ulist</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; [Html] -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; Html) -&gt; [a] -&gt; [Html]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#li"><span class="hs-identifier hs-var">li</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; a -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679036172"><span class="hs-identifier hs-var">items</span></a></span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span id="local-6989586621679036063"><span id="local-6989586621679036064"><span class="annot"><a href="Text.XHtml.Extras.html#defList"><span class="hs-identifier hs-type">defList</span></a></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.Internals.html#HTML"><span class="hs-identifier hs-type">HTML</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036063"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span class="annot"><a href="Text.XHtml.Internals.html#HTML"><span class="hs-identifier hs-type">HTML</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036064"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679036063"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span class="annot"><a href="#local-6989586621679036064"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span></span></span><span>
+</span><span id="line-92"></span><span id="defList"><span class="annot"><span class="annottext">defList :: forall a b. (HTML a, HTML b) =&gt; [(a, b)] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#defList"><span class="hs-identifier hs-var hs-var">defList</span></a></span></span><span> </span><span id="local-6989586621679036180"><span class="annot"><span class="annottext">[(a, b)]
+</span><a href="#local-6989586621679036180"><span class="hs-identifier hs-var">items</span></a></span></span><span>
+</span><span id="line-93"></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#dlist"><span class="hs-identifier hs-var">dlist</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; [[Html]] -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#dterm"><span class="hs-identifier hs-var">dterm</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; a -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679036183"><span class="hs-identifier hs-var">dt</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#ddef"><span class="hs-identifier hs-var">ddef</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; b -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679036185"><span class="hs-identifier hs-var">dd</span></a></span><span> </span><span class="hs-special">]</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679036183"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679036183"><span class="hs-identifier hs-var">dt</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679036185"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679036185"><span class="hs-identifier hs-var">dd</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(a, b)]
+</span><a href="#local-6989586621679036180"><span class="hs-identifier hs-var">items</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span class="hs-comment">--</span><span>
+</span><span id="line-96"></span><span class="annot"><span class="hs-comment">-- * Forms</span></span><span>
+</span><span id="line-97"></span><span class="hs-comment">--</span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span class="annot"><a href="Text.XHtml.Extras.html#widget"><span class="hs-identifier hs-type">widget</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.XHtml.Internals.html#HtmlAttr"><span class="hs-identifier hs-type">HtmlAttr</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-100"></span><span id="widget"><span class="annot"><span class="annottext">widget :: String -&gt; String -&gt; [HtmlAttr] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#widget"><span class="hs-identifier hs-var hs-var">widget</span></a></span></span><span> </span><span id="local-6989586621679036187"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036187"><span class="hs-identifier hs-var">w</span></a></span></span><span> </span><span id="local-6989586621679036188"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036188"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679036189"><span class="annot"><span class="annottext">[HtmlAttr]
+</span><a href="#local-6989586621679036189"><span class="hs-identifier hs-var">attrs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html
+</span><a href="Text.XHtml.Strict.Elements.html#input"><span class="hs-identifier hs-var">input</span></a></span><span> </span><span class="annot"><span class="annottext">Html -&gt; [HtmlAttr] -&gt; Html
+forall a. ADDATTRS a =&gt; a -&gt; [HtmlAttr] -&gt; a
+</span><a href="Text.XHtml.Internals.html#%21"><span class="hs-operator hs-var">!</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#thetype"><span class="hs-identifier hs-var">thetype</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036187"><span class="hs-identifier hs-var">w</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[HtmlAttr] -&gt; [HtmlAttr] -&gt; [HtmlAttr]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlAttr]
+</span><a href="#local-6989586621679036192"><span class="hs-identifier hs-var">ns</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlAttr] -&gt; [HtmlAttr] -&gt; [HtmlAttr]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlAttr]
+</span><a href="#local-6989586621679036189"><span class="hs-identifier hs-var">attrs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-101"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679036192"><span class="annot"><span class="annottext">ns :: [HtmlAttr]
+</span><a href="#local-6989586621679036192"><span class="hs-identifier hs-var hs-var">ns</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">String -&gt; Bool
+forall a. [a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#null/Data.Foldable.html#null"><span class="hs-identifier hs-var">null</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036188"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-keyword">else</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#name"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036188"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#identifier"><span class="hs-identifier hs-var">identifier</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036188"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span class="annot"><a href="Text.XHtml.Extras.html#checkbox"><span class="hs-identifier hs-type">checkbox</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-104"></span><span class="annot"><a href="Text.XHtml.Extras.html#hidden"><span class="hs-identifier hs-type">hidden</span></a></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-105"></span><span class="annot"><a href="Text.XHtml.Extras.html#radio"><span class="hs-identifier hs-type">radio</span></a></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-106"></span><span class="annot"><a href="Text.XHtml.Extras.html#reset"><span class="hs-identifier hs-type">reset</span></a></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-107"></span><span class="annot"><a href="Text.XHtml.Extras.html#submit"><span class="hs-identifier hs-type">submit</span></a></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-108"></span><span class="annot"><a href="Text.XHtml.Extras.html#password"><span class="hs-identifier hs-type">password</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-109"></span><span class="annot"><a href="Text.XHtml.Extras.html#textfield"><span class="hs-identifier hs-type">textfield</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-110"></span><span class="annot"><a href="Text.XHtml.Extras.html#afile"><span class="hs-identifier hs-type">afile</span></a></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-111"></span><span class="annot"><a href="Text.XHtml.Extras.html#clickmap"><span class="hs-identifier hs-type">clickmap</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-112"></span><span>
+</span><span id="line-113"></span><span id="checkbox"><span class="annot"><span class="annottext">checkbox :: String -&gt; String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#checkbox"><span class="hs-identifier hs-var hs-var">checkbox</span></a></span></span><span> </span><span id="local-6989586621679036206"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036206"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679036207"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036207"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; [HtmlAttr] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#widget"><span class="hs-identifier hs-var">widget</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;checkbox&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036206"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#value"><span class="hs-identifier hs-var">value</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036207"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-114"></span><span id="hidden"><span class="annot"><span class="annottext">hidden :: String -&gt; String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#hidden"><span class="hs-identifier hs-var hs-var">hidden</span></a></span></span><span>   </span><span id="local-6989586621679036209"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036209"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679036210"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036210"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; [HtmlAttr] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#widget"><span class="hs-identifier hs-var">widget</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;hidden&quot;</span></span><span>   </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036209"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#value"><span class="hs-identifier hs-var">value</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036210"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-115"></span><span id="radio"><span class="annot"><span class="annottext">radio :: String -&gt; String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#radio"><span class="hs-identifier hs-var hs-var">radio</span></a></span></span><span>    </span><span id="local-6989586621679036211"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036211"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679036212"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036212"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; [HtmlAttr] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#widget"><span class="hs-identifier hs-var">widget</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;radio&quot;</span></span><span>    </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036211"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#value"><span class="hs-identifier hs-var">value</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036212"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-116"></span><span id="reset"><span class="annot"><span class="annottext">reset :: String -&gt; String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#reset"><span class="hs-identifier hs-var hs-var">reset</span></a></span></span><span>    </span><span id="local-6989586621679036213"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036213"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679036214"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036214"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; [HtmlAttr] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#widget"><span class="hs-identifier hs-var">widget</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;reset&quot;</span></span><span>    </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036213"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#value"><span class="hs-identifier hs-var">value</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036214"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-117"></span><span id="submit"><span class="annot"><span class="annottext">submit :: String -&gt; String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#submit"><span class="hs-identifier hs-var hs-var">submit</span></a></span></span><span>   </span><span id="local-6989586621679036215"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036215"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679036216"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036216"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; [HtmlAttr] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#widget"><span class="hs-identifier hs-var">widget</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;submit&quot;</span></span><span>   </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036215"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#value"><span class="hs-identifier hs-var">value</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036216"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-118"></span><span id="password"><span class="annot"><span class="annottext">password :: String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#password"><span class="hs-identifier hs-var hs-var">password</span></a></span></span><span> </span><span id="local-6989586621679036217"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036217"><span class="hs-identifier hs-var">n</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; [HtmlAttr] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#widget"><span class="hs-identifier hs-var">widget</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;password&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036217"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-119"></span><span id="textfield"><span class="annot"><span class="annottext">textfield :: String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#textfield"><span class="hs-identifier hs-var hs-var">textfield</span></a></span></span><span> </span><span id="local-6989586621679036218"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036218"><span class="hs-identifier hs-var">n</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; [HtmlAttr] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#widget"><span class="hs-identifier hs-var">widget</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;text&quot;</span></span><span>     </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036218"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-120"></span><span id="afile"><span class="annot"><span class="annottext">afile :: String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#afile"><span class="hs-identifier hs-var hs-var">afile</span></a></span></span><span>    </span><span id="local-6989586621679036219"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036219"><span class="hs-identifier hs-var">n</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; [HtmlAttr] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#widget"><span class="hs-identifier hs-var">widget</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;file&quot;</span></span><span>     </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036219"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-121"></span><span id="clickmap"><span class="annot"><span class="annottext">clickmap :: String -&gt; Html
+</span><a href="Text.XHtml.Extras.html#clickmap"><span class="hs-identifier hs-var hs-var">clickmap</span></a></span></span><span> </span><span id="local-6989586621679036220"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036220"><span class="hs-identifier hs-var">n</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; [HtmlAttr] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#widget"><span class="hs-identifier hs-var">widget</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;image&quot;</span></span><span>    </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036220"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-122"></span><span>
+</span><span id="line-123"></span><span class="hs-pragma">{-# DEPRECATED</span><span> </span><span class="hs-pragma">menu</span><span> </span><span class="hs-pragma">&quot;menu generates strange XHTML, and is not flexible enough. Roll your own that suits your needs.&quot;</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-124"></span><span class="annot"><a href="Text.XHtml.Extras.html#menu"><span class="hs-identifier hs-type">menu</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-125"></span><span id="menu"><span class="annot"><span class="annottext">menu :: String -&gt; [Html] -&gt; Html
+</span><a href="Text.XHtml.Extras.html#menu"><span class="hs-identifier hs-var hs-var">menu</span></a></span></span><span> </span><span id="local-6989586621679036222"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036222"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679036223"><span class="annot"><span class="annottext">[Html]
+</span><a href="#local-6989586621679036223"><span class="hs-identifier hs-var">choices</span></a></span></span><span>
+</span><span id="line-126"></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#select"><span class="hs-identifier hs-var">select</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; [HtmlAttr] -&gt; Html -&gt; Html
+forall a. ADDATTRS a =&gt; a -&gt; [HtmlAttr] -&gt; a
+</span><a href="Text.XHtml.Internals.html#%21"><span class="hs-operator hs-var">!</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#name"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036222"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; [Html] -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#option"><span class="hs-identifier hs-var">option</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Extras.html#p"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span> </span><span class="annot"><span class="annottext">Html
+</span><a href="#local-6989586621679036226"><span class="hs-identifier hs-var">choice</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679036226"><span class="annot"><span class="annottext">Html
+</span><a href="#local-6989586621679036226"><span class="hs-identifier hs-var">choice</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Html]
+</span><a href="#local-6989586621679036223"><span class="hs-identifier hs-var">choices</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-127"></span><span>
+</span><span id="line-128"></span><span class="annot"><a href="Text.XHtml.Extras.html#gui"><span class="hs-identifier hs-type">gui</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-129"></span><span id="gui"><span class="annot"><span class="annottext">gui :: String -&gt; Html -&gt; Html
+</span><a href="Text.XHtml.Extras.html#gui"><span class="hs-identifier hs-var hs-var">gui</span></a></span></span><span> </span><span id="local-6989586621679036228"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036228"><span class="hs-identifier hs-var">act</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#form"><span class="hs-identifier hs-var">form</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; [HtmlAttr] -&gt; Html -&gt; Html
+forall a. ADDATTRS a =&gt; a -&gt; [HtmlAttr] -&gt; a
+</span><a href="Text.XHtml.Internals.html#%21"><span class="hs-operator hs-var">!</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#action"><span class="hs-identifier hs-var">action</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679036228"><span class="hs-identifier hs-var">act</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">String -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#method"><span class="hs-identifier hs-var">method</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;post&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-130"></span></pre></body></html>

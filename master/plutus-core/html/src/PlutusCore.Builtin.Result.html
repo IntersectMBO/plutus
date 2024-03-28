@@ -1,0 +1,551 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FlexibleInstances      #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE FunctionalDependencies #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE LambdaCase             #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE MultiParamTypeClasses  #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings      #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell        #-}</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">PlutusCore.Builtin.Result</span><span>
+</span><span id="line-9"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#UnliftingError"><span class="hs-identifier">UnliftingError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinError"><span class="hs-identifier">BuiltinError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinResult"><span class="hs-identifier">BuiltinResult</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#AsUnliftingError"><span class="hs-identifier">AsUnliftingError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#AsBuiltinError"><span class="hs-identifier">AsBuiltinError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#AsBuiltinResult"><span class="hs-identifier">AsBuiltinResult</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#throwNotAConstant"><span class="hs-identifier">throwNotAConstant</span></a></span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#withLogs"><span class="hs-identifier">withLogs</span></a></span><span>
+</span><span id="line-17"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">throwing</span></span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">throwing_</span></span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="PlutusPrelude.html"><span class="hs-identifier">PlutusPrelude</span></a></span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Emitter.html"><span class="hs-identifier">PlutusCore.Builtin.Emitter</span></a></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Result.html"><span class="hs-identifier">PlutusCore.Evaluation.Result</span></a></span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Lens</span></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Error.Lens</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">throwing</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">throwing_</span></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.Except</span></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.DList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">DList</span></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.String.html"><span class="hs-identifier">Data.String</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.String.html#IsString"><span class="hs-identifier">IsString</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Prettyprinter</span></span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="annot"><span class="hs-comment">-- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.</span></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">newtype</span><span> </span><span id="UnliftingError"><span class="annot"><a href="PlutusCore.Builtin.Result.html#UnliftingError"><span class="hs-identifier hs-var">UnliftingError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkUnliftingError"><span class="annot"><a href="PlutusCore.Builtin.Result.html#MkUnliftingError"><span class="hs-identifier hs-var">MkUnliftingError</span></a></span></span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="unUnliftingError"><span class="annot"><span class="annottext">UnliftingError -&gt; Text
+</span><a href="PlutusCore.Builtin.Result.html#unUnliftingError"><span class="hs-identifier hs-var hs-var">unUnliftingError</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-37"></span><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621681487675"><span id="local-6989586621681487681"><span id="local-6989586621681487685"><span class="annot"><span class="annottext">Int -&gt; UnliftingError -&gt; ShowS
+[UnliftingError] -&gt; ShowS
+UnliftingError -&gt; String
+(Int -&gt; UnliftingError -&gt; ShowS)
+-&gt; (UnliftingError -&gt; String)
+-&gt; ([UnliftingError] -&gt; ShowS)
+-&gt; Show UnliftingError
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; UnliftingError -&gt; ShowS
+showsPrec :: Int -&gt; UnliftingError -&gt; ShowS
+$cshow :: UnliftingError -&gt; String
+show :: UnliftingError -&gt; String
+$cshowList :: [UnliftingError] -&gt; ShowS
+showList :: [UnliftingError] -&gt; ShowS
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621681487689"><span id="local-6989586621681487693"><span class="annot"><span class="annottext">UnliftingError -&gt; UnliftingError -&gt; Bool
+(UnliftingError -&gt; UnliftingError -&gt; Bool)
+-&gt; (UnliftingError -&gt; UnliftingError -&gt; Bool) -&gt; Eq UnliftingError
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: UnliftingError -&gt; UnliftingError -&gt; Bool
+== :: UnliftingError -&gt; UnliftingError -&gt; Bool
+$c/= :: UnliftingError -&gt; UnliftingError -&gt; Bool
+/= :: UnliftingError -&gt; UnliftingError -&gt; Bool
+</span><a href="../../../ghc-9.6.4/html/libraries/ghc-prim-0.10.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>      </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">newtype</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621681487698"><span class="annot"><span class="annottext">String -&gt; UnliftingError
+(String -&gt; UnliftingError) -&gt; IsString UnliftingError
+forall a. (String -&gt; a) -&gt; IsString a
+$cfromString :: String -&gt; UnliftingError
+fromString :: String -&gt; UnliftingError
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.String.html#IsString"><span class="hs-identifier hs-var hs-var hs-var hs-var">IsString</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621681487705"><span id="local-6989586621681487710"><span id="local-6989586621681487716"><span class="annot"><span class="annottext">NonEmpty UnliftingError -&gt; UnliftingError
+UnliftingError -&gt; UnliftingError -&gt; UnliftingError
+(UnliftingError -&gt; UnliftingError -&gt; UnliftingError)
+-&gt; (NonEmpty UnliftingError -&gt; UnliftingError)
+-&gt; (forall b. Integral b =&gt; b -&gt; UnliftingError -&gt; UnliftingError)
+-&gt; Semigroup UnliftingError
+forall b. Integral b =&gt; b -&gt; UnliftingError -&gt; UnliftingError
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+$c&lt;&gt; :: UnliftingError -&gt; UnliftingError -&gt; UnliftingError
+&lt;&gt; :: UnliftingError -&gt; UnliftingError -&gt; UnliftingError
+$csconcat :: NonEmpty UnliftingError -&gt; UnliftingError
+sconcat :: NonEmpty UnliftingError -&gt; UnliftingError
+$cstimes :: forall b. Integral b =&gt; b -&gt; UnliftingError -&gt; UnliftingError
+stimes :: forall b. Integral b =&gt; b -&gt; UnliftingError -&gt; UnliftingError
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#Semigroup"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Semigroup</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621681487724"><span class="annot"><span class="annottext">UnliftingError -&gt; ()
+(UnliftingError -&gt; ()) -&gt; NFData UnliftingError
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: UnliftingError -&gt; ()
+rnf :: UnliftingError -&gt; ()
+</span><a href="../../../ghc-9.6.4/html/libraries/deepseq-1.4.8.1/src/Control.DeepSeq.html#NFData"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="annot"><span class="hs-comment">-- | The type of errors that 'readKnown' and 'makeKnown' can return.</span></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">data</span><span> </span><span id="BuiltinError"><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinError"><span class="hs-identifier hs-var">BuiltinError</span></a></span></span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="BuiltinUnliftingError"><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinUnliftingError"><span class="hs-identifier hs-var">BuiltinUnliftingError</span></a></span></span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="PlutusCore.Builtin.Result.html#UnliftingError"><span class="hs-identifier hs-type">UnliftingError</span></a></span><span>
+</span><span id="line-43"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="BuiltinEvaluationFailure"><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinEvaluationFailure"><span class="hs-identifier hs-var">BuiltinEvaluationFailure</span></a></span></span><span>
+</span><span id="line-44"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621681487733"><span id="local-6989586621681487737"><span id="local-6989586621681487741"><span class="annot"><span class="annottext">Int -&gt; BuiltinError -&gt; ShowS
+[BuiltinError] -&gt; ShowS
+BuiltinError -&gt; String
+(Int -&gt; BuiltinError -&gt; ShowS)
+-&gt; (BuiltinError -&gt; String)
+-&gt; ([BuiltinError] -&gt; ShowS)
+-&gt; Show BuiltinError
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; BuiltinError -&gt; ShowS
+showsPrec :: Int -&gt; BuiltinError -&gt; ShowS
+$cshow :: BuiltinError -&gt; String
+show :: BuiltinError -&gt; String
+$cshowList :: [BuiltinError] -&gt; ShowS
+showList :: [BuiltinError] -&gt; ShowS
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621681487744"><span id="local-6989586621681487747"><span class="annot"><span class="annottext">BuiltinError -&gt; BuiltinError -&gt; Bool
+(BuiltinError -&gt; BuiltinError -&gt; Bool)
+-&gt; (BuiltinError -&gt; BuiltinError -&gt; Bool) -&gt; Eq BuiltinError
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: BuiltinError -&gt; BuiltinError -&gt; Bool
+== :: BuiltinError -&gt; BuiltinError -&gt; Bool
+$c/= :: BuiltinError -&gt; BuiltinError -&gt; Bool
+/= :: BuiltinError -&gt; BuiltinError -&gt; Bool
+</span><a href="../../../ghc-9.6.4/html/libraries/ghc-prim-0.10.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- | The monad that 'makeKnown' runs in.</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- Equivalent to @ExceptT BuiltinError Emitter@, except optimized in two ways:</span><span>
+</span><span id="line-48"></span><span class="hs-comment">--</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- 1. everything is strict</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- 2. has the 'BuiltinSuccess' constructor that is used for returning a value with no logs</span><span>
+</span><span id="line-51"></span><span class="hs-comment">--    attached, which is the most common case for us, so it helps a lot not to construct and</span><span>
+</span><span id="line-52"></span><span class="hs-comment">--    deconstruct a redundant tuple</span><span>
+</span><span id="line-53"></span><span class="hs-comment">--</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- Moving from @ExceptT BuiltinError Emitter@ to this data type gave us a speedup of 8% of total</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- evaluation time.</span><span>
+</span><span id="line-56"></span><span class="hs-comment">--</span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- Logs are represented as a 'DList', because we don't particularly care about the efficiency of</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- logging, since there's no logging on the chain and builtins don't emit much anyway. Otherwise</span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- we'd have to use @text-builder@ or @text-builder-linear@ or something of this sort.</span><span>
+</span><span id="line-60"></span><span class="hs-keyword">data</span><span> </span><span id="BuiltinResult"><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinResult"><span class="hs-identifier hs-var">BuiltinResult</span></a></span></span><span> </span><span id="local-6989586621681487540"><span class="annot"><a href="#local-6989586621681487540"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="BuiltinFailure"><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-var">BuiltinFailure</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">DList</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinError"><span class="hs-identifier hs-type">BuiltinError</span></a></span><span>
+</span><span id="line-62"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="BuiltinSuccess"><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"><span class="hs-identifier hs-var">BuiltinSuccess</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621681487540"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="BuiltinSuccessWithLogs"><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"><span class="hs-identifier hs-var">BuiltinSuccessWithLogs</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">DList</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621681487540"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621681487755"><span id="local-6989586621681487767"><span id="local-6989586621681487771"><span class="annot"><span class="annottext">Int -&gt; BuiltinResult a -&gt; ShowS
+[BuiltinResult a] -&gt; ShowS
+BuiltinResult a -&gt; String
+(Int -&gt; BuiltinResult a -&gt; ShowS)
+-&gt; (BuiltinResult a -&gt; String)
+-&gt; ([BuiltinResult a] -&gt; ShowS)
+-&gt; Show (BuiltinResult a)
+forall a. Show a =&gt; Int -&gt; BuiltinResult a -&gt; ShowS
+forall a. Show a =&gt; [BuiltinResult a] -&gt; ShowS
+forall a. Show a =&gt; BuiltinResult a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; BuiltinResult a -&gt; ShowS
+showsPrec :: Int -&gt; BuiltinResult a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; BuiltinResult a -&gt; String
+show :: BuiltinResult a -&gt; String
+$cshowList :: forall a. Show a =&gt; [BuiltinResult a] -&gt; ShowS
+showList :: [BuiltinResult a] -&gt; ShowS
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621681487774"><span id="local-6989586621681487780"><span id="local-6989586621681487784"><span id="local-6989586621681487789"><span id="local-6989586621681487791"><span id="local-6989586621681487794"><span id="local-6989586621681487797"><span id="local-6989586621681487800"><span id="local-6989586621681487803"><span id="local-6989586621681487806"><span id="local-6989586621681487809"><span id="local-6989586621681487811"><span id="local-6989586621681487814"><span id="local-6989586621681487819"><span id="local-6989586621681487824"><span id="local-6989586621681487829"><span id="local-6989586621681487834"><span class="annot"><span class="annottext">(forall m. Monoid m =&gt; BuiltinResult m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a)
+-&gt; (forall a. BuiltinResult a -&gt; [a])
+-&gt; (forall a. BuiltinResult a -&gt; Bool)
+-&gt; (forall a. BuiltinResult a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; BuiltinResult a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; BuiltinResult a -&gt; a)
+-&gt; (forall a. Ord a =&gt; BuiltinResult a -&gt; a)
+-&gt; (forall a. Num a =&gt; BuiltinResult a -&gt; a)
+-&gt; (forall a. Num a =&gt; BuiltinResult a -&gt; a)
+-&gt; Foldable BuiltinResult
+forall a. Eq a =&gt; a -&gt; BuiltinResult a -&gt; Bool
+forall a. Num a =&gt; BuiltinResult a -&gt; a
+forall a. Ord a =&gt; BuiltinResult a -&gt; a
+forall m. Monoid m =&gt; BuiltinResult m -&gt; m
+forall a. BuiltinResult a -&gt; Bool
+forall a. BuiltinResult a -&gt; Int
+forall a. BuiltinResult a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+$cfold :: forall m. Monoid m =&gt; BuiltinResult m -&gt; m
+fold :: forall m. Monoid m =&gt; BuiltinResult m -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m
+foldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m
+foldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+foldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+foldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+foldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+foldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a
+foldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a
+foldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a
+$ctoList :: forall a. BuiltinResult a -&gt; [a]
+toList :: forall a. BuiltinResult a -&gt; [a]
+$cnull :: forall a. BuiltinResult a -&gt; Bool
+null :: forall a. BuiltinResult a -&gt; Bool
+$clength :: forall a. BuiltinResult a -&gt; Int
+length :: forall a. BuiltinResult a -&gt; Int
+$celem :: forall a. Eq a =&gt; a -&gt; BuiltinResult a -&gt; Bool
+elem :: forall a. Eq a =&gt; a -&gt; BuiltinResult a -&gt; Bool
+$cmaximum :: forall a. Ord a =&gt; BuiltinResult a -&gt; a
+maximum :: forall a. Ord a =&gt; BuiltinResult a -&gt; a
+$cminimum :: forall a. Ord a =&gt; BuiltinResult a -&gt; a
+minimum :: forall a. Ord a =&gt; BuiltinResult a -&gt; a
+$csum :: forall a. Num a =&gt; BuiltinResult a -&gt; a
+sum :: forall a. Num a =&gt; BuiltinResult a -&gt; a
+$cproduct :: forall a. Num a =&gt; BuiltinResult a -&gt; a
+product :: forall a. Num a =&gt; BuiltinResult a -&gt; a
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Foldable.html#Foldable"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Foldable</span></a></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span id="AsBuiltinResult"><span id="AsBuiltinError"><span id="AsUnliftingError"><span id="local-6989586621681487537"><span id="local-6989586621681487538"><span id="local-6989586621681487539"><span id="local-6989586621681487540"><span id="local-6989586621681487840"><span id="local-6989586621681487851"><span id="local-6989586621681487861"><span id="local-6989586621681487871"><span id="local-6989586621681487881"><span id="local-6989586621681487890"><span id="local-6989586621681487900"><span id="local-6989586621681487904"><span id="local-6989586621681487910"><span id="local-6989586621681487916"><span id="local-6989586621681487922"><span id="local-6989586621681487926"><span id="local-6989586621681487932"><span id="local-6989586621681487938"><span id="local-6989586621681487942"><span id="_BuiltinResult"><span id="_BuiltinFailure"><span id="_BuiltinSuccess"><span id="_BuiltinSuccessWithLogs"><span id="_BuiltinError"><span id="_BuiltinUnliftingError"><span id="_BuiltinEvaluationFailure"><span id="_UnliftingError"><span id="_MkUnliftingError"><span class="hs-identifier">mtraverse</span><span> </span><span class="hs-identifier">makeClassyPrisms</span><span>
+</span><span id="line-67"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">UnliftingError</span><span>
+</span><span id="line-68"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">BuiltinError</span><span>
+</span><span id="line-69"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">BuiltinResult</span><span>
+</span><span id="line-70"></span><span>    </span><span class="hs-special">]</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621681487984"><span class="annot"><a href="PlutusCore.Builtin.Result.html#AsUnliftingError"><span class="hs-identifier hs-type">AsUnliftingError</span></a></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinError"><span class="hs-identifier hs-type">BuiltinError</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-73"></span><span>    </span><span id="local-6989586621681487996"><span class="annot"><span class="annottext">_UnliftingError :: Prism' BuiltinError UnliftingError
+</span><a href="PlutusCore.Builtin.Result.html#_UnliftingError"><span class="hs-identifier hs-var hs-var hs-var hs-var">_UnliftingError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">p UnliftingError (f UnliftingError)
+-&gt; p BuiltinError (f BuiltinError)
+forall r. AsBuiltinError r =&gt; Prism' r UnliftingError
+Prism' BuiltinError UnliftingError
+</span><a href="PlutusCore.Builtin.Result.html#_BuiltinUnliftingError"><span class="hs-identifier hs-var">_BuiltinUnliftingError</span></a></span><span>
+</span><span id="line-74"></span><span>    </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#_UnliftingError"><span class="hs-pragma hs-type">_UnliftingError</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Result.html#AsEvaluationFailure"><span class="hs-identifier hs-type">AsEvaluationFailure</span></a></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinError"><span class="hs-identifier hs-type">BuiltinError</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-77"></span><span>    </span><span id="local-6989586621681488005"><span class="annot"><span class="annottext">_EvaluationFailure :: Prism' BuiltinError ()
+</span><a href="#local-6989586621681488005"><span class="hs-identifier hs-var hs-var hs-var hs-var">_EvaluationFailure</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">BuiltinError -&gt; Prism' BuiltinError ()
+forall err. Eq err =&gt; err -&gt; Prism' err ()
+</span><a href="PlutusCore.Evaluation.Result.html#_EvaluationFailureVia"><span class="hs-identifier hs-var">_EvaluationFailureVia</span></a></span><span> </span><span class="annot"><span class="annottext">BuiltinError
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinEvaluationFailure"><span class="hs-identifier hs-var">BuiltinEvaluationFailure</span></a></span><span>
+</span><span id="line-78"></span><span>    </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Result.html#_EvaluationFailure"><span class="hs-pragma hs-type">_EvaluationFailure</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- &gt;&gt;&gt; import PlutusCore.Evaluation.Result</span><span>
+</span><span id="line-81"></span><span class="hs-comment">-- &gt;&gt;&gt; evaluationFailure :: BuiltinResult Bool</span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- BuiltinFailure (fromList []) BuiltinEvaluationFailure</span><span>
+</span><span id="line-83"></span><span class="hs-comment">--</span><span>
+</span><span id="line-84"></span><span class="hs-comment">-- &gt;&gt;&gt; import Control.Lens</span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- &gt;&gt;&gt; let res = BuiltinFailure (pure mempty) evaluationFailure :: BuiltinResult Bool</span><span>
+</span><span id="line-86"></span><span class="hs-comment">-- &gt;&gt;&gt; matching _EvaluationFailure res</span><span>
+</span><span id="line-87"></span><span class="hs-comment">-- Right ()</span><span>
+</span><span id="line-88"></span><span class="hs-comment">--</span><span>
+</span><span id="line-89"></span><span class="hs-comment">-- &gt;&gt;&gt; matching _BuiltinFailure $ BuiltinSuccess True</span><span>
+</span><span id="line-90"></span><span class="hs-comment">-- Left (BuiltinSuccess True)</span><span>
+</span><span id="line-91"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621681487593"><span class="annot"><a href="PlutusCore.Evaluation.Result.html#AsEvaluationFailure"><span class="hs-identifier hs-type">AsEvaluationFailure</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinResult"><span class="hs-identifier hs-type">BuiltinResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681487593"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-92"></span><span>    </span><span id="local-6989586621681488026"><span class="annot"><span class="annottext">_EvaluationFailure :: Prism' (BuiltinResult a) ()
+</span><a href="PlutusCore.Evaluation.Result.html#_EvaluationFailure"><span class="hs-identifier hs-var hs-var hs-var hs-var">_EvaluationFailure</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">p (DList Text, BuiltinError) (f (DList Text, BuiltinError))
+-&gt; p (BuiltinResult a) (f (BuiltinResult a))
+forall r a.
+AsBuiltinResult r a =&gt;
+Prism' r (DList Text, BuiltinError)
+Prism' (BuiltinResult a) (DList Text, BuiltinError)
+</span><a href="PlutusCore.Builtin.Result.html#_BuiltinFailure"><span class="hs-identifier hs-var">_BuiltinFailure</span></a></span><span> </span><span class="annot"><span class="annottext">(p (DList Text, BuiltinError) (f (DList Text, BuiltinError))
+ -&gt; p (BuiltinResult a) (f (BuiltinResult a)))
+-&gt; (p () (f ())
+    -&gt; p (DList Text, BuiltinError) (f (DList Text, BuiltinError)))
+-&gt; p () (f ())
+-&gt; p (BuiltinResult a) (f (BuiltinResult a))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">((DList Text, BuiltinError) -&gt; ())
+-&gt; (() -&gt; (DList Text, BuiltinError))
+-&gt; Iso (DList Text, BuiltinError) (DList Text, BuiltinError) () ()
+forall s a b t. (s -&gt; a) -&gt; (b -&gt; t) -&gt; Iso s t a b
+</span><span class="hs-identifier hs-var">iso</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="annot"><span class="annottext">(DList Text, BuiltinError)
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="annot"><span class="annottext">()
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BuiltinError -&gt; (DList Text, BuiltinError)
+forall a. a -&gt; (DList Text, a)
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#pure"><span class="hs-identifier hs-var">pure</span></a></span><span> </span><span class="annot"><span class="annottext">BuiltinError
+forall err. AsEvaluationFailure err =&gt; err
+</span><a href="PlutusCore.Evaluation.Result.html#evaluationFailure"><span class="hs-identifier hs-var">evaluationFailure</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="PlutusCore.Evaluation.Result.html#_EvaluationFailure"><span class="hs-pragma hs-type">_EvaluationFailure</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Emitter.html#MonadEmitter"><span class="hs-identifier hs-type">MonadEmitter</span></a></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinResult"><span class="hs-identifier hs-type">BuiltinResult</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-96"></span><span>    </span><span id="local-6989586621681488034"><span class="annot"><span class="annottext">emit :: Text -&gt; BuiltinResult ()
+</span><a href="#local-6989586621681488034"><span class="hs-identifier hs-var hs-var hs-var hs-var">emit</span></a></span></span><span> </span><span id="local-6989586621681488036"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621681488036"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; () -&gt; BuiltinResult ()
+forall a. DList Text -&gt; a -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"><span class="hs-identifier hs-var">BuiltinSuccessWithLogs</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; DList Text
+forall a. a -&gt; DList a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#pure"><span class="hs-identifier hs-var">pure</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621681488036"><span class="hs-identifier hs-var">txt</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Emitter.html#emit"><span class="hs-pragma hs-type">emit</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621681488039"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#UnliftingError"><span class="hs-identifier hs-type">UnliftingError</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-100"></span><span>    </span><span id="local-6989586621681488051"><span class="annot"><span class="annottext">pretty :: forall ann. UnliftingError -&gt; Doc ann
+</span><a href="#local-6989586621681488051"><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Builtin.Result.html#MkUnliftingError"><span class="hs-identifier hs-type">MkUnliftingError</span></a></span><span> </span><span id="local-6989586621681488053"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621681488053"><span class="hs-identifier hs-var">err</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/Data.Foldable.html#fold"><span class="hs-identifier hs-var">fold</span></a></span><span>
+</span><span id="line-101"></span><span>        </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Could not unlift a value:&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">hardline</span></span><span>
+</span><span id="line-102"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Doc ann
+forall ann. Text -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621681488053"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-103"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621681488058"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinError"><span class="hs-identifier hs-type">BuiltinError</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-106"></span><span>    </span><span id="local-6989586621681488064"><span class="annot"><span class="annottext">pretty :: forall ann. BuiltinError -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinUnliftingError"><span class="hs-identifier hs-type">BuiltinUnliftingError</span></a></span><span> </span><span id="local-6989586621681488065"><span class="annot"><span class="annottext">UnliftingError
+</span><a href="#local-6989586621681488065"><span class="hs-identifier hs-var">err</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Builtin evaluation failure:&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">UnliftingError -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. UnliftingError -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">UnliftingError
+</span><a href="#local-6989586621681488065"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-107"></span><span>    </span><span class="annot"><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">BuiltinError
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinEvaluationFailure"><span class="hs-identifier hs-var">BuiltinEvaluationFailure</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Builtin evaluation failure&quot;</span></span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span id="local-6989586621681487621"><span id="local-6989586621681487623"><span class="annot"><a href="PlutusCore.Builtin.Result.html#throwNotAConstant"><span class="hs-identifier hs-type">throwNotAConstant</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadError</span></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinError"><span class="hs-identifier hs-type">BuiltinError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681487621"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621681487621"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681487623"><span class="hs-identifier hs-type">void</span></a></span></span></span><span>
+</span><span id="line-110"></span><span id="throwNotAConstant"><span class="annot"><span class="annottext">throwNotAConstant :: forall (m :: * -&gt; *) void. MonadError BuiltinError m =&gt; m void
+</span><a href="PlutusCore.Builtin.Result.html#throwNotAConstant"><span class="hs-identifier hs-var hs-var">throwNotAConstant</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">BuiltinError -&gt; m void
+forall a. BuiltinError -&gt; m a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span><span class="hs-identifier hs-var">throwError</span></span><span> </span><span class="annot"><span class="annottext">(BuiltinError -&gt; m void) -&gt; BuiltinError -&gt; m void
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">UnliftingError -&gt; BuiltinError
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinUnliftingError"><span class="hs-identifier hs-var">BuiltinUnliftingError</span></a></span><span> </span><span class="annot"><span class="annottext">UnliftingError
+</span><span class="hs-string">&quot;Not a constant&quot;</span></span><span>
+</span><span id="line-111"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#throwNotAConstant"><span class="hs-pragma hs-type">throwNotAConstant</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-112"></span><span>
+</span><span id="line-113"></span><span class="annot"><span class="hs-comment">-- | Prepend logs to a 'BuiltinResult' computation.</span></span><span>
+</span><span id="line-114"></span><span id="local-6989586621681487632"><span class="annot"><a href="PlutusCore.Builtin.Result.html#withLogs"><span class="hs-identifier hs-type">withLogs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">DList</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinResult"><span class="hs-identifier hs-type">BuiltinResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681487632"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinResult"><span class="hs-identifier hs-type">BuiltinResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621681487632"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-115"></span><span id="withLogs"><span class="annot"><span class="annottext">withLogs :: forall a. DList Text -&gt; BuiltinResult a -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#withLogs"><span class="hs-identifier hs-var hs-var">withLogs</span></a></span></span><span> </span><span id="local-6989586621681488074"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488074"><span class="hs-identifier hs-var">logs1</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-116"></span><span>    </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-type">BuiltinFailure</span></a></span><span> </span><span id="local-6989586621681488075"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488075"><span class="hs-identifier hs-var">logs2</span></a></span></span><span> </span><span id="local-6989586621681488076"><span class="annot"><span class="annottext">BuiltinError
+</span><a href="#local-6989586621681488076"><span class="hs-identifier hs-var">err</span></a></span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-var">BuiltinFailure</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488074"><span class="hs-identifier hs-var">logs1</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; DList Text -&gt; DList Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488075"><span class="hs-identifier hs-var">logs2</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">BuiltinError
+</span><a href="#local-6989586621681488076"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-117"></span><span>    </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"><span class="hs-identifier hs-type">BuiltinSuccess</span></a></span><span> </span><span id="local-6989586621681488077"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488077"><span class="hs-identifier hs-var">x</span></a></span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; a -&gt; BuiltinResult a
+forall a. DList Text -&gt; a -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"><span class="hs-identifier hs-var">BuiltinSuccessWithLogs</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488074"><span class="hs-identifier hs-var">logs1</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488077"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-118"></span><span>    </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"><span class="hs-identifier hs-type">BuiltinSuccessWithLogs</span></a></span><span> </span><span id="local-6989586621681488078"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488078"><span class="hs-identifier hs-var">logs2</span></a></span></span><span> </span><span id="local-6989586621681488079"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488079"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; a -&gt; BuiltinResult a
+forall a. DList Text -&gt; a -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"><span class="hs-identifier hs-var">BuiltinSuccessWithLogs</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488074"><span class="hs-identifier hs-var">logs1</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; DList Text -&gt; DList Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488078"><span class="hs-identifier hs-var">logs2</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488079"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-119"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#withLogs"><span class="hs-pragma hs-type">withLogs</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#Functor"><span class="hs-identifier hs-type">Functor</span></a></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinResult"><span class="hs-identifier hs-type">BuiltinResult</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-122"></span><span>    </span><span id="local-6989586621681488084"><span class="annot"><span class="annottext">fmap :: forall a b. (a -&gt; b) -&gt; BuiltinResult a -&gt; BuiltinResult b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#fmap"><span class="hs-identifier hs-var hs-var hs-var hs-var">fmap</span></a></span></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-type">BuiltinFailure</span></a></span><span> </span><span id="local-6989586621681488085"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488085"><span class="hs-identifier hs-var">logs</span></a></span></span><span> </span><span id="local-6989586621681488086"><span class="annot"><span class="annottext">BuiltinError
+</span><a href="#local-6989586621681488086"><span class="hs-identifier hs-var">err</span></a></span></span><span class="hs-special">)</span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; BuiltinError -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-var">BuiltinFailure</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488085"><span class="hs-identifier hs-var">logs</span></a></span><span> </span><span class="annot"><span class="annottext">BuiltinError
+</span><a href="#local-6989586621681488086"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-123"></span><span>    </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span id="local-6989586621681488087"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621681488087"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"><span class="hs-identifier hs-type">BuiltinSuccess</span></a></span><span> </span><span id="local-6989586621681488088"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488088"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">b -&gt; BuiltinResult b
+forall a. a -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"><span class="hs-identifier hs-var">BuiltinSuccess</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621681488087"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488088"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-124"></span><span>    </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span id="local-6989586621681488089"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621681488089"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"><span class="hs-identifier hs-type">BuiltinSuccessWithLogs</span></a></span><span> </span><span id="local-6989586621681488090"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488090"><span class="hs-identifier hs-var">logs</span></a></span></span><span> </span><span id="local-6989586621681488091"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488091"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; b -&gt; BuiltinResult b
+forall a. DList Text -&gt; a -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"><span class="hs-identifier hs-var">BuiltinSuccessWithLogs</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488090"><span class="hs-identifier hs-var">logs</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621681488089"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488091"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-125"></span><span>    </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#fmap"><span class="hs-pragma hs-type">fmap</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span>    </span><span class="hs-comment">-- Written out explicitly just in case.</span><span>
+</span><span id="line-128"></span><span>    </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621681488092"><span class="annot"><span class="annottext">&lt;$ :: forall a b. a -&gt; BuiltinResult b -&gt; BuiltinResult a
+</span><a href="#local-6989586621681488092"><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;$</span></a></span></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-type">BuiltinFailure</span></a></span><span> </span><span id="local-6989586621681488094"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488094"><span class="hs-identifier hs-var">logs</span></a></span></span><span> </span><span id="local-6989586621681488095"><span class="annot"><span class="annottext">BuiltinError
+</span><a href="#local-6989586621681488095"><span class="hs-identifier hs-var">err</span></a></span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-var">BuiltinFailure</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488094"><span class="hs-identifier hs-var">logs</span></a></span><span> </span><span class="annot"><span class="annottext">BuiltinError
+</span><a href="#local-6989586621681488095"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-129"></span><span>    </span><span id="local-6989586621681488096"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488096"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%3C%24"><span class="hs-operator hs-var">&lt;$</span></a></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"><span class="hs-identifier hs-type">BuiltinSuccess</span></a></span><span> </span><span class="annot"><span class="annottext">b
+</span><span class="hs-identifier">_</span></span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; BuiltinResult a
+forall a. a -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"><span class="hs-identifier hs-var">BuiltinSuccess</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488096"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-130"></span><span>    </span><span id="local-6989586621681488097"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488097"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%3C%24"><span class="hs-operator hs-var">&lt;$</span></a></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"><span class="hs-identifier hs-type">BuiltinSuccessWithLogs</span></a></span><span> </span><span id="local-6989586621681488098"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488098"><span class="hs-identifier hs-var">logs</span></a></span></span><span> </span><span class="annot"><span class="annottext">b
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; a -&gt; BuiltinResult a
+forall a. DList Text -&gt; a -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"><span class="hs-identifier hs-var">BuiltinSuccessWithLogs</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488098"><span class="hs-identifier hs-var">logs</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488097"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-131"></span><span>    </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&lt;$</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-132"></span><span>
+</span><span id="line-133"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621681488104"><span id="local-6989586621681488109"><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#Applicative"><span class="hs-identifier hs-type">Applicative</span></a></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinResult"><span class="hs-identifier hs-type">BuiltinResult</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-134"></span><span>    </span><span id="local-6989586621681488112"><span class="annot"><span class="annottext">pure :: forall a. a -&gt; BuiltinResult a
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#pure"><span class="hs-identifier hs-var hs-var hs-var hs-var">pure</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; BuiltinResult a
+forall a. a -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"><span class="hs-identifier hs-var">BuiltinSuccess</span></a></span><span>
+</span><span id="line-135"></span><span>    </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#pure"><span class="hs-pragma hs-type">pure</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-136"></span><span>
+</span><span id="line-137"></span><span>    </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-type">BuiltinFailure</span></a></span><span> </span><span id="local-6989586621681488115"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488115"><span class="hs-identifier hs-var">logs</span></a></span></span><span> </span><span id="local-6989586621681488116"><span class="annot"><span class="annottext">BuiltinError
+</span><a href="#local-6989586621681488116"><span class="hs-identifier hs-var">err</span></a></span></span><span>       </span><span id="local-6989586621681488117"><span class="annot"><span class="annottext">&lt;*&gt; :: forall a b.
+BuiltinResult (a -&gt; b) -&gt; BuiltinResult a -&gt; BuiltinResult b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%3C%2A%3E"><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;*&gt;</span></a></span></span><span> </span><span class="annot"><span class="annottext">BuiltinResult a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; BuiltinError -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-var">BuiltinFailure</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488115"><span class="hs-identifier hs-var">logs</span></a></span><span> </span><span class="annot"><span class="annottext">BuiltinError
+</span><a href="#local-6989586621681488116"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-138"></span><span>    </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"><span class="hs-identifier hs-type">BuiltinSuccess</span></a></span><span> </span><span id="local-6989586621681488118"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621681488118"><span class="hs-identifier hs-var">f</span></a></span></span><span>              </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%3C%2A%3E"><span class="hs-operator hs-var">&lt;*&gt;</span></a></span><span> </span><span id="local-6989586621681488119"><span class="annot"><span class="annottext">BuiltinResult a
+</span><a href="#local-6989586621681488119"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; b) -&gt; BuiltinResult a -&gt; BuiltinResult b
+forall a b. (a -&gt; b) -&gt; BuiltinResult a -&gt; BuiltinResult b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621681488118"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">BuiltinResult a
+</span><a href="#local-6989586621681488119"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-139"></span><span>    </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"><span class="hs-identifier hs-type">BuiltinSuccessWithLogs</span></a></span><span> </span><span id="local-6989586621681488120"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488120"><span class="hs-identifier hs-var">logs</span></a></span></span><span> </span><span id="local-6989586621681488121"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621681488121"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%3C%2A%3E"><span class="hs-operator hs-var">&lt;*&gt;</span></a></span><span> </span><span id="local-6989586621681488122"><span class="annot"><span class="annottext">BuiltinResult a
+</span><a href="#local-6989586621681488122"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; BuiltinResult b -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinResult a -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#withLogs"><span class="hs-identifier hs-var">withLogs</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488120"><span class="hs-identifier hs-var">logs</span></a></span><span> </span><span class="annot"><span class="annottext">(BuiltinResult b -&gt; BuiltinResult b)
+-&gt; BuiltinResult b -&gt; BuiltinResult b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; b) -&gt; BuiltinResult a -&gt; BuiltinResult b
+forall a b. (a -&gt; b) -&gt; BuiltinResult a -&gt; BuiltinResult b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621681488121"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">BuiltinResult a
+</span><a href="#local-6989586621681488122"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-140"></span><span>    </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&lt;*&gt;</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-141"></span><span>
+</span><span id="line-142"></span><span>    </span><span class="hs-comment">-- Better than the default implementation, because the value in the 'BuiltinSuccess' case</span><span>
+</span><span id="line-143"></span><span>    </span><span class="hs-comment">-- doesn't need to be retained.</span><span>
+</span><span id="line-144"></span><span>    </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-type">BuiltinFailure</span></a></span><span> </span><span id="local-6989586621681488123"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488123"><span class="hs-identifier hs-var">logs</span></a></span></span><span> </span><span id="local-6989586621681488124"><span class="annot"><span class="annottext">BuiltinError
+</span><a href="#local-6989586621681488124"><span class="hs-identifier hs-var">err</span></a></span></span><span>       </span><span id="local-6989586621681488125"><span class="annot"><span class="annottext">*&gt; :: forall a b. BuiltinResult a -&gt; BuiltinResult b -&gt; BuiltinResult b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%2A%3E"><span class="hs-operator hs-var hs-var hs-var hs-var">*&gt;</span></a></span></span><span> </span><span class="annot"><span class="annottext">BuiltinResult b
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; BuiltinError -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-var">BuiltinFailure</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488123"><span class="hs-identifier hs-var">logs</span></a></span><span> </span><span class="annot"><span class="annottext">BuiltinError
+</span><a href="#local-6989586621681488124"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-145"></span><span>    </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"><span class="hs-identifier hs-type">BuiltinSuccess</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span>              </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%2A%3E"><span class="hs-operator hs-var">*&gt;</span></a></span><span> </span><span id="local-6989586621681488126"><span class="annot"><span class="annottext">BuiltinResult b
+</span><a href="#local-6989586621681488126"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">BuiltinResult b
+</span><a href="#local-6989586621681488126"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-146"></span><span>    </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"><span class="hs-identifier hs-type">BuiltinSuccessWithLogs</span></a></span><span> </span><span id="local-6989586621681488127"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488127"><span class="hs-identifier hs-var">logs</span></a></span></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%2A%3E"><span class="hs-operator hs-var">*&gt;</span></a></span><span> </span><span id="local-6989586621681488128"><span class="annot"><span class="annottext">BuiltinResult b
+</span><a href="#local-6989586621681488128"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; BuiltinResult b -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinResult a -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#withLogs"><span class="hs-identifier hs-var">withLogs</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488127"><span class="hs-identifier hs-var">logs</span></a></span><span> </span><span class="annot"><span class="annottext">BuiltinResult b
+</span><a href="#local-6989586621681488128"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-147"></span><span>    </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">*&gt;</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621681488134"><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#Monad"><span class="hs-identifier hs-type">Monad</span></a></span><span> </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinResult"><span class="hs-identifier hs-type">BuiltinResult</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-150"></span><span>    </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-type">BuiltinFailure</span></a></span><span> </span><span id="local-6989586621681488138"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488138"><span class="hs-identifier hs-var">logs</span></a></span></span><span> </span><span id="local-6989586621681488139"><span class="annot"><span class="annottext">BuiltinError
+</span><a href="#local-6989586621681488139"><span class="hs-identifier hs-var">err</span></a></span></span><span>       </span><span id="local-6989586621681488140"><span class="annot"><span class="annottext">&gt;&gt;= :: forall a b.
+BuiltinResult a -&gt; (a -&gt; BuiltinResult b) -&gt; BuiltinResult b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%3E%3E%3D"><span class="hs-operator hs-var hs-var hs-var hs-var">&gt;&gt;=</span></a></span></span><span> </span><span class="annot"><span class="annottext">a -&gt; BuiltinResult b
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; BuiltinError -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"><span class="hs-identifier hs-var">BuiltinFailure</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488138"><span class="hs-identifier hs-var">logs</span></a></span><span> </span><span class="annot"><span class="annottext">BuiltinError
+</span><a href="#local-6989586621681488139"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-151"></span><span>    </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"><span class="hs-identifier hs-type">BuiltinSuccess</span></a></span><span> </span><span id="local-6989586621681488141"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488141"><span class="hs-identifier hs-var">x</span></a></span></span><span>              </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%3E%3E%3D"><span class="hs-operator hs-var">&gt;&gt;=</span></a></span><span> </span><span id="local-6989586621681488142"><span class="annot"><span class="annottext">a -&gt; BuiltinResult b
+</span><a href="#local-6989586621681488142"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; BuiltinResult b
+</span><a href="#local-6989586621681488142"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488141"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-152"></span><span>    </span><span class="annot"><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"><span class="hs-identifier hs-type">BuiltinSuccessWithLogs</span></a></span><span> </span><span id="local-6989586621681488143"><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488143"><span class="hs-identifier hs-var">logs</span></a></span></span><span> </span><span id="local-6989586621681488144"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488144"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%3E%3E%3D"><span class="hs-operator hs-var">&gt;&gt;=</span></a></span><span> </span><span id="local-6989586621681488145"><span class="annot"><span class="annottext">a -&gt; BuiltinResult b
+</span><a href="#local-6989586621681488145"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Text -&gt; BuiltinResult b -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinResult a -&gt; BuiltinResult a
+</span><a href="PlutusCore.Builtin.Result.html#withLogs"><span class="hs-identifier hs-var">withLogs</span></a></span><span> </span><span class="annot"><span class="annottext">DList Text
+</span><a href="#local-6989586621681488143"><span class="hs-identifier hs-var">logs</span></a></span><span> </span><span class="annot"><span class="annottext">(BuiltinResult b -&gt; BuiltinResult b)
+-&gt; BuiltinResult b -&gt; BuiltinResult b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; BuiltinResult b
+</span><a href="#local-6989586621681488145"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621681488144"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-153"></span><span>    </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&gt;&gt;=</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-154"></span><span>
+</span><span id="line-155"></span><span>    </span><span id="local-6989586621681488147"><span class="annot"><span class="annottext">&gt;&gt; :: forall a b. BuiltinResult a -&gt; BuiltinResult b -&gt; BuiltinResult b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%3E%3E"><span class="hs-operator hs-var hs-var hs-var hs-var">(&gt;&gt;)</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">BuiltinResult a -&gt; BuiltinResult b -&gt; BuiltinResult b
+forall a b. BuiltinResult a -&gt; BuiltinResult b -&gt; BuiltinResult b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><a href="../../../ghc-9.6.4/html/libraries/base-4.18.2.0/src/GHC.Base.html#%2A%3E"><span class="hs-operator hs-var">(*&gt;)</span></a></span><span>
+</span><span id="line-156"></span><span>    </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&gt;&gt;</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-157"></span></pre></body></html>

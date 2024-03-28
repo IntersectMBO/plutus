@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="local-6989586621679344296"><span id="local-6989586621679344297"></span></span><span class="hs-pragma">{-# LANGUAGE DeriveDataTypeable #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Types.DumpBuildInfo</span><span>
+</span><span id="line-4"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Distribution.Types.DumpBuildInfo.html#DumpBuildInfo"><span class="hs-identifier">DumpBuildInfo</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-5"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">data</span><span> </span><span id="DumpBuildInfo"><span class="annot"><a href="Distribution.Types.DumpBuildInfo.html#DumpBuildInfo"><span class="hs-identifier hs-var">DumpBuildInfo</span></a></span></span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="NoDumpBuildInfo"><span class="annot"><a href="Distribution.Types.DumpBuildInfo.html#NoDumpBuildInfo"><span class="hs-identifier hs-var">NoDumpBuildInfo</span></a></span></span><span>
+</span><span id="line-11"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="DumpBuildInfo"><span class="annot"><a href="Distribution.Types.DumpBuildInfo.html#DumpBuildInfo"><span class="hs-identifier hs-var">DumpBuildInfo</span></a></span></span><span>
+</span><span id="line-12"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679344301"><span id="local-6989586621679344305"><span id="local-6989586621679344308"><span id="local-6989586621679344313"><span class="annot"><span class="annottext">ReadPrec [DumpBuildInfo]
+ReadPrec DumpBuildInfo
+Int -&gt; ReadS DumpBuildInfo
+ReadS [DumpBuildInfo]
+(Int -&gt; ReadS DumpBuildInfo)
+-&gt; ReadS [DumpBuildInfo]
+-&gt; ReadPrec DumpBuildInfo
+-&gt; ReadPrec [DumpBuildInfo]
+-&gt; Read DumpBuildInfo
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+$creadsPrec :: Int -&gt; ReadS DumpBuildInfo
+readsPrec :: Int -&gt; ReadS DumpBuildInfo
+$creadList :: ReadS [DumpBuildInfo]
+readList :: ReadS [DumpBuildInfo]
+$creadPrec :: ReadPrec DumpBuildInfo
+readPrec :: ReadPrec DumpBuildInfo
+$creadListPrec :: ReadPrec [DumpBuildInfo]
+readListPrec :: ReadPrec [DumpBuildInfo]
+</span><a href="../../base-4.18.2.0/src/GHC.Read.html#Read/GHC.Read.html#Read"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></a></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679344317"><span id="local-6989586621679344319"><span id="local-6989586621679344323"><span class="annot"><span class="annottext">Int -&gt; DumpBuildInfo -&gt; ShowS
+[DumpBuildInfo] -&gt; ShowS
+DumpBuildInfo -&gt; String
+(Int -&gt; DumpBuildInfo -&gt; ShowS)
+-&gt; (DumpBuildInfo -&gt; String)
+-&gt; ([DumpBuildInfo] -&gt; ShowS)
+-&gt; Show DumpBuildInfo
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; DumpBuildInfo -&gt; ShowS
+showsPrec :: Int -&gt; DumpBuildInfo -&gt; ShowS
+$cshow :: DumpBuildInfo -&gt; String
+show :: DumpBuildInfo -&gt; String
+$cshowList :: [DumpBuildInfo] -&gt; ShowS
+showList :: [DumpBuildInfo] -&gt; ShowS
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679344327"><span id="local-6989586621679344329"><span class="annot"><span class="annottext">DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+(DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool)
+-&gt; (DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool) -&gt; Eq DumpBuildInfo
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+== :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+$c/= :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+/= :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679344336"><span id="local-6989586621679344338"><span id="local-6989586621679344340"><span id="local-6989586621679344344"><span id="local-6989586621679344347"><span id="local-6989586621679344350"><span id="local-6989586621679344353"><span class="annot"><span class="annottext">Eq DumpBuildInfo
+Eq DumpBuildInfo =&gt;
+(DumpBuildInfo -&gt; DumpBuildInfo -&gt; Ordering)
+-&gt; (DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool)
+-&gt; (DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool)
+-&gt; (DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool)
+-&gt; (DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool)
+-&gt; (DumpBuildInfo -&gt; DumpBuildInfo -&gt; DumpBuildInfo)
+-&gt; (DumpBuildInfo -&gt; DumpBuildInfo -&gt; DumpBuildInfo)
+-&gt; Ord DumpBuildInfo
+DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+DumpBuildInfo -&gt; DumpBuildInfo -&gt; Ordering
+DumpBuildInfo -&gt; DumpBuildInfo -&gt; DumpBuildInfo
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Ordering
+compare :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Ordering
+$c&lt; :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+&lt; :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+$c&lt;= :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+&lt;= :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+$c&gt; :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+&gt; :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+$c&gt;= :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+&gt;= :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bool
+$cmax :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; DumpBuildInfo
+max :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; DumpBuildInfo
+$cmin :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; DumpBuildInfo
+min :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; DumpBuildInfo
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679344357"><span id="local-6989586621679344365"><span id="local-6989586621679344371"><span id="local-6989586621679344381"><span id="local-6989586621679344383"><span id="local-6989586621679344387"><span id="local-6989586621679344391"><span id="local-6989586621679344395"><span class="annot"><span class="annottext">Int -&gt; DumpBuildInfo
+DumpBuildInfo -&gt; Int
+DumpBuildInfo -&gt; [DumpBuildInfo]
+DumpBuildInfo -&gt; DumpBuildInfo
+DumpBuildInfo -&gt; DumpBuildInfo -&gt; [DumpBuildInfo]
+DumpBuildInfo -&gt; DumpBuildInfo -&gt; DumpBuildInfo -&gt; [DumpBuildInfo]
+(DumpBuildInfo -&gt; DumpBuildInfo)
+-&gt; (DumpBuildInfo -&gt; DumpBuildInfo)
+-&gt; (Int -&gt; DumpBuildInfo)
+-&gt; (DumpBuildInfo -&gt; Int)
+-&gt; (DumpBuildInfo -&gt; [DumpBuildInfo])
+-&gt; (DumpBuildInfo -&gt; DumpBuildInfo -&gt; [DumpBuildInfo])
+-&gt; (DumpBuildInfo -&gt; DumpBuildInfo -&gt; [DumpBuildInfo])
+-&gt; (DumpBuildInfo
+    -&gt; DumpBuildInfo -&gt; DumpBuildInfo -&gt; [DumpBuildInfo])
+-&gt; Enum DumpBuildInfo
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: DumpBuildInfo -&gt; DumpBuildInfo
+succ :: DumpBuildInfo -&gt; DumpBuildInfo
+$cpred :: DumpBuildInfo -&gt; DumpBuildInfo
+pred :: DumpBuildInfo -&gt; DumpBuildInfo
+$ctoEnum :: Int -&gt; DumpBuildInfo
+toEnum :: Int -&gt; DumpBuildInfo
+$cfromEnum :: DumpBuildInfo -&gt; Int
+fromEnum :: DumpBuildInfo -&gt; Int
+$cenumFrom :: DumpBuildInfo -&gt; [DumpBuildInfo]
+enumFrom :: DumpBuildInfo -&gt; [DumpBuildInfo]
+$cenumFromThen :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; [DumpBuildInfo]
+enumFromThen :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; [DumpBuildInfo]
+$cenumFromTo :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; [DumpBuildInfo]
+enumFromTo :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; [DumpBuildInfo]
+$cenumFromThenTo :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; DumpBuildInfo -&gt; [DumpBuildInfo]
+enumFromThenTo :: DumpBuildInfo -&gt; DumpBuildInfo -&gt; DumpBuildInfo -&gt; [DumpBuildInfo]
+</span><a href="../../base-4.18.2.0/src/GHC.Enum.html#Enum/GHC.Enum.html#Enum"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Enum</span></a></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679344399"><span id="local-6989586621679344401"><span class="annot"><span class="annottext">DumpBuildInfo
+DumpBuildInfo -&gt; DumpBuildInfo -&gt; Bounded DumpBuildInfo
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: DumpBuildInfo
+minBound :: DumpBuildInfo
+$cmaxBound :: DumpBuildInfo
+maxBound :: DumpBuildInfo
+</span><a href="../../base-4.18.2.0/src/GHC.Enum.html#Bounded/GHC.Enum.html#Bounded"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></a></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679344405"><span id="local-6989586621679344407"><span class="annot"><span class="annottext">(forall x. DumpBuildInfo -&gt; Rep DumpBuildInfo x)
+-&gt; (forall x. Rep DumpBuildInfo x -&gt; DumpBuildInfo)
+-&gt; Generic DumpBuildInfo
+forall x. Rep DumpBuildInfo x -&gt; DumpBuildInfo
+forall x. DumpBuildInfo -&gt; Rep DumpBuildInfo x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. DumpBuildInfo -&gt; Rep DumpBuildInfo x
+from :: forall x. DumpBuildInfo -&gt; Rep DumpBuildInfo x
+$cto :: forall x. Rep DumpBuildInfo x -&gt; DumpBuildInfo
+to :: forall x. Rep DumpBuildInfo x -&gt; DumpBuildInfo
+</span><a href="../../base-4.18.2.0/src/GHC.Generics.html#Generic/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></a></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Typeable.Internal.html#Typeable/Data.Typeable.Internal.html#Typeable"><span class="hs-identifier hs-type">Typeable</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679344411"><span id="local-6989586621679344418"><span id="local-6989586621679344424"><span class="annot"><span class="hs-identifier hs-type">Binary</span></span><span> </span><span class="annot"><a href="Distribution.Types.DumpBuildInfo.html#DumpBuildInfo"><span class="hs-identifier hs-type">DumpBuildInfo</span></a></span></span></span></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679344451"><span id="local-6989586621679344458"><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Structured.html#Structured/Distribution.Utils.Structured.html#Structured"><span class="hs-identifier hs-type">Structured</span></a></span><span> </span><span class="annot"><a href="Distribution.Types.DumpBuildInfo.html#DumpBuildInfo"><span class="hs-identifier hs-type">DumpBuildInfo</span></a></span></span></span><span>
+</span><span id="line-16"></span></pre></body></html>

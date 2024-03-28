@@ -1,0 +1,205 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveFunctor #-}</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- Note: This module was copied from cabal-install.</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- | A progress monad, which we use to report failure and logging from</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- otherwise pure code.</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Utils.Progress</span><span>
+</span><span id="line-8"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Distribution.Utils.Progress.html#Progress"><span class="hs-identifier">Progress</span></a></span><span>
+</span><span id="line-9"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Utils.Progress.html#stepProgress"><span class="hs-identifier">stepProgress</span></a></span><span>
+</span><span id="line-10"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Utils.Progress.html#failProgress"><span class="hs-identifier">failProgress</span></a></span><span>
+</span><span id="line-11"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Utils.Progress.html#foldProgress"><span class="hs-identifier">foldProgress</span></a></span><span>
+</span><span id="line-12"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Monoid.html#/Data.Monoid.html"><span class="hs-identifier">Data.Monoid</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Mon</span></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- | A type to represent the unfolding of an expensive long running</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- calculation that may fail (or maybe not expensive, but complicated!)</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- We may get intermediate steps before the final</span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- result which may be used to indicate progress and\/or logging messages.</span><span>
+</span><span id="line-24"></span><span class="hs-comment">--</span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- TODO: Apply Codensity to avoid left-associativity problem.</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- See http://comonad.com/reader/2011/free-monads-for-less/ and</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- http://blog.ezyang.com/2012/01/problem-set-the-codensity-transformation/</span><span>
+</span><span id="line-28"></span><span class="hs-comment">--</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">data</span><span> </span><span id="Progress"><span class="annot"><a href="Distribution.Utils.Progress.html#Progress"><span class="hs-identifier hs-var">Progress</span></a></span></span><span> </span><span id="local-6989586621679345118"><span class="annot"><a href="#local-6989586621679345118"><span class="hs-identifier hs-type">step</span></a></span></span><span> </span><span id="local-6989586621679345119"><span class="annot"><a href="#local-6989586621679345119"><span class="hs-identifier hs-type">fail</span></a></span></span><span> </span><span id="local-6989586621679345120"><span class="annot"><a href="#local-6989586621679345120"><span class="hs-identifier hs-type">done</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Step"><span class="annot"><a href="Distribution.Utils.Progress.html#Step"><span class="hs-identifier hs-var">Step</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679345118"><span class="hs-identifier hs-type">step</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Progress.html#Progress"><span class="hs-identifier hs-type">Progress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345118"><span class="hs-identifier hs-type">step</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345119"><span class="hs-identifier hs-type">fail</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345120"><span class="hs-identifier hs-type">done</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span>                             </span><span class="hs-glyph">|</span><span> </span><span id="Fail"><span class="annot"><a href="Distribution.Utils.Progress.html#Fail"><span class="hs-identifier hs-var">Fail</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679345119"><span class="hs-identifier hs-type">fail</span></a></span><span>
+</span><span id="line-31"></span><span>                             </span><span class="hs-glyph">|</span><span> </span><span id="Done"><span class="annot"><a href="Distribution.Utils.Progress.html#Done"><span class="hs-identifier hs-var">Done</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679345120"><span class="hs-identifier hs-type">done</span></a></span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679345188"><span id="local-6989586621679345192"><span class="annot"><span class="annottext">(forall a b.
+ (a -&gt; b) -&gt; Progress step fail a -&gt; Progress step fail b)
+-&gt; (forall a b. a -&gt; Progress step fail b -&gt; Progress step fail a)
+-&gt; Functor (Progress step fail)
+forall a b. a -&gt; Progress step fail b -&gt; Progress step fail a
+forall a b.
+(a -&gt; b) -&gt; Progress step fail a -&gt; Progress step fail b
+forall step fail a b.
+a -&gt; Progress step fail b -&gt; Progress step fail a
+forall step fail a b.
+(a -&gt; b) -&gt; Progress step fail a -&gt; Progress step fail b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall step fail a b.
+(a -&gt; b) -&gt; Progress step fail a -&gt; Progress step fail b
+fmap :: forall a b.
+(a -&gt; b) -&gt; Progress step fail a -&gt; Progress step fail b
+$c&lt;$ :: forall step fail a b.
+a -&gt; Progress step fail b -&gt; Progress step fail a
+&lt;$ :: forall a b. a -&gt; Progress step fail b -&gt; Progress step fail a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#Functor/GHC.Base.html#Functor"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></a></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- | Emit a step and then continue.</span><span>
+</span><span id="line-35"></span><span class="hs-comment">--</span><span>
+</span><span id="line-36"></span><span id="local-6989586621679345114"><span id="local-6989586621679345115"><span class="annot"><a href="Distribution.Utils.Progress.html#stepProgress"><span class="hs-identifier hs-type">stepProgress</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679345114"><span class="hs-identifier hs-type">step</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.Progress.html#Progress"><span class="hs-identifier hs-type">Progress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345114"><span class="hs-identifier hs-type">step</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345115"><span class="hs-identifier hs-type">fail</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-37"></span><span id="stepProgress"><span class="annot"><span class="annottext">stepProgress :: forall step fail. step -&gt; Progress step fail ()
+</span><a href="Distribution.Utils.Progress.html#stepProgress"><span class="hs-identifier hs-var hs-var">stepProgress</span></a></span></span><span> </span><span id="local-6989586621679345195"><span class="annot"><span class="annottext">step
+</span><a href="#local-6989586621679345195"><span class="hs-identifier hs-var">step</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">step -&gt; Progress step fail () -&gt; Progress step fail ()
+forall step fail done.
+step -&gt; Progress step fail done -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#Step"><span class="hs-identifier hs-var">Step</span></a></span><span> </span><span class="annot"><span class="annottext">step
+</span><a href="#local-6989586621679345195"><span class="hs-identifier hs-var">step</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">() -&gt; Progress step fail ()
+forall step fail done. done -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#Done"><span class="hs-identifier hs-var">Done</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="annot"><span class="hs-comment">-- | Fail the computation.</span></span><span>
+</span><span id="line-40"></span><span id="local-6989586621679345121"><span id="local-6989586621679345122"><span id="local-6989586621679345123"><span class="annot"><a href="Distribution.Utils.Progress.html#failProgress"><span class="hs-identifier hs-type">failProgress</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679345121"><span class="hs-identifier hs-type">fail</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.Progress.html#Progress"><span class="hs-identifier hs-type">Progress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345122"><span class="hs-identifier hs-type">step</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345121"><span class="hs-identifier hs-type">fail</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345123"><span class="hs-identifier hs-type">done</span></a></span></span></span></span><span>
+</span><span id="line-41"></span><span id="failProgress"><span class="annot"><span class="annottext">failProgress :: forall fail step done. fail -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#failProgress"><span class="hs-identifier hs-var hs-var">failProgress</span></a></span></span><span> </span><span id="local-6989586621679345196"><span class="annot"><span class="annottext">fail
+</span><a href="#local-6989586621679345196"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">fail -&gt; Progress step fail done
+forall step fail done. fail -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#Fail"><span class="hs-identifier hs-var">Fail</span></a></span><span> </span><span class="annot"><span class="annottext">fail
+</span><a href="#local-6989586621679345196"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- | Consume a 'Progress' calculation. Much like 'foldr' for lists but with two</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- base cases, one for a final result and one for failure.</span><span>
+</span><span id="line-45"></span><span class="hs-comment">--</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- Eg to convert into a simple 'Either' result use:</span><span>
+</span><span id="line-47"></span><span class="hs-comment">--</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- &gt; foldProgress (flip const) Left Right</span><span>
+</span><span id="line-49"></span><span class="hs-comment">--</span><span>
+</span><span id="line-50"></span><span id="local-6989586621679345127"><span id="local-6989586621679345128"><span id="local-6989586621679345129"><span id="local-6989586621679345130"><span class="annot"><a href="Distribution.Utils.Progress.html#foldProgress"><span class="hs-identifier hs-type">foldProgress</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679345127"><span class="hs-identifier hs-type">step</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679345128"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679345128"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679345129"><span class="hs-identifier hs-type">fail</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679345128"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679345130"><span class="hs-identifier hs-type">done</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679345128"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.Progress.html#Progress"><span class="hs-identifier hs-type">Progress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345127"><span class="hs-identifier hs-type">step</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345129"><span class="hs-identifier hs-type">fail</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345130"><span class="hs-identifier hs-type">done</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679345128"><span class="hs-identifier hs-type">a</span></a></span></span></span></span></span><span>
+</span><span id="line-52"></span><span id="foldProgress"><span class="annot"><span class="annottext">foldProgress :: forall step a fail done.
+(step -&gt; a -&gt; a)
+-&gt; (fail -&gt; a) -&gt; (done -&gt; a) -&gt; Progress step fail done -&gt; a
+</span><a href="Distribution.Utils.Progress.html#foldProgress"><span class="hs-identifier hs-var hs-var">foldProgress</span></a></span></span><span> </span><span id="local-6989586621679345198"><span class="annot"><span class="annottext">step -&gt; a -&gt; a
+</span><a href="#local-6989586621679345198"><span class="hs-identifier hs-var">step</span></a></span></span><span> </span><span id="local-6989586621679345199"><span class="annot"><span class="annottext">fail -&gt; a
+</span><a href="#local-6989586621679345199"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span id="local-6989586621679345200"><span class="annot"><span class="annottext">done -&gt; a
+</span><a href="#local-6989586621679345200"><span class="hs-identifier hs-var">done</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Progress step fail done -&gt; a
+</span><a href="#local-6989586621679345201"><span class="hs-identifier hs-var">fold</span></a></span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679345201"><span class="annot"><span class="annottext">fold :: Progress step fail done -&gt; a
+</span><a href="#local-6989586621679345201"><span class="hs-identifier hs-var hs-var">fold</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Progress.html#Step"><span class="hs-identifier hs-type">Step</span></a></span><span> </span><span id="local-6989586621679345202"><span class="annot"><span class="annottext">step
+</span><a href="#local-6989586621679345202"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679345203"><span class="annot"><span class="annottext">Progress step fail done
+</span><a href="#local-6989586621679345203"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">step -&gt; a -&gt; a
+</span><a href="#local-6989586621679345198"><span class="hs-identifier hs-var">step</span></a></span><span> </span><span class="annot"><span class="annottext">step
+</span><a href="#local-6989586621679345202"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Progress step fail done -&gt; a
+</span><a href="#local-6989586621679345201"><span class="hs-identifier hs-var">fold</span></a></span><span> </span><span class="annot"><span class="annottext">Progress step fail done
+</span><a href="#local-6989586621679345203"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span>        </span><span class="annot"><a href="#local-6989586621679345201"><span class="hs-identifier hs-var">fold</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Progress.html#Fail"><span class="hs-identifier hs-type">Fail</span></a></span><span> </span><span id="local-6989586621679345204"><span class="annot"><span class="annottext">fail
+</span><a href="#local-6989586621679345204"><span class="hs-identifier hs-var">f</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">fail -&gt; a
+</span><a href="#local-6989586621679345199"><span class="hs-identifier hs-var">err</span></a></span><span> </span><span class="annot"><span class="annottext">fail
+</span><a href="#local-6989586621679345204"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-55"></span><span>        </span><span class="annot"><a href="#local-6989586621679345201"><span class="hs-identifier hs-var">fold</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Progress.html#Done"><span class="hs-identifier hs-type">Done</span></a></span><span> </span><span id="local-6989586621679345205"><span class="annot"><span class="annottext">done
+</span><a href="#local-6989586621679345205"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">done -&gt; a
+</span><a href="#local-6989586621679345200"><span class="hs-identifier hs-var">done</span></a></span><span> </span><span class="annot"><span class="annottext">done
+</span><a href="#local-6989586621679345205"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679345143"><span id="local-6989586621679345144"><span id="local-6989586621679345211"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#Monad/GHC.Base.html#Monad"><span class="hs-identifier hs-type">Monad</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Progress.html#Progress"><span class="hs-identifier hs-type">Progress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345143"><span class="hs-identifier hs-type">step</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345144"><span class="hs-identifier hs-type">fail</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-58"></span><span>  </span><span id="local-6989586621679345217"><span class="annot"><span class="annottext">return :: forall a. a -&gt; Progress step fail a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var hs-var hs-var hs-var">return</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Progress step fail a
+forall a. a -&gt; Progress step fail a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#pure/GHC.Base.html#pure"><span class="hs-identifier hs-var">pure</span></a></span><span>
+</span><span id="line-59"></span><span>  </span><span id="local-6989586621679345218"><span class="annot"><span class="annottext">Progress step fail a
+</span><a href="#local-6989586621679345218"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679345219"><span class="annot"><span class="annottext">&gt;&gt;= :: forall a b.
+Progress step fail a
+-&gt; (a -&gt; Progress step fail b) -&gt; Progress step fail b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3E%3E%3D/GHC.Base.html#%3E%3E%3D"><span class="hs-operator hs-var hs-var hs-var hs-var">&gt;&gt;=</span></a></span></span><span> </span><span id="local-6989586621679345220"><span class="annot"><span class="annottext">a -&gt; Progress step fail b
+</span><a href="#local-6989586621679345220"><span class="hs-identifier hs-var">f</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(step -&gt; Progress step fail b -&gt; Progress step fail b)
+-&gt; (fail -&gt; Progress step fail b)
+-&gt; (a -&gt; Progress step fail b)
+-&gt; Progress step fail a
+-&gt; Progress step fail b
+forall step a fail done.
+(step -&gt; a -&gt; a)
+-&gt; (fail -&gt; a) -&gt; (done -&gt; a) -&gt; Progress step fail done -&gt; a
+</span><a href="Distribution.Utils.Progress.html#foldProgress"><span class="hs-identifier hs-var">foldProgress</span></a></span><span> </span><span class="annot"><span class="annottext">step -&gt; Progress step fail b -&gt; Progress step fail b
+forall step fail done.
+step -&gt; Progress step fail done -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#Step"><span class="hs-identifier hs-var">Step</span></a></span><span> </span><span class="annot"><span class="annottext">fail -&gt; Progress step fail b
+forall step fail done. fail -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#Fail"><span class="hs-identifier hs-var">Fail</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; Progress step fail b
+</span><a href="#local-6989586621679345220"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Progress step fail a
+</span><a href="#local-6989586621679345218"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679345221"><span id="local-6989586621679345222"><span id="local-6989586621679345228"><span id="local-6989586621679345231"><span id="local-6989586621679345234"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#Applicative/GHC.Base.html#Applicative"><span class="hs-identifier hs-type">Applicative</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Progress.html#Progress"><span class="hs-identifier hs-type">Progress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345221"><span class="hs-identifier hs-type">step</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345222"><span class="hs-identifier hs-type">fail</span></a></span><span class="hs-special">)</span></span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-62"></span><span>  </span><span id="local-6989586621679345237"><span class="annot"><span class="annottext">pure :: forall a. a -&gt; Progress step fail a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#pure/GHC.Base.html#pure"><span class="hs-identifier hs-var hs-var hs-var hs-var">pure</span></a></span></span><span> </span><span id="local-6989586621679345238"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679345238"><span class="hs-identifier hs-var">a</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Progress step fail a
+forall step fail done. done -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#Done"><span class="hs-identifier hs-var">Done</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679345238"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-63"></span><span>  </span><span id="local-6989586621679345240"><span class="annot"><span class="annottext">Progress step fail (a -&gt; b)
+</span><a href="#local-6989586621679345240"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679345241"><span class="annot"><span class="annottext">&lt;*&gt; :: forall a b.
+Progress step fail (a -&gt; b)
+-&gt; Progress step fail a -&gt; Progress step fail b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%2A%3E/GHC.Base.html#%3C%2A%3E"><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;*&gt;</span></a></span></span><span> </span><span id="local-6989586621679345242"><span class="annot"><span class="annottext">Progress step fail a
+</span><a href="#local-6989586621679345242"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(step -&gt; Progress step fail b -&gt; Progress step fail b)
+-&gt; (fail -&gt; Progress step fail b)
+-&gt; ((a -&gt; b) -&gt; Progress step fail b)
+-&gt; Progress step fail (a -&gt; b)
+-&gt; Progress step fail b
+forall step a fail done.
+(step -&gt; a -&gt; a)
+-&gt; (fail -&gt; a) -&gt; (done -&gt; a) -&gt; Progress step fail done -&gt; a
+</span><a href="Distribution.Utils.Progress.html#foldProgress"><span class="hs-identifier hs-var">foldProgress</span></a></span><span> </span><span class="annot"><span class="annottext">step -&gt; Progress step fail b -&gt; Progress step fail b
+forall step fail done.
+step -&gt; Progress step fail done -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#Step"><span class="hs-identifier hs-var">Step</span></a></span><span> </span><span class="annot"><span class="annottext">fail -&gt; Progress step fail b
+forall step fail done. fail -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#Fail"><span class="hs-identifier hs-var">Fail</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">((a -&gt; b) -&gt; Progress step fail a -&gt; Progress step fail b)
+-&gt; Progress step fail a -&gt; (a -&gt; b) -&gt; Progress step fail b
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#flip/GHC.Base.html#flip"><span class="hs-identifier hs-var">flip</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; b) -&gt; Progress step fail a -&gt; Progress step fail b
+forall a b.
+(a -&gt; b) -&gt; Progress step fail a -&gt; Progress step fail b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#fmap/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span class="annot"><span class="annottext">Progress step fail a
+</span><a href="#local-6989586621679345242"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Progress step fail (a -&gt; b)
+</span><a href="#local-6989586621679345240"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679345174"><span id="local-6989586621679345175"><span id="local-6989586621679345250"><span id="local-6989586621679345254"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#Monoid/GHC.Base.html#Monoid"><span class="hs-identifier hs-type">Monoid</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345174"><span class="hs-identifier hs-type">fail</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#Alternative/GHC.Base.html#Alternative"><span class="hs-identifier hs-type">Alternative</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Utils.Progress.html#Progress"><span class="hs-identifier hs-type">Progress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345175"><span class="hs-identifier hs-type">step</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679345174"><span class="hs-identifier hs-type">fail</span></a></span><span class="hs-special">)</span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-66"></span><span>  </span><span id="local-6989586621679345258"><span class="annot"><span class="annottext">empty :: forall a. Progress step fail a
+</span><a href="#local-6989586621679345258"><span class="hs-identifier hs-var hs-var hs-var hs-var">empty</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">fail -&gt; Progress step fail a
+forall step fail done. fail -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#Fail"><span class="hs-identifier hs-var">Fail</span></a></span><span> </span><span class="annot"><span class="annottext">fail
+forall a. Monoid a =&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#mempty/GHC.Base.html#mempty"><span class="hs-identifier hs-var">Mon.mempty</span></a></span><span>
+</span><span id="line-67"></span><span>  </span><span id="local-6989586621679345260"><span class="annot"><span class="annottext">Progress step fail a
+</span><a href="#local-6989586621679345260"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679345261"><span class="annot"><span class="annottext">&lt;|&gt; :: forall a.
+Progress step fail a
+-&gt; Progress step fail a -&gt; Progress step fail a
+</span><a href="#local-6989586621679345261"><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;|&gt;</span></a></span></span><span> </span><span id="local-6989586621679345263"><span class="annot"><span class="annottext">Progress step fail a
+</span><a href="#local-6989586621679345263"><span class="hs-identifier hs-var">q</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(step -&gt; Progress step fail a -&gt; Progress step fail a)
+-&gt; (fail -&gt; Progress step fail a)
+-&gt; (a -&gt; Progress step fail a)
+-&gt; Progress step fail a
+-&gt; Progress step fail a
+forall step a fail done.
+(step -&gt; a -&gt; a)
+-&gt; (fail -&gt; a) -&gt; (done -&gt; a) -&gt; Progress step fail done -&gt; a
+</span><a href="Distribution.Utils.Progress.html#foldProgress"><span class="hs-identifier hs-var">foldProgress</span></a></span><span> </span><span class="annot"><span class="annottext">step -&gt; Progress step fail a -&gt; Progress step fail a
+forall step fail done.
+step -&gt; Progress step fail done -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#Step"><span class="hs-identifier hs-var">Step</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Progress step fail a -&gt; fail -&gt; Progress step fail a
+forall a b. a -&gt; b -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#const/GHC.Base.html#const"><span class="hs-identifier hs-var">const</span></a></span><span> </span><span class="annot"><span class="annottext">Progress step fail a
+</span><a href="#local-6989586621679345263"><span class="hs-identifier hs-var">q</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a -&gt; Progress step fail a
+forall step fail done. done -&gt; Progress step fail done
+</span><a href="Distribution.Utils.Progress.html#Done"><span class="hs-identifier hs-var">Done</span></a></span><span> </span><span class="annot"><span class="annottext">Progress step fail a
+</span><a href="#local-6989586621679345260"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-68"></span></pre></body></html>

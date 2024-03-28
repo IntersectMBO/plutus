@@ -1,0 +1,3 @@
+This package provides combinators for producing
+XHTML 1.0, including the Strict, Transitional and
+Frameset variants.

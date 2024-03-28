@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- Module      :  Distribution.Lex</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Copyright   :  Ben Gamari 2015-2019</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Maintainer  :  cabal-devel@haskell.org</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-8"></span><span class="hs-comment">--</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- This module contains a simple lexer supporting quoted strings</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Lex</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-12"></span><span>        </span><span class="annot"><a href="Distribution.Lex.html#tokenizeQuotedWords"><span class="hs-identifier">tokenizeQuotedWords</span></a></span><span>
+</span><span id="line-13"></span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.DList.html#/Distribution.Compat.DList.html"><span class="hs-identifier">Distribution.Compat.DList</span></a></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="annot"><a href="Distribution.Lex.html#tokenizeQuotedWords"><span class="hs-identifier hs-type">tokenizeQuotedWords</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-20"></span><span id="tokenizeQuotedWords"><span class="annot"><span class="annottext">tokenizeQuotedWords :: String -&gt; [String]
+</span><a href="Distribution.Lex.html#tokenizeQuotedWords"><span class="hs-identifier hs-var hs-var">tokenizeQuotedWords</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Bool) -&gt; [String] -&gt; [String]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.List.html#filter/GHC.List.html#filter"><span class="hs-identifier hs-var">filter</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; Bool) -&gt; (String -&gt; Bool) -&gt; String -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; Bool
+forall a. [a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#null/Data.Foldable.html#null"><span class="hs-identifier hs-var">null</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([String] -&gt; [String])
+-&gt; (String -&gt; [String]) -&gt; String -&gt; [String]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; DList Char -&gt; String -&gt; [String]
+</span><a href="#local-6989586621679340247"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">DList Char
+forall a. Monoid a =&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#mempty/GHC.Base.html#mempty"><span class="hs-identifier hs-var">mempty</span></a></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><a href="#local-6989586621679340247"><span class="hs-identifier hs-type">go</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>        </span><span class="hs-comment">-- ^ in quoted region</span><span>
+</span><span id="line-23"></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.DList.html#DList/Distribution.Compat.DList.html#DList"><span class="hs-identifier hs-type">DList</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>  </span><span class="hs-comment">-- ^ accumulator</span><span>
+</span><span id="line-24"></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>      </span><span class="hs-comment">-- ^ string to be parsed</span><span>
+</span><span id="line-25"></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span>    </span><span class="hs-comment">-- ^ parse result</span><span>
+</span><span id="line-26"></span><span>    </span><span id="local-6989586621679340247"><span class="annot"><span class="annottext">go :: Bool -&gt; DList Char -&gt; String -&gt; [String]
+</span><a href="#local-6989586621679340247"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679340248"><span class="annot"><span class="annottext">DList Char
+</span><a href="#local-6989586621679340248"><span class="hs-identifier hs-var">accum</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-27"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340249"><span class="hs-identifier hs-var">accum'</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-28"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#otherwise/GHC.Base.html#otherwise"><span class="hs-identifier hs-var">otherwise</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340249"><span class="hs-identifier hs-var">accum'</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-29"></span><span>      </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679340249"><span class="annot"><span class="annottext">accum' :: String
+</span><a href="#local-6989586621679340249"><span class="hs-identifier hs-var hs-var">accum'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Char -&gt; String
+forall a. DList a -&gt; [a]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.DList.html#runDList/Distribution.Compat.DList.html#runDList"><span class="hs-identifier hs-var">runDList</span></a></span><span> </span><span class="annot"><span class="annottext">DList Char
+</span><a href="#local-6989586621679340248"><span class="hs-identifier hs-var">accum</span></a></span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span>    </span><span class="annot"><a href="#local-6989586621679340247"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>  </span><span id="local-6989586621679340251"><span class="annot"><span class="annottext">DList Char
+</span><a href="#local-6989586621679340251"><span class="hs-identifier hs-var">accum</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679340252"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679340252"><span class="hs-identifier hs-var">c</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679340253"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340253"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Unicode.html#isSpace/GHC.Unicode.html#isSpace"><span class="hs-identifier hs-var">isSpace</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679340252"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">DList Char -&gt; String
+forall a. DList a -&gt; [a]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.DList.html#runDList/Distribution.Compat.DList.html#runDList"><span class="hs-identifier hs-var">runDList</span></a></span><span> </span><span class="annot"><span class="annottext">DList Char
+</span><a href="#local-6989586621679340251"><span class="hs-identifier hs-var">accum</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; [String]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; DList Char -&gt; String -&gt; [String]
+</span><a href="#local-6989586621679340247"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">DList Char
+forall a. Monoid a =&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#mempty/GHC.Base.html#mempty"><span class="hs-identifier hs-var">mempty</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340253"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-33"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679340252"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; DList Char -&gt; String -&gt; [String]
+</span><a href="#local-6989586621679340247"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">DList Char
+</span><a href="#local-6989586621679340251"><span class="hs-identifier hs-var">accum</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340253"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><a href="#local-6989586621679340247"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>   </span><span id="local-6989586621679340255"><span class="annot"><span class="annottext">DList Char
+</span><a href="#local-6989586621679340255"><span class="hs-identifier hs-var">accum</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679340256"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679340256"><span class="hs-identifier hs-var">c</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679340257"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340257"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679340256"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; DList Char -&gt; String -&gt; [String]
+</span><a href="#local-6989586621679340247"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">DList Char
+</span><a href="#local-6989586621679340255"><span class="hs-identifier hs-var">accum</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340257"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span>    </span><span class="annot"><a href="#local-6989586621679340247"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span id="local-6989586621679340258"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679340258"><span class="hs-identifier hs-var">quoted</span></a></span></span><span> </span><span id="local-6989586621679340259"><span class="annot"><span class="annottext">DList Char
+</span><a href="#local-6989586621679340259"><span class="hs-identifier hs-var">accum</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679340260"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679340260"><span class="hs-identifier hs-var">c</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679340261"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340261"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>                  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; DList Char -&gt; String -&gt; [String]
+</span><a href="#local-6989586621679340247"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679340258"><span class="hs-identifier hs-var">quoted</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DList Char
+</span><a href="#local-6989586621679340259"><span class="hs-identifier hs-var">accum</span></a></span><span> </span><span class="annot"><span class="annottext">DList Char -&gt; DList Char -&gt; DList Char
+forall a. Monoid a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#mappend/GHC.Base.html#mappend"><span class="hs-operator hs-var">`mappend`</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; DList Char
+forall a. a -&gt; DList a
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.DList.html#singleton/Distribution.Compat.DList.html#singleton"><span class="hs-identifier hs-var">singleton</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679340260"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340261"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span></pre></body></html>

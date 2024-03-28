@@ -1,0 +1,919 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE PatternGuards #-}</span><span>
+</span><span id="line-2"></span><span class="annot"><span class="hs-comment">-- | See &lt;https://github.com/ezyang/ghc-proposals/blob/backpack/proposals/0000-backpack.rst&gt;</span></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Backpack.ConfiguredComponent</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-4"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier">ConfiguredComponent</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-5"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#cc_name"><span class="hs-identifier">cc_name</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#cc_cid"><span class="hs-identifier">cc_cid</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#cc_pkgid"><span class="hs-identifier">cc_pkgid</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#toConfiguredComponent"><span class="hs-identifier">toConfiguredComponent</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#toConfiguredComponents"><span class="hs-identifier">toConfiguredComponents</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#dispConfiguredComponent"><span class="hs-identifier">dispConfiguredComponent</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponentMap"><span class="hs-identifier">ConfiguredComponentMap</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#extendConfiguredComponentMap"><span class="hs-identifier">extendConfiguredComponentMap</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span>    </span><span class="hs-comment">-- TODO: Should go somewhere else</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#newPackageDepsBehaviour"><span class="hs-identifier">newPackageDepsBehaviour</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#%3C%3E/GHC.Base.html#%3C%3E"><span class="hs-operator">(&lt;&gt;)</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Backpack.Id.html"><span class="hs-identifier">Distribution.Backpack.Id</span></a></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.CabalSpecVersion.html#/Distribution.CabalSpecVersion.html"><span class="hs-identifier">Distribution.CabalSpecVersion</span></a></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Types.AnnotatedId.html"><span class="hs-identifier">Distribution.Types.AnnotatedId</span></a></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Dependency.html#/Distribution.Types.Dependency.html"><span class="hs-identifier">Distribution.Types.Dependency</span></a></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ExeDependency.html#/Distribution.Types.ExeDependency.html"><span class="hs-identifier">Distribution.Types.ExeDependency</span></a></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.IncludeRenaming.html#/Distribution.Types.IncludeRenaming.html"><span class="hs-identifier">Distribution.Types.IncludeRenaming</span></a></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#/Distribution.Types.ComponentId.html"><span class="hs-identifier">Distribution.Types.ComponentId</span></a></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#/Distribution.Types.PackageId.html"><span class="hs-identifier">Distribution.Types.PackageId</span></a></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#/Distribution.Types.PackageName.html"><span class="hs-identifier">Distribution.Types.PackageName</span></a></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Mixin.html#/Distribution.Types.Mixin.html"><span class="hs-identifier">Distribution.Types.Mixin</span></a></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#/Distribution.Types.ComponentName.html"><span class="hs-identifier">Distribution.Types.ComponentName</span></a></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#/Distribution.Types.LibraryName.html"><span class="hs-identifier">Distribution.Types.LibraryName</span></a></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentInclude.html"><span class="hs-identifier">Distribution.Types.ComponentInclude</span></a></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#/Distribution.Package.html"><span class="hs-identifier">Distribution.Package</span></a></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.PackageDescription.html#/Distribution.PackageDescription.html"><span class="hs-identifier">Distribution.PackageDescription</span></a></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.BuildToolDepends.html"><span class="hs-identifier">Distribution.Simple.BuildToolDepends</span></a></span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html"><span class="hs-identifier">Distribution.Simple.Setup</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Setup</span></span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html"><span class="hs-identifier">Distribution.Simple.LocalBuildInfo</span></a></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html"><span class="hs-identifier">Distribution.Utils.LogProgress</span></a></span><span>
+</span><span id="line-42"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Utils.MapAccum.html"><span class="hs-identifier">Distribution.Utils.MapAccum</span></a></span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#/Distribution.Utils.Generic.html"><span class="hs-identifier">Distribution.Utils.Generic</span></a></span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Control.Monad.html#/Control.Monad.html"><span class="hs-identifier">Control.Monad</span></a></span><span>
+</span><span id="line-46"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Set.html#/Data.Set.html"><span class="hs-identifier">Data.Set</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Set</span></span><span>
+</span><span id="line-47"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.NonEmptySet.html#/Distribution.Compat.NonEmptySet.html"><span class="hs-identifier">Distribution.Compat.NonEmptySet</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">NonEmptySet</span></span><span>
+</span><span id="line-48"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.html#/Data.Map.html"><span class="hs-identifier">Data.Map</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Map</span></span><span>
+</span><span id="line-49"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#/Distribution.Pretty.html"><span class="hs-identifier">Distribution.Pretty</span></a></span><span>
+</span><span id="line-50"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.html#/Text.PrettyPrint.html"><span class="hs-identifier">Text.PrettyPrint</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier">Doc</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#hang/Text.PrettyPrint.HughesPJ.html#hang"><span class="hs-identifier">hang</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier">text</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#vcat/Text.PrettyPrint.HughesPJ.html#vcat"><span class="hs-identifier">vcat</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#hsep/Text.PrettyPrint.HughesPJ.html#hsep"><span class="hs-identifier">hsep</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#quotes/Text.PrettyPrint.HughesPJ.html#quotes"><span class="hs-identifier">quotes</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator">($$)</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.html#/Text.PrettyPrint.html"><span class="hs-identifier">Text.PrettyPrint</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">PP</span></span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- | A configured component, we know exactly what its 'ComponentId' is,</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- and the 'ComponentId's of the things it depends on.</span><span>
+</span><span id="line-55"></span><span class="hs-keyword">data</span><span> </span><span id="ConfiguredComponent"><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier hs-var">ConfiguredComponent</span></a></span></span><span>
+</span><span id="line-56"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="ConfiguredComponent"><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier hs-var">ConfiguredComponent</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-57"></span><span>        </span><span class="annot"><span class="hs-comment">-- | Unique identifier of component, plus extra useful info.</span></span><span>
+</span><span id="line-58"></span><span>        </span><span id="cc_ann_id"><span class="annot"><span class="annottext">ConfiguredComponent -&gt; AnnotatedId ComponentId
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_ann_id"><span class="hs-identifier hs-var hs-var">cc_ann_id</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-59"></span><span>        </span><span class="hs-comment">-- | The fragment of syntax from the Cabal file describing this</span><span>
+</span><span id="line-60"></span><span>        </span><span class="hs-comment">-- component.</span><span>
+</span><span id="line-61"></span><span>        </span><span id="cc_component"><span class="annot"><span class="annottext">ConfiguredComponent -&gt; Component
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_component"><span class="hs-identifier hs-var hs-var">cc_component</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#Component/Distribution.Types.Component.html#Component"><span class="hs-identifier hs-type">Component</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-62"></span><span>        </span><span class="hs-comment">-- | Is this the public library component of the package?</span><span>
+</span><span id="line-63"></span><span>        </span><span class="hs-comment">-- (If we invoke Setup with an instantiation, this is the</span><span>
+</span><span id="line-64"></span><span>        </span><span class="hs-comment">-- component the instantiation applies to.)</span><span>
+</span><span id="line-65"></span><span>        </span><span class="hs-comment">-- Note that in one-component configure mode, this is</span><span>
+</span><span id="line-66"></span><span>        </span><span class="hs-comment">-- always True, because any component is the &quot;public&quot; one.)</span><span>
+</span><span id="line-67"></span><span>        </span><span id="cc_public"><span class="annot"><span class="annottext">ConfiguredComponent -&gt; Bool
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_public"><span class="hs-identifier hs-var hs-var">cc_public</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-68"></span><span>        </span><span class="hs-comment">-- | Dependencies on executables from @build-tools@ and</span><span>
+</span><span id="line-69"></span><span>        </span><span class="hs-comment">-- @build-tool-depends@.</span><span>
+</span><span id="line-70"></span><span>        </span><span id="cc_exe_deps"><span class="annot"><span class="annottext">ConfiguredComponent -&gt; [AnnotatedId ComponentId]
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_exe_deps"><span class="hs-identifier hs-var hs-var">cc_exe_deps</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-71"></span><span>        </span><span class="hs-comment">-- | The mixins of this package, including both explicit (from</span><span>
+</span><span id="line-72"></span><span>        </span><span class="hs-comment">-- the @mixins@ field) and implicit (from @build-depends@).  Not</span><span>
+</span><span id="line-73"></span><span>        </span><span class="hs-comment">-- mix-in linked yet; component configuration only looks at</span><span>
+</span><span id="line-74"></span><span>        </span><span class="hs-comment">-- 'ComponentId's.</span><span>
+</span><span id="line-75"></span><span>        </span><span id="cc_includes"><span class="annot"><span class="annottext">ConfiguredComponent
+-&gt; [ComponentInclude ComponentId IncludeRenaming]
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_includes"><span class="hs-identifier hs-var hs-var">cc_includes</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ComponentInclude"><span class="hs-identifier hs-type">ComponentInclude</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.IncludeRenaming.html#IncludeRenaming/Distribution.Types.IncludeRenaming.html#IncludeRenaming"><span class="hs-identifier hs-type">IncludeRenaming</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-76"></span><span>      </span><span class="hs-special">}</span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="annot"><span class="hs-comment">-- | Uniquely identifies a configured component.</span></span><span>
+</span><span id="line-80"></span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#cc_cid"><span class="hs-identifier hs-type">cc_cid</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier hs-type">ConfiguredComponent</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span>
+</span><span id="line-81"></span><span id="cc_cid"><span class="annot"><span class="annottext">cc_cid :: ConfiguredComponent -&gt; ComponentId
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_cid"><span class="hs-identifier hs-var hs-var">cc_cid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId -&gt; ComponentId
+forall id. AnnotatedId id -&gt; id
+</span><a href="Distribution.Types.AnnotatedId.html#ann_id"><span class="hs-identifier hs-var">ann_id</span></a></span><span> </span><span class="annot"><span class="annottext">(AnnotatedId ComponentId -&gt; ComponentId)
+-&gt; (ConfiguredComponent -&gt; AnnotatedId ComponentId)
+-&gt; ConfiguredComponent
+-&gt; ComponentId
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent -&gt; AnnotatedId ComponentId
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_ann_id"><span class="hs-identifier hs-var">cc_ann_id</span></a></span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="annot"><span class="hs-comment">-- | The package this component came from.</span></span><span>
+</span><span id="line-84"></span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#cc_pkgid"><span class="hs-identifier hs-type">cc_pkgid</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier hs-type">ConfiguredComponent</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageId/Distribution.Types.PackageId.html#PackageId"><span class="hs-identifier hs-type">PackageId</span></a></span><span>
+</span><span id="line-85"></span><span id="cc_pkgid"><span class="annot"><span class="annottext">cc_pkgid :: ConfiguredComponent -&gt; PackageId
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_pkgid"><span class="hs-identifier hs-var hs-var">cc_pkgid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId -&gt; PackageId
+forall id. AnnotatedId id -&gt; PackageId
+</span><a href="Distribution.Types.AnnotatedId.html#ann_pid"><span class="hs-identifier hs-var">ann_pid</span></a></span><span> </span><span class="annot"><span class="annottext">(AnnotatedId ComponentId -&gt; PackageId)
+-&gt; (ConfiguredComponent -&gt; AnnotatedId ComponentId)
+-&gt; ConfiguredComponent
+-&gt; PackageId
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent -&gt; AnnotatedId ComponentId
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_ann_id"><span class="hs-identifier hs-var">cc_ann_id</span></a></span><span>
+</span><span id="line-86"></span><span>
+</span><span id="line-87"></span><span class="hs-comment">-- | The 'ComponentName' of a component; this uniquely identifies</span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- a fragment of syntax within a specified Cabal file describing the</span><span>
+</span><span id="line-89"></span><span class="hs-comment">-- component.</span><span>
+</span><span id="line-90"></span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#cc_name"><span class="hs-identifier hs-type">cc_name</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier hs-type">ConfiguredComponent</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier hs-type">ComponentName</span></a></span><span>
+</span><span id="line-91"></span><span id="cc_name"><span class="annot"><span class="annottext">cc_name :: ConfiguredComponent -&gt; ComponentName
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_name"><span class="hs-identifier hs-var hs-var">cc_name</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId -&gt; ComponentName
+forall id. AnnotatedId id -&gt; ComponentName
+</span><a href="Distribution.Types.AnnotatedId.html#ann_cname"><span class="hs-identifier hs-var">ann_cname</span></a></span><span> </span><span class="annot"><span class="annottext">(AnnotatedId ComponentId -&gt; ComponentName)
+-&gt; (ConfiguredComponent -&gt; AnnotatedId ComponentId)
+-&gt; ConfiguredComponent
+-&gt; ComponentName
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent -&gt; AnnotatedId ComponentId
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_ann_id"><span class="hs-identifier hs-var">cc_ann_id</span></a></span><span>
+</span><span id="line-92"></span><span>
+</span><span id="line-93"></span><span class="annot"><span class="hs-comment">-- | Pretty-print a 'ConfiguredComponent'.</span></span><span>
+</span><span id="line-94"></span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#dispConfiguredComponent"><span class="hs-identifier hs-type">dispConfiguredComponent</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier hs-type">ConfiguredComponent</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span>
+</span><span id="line-95"></span><span id="dispConfiguredComponent"><span class="annot"><span class="annottext">dispConfiguredComponent :: ConfiguredComponent -&gt; Doc
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#dispConfiguredComponent"><span class="hs-identifier hs-var hs-var">dispConfiguredComponent</span></a></span></span><span> </span><span id="local-6989586621679367132"><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367132"><span class="hs-identifier hs-var">cc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-96"></span><span>    </span><span class="annot"><span class="annottext">Doc -&gt; Int -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#hang/Text.PrettyPrint.HughesPJ.html#hang"><span class="hs-identifier hs-var">hang</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;component&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ConfiguredComponent -&gt; ComponentId
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_cid"><span class="hs-identifier hs-var">cc_cid</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367132"><span class="hs-identifier hs-var">cc</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">4</span></span><span>
+</span><span id="line-97"></span><span>         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Doc] -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#vcat/Text.PrettyPrint.HughesPJ.html#vcat"><span class="hs-identifier hs-var">vcat</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">[Doc] -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#hsep/Text.PrettyPrint.HughesPJ.html#hsep"><span class="hs-identifier hs-var">hsep</span></a></span><span> </span><span class="annot"><span class="annottext">([Doc] -&gt; Doc) -&gt; [Doc] -&gt; Doc
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;include&quot;</span></span><span>
+</span><span id="line-98"></span><span>                        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ComponentId -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentInclude ComponentId IncludeRenaming -&gt; ComponentId
+forall id rn. ComponentInclude id rn -&gt; id
+</span><a href="Distribution.Types.ComponentInclude.html#ci_id"><span class="hs-identifier hs-var">ci_id</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentInclude ComponentId IncludeRenaming
+</span><a href="#local-6989586621679367136"><span class="hs-identifier hs-var">incl</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">IncludeRenaming -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentInclude ComponentId IncludeRenaming -&gt; IncludeRenaming
+forall id rn. ComponentInclude id rn -&gt; rn
+</span><a href="Distribution.Types.ComponentInclude.html#ci_renaming"><span class="hs-identifier hs-var">ci_renaming</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentInclude ComponentId IncludeRenaming
+</span><a href="#local-6989586621679367136"><span class="hs-identifier hs-var">incl</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-99"></span><span>               </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679367136"><span class="annot"><span class="annottext">ComponentInclude ComponentId IncludeRenaming
+</span><a href="#local-6989586621679367136"><span class="hs-identifier hs-var">incl</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent
+-&gt; [ComponentInclude ComponentId IncludeRenaming]
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_includes"><span class="hs-identifier hs-var">cc_includes</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367132"><span class="hs-identifier hs-var">cc</span></a></span><span>
+</span><span id="line-100"></span><span>               </span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-101"></span><span>
+</span><span id="line-102"></span><span class="hs-comment">-- | Construct a 'ConfiguredComponent', given that the 'ComponentId'</span><span>
+</span><span id="line-103"></span><span class="hs-comment">-- and library/executable dependencies are known.  The primary</span><span>
+</span><span id="line-104"></span><span class="hs-comment">-- work this does is handling implicit @backpack-include@ fields.</span><span>
+</span><span id="line-105"></span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#mkConfiguredComponent"><span class="hs-identifier hs-type">mkConfiguredComponent</span></a></span><span>
+</span><span id="line-106"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span>
+</span><span id="line-107"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span>
+</span><span id="line-108"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-comment">-- lib deps</span><span>
+</span><span id="line-109"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-comment">-- exe deps</span><span>
+</span><span id="line-110"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#Component/Distribution.Types.Component.html#Component"><span class="hs-identifier hs-type">Component</span></a></span><span>
+</span><span id="line-111"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier hs-type">ConfiguredComponent</span></a></span><span>
+</span><span id="line-112"></span><span id="mkConfiguredComponent"><span class="annot"><span class="annottext">mkConfiguredComponent :: PackageDescription
+-&gt; ComponentId
+-&gt; [AnnotatedId ComponentId]
+-&gt; [AnnotatedId ComponentId]
+-&gt; Component
+-&gt; LogProgress ConfiguredComponent
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#mkConfiguredComponent"><span class="hs-identifier hs-var hs-var">mkConfiguredComponent</span></a></span></span><span> </span><span id="local-6989586621679367139"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367139"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span> </span><span id="local-6989586621679367140"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679367140"><span class="hs-identifier hs-var">this_cid</span></a></span></span><span> </span><span id="local-6989586621679367141"><span class="annot"><span class="annottext">[AnnotatedId ComponentId]
+</span><a href="#local-6989586621679367141"><span class="hs-identifier hs-var">lib_deps</span></a></span></span><span> </span><span id="local-6989586621679367142"><span class="annot"><span class="annottext">[AnnotatedId ComponentId]
+</span><a href="#local-6989586621679367142"><span class="hs-identifier hs-var">exe_deps</span></a></span></span><span> </span><span id="local-6989586621679367143"><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367143"><span class="hs-identifier hs-var">component</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-113"></span><span>    </span><span class="hs-comment">-- Resolve each @mixins@ into the actual dependency</span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-comment">-- from @lib_deps@.</span><span>
+</span><span id="line-115"></span><span>    </span><span id="local-6989586621679367144"><span class="annot"><span class="annottext">[ComponentInclude ComponentId IncludeRenaming]
+</span><a href="#local-6989586621679367144"><span class="hs-identifier hs-var">explicit_includes</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Mixin]
+-&gt; (Mixin
+    -&gt; LogProgress (ComponentInclude ComponentId IncludeRenaming))
+-&gt; LogProgress [ComponentInclude ComponentId IncludeRenaming]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m (t b)
+</span><a href="../../base-4.18.2.0/src/Data.Traversable.html#forM/Data.Traversable.html#forM"><span class="hs-identifier hs-var">forM</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BuildInfo -&gt; [Mixin]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#mixins/Distribution.Types.BuildInfo.html#mixins"><span class="hs-identifier hs-var">mixins</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679367147"><span class="hs-identifier hs-var">bi</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((Mixin
+  -&gt; LogProgress (ComponentInclude ComponentId IncludeRenaming))
+ -&gt; LogProgress [ComponentInclude ComponentId IncludeRenaming])
+-&gt; (Mixin
+    -&gt; LogProgress (ComponentInclude ComponentId IncludeRenaming))
+-&gt; LogProgress [ComponentInclude ComponentId IncludeRenaming]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Mixin.html#Mixin/Distribution.Types.Mixin.html#Mixin"><span class="hs-identifier hs-type">Mixin</span></a></span><span> </span><span id="local-6989586621679367149"><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679367149"><span class="hs-identifier hs-var">pn</span></a></span></span><span> </span><span id="local-6989586621679367150"><span class="annot"><span class="annottext">LibraryName
+</span><a href="#local-6989586621679367150"><span class="hs-identifier hs-var">ln</span></a></span></span><span> </span><span id="local-6989586621679367151"><span class="annot"><span class="annottext">IncludeRenaming
+</span><a href="#local-6989586621679367151"><span class="hs-identifier hs-var">rns</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-116"></span><span>        </span><span id="local-6989586621679367152"><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367152"><span class="hs-identifier hs-var">aid</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">(PackageName, ComponentName)
+-&gt; Map (PackageName, ComponentName) (AnnotatedId ComponentId)
+-&gt; Maybe (AnnotatedId ComponentId)
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#lookup/Data.Map.Internal.html#lookup"><span class="hs-identifier hs-var">Map.lookup</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679367149"><span class="hs-identifier hs-var">pn</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">LibraryName -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CLibName/Distribution.Types.ComponentName.html#CLibName"><span class="hs-identifier hs-var">CLibName</span></a></span><span> </span><span class="annot"><span class="annottext">LibraryName
+</span><a href="#local-6989586621679367150"><span class="hs-identifier hs-var">ln</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Map (PackageName, ComponentName) (AnnotatedId ComponentId)
+</span><a href="#local-6989586621679367155"><span class="hs-identifier hs-var">deps_map</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-117"></span><span>                </span><span class="annot"><span class="annottext">Maybe (AnnotatedId ComponentId)
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-118"></span><span>                    </span><span class="annot"><span class="annottext">Doc -&gt; LogProgress (AnnotatedId ComponentId)
+forall a. Doc -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#dieProgress"><span class="hs-identifier hs-var">dieProgress</span></a></span><span> </span><span class="annot"><span class="annottext">(Doc -&gt; LogProgress (AnnotatedId ComponentId))
+-&gt; Doc -&gt; LogProgress (AnnotatedId ComponentId)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-119"></span><span>                    </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Mix-in refers to non-existent library&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span>
+</span><span id="line-120"></span><span>                    </span><span class="annot"><span class="annottext">Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#quotes/Text.PrettyPrint.HughesPJ.html#quotes"><span class="hs-identifier hs-var">quotes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679367149"><span class="hs-identifier hs-var">pn</span></a></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#%3C%3C%3E%3E/Distribution.Compat.Prelude.html#%3C%3C%3E%3E"><span class="hs-operator hs-var">&lt;&lt;&gt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">LibraryName -&gt; Doc
+</span><a href="#local-6989586621679367158"><span class="hs-identifier hs-var">prettyLN</span></a></span><span> </span><span class="annot"><span class="annottext">LibraryName
+</span><a href="#local-6989586621679367150"><span class="hs-identifier hs-var">ln</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-121"></span><span>                    </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;(did you forget to add the package to build-depends?)&quot;</span></span><span>
+</span><span id="line-122"></span><span>                </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679367159"><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367159"><span class="hs-identifier hs-var">r</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId -&gt; LogProgress (AnnotatedId ComponentId)
+forall a. a -&gt; LogProgress a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367159"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-123"></span><span>        </span><span class="annot"><span class="annottext">ComponentInclude ComponentId IncludeRenaming
+-&gt; LogProgress (ComponentInclude ComponentId IncludeRenaming)
+forall a. a -&gt; LogProgress a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ComponentInclude"><span class="hs-identifier hs-type">ComponentInclude</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-124"></span><span>                </span><span class="annot"><span class="annottext">ci_ann_id :: AnnotatedId ComponentId
+</span><a href="Distribution.Types.ComponentInclude.html#ci_ann_id"><span class="hs-identifier hs-var">ci_ann_id</span></a></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367152"><span class="hs-identifier hs-var">aid</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-125"></span><span>                </span><span class="annot"><span class="annottext">ci_renaming :: IncludeRenaming
+</span><a href="Distribution.Types.ComponentInclude.html#ci_renaming"><span class="hs-identifier hs-var">ci_renaming</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IncludeRenaming
+</span><a href="#local-6989586621679367151"><span class="hs-identifier hs-var">rns</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-126"></span><span>                </span><span class="annot"><span class="annottext">ci_implicit :: Bool
+</span><a href="Distribution.Types.ComponentInclude.html#ci_implicit"><span class="hs-identifier hs-var">ci_implicit</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-127"></span><span>            </span><span class="hs-special">}</span><span>
+</span><span id="line-128"></span><span>
+</span><span id="line-129"></span><span>        </span><span class="hs-comment">-- Any @build-depends@ which is not explicitly mentioned in</span><span>
+</span><span id="line-130"></span><span>        </span><span class="hs-comment">-- @backpack-include@ is converted into an &quot;implicit&quot; include.</span><span>
+</span><span id="line-131"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679367165"><span class="annot"><span class="annottext">used_explicitly :: Set ComponentId
+</span><a href="#local-6989586621679367165"><span class="hs-identifier hs-var hs-var">used_explicitly</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[ComponentId] -&gt; Set ComponentId
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span><a href="../../containers-0.6.7/src/Data.Set.Internal.html#fromList/Data.Set.Internal.html#fromList"><span class="hs-identifier hs-var">Set.fromList</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ComponentInclude ComponentId IncludeRenaming -&gt; ComponentId)
+-&gt; [ComponentInclude ComponentId IncludeRenaming] -&gt; [ComponentId]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentInclude ComponentId IncludeRenaming -&gt; ComponentId
+forall id rn. ComponentInclude id rn -&gt; id
+</span><a href="Distribution.Types.ComponentInclude.html#ci_id"><span class="hs-identifier hs-var">ci_id</span></a></span><span> </span><span class="annot"><span class="annottext">[ComponentInclude ComponentId IncludeRenaming]
+</span><a href="#local-6989586621679367144"><span class="hs-identifier hs-var">explicit_includes</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-132"></span><span>        </span><span id="local-6989586621679367168"><span class="annot"><span class="annottext">implicit_includes :: [ComponentInclude ComponentId IncludeRenaming]
+</span><a href="#local-6989586621679367168"><span class="hs-identifier hs-var hs-var">implicit_includes</span></a></span></span><span>
+</span><span id="line-133"></span><span>            </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(AnnotatedId ComponentId
+ -&gt; ComponentInclude ComponentId IncludeRenaming)
+-&gt; [AnnotatedId ComponentId]
+-&gt; [ComponentInclude ComponentId IncludeRenaming]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679367169"><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367169"><span class="hs-identifier hs-var">aid</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ComponentInclude"><span class="hs-identifier hs-type">ComponentInclude</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-134"></span><span>                                </span><span class="annot"><span class="annottext">ci_ann_id :: AnnotatedId ComponentId
+</span><a href="Distribution.Types.ComponentInclude.html#ci_ann_id"><span class="hs-identifier hs-var">ci_ann_id</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367169"><span class="hs-identifier hs-var">aid</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-135"></span><span>                                </span><span class="annot"><span class="annottext">ci_renaming :: IncludeRenaming
+</span><a href="Distribution.Types.ComponentInclude.html#ci_renaming"><span class="hs-identifier hs-var">ci_renaming</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IncludeRenaming
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.IncludeRenaming.html#defaultIncludeRenaming/Distribution.Types.IncludeRenaming.html#defaultIncludeRenaming"><span class="hs-identifier hs-var">defaultIncludeRenaming</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-136"></span><span>                                </span><span class="annot"><span class="annottext">ci_implicit :: Bool
+</span><a href="Distribution.Types.ComponentInclude.html#ci_implicit"><span class="hs-identifier hs-var">ci_implicit</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-137"></span><span>                            </span><span class="hs-special">}</span><span class="hs-special">)</span><span>
+</span><span id="line-138"></span><span>            </span><span class="annot"><span class="annottext">([AnnotatedId ComponentId]
+ -&gt; [ComponentInclude ComponentId IncludeRenaming])
+-&gt; [AnnotatedId ComponentId]
+-&gt; [ComponentInclude ComponentId IncludeRenaming]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">(AnnotatedId ComponentId -&gt; Bool)
+-&gt; [AnnotatedId ComponentId] -&gt; [AnnotatedId ComponentId]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.List.html#filter/GHC.List.html#filter"><span class="hs-identifier hs-var">filter</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ComponentId -&gt; Set ComponentId -&gt; Bool)
+-&gt; Set ComponentId -&gt; ComponentId -&gt; Bool
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#flip/GHC.Base.html#flip"><span class="hs-identifier hs-var">flip</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId -&gt; Set ComponentId -&gt; Bool
+forall a. Ord a =&gt; a -&gt; Set a -&gt; Bool
+</span><a href="../../containers-0.6.7/src/Data.Set.Internal.html#notMember/Data.Set.Internal.html#notMember"><span class="hs-identifier hs-var">Set.notMember</span></a></span><span> </span><span class="annot"><span class="annottext">Set ComponentId
+</span><a href="#local-6989586621679367165"><span class="hs-identifier hs-var">used_explicitly</span></a></span><span> </span><span class="annot"><span class="annottext">(ComponentId -&gt; Bool)
+-&gt; (AnnotatedId ComponentId -&gt; ComponentId)
+-&gt; AnnotatedId ComponentId
+-&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId -&gt; ComponentId
+forall id. AnnotatedId id -&gt; id
+</span><a href="Distribution.Types.AnnotatedId.html#ann_id"><span class="hs-identifier hs-var">ann_id</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[AnnotatedId ComponentId]
+</span><a href="#local-6989586621679367141"><span class="hs-identifier hs-var">lib_deps</span></a></span><span>
+</span><span id="line-139"></span><span>
+</span><span id="line-140"></span><span>    </span><span class="annot"><span class="annottext">ConfiguredComponent -&gt; LogProgress ConfiguredComponent
+forall a. a -&gt; LogProgress a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier hs-type">ConfiguredComponent</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-141"></span><span>            </span><span class="annot"><span class="annottext">cc_ann_id :: AnnotatedId ComponentId
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_ann_id"><span class="hs-identifier hs-var">cc_ann_id</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-142"></span><span>                    </span><span class="annot"><span class="annottext">ann_id :: ComponentId
+</span><a href="Distribution.Types.AnnotatedId.html#ann_id"><span class="hs-identifier hs-var">ann_id</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679367140"><span class="hs-identifier hs-var">this_cid</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-143"></span><span>                    </span><span class="annot"><span class="annottext">ann_pid :: PackageId
+</span><a href="Distribution.Types.AnnotatedId.html#ann_pid"><span class="hs-identifier hs-var">ann_pid</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageId
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#package/Distribution.Types.PackageDescription.html#package"><span class="hs-identifier hs-var">package</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367139"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-144"></span><span>                    </span><span class="annot"><span class="annottext">ann_cname :: ComponentName
+</span><a href="Distribution.Types.AnnotatedId.html#ann_cname"><span class="hs-identifier hs-var">ann_cname</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Component -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentName/Distribution.Types.Component.html#componentName"><span class="hs-identifier hs-var">componentName</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367143"><span class="hs-identifier hs-var">component</span></a></span><span>
+</span><span id="line-145"></span><span>                </span><span class="hs-special">}</span><span class="hs-special">,</span><span>
+</span><span id="line-146"></span><span>            </span><span class="annot"><span class="annottext">cc_component :: Component
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_component"><span class="hs-identifier hs-var">cc_component</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367143"><span class="hs-identifier hs-var">component</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-147"></span><span>            </span><span class="annot"><span class="annottext">cc_public :: Bool
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_public"><span class="hs-identifier hs-var">cc_public</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679367176"><span class="hs-identifier hs-var">is_public</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-148"></span><span>            </span><span class="annot"><span class="annottext">cc_exe_deps :: [AnnotatedId ComponentId]
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_exe_deps"><span class="hs-identifier hs-var">cc_exe_deps</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[AnnotatedId ComponentId]
+</span><a href="#local-6989586621679367142"><span class="hs-identifier hs-var">exe_deps</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-149"></span><span>            </span><span class="annot"><span class="annottext">cc_includes :: [ComponentInclude ComponentId IncludeRenaming]
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_includes"><span class="hs-identifier hs-var">cc_includes</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[ComponentInclude ComponentId IncludeRenaming]
+</span><a href="#local-6989586621679367144"><span class="hs-identifier hs-var">explicit_includes</span></a></span><span> </span><span class="annot"><span class="annottext">[ComponentInclude ComponentId IncludeRenaming]
+-&gt; [ComponentInclude ComponentId IncludeRenaming]
+-&gt; [ComponentInclude ComponentId IncludeRenaming]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">[ComponentInclude ComponentId IncludeRenaming]
+</span><a href="#local-6989586621679367168"><span class="hs-identifier hs-var">implicit_includes</span></a></span><span>
+</span><span id="line-150"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-151"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-152"></span><span>    </span><span class="annot"><a href="#local-6989586621679367147"><span class="hs-identifier hs-type">bi</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#BuildInfo/Distribution.Types.BuildInfo.html#BuildInfo"><span class="hs-identifier hs-type">BuildInfo</span></a></span><span>
+</span><span id="line-153"></span><span>    </span><span id="local-6989586621679367147"><span class="annot"><span class="annottext">bi :: BuildInfo
+</span><a href="#local-6989586621679367147"><span class="hs-identifier hs-var hs-var">bi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Component -&gt; BuildInfo
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentBuildInfo/Distribution.Types.Component.html#componentBuildInfo"><span class="hs-identifier hs-var">componentBuildInfo</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367143"><span class="hs-identifier hs-var">component</span></a></span><span>
+</span><span id="line-154"></span><span>
+</span><span id="line-155"></span><span>    </span><span class="annot"><a href="#local-6989586621679367158"><span class="hs-identifier hs-type">prettyLN</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#LibraryName/Distribution.Types.LibraryName.html#LibraryName"><span class="hs-identifier hs-type">LibraryName</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span>
+</span><span id="line-156"></span><span>    </span><span id="local-6989586621679367158"><span class="annot"><span class="annottext">prettyLN :: LibraryName -&gt; Doc
+</span><a href="#local-6989586621679367158"><span class="hs-identifier hs-var hs-var">prettyLN</span></a></span></span><span> </span><span class="annot"><span class="annottext">LibraryName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#LMainLibName/Distribution.Types.LibraryName.html#LMainLibName"><span class="hs-identifier hs-var">LMainLibName</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#empty/Text.PrettyPrint.HughesPJ.html#empty"><span class="hs-identifier hs-var">PP.empty</span></a></span><span>
+</span><span id="line-157"></span><span>    </span><span class="annot"><a href="#local-6989586621679367158"><span class="hs-identifier hs-var">prettyLN</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#LSubLibName/Distribution.Types.LibraryName.html#LSubLibName"><span class="hs-identifier hs-type">LSubLibName</span></a></span><span> </span><span id="local-6989586621679367181"><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679367181"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#colon/Text.PrettyPrint.HughesPJ.html#colon"><span class="hs-identifier hs-var">PP.colon</span></a></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#%3C%3C%3E%3E/Distribution.Compat.Prelude.html#%3C%3C%3E%3E"><span class="hs-operator hs-var">&lt;&lt;&gt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679367181"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><span id="line-158"></span><span>
+</span><span id="line-159"></span><span>    </span><span class="annot"><a href="#local-6989586621679367155"><span class="hs-identifier hs-type">deps_map</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.Internal.html#Map/Data.Map.Internal.html#Map"><span class="hs-identifier hs-type">Map</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#PackageName/Distribution.Types.PackageName.html#PackageName"><span class="hs-identifier hs-type">PackageName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier hs-type">ComponentName</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-160"></span><span>    </span><span id="local-6989586621679367155"><span class="annot"><span class="annottext">deps_map :: Map (PackageName, ComponentName) (AnnotatedId ComponentId)
+</span><a href="#local-6989586621679367155"><span class="hs-identifier hs-var hs-var">deps_map</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[((PackageName, ComponentName), AnnotatedId ComponentId)]
+-&gt; Map (PackageName, ComponentName) (AnnotatedId ComponentId)
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#fromList/Data.Map.Internal.html#fromList"><span class="hs-identifier hs-var">Map.fromList</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">AnnotatedId ComponentId -&gt; PackageName
+forall pkg. Package pkg =&gt; pkg -&gt; PackageName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#packageName/Distribution.Package.html#packageName"><span class="hs-identifier hs-var">packageName</span></a></span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367185"><span class="hs-identifier hs-var">dep</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId -&gt; ComponentName
+forall id. AnnotatedId id -&gt; ComponentName
+</span><a href="Distribution.Types.AnnotatedId.html#ann_cname"><span class="hs-identifier hs-var">ann_cname</span></a></span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367185"><span class="hs-identifier hs-var">dep</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367185"><span class="hs-identifier hs-var">dep</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-161"></span><span>                            </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679367185"><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367185"><span class="hs-identifier hs-var">dep</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[AnnotatedId ComponentId]
+</span><a href="#local-6989586621679367141"><span class="hs-identifier hs-var">lib_deps</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-162"></span><span>
+</span><span id="line-163"></span><span>    </span><span id="local-6989586621679367176"><span class="annot"><span class="annottext">is_public :: Bool
+</span><a href="#local-6989586621679367176"><span class="hs-identifier hs-var hs-var">is_public</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Component -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentName/Distribution.Types.Component.html#componentName"><span class="hs-identifier hs-var">componentName</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367143"><span class="hs-identifier hs-var">component</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName -&gt; ComponentName -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">LibraryName -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CLibName/Distribution.Types.ComponentName.html#CLibName"><span class="hs-identifier hs-var">CLibName</span></a></span><span> </span><span class="annot"><span class="annottext">LibraryName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#LMainLibName/Distribution.Types.LibraryName.html#LMainLibName"><span class="hs-identifier hs-var">LMainLibName</span></a></span><span>
+</span><span id="line-164"></span><span>
+</span><span id="line-165"></span><span class="hs-keyword">type</span><span> </span><span id="ConfiguredComponentMap"><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponentMap"><span class="hs-identifier hs-var">ConfiguredComponentMap</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-166"></span><span>        </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.Internal.html#Map/Data.Map.Internal.html#Map"><span class="hs-identifier hs-type">Map</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#PackageName/Distribution.Types.PackageName.html#PackageName"><span class="hs-identifier hs-type">PackageName</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.Internal.html#Map/Data.Map.Internal.html#Map"><span class="hs-identifier hs-type">Map</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier hs-type">ComponentName</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-167"></span><span>
+</span><span id="line-168"></span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#toConfiguredComponent"><span class="hs-identifier hs-type">toConfiguredComponent</span></a></span><span>
+</span><span id="line-169"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span>
+</span><span id="line-170"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span>
+</span><span id="line-171"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponentMap"><span class="hs-identifier hs-type">ConfiguredComponentMap</span></a></span><span>
+</span><span id="line-172"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponentMap"><span class="hs-identifier hs-type">ConfiguredComponentMap</span></a></span><span>
+</span><span id="line-173"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#Component/Distribution.Types.Component.html#Component"><span class="hs-identifier hs-type">Component</span></a></span><span>
+</span><span id="line-174"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier hs-type">ConfiguredComponent</span></a></span><span>
+</span><span id="line-175"></span><span id="toConfiguredComponent"><span class="annot"><span class="annottext">toConfiguredComponent :: PackageDescription
+-&gt; ComponentId
+-&gt; ConfiguredComponentMap
+-&gt; ConfiguredComponentMap
+-&gt; Component
+-&gt; LogProgress ConfiguredComponent
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#toConfiguredComponent"><span class="hs-identifier hs-var hs-var">toConfiguredComponent</span></a></span></span><span> </span><span id="local-6989586621679367188"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367188"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span> </span><span id="local-6989586621679367189"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679367189"><span class="hs-identifier hs-var">this_cid</span></a></span></span><span> </span><span id="local-6989586621679367190"><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367190"><span class="hs-identifier hs-var">lib_dep_map</span></a></span></span><span> </span><span id="local-6989586621679367191"><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367191"><span class="hs-identifier hs-var">exe_dep_map</span></a></span></span><span> </span><span id="local-6989586621679367192"><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367192"><span class="hs-identifier hs-var">component</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-176"></span><span>    </span><span id="local-6989586621679367193"><span class="annot"><span class="annottext">[AnnotatedId ComponentId]
+</span><a href="#local-6989586621679367193"><span class="hs-identifier hs-var">lib_deps</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span>
+</span><span id="line-177"></span><span>        </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; Bool
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#newPackageDepsBehaviour"><span class="hs-identifier hs-var">newPackageDepsBehaviour</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367188"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span>
+</span><span id="line-178"></span><span>            </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">([[AnnotatedId ComponentId]] -&gt; [AnnotatedId ComponentId])
+-&gt; LogProgress [[AnnotatedId ComponentId]]
+-&gt; LogProgress [AnnotatedId ComponentId]
+forall a b. (a -&gt; b) -&gt; LogProgress a -&gt; LogProgress b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#fmap/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span class="annot"><span class="annottext">[[AnnotatedId ComponentId]] -&gt; [AnnotatedId ComponentId]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concat/Data.Foldable.html#concat"><span class="hs-identifier hs-var">concat</span></a></span><span> </span><span class="annot"><span class="annottext">(LogProgress [[AnnotatedId ComponentId]]
+ -&gt; LogProgress [AnnotatedId ComponentId])
+-&gt; LogProgress [[AnnotatedId ComponentId]]
+-&gt; LogProgress [AnnotatedId ComponentId]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">[Dependency]
+-&gt; (Dependency -&gt; LogProgress [AnnotatedId ComponentId])
+-&gt; LogProgress [[AnnotatedId ComponentId]]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m (t b)
+</span><a href="../../base-4.18.2.0/src/Data.Traversable.html#forM/Data.Traversable.html#forM"><span class="hs-identifier hs-var">forM</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BuildInfo -&gt; [Dependency]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#targetBuildDepends/Distribution.Types.BuildInfo.html#targetBuildDepends"><span class="hs-identifier hs-var">targetBuildDepends</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679367196"><span class="hs-identifier hs-var">bi</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((Dependency -&gt; LogProgress [AnnotatedId ComponentId])
+ -&gt; LogProgress [[AnnotatedId ComponentId]])
+-&gt; (Dependency -&gt; LogProgress [AnnotatedId ComponentId])
+-&gt; LogProgress [[AnnotatedId ComponentId]]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-179"></span><span>                 </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Dependency.html#Dependency/Distribution.Types.Dependency.html#Dependency"><span class="hs-identifier hs-type">Dependency</span></a></span><span> </span><span id="local-6989586621679367198"><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679367198"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">VersionRange
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679367199"><span class="annot"><span class="annottext">NonEmptySet LibraryName
+</span><a href="#local-6989586621679367199"><span class="hs-identifier hs-var">sublibs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-180"></span><span>                    </span><span id="local-6989586621679367200"><span class="annot"><span class="annottext">Map ComponentName (AnnotatedId ComponentId)
+</span><a href="#local-6989586621679367200"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">PackageName
+-&gt; ConfiguredComponentMap
+-&gt; Maybe (Map ComponentName (AnnotatedId ComponentId))
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#lookup/Data.Map.Internal.html#lookup"><span class="hs-identifier hs-var">Map.lookup</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679367198"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367190"><span class="hs-identifier hs-var">lib_dep_map</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-181"></span><span>                        </span><span class="annot"><span class="annottext">Maybe (Map ComponentName (AnnotatedId ComponentId))
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-182"></span><span>                            </span><span class="annot"><span class="annottext">Doc -&gt; LogProgress (Map ComponentName (AnnotatedId ComponentId))
+forall a. Doc -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#dieProgress"><span class="hs-identifier hs-var">dieProgress</span></a></span><span> </span><span class="annot"><span class="annottext">(Doc -&gt; LogProgress (Map ComponentName (AnnotatedId ComponentId)))
+-&gt; Doc -&gt; LogProgress (Map ComponentName (AnnotatedId ComponentId))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-183"></span><span>                                </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Dependency on unbuildable&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span>
+</span><span id="line-184"></span><span>                                </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;package&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679367198"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-185"></span><span>                        </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679367201"><span class="annot"><span class="annottext">Map ComponentName (AnnotatedId ComponentId)
+</span><a href="#local-6989586621679367201"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Map ComponentName (AnnotatedId ComponentId)
+-&gt; LogProgress (Map ComponentName (AnnotatedId ComponentId))
+forall a. a -&gt; LogProgress a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">Map ComponentName (AnnotatedId ComponentId)
+</span><a href="#local-6989586621679367201"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-186"></span><span>                    </span><span class="hs-comment">-- Return all library components</span><span>
+</span><span id="line-187"></span><span>                    </span><span class="annot"><span class="annottext">[LibraryName]
+-&gt; (LibraryName -&gt; LogProgress (AnnotatedId ComponentId))
+-&gt; LogProgress [AnnotatedId ComponentId]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m (t b)
+</span><a href="../../base-4.18.2.0/src/Data.Traversable.html#forM/Data.Traversable.html#forM"><span class="hs-identifier hs-var">forM</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">NonEmptySet LibraryName -&gt; [LibraryName]
+forall a. NonEmptySet a -&gt; [a]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.NonEmptySet.html#toList/Distribution.Compat.NonEmptySet.html#toList"><span class="hs-identifier hs-var">NonEmptySet.toList</span></a></span><span> </span><span class="annot"><span class="annottext">NonEmptySet LibraryName
+</span><a href="#local-6989586621679367199"><span class="hs-identifier hs-var">sublibs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((LibraryName -&gt; LogProgress (AnnotatedId ComponentId))
+ -&gt; LogProgress [AnnotatedId ComponentId])
+-&gt; (LibraryName -&gt; LogProgress (AnnotatedId ComponentId))
+-&gt; LogProgress [AnnotatedId ComponentId]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679367203"><span class="annot"><span class="annottext">LibraryName
+</span><a href="#local-6989586621679367203"><span class="hs-identifier hs-var">lib</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-188"></span><span>                        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679367204"><span class="annot"><span class="annottext">comp :: ComponentName
+</span><a href="#local-6989586621679367204"><span class="hs-identifier hs-var hs-var">comp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LibraryName -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CLibName/Distribution.Types.ComponentName.html#CLibName"><span class="hs-identifier hs-var">CLibName</span></a></span><span> </span><span class="annot"><span class="annottext">LibraryName
+</span><a href="#local-6989586621679367203"><span class="hs-identifier hs-var">lib</span></a></span><span> </span><span class="hs-keyword">in</span><span>
+</span><span id="line-189"></span><span>                        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ComponentName
+-&gt; Map ComponentName (AnnotatedId ComponentId)
+-&gt; Maybe (AnnotatedId ComponentId)
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#lookup/Data.Map.Internal.html#lookup"><span class="hs-identifier hs-var">Map.lookup</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679367204"><span class="hs-identifier hs-var">comp</span></a></span><span> </span><span class="annot"><span class="annottext">Map ComponentName (AnnotatedId ComponentId)
+</span><a href="#local-6989586621679367200"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-190"></span><span>                            </span><span class="annot"><span class="annottext">Maybe (AnnotatedId ComponentId)
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-191"></span><span>                                </span><span class="annot"><span class="annottext">Doc -&gt; LogProgress (AnnotatedId ComponentId)
+forall a. Doc -&gt; LogProgress a
+</span><a href="Distribution.Utils.LogProgress.html#dieProgress"><span class="hs-identifier hs-var">dieProgress</span></a></span><span> </span><span class="annot"><span class="annottext">(Doc -&gt; LogProgress (AnnotatedId ComponentId))
+-&gt; Doc -&gt; LogProgress (AnnotatedId ComponentId)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-192"></span><span>                                    </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Dependency on unbuildable&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span>
+</span><span id="line-193"></span><span>                                    </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LibraryName -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#showLibraryName/Distribution.Types.LibraryName.html#showLibraryName"><span class="hs-identifier hs-var">showLibraryName</span></a></span><span> </span><span class="annot"><span class="annottext">LibraryName
+</span><a href="#local-6989586621679367203"><span class="hs-identifier hs-var">lib</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span>
+</span><span id="line-194"></span><span>                                    </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;from&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679367198"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-195"></span><span>                            </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679367206"><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367206"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId -&gt; LogProgress (AnnotatedId ComponentId)
+forall a. a -&gt; LogProgress a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367206"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-196"></span><span>            </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">[AnnotatedId ComponentId] -&gt; LogProgress [AnnotatedId ComponentId]
+forall a. a -&gt; LogProgress a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">[AnnotatedId ComponentId]
+</span><a href="#local-6989586621679367207"><span class="hs-identifier hs-var">old_style_lib_deps</span></a></span><span>
+</span><span id="line-197"></span><span>    </span><span class="annot"><span class="annottext">PackageDescription
+-&gt; ComponentId
+-&gt; [AnnotatedId ComponentId]
+-&gt; [AnnotatedId ComponentId]
+-&gt; Component
+-&gt; LogProgress ConfiguredComponent
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#mkConfiguredComponent"><span class="hs-identifier hs-var">mkConfiguredComponent</span></a></span><span>
+</span><span id="line-198"></span><span>       </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367188"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679367189"><span class="hs-identifier hs-var">this_cid</span></a></span><span>
+</span><span id="line-199"></span><span>       </span><span class="annot"><span class="annottext">[AnnotatedId ComponentId]
+</span><a href="#local-6989586621679367193"><span class="hs-identifier hs-var">lib_deps</span></a></span><span> </span><span class="annot"><span class="annottext">[AnnotatedId ComponentId]
+</span><a href="#local-6989586621679367208"><span class="hs-identifier hs-var">exe_deps</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367192"><span class="hs-identifier hs-var">component</span></a></span><span>
+</span><span id="line-200"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-201"></span><span>    </span><span id="local-6989586621679367196"><span class="annot"><span class="annottext">bi :: BuildInfo
+</span><a href="#local-6989586621679367196"><span class="hs-identifier hs-var hs-var">bi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Component -&gt; BuildInfo
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentBuildInfo/Distribution.Types.Component.html#componentBuildInfo"><span class="hs-identifier hs-var">componentBuildInfo</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367192"><span class="hs-identifier hs-var">component</span></a></span><span>
+</span><span id="line-202"></span><span>    </span><span class="hs-comment">-- lib_dep_map contains a mix of internal and external deps.</span><span>
+</span><span id="line-203"></span><span>    </span><span class="hs-comment">-- We want all the public libraries (dep_cn == CLibName)</span><span>
+</span><span id="line-204"></span><span>    </span><span class="hs-comment">-- of all external deps (dep /= pn).  Note that this</span><span>
+</span><span id="line-205"></span><span>    </span><span class="hs-comment">-- excludes the public library of the current package:</span><span>
+</span><span id="line-206"></span><span>    </span><span class="hs-comment">-- this is not supported by old-style deps behavior</span><span>
+</span><span id="line-207"></span><span>    </span><span class="hs-comment">-- because it would imply a cyclic dependency for the</span><span>
+</span><span id="line-208"></span><span>    </span><span class="hs-comment">-- library itself.</span><span>
+</span><span id="line-209"></span><span>    </span><span id="local-6989586621679367207"><span class="annot"><span class="annottext">old_style_lib_deps :: [AnnotatedId ComponentId]
+</span><a href="#local-6989586621679367207"><span class="hs-identifier hs-var hs-var">old_style_lib_deps</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367214"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-210"></span><span>                         </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679367215"><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679367215"><span class="hs-identifier hs-var">pn</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679367216"><span class="annot"><span class="annottext">Map ComponentName (AnnotatedId ComponentId)
+</span><a href="#local-6989586621679367216"><span class="hs-identifier hs-var">comp_map</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ConfiguredComponentMap
+-&gt; [(PackageName, Map ComponentName (AnnotatedId ComponentId))]
+forall k a. Map k a -&gt; [(k, a)]
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#toList/Data.Map.Internal.html#toList"><span class="hs-identifier hs-var">Map.toList</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367190"><span class="hs-identifier hs-var">lib_dep_map</span></a></span><span>
+</span><span id="line-211"></span><span>                         </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679367215"><span class="hs-identifier hs-var">pn</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; PackageName -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageName
+forall pkg. Package pkg =&gt; pkg -&gt; PackageName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#packageName/Distribution.Package.html#packageName"><span class="hs-identifier hs-var">packageName</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367188"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span>
+</span><span id="line-212"></span><span>                         </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679367219"><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679367219"><span class="hs-identifier hs-var">cn</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679367214"><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367214"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Map ComponentName (AnnotatedId ComponentId)
+-&gt; [(ComponentName, AnnotatedId ComponentId)]
+forall k a. Map k a -&gt; [(k, a)]
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#toList/Data.Map.Internal.html#toList"><span class="hs-identifier hs-var">Map.toList</span></a></span><span> </span><span class="annot"><span class="annottext">Map ComponentName (AnnotatedId ComponentId)
+</span><a href="#local-6989586621679367216"><span class="hs-identifier hs-var">comp_map</span></a></span><span>
+</span><span id="line-213"></span><span>                         </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679367219"><span class="hs-identifier hs-var">cn</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName -&gt; ComponentName -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">LibraryName -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CLibName/Distribution.Types.ComponentName.html#CLibName"><span class="hs-identifier hs-var">CLibName</span></a></span><span> </span><span class="annot"><span class="annottext">LibraryName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#LMainLibName/Distribution.Types.LibraryName.html#LMainLibName"><span class="hs-identifier hs-var">LMainLibName</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-214"></span><span>    </span><span class="hs-comment">-- We have to nub here, because 'getAllToolDependencies' may return</span><span>
+</span><span id="line-215"></span><span>    </span><span class="hs-comment">-- duplicates (see #4986).  (NB: This is not needed for lib_deps,</span><span>
+</span><span id="line-216"></span><span>    </span><span class="hs-comment">-- since those elaborate into includes, for which there explicitly</span><span>
+</span><span id="line-217"></span><span>    </span><span class="hs-comment">-- may be multiple instances of a package)</span><span>
+</span><span id="line-218"></span><span>    </span><span id="local-6989586621679367208"><span class="annot"><span class="annottext">exe_deps :: [AnnotatedId ComponentId]
+</span><a href="#local-6989586621679367208"><span class="hs-identifier hs-var hs-var">exe_deps</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[AnnotatedId ComponentId] -&gt; [AnnotatedId ComponentId]
+forall a. Ord a =&gt; [a] -&gt; [a]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#ordNub/Distribution.Utils.Generic.html#ordNub"><span class="hs-identifier hs-var">ordNub</span></a></span><span> </span><span class="annot"><span class="annottext">([AnnotatedId ComponentId] -&gt; [AnnotatedId ComponentId])
+-&gt; [AnnotatedId ComponentId] -&gt; [AnnotatedId ComponentId]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-219"></span><span>        </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367228"><span class="hs-identifier hs-var">exe</span></a></span><span>
+</span><span id="line-220"></span><span>        </span><span class="hs-glyph">|</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ExeDependency.html#ExeDependency/Distribution.Types.ExeDependency.html#ExeDependency"><span class="hs-identifier hs-type">ExeDependency</span></a></span><span> </span><span id="local-6989586621679367230"><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679367230"><span class="hs-identifier hs-var">pn</span></a></span></span><span> </span><span id="local-6989586621679367231"><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679367231"><span class="hs-identifier hs-var">cn</span></a></span></span><span> </span><span class="annot"><span class="annottext">VersionRange
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; BuildInfo -&gt; [ExeDependency]
+</span><a href="Distribution.Simple.BuildToolDepends.html#getAllToolDependencies"><span class="hs-identifier hs-var">getAllToolDependencies</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367188"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679367196"><span class="hs-identifier hs-var">bi</span></a></span><span>
+</span><span id="line-221"></span><span>        </span><span class="hs-comment">-- The error suppression here is important, because in general</span><span>
+</span><span id="line-222"></span><span>        </span><span class="hs-comment">-- we won't know about external dependencies (e.g., 'happy')</span><span>
+</span><span id="line-223"></span><span>        </span><span class="hs-comment">-- which the package is attempting to use (those deps are only</span><span>
+</span><span id="line-224"></span><span>        </span><span class="hs-comment">-- fed in when cabal-install uses this codepath.)</span><span>
+</span><span id="line-225"></span><span>        </span><span class="hs-comment">-- TODO: Let cabal-install request errors here</span><span>
+</span><span id="line-226"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span id="local-6989586621679367228"><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367228"><span class="hs-identifier hs-var">exe</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">ComponentName
+-&gt; Map ComponentName (AnnotatedId ComponentId)
+-&gt; Maybe (AnnotatedId ComponentId)
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#lookup/Data.Map.Internal.html#lookup"><span class="hs-identifier hs-var">Map.lookup</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">UnqualComponentName -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CExeName/Distribution.Types.ComponentName.html#CExeName"><span class="hs-identifier hs-var">CExeName</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679367231"><span class="hs-identifier hs-var">cn</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Map ComponentName (AnnotatedId ComponentId)
+ -&gt; Maybe (AnnotatedId ComponentId))
+-&gt; Maybe (Map ComponentName (AnnotatedId ComponentId))
+-&gt; Maybe (AnnotatedId ComponentId)
+forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; m a -&gt; m b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3D%3C%3C/GHC.Base.html#%3D%3C%3C"><span class="hs-operator hs-var">=&lt;&lt;</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+-&gt; ConfiguredComponentMap
+-&gt; Maybe (Map ComponentName (AnnotatedId ComponentId))
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#lookup/Data.Map.Internal.html#lookup"><span class="hs-identifier hs-var">Map.lookup</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679367230"><span class="hs-identifier hs-var">pn</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367191"><span class="hs-identifier hs-var">exe_dep_map</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-227"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-228"></span><span>
+</span><span id="line-229"></span><span class="hs-comment">-- | Also computes the 'ComponentId', and sets cc_public if necessary.</span><span>
+</span><span id="line-230"></span><span class="hs-comment">-- This is Cabal-only; cabal-install won't use this.</span><span>
+</span><span id="line-231"></span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#toConfiguredComponent%27"><span class="hs-identifier hs-type">toConfiguredComponent'</span></a></span><span>
+</span><span id="line-232"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-comment">-- use_external_internal_deps</span><span>
+</span><span id="line-233"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Flag.html#FlagAssignment/Distribution.Types.Flag.html#FlagAssignment"><span class="hs-identifier hs-type">FlagAssignment</span></a></span><span>
+</span><span id="line-234"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span>
+</span><span id="line-235"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-comment">-- deterministic</span><span>
+</span><span id="line-236"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Flag.html#Flag"><span class="hs-identifier hs-type">Flag</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>      </span><span class="hs-comment">-- configIPID (todo: remove me)</span><span>
+</span><span id="line-237"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Flag.html#Flag"><span class="hs-identifier hs-type">Flag</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span> </span><span class="hs-comment">-- configCID</span><span>
+</span><span id="line-238"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponentMap"><span class="hs-identifier hs-type">ConfiguredComponentMap</span></a></span><span>
+</span><span id="line-239"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#Component/Distribution.Types.Component.html#Component"><span class="hs-identifier hs-type">Component</span></a></span><span>
+</span><span id="line-240"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier hs-type">ConfiguredComponent</span></a></span><span>
+</span><span id="line-241"></span><span id="toConfiguredComponent%27"><span class="annot"><span class="annottext">toConfiguredComponent' :: Bool
+-&gt; FlagAssignment
+-&gt; PackageDescription
+-&gt; Bool
+-&gt; Flag String
+-&gt; Flag ComponentId
+-&gt; ConfiguredComponentMap
+-&gt; Component
+-&gt; LogProgress ConfiguredComponent
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#toConfiguredComponent%27"><span class="hs-identifier hs-var hs-var">toConfiguredComponent'</span></a></span></span><span> </span><span id="local-6989586621679367236"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679367236"><span class="hs-identifier hs-var">use_external_internal_deps</span></a></span></span><span> </span><span id="local-6989586621679367237"><span class="annot"><span class="annottext">FlagAssignment
+</span><a href="#local-6989586621679367237"><span class="hs-identifier hs-var">flags</span></a></span></span><span>
+</span><span id="line-242"></span><span>                </span><span id="local-6989586621679367238"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367238"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span> </span><span id="local-6989586621679367239"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679367239"><span class="hs-identifier hs-var">deterministic</span></a></span></span><span> </span><span id="local-6989586621679367240"><span class="annot"><span class="annottext">Flag String
+</span><a href="#local-6989586621679367240"><span class="hs-identifier hs-var">ipid_flag</span></a></span></span><span> </span><span id="local-6989586621679367241"><span class="annot"><span class="annottext">Flag ComponentId
+</span><a href="#local-6989586621679367241"><span class="hs-identifier hs-var">cid_flag</span></a></span></span><span>
+</span><span id="line-243"></span><span>                </span><span id="local-6989586621679367242"><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367242"><span class="hs-identifier hs-var">dep_map</span></a></span></span><span> </span><span id="local-6989586621679367243"><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367243"><span class="hs-identifier hs-var">component</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-244"></span><span>    </span><span id="local-6989586621679367244"><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367244"><span class="hs-identifier hs-var">cc</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageDescription
+-&gt; ComponentId
+-&gt; ConfiguredComponentMap
+-&gt; ConfiguredComponentMap
+-&gt; Component
+-&gt; LogProgress ConfiguredComponent
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#toConfiguredComponent"><span class="hs-identifier hs-var">toConfiguredComponent</span></a></span><span>
+</span><span id="line-245"></span><span>                </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367238"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679367245"><span class="hs-identifier hs-var">this_cid</span></a></span><span>
+</span><span id="line-246"></span><span>                </span><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367242"><span class="hs-identifier hs-var">dep_map</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367242"><span class="hs-identifier hs-var">dep_map</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367243"><span class="hs-identifier hs-var">component</span></a></span><span>
+</span><span id="line-247"></span><span>    </span><span class="annot"><span class="annottext">ConfiguredComponent -&gt; LogProgress ConfiguredComponent
+forall a. a -&gt; LogProgress a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">(ConfiguredComponent -&gt; LogProgress ConfiguredComponent)
+-&gt; ConfiguredComponent -&gt; LogProgress ConfiguredComponent
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679367236"><span class="hs-identifier hs-var">use_external_internal_deps</span></a></span><span>
+</span><span id="line-248"></span><span>                </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367244"><span class="hs-identifier hs-var">cc</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#cc_public"><span class="hs-identifier hs-var">cc_public</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">True</span></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-249"></span><span>                </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367244"><span class="hs-identifier hs-var">cc</span></a></span><span>
+</span><span id="line-250"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-251"></span><span>    </span><span class="hs-comment">-- TODO: pass component names to it too!</span><span>
+</span><span id="line-252"></span><span>    </span><span id="local-6989586621679367245"><span class="annot"><span class="annottext">this_cid :: ComponentId
+</span><a href="#local-6989586621679367245"><span class="hs-identifier hs-var hs-var">this_cid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+-&gt; Flag String
+-&gt; Flag ComponentId
+-&gt; PackageId
+-&gt; ComponentName
+-&gt; Maybe ([ComponentId], FlagAssignment)
+-&gt; ComponentId
+</span><a href="Distribution.Backpack.Id.html#computeComponentId"><span class="hs-identifier hs-var">computeComponentId</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679367239"><span class="hs-identifier hs-var">deterministic</span></a></span><span> </span><span class="annot"><span class="annottext">Flag String
+</span><a href="#local-6989586621679367240"><span class="hs-identifier hs-var">ipid_flag</span></a></span><span> </span><span class="annot"><span class="annottext">Flag ComponentId
+</span><a href="#local-6989586621679367241"><span class="hs-identifier hs-var">cid_flag</span></a></span><span>
+</span><span id="line-253"></span><span>                </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageId
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#package/Distribution.Types.PackageDescription.html#package"><span class="hs-identifier hs-var">package</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367238"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Component -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentName/Distribution.Types.Component.html#componentName"><span class="hs-identifier hs-var">componentName</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367243"><span class="hs-identifier hs-var">component</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">([ComponentId], FlagAssignment)
+-&gt; Maybe ([ComponentId], FlagAssignment)
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[ComponentId]
+</span><a href="#local-6989586621679367247"><span class="hs-identifier hs-var">deps</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">FlagAssignment
+</span><a href="#local-6989586621679367237"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-254"></span><span>    </span><span id="local-6989586621679367247"><span class="annot"><span class="annottext">deps :: [ComponentId]
+</span><a href="#local-6989586621679367247"><span class="hs-identifier hs-var hs-var">deps</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId -&gt; ComponentId
+forall id. AnnotatedId id -&gt; id
+</span><a href="Distribution.Types.AnnotatedId.html#ann_id"><span class="hs-identifier hs-var">ann_id</span></a></span><span> </span><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367248"><span class="hs-identifier hs-var">aid</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679367249"><span class="annot"><span class="annottext">Map ComponentName (AnnotatedId ComponentId)
+</span><a href="#local-6989586621679367249"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ConfiguredComponentMap
+-&gt; [Map ComponentName (AnnotatedId ComponentId)]
+forall k a. Map k a -&gt; [a]
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#elems/Data.Map.Internal.html#elems"><span class="hs-identifier hs-var">Map.elems</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367242"><span class="hs-identifier hs-var">dep_map</span></a></span><span>
+</span><span id="line-255"></span><span>                        </span><span class="hs-special">,</span><span> </span><span id="local-6989586621679367248"><span class="annot"><span class="annottext">AnnotatedId ComponentId
+</span><a href="#local-6989586621679367248"><span class="hs-identifier hs-var">aid</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Map ComponentName (AnnotatedId ComponentId)
+-&gt; [AnnotatedId ComponentId]
+forall k a. Map k a -&gt; [a]
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#elems/Data.Map.Internal.html#elems"><span class="hs-identifier hs-var">Map.elems</span></a></span><span> </span><span class="annot"><span class="annottext">Map ComponentName (AnnotatedId ComponentId)
+</span><a href="#local-6989586621679367249"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-256"></span><span>
+</span><span id="line-257"></span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#extendConfiguredComponentMap"><span class="hs-identifier hs-type">extendConfiguredComponentMap</span></a></span><span>
+</span><span id="line-258"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier hs-type">ConfiguredComponent</span></a></span><span>
+</span><span id="line-259"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponentMap"><span class="hs-identifier hs-type">ConfiguredComponentMap</span></a></span><span>
+</span><span id="line-260"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponentMap"><span class="hs-identifier hs-type">ConfiguredComponentMap</span></a></span><span>
+</span><span id="line-261"></span><span id="extendConfiguredComponentMap"><span class="annot"><span class="annottext">extendConfiguredComponentMap :: ConfiguredComponent
+-&gt; ConfiguredComponentMap -&gt; ConfiguredComponentMap
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#extendConfiguredComponentMap"><span class="hs-identifier hs-var hs-var">extendConfiguredComponentMap</span></a></span></span><span> </span><span id="local-6989586621679367251"><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367251"><span class="hs-identifier hs-var">cc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-262"></span><span>    </span><span class="annot"><span class="annottext">(Map ComponentName (AnnotatedId ComponentId)
+ -&gt; Map ComponentName (AnnotatedId ComponentId)
+ -&gt; Map ComponentName (AnnotatedId ComponentId))
+-&gt; PackageName
+-&gt; Map ComponentName (AnnotatedId ComponentId)
+-&gt; ConfiguredComponentMap
+-&gt; ConfiguredComponentMap
+forall k a. Ord k =&gt; (a -&gt; a -&gt; a) -&gt; k -&gt; a -&gt; Map k a -&gt; Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#insertWith/Data.Map.Internal.html#insertWith"><span class="hs-identifier hs-var">Map.insertWith</span></a></span><span> </span><span class="annot"><span class="annottext">Map ComponentName (AnnotatedId ComponentId)
+-&gt; Map ComponentName (AnnotatedId ComponentId)
+-&gt; Map ComponentName (AnnotatedId ComponentId)
+forall k a. Ord k =&gt; Map k a -&gt; Map k a -&gt; Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#union/Data.Map.Internal.html#union"><span class="hs-identifier hs-var">Map.union</span></a></span><span>
+</span><span id="line-263"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageId -&gt; PackageName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#pkgName/Distribution.Types.PackageId.html#pkgName"><span class="hs-identifier hs-var">pkgName</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ConfiguredComponent -&gt; PackageId
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_pkgid"><span class="hs-identifier hs-var">cc_pkgid</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367251"><span class="hs-identifier hs-var">cc</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-264"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentName
+-&gt; AnnotatedId ComponentId
+-&gt; Map ComponentName (AnnotatedId ComponentId)
+forall k a. k -&gt; a -&gt; Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#singleton/Data.Map.Internal.html#singleton"><span class="hs-identifier hs-var">Map.singleton</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ConfiguredComponent -&gt; ComponentName
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_name"><span class="hs-identifier hs-var">cc_name</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367251"><span class="hs-identifier hs-var">cc</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ConfiguredComponent -&gt; AnnotatedId ComponentId
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#cc_ann_id"><span class="hs-identifier hs-var">cc_ann_id</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367251"><span class="hs-identifier hs-var">cc</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-265"></span><span>
+</span><span id="line-266"></span><span class="hs-comment">-- Compute the 'ComponentId's for a graph of 'Component's.  The</span><span>
+</span><span id="line-267"></span><span class="hs-comment">-- list of internal components must be topologically sorted</span><span>
+</span><span id="line-268"></span><span class="hs-comment">-- based on internal package dependencies, so that any internal</span><span>
+</span><span id="line-269"></span><span class="hs-comment">-- dependency points to an entry earlier in the list.</span><span>
+</span><span id="line-270"></span><span class="hs-comment">--</span><span>
+</span><span id="line-271"></span><span class="hs-comment">-- TODO: This function currently restricts the input configured components to</span><span>
+</span><span id="line-272"></span><span class="hs-comment">-- one version per package, by using the type ConfiguredComponentMap.  It cannot</span><span>
+</span><span id="line-273"></span><span class="hs-comment">-- be used to configure a component that depends on one version of a package for</span><span>
+</span><span id="line-274"></span><span class="hs-comment">-- a library and another version for a build-tool.</span><span>
+</span><span id="line-275"></span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#toConfiguredComponents"><span class="hs-identifier hs-type">toConfiguredComponents</span></a></span><span>
+</span><span id="line-276"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-comment">-- use_external_internal_deps</span><span>
+</span><span id="line-277"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Flag.html#FlagAssignment/Distribution.Types.Flag.html#FlagAssignment"><span class="hs-identifier hs-type">FlagAssignment</span></a></span><span>
+</span><span id="line-278"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-comment">-- deterministic</span><span>
+</span><span id="line-279"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Flag.html#Flag"><span class="hs-identifier hs-type">Flag</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-comment">-- configIPID</span><span>
+</span><span id="line-280"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Flag.html#Flag"><span class="hs-identifier hs-type">Flag</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span> </span><span class="hs-comment">-- configCID</span><span>
+</span><span id="line-281"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span>
+</span><span id="line-282"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponentMap"><span class="hs-identifier hs-type">ConfiguredComponentMap</span></a></span><span>
+</span><span id="line-283"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#Component/Distribution.Types.Component.html#Component"><span class="hs-identifier hs-type">Component</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-284"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Utils.LogProgress.html#LogProgress"><span class="hs-identifier hs-type">LogProgress</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#ConfiguredComponent"><span class="hs-identifier hs-type">ConfiguredComponent</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-285"></span><span id="toConfiguredComponents"><span class="annot"><span class="annottext">toConfiguredComponents :: Bool
+-&gt; FlagAssignment
+-&gt; Bool
+-&gt; Flag String
+-&gt; Flag ComponentId
+-&gt; PackageDescription
+-&gt; ConfiguredComponentMap
+-&gt; [Component]
+-&gt; LogProgress [ConfiguredComponent]
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#toConfiguredComponents"><span class="hs-identifier hs-var hs-var">toConfiguredComponents</span></a></span></span><span>
+</span><span id="line-286"></span><span>    </span><span id="local-6989586621679367256"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679367256"><span class="hs-identifier hs-var">use_external_internal_deps</span></a></span></span><span> </span><span id="local-6989586621679367257"><span class="annot"><span class="annottext">FlagAssignment
+</span><a href="#local-6989586621679367257"><span class="hs-identifier hs-var">flags</span></a></span></span><span> </span><span id="local-6989586621679367258"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679367258"><span class="hs-identifier hs-var">deterministic</span></a></span></span><span> </span><span id="local-6989586621679367259"><span class="annot"><span class="annottext">Flag String
+</span><a href="#local-6989586621679367259"><span class="hs-identifier hs-var">ipid_flag</span></a></span></span><span> </span><span id="local-6989586621679367260"><span class="annot"><span class="annottext">Flag ComponentId
+</span><a href="#local-6989586621679367260"><span class="hs-identifier hs-var">cid_flag</span></a></span></span><span> </span><span id="local-6989586621679367261"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367261"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span>
+</span><span id="line-287"></span><span>    </span><span id="local-6989586621679367262"><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367262"><span class="hs-identifier hs-var">dep_map</span></a></span></span><span> </span><span id="local-6989586621679367263"><span class="annot"><span class="annottext">[Component]
+</span><a href="#local-6989586621679367263"><span class="hs-identifier hs-var">comps</span></a></span></span><span>
+</span><span id="line-288"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((ConfiguredComponentMap, [ConfiguredComponent])
+ -&gt; [ConfiguredComponent])
+-&gt; LogProgress (ConfiguredComponentMap, [ConfiguredComponent])
+-&gt; LogProgress [ConfiguredComponent]
+forall a b. (a -&gt; b) -&gt; LogProgress a -&gt; LogProgress b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#fmap/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span class="annot"><span class="annottext">(ConfiguredComponentMap, [ConfiguredComponent])
+-&gt; [ConfiguredComponent]
+forall a b. (a, b) -&gt; b
+</span><a href="../../base-4.18.2.0/src/Data.Tuple.html#snd/Data.Tuple.html#snd"><span class="hs-identifier hs-var">snd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ConfiguredComponentMap
+ -&gt; Component
+ -&gt; LogProgress (ConfiguredComponentMap, ConfiguredComponent))
+-&gt; ConfiguredComponentMap
+-&gt; [Component]
+-&gt; LogProgress (ConfiguredComponentMap, [ConfiguredComponent])
+forall (m :: * -&gt; *) (t :: * -&gt; *) a b c.
+(Monad m, Traversable t) =&gt;
+(a -&gt; b -&gt; m (a, c)) -&gt; a -&gt; t b -&gt; m (a, t c)
+</span><a href="Distribution.Utils.MapAccum.html#mapAccumM"><span class="hs-identifier hs-var">mapAccumM</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponentMap
+-&gt; Component
+-&gt; LogProgress (ConfiguredComponentMap, ConfiguredComponent)
+</span><a href="#local-6989586621679367266"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367262"><span class="hs-identifier hs-var">dep_map</span></a></span><span> </span><span class="annot"><span class="annottext">[Component]
+</span><a href="#local-6989586621679367263"><span class="hs-identifier hs-var">comps</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-289"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-290"></span><span>    </span><span id="local-6989586621679367266"><span class="annot"><span class="annottext">go :: ConfiguredComponentMap
+-&gt; Component
+-&gt; LogProgress (ConfiguredComponentMap, ConfiguredComponent)
+</span><a href="#local-6989586621679367266"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span id="local-6989586621679367269"><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367269"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span id="local-6989586621679367270"><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367270"><span class="hs-identifier hs-var">component</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-291"></span><span>        </span><span id="local-6989586621679367271"><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367271"><span class="hs-identifier hs-var">cc</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Bool
+-&gt; FlagAssignment
+-&gt; PackageDescription
+-&gt; Bool
+-&gt; Flag String
+-&gt; Flag ComponentId
+-&gt; ConfiguredComponentMap
+-&gt; Component
+-&gt; LogProgress ConfiguredComponent
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#toConfiguredComponent%27"><span class="hs-identifier hs-var">toConfiguredComponent'</span></a></span><span>
+</span><span id="line-292"></span><span>                        </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679367256"><span class="hs-identifier hs-var">use_external_internal_deps</span></a></span><span> </span><span class="annot"><span class="annottext">FlagAssignment
+</span><a href="#local-6989586621679367257"><span class="hs-identifier hs-var">flags</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367261"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span>
+</span><span id="line-293"></span><span>                        </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679367258"><span class="hs-identifier hs-var">deterministic</span></a></span><span> </span><span class="annot"><span class="annottext">Flag String
+</span><a href="#local-6989586621679367259"><span class="hs-identifier hs-var">ipid_flag</span></a></span><span> </span><span class="annot"><span class="annottext">Flag ComponentId
+</span><a href="#local-6989586621679367260"><span class="hs-identifier hs-var">cid_flag</span></a></span><span>
+</span><span id="line-294"></span><span>                        </span><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367269"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679367270"><span class="hs-identifier hs-var">component</span></a></span><span>
+</span><span id="line-295"></span><span>        </span><span class="annot"><span class="annottext">(ConfiguredComponentMap, ConfiguredComponent)
+-&gt; LogProgress (ConfiguredComponentMap, ConfiguredComponent)
+forall a. a -&gt; LogProgress a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ConfiguredComponent
+-&gt; ConfiguredComponentMap -&gt; ConfiguredComponentMap
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#extendConfiguredComponentMap"><span class="hs-identifier hs-var">extendConfiguredComponentMap</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367271"><span class="hs-identifier hs-var">cc</span></a></span><span> </span><span class="annot"><span class="annottext">ConfiguredComponentMap
+</span><a href="#local-6989586621679367269"><span class="hs-identifier hs-var">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ConfiguredComponent
+</span><a href="#local-6989586621679367271"><span class="hs-identifier hs-var">cc</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-296"></span><span>
+</span><span id="line-297"></span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#newPackageDepsBehaviourMinVersion"><span class="hs-identifier hs-type">newPackageDepsBehaviourMinVersion</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.CabalSpecVersion.html#CabalSpecVersion/Distribution.CabalSpecVersion.html#CabalSpecVersion"><span class="hs-identifier hs-type">CabalSpecVersion</span></a></span><span>
+</span><span id="line-298"></span><span id="newPackageDepsBehaviourMinVersion"><span class="annot"><span class="annottext">newPackageDepsBehaviourMinVersion :: CabalSpecVersion
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#newPackageDepsBehaviourMinVersion"><span class="hs-identifier hs-var hs-var">newPackageDepsBehaviourMinVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CabalSpecVersion
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.CabalSpecVersion.html#CabalSpecV1_8/Distribution.CabalSpecVersion.html#CabalSpecV1_8"><span class="hs-identifier hs-var">CabalSpecV1_8</span></a></span><span>
+</span><span id="line-299"></span><span>
+</span><span id="line-300"></span><span>
+</span><span id="line-301"></span><span class="hs-comment">-- In older cabal versions, there was only one set of package dependencies for</span><span>
+</span><span id="line-302"></span><span class="hs-comment">-- the whole package. In this version, we can have separate dependencies per</span><span>
+</span><span id="line-303"></span><span class="hs-comment">-- target, but we only enable this behaviour if the minimum cabal version</span><span>
+</span><span id="line-304"></span><span class="hs-comment">-- specified is &gt;= a certain minimum. Otherwise, for compatibility we use the</span><span>
+</span><span id="line-305"></span><span class="hs-comment">-- old behaviour.</span><span>
+</span><span id="line-306"></span><span class="annot"><a href="Distribution.Backpack.ConfiguredComponent.html#newPackageDepsBehaviour"><span class="hs-identifier hs-type">newPackageDepsBehaviour</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-307"></span><span id="newPackageDepsBehaviour"><span class="annot"><span class="annottext">newPackageDepsBehaviour :: PackageDescription -&gt; Bool
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#newPackageDepsBehaviour"><span class="hs-identifier hs-var hs-var">newPackageDepsBehaviour</span></a></span></span><span> </span><span id="local-6989586621679367274"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367274"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-308"></span><span>   </span><span class="annot"><span class="annottext">PackageDescription -&gt; CabalSpecVersion
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#specVersion/Distribution.Types.PackageDescription.html#specVersion"><span class="hs-identifier hs-var">specVersion</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679367274"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">CabalSpecVersion -&gt; CabalSpecVersion -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">CabalSpecVersion
+</span><a href="Distribution.Backpack.ConfiguredComponent.html#newPackageDepsBehaviourMinVersion"><span class="hs-identifier hs-var">newPackageDepsBehaviourMinVersion</span></a></span><span>
+</span><span id="line-309"></span></pre></body></html>

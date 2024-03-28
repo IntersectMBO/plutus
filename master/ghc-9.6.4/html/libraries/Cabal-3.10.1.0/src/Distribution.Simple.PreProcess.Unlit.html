@@ -1,0 +1,700 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- Module      :  Distribution.Simple.PreProcess.Unlit</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Copyright   :  ...</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Maintainer  :  cabal-devel@haskell.org</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-8"></span><span class="hs-comment">--</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Remove the \&quot;literal\&quot; markups from a Haskell source file, including</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- \&quot;@&gt;@\&quot;, \&quot;@\\begin{code}@\&quot;, \&quot;@\\end{code}@\&quot;, and \&quot;@#@\&quot;</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- This version is interesting because instead of striping comment lines, it</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- turns them into &quot;-- &quot; style comments. This allows using haddock markup</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- in literate scripts without having to use &quot;&gt; --&quot; prefix.</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.PreProcess.Unlit</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#unlit"><span class="hs-identifier">unlit</span></a></span><span class="hs-special">,</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#plain"><span class="hs-identifier">plain</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#/Distribution.Utils.Generic.html"><span class="hs-identifier">Distribution.Utils.Generic</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#safeTail/Distribution.Utils.Generic.html#safeTail"><span class="hs-identifier">safeTail</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#safeLast/Distribution.Utils.Generic.html#safeLast"><span class="hs-identifier">safeLast</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#safeInit/Distribution.Utils.Generic.html#safeInit"><span class="hs-identifier">safeInit</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.List.html#/Data.List.html"><span class="hs-identifier">Data.List</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Traversable.html#mapAccumL/Data.Traversable.html#mapAccumL"><span class="hs-identifier">mapAccumL</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">data</span><span> </span><span id="Classified"><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Classified"><span class="hs-identifier hs-var">Classified</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="BirdTrack"><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#BirdTrack"><span class="hs-identifier hs-var">BirdTrack</span></a></span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Blank"><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Blank"><span class="hs-identifier hs-var">Blank</span></a></span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Ordinary"><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Ordinary"><span class="hs-identifier hs-var">Ordinary</span></a></span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-25"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span id="Line"><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Line"><span class="hs-identifier hs-var">Line</span></a></span></span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="CPP"><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#CPP"><span class="hs-identifier hs-var">CPP</span></a></span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-26"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span id="BeginCode"><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#BeginCode"><span class="hs-identifier hs-var">BeginCode</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="EndCode"><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#EndCode"><span class="hs-identifier hs-var">EndCode</span></a></span></span><span>
+</span><span id="line-27"></span><span>                </span><span class="hs-comment">-- output only:</span><span>
+</span><span id="line-28"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span id="Error"><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Error"><span class="hs-identifier hs-var">Error</span></a></span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="Comment"><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Comment"><span class="hs-identifier hs-var">Comment</span></a></span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="annot"><span class="hs-comment">-- | No unliteration.</span></span><span>
+</span><span id="line-31"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#plain"><span class="hs-identifier hs-type">plain</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-32"></span><span id="plain"><span class="annot"><span class="annottext">plain :: String -&gt; String -&gt; String
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#plain"><span class="hs-identifier hs-var hs-var">plain</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679342861"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342861"><span class="hs-identifier hs-var">hs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342861"><span class="hs-identifier hs-var">hs</span></a></span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#classify"><span class="hs-identifier hs-type">classify</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Classified"><span class="hs-identifier hs-type">Classified</span></a></span><span>
+</span><span id="line-35"></span><span id="classify"><span class="annot"><span class="annottext">classify :: String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#classify"><span class="hs-identifier hs-var hs-var">classify</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&gt;'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342863"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342863"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#BirdTrack"><span class="hs-identifier hs-var">BirdTrack</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342863"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-36"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#classify"><span class="hs-identifier hs-var">classify</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'#'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342864"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342864"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="#local-6989586621679342865"><span class="hs-identifier hs-var">tokens</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342864"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-37"></span><span>                     </span><span class="hs-special">(</span><span id="local-6989586621679342866"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342866"><span class="hs-identifier hs-var">line</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342867"><span class="annot"><span class="annottext">file :: String
+</span><a href="#local-6989586621679342867"><span class="hs-identifier hs-var">file</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">Char
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; String -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#all/Data.Foldable.html#all"><span class="hs-identifier hs-var">all</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Unicode.html#isDigit/GHC.Unicode.html#isDigit"><span class="hs-identifier hs-var">isDigit</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342866"><span class="hs-identifier hs-var">line</span></a></span><span>
+</span><span id="line-38"></span><span>                                            </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe Char
+forall a. [a] -&gt; Maybe a
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#safeLast/Distribution.Utils.Generic.html#safeLast"><span class="hs-identifier hs-var">safeLast</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342867"><span class="hs-identifier hs-var">file</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Char -&gt; Maybe Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Maybe Char
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span>
+</span><span id="line-39"></span><span>                                </span><span class="hs-comment">-- this shouldn't fail as we tested for 'all isDigit'</span><span>
+</span><span id="line-40"></span><span>                                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int -&gt; String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Line"><span class="hs-identifier hs-var">Line</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Maybe Int -&gt; Int
+forall a. a -&gt; Maybe a -&gt; a
+</span><a href="../../base-4.18.2.0/src/Data.Maybe.html#fromMaybe/Data.Maybe.html#fromMaybe"><span class="hs-identifier hs-var">fromMaybe</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Int
+forall a. HasCallStack =&gt; String -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Err.html#error/GHC.Err.html#error"><span class="hs-identifier hs-var">error</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Int) -&gt; String -&gt; Int
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;panic! read @Int &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#show/GHC.Show.html#show"><span class="hs-identifier hs-var">show</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342866"><span class="hs-identifier hs-var">line</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Maybe Int -&gt; Int) -&gt; Maybe Int -&gt; Int
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe Int
+forall a. Read a =&gt; String -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/Text.Read.html#readMaybe/Text.Read.html#readMaybe"><span class="hs-identifier hs-var">readMaybe</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342866"><span class="hs-identifier hs-var">line</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String
+forall a. [a] -&gt; [a]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#safeTail/Distribution.Utils.Generic.html#safeTail"><span class="hs-identifier hs-var">safeTail</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String
+forall a. [a] -&gt; [a]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#safeInit/Distribution.Utils.Generic.html#safeInit"><span class="hs-identifier hs-var">safeInit</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342867"><span class="hs-identifier hs-var">file</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- TODO:eradicateNoParse</span><span>
+</span><span id="line-41"></span><span>                     </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#CPP"><span class="hs-identifier hs-var">CPP</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342864"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679342865"><span class="annot"><span class="annottext">tokens :: String -&gt; [String]
+</span><a href="#local-6989586621679342865"><span class="hs-identifier hs-var hs-var">tokens</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Maybe (String, String)) -&gt; String -&gt; [String]
+forall b a. (b -&gt; Maybe (a, b)) -&gt; b -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#unfoldr/Data.OldList.html#unfoldr"><span class="hs-identifier hs-var">unfoldr</span></a></span><span> </span><span class="annot"><span class="annottext">((String -&gt; Maybe (String, String)) -&gt; String -&gt; [String])
+-&gt; (String -&gt; Maybe (String, String)) -&gt; String -&gt; [String]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679342876"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342876"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ReadS String
+</span><a href="../../base-4.18.2.0/src/GHC.Read.html#lex/GHC.Read.html#lex"><span class="hs-identifier hs-var">lex</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342876"><span class="hs-identifier hs-var">str</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-43"></span><span>                                   </span><span class="hs-special">(</span><span id="local-6989586621679342878"><span class="annot"><span class="annottext">t :: String
+</span><a href="#local-6989586621679342878"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span id="local-6989586621679342879"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342879"><span class="hs-identifier hs-var">str'</span></a></span></span><span class="hs-special">)</span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[(String, String)]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(String, String) -&gt; Maybe (String, String)
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342878"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342879"><span class="hs-identifier hs-var">str'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>                                   </span><span class="annot"><span class="annottext">[(String, String)]
+</span><span class="hs-identifier">_</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe (String, String)
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>
+</span><span id="line-45"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#classify"><span class="hs-identifier hs-var">classify</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\\'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342880"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342880"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;begin{code}&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#isPrefixOf/Data.OldList.html#isPrefixOf"><span class="hs-operator hs-var">`isPrefixOf`</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342880"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#BeginCode"><span class="hs-identifier hs-var">BeginCode</span></a></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;end{code}&quot;</span></span><span>   </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#isPrefixOf/Data.OldList.html#isPrefixOf"><span class="hs-operator hs-var">`isPrefixOf`</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342880"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#EndCode"><span class="hs-identifier hs-var">EndCode</span></a></span><span>
+</span><span id="line-48"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#classify"><span class="hs-identifier hs-var">classify</span></a></span><span> </span><span id="local-6989586621679342882"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342882"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; String -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#all/Data.Foldable.html#all"><span class="hs-identifier hs-var">all</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Unicode.html#isSpace/GHC.Unicode.html#isSpace"><span class="hs-identifier hs-var">isSpace</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342882"><span class="hs-identifier hs-var">s</span></a></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Blank"><span class="hs-identifier hs-var">Blank</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342882"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-49"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#classify"><span class="hs-identifier hs-var">classify</span></a></span><span> </span><span id="local-6989586621679342884"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342884"><span class="hs-identifier hs-var">s</span></a></span></span><span>                       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Ordinary"><span class="hs-identifier hs-var">Ordinary</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342884"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- So the weird exception for comment indenting is to make things work with</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- haddock, see classifyAndCheckForBirdTracks below.</span><span>
+</span><span id="line-53"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#unclassify"><span class="hs-identifier hs-type">unclassify</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Classified"><span class="hs-identifier hs-type">Classified</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-54"></span><span id="unclassify"><span class="annot"><span class="annottext">unclassify :: Bool -&gt; Classified -&gt; String
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#unclassify"><span class="hs-identifier hs-var hs-var">unclassify</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span>     </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#BirdTrack"><span class="hs-identifier hs-type">BirdTrack</span></a></span><span> </span><span id="local-6989586621679342886"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342886"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">' '</span></span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342886"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-55"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#unclassify"><span class="hs-identifier hs-var">unclassify</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span>     </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Blank"><span class="hs-identifier hs-type">Blank</span></a></span><span> </span><span id="local-6989586621679342887"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342887"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342887"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-56"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#unclassify"><span class="hs-identifier hs-var">unclassify</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span>     </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Ordinary"><span class="hs-identifier hs-type">Ordinary</span></a></span><span> </span><span id="local-6989586621679342888"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342888"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342888"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-57"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#unclassify"><span class="hs-identifier hs-var">unclassify</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span>     </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Line"><span class="hs-identifier hs-type">Line</span></a></span><span> </span><span id="local-6989586621679342889"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342889"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679342890"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342890"><span class="hs-identifier hs-var">file</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;# &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#show/GHC.Show.html#show"><span class="hs-identifier hs-var">show</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342889"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#show/GHC.Show.html#show"><span class="hs-identifier hs-var">show</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342890"><span class="hs-identifier hs-var">file</span></a></span><span>
+</span><span id="line-58"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#unclassify"><span class="hs-identifier hs-var">unclassify</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span>     </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#CPP"><span class="hs-identifier hs-type">CPP</span></a></span><span> </span><span id="local-6989586621679342891"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342891"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'#'</span></span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342891"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-59"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#unclassify"><span class="hs-identifier hs-var">unclassify</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  --&quot;</span></span><span>
+</span><span id="line-60"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#unclassify"><span class="hs-identifier hs-var">unclassify</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span> </span><span id="local-6989586621679342892"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342892"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  -- &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342892"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-61"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#unclassify"><span class="hs-identifier hs-var">unclassify</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;--&quot;</span></span><span>
+</span><span id="line-62"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#unclassify"><span class="hs-identifier hs-var">unclassify</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span> </span><span id="local-6989586621679342893"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342893"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;-- &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342893"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-63"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#unclassify"><span class="hs-identifier hs-var">unclassify</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span>     </span><span class="annot"><span class="annottext">Classified
+</span><span class="hs-identifier">_</span></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+forall a. a
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#internalError"><span class="hs-identifier hs-var">internalError</span></a></span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- | 'unlit' takes a filename (for error reports), and transforms the</span><span>
+</span><span id="line-66"></span><span class="hs-comment">--   given string, to eliminate the literate comments from the program text.</span><span>
+</span><span id="line-67"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#unlit"><span class="hs-identifier hs-type">unlit</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Either.html#Either/Data.Either.html#Either"><span class="hs-identifier hs-type">Either</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-68"></span><span id="unlit"><span class="annot"><span class="annottext">unlit :: String -&gt; String -&gt; Either String String
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#unlit"><span class="hs-identifier hs-var hs-var">unlit</span></a></span></span><span> </span><span id="local-6989586621679342896"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342896"><span class="hs-identifier hs-var">file</span></a></span></span><span> </span><span id="local-6989586621679342897"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342897"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679342898"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679342898"><span class="hs-identifier hs-var">usesBirdTracks</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679342899"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342899"><span class="hs-identifier hs-var">classified</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; (Bool, [Classified])
+</span><a href="#local-6989586621679342900"><span class="hs-identifier hs-var">classifyAndCheckForBirdTracks</span></a></span><span>
+</span><span id="line-70"></span><span>                                   </span><span class="annot"><span class="annottext">([String] -&gt; (Bool, [Classified]))
+-&gt; (String -&gt; [String]) -&gt; String -&gt; (Bool, [Classified])
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#inlines"><span class="hs-identifier hs-var">inlines</span></a></span><span>
+</span><span id="line-71"></span><span>                                   </span><span class="annot"><span class="annottext">(String -&gt; (Bool, [Classified])) -&gt; String -&gt; (Bool, [Classified])
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342897"><span class="hs-identifier hs-var">input</span></a></span><span>
+</span><span id="line-72"></span><span>   </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">([Classified] -&gt; Either String String)
+-&gt; (String -&gt; Either String String)
+-&gt; Either [Classified] String
+-&gt; Either String String
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span><a href="../../base-4.18.2.0/src/Data.Either.html#either/Data.Either.html#either"><span class="hs-identifier hs-var">either</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Either String String
+forall a b. a -&gt; Either a b
+</span><a href="../../base-4.18.2.0/src/Data.Either.html#Left/Data.Either.html#Left"><span class="hs-identifier hs-var">Left</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String String)
+-&gt; ([Classified] -&gt; String) -&gt; [Classified] -&gt; Either String String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#unlines/Data.OldList.html#unlines"><span class="hs-identifier hs-var">unlines</span></a></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String)
+-&gt; ([Classified] -&gt; [String]) -&gt; [Classified] -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">(Classified -&gt; String) -&gt; [Classified] -&gt; [String]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Classified -&gt; String
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#unclassify"><span class="hs-identifier hs-var">unclassify</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679342898"><span class="hs-identifier hs-var">usesBirdTracks</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-73"></span><span>              </span><span class="annot"><span class="annottext">String -&gt; Either String String
+forall a b. b -&gt; Either a b
+</span><a href="../../base-4.18.2.0/src/Data.Either.html#Right/Data.Either.html#Right"><span class="hs-identifier hs-var">Right</span></a></span><span>
+</span><span id="line-74"></span><span>    </span><span class="annot"><span class="annottext">(Either [Classified] String -&gt; Either String String)
+-&gt; ([Classified] -&gt; Either [Classified] String)
+-&gt; [Classified]
+-&gt; Either String String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; Either [Classified] String
+</span><a href="#local-6989586621679342905"><span class="hs-identifier hs-var">checkErrors</span></a></span><span>
+</span><span id="line-75"></span><span>    </span><span class="annot"><span class="annottext">([Classified] -&gt; Either [Classified] String)
+-&gt; ([Classified] -&gt; [Classified])
+-&gt; [Classified]
+-&gt; Either [Classified] String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#reclassify"><span class="hs-identifier hs-var">reclassify</span></a></span><span>
+</span><span id="line-76"></span><span>    </span><span class="annot"><span class="annottext">([Classified] -&gt; Either String String)
+-&gt; [Classified] -&gt; Either String String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342899"><span class="hs-identifier hs-var">classified</span></a></span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-79"></span><span>    </span><span class="hs-comment">-- So haddock requires comments and code to align, since it treats comments</span><span>
+</span><span id="line-80"></span><span>    </span><span class="hs-comment">-- as following the layout rule. This is a pain for us since bird track</span><span>
+</span><span id="line-81"></span><span>    </span><span class="hs-comment">-- style literate code typically gets indented by two since &quot;&gt;&quot; is replaced</span><span>
+</span><span id="line-82"></span><span>    </span><span class="hs-comment">-- by &quot; &quot; and people usually use one additional space of indent ie</span><span>
+</span><span id="line-83"></span><span>    </span><span class="hs-comment">-- &quot;&gt; then the code&quot;. On the other hand we cannot just go and indent all</span><span>
+</span><span id="line-84"></span><span>    </span><span class="hs-comment">-- the comments by two since that does not work for latex style literate</span><span>
+</span><span id="line-85"></span><span>    </span><span class="hs-comment">-- code. So the hacky solution we use here is that if we see any bird track</span><span>
+</span><span id="line-86"></span><span>    </span><span class="hs-comment">-- style code then we'll indent all comments by two, otherwise by none.</span><span>
+</span><span id="line-87"></span><span>    </span><span class="hs-comment">-- Of course this will not work for mixed latex/bird track .lhs files but</span><span>
+</span><span id="line-88"></span><span>    </span><span class="hs-comment">-- nobody does that, it's silly and specifically recommended against in the</span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-comment">-- H98 unlit spec.</span><span>
+</span><span id="line-90"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-91"></span><span>    </span><span id="local-6989586621679342900"><span class="annot"><span class="annottext">classifyAndCheckForBirdTracks :: [String] -&gt; (Bool, [Classified])
+</span><a href="#local-6989586621679342900"><span class="hs-identifier hs-var hs-var">classifyAndCheckForBirdTracks</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-92"></span><span>      </span><span class="annot"><span class="annottext">((Bool -&gt; String -&gt; (Bool, Classified))
+ -&gt; Bool -&gt; [String] -&gt; (Bool, [Classified]))
+-&gt; Bool
+-&gt; (Bool -&gt; String -&gt; (Bool, Classified))
+-&gt; [String]
+-&gt; (Bool, [Classified])
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#flip/GHC.Base.html#flip"><span class="hs-identifier hs-var">flip</span></a></span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; String -&gt; (Bool, Classified))
+-&gt; Bool -&gt; [String] -&gt; (Bool, [Classified])
+forall (t :: * -&gt; *) s a b.
+Traversable t =&gt;
+(s -&gt; a -&gt; (s, b)) -&gt; s -&gt; t a -&gt; (s, t b)
+</span><a href="../../base-4.18.2.0/src/Data.Traversable.html#mapAccumL/Data.Traversable.html#mapAccumL"><span class="hs-identifier hs-var">mapAccumL</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">((Bool -&gt; String -&gt; (Bool, Classified))
+ -&gt; [String] -&gt; (Bool, [Classified]))
+-&gt; (Bool -&gt; String -&gt; (Bool, Classified))
+-&gt; [String]
+-&gt; (Bool, [Classified])
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679342913"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679342913"><span class="hs-identifier hs-var">seenBirdTrack</span></a></span></span><span> </span><span id="local-6989586621679342914"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342914"><span class="hs-identifier hs-var">line</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-93"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679342915"><span class="annot"><span class="annottext">classification :: Classified
+</span><a href="#local-6989586621679342915"><span class="hs-identifier hs-var hs-var">classification</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#classify"><span class="hs-identifier hs-var">classify</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342914"><span class="hs-identifier hs-var">line</span></a></span><span>
+</span><span id="line-94"></span><span>         </span><span class="hs-keyword">in</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679342913"><span class="hs-identifier hs-var">seenBirdTrack</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Classified -&gt; Bool
+</span><a href="#local-6989586621679342917"><span class="hs-identifier hs-var">isBirdTrack</span></a></span><span> </span><span class="annot"><span class="annottext">Classified
+</span><a href="#local-6989586621679342915"><span class="hs-identifier hs-var">classification</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Classified
+</span><a href="#local-6989586621679342915"><span class="hs-identifier hs-var">classification</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-95"></span><span>
+</span><span id="line-96"></span><span>    </span><span id="local-6989586621679342917"><span class="annot"><span class="annottext">isBirdTrack :: Classified -&gt; Bool
+</span><a href="#local-6989586621679342917"><span class="hs-identifier hs-var hs-var">isBirdTrack</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#BirdTrack"><span class="hs-identifier hs-type">BirdTrack</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-97"></span><span>    </span><span class="annot"><a href="#local-6989586621679342917"><span class="hs-identifier hs-var">isBirdTrack</span></a></span><span> </span><span class="annot"><span class="annottext">Classified
+</span><span class="hs-identifier">_</span></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span>    </span><span id="local-6989586621679342905"><span class="annot"><span class="annottext">checkErrors :: [Classified] -&gt; Either [Classified] String
+</span><a href="#local-6989586621679342905"><span class="hs-identifier hs-var hs-var">checkErrors</span></a></span></span><span> </span><span id="local-6989586621679342919"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342919"><span class="hs-identifier hs-var">ls</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342920"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Error"><span class="hs-identifier hs-type">Error</span></a></span><span> </span><span id="local-6989586621679342920"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342920"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342919"><span class="hs-identifier hs-var">ls</span></a></span><span> </span><span class="hs-special">]</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-100"></span><span>      </span><span class="hs-special">[</span><span class="hs-special">]</span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; Either [Classified] String
+forall a b. a -&gt; Either a b
+</span><a href="../../base-4.18.2.0/src/Data.Either.html#Left/Data.Either.html#Left"><span class="hs-identifier hs-var">Left</span></a></span><span>  </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342919"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-101"></span><span>      </span><span class="hs-special">(</span><span id="local-6989586621679342921"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342921"><span class="hs-identifier hs-var">message</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either [Classified] String
+forall a b. b -&gt; Either a b
+</span><a href="../../base-4.18.2.0/src/Data.Either.html#Right/Data.Either.html#Right"><span class="hs-identifier hs-var">Right</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342922"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;:&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#show/GHC.Show.html#show"><span class="hs-identifier hs-var">show</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342923"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342921"><span class="hs-identifier hs-var">message</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-102"></span><span>        </span><span class="hs-keyword">where</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679342922"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342922"><span class="hs-identifier hs-var">f</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679342923"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342923"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int -&gt; [Classified] -&gt; (String, Int)
+</span><a href="#local-6989586621679342924"><span class="hs-identifier hs-var">errorPos</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342896"><span class="hs-identifier hs-var">file</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342919"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-103"></span><span>    </span><span id="local-6989586621679342924"><span class="annot"><span class="annottext">errorPos :: String -&gt; Int -&gt; [Classified] -&gt; (String, Int)
+</span><a href="#local-6989586621679342924"><span class="hs-identifier hs-var hs-var">errorPos</span></a></span></span><span> </span><span id="local-6989586621679342928"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342928"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679342929"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342929"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342928"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342929"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span>    </span><span class="annot"><a href="#local-6989586621679342924"><span class="hs-identifier hs-var">errorPos</span></a></span><span> </span><span id="local-6989586621679342930"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342930"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679342931"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342931"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Error"><span class="hs-identifier hs-type">Error</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[Classified]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342930"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342931"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-105"></span><span>    </span><span class="annot"><a href="#local-6989586621679342924"><span class="hs-identifier hs-var">errorPos</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Line"><span class="hs-identifier hs-type">Line</span></a></span><span> </span><span id="local-6989586621679342932"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342932"><span class="hs-identifier hs-var">n'</span></a></span></span><span> </span><span id="local-6989586621679342933"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342933"><span class="hs-identifier hs-var">f'</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342934"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342934"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int -&gt; [Classified] -&gt; (String, Int)
+</span><a href="#local-6989586621679342924"><span class="hs-identifier hs-var">errorPos</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342933"><span class="hs-identifier hs-var">f'</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342932"><span class="hs-identifier hs-var">n'</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342934"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-106"></span><span>    </span><span class="annot"><a href="#local-6989586621679342924"><span class="hs-identifier hs-var">errorPos</span></a></span><span> </span><span id="local-6989586621679342935"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342935"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679342936"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342936"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Classified
+</span><span class="hs-identifier">_</span></span><span>         </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342937"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342937"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int -&gt; [Classified] -&gt; (String, Int)
+</span><a href="#local-6989586621679342924"><span class="hs-identifier hs-var">errorPos</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342935"><span class="hs-identifier hs-var">f</span></a></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342936"><span class="hs-identifier hs-var">n</span></a></span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Num.html#%2B/GHC.Num.html#%2B"><span class="hs-operator hs-var">+</span></a></span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342937"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-107"></span><span>
+</span><span id="line-108"></span><span class="hs-comment">-- Here we model a state machine, with each state represented by</span><span>
+</span><span id="line-109"></span><span class="hs-comment">-- a local function. We only have four states (well, five,</span><span>
+</span><span id="line-110"></span><span class="hs-comment">-- if you count the error state), but the rules</span><span>
+</span><span id="line-111"></span><span class="hs-comment">-- to transition between then are not so simple.</span><span>
+</span><span id="line-112"></span><span class="hs-comment">-- Would it be simpler to have more states?</span><span>
+</span><span id="line-113"></span><span class="hs-comment">--</span><span>
+</span><span id="line-114"></span><span class="hs-comment">-- Each state represents the type of line that was last read</span><span>
+</span><span id="line-115"></span><span class="hs-comment">-- i.e. are we in a comment section, or a latex-code section,</span><span>
+</span><span id="line-116"></span><span class="hs-comment">-- or a bird-code section, etc?</span><span>
+</span><span id="line-117"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#reclassify"><span class="hs-identifier hs-type">reclassify</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Classified"><span class="hs-identifier hs-type">Classified</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Classified"><span class="hs-identifier hs-type">Classified</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-118"></span><span id="reclassify"><span class="annot"><span class="annottext">reclassify :: [Classified] -&gt; [Classified]
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#reclassify"><span class="hs-identifier hs-var hs-var">reclassify</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342939"><span class="hs-identifier hs-var">blank</span></a></span><span> </span><span class="hs-comment">-- begin in blank state</span><span>
+</span><span id="line-119"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-120"></span><span>    </span><span id="local-6989586621679342940"><span class="annot"><span class="annottext">latex :: [Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342940"><span class="hs-identifier hs-var hs-var">latex</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-121"></span><span>    </span><span class="annot"><a href="#local-6989586621679342940"><span class="hs-identifier hs-var">latex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#EndCode"><span class="hs-identifier hs-var">EndCode</span></a></span><span>    </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342941"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342941"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Blank"><span class="hs-identifier hs-var">Blank</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342941"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-122"></span><span>    </span><span class="annot"><a href="#local-6989586621679342940"><span class="hs-identifier hs-var">latex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#BeginCode"><span class="hs-identifier hs-var">BeginCode</span></a></span><span>  </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[Classified]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\begin{code} in code section&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-123"></span><span>    </span><span class="annot"><a href="#local-6989586621679342940"><span class="hs-identifier hs-var">latex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#BirdTrack"><span class="hs-identifier hs-type">BirdTrack</span></a></span><span> </span><span id="local-6989586621679342943"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342943"><span class="hs-identifier hs-var">l</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342944"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342944"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Ordinary"><span class="hs-identifier hs-var">Ordinary</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&gt;'</span></span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342943"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342940"><span class="hs-identifier hs-var">latex</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342944"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-124"></span><span>    </span><span class="annot"><a href="#local-6989586621679342940"><span class="hs-identifier hs-var">latex</span></a></span><span> </span><span class="hs-special">(</span><span>          </span><span id="local-6989586621679342945"><span class="annot"><span class="annottext">Classified
+</span><a href="#local-6989586621679342945"><span class="hs-identifier hs-var">l</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342946"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342946"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Classified
+</span><a href="#local-6989586621679342945"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342940"><span class="hs-identifier hs-var">latex</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342946"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-125"></span><span>
+</span><span id="line-126"></span><span>    </span><span id="local-6989586621679342939"><span class="annot"><span class="annottext">blank :: [Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342939"><span class="hs-identifier hs-var hs-var">blank</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-127"></span><span>    </span><span class="annot"><a href="#local-6989586621679342939"><span class="hs-identifier hs-var">blank</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#EndCode"><span class="hs-identifier hs-var">EndCode</span></a></span><span>    </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[Classified]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\end{code} without \\begin{code}&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-128"></span><span>    </span><span class="annot"><a href="#local-6989586621679342939"><span class="hs-identifier hs-var">blank</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#BeginCode"><span class="hs-identifier hs-var">BeginCode</span></a></span><span>  </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342947"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342947"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Blank"><span class="hs-identifier hs-var">Blank</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>    </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342940"><span class="hs-identifier hs-var">latex</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342947"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-129"></span><span>    </span><span class="annot"><a href="#local-6989586621679342939"><span class="hs-identifier hs-var">blank</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#BirdTrack"><span class="hs-identifier hs-type">BirdTrack</span></a></span><span> </span><span id="local-6989586621679342948"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342948"><span class="hs-identifier hs-var">l</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342949"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342949"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#BirdTrack"><span class="hs-identifier hs-var">BirdTrack</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342948"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342950"><span class="hs-identifier hs-var">bird</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342949"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-130"></span><span>    </span><span class="annot"><a href="#local-6989586621679342939"><span class="hs-identifier hs-var">blank</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Ordinary"><span class="hs-identifier hs-type">Ordinary</span></a></span><span>  </span><span id="local-6989586621679342951"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342951"><span class="hs-identifier hs-var">l</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342952"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342952"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Comment"><span class="hs-identifier hs-var">Comment</span></a></span><span>   </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342951"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342952"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-131"></span><span>    </span><span class="annot"><a href="#local-6989586621679342939"><span class="hs-identifier hs-var">blank</span></a></span><span> </span><span class="hs-special">(</span><span>          </span><span id="local-6989586621679342953"><span class="annot"><span class="annottext">Classified
+</span><a href="#local-6989586621679342953"><span class="hs-identifier hs-var">l</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342954"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342954"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>           </span><span class="annot"><span class="annottext">Classified
+</span><a href="#local-6989586621679342953"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342939"><span class="hs-identifier hs-var">blank</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342954"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-132"></span><span>
+</span><span id="line-133"></span><span>    </span><span id="local-6989586621679342950"><span class="annot"><span class="annottext">bird :: [Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342950"><span class="hs-identifier hs-var hs-var">bird</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-134"></span><span>    </span><span class="annot"><a href="#local-6989586621679342950"><span class="hs-identifier hs-var">bird</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#EndCode"><span class="hs-identifier hs-var">EndCode</span></a></span><span>   </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[Classified]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\end{code} without \\begin{code}&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-135"></span><span>    </span><span class="annot"><a href="#local-6989586621679342950"><span class="hs-identifier hs-var">bird</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#BeginCode"><span class="hs-identifier hs-var">BeginCode</span></a></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342955"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342955"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Blank"><span class="hs-identifier hs-var">Blank</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342940"><span class="hs-identifier hs-var">latex</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342955"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-136"></span><span>    </span><span class="annot"><a href="#local-6989586621679342950"><span class="hs-identifier hs-var">bird</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Blank"><span class="hs-identifier hs-type">Blank</span></a></span><span> </span><span id="local-6989586621679342956"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342956"><span class="hs-identifier hs-var">l</span></a></span></span><span>   </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342957"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342957"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Blank"><span class="hs-identifier hs-var">Blank</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342956"><span class="hs-identifier hs-var">l</span></a></span><span>  </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342939"><span class="hs-identifier hs-var">blank</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342957"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-137"></span><span>    </span><span class="annot"><a href="#local-6989586621679342950"><span class="hs-identifier hs-var">bird</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Ordinary"><span class="hs-identifier hs-type">Ordinary</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[Classified]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;program line before comment line&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-138"></span><span>    </span><span class="annot"><a href="#local-6989586621679342950"><span class="hs-identifier hs-var">bird</span></a></span><span> </span><span class="hs-special">(</span><span>         </span><span id="local-6989586621679342958"><span class="annot"><span class="annottext">Classified
+</span><a href="#local-6989586621679342958"><span class="hs-identifier hs-var">l</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342959"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342959"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Classified
+</span><a href="#local-6989586621679342958"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342950"><span class="hs-identifier hs-var">bird</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342959"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-139"></span><span>
+</span><span id="line-140"></span><span>    </span><span id="local-6989586621679342942"><span class="annot"><span class="annottext">comment :: [Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342942"><span class="hs-identifier hs-var hs-var">comment</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>               </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-141"></span><span>    </span><span class="annot"><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#EndCode"><span class="hs-identifier hs-var">EndCode</span></a></span><span>    </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[Classified]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\end{code} without \\begin{code}&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-142"></span><span>    </span><span class="annot"><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#BeginCode"><span class="hs-identifier hs-var">BeginCode</span></a></span><span>  </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342960"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342960"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Blank"><span class="hs-identifier hs-var">Blank</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342940"><span class="hs-identifier hs-var">latex</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342960"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-143"></span><span>    </span><span class="annot"><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#CPP"><span class="hs-identifier hs-type">CPP</span></a></span><span> </span><span id="local-6989586621679342961"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342961"><span class="hs-identifier hs-var">l</span></a></span></span><span>      </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342962"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342962"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#CPP"><span class="hs-identifier hs-var">CPP</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342961"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342962"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-144"></span><span>    </span><span class="annot"><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#BirdTrack"><span class="hs-identifier hs-type">BirdTrack</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[Classified]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;comment line before program line&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-145"></span><span>    </span><span class="hs-comment">-- a blank line and another ordinary line following a comment</span><span>
+</span><span id="line-146"></span><span>    </span><span class="hs-comment">-- will be treated as continuing the comment. Otherwise it's</span><span>
+</span><span id="line-147"></span><span>    </span><span class="hs-comment">-- then end of the comment, with a blank line.</span><span>
+</span><span id="line-148"></span><span>    </span><span class="annot"><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Blank"><span class="hs-identifier hs-type">Blank</span></a></span><span>     </span><span id="local-6989586621679342963"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342963"><span class="hs-identifier hs-var">l</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342964"><span class="annot"><span class="annottext">ls :: [Classified]
+</span><a href="#local-6989586621679342964"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Ordinary"><span class="hs-identifier hs-type">Ordinary</span></a></span><span>  </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">[Classified]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Comment"><span class="hs-identifier hs-var">Comment</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342963"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342964"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-149"></span><span>    </span><span class="annot"><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Blank"><span class="hs-identifier hs-type">Blank</span></a></span><span>     </span><span id="local-6989586621679342965"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342965"><span class="hs-identifier hs-var">l</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342966"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342966"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Blank"><span class="hs-identifier hs-var">Blank</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342965"><span class="hs-identifier hs-var">l</span></a></span><span>   </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342939"><span class="hs-identifier hs-var">blank</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342966"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-150"></span><span>    </span><span class="annot"><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Line"><span class="hs-identifier hs-type">Line</span></a></span><span> </span><span id="local-6989586621679342967"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342967"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679342968"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342968"><span class="hs-identifier hs-var">f</span></a></span></span><span>   </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342969"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342969"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Line"><span class="hs-identifier hs-var">Line</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679342967"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342968"><span class="hs-identifier hs-var">f</span></a></span><span>  </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342969"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-151"></span><span>    </span><span class="annot"><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Ordinary"><span class="hs-identifier hs-type">Ordinary</span></a></span><span>  </span><span id="local-6989586621679342970"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342970"><span class="hs-identifier hs-var">l</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342971"><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342971"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Classified
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#Comment"><span class="hs-identifier hs-var">Comment</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342970"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">Classified -&gt; [Classified] -&gt; [Classified]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified] -&gt; [Classified]
+</span><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><a href="#local-6989586621679342971"><span class="hs-identifier hs-var">ls</span></a></span><span>
+</span><span id="line-152"></span><span>    </span><span class="annot"><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span>   </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Classified]
+forall a. a
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#internalError"><span class="hs-identifier hs-var">internalError</span></a></span><span>
+</span><span id="line-153"></span><span>    </span><span class="annot"><a href="#local-6989586621679342942"><span class="hs-identifier hs-var">comment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#Error"><span class="hs-identifier hs-type">Error</span></a></span><span>     </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[Classified]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Classified]
+forall a. a
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#internalError"><span class="hs-identifier hs-var">internalError</span></a></span><span>
+</span><span id="line-154"></span><span>
+</span><span id="line-155"></span><span class="hs-comment">-- Re-implementation of 'lines', for better efficiency (but decreased laziness).</span><span>
+</span><span id="line-156"></span><span class="hs-comment">-- Also, importantly, accepts non-standard DOS and Mac line ending characters.</span><span>
+</span><span id="line-157"></span><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#inlines"><span class="hs-identifier hs-type">inlines</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-158"></span><span id="inlines"><span class="annot"><span class="annottext">inlines :: String -&gt; [String]
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#inlines"><span class="hs-identifier hs-var hs-var">inlines</span></a></span></span><span> </span><span id="local-6989586621679342972"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342972"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (String -&gt; String) -&gt; [String]
+</span><a href="#local-6989586621679342973"><span class="hs-identifier hs-var">lines'</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342972"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#id/GHC.Base.html#id"><span class="hs-identifier hs-var">id</span></a></span><span>
+</span><span id="line-159"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-160"></span><span>  </span><span id="local-6989586621679342973"><span class="annot"><span class="annottext">lines' :: String -&gt; (String -&gt; String) -&gt; [String]
+</span><a href="#local-6989586621679342973"><span class="hs-identifier hs-var hs-var">lines'</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>             </span><span id="local-6989586621679342975"><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679342975"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679342975"><span class="hs-identifier hs-var">acc</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">]</span><span>
+</span><span id="line-161"></span><span>  </span><span class="annot"><a href="#local-6989586621679342973"><span class="hs-identifier hs-var">lines'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\^M'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\n'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342976"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342976"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679342977"><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679342977"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679342977"><span class="hs-identifier hs-var">acc</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; [String]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; (String -&gt; String) -&gt; [String]
+</span><a href="#local-6989586621679342973"><span class="hs-identifier hs-var">lines'</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342976"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#id/GHC.Base.html#id"><span class="hs-identifier hs-var">id</span></a></span><span>    </span><span class="hs-comment">-- DOS</span><span>
+</span><span id="line-162"></span><span>  </span><span class="annot"><a href="#local-6989586621679342973"><span class="hs-identifier hs-var">lines'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\^M'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342978"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342978"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span>      </span><span id="local-6989586621679342979"><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679342979"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679342979"><span class="hs-identifier hs-var">acc</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; [String]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; (String -&gt; String) -&gt; [String]
+</span><a href="#local-6989586621679342973"><span class="hs-identifier hs-var">lines'</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342978"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#id/GHC.Base.html#id"><span class="hs-identifier hs-var">id</span></a></span><span>    </span><span class="hs-comment">-- MacOS</span><span>
+</span><span id="line-163"></span><span>  </span><span class="annot"><a href="#local-6989586621679342973"><span class="hs-identifier hs-var">lines'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\n'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342980"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342980"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span>       </span><span id="local-6989586621679342981"><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679342981"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679342981"><span class="hs-identifier hs-var">acc</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; [String]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; (String -&gt; String) -&gt; [String]
+</span><a href="#local-6989586621679342973"><span class="hs-identifier hs-var">lines'</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342980"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#id/GHC.Base.html#id"><span class="hs-identifier hs-var">id</span></a></span><span>    </span><span class="hs-comment">-- Unix</span><span>
+</span><span id="line-164"></span><span>  </span><span class="annot"><a href="#local-6989586621679342973"><span class="hs-identifier hs-var">lines'</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679342982"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679342982"><span class="hs-identifier hs-var">c</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679342983"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342983"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span>          </span><span id="local-6989586621679342984"><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679342984"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (String -&gt; String) -&gt; [String]
+</span><a href="#local-6989586621679342973"><span class="hs-identifier hs-var">lines'</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679342983"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679342984"><span class="hs-identifier hs-var">acc</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; (String -&gt; String) -&gt; String -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679342982"><span class="hs-identifier hs-var">c</span></a></span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-165"></span><span>
+</span><span id="line-166"></span><span id="local-6989586621679342805"><span class="annot"><a href="Distribution.Simple.PreProcess.Unlit.html#internalError"><span class="hs-identifier hs-type">internalError</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679342805"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-167"></span><span id="internalError"><span class="annot"><span class="annottext">internalError :: forall a. a
+</span><a href="Distribution.Simple.PreProcess.Unlit.html#internalError"><span class="hs-identifier hs-var hs-var">internalError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; a
+forall a. HasCallStack =&gt; String -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Err.html#error/GHC.Err.html#error"><span class="hs-identifier hs-var">error</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;unlit: internal error&quot;</span></span><span>
+</span><span id="line-168"></span></pre></body></html>

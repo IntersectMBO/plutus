@@ -1,0 +1,325 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="annot"><span class="hs-comment">-- | Table combinators for XHTML.</span></span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.XHtml.Table</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier">HtmlTable</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HTMLTABLE"><span class="hs-identifier">HTMLTABLE</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-3"></span><span>                        </span><span class="annot"><a href="Text.XHtml.Table.html#%3C%2F%3E"><span class="hs-operator">(&lt;/&gt;)</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#above"><span class="hs-identifier">above</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#%3C-%3E"><span class="hs-operator">(&lt;-&gt;)</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#beside"><span class="hs-identifier">beside</span></a></span><span class="hs-special">,</span><span> </span><span>
+</span><span id="line-4"></span><span>                         </span><span class="annot"><a href="Text.XHtml.Table.html#aboves"><span class="hs-identifier">aboves</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#besides"><span class="hs-identifier">besides</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-5"></span><span>                         </span><span class="annot"><a href="Text.XHtml.Table.html#simpleTable"><span class="hs-identifier">simpleTable</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html"><span class="hs-identifier">Text.XHtml.Internals</span></a></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.XHtml.Strict.Elements.html"><span class="hs-identifier">Text.XHtml.Strict.Elements</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.XHtml.Strict.Attributes.html"><span class="hs-identifier">Text.XHtml.Strict.Attributes</span></a></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Text.XHtml.BlockTable.html"><span class="hs-identifier">Text.XHtml.BlockTable</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">BT</span></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">infixr</span><span> </span><span class="hs-number">3</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#%3C%2F%3E"><span class="hs-operator hs-type">&lt;/&gt;</span></a></span><span>  </span><span class="hs-comment">-- combining table cells </span><span>
+</span><span id="line-15"></span><span class="hs-keyword">infixr</span><span> </span><span class="hs-number">4</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#%3C-%3E"><span class="hs-operator hs-type">&lt;-&gt;</span></a></span><span>  </span><span class="hs-comment">-- combining table cells</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-comment">--</span><span>
+</span><span id="line-18"></span><span class="annot"><span class="hs-comment">-- * Tables</span></span><span>
+</span><span id="line-19"></span><span class="hs-comment">--</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">class</span><span> </span><span id="HTMLTABLE"><span class="annot"><a href="Text.XHtml.Table.html#HTMLTABLE"><span class="hs-identifier hs-var">HTMLTABLE</span></a></span></span><span> </span><span id="local-6989586621679036671"><span class="annot"><a href="#local-6989586621679036671"><span class="hs-identifier hs-type">ht</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-22"></span><span>      </span><span id="cell"><span class="annot"><a href="Text.XHtml.Table.html#cell"><span class="hs-identifier hs-type">cell</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679036671"><span class="hs-identifier hs-type">ht</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HTMLTABLE"><span class="hs-identifier hs-type">HTMLTABLE</span></a></span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-25"></span><span>      </span><span id="local-6989586621679036741"><span class="annot"><span class="annottext">cell :: HtmlTable -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#cell"><span class="hs-identifier hs-var hs-var hs-var hs-var">cell</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HtmlTable -&gt; HtmlTable
+forall a. a -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#id/GHC.Base.html#id"><span class="hs-identifier hs-var">id</span></a></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HTMLTABLE"><span class="hs-identifier hs-type">HTMLTABLE</span></a></span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-28"></span><span>      </span><span id="local-6989586621679036744"><span class="annot"><span class="annottext">cell :: Html -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#cell"><span class="hs-identifier hs-var hs-var hs-var hs-var">cell</span></a></span></span><span> </span><span id="local-6989586621679036745"><span class="annot"><span class="annottext">Html
+</span><a href="#local-6989586621679036745"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span>
+</span><span id="line-29"></span><span>         </span><span class="hs-keyword">let</span><span>
+</span><span id="line-30"></span><span>              </span><span id="local-6989586621679036753"><span class="annot"><span class="annottext">cellFn :: Int -&gt; Int -&gt; Html
+</span><a href="#local-6989586621679036753"><span class="hs-identifier hs-var hs-var">cellFn</span></a></span></span><span> </span><span id="local-6989586621679036754"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679036754"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679036755"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679036755"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html
+</span><a href="#local-6989586621679036745"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">Html -&gt; [HtmlAttr] -&gt; Html
+forall a. ADDATTRS a =&gt; a -&gt; [HtmlAttr] -&gt; a
+</span><a href="Text.XHtml.Internals.html#%21"><span class="hs-operator hs-var">!</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; (Int -&gt; HtmlAttr) -&gt; [HtmlAttr] -&gt; [HtmlAttr]
+forall {t} {a}. (Eq t, Num t) =&gt; t -&gt; (t -&gt; a) -&gt; [a] -&gt; [a]
+</span><a href="#local-6989586621679036757"><span class="hs-identifier hs-var">add</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679036754"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#colspan"><span class="hs-identifier hs-var">colspan</span></a></span><span> </span><span class="annot"><span class="annottext">([HtmlAttr] -&gt; [HtmlAttr]) -&gt; [HtmlAttr] -&gt; [HtmlAttr]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; (Int -&gt; HtmlAttr) -&gt; [HtmlAttr] -&gt; [HtmlAttr]
+forall {t} {a}. (Eq t, Num t) =&gt; t -&gt; (t -&gt; a) -&gt; [a] -&gt; [a]
+</span><a href="#local-6989586621679036757"><span class="hs-identifier hs-var">add</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679036755"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; HtmlAttr
+</span><a href="Text.XHtml.Strict.Attributes.html#rowspan"><span class="hs-identifier hs-var">rowspan</span></a></span><span> </span><span class="annot"><span class="annottext">([HtmlAttr] -&gt; [HtmlAttr]) -&gt; [HtmlAttr] -&gt; [HtmlAttr]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span>              </span><span id="local-6989586621679036757"><span class="annot"><span class="annottext">add :: t -&gt; (t -&gt; a) -&gt; [a] -&gt; [a]
+</span><a href="#local-6989586621679036757"><span class="hs-identifier hs-var hs-var">add</span></a></span></span><span> </span><span class="annot"><span class="annottext">t
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">t -&gt; a
+</span><span class="hs-identifier">_</span></span><span>  </span><span id="local-6989586621679036764"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679036764"><span class="hs-identifier hs-var">rest</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679036764"><span class="hs-identifier hs-var">rest</span></a></span><span>
+</span><span id="line-32"></span><span>              </span><span class="annot"><a href="#local-6989586621679036757"><span class="hs-identifier hs-var">add</span></a></span><span> </span><span id="local-6989586621679036765"><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679036765"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679036766"><span class="annot"><span class="annottext">t -&gt; a
+</span><a href="#local-6989586621679036766"><span class="hs-identifier hs-var">fn</span></a></span></span><span> </span><span id="local-6989586621679036767"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679036767"><span class="hs-identifier hs-var">rest</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">t -&gt; a
+</span><a href="#local-6989586621679036766"><span class="hs-identifier hs-var">fn</span></a></span><span> </span><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679036765"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; [a] -&gt; [a]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679036767"><span class="hs-identifier hs-var">rest</span></a></span><span>
+</span><span id="line-33"></span><span>              </span><span id="local-6989586621679036768"><span class="annot"><span class="annottext">r :: BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036768"><span class="hs-identifier hs-var hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int -&gt; Html) -&gt; BlockTable (Int -&gt; Int -&gt; Html)
+forall a. a -&gt; BlockTable a
+</span><a href="Text.XHtml.BlockTable.html#single"><span class="hs-identifier hs-var">BT.single</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Html
+</span><a href="#local-6989586621679036753"><span class="hs-identifier hs-var">cellFn</span></a></span><span>
+</span><span id="line-34"></span><span>         </span><span class="hs-keyword">in</span><span> </span><span>
+</span><span id="line-35"></span><span>              </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html) -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#mkHtmlTable"><span class="hs-identifier hs-var">mkHtmlTable</span></a></span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036768"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- | We internally represent the Cell inside a Table with an</span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- object of the type</span><span>
+</span><span id="line-39"></span><span class="hs-comment">--</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- &gt;	   Int -&gt; Int -&gt; Html</span><span>
+</span><span id="line-41"></span><span class="hs-comment">--</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- When we render it later, we find out how many columns</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- or rows this cell will span over, and can</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- include the correct colspan\/rowspan command.</span><span>
+</span><span id="line-45"></span><span class="hs-keyword">newtype</span><span> </span><span id="HtmlTable"><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-var">HtmlTable</span></a></span></span><span> </span><span>
+</span><span id="line-46"></span><span>      </span><span class="hs-glyph">=</span><span> </span><span id="HtmlTable"><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-var">HtmlTable</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.BlockTable.html#BlockTable"><span class="hs-identifier hs-type">BT.BlockTable</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="annot"><a href="Text.XHtml.Table.html#mkHtmlTable"><span class="hs-identifier hs-type">mkHtmlTable</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.XHtml.BlockTable.html#BlockTable"><span class="hs-identifier hs-type">BT.BlockTable</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span><span>
+</span><span id="line-50"></span><span id="mkHtmlTable"><span class="annot"><span class="annottext">mkHtmlTable :: BlockTable (Int -&gt; Int -&gt; Html) -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#mkHtmlTable"><span class="hs-identifier hs-var hs-var">mkHtmlTable</span></a></span></span><span> </span><span id="local-6989586621679036772"><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036772"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html) -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-var">HtmlTable</span></a></span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036772"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- We give both infix and nonfix, take your pick.</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- Notice that there is no concept of a row/column</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- of zero items.</span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span id="local-6989586621679036683"><span id="local-6989586621679036684"><span class="annot"><a href="Text.XHtml.Table.html#%3C%2F%3E"><span class="hs-operator hs-type">(&lt;/&gt;)</span></a></span><span class="hs-special">,</span><span class="annot"><a href="Text.XHtml.Table.html#above"><span class="hs-identifier hs-type">above</span></a></span><span class="hs-special">,</span><span class="annot"><a href="Text.XHtml.Table.html#%3C-%3E"><span class="hs-operator hs-type">(&lt;-&gt;)</span></a></span><span class="hs-special">,</span><span class="annot"><a href="Text.XHtml.Table.html#beside"><span class="hs-identifier hs-type">beside</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.Table.html#HTMLTABLE"><span class="hs-identifier hs-type">HTMLTABLE</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036683"><span class="hs-identifier hs-type">ht1</span></a></span><span class="hs-special">,</span><span class="annot"><a href="Text.XHtml.Table.html#HTMLTABLE"><span class="hs-identifier hs-type">HTMLTABLE</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036684"><span class="hs-identifier hs-type">ht2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span>                       </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036683"><span class="hs-identifier hs-type">ht1</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036684"><span class="hs-identifier hs-type">ht2</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span></span></span><span>
+</span><span id="line-58"></span><span id="above"><span class="annot"><span class="annottext">above :: forall ht1 ht2.
+(HTMLTABLE ht1, HTMLTABLE ht2) =&gt;
+ht1 -&gt; ht2 -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#above"><span class="hs-identifier hs-var hs-var">above</span></a></span></span><span>   </span><span id="local-6989586621679036777"><span class="annot"><span class="annottext">ht1
+</span><a href="#local-6989586621679036777"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679036778"><span class="annot"><span class="annottext">ht2
+</span><a href="#local-6989586621679036778"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(BlockTable (Int -&gt; Int -&gt; Html)
+ -&gt; BlockTable (Int -&gt; Int -&gt; Html)
+ -&gt; BlockTable (Int -&gt; Int -&gt; Html))
+-&gt; HtmlTable -&gt; HtmlTable -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#combine"><span class="hs-identifier hs-var">combine</span></a></span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+-&gt; BlockTable (Int -&gt; Int -&gt; Html)
+-&gt; BlockTable (Int -&gt; Int -&gt; Html)
+forall a. BlockTable a -&gt; BlockTable a -&gt; BlockTable a
+</span><a href="Text.XHtml.BlockTable.html#above"><span class="hs-identifier hs-var">BT.above</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ht1 -&gt; HtmlTable
+forall ht. HTMLTABLE ht =&gt; ht -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#cell"><span class="hs-identifier hs-var">cell</span></a></span><span> </span><span class="annot"><span class="annottext">ht1
+</span><a href="#local-6989586621679036777"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ht2 -&gt; HtmlTable
+forall ht. HTMLTABLE ht =&gt; ht -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#cell"><span class="hs-identifier hs-var">cell</span></a></span><span> </span><span class="annot"><span class="annottext">ht2
+</span><a href="#local-6989586621679036778"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span id="%3C%2F%3E"><span class="annot"><span class="annottext">&lt;/&gt; :: forall ht1 ht2.
+(HTMLTABLE ht1, HTMLTABLE ht2) =&gt;
+ht1 -&gt; ht2 -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#%3C%2F%3E"><span class="hs-operator hs-var hs-var">(&lt;/&gt;)</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ht1 -&gt; ht2 -&gt; HtmlTable
+forall ht1 ht2.
+(HTMLTABLE ht1, HTMLTABLE ht2) =&gt;
+ht1 -&gt; ht2 -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#above"><span class="hs-identifier hs-var">above</span></a></span><span>
+</span><span id="line-60"></span><span id="beside"><span class="annot"><span class="annottext">beside :: forall ht1 ht2.
+(HTMLTABLE ht1, HTMLTABLE ht2) =&gt;
+ht1 -&gt; ht2 -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#beside"><span class="hs-identifier hs-var hs-var">beside</span></a></span></span><span>  </span><span id="local-6989586621679036789"><span class="annot"><span class="annottext">ht1
+</span><a href="#local-6989586621679036789"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679036790"><span class="annot"><span class="annottext">ht2
+</span><a href="#local-6989586621679036790"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(BlockTable (Int -&gt; Int -&gt; Html)
+ -&gt; BlockTable (Int -&gt; Int -&gt; Html)
+ -&gt; BlockTable (Int -&gt; Int -&gt; Html))
+-&gt; HtmlTable -&gt; HtmlTable -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#combine"><span class="hs-identifier hs-var">combine</span></a></span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+-&gt; BlockTable (Int -&gt; Int -&gt; Html)
+-&gt; BlockTable (Int -&gt; Int -&gt; Html)
+forall a. BlockTable a -&gt; BlockTable a -&gt; BlockTable a
+</span><a href="Text.XHtml.BlockTable.html#beside"><span class="hs-identifier hs-var">BT.beside</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ht1 -&gt; HtmlTable
+forall ht. HTMLTABLE ht =&gt; ht -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#cell"><span class="hs-identifier hs-var">cell</span></a></span><span> </span><span class="annot"><span class="annottext">ht1
+</span><a href="#local-6989586621679036789"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ht2 -&gt; HtmlTable
+forall ht. HTMLTABLE ht =&gt; ht -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#cell"><span class="hs-identifier hs-var">cell</span></a></span><span> </span><span class="annot"><span class="annottext">ht2
+</span><a href="#local-6989586621679036790"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span><span id="%3C-%3E"><span class="annot"><span class="annottext">&lt;-&gt; :: forall ht1 ht2.
+(HTMLTABLE ht1, HTMLTABLE ht2) =&gt;
+ht1 -&gt; ht2 -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#%3C-%3E"><span class="hs-operator hs-var hs-var">(&lt;-&gt;)</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ht1 -&gt; ht2 -&gt; HtmlTable
+forall ht1 ht2.
+(HTMLTABLE ht1, HTMLTABLE ht2) =&gt;
+ht1 -&gt; ht2 -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#beside"><span class="hs-identifier hs-var">beside</span></a></span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span class="annot"><a href="Text.XHtml.Table.html#combine"><span class="hs-identifier hs-type">combine</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.BlockTable.html#BlockTable"><span class="hs-identifier hs-type">BT.BlockTable</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-64"></span><span>            </span><span class="annot"><a href="Text.XHtml.BlockTable.html#BlockTable"><span class="hs-identifier hs-type">BT.BlockTable</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-65"></span><span>            </span><span class="annot"><a href="Text.XHtml.BlockTable.html#BlockTable"><span class="hs-identifier hs-type">BT.BlockTable</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-66"></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span><span>
+</span><span id="line-67"></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span><span>
+</span><span id="line-68"></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span><span>
+</span><span id="line-69"></span><span id="combine"><span class="annot"><span class="annottext">combine :: (BlockTable (Int -&gt; Int -&gt; Html)
+ -&gt; BlockTable (Int -&gt; Int -&gt; Html)
+ -&gt; BlockTable (Int -&gt; Int -&gt; Html))
+-&gt; HtmlTable -&gt; HtmlTable -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#combine"><span class="hs-identifier hs-var hs-var">combine</span></a></span></span><span> </span><span id="local-6989586621679036796"><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+-&gt; BlockTable (Int -&gt; Int -&gt; Html)
+-&gt; BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036796"><span class="hs-identifier hs-var">fn</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span><span> </span><span id="local-6989586621679036797"><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036797"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span><span> </span><span id="local-6989586621679036798"><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036798"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html) -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#mkHtmlTable"><span class="hs-identifier hs-var">mkHtmlTable</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036797"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+-&gt; BlockTable (Int -&gt; Int -&gt; Html)
+-&gt; BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036796"><span class="hs-operator hs-var">`fn`</span></a></span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036798"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span class="hs-comment">-- Both aboves and besides presume a non-empty list.</span><span>
+</span><span id="line-72"></span><span class="hs-comment">-- here is no concept of a empty row or column in these</span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- table combinators.</span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span id="local-6989586621679036694"><span class="annot"><a href="Text.XHtml.Table.html#aboves"><span class="hs-identifier hs-type">aboves</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.Table.html#HTMLTABLE"><span class="hs-identifier hs-type">HTMLTABLE</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036694"><span class="hs-identifier hs-type">ht</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679036694"><span class="hs-identifier hs-type">ht</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span></span><span>
+</span><span id="line-76"></span><span id="aboves"><span class="annot"><span class="annottext">aboves :: forall ht. HTMLTABLE ht =&gt; [ht] -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#aboves"><span class="hs-identifier hs-var hs-var">aboves</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; HtmlTable
+forall a. HasCallStack =&gt; [Char] -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Err.html#error/GHC.Err.html#error"><span class="hs-identifier hs-var">error</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;aboves []&quot;</span></span><span>
+</span><span id="line-77"></span><span class="annot"><a href="Text.XHtml.Table.html#aboves"><span class="hs-identifier hs-var">aboves</span></a></span><span> </span><span id="local-6989586621679036808"><span class="annot"><span class="annottext">[ht]
+</span><a href="#local-6989586621679036808"><span class="hs-identifier hs-var">xs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(HtmlTable -&gt; HtmlTable -&gt; HtmlTable) -&gt; [HtmlTable] -&gt; HtmlTable
+forall a. (a -&gt; a -&gt; a) -&gt; [a] -&gt; a
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; a -&gt; a) -&gt; t a -&gt; a
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#foldr1/Data.Foldable.html#foldr1"><span class="hs-identifier hs-var">foldr1</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTable -&gt; HtmlTable -&gt; HtmlTable
+forall ht1 ht2.
+(HTMLTABLE ht1, HTMLTABLE ht2) =&gt;
+ht1 -&gt; ht2 -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#%3C%2F%3E"><span class="hs-operator hs-var">(&lt;/&gt;)</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ht -&gt; HtmlTable) -&gt; [ht] -&gt; [HtmlTable]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">ht -&gt; HtmlTable
+forall ht. HTMLTABLE ht =&gt; ht -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#cell"><span class="hs-identifier hs-var">cell</span></a></span><span> </span><span class="annot"><span class="annottext">[ht]
+</span><a href="#local-6989586621679036808"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span id="local-6989586621679036810"><span class="annot"><a href="Text.XHtml.Table.html#besides"><span class="hs-identifier hs-type">besides</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.Table.html#HTMLTABLE"><span class="hs-identifier hs-type">HTMLTABLE</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036810"><span class="hs-identifier hs-type">ht</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679036810"><span class="hs-identifier hs-type">ht</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span></span><span>
+</span><span id="line-80"></span><span id="besides"><span class="annot"><span class="annottext">besides :: forall ht. HTMLTABLE ht =&gt; [ht] -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#besides"><span class="hs-identifier hs-var hs-var">besides</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; HtmlTable
+forall a. HasCallStack =&gt; [Char] -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Err.html#error/GHC.Err.html#error"><span class="hs-identifier hs-var">error</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;besides []&quot;</span></span><span>
+</span><span id="line-81"></span><span class="annot"><a href="Text.XHtml.Table.html#besides"><span class="hs-identifier hs-var">besides</span></a></span><span> </span><span id="local-6989586621679036818"><span class="annot"><span class="annottext">[ht]
+</span><a href="#local-6989586621679036818"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(HtmlTable -&gt; HtmlTable -&gt; HtmlTable) -&gt; [HtmlTable] -&gt; HtmlTable
+forall a. (a -&gt; a -&gt; a) -&gt; [a] -&gt; a
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; a -&gt; a) -&gt; t a -&gt; a
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#foldr1/Data.Foldable.html#foldr1"><span class="hs-identifier hs-var">foldr1</span></a></span><span> </span><span class="annot"><span class="annottext">HtmlTable -&gt; HtmlTable -&gt; HtmlTable
+forall ht1 ht2.
+(HTMLTABLE ht1, HTMLTABLE ht2) =&gt;
+ht1 -&gt; ht2 -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#%3C-%3E"><span class="hs-operator hs-var">(&lt;-&gt;)</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ht -&gt; HtmlTable) -&gt; [ht] -&gt; [HtmlTable]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">ht -&gt; HtmlTable
+forall ht. HTMLTABLE ht =&gt; ht -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#cell"><span class="hs-identifier hs-var">cell</span></a></span><span> </span><span class="annot"><span class="annottext">[ht]
+</span><a href="#local-6989586621679036818"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="hs-comment">-- | renderTable takes the HtmlTable, and renders it back into</span><span>
+</span><span id="line-84"></span><span class="hs-comment">--   and Html object.</span><span>
+</span><span id="line-85"></span><span class="annot"><a href="Text.XHtml.Table.html#renderTable"><span class="hs-identifier hs-type">renderTable</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Text.XHtml.BlockTable.html#BlockTable"><span class="hs-identifier hs-type">BT.BlockTable</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-86"></span><span id="renderTable"><span class="annot"><span class="annottext">renderTable :: BlockTable (Int -&gt; Int -&gt; Html) -&gt; Html
+</span><a href="Text.XHtml.Table.html#renderTable"><span class="hs-identifier hs-var hs-var">renderTable</span></a></span></span><span> </span><span id="local-6989586621679036820"><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036820"><span class="hs-identifier hs-var">theTable</span></a></span></span><span>
+</span><span id="line-87"></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Html] -&gt; Html
+forall a. HTML a =&gt; [a] -&gt; Html
+</span><a href="Text.XHtml.Internals.html#concatHtml"><span class="hs-identifier hs-var">concatHtml</span></a></span><span>
+</span><span id="line-88"></span><span>          </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#tr"><span class="hs-identifier hs-var">tr</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; [Html] -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Html
+</span><a href="#local-6989586621679036824"><span class="hs-identifier hs-var">theCell</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679036825"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679036826"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679036824"><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Html
+</span><a href="#local-6989586621679036824"><span class="hs-identifier hs-var">theCell</span></a></span></span><span class="hs-special">,</span><span class="hs-special">(</span><span id="local-6989586621679036825"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679036825"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679036826"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679036826"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[(Int -&gt; Int -&gt; Html, (Int, Int))]
+</span><a href="#local-6989586621679036827"><span class="hs-identifier hs-var">theRow</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-89"></span><span>                      </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679036827"><span class="annot"><span class="annottext">[(Int -&gt; Int -&gt; Html, (Int, Int))]
+</span><a href="#local-6989586621679036827"><span class="hs-identifier hs-var">theRow</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+-&gt; [[(Int -&gt; Int -&gt; Html, (Int, Int))]]
+forall a. BlockTable a -&gt; [[(a, (Int, Int))]]
+</span><a href="Text.XHtml.BlockTable.html#getMatrix"><span class="hs-identifier hs-var">BT.getMatrix</span></a></span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036820"><span class="hs-identifier hs-var">theTable</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679036831"><span class="annot"><a href="Text.XHtml.Internals.html#HTML"><span class="hs-identifier hs-type">HTML</span></a></span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-92"></span><span>      </span><span id="local-6989586621679036834"><span class="annot"><span class="annottext">toHtml :: HtmlTable -&gt; Html
+</span><a href="#local-6989586621679036834"><span class="hs-identifier hs-var hs-var hs-var hs-var">toHtml</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span><span> </span><span id="local-6989586621679036836"><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036836"><span class="hs-identifier hs-var">tab</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html) -&gt; Html
+</span><a href="Text.XHtml.Table.html#renderTable"><span class="hs-identifier hs-var">renderTable</span></a></span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036836"><span class="hs-identifier hs-var">tab</span></a></span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679036839"><span id="local-6989586621679036843"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-type">Show</span></a></span><span> </span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-95"></span><span>      </span><span id="local-6989586621679036848"><span class="annot"><span class="annottext">showsPrec :: Int -&gt; HtmlTable -&gt; ShowS
+</span><a href="#local-6989586621679036848"><span class="hs-identifier hs-var hs-var hs-var hs-var">showsPrec</span></a></span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Text.XHtml.Table.html#HtmlTable"><span class="hs-identifier hs-type">HtmlTable</span></a></span><span> </span><span id="local-6989586621679036850"><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036850"><span class="hs-identifier hs-var">tab</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html -&gt; ShowS
+forall a. Show a =&gt; a -&gt; ShowS
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#shows/GHC.Show.html#shows"><span class="hs-identifier hs-var">shows</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html) -&gt; Html
+</span><a href="Text.XHtml.Table.html#renderTable"><span class="hs-identifier hs-var">renderTable</span></a></span><span> </span><span class="annot"><span class="annottext">BlockTable (Int -&gt; Int -&gt; Html)
+</span><a href="#local-6989586621679036850"><span class="hs-identifier hs-var">tab</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span>
+</span><span id="line-98"></span><span class="hs-comment">-- | If you can't be bothered with the above, then you</span><span>
+</span><span id="line-99"></span><span class="hs-comment">-- can build simple tables with simpleTable.</span><span>
+</span><span id="line-100"></span><span class="hs-comment">-- Just provide the attributes for the whole table,</span><span>
+</span><span id="line-101"></span><span class="hs-comment">-- attributes for the cells (same for every cell),</span><span>
+</span><span id="line-102"></span><span class="hs-comment">-- and a list of lists of cell contents,</span><span>
+</span><span id="line-103"></span><span class="hs-comment">-- and this function will build the table for you.</span><span>
+</span><span id="line-104"></span><span class="hs-comment">-- It does presume that all the lists are non-empty,</span><span>
+</span><span id="line-105"></span><span class="hs-comment">-- and there is at least one list.</span><span>
+</span><span id="line-106"></span><span class="hs-comment">--  </span><span>
+</span><span id="line-107"></span><span class="hs-comment">-- Different length lists means that the last cell</span><span>
+</span><span id="line-108"></span><span class="hs-comment">-- gets padded. If you want more power, then</span><span>
+</span><span id="line-109"></span><span class="hs-comment">-- use the system above, or build tables explicitly.</span><span>
+</span><span id="line-110"></span><span class="annot"><a href="Text.XHtml.Table.html#simpleTable"><span class="hs-identifier hs-type">simpleTable</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.XHtml.Internals.html#HtmlAttr"><span class="hs-identifier hs-type">HtmlAttr</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Text.XHtml.Internals.html#HtmlAttr"><span class="hs-identifier hs-type">HtmlAttr</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span class="hs-special">]</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Text.XHtml.Internals.html#Html"><span class="hs-identifier hs-type">Html</span></a></span><span>
+</span><span id="line-111"></span><span id="simpleTable"><span class="annot"><span class="annottext">simpleTable :: [HtmlAttr] -&gt; [HtmlAttr] -&gt; [[Html]] -&gt; Html
+</span><a href="Text.XHtml.Table.html#simpleTable"><span class="hs-identifier hs-var hs-var">simpleTable</span></a></span></span><span> </span><span id="local-6989586621679036852"><span class="annot"><span class="annottext">[HtmlAttr]
+</span><a href="#local-6989586621679036852"><span class="hs-identifier hs-var">attr</span></a></span></span><span> </span><span id="local-6989586621679036853"><span class="annot"><span class="annottext">[HtmlAttr]
+</span><a href="#local-6989586621679036853"><span class="hs-identifier hs-var">cellAttr</span></a></span></span><span> </span><span id="local-6989586621679036854"><span class="annot"><span class="annottext">[[Html]]
+</span><a href="#local-6989586621679036854"><span class="hs-identifier hs-var">lst</span></a></span></span><span>
+</span><span id="line-112"></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#table"><span class="hs-identifier hs-var">table</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; [HtmlAttr] -&gt; Html -&gt; Html
+forall a. ADDATTRS a =&gt; a -&gt; [HtmlAttr] -&gt; a
+</span><a href="Text.XHtml.Internals.html#%21"><span class="hs-operator hs-var">!</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlAttr]
+</span><a href="#local-6989586621679036852"><span class="hs-identifier hs-var">attr</span></a></span><span> </span><span>
+</span><span id="line-113"></span><span>          </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; HtmlTable -&gt; Html
+forall a b. HTML a =&gt; (Html -&gt; b) -&gt; a -&gt; b
+</span><a href="Text.XHtml.Internals.html#%3C%3C"><span class="hs-operator hs-var">&lt;&lt;</span></a></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[HtmlTable] -&gt; HtmlTable
+forall ht. HTMLTABLE ht =&gt; [ht] -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#aboves"><span class="hs-identifier hs-var">aboves</span></a></span><span> </span><span>
+</span><span id="line-114"></span><span>              </span><span class="annot"><span class="annottext">([HtmlTable] -&gt; HtmlTable)
+-&gt; ([[Html]] -&gt; [HtmlTable]) -&gt; [[Html]] -&gt; HtmlTable
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">([Html] -&gt; HtmlTable) -&gt; [[Html]] -&gt; [HtmlTable]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Html] -&gt; HtmlTable
+forall ht. HTMLTABLE ht =&gt; [ht] -&gt; HtmlTable
+</span><a href="Text.XHtml.Table.html#besides"><span class="hs-identifier hs-var">besides</span></a></span><span> </span><span class="annot"><span class="annottext">([Html] -&gt; HtmlTable) -&gt; ([Html] -&gt; [Html]) -&gt; [Html] -&gt; HtmlTable
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; [Html] -&gt; [Html]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><a href="Text.XHtml.Strict.Elements.html#td"><span class="hs-identifier hs-var">td</span></a></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; [HtmlAttr] -&gt; Html -&gt; Html
+forall a. ADDATTRS a =&gt; a -&gt; [HtmlAttr] -&gt; a
+</span><a href="Text.XHtml.Internals.html#%21"><span class="hs-operator hs-var">!</span></a></span><span> </span><span class="annot"><span class="annottext">[HtmlAttr]
+</span><a href="#local-6989586621679036853"><span class="hs-identifier hs-var">cellAttr</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; (Html -&gt; Html) -&gt; Html -&gt; Html
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+forall a. HTML a =&gt; a -&gt; Html
+</span><a href="Text.XHtml.Internals.html#toHtml"><span class="hs-identifier hs-var">toHtml</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>              </span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[[Html]]
+</span><a href="#local-6989586621679036854"><span class="hs-identifier hs-var">lst</span></a></span><span>
+</span><span id="line-116"></span></pre></body></html>

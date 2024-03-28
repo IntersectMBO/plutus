@@ -1,0 +1,854 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Module      :  Distribution.Simple.LocalBuildInfo</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- Copyright   :  Isaac Jones 2003-2004</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- License     :  BSD3</span><span>
+</span><span id="line-10"></span><span class="hs-comment">--</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Maintainer  :  cabal-devel@haskell.org</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-13"></span><span class="hs-comment">--</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Once a package has been configured we have resolved conditionals and</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- dependencies, configured the compiler and other needed external programs.</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- The 'LocalBuildInfo' is used to hold all this information. It holds the</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- install dirs, the compiler, the exact package dependencies, the configured</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- programs, the package database to use and a bunch of miscellaneous configure</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- flags. It gets saved and reloaded from a file (@dist\/setup-config@). It gets</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- passed in to very many subsequent build actions.</span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.LocalBuildInfo</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-23"></span><span>        </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier">LocalBuildInfo</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>        </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#localComponentId"><span class="hs-identifier">localComponentId</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>        </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#localUnitId"><span class="hs-identifier">localUnitId</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>        </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#localCompatPackageKey"><span class="hs-identifier">localCompatPackageKey</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span>        </span><span class="annot"><span class="hs-comment">-- * Buildable package components</span></span><span>
+</span><span id="line-29"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#Component/Distribution.Types.Component.html#Component"><span class="hs-identifier">Component</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier">ComponentName</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-31"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#LibraryName/Distribution.Types.LibraryName.html#LibraryName"><span class="hs-identifier">LibraryName</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-32"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#defaultLibName/Distribution.Types.LibraryName.html#defaultLibName"><span class="hs-identifier">defaultLibName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-33"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#showComponentName/Distribution.Types.ComponentName.html#showComponentName"><span class="hs-identifier">showComponentName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-34"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#componentNameString/Distribution.Types.ComponentName.html#componentNameString"><span class="hs-identifier">componentNameString</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-35"></span><span>        </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier">ComponentLocalBuildInfo</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-36"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#componentBuildDir"><span class="hs-identifier">componentBuildDir</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-37"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#foldComponent/Distribution.Types.Component.html#foldComponent"><span class="hs-identifier">foldComponent</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-38"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentName/Distribution.Types.Component.html#componentName"><span class="hs-identifier">componentName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-39"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentBuildInfo/Distribution.Types.Component.html#componentBuildInfo"><span class="hs-identifier">componentBuildInfo</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-40"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentBuildable/Distribution.Types.Component.html#componentBuildable"><span class="hs-identifier">componentBuildable</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-41"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#pkgComponents/Distribution.Types.PackageDescription.html#pkgComponents"><span class="hs-identifier">pkgComponents</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#pkgBuildableComponents/Distribution.Types.PackageDescription.html#pkgBuildableComponents"><span class="hs-identifier">pkgBuildableComponents</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#lookupComponent/Distribution.Types.PackageDescription.html#lookupComponent"><span class="hs-identifier">lookupComponent</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-44"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#getComponent/Distribution.Types.PackageDescription.html#getComponent"><span class="hs-identifier">getComponent</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-45"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#allComponentsInBuildOrder"><span class="hs-identifier">allComponentsInBuildOrder</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-46"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#depLibraryPaths"><span class="hs-identifier">depLibraryPaths</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-47"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#allLibModules"><span class="hs-identifier">allLibModules</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#withAllComponentsInBuildOrder"><span class="hs-identifier">withAllComponentsInBuildOrder</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-50"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#withLibLBI"><span class="hs-identifier">withLibLBI</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-51"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#withExeLBI"><span class="hs-identifier">withExeLBI</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-52"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#withBenchLBI"><span class="hs-identifier">withBenchLBI</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-53"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#withTestLBI"><span class="hs-identifier">withTestLBI</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-54"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#enabledTestLBIs"><span class="hs-identifier">enabledTestLBIs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-55"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#enabledBenchLBIs"><span class="hs-identifier">enabledBenchLBIs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span>        </span><span class="annot"><span class="hs-comment">-- * Installation directories</span></span><span>
+</span><span id="line-58"></span><span>        </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html"><span class="hs-identifier">Distribution.Simple.InstallDirs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-59"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#absoluteInstallDirs"><span class="hs-identifier">absoluteInstallDirs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#prefixRelativeInstallDirs"><span class="hs-identifier">prefixRelativeInstallDirs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-60"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#absoluteInstallCommandDirs"><span class="hs-identifier">absoluteInstallCommandDirs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-61"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#absoluteComponentInstallDirs"><span class="hs-identifier">absoluteComponentInstallDirs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#prefixRelativeComponentInstallDirs"><span class="hs-identifier">prefixRelativeComponentInstallDirs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-62"></span><span>        </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#substPathTemplate"><span class="hs-identifier">substPathTemplate</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-66"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#/Distribution.Types.Component.html"><span class="hs-identifier">Distribution.Types.Component</span></a></span><span>
+</span><span id="line-69"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#/Distribution.Types.PackageId.html"><span class="hs-identifier">Distribution.Types.PackageId</span></a></span><span>
+</span><span id="line-70"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#/Distribution.Types.UnitId.html"><span class="hs-identifier">Distribution.Types.UnitId</span></a></span><span>
+</span><span id="line-71"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#/Distribution.Types.ComponentName.html"><span class="hs-identifier">Distribution.Types.ComponentName</span></a></span><span>
+</span><span id="line-72"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnqualComponentName.html#/Distribution.Types.UnqualComponentName.html"><span class="hs-identifier">Distribution.Types.UnqualComponentName</span></a></span><span>
+</span><span id="line-73"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#/Distribution.Types.PackageDescription.html"><span class="hs-identifier">Distribution.Types.PackageDescription</span></a></span><span>
+</span><span id="line-74"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html"><span class="hs-identifier">Distribution.Types.ComponentLocalBuildInfo</span></a></span><span>
+</span><span id="line-75"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html"><span class="hs-identifier">Distribution.Types.LocalBuildInfo</span></a></span><span>
+</span><span id="line-76"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Types.TargetInfo.html"><span class="hs-identifier">Distribution.Types.TargetInfo</span></a></span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html"><span class="hs-identifier">Distribution.Simple.InstallDirs</span></a></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#absoluteInstallDirs"><span class="hs-identifier">absoluteInstallDirs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-79"></span><span>                                               </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#prefixRelativeInstallDirs"><span class="hs-identifier">prefixRelativeInstallDirs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-80"></span><span>                                               </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#substPathTemplate"><span class="hs-identifier">substPathTemplate</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-81"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html"><span class="hs-identifier">Distribution.Simple.InstallDirs</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">InstallDirs</span></span><span>
+</span><span id="line-82"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.PackageDescription.html#/Distribution.PackageDescription.html"><span class="hs-identifier">Distribution.PackageDescription</span></a></span><span>
+</span><span id="line-83"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.InstalledPackageInfo.html#/Distribution.InstalledPackageInfo.html"><span class="hs-identifier">Distribution.InstalledPackageInfo</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Installed</span></span><span>
+</span><span id="line-84"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#/Distribution.Package.html"><span class="hs-identifier">Distribution.Package</span></a></span><span>
+</span><span id="line-85"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#/Distribution.ModuleName.html"><span class="hs-identifier">Distribution.ModuleName</span></a></span><span>
+</span><span id="line-86"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html"><span class="hs-identifier">Distribution.Simple.Compiler</span></a></span><span>
+</span><span id="line-87"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.PackageIndex.html"><span class="hs-identifier">Distribution.Simple.PackageIndex</span></a></span><span>
+</span><span id="line-88"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html"><span class="hs-identifier">Distribution.Simple.Utils</span></a></span><span>
+</span><span id="line-89"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#/Distribution.Pretty.html"><span class="hs-identifier">Distribution.Pretty</span></a></span><span>
+</span><span id="line-90"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#/Distribution.Compat.Graph.html"><span class="hs-identifier">Distribution.Compat.Graph</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Graph</span></span><span>
+</span><span id="line-91"></span><span>
+</span><span id="line-92"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.List.html#/Data.List.html"><span class="hs-identifier">Data.List</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/Data.OldList.html#stripPrefix/Data.OldList.html#stripPrefix"><span class="hs-identifier">stripPrefix</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-93"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../filepath-1.4.200.1/src/System.FilePath.html#/System.FilePath.html"><span class="hs-identifier">System.FilePath</span></a></span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../directory-1.3.8.1/src/System.Directory.html#/System.Directory.html"><span class="hs-identifier">System.Directory</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../directory-1.3.8.1/src/System.Directory.html#doesDirectoryExist/System.Directory.html#doesDirectoryExist"><span class="hs-identifier">doesDirectoryExist</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../directory-1.3.8.1/src/System.Directory.html#canonicalizePath/System.Directory.html#canonicalizePath"><span class="hs-identifier">canonicalizePath</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span class="hs-comment">-- -----------------------------------------------------------------------------</span><span>
+</span><span id="line-98"></span><span class="hs-comment">-- Configuration information of buildable components</span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#componentBuildDir"><span class="hs-identifier hs-type">componentBuildDir</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-101"></span><span class="hs-comment">-- For now, we assume that libraries/executables/test-suites/benchmarks</span><span>
+</span><span id="line-102"></span><span class="hs-comment">-- are only ever built once.  With Backpack, we need a special case for</span><span>
+</span><span id="line-103"></span><span class="hs-comment">-- libraries so that we can handle building them multiple times.</span><span>
+</span><span id="line-104"></span><span id="componentBuildDir"><span class="annot"><span class="annottext">componentBuildDir :: LocalBuildInfo -&gt; ComponentLocalBuildInfo -&gt; String
+</span><a href="Distribution.Simple.LocalBuildInfo.html#componentBuildDir"><span class="hs-identifier hs-var hs-var">componentBuildDir</span></a></span></span><span> </span><span id="local-6989586621679365015"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365015"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365016"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365016"><span class="hs-identifier hs-var">clbi</span></a></span></span><span>
+</span><span id="line-105"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; String
+</span><a href="Distribution.Types.LocalBuildInfo.html#buildDir"><span class="hs-identifier hs-var">buildDir</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365015"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span>
+</span><span id="line-106"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; ComponentName
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentLocalName"><span class="hs-identifier hs-var">componentLocalName</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365016"><span class="hs-identifier hs-var">clbi</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-107"></span><span>            </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CLibName/Distribution.Types.ComponentName.html#CLibName"><span class="hs-identifier hs-type">CLibName</span></a></span><span> </span><span class="annot"><span class="annottext">LibraryName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#LMainLibName/Distribution.Types.LibraryName.html#LMainLibName"><span class="hs-identifier hs-var">LMainLibName</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-108"></span><span>                </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">UnitId -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; UnitId
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentUnitId"><span class="hs-identifier hs-var">componentUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365016"><span class="hs-identifier hs-var">clbi</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">ComponentId -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; ComponentId
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentComponentId"><span class="hs-identifier hs-var">componentComponentId</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365016"><span class="hs-identifier hs-var">clbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-109"></span><span>                    </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-110"></span><span>                    </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">UnitId -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; UnitId
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentUnitId"><span class="hs-identifier hs-var">componentUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365016"><span class="hs-identifier hs-var">clbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-111"></span><span>            </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CLibName/Distribution.Types.ComponentName.html#CLibName"><span class="hs-identifier hs-type">CLibName</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LibraryName.html#LSubLibName/Distribution.Types.LibraryName.html#LSubLibName"><span class="hs-identifier hs-type">LSubLibName</span></a></span><span> </span><span id="local-6989586621679365026"><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679365026"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-112"></span><span>                </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">UnitId -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; UnitId
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentUnitId"><span class="hs-identifier hs-var">componentUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365016"><span class="hs-identifier hs-var">clbi</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">ComponentId -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; ComponentId
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentComponentId"><span class="hs-identifier hs-var">componentComponentId</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365016"><span class="hs-identifier hs-var">clbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-113"></span><span>                    </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">UnqualComponentName -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnqualComponentName.html#unUnqualComponentName/Distribution.Types.UnqualComponentName.html#unUnqualComponentName"><span class="hs-identifier hs-var">unUnqualComponentName</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679365026"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-114"></span><span>                    </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">UnitId -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; UnitId
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentUnitId"><span class="hs-identifier hs-var">componentUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365016"><span class="hs-identifier hs-var">clbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>            </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CFLibName/Distribution.Types.ComponentName.html#CFLibName"><span class="hs-identifier hs-type">CFLibName</span></a></span><span> </span><span id="local-6989586621679365029"><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679365029"><span class="hs-identifier hs-var">s</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">UnqualComponentName -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnqualComponentName.html#unUnqualComponentName/Distribution.Types.UnqualComponentName.html#unUnqualComponentName"><span class="hs-identifier hs-var">unUnqualComponentName</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679365029"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-116"></span><span>            </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CExeName/Distribution.Types.ComponentName.html#CExeName"><span class="hs-identifier hs-type">CExeName</span></a></span><span> </span><span id="local-6989586621679365031"><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679365031"><span class="hs-identifier hs-var">s</span></a></span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">UnqualComponentName -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnqualComponentName.html#unUnqualComponentName/Distribution.Types.UnqualComponentName.html#unUnqualComponentName"><span class="hs-identifier hs-var">unUnqualComponentName</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679365031"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-117"></span><span>            </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CTestName/Distribution.Types.ComponentName.html#CTestName"><span class="hs-identifier hs-type">CTestName</span></a></span><span> </span><span id="local-6989586621679365033"><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679365033"><span class="hs-identifier hs-var">s</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">UnqualComponentName -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnqualComponentName.html#unUnqualComponentName/Distribution.Types.UnqualComponentName.html#unUnqualComponentName"><span class="hs-identifier hs-var">unUnqualComponentName</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679365033"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-118"></span><span>            </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CBenchName/Distribution.Types.ComponentName.html#CBenchName"><span class="hs-identifier hs-type">CBenchName</span></a></span><span> </span><span id="local-6989586621679365035"><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679365035"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">UnqualComponentName -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnqualComponentName.html#unUnqualComponentName/Distribution.Types.UnqualComponentName.html#unUnqualComponentName"><span class="hs-identifier hs-var">unUnqualComponentName</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679365035"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span class="hs-comment">-- | Perform the action on each enabled 'library' in the package</span><span>
+</span><span id="line-121"></span><span class="hs-comment">-- description with the 'ComponentLocalBuildInfo'.</span><span>
+</span><span id="line-122"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#withLibLBI"><span class="hs-identifier hs-type">withLibLBI</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-123"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Library.html#Library/Distribution.Types.Library.html#Library"><span class="hs-identifier hs-type">Library</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-124"></span><span id="withLibLBI"><span class="annot"><span class="annottext">withLibLBI :: PackageDescription
+-&gt; LocalBuildInfo
+-&gt; (Library -&gt; ComponentLocalBuildInfo -&gt; IO ())
+-&gt; IO ()
+</span><a href="Distribution.Simple.LocalBuildInfo.html#withLibLBI"><span class="hs-identifier hs-var hs-var">withLibLBI</span></a></span></span><span> </span><span id="local-6989586621679365037"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365037"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679365038"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365038"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365039"><span class="annot"><span class="annottext">Library -&gt; ComponentLocalBuildInfo -&gt; IO ()
+</span><a href="#local-6989586621679365039"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-125"></span><span>    </span><span class="annot"><span class="annottext">PackageDescription
+-&gt; LocalBuildInfo -&gt; (TargetInfo -&gt; IO ()) -&gt; IO ()
+</span><a href="Distribution.Types.LocalBuildInfo.html#withAllTargetsInBuildOrder%27"><span class="hs-identifier hs-var">withAllTargetsInBuildOrder'</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365037"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365038"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">((TargetInfo -&gt; IO ()) -&gt; IO ()) -&gt; (TargetInfo -&gt; IO ()) -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679365041"><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365041"><span class="hs-identifier hs-var">target</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-126"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TargetInfo -&gt; Component
+</span><a href="Distribution.Types.TargetInfo.html#targetComponent"><span class="hs-identifier hs-var">targetComponent</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365041"><span class="hs-identifier hs-var">target</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-127"></span><span>            </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CLib/Distribution.Types.Component.html#CLib"><span class="hs-identifier hs-type">CLib</span></a></span><span> </span><span id="local-6989586621679365044"><span class="annot"><span class="annottext">Library
+</span><a href="#local-6989586621679365044"><span class="hs-identifier hs-var">lib</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Library -&gt; ComponentLocalBuildInfo -&gt; IO ()
+</span><a href="#local-6989586621679365039"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Library
+</span><a href="#local-6989586621679365044"><span class="hs-identifier hs-var">lib</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TargetInfo -&gt; ComponentLocalBuildInfo
+</span><a href="Distribution.Types.TargetInfo.html#targetCLBI"><span class="hs-identifier hs-var">targetCLBI</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365041"><span class="hs-identifier hs-var">target</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-128"></span><span>            </span><span class="annot"><span class="annottext">Component
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; IO ()
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-129"></span><span>
+</span><span id="line-130"></span><span class="hs-comment">-- | Perform the action on each enabled 'Executable' in the package</span><span>
+</span><span id="line-131"></span><span class="hs-comment">-- description.  Extended version of 'withExe' that also gives corresponding</span><span>
+</span><span id="line-132"></span><span class="hs-comment">-- build info.</span><span>
+</span><span id="line-133"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#withExeLBI"><span class="hs-identifier hs-type">withExeLBI</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-134"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Executable.html#Executable/Distribution.Types.Executable.html#Executable"><span class="hs-identifier hs-type">Executable</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-135"></span><span id="withExeLBI"><span class="annot"><span class="annottext">withExeLBI :: PackageDescription
+-&gt; LocalBuildInfo
+-&gt; (Executable -&gt; ComponentLocalBuildInfo -&gt; IO ())
+-&gt; IO ()
+</span><a href="Distribution.Simple.LocalBuildInfo.html#withExeLBI"><span class="hs-identifier hs-var hs-var">withExeLBI</span></a></span></span><span> </span><span id="local-6989586621679365048"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365048"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679365049"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365049"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365050"><span class="annot"><span class="annottext">Executable -&gt; ComponentLocalBuildInfo -&gt; IO ()
+</span><a href="#local-6989586621679365050"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-136"></span><span>    </span><span class="annot"><span class="annottext">PackageDescription
+-&gt; LocalBuildInfo -&gt; (TargetInfo -&gt; IO ()) -&gt; IO ()
+</span><a href="Distribution.Types.LocalBuildInfo.html#withAllTargetsInBuildOrder%27"><span class="hs-identifier hs-var">withAllTargetsInBuildOrder'</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365048"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365049"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">((TargetInfo -&gt; IO ()) -&gt; IO ()) -&gt; (TargetInfo -&gt; IO ()) -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679365051"><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365051"><span class="hs-identifier hs-var">target</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-137"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TargetInfo -&gt; Component
+</span><a href="Distribution.Types.TargetInfo.html#targetComponent"><span class="hs-identifier hs-var">targetComponent</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365051"><span class="hs-identifier hs-var">target</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-138"></span><span>            </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CExe/Distribution.Types.Component.html#CExe"><span class="hs-identifier hs-type">CExe</span></a></span><span> </span><span id="local-6989586621679365053"><span class="annot"><span class="annottext">Executable
+</span><a href="#local-6989586621679365053"><span class="hs-identifier hs-var">exe</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Executable -&gt; ComponentLocalBuildInfo -&gt; IO ()
+</span><a href="#local-6989586621679365050"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Executable
+</span><a href="#local-6989586621679365053"><span class="hs-identifier hs-var">exe</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TargetInfo -&gt; ComponentLocalBuildInfo
+</span><a href="Distribution.Types.TargetInfo.html#targetCLBI"><span class="hs-identifier hs-var">targetCLBI</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365051"><span class="hs-identifier hs-var">target</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-139"></span><span>            </span><span class="annot"><span class="annottext">Component
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; IO ()
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-140"></span><span>
+</span><span id="line-141"></span><span class="hs-comment">-- | Perform the action on each enabled 'Benchmark' in the package</span><span>
+</span><span id="line-142"></span><span class="hs-comment">-- description.</span><span>
+</span><span id="line-143"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#withBenchLBI"><span class="hs-identifier hs-type">withBenchLBI</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-144"></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Benchmark.html#Benchmark/Distribution.Types.Benchmark.html#Benchmark"><span class="hs-identifier hs-type">Benchmark</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-145"></span><span id="withBenchLBI"><span class="annot"><span class="annottext">withBenchLBI :: PackageDescription
+-&gt; LocalBuildInfo
+-&gt; (Benchmark -&gt; ComponentLocalBuildInfo -&gt; IO ())
+-&gt; IO ()
+</span><a href="Distribution.Simple.LocalBuildInfo.html#withBenchLBI"><span class="hs-identifier hs-var hs-var">withBenchLBI</span></a></span></span><span> </span><span id="local-6989586621679365055"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365055"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679365056"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365056"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365057"><span class="annot"><span class="annottext">Benchmark -&gt; ComponentLocalBuildInfo -&gt; IO ()
+</span><a href="#local-6989586621679365057"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-146"></span><span>    </span><span class="annot"><span class="annottext">[IO ()] -&gt; IO ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a.
+(Foldable t, Monad m) =&gt;
+t (m a) -&gt; m ()
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#sequence_/Data.Foldable.html#sequence_"><span class="hs-identifier hs-var">sequence_</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Benchmark -&gt; ComponentLocalBuildInfo -&gt; IO ()
+</span><a href="#local-6989586621679365057"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Benchmark
+</span><a href="#local-6989586621679365059"><span class="hs-identifier hs-var">bench</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365060"><span class="hs-identifier hs-var">clbi</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679365059"><span class="annot"><span class="annottext">Benchmark
+</span><a href="#local-6989586621679365059"><span class="hs-identifier hs-var">bench</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679365060"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365060"><span class="hs-identifier hs-var">clbi</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageDescription
+-&gt; LocalBuildInfo -&gt; [(Benchmark, ComponentLocalBuildInfo)]
+</span><a href="Distribution.Simple.LocalBuildInfo.html#enabledBenchLBIs"><span class="hs-identifier hs-var">enabledBenchLBIs</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365055"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365056"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-147"></span><span>
+</span><span id="line-148"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#withTestLBI"><span class="hs-identifier hs-type">withTestLBI</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-149"></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuite.html#TestSuite/Distribution.Types.TestSuite.html#TestSuite"><span class="hs-identifier hs-type">TestSuite</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-150"></span><span id="withTestLBI"><span class="annot"><span class="annottext">withTestLBI :: PackageDescription
+-&gt; LocalBuildInfo
+-&gt; (TestSuite -&gt; ComponentLocalBuildInfo -&gt; IO ())
+-&gt; IO ()
+</span><a href="Distribution.Simple.LocalBuildInfo.html#withTestLBI"><span class="hs-identifier hs-var hs-var">withTestLBI</span></a></span></span><span> </span><span id="local-6989586621679365061"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365061"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679365062"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365062"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365063"><span class="annot"><span class="annottext">TestSuite -&gt; ComponentLocalBuildInfo -&gt; IO ()
+</span><a href="#local-6989586621679365063"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-151"></span><span>    </span><span class="annot"><span class="annottext">[IO ()] -&gt; IO ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a.
+(Foldable t, Monad m) =&gt;
+t (m a) -&gt; m ()
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#sequence_/Data.Foldable.html#sequence_"><span class="hs-identifier hs-var">sequence_</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">TestSuite -&gt; ComponentLocalBuildInfo -&gt; IO ()
+</span><a href="#local-6989586621679365063"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679365064"><span class="hs-identifier hs-var">test</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365065"><span class="hs-identifier hs-var">clbi</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679365064"><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679365064"><span class="hs-identifier hs-var">test</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679365065"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365065"><span class="hs-identifier hs-var">clbi</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageDescription
+-&gt; LocalBuildInfo -&gt; [(TestSuite, ComponentLocalBuildInfo)]
+</span><a href="Distribution.Simple.LocalBuildInfo.html#enabledTestLBIs"><span class="hs-identifier hs-var">enabledTestLBIs</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365061"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365062"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-152"></span><span>
+</span><span id="line-153"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#enabledTestLBIs"><span class="hs-identifier hs-type">enabledTestLBIs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-154"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.TestSuite.html#TestSuite/Distribution.Types.TestSuite.html#TestSuite"><span class="hs-identifier hs-type">TestSuite</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-155"></span><span id="enabledTestLBIs"><span class="annot"><span class="annottext">enabledTestLBIs :: PackageDescription
+-&gt; LocalBuildInfo -&gt; [(TestSuite, ComponentLocalBuildInfo)]
+</span><a href="Distribution.Simple.LocalBuildInfo.html#enabledTestLBIs"><span class="hs-identifier hs-var hs-var">enabledTestLBIs</span></a></span></span><span> </span><span id="local-6989586621679365066"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365066"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679365067"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365067"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-156"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679365068"><span class="hs-identifier hs-var">test</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">TargetInfo -&gt; ComponentLocalBuildInfo
+</span><a href="Distribution.Types.TargetInfo.html#targetCLBI"><span class="hs-identifier hs-var">targetCLBI</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365069"><span class="hs-identifier hs-var">target</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-157"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679365069"><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365069"><span class="hs-identifier hs-var">target</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; LocalBuildInfo -&gt; [TargetInfo]
+</span><a href="Distribution.Types.LocalBuildInfo.html#allTargetsInBuildOrder%27"><span class="hs-identifier hs-var">allTargetsInBuildOrder'</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365066"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365067"><span class="hs-identifier hs-var">lbi</span></a></span><span>
+</span><span id="line-158"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CTest/Distribution.Types.Component.html#CTest"><span class="hs-identifier hs-type">CTest</span></a></span><span> </span><span id="local-6989586621679365068"><span class="annot"><span class="annottext">TestSuite
+</span><a href="#local-6989586621679365068"><span class="hs-identifier hs-var">test</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">TargetInfo -&gt; Component
+</span><a href="Distribution.Types.TargetInfo.html#targetComponent"><span class="hs-identifier hs-var">targetComponent</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365069"><span class="hs-identifier hs-var">target</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-159"></span><span>
+</span><span id="line-160"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#enabledBenchLBIs"><span class="hs-identifier hs-type">enabledBenchLBIs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-161"></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Benchmark.html#Benchmark/Distribution.Types.Benchmark.html#Benchmark"><span class="hs-identifier hs-type">Benchmark</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-162"></span><span id="enabledBenchLBIs"><span class="annot"><span class="annottext">enabledBenchLBIs :: PackageDescription
+-&gt; LocalBuildInfo -&gt; [(Benchmark, ComponentLocalBuildInfo)]
+</span><a href="Distribution.Simple.LocalBuildInfo.html#enabledBenchLBIs"><span class="hs-identifier hs-var hs-var">enabledBenchLBIs</span></a></span></span><span> </span><span id="local-6989586621679365072"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365072"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679365073"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365073"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-163"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Benchmark
+</span><a href="#local-6989586621679365074"><span class="hs-identifier hs-var">bench</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">TargetInfo -&gt; ComponentLocalBuildInfo
+</span><a href="Distribution.Types.TargetInfo.html#targetCLBI"><span class="hs-identifier hs-var">targetCLBI</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365075"><span class="hs-identifier hs-var">target</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-164"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679365075"><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365075"><span class="hs-identifier hs-var">target</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; LocalBuildInfo -&gt; [TargetInfo]
+</span><a href="Distribution.Types.LocalBuildInfo.html#allTargetsInBuildOrder%27"><span class="hs-identifier hs-var">allTargetsInBuildOrder'</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365072"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365073"><span class="hs-identifier hs-var">lbi</span></a></span><span>
+</span><span id="line-165"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#CBench/Distribution.Types.Component.html#CBench"><span class="hs-identifier hs-type">CBench</span></a></span><span> </span><span id="local-6989586621679365074"><span class="annot"><span class="annottext">Benchmark
+</span><a href="#local-6989586621679365074"><span class="hs-identifier hs-var">bench</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">TargetInfo -&gt; Component
+</span><a href="Distribution.Types.TargetInfo.html#targetComponent"><span class="hs-identifier hs-var">targetComponent</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365075"><span class="hs-identifier hs-var">target</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-166"></span><span>
+</span><span id="line-167"></span><span class="hs-comment">-- | Perform the action on each buildable 'Library' or 'Executable' (Component)</span><span>
+</span><span id="line-168"></span><span class="hs-comment">-- in the PackageDescription, subject to the build order specified by the</span><span>
+</span><span id="line-169"></span><span class="hs-comment">-- 'compBuildOrder' field of the given 'LocalBuildInfo'</span><span>
+</span><span id="line-170"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#withAllComponentsInBuildOrder"><span class="hs-identifier hs-type">withAllComponentsInBuildOrder</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-171"></span><span>                              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#Component/Distribution.Types.Component.html#Component"><span class="hs-identifier hs-type">Component</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-172"></span><span>                              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-173"></span><span id="withAllComponentsInBuildOrder"><span class="annot"><span class="annottext">withAllComponentsInBuildOrder :: PackageDescription
+-&gt; LocalBuildInfo
+-&gt; (Component -&gt; ComponentLocalBuildInfo -&gt; IO ())
+-&gt; IO ()
+</span><a href="Distribution.Simple.LocalBuildInfo.html#withAllComponentsInBuildOrder"><span class="hs-identifier hs-var hs-var">withAllComponentsInBuildOrder</span></a></span></span><span> </span><span id="local-6989586621679365078"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365078"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679365079"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365079"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365080"><span class="annot"><span class="annottext">Component -&gt; ComponentLocalBuildInfo -&gt; IO ()
+</span><a href="#local-6989586621679365080"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-174"></span><span>    </span><span class="annot"><span class="annottext">PackageDescription
+-&gt; LocalBuildInfo -&gt; (TargetInfo -&gt; IO ()) -&gt; IO ()
+</span><a href="Distribution.Types.LocalBuildInfo.html#withAllTargetsInBuildOrder%27"><span class="hs-identifier hs-var">withAllTargetsInBuildOrder'</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365078"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365079"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">((TargetInfo -&gt; IO ()) -&gt; IO ()) -&gt; (TargetInfo -&gt; IO ()) -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679365081"><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365081"><span class="hs-identifier hs-var">target</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-175"></span><span>        </span><span class="annot"><span class="annottext">Component -&gt; ComponentLocalBuildInfo -&gt; IO ()
+</span><a href="#local-6989586621679365080"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TargetInfo -&gt; Component
+</span><a href="Distribution.Types.TargetInfo.html#targetComponent"><span class="hs-identifier hs-var">targetComponent</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365081"><span class="hs-identifier hs-var">target</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TargetInfo -&gt; ComponentLocalBuildInfo
+</span><a href="Distribution.Types.TargetInfo.html#targetCLBI"><span class="hs-identifier hs-var">targetCLBI</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365081"><span class="hs-identifier hs-var">target</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-176"></span><span>
+</span><span id="line-177"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#allComponentsInBuildOrder"><span class="hs-identifier hs-type">allComponentsInBuildOrder</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-178"></span><span>                          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-179"></span><span id="allComponentsInBuildOrder"><span class="annot"><span class="annottext">allComponentsInBuildOrder :: LocalBuildInfo -&gt; [ComponentLocalBuildInfo]
+</span><a href="Distribution.Simple.LocalBuildInfo.html#allComponentsInBuildOrder"><span class="hs-identifier hs-var hs-var">allComponentsInBuildOrder</span></a></span></span><span> </span><span id="local-6989586621679365082"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365082"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-180"></span><span>    </span><span class="annot"><span class="annottext">Graph ComponentLocalBuildInfo -&gt; [ComponentLocalBuildInfo]
+forall a. Graph a -&gt; [a]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#topSort/Distribution.Compat.Graph.html#topSort"><span class="hs-identifier hs-var">Graph.topSort</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Graph ComponentLocalBuildInfo
+</span><a href="Distribution.Types.LocalBuildInfo.html#componentGraph"><span class="hs-identifier hs-var">componentGraph</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365082"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-181"></span><span>
+</span><span id="line-182"></span><span class="hs-comment">-- -----------------------------------------------------------------------------</span><span>
+</span><span id="line-183"></span><span class="hs-comment">-- A random function that has no business in this module</span><span>
+</span><span id="line-184"></span><span>
+</span><span id="line-185"></span><span class="hs-comment">-- | Determine the directories containing the dynamic libraries of the</span><span>
+</span><span id="line-186"></span><span class="hs-comment">-- transitive dependencies of the component we are building.</span><span>
+</span><span id="line-187"></span><span class="hs-comment">--</span><span>
+</span><span id="line-188"></span><span class="hs-comment">-- When wanted, and possible, returns paths relative to the installDirs 'prefix'</span><span>
+</span><span id="line-189"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#depLibraryPaths"><span class="hs-identifier hs-type">depLibraryPaths</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><span class="hs-comment">-- ^ Building for inplace?</span></span><span>
+</span><span id="line-190"></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><span class="hs-comment">-- ^ Generate prefix-relative library paths</span></span><span>
+</span><span id="line-191"></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-192"></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="annot"><span class="hs-comment">-- ^ Component that is being built</span></span><span>
+</span><span id="line-193"></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-194"></span><span id="depLibraryPaths"><span class="annot"><span class="annottext">depLibraryPaths :: Bool
+-&gt; Bool -&gt; LocalBuildInfo -&gt; ComponentLocalBuildInfo -&gt; IO [String]
+</span><a href="Distribution.Simple.LocalBuildInfo.html#depLibraryPaths"><span class="hs-identifier hs-var hs-var">depLibraryPaths</span></a></span></span><span> </span><span id="local-6989586621679365086"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679365086"><span class="hs-identifier hs-var">inplace</span></a></span></span><span> </span><span id="local-6989586621679365087"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679365087"><span class="hs-identifier hs-var">relative</span></a></span></span><span> </span><span id="local-6989586621679365088"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365088"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365089"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365089"><span class="hs-identifier hs-var">clbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-195"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679365090"><span class="annot"><span class="annottext">pkgDescr :: PackageDescription
+</span><a href="#local-6989586621679365090"><span class="hs-identifier hs-var hs-var">pkgDescr</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; PackageDescription
+</span><a href="Distribution.Types.LocalBuildInfo.html#localPkgDescr"><span class="hs-identifier hs-var">localPkgDescr</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365088"><span class="hs-identifier hs-var">lbi</span></a></span><span>
+</span><span id="line-196"></span><span>        </span><span id="local-6989586621679365092"><span class="annot"><span class="annottext">installDirs :: InstallDirs String
+</span><a href="#local-6989586621679365092"><span class="hs-identifier hs-var hs-var">installDirs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageDescription
+-&gt; LocalBuildInfo -&gt; UnitId -&gt; CopyDest -&gt; InstallDirs String
+</span><a href="Distribution.Simple.LocalBuildInfo.html#absoluteComponentInstallDirs"><span class="hs-identifier hs-var">absoluteComponentInstallDirs</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365090"><span class="hs-identifier hs-var">pkgDescr</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365088"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; UnitId
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentUnitId"><span class="hs-identifier hs-var">componentUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365089"><span class="hs-identifier hs-var">clbi</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">CopyDest
+</span><a href="Distribution.Simple.InstallDirs.html#NoCopyDest"><span class="hs-identifier hs-var">NoCopyDest</span></a></span><span>
+</span><span id="line-197"></span><span>        </span><span id="local-6989586621679365094"><span class="annot"><span class="annottext">executable :: Bool
+</span><a href="#local-6989586621679365094"><span class="hs-identifier hs-var hs-var">executable</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365089"><span class="hs-identifier hs-var">clbi</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-198"></span><span>                        </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ExeComponentLocalBuildInfo"><span class="hs-identifier hs-type">ExeComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-199"></span><span>                        </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><span class="hs-identifier">_</span></span><span>                             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-200"></span><span>        </span><span id="local-6989586621679365096"><span class="annot"><span class="annottext">relDir :: String
+</span><a href="#local-6989586621679365096"><span class="hs-identifier hs-var hs-var">relDir</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679365094"><span class="hs-identifier hs-var">executable</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InstallDirs String -&gt; String
+forall dir. InstallDirs dir -&gt; dir
+</span><a href="Distribution.Simple.InstallDirs.html#bindir"><span class="hs-identifier hs-var">bindir</span></a></span><span> </span><span class="annot"><span class="annottext">InstallDirs String
+</span><a href="#local-6989586621679365092"><span class="hs-identifier hs-var">installDirs</span></a></span><span>
+</span><span id="line-201"></span><span>               </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#otherwise/GHC.Base.html#otherwise"><span class="hs-identifier hs-var">otherwise</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InstallDirs String -&gt; String
+forall dir. InstallDirs dir -&gt; dir
+</span><a href="Distribution.Simple.InstallDirs.html#libdir"><span class="hs-identifier hs-var">libdir</span></a></span><span> </span><span class="annot"><span class="annottext">InstallDirs String
+</span><a href="#local-6989586621679365092"><span class="hs-identifier hs-var">installDirs</span></a></span><span>
+</span><span id="line-202"></span><span>
+</span><span id="line-203"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span class="hs-comment">-- TODO: this is kind of inefficient</span><span>
+</span><span id="line-204"></span><span>        </span><span id="local-6989586621679365101"><span class="annot"><span class="annottext">internalDeps :: [UnitId]
+</span><a href="#local-6989586621679365101"><span class="hs-identifier hs-var hs-var">internalDeps</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">UnitId
+</span><a href="#local-6989586621679365102"><span class="hs-identifier hs-var">uid</span></a></span><span>
+</span><span id="line-205"></span><span>                       </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679365102"><span class="annot"><span class="annottext">UnitId
+</span><a href="#local-6989586621679365102"><span class="hs-identifier hs-var">uid</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">MungedPackageId
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; [(UnitId, MungedPackageId)]
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentPackageDeps"><span class="hs-identifier hs-var">componentPackageDeps</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365089"><span class="hs-identifier hs-var">clbi</span></a></span><span>
+</span><span id="line-206"></span><span>                       </span><span class="hs-comment">-- Test that it's internal</span><span>
+</span><span id="line-207"></span><span>                       </span><span class="hs-special">,</span><span> </span><span id="local-6989586621679365104"><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365104"><span class="hs-identifier hs-var">sub_target</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; LocalBuildInfo -&gt; [TargetInfo]
+</span><a href="Distribution.Types.LocalBuildInfo.html#allTargetsInBuildOrder%27"><span class="hs-identifier hs-var">allTargetsInBuildOrder'</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365090"><span class="hs-identifier hs-var">pkgDescr</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365088"><span class="hs-identifier hs-var">lbi</span></a></span><span>
+</span><span id="line-208"></span><span>                       </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; UnitId
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentUnitId"><span class="hs-identifier hs-var">componentUnitId</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TargetInfo -&gt; ComponentLocalBuildInfo
+</span><a href="Distribution.Types.TargetInfo.html#targetCLBI"><span class="hs-identifier hs-var">targetCLBI</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365104"><span class="hs-identifier hs-var">sub_target</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">UnitId -&gt; UnitId -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">UnitId
+</span><a href="#local-6989586621679365102"><span class="hs-identifier hs-var">uid</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-209"></span><span>        </span><span id="local-6989586621679365105"><span class="annot"><span class="annottext">internalLibs :: [String]
+</span><a href="#local-6989586621679365105"><span class="hs-identifier hs-var hs-var">internalLibs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; String
+</span><a href="#local-6989586621679365106"><span class="hs-identifier hs-var">getLibDir</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TargetInfo -&gt; ComponentLocalBuildInfo
+</span><a href="Distribution.Types.TargetInfo.html#targetCLBI"><span class="hs-identifier hs-var">targetCLBI</span></a></span><span> </span><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365107"><span class="hs-identifier hs-var">sub_target</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-210"></span><span>                       </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679365107"><span class="annot"><span class="annottext">TargetInfo
+</span><a href="#local-6989586621679365107"><span class="hs-identifier hs-var">sub_target</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; LocalBuildInfo -&gt; [UnitId] -&gt; [TargetInfo]
+</span><a href="Distribution.Types.LocalBuildInfo.html#neededTargetsInBuildOrder%27"><span class="hs-identifier hs-var">neededTargetsInBuildOrder'</span></a></span><span>
+</span><span id="line-211"></span><span>                                        </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365090"><span class="hs-identifier hs-var">pkgDescr</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365088"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">[UnitId]
+</span><a href="#local-6989586621679365101"><span class="hs-identifier hs-var">internalDeps</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-212"></span><span>    </span><span class="hs-comment">{-
+    -- This is better, but it doesn't work, because we may be passed a
+    -- CLBI which doesn't actually exist, and was faked up when we
+    -- were building a test suite/benchmark.  See #3599 for proposal
+    -- to fix this.
+    let internalCLBIs = filter ((/= componentUnitId clbi) . componentUnitId)
+                      . map targetCLBI
+                      $ neededTargetsInBuildOrder lbi [componentUnitId clbi]
+        internalLibs = map getLibDir internalCLBIs
+    -}</span><span>
+</span><span id="line-222"></span><span>        </span><span id="local-6989586621679365106"><span class="annot"><span class="annottext">getLibDir :: ComponentLocalBuildInfo -&gt; String
+</span><a href="#local-6989586621679365106"><span class="hs-identifier hs-var hs-var">getLibDir</span></a></span></span><span> </span><span id="local-6989586621679365109"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365109"><span class="hs-identifier hs-var">sub_clbi</span></a></span></span><span>
+</span><span id="line-223"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679365086"><span class="hs-identifier hs-var">inplace</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; ComponentLocalBuildInfo -&gt; String
+</span><a href="Distribution.Simple.LocalBuildInfo.html#componentBuildDir"><span class="hs-identifier hs-var">componentBuildDir</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365088"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365109"><span class="hs-identifier hs-var">sub_clbi</span></a></span><span>
+</span><span id="line-224"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#otherwise/GHC.Base.html#otherwise"><span class="hs-identifier hs-var">otherwise</span></a></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InstallDirs String -&gt; String
+forall dir. InstallDirs dir -&gt; dir
+</span><a href="Distribution.Simple.InstallDirs.html#dynlibdir"><span class="hs-identifier hs-var">dynlibdir</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageDescription
+-&gt; LocalBuildInfo -&gt; UnitId -&gt; CopyDest -&gt; InstallDirs String
+</span><a href="Distribution.Simple.LocalBuildInfo.html#absoluteComponentInstallDirs"><span class="hs-identifier hs-var">absoluteComponentInstallDirs</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365090"><span class="hs-identifier hs-var">pkgDescr</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365088"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; UnitId
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentUnitId"><span class="hs-identifier hs-var">componentUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365109"><span class="hs-identifier hs-var">sub_clbi</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">CopyDest
+</span><a href="Distribution.Simple.InstallDirs.html#NoCopyDest"><span class="hs-identifier hs-var">NoCopyDest</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-225"></span><span>
+</span><span id="line-226"></span><span>    </span><span class="hs-comment">-- Why do we go through all the trouble of a hand-crafting</span><span>
+</span><span id="line-227"></span><span>    </span><span class="hs-comment">-- internalLibs, when 'installedPkgs' actually contains the</span><span>
+</span><span id="line-228"></span><span>    </span><span class="hs-comment">-- internal libraries?  The trouble is that 'installedPkgs'</span><span>
+</span><span id="line-229"></span><span>    </span><span class="hs-comment">-- may contain *inplace* entries, which we must NOT use for</span><span>
+</span><span id="line-230"></span><span>    </span><span class="hs-comment">-- not inplace 'depLibraryPaths' (e.g., for RPATH calculation).</span><span>
+</span><span id="line-231"></span><span>    </span><span class="hs-comment">-- See #4025 for more details. This is all horrible but it</span><span>
+</span><span id="line-232"></span><span>    </span><span class="hs-comment">-- is a moot point if you are using a per-component build,</span><span>
+</span><span id="line-233"></span><span>    </span><span class="hs-comment">-- because you never have any internal libraries in this case;</span><span>
+</span><span id="line-234"></span><span>    </span><span class="hs-comment">-- they're all external.</span><span>
+</span><span id="line-235"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679365113"><span class="annot"><span class="annottext">external_ipkgs :: [InstalledPackageInfo]
+</span><a href="#local-6989586621679365113"><span class="hs-identifier hs-var hs-var">external_ipkgs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(InstalledPackageInfo -&gt; Bool)
+-&gt; [InstalledPackageInfo] -&gt; [InstalledPackageInfo]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.List.html#filter/GHC.List.html#filter"><span class="hs-identifier hs-var">filter</span></a></span><span> </span><span class="annot"><span class="annottext">InstalledPackageInfo -&gt; Bool
+forall {pkg}. HasUnitId pkg =&gt; pkg -&gt; Bool
+</span><a href="#local-6989586621679365114"><span class="hs-identifier hs-var">is_external</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageIndex InstalledPackageInfo -&gt; [InstalledPackageInfo]
+forall a. PackageIndex a -&gt; [a]
+</span><a href="Distribution.Simple.PackageIndex.html#allPackages"><span class="hs-identifier hs-var">allPackages</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; PackageIndex InstalledPackageInfo
+</span><a href="Distribution.Types.LocalBuildInfo.html#installedPkgs"><span class="hs-identifier hs-var">installedPkgs</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365088"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-236"></span><span>        </span><span id="local-6989586621679365114"><span class="annot"><span class="annottext">is_external :: pkg -&gt; Bool
+</span><a href="#local-6989586621679365114"><span class="hs-identifier hs-var hs-var">is_external</span></a></span></span><span> </span><span id="local-6989586621679365124"><span class="annot"><span class="annottext">pkg
+</span><a href="#local-6989586621679365124"><span class="hs-identifier hs-var">ipkg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">pkg -&gt; UnitId
+forall pkg. HasUnitId pkg =&gt; pkg -&gt; UnitId
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#installedUnitId/Distribution.Package.html#installedUnitId"><span class="hs-identifier hs-var">installedUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">pkg
+</span><a href="#local-6989586621679365124"><span class="hs-identifier hs-var">ipkg</span></a></span><span> </span><span class="annot"><span class="annottext">UnitId -&gt; [UnitId] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#elem/Data.Foldable.html#elem"><span class="hs-operator hs-var">`elem`</span></a></span><span> </span><span class="annot"><span class="annottext">[UnitId]
+</span><a href="#local-6989586621679365101"><span class="hs-identifier hs-var">internalDeps</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-237"></span><span>        </span><span class="hs-comment">-- First look for dynamic libraries in `dynamic-library-dirs`, and use</span><span>
+</span><span id="line-238"></span><span>        </span><span class="hs-comment">-- `library-dirs` as a fall back.</span><span>
+</span><span id="line-239"></span><span>        </span><span id="local-6989586621679365128"><span class="annot"><span class="annottext">getDynDir :: InstalledPackageInfo -&gt; [String]
+</span><a href="#local-6989586621679365128"><span class="hs-identifier hs-var hs-var">getDynDir</span></a></span></span><span> </span><span id="local-6989586621679365129"><span class="annot"><span class="annottext">InstalledPackageInfo
+</span><a href="#local-6989586621679365129"><span class="hs-identifier hs-var">pkg</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">InstalledPackageInfo -&gt; [String]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.InstalledPackageInfo.html#libraryDynDirs/Distribution.Types.InstalledPackageInfo.html#libraryDynDirs"><span class="hs-identifier hs-var">Installed.libraryDynDirs</span></a></span><span> </span><span class="annot"><span class="annottext">InstalledPackageInfo
+</span><a href="#local-6989586621679365129"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-240"></span><span>                           </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">InstalledPackageInfo -&gt; [String]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.InstalledPackageInfo.html#libraryDirs/Distribution.Types.InstalledPackageInfo.html#libraryDirs"><span class="hs-identifier hs-var">Installed.libraryDirs</span></a></span><span> </span><span class="annot"><span class="annottext">InstalledPackageInfo
+</span><a href="#local-6989586621679365129"><span class="hs-identifier hs-var">pkg</span></a></span><span>
+</span><span id="line-241"></span><span>                           </span><span id="local-6989586621679365132"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679365132"><span class="hs-identifier hs-var">d</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679365132"><span class="hs-identifier hs-var">d</span></a></span><span>
+</span><span id="line-242"></span><span>        </span><span id="local-6989586621679365134"><span class="annot"><span class="annottext">allDepLibDirs :: [String]
+</span><a href="#local-6989586621679365134"><span class="hs-identifier hs-var hs-var">allDepLibDirs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(InstalledPackageInfo -&gt; [String])
+-&gt; [InstalledPackageInfo] -&gt; [String]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concatMap/Data.Foldable.html#concatMap"><span class="hs-identifier hs-var">concatMap</span></a></span><span> </span><span class="annot"><span class="annottext">InstalledPackageInfo -&gt; [String]
+</span><a href="#local-6989586621679365128"><span class="hs-identifier hs-var">getDynDir</span></a></span><span> </span><span class="annot"><span class="annottext">[InstalledPackageInfo]
+</span><a href="#local-6989586621679365113"><span class="hs-identifier hs-var">external_ipkgs</span></a></span><span>
+</span><span id="line-243"></span><span>
+</span><span id="line-244"></span><span>        </span><span id="local-6989586621679365136"><span class="annot"><span class="annottext">allDepLibDirs' :: [String]
+</span><a href="#local-6989586621679365136"><span class="hs-identifier hs-var hs-var">allDepLibDirs'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679365105"><span class="hs-identifier hs-var">internalLibs</span></a></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679365134"><span class="hs-identifier hs-var">allDepLibDirs</span></a></span><span>
+</span><span id="line-245"></span><span>    </span><span id="local-6989586621679365137"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679365137"><span class="hs-identifier hs-var">allDepLibDirsC</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO String) -&gt; [String] -&gt; IO [String]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span><a href="../../base-4.18.2.0/src/Data.Traversable.html#traverse/Data.Traversable.html#traverse"><span class="hs-identifier hs-var">traverse</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+</span><a href="#local-6989586621679365139"><span class="hs-identifier hs-var">canonicalizePathNoFail</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679365136"><span class="hs-identifier hs-var">allDepLibDirs'</span></a></span><span>
+</span><span id="line-246"></span><span>
+</span><span id="line-247"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679365140"><span class="annot"><span class="annottext">p :: String
+</span><a href="#local-6989586621679365140"><span class="hs-identifier hs-var hs-var">p</span></a></span></span><span>                </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InstallDirs String -&gt; String
+forall dir. InstallDirs dir -&gt; dir
+</span><a href="Distribution.Simple.InstallDirs.html#prefix"><span class="hs-identifier hs-var">prefix</span></a></span><span> </span><span class="annot"><span class="annottext">InstallDirs String
+</span><a href="#local-6989586621679365092"><span class="hs-identifier hs-var">installDirs</span></a></span><span>
+</span><span id="line-248"></span><span>        </span><span id="local-6989586621679365142"><span class="annot"><span class="annottext">prefixRelative :: String -&gt; Bool
+</span><a href="#local-6989586621679365142"><span class="hs-identifier hs-var hs-var">prefixRelative</span></a></span></span><span> </span><span id="local-6989586621679365143"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365143"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe String -&gt; Bool
+forall a. Maybe a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Maybe.html#isJust/Data.Maybe.html#isJust"><span class="hs-identifier hs-var">isJust</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String -&gt; Maybe String
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; Maybe [a]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#stripPrefix/Data.OldList.html#stripPrefix"><span class="hs-identifier hs-var">stripPrefix</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365140"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365143"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-249"></span><span>        </span><span id="local-6989586621679365145"><span class="annot"><span class="annottext">libPaths :: [String]
+</span><a href="#local-6989586621679365145"><span class="hs-identifier hs-var hs-var">libPaths</span></a></span></span><span>
+</span><span id="line-250"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679365087"><span class="hs-identifier hs-var">relative</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span>
+</span><span id="line-251"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; Bool
+</span><a href="#local-6989586621679365142"><span class="hs-identifier hs-var">prefixRelative</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365096"><span class="hs-identifier hs-var">relDir</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; [String] -&gt; [String]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679365147"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365147"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-252"></span><span>                                          </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">String -&gt; Bool
+</span><a href="#local-6989586621679365142"><span class="hs-identifier hs-var">prefixRelative</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365147"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-253"></span><span>                                             </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+</span><a href="Distribution.Simple.Utils.html#shortRelativePath"><span class="hs-identifier hs-var">shortRelativePath</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365096"><span class="hs-identifier hs-var">relDir</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365147"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-254"></span><span>                                             </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365147"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-255"></span><span>                                        </span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679365137"><span class="hs-identifier hs-var">allDepLibDirsC</span></a></span><span>
+</span><span id="line-256"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#otherwise/GHC.Base.html#otherwise"><span class="hs-identifier hs-var">otherwise</span></a></span><span>             </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679365137"><span class="hs-identifier hs-var">allDepLibDirsC</span></a></span><span>
+</span><span id="line-257"></span><span>
+</span><span id="line-258"></span><span>    </span><span class="annot"><span class="annottext">[String] -&gt; IO [String]
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679365145"><span class="hs-identifier hs-var">libPaths</span></a></span><span>
+</span><span id="line-259"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-260"></span><span>    </span><span class="hs-comment">-- 'canonicalizePath' fails on UNIX when the directory does not exists.</span><span>
+</span><span id="line-261"></span><span>    </span><span class="hs-comment">-- So just don't canonicalize when it doesn't exist.</span><span>
+</span><span id="line-262"></span><span>    </span><span id="local-6989586621679365139"><span class="annot"><span class="annottext">canonicalizePathNoFail :: String -&gt; IO String
+</span><a href="#local-6989586621679365139"><span class="hs-identifier hs-var hs-var">canonicalizePathNoFail</span></a></span></span><span> </span><span id="local-6989586621679365151"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365151"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-263"></span><span>      </span><span id="local-6989586621679365152"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679365152"><span class="hs-identifier hs-var">exists</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO Bool
+</span><a href="../../directory-1.3.8.1/src/System.Directory.html#doesDirectoryExist/System.Directory.html#doesDirectoryExist"><span class="hs-identifier hs-var">doesDirectoryExist</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365151"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-264"></span><span>      </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679365152"><span class="hs-identifier hs-var">exists</span></a></span><span>
+</span><span id="line-265"></span><span>         </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+</span><a href="../../directory-1.3.8.1/src/System.Directory.html#canonicalizePath/System.Directory.html#canonicalizePath"><span class="hs-identifier hs-var">canonicalizePath</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365151"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-266"></span><span>         </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679365151"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-267"></span><span>
+</span><span id="line-268"></span><span class="hs-comment">-- | Get all module names that needed to be built by GHC; i.e., all</span><span>
+</span><span id="line-269"></span><span class="hs-comment">-- of these 'ModuleName's have interface files associated with them</span><span>
+</span><span id="line-270"></span><span class="hs-comment">-- that need to be installed.</span><span>
+</span><span id="line-271"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#allLibModules"><span class="hs-identifier hs-type">allLibModules</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Library.html#Library/Distribution.Types.Library.html#Library"><span class="hs-identifier hs-type">Library</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#ModuleName/Distribution.ModuleName.html#ModuleName"><span class="hs-identifier hs-type">ModuleName</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-272"></span><span id="allLibModules"><span class="annot"><span class="annottext">allLibModules :: Library -&gt; ComponentLocalBuildInfo -&gt; [ModuleName]
+</span><a href="Distribution.Simple.LocalBuildInfo.html#allLibModules"><span class="hs-identifier hs-var hs-var">allLibModules</span></a></span></span><span> </span><span id="local-6989586621679365153"><span class="annot"><span class="annottext">Library
+</span><a href="#local-6989586621679365153"><span class="hs-identifier hs-var">lib</span></a></span></span><span> </span><span id="local-6989586621679365154"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365154"><span class="hs-identifier hs-var">clbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-273"></span><span>    </span><span class="annot"><span class="annottext">[ModuleName] -&gt; [ModuleName]
+forall a. Ord a =&gt; [a] -&gt; [a]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#ordNub/Distribution.Utils.Generic.html#ordNub"><span class="hs-identifier hs-var">ordNub</span></a></span><span> </span><span class="annot"><span class="annottext">([ModuleName] -&gt; [ModuleName]) -&gt; [ModuleName] -&gt; [ModuleName]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-274"></span><span>    </span><span class="annot"><span class="annottext">Library -&gt; [ModuleName]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Library.html#explicitLibModules/Distribution.Types.Library.html#explicitLibModules"><span class="hs-identifier hs-var">explicitLibModules</span></a></span><span> </span><span class="annot"><span class="annottext">Library
+</span><a href="#local-6989586621679365153"><span class="hs-identifier hs-var">lib</span></a></span><span> </span><span class="annot"><span class="annottext">[ModuleName] -&gt; [ModuleName] -&gt; [ModuleName]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span>
+</span><span id="line-275"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679365154"><span class="hs-identifier hs-var">clbi</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-276"></span><span>        </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#LibComponentLocalBuildInfo"><span class="hs-identifier hs-type">LibComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">componentInstantiatedWith :: ComponentLocalBuildInfo -&gt; [(ModuleName, OpenModule)]
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentInstantiatedWith"><span class="hs-identifier hs-var">componentInstantiatedWith</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679365159"><span class="annot"><span class="annottext">[(ModuleName, OpenModule)]
+</span><a href="#local-6989586621679365159"><span class="hs-identifier hs-var">insts</span></a></span></span><span> </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">((ModuleName, OpenModule) -&gt; ModuleName)
+-&gt; [(ModuleName, OpenModule)] -&gt; [ModuleName]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">(ModuleName, OpenModule) -&gt; ModuleName
+forall a b. (a, b) -&gt; a
+</span><a href="../../base-4.18.2.0/src/Data.Tuple.html#fst/Data.Tuple.html#fst"><span class="hs-identifier hs-var">fst</span></a></span><span> </span><span class="annot"><span class="annottext">[(ModuleName, OpenModule)]
+</span><a href="#local-6989586621679365159"><span class="hs-identifier hs-var">insts</span></a></span><span>
+</span><span id="line-277"></span><span>        </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-278"></span><span>
+</span><span id="line-279"></span><span class="hs-comment">-- -----------------------------------------------------------------------------</span><span>
+</span><span id="line-280"></span><span class="hs-comment">-- Wrappers for a couple functions from InstallDirs</span><span>
+</span><span id="line-281"></span><span>
+</span><span id="line-282"></span><span class="hs-comment">-- | Backwards compatibility function which computes the InstallDirs</span><span>
+</span><span id="line-283"></span><span class="hs-comment">-- assuming that @$libname@ points to the public library (or some fake</span><span>
+</span><span id="line-284"></span><span class="hs-comment">-- package identifier if there is no public library.)  IF AT ALL</span><span>
+</span><span id="line-285"></span><span class="hs-comment">-- POSSIBLE, please use 'absoluteComponentInstallDirs' instead.</span><span>
+</span><span id="line-286"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#absoluteInstallDirs"><span class="hs-identifier hs-type">absoluteInstallDirs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-287"></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#CopyDest"><span class="hs-identifier hs-type">CopyDest</span></a></span><span>
+</span><span id="line-288"></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#InstallDirs"><span class="hs-identifier hs-type">InstallDirs</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-289"></span><span id="absoluteInstallDirs"><span class="annot"><span class="annottext">absoluteInstallDirs :: PackageDescription
+-&gt; LocalBuildInfo -&gt; CopyDest -&gt; InstallDirs String
+</span><a href="Distribution.Simple.LocalBuildInfo.html#absoluteInstallDirs"><span class="hs-identifier hs-var hs-var">absoluteInstallDirs</span></a></span></span><span> </span><span id="local-6989586621679365161"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365161"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679365162"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365162"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365163"><span class="annot"><span class="annottext">CopyDest
+</span><a href="#local-6989586621679365163"><span class="hs-identifier hs-var">copydest</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-290"></span><span>    </span><span class="annot"><span class="annottext">PackageDescription
+-&gt; LocalBuildInfo -&gt; UnitId -&gt; CopyDest -&gt; InstallDirs String
+</span><a href="Distribution.Simple.LocalBuildInfo.html#absoluteComponentInstallDirs"><span class="hs-identifier hs-var">absoluteComponentInstallDirs</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365161"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365162"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; UnitId
+</span><a href="Distribution.Types.LocalBuildInfo.html#localUnitId"><span class="hs-identifier hs-var">localUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365162"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">CopyDest
+</span><a href="#local-6989586621679365163"><span class="hs-identifier hs-var">copydest</span></a></span><span>
+</span><span id="line-291"></span><span>
+</span><span id="line-292"></span><span class="annot"><span class="hs-comment">-- | See 'InstallDirs.absoluteInstallDirs'.</span></span><span>
+</span><span id="line-293"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#absoluteComponentInstallDirs"><span class="hs-identifier hs-type">absoluteComponentInstallDirs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-294"></span><span>                             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#UnitId/Distribution.Types.UnitId.html#UnitId"><span class="hs-identifier hs-type">UnitId</span></a></span><span>
+</span><span id="line-295"></span><span>                             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#CopyDest"><span class="hs-identifier hs-type">CopyDest</span></a></span><span>
+</span><span id="line-296"></span><span>                             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#InstallDirs"><span class="hs-identifier hs-type">InstallDirs</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-297"></span><span id="absoluteComponentInstallDirs"><span class="annot"><span class="annottext">absoluteComponentInstallDirs :: PackageDescription
+-&gt; LocalBuildInfo -&gt; UnitId -&gt; CopyDest -&gt; InstallDirs String
+</span><a href="Distribution.Simple.LocalBuildInfo.html#absoluteComponentInstallDirs"><span class="hs-identifier hs-var hs-var">absoluteComponentInstallDirs</span></a></span></span><span> </span><span id="local-6989586621679365164"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365164"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679365165"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365165"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365166"><span class="annot"><span class="annottext">UnitId
+</span><a href="#local-6989586621679365166"><span class="hs-identifier hs-var">uid</span></a></span></span><span> </span><span id="local-6989586621679365167"><span class="annot"><span class="annottext">CopyDest
+</span><a href="#local-6989586621679365167"><span class="hs-identifier hs-var">copydest</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-298"></span><span>  </span><span class="annot"><span class="annottext">PackageId
+-&gt; UnitId
+-&gt; CompilerInfo
+-&gt; CopyDest
+-&gt; Platform
+-&gt; InstallDirs PathTemplate
+-&gt; InstallDirs String
+</span><a href="Distribution.Simple.InstallDirs.html#absoluteInstallDirs"><span class="hs-identifier hs-var">InstallDirs.absoluteInstallDirs</span></a></span><span>
+</span><span id="line-299"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageId
+forall pkg. Package pkg =&gt; pkg -&gt; PackageId
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#packageId/Distribution.Package.html#packageId"><span class="hs-identifier hs-var">packageId</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365164"><span class="hs-identifier hs-var">pkg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-300"></span><span>    </span><span class="annot"><span class="annottext">UnitId
+</span><a href="#local-6989586621679365166"><span class="hs-identifier hs-var">uid</span></a></span><span>
+</span><span id="line-301"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Compiler -&gt; CompilerInfo
+</span><a href="Distribution.Simple.Compiler.html#compilerInfo"><span class="hs-identifier hs-var">compilerInfo</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Compiler
+</span><a href="Distribution.Types.LocalBuildInfo.html#compiler"><span class="hs-identifier hs-var">compiler</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365165"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-302"></span><span>    </span><span class="annot"><span class="annottext">CopyDest
+</span><a href="#local-6989586621679365167"><span class="hs-identifier hs-var">copydest</span></a></span><span>
+</span><span id="line-303"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Platform
+</span><a href="Distribution.Types.LocalBuildInfo.html#hostPlatform"><span class="hs-identifier hs-var">hostPlatform</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365165"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-304"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; InstallDirs PathTemplate
+</span><a href="Distribution.Types.LocalBuildInfo.html#installDirTemplates"><span class="hs-identifier hs-var">installDirTemplates</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365165"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-305"></span><span>
+</span><span id="line-306"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#absoluteInstallCommandDirs"><span class="hs-identifier hs-type">absoluteInstallCommandDirs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-307"></span><span>                           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#UnitId/Distribution.Types.UnitId.html#UnitId"><span class="hs-identifier hs-type">UnitId</span></a></span><span>
+</span><span id="line-308"></span><span>                           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#CopyDest"><span class="hs-identifier hs-type">CopyDest</span></a></span><span>
+</span><span id="line-309"></span><span>                           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#InstallDirs"><span class="hs-identifier hs-type">InstallDirs</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-310"></span><span id="absoluteInstallCommandDirs"><span class="annot"><span class="annottext">absoluteInstallCommandDirs :: PackageDescription
+-&gt; LocalBuildInfo -&gt; UnitId -&gt; CopyDest -&gt; InstallDirs String
+</span><a href="Distribution.Simple.LocalBuildInfo.html#absoluteInstallCommandDirs"><span class="hs-identifier hs-var hs-var">absoluteInstallCommandDirs</span></a></span></span><span> </span><span id="local-6989586621679365173"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365173"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679365174"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365174"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365175"><span class="annot"><span class="annottext">UnitId
+</span><a href="#local-6989586621679365175"><span class="hs-identifier hs-var">uid</span></a></span></span><span> </span><span id="local-6989586621679365176"><span class="annot"><span class="annottext">CopyDest
+</span><a href="#local-6989586621679365176"><span class="hs-identifier hs-var">copydest</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-311"></span><span>  </span><span class="annot"><span class="annottext">InstallDirs String
+</span><a href="#local-6989586621679365177"><span class="hs-identifier hs-var">dirs</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-312"></span><span>    </span><span class="hs-comment">-- Handle files which are not</span><span>
+</span><span id="line-313"></span><span>    </span><span class="hs-comment">-- per-component (data files and Haddock files.)</span><span>
+</span><span id="line-314"></span><span>    </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#datadir"><span class="hs-identifier hs-var">datadir</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#datadir"><span class="hs-identifier hs-var">datadir</span></a></span><span>    </span><span class="annot"><a href="#local-6989586621679365179"><span class="hs-identifier hs-type">dirs'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-315"></span><span>    </span><span class="hs-comment">-- NB: The situation with Haddock is a bit delicate.  On the</span><span>
+</span><span id="line-316"></span><span>    </span><span class="hs-comment">-- one hand, the easiest to understand Haddock documentation</span><span>
+</span><span id="line-317"></span><span>    </span><span class="hs-comment">-- path is pkgname-0.1, which means it's per-package (not</span><span>
+</span><span id="line-318"></span><span>    </span><span class="hs-comment">-- per-component).  But this means that it's impossible to</span><span>
+</span><span id="line-319"></span><span>    </span><span class="hs-comment">-- install Haddock documentation for internal libraries.  We'll</span><span>
+</span><span id="line-320"></span><span>    </span><span class="hs-comment">-- keep this constraint for now; this means you can't use</span><span>
+</span><span id="line-321"></span><span>    </span><span class="hs-comment">-- Cabal to Haddock internal libraries.  This does not seem</span><span>
+</span><span id="line-322"></span><span>    </span><span class="hs-comment">-- like a big problem.</span><span>
+</span><span id="line-323"></span><span>    </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#docdir"><span class="hs-identifier hs-var">docdir</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#docdir"><span class="hs-identifier hs-var">docdir</span></a></span><span>     </span><span class="annot"><a href="#local-6989586621679365179"><span class="hs-identifier hs-type">dirs'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-324"></span><span>    </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#htmldir"><span class="hs-identifier hs-var">htmldir</span></a></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#htmldir"><span class="hs-identifier hs-var">htmldir</span></a></span><span>    </span><span class="annot"><a href="#local-6989586621679365179"><span class="hs-identifier hs-type">dirs'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-325"></span><span>    </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#haddockdir"><span class="hs-identifier hs-var">haddockdir</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#haddockdir"><span class="hs-identifier hs-var">haddockdir</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679365179"><span class="hs-identifier hs-type">dirs'</span></a></span><span>
+</span><span id="line-326"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-327"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-328"></span><span>    </span><span id="local-6989586621679365177"><span class="annot"><span class="annottext">dirs :: InstallDirs String
+</span><a href="#local-6989586621679365177"><span class="hs-identifier hs-var hs-var">dirs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageDescription
+-&gt; LocalBuildInfo -&gt; UnitId -&gt; CopyDest -&gt; InstallDirs String
+</span><a href="Distribution.Simple.LocalBuildInfo.html#absoluteComponentInstallDirs"><span class="hs-identifier hs-var">absoluteComponentInstallDirs</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365173"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365174"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">UnitId
+</span><a href="#local-6989586621679365175"><span class="hs-identifier hs-var">uid</span></a></span><span> </span><span class="annot"><span class="annottext">CopyDest
+</span><a href="#local-6989586621679365176"><span class="hs-identifier hs-var">copydest</span></a></span><span>
+</span><span id="line-329"></span><span>    </span><span class="hs-comment">-- Notice use of 'absoluteInstallDirs' (not the</span><span>
+</span><span id="line-330"></span><span>    </span><span class="hs-comment">-- per-component variant).  This means for non-library</span><span>
+</span><span id="line-331"></span><span>    </span><span class="hs-comment">-- packages we'll just pick a nondescriptive foo-0.1</span><span>
+</span><span id="line-332"></span><span>    </span><span id="local-6989586621679365179"><span class="annot"><span class="annottext">dirs' :: InstallDirs String
+</span><a href="#local-6989586621679365179"><span class="hs-identifier hs-var hs-var">dirs'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageDescription
+-&gt; LocalBuildInfo -&gt; CopyDest -&gt; InstallDirs String
+</span><a href="Distribution.Simple.LocalBuildInfo.html#absoluteInstallDirs"><span class="hs-identifier hs-var">absoluteInstallDirs</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365173"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365174"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">CopyDest
+</span><a href="#local-6989586621679365176"><span class="hs-identifier hs-var">copydest</span></a></span><span>
+</span><span id="line-333"></span><span>
+</span><span id="line-334"></span><span class="hs-comment">-- | Backwards compatibility function which computes the InstallDirs</span><span>
+</span><span id="line-335"></span><span class="hs-comment">-- assuming that @$libname@ points to the public library (or some fake</span><span>
+</span><span id="line-336"></span><span class="hs-comment">-- package identifier if there is no public library.)  IF AT ALL</span><span>
+</span><span id="line-337"></span><span class="hs-comment">-- POSSIBLE, please use 'prefixRelativeComponentInstallDirs' instead.</span><span>
+</span><span id="line-338"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#prefixRelativeInstallDirs"><span class="hs-identifier hs-type">prefixRelativeInstallDirs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageId/Distribution.Types.PackageId.html#PackageId"><span class="hs-identifier hs-type">PackageId</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-339"></span><span>                          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#InstallDirs"><span class="hs-identifier hs-type">InstallDirs</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-340"></span><span id="prefixRelativeInstallDirs"><span class="annot"><span class="annottext">prefixRelativeInstallDirs :: PackageId -&gt; LocalBuildInfo -&gt; InstallDirs (Maybe String)
+</span><a href="Distribution.Simple.LocalBuildInfo.html#prefixRelativeInstallDirs"><span class="hs-identifier hs-var hs-var">prefixRelativeInstallDirs</span></a></span></span><span> </span><span id="local-6989586621679365183"><span class="annot"><span class="annottext">PackageId
+</span><a href="#local-6989586621679365183"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span> </span><span id="local-6989586621679365184"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365184"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-341"></span><span>    </span><span class="annot"><span class="annottext">PackageId -&gt; LocalBuildInfo -&gt; UnitId -&gt; InstallDirs (Maybe String)
+</span><a href="Distribution.Simple.LocalBuildInfo.html#prefixRelativeComponentInstallDirs"><span class="hs-identifier hs-var">prefixRelativeComponentInstallDirs</span></a></span><span> </span><span class="annot"><span class="annottext">PackageId
+</span><a href="#local-6989586621679365183"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365184"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; UnitId
+</span><a href="Distribution.Types.LocalBuildInfo.html#localUnitId"><span class="hs-identifier hs-var">localUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365184"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-342"></span><span>
+</span><span id="line-343"></span><span class="annot"><span class="hs-comment">-- |See 'InstallDirs.prefixRelativeInstallDirs'</span></span><span>
+</span><span id="line-344"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#prefixRelativeComponentInstallDirs"><span class="hs-identifier hs-type">prefixRelativeComponentInstallDirs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageId/Distribution.Types.PackageId.html#PackageId"><span class="hs-identifier hs-type">PackageId</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-345"></span><span>                                   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#UnitId/Distribution.Types.UnitId.html#UnitId"><span class="hs-identifier hs-type">UnitId</span></a></span><span>
+</span><span id="line-346"></span><span>                                   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#InstallDirs"><span class="hs-identifier hs-type">InstallDirs</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-347"></span><span id="prefixRelativeComponentInstallDirs"><span class="annot"><span class="annottext">prefixRelativeComponentInstallDirs :: PackageId -&gt; LocalBuildInfo -&gt; UnitId -&gt; InstallDirs (Maybe String)
+</span><a href="Distribution.Simple.LocalBuildInfo.html#prefixRelativeComponentInstallDirs"><span class="hs-identifier hs-var hs-var">prefixRelativeComponentInstallDirs</span></a></span></span><span> </span><span id="local-6989586621679365185"><span class="annot"><span class="annottext">PackageId
+</span><a href="#local-6989586621679365185"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span> </span><span id="local-6989586621679365186"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365186"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365187"><span class="annot"><span class="annottext">UnitId
+</span><a href="#local-6989586621679365187"><span class="hs-identifier hs-var">uid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-348"></span><span>  </span><span class="annot"><span class="annottext">PackageId
+-&gt; UnitId
+-&gt; CompilerInfo
+-&gt; Platform
+-&gt; InstallDirs PathTemplate
+-&gt; InstallDirs (Maybe String)
+</span><a href="Distribution.Simple.InstallDirs.html#prefixRelativeInstallDirs"><span class="hs-identifier hs-var">InstallDirs.prefixRelativeInstallDirs</span></a></span><span>
+</span><span id="line-349"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageId -&gt; PackageId
+forall pkg. Package pkg =&gt; pkg -&gt; PackageId
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#packageId/Distribution.Package.html#packageId"><span class="hs-identifier hs-var">packageId</span></a></span><span> </span><span class="annot"><span class="annottext">PackageId
+</span><a href="#local-6989586621679365185"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-350"></span><span>    </span><span class="annot"><span class="annottext">UnitId
+</span><a href="#local-6989586621679365187"><span class="hs-identifier hs-var">uid</span></a></span><span>
+</span><span id="line-351"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Compiler -&gt; CompilerInfo
+</span><a href="Distribution.Simple.Compiler.html#compilerInfo"><span class="hs-identifier hs-var">compilerInfo</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Compiler
+</span><a href="Distribution.Types.LocalBuildInfo.html#compiler"><span class="hs-identifier hs-var">compiler</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365186"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-352"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Platform
+</span><a href="Distribution.Types.LocalBuildInfo.html#hostPlatform"><span class="hs-identifier hs-var">hostPlatform</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365186"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-353"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; InstallDirs PathTemplate
+</span><a href="Distribution.Types.LocalBuildInfo.html#installDirTemplates"><span class="hs-identifier hs-var">installDirTemplates</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365186"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-354"></span><span>
+</span><span id="line-355"></span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html#substPathTemplate"><span class="hs-identifier hs-type">substPathTemplate</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageId/Distribution.Types.PackageId.html#PackageId"><span class="hs-identifier hs-type">PackageId</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-356"></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#UnitId/Distribution.Types.UnitId.html#UnitId"><span class="hs-identifier hs-type">UnitId</span></a></span><span>
+</span><span id="line-357"></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#PathTemplate"><span class="hs-identifier hs-type">PathTemplate</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-358"></span><span id="substPathTemplate"><span class="annot"><span class="annottext">substPathTemplate :: PackageId -&gt; LocalBuildInfo -&gt; UnitId -&gt; PathTemplate -&gt; String
+</span><a href="Distribution.Simple.LocalBuildInfo.html#substPathTemplate"><span class="hs-identifier hs-var hs-var">substPathTemplate</span></a></span></span><span> </span><span id="local-6989586621679365188"><span class="annot"><span class="annottext">PackageId
+</span><a href="#local-6989586621679365188"><span class="hs-identifier hs-var">pkgid</span></a></span></span><span> </span><span id="local-6989586621679365189"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365189"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679365190"><span class="annot"><span class="annottext">UnitId
+</span><a href="#local-6989586621679365190"><span class="hs-identifier hs-var">uid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PathTemplate -&gt; String
+</span><a href="Distribution.Simple.InstallDirs.html#fromPathTemplate"><span class="hs-identifier hs-var">fromPathTemplate</span></a></span><span>
+</span><span id="line-359"></span><span>                                    </span><span class="annot"><span class="annottext">(PathTemplate -&gt; String)
+-&gt; (PathTemplate -&gt; PathTemplate) -&gt; PathTemplate -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">PathTemplateEnv -&gt; PathTemplate -&gt; PathTemplate
+</span><a href="Distribution.Simple.InstallDirs.html#substPathTemplate"><span class="hs-identifier hs-var">InstallDirs.substPathTemplate</span></a></span><span> </span><span class="annot"><span class="annottext">PathTemplateEnv
+</span><a href="#local-6989586621679365193"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-360"></span><span>    </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679365193"><span class="annot"><span class="annottext">env :: PathTemplateEnv
+</span><a href="#local-6989586621679365193"><span class="hs-identifier hs-var hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageId -&gt; UnitId -&gt; CompilerInfo -&gt; Platform -&gt; PathTemplateEnv
+</span><a href="Distribution.Simple.InstallDirs.html#initialPathTemplateEnv"><span class="hs-identifier hs-var">initialPathTemplateEnv</span></a></span><span>
+</span><span id="line-361"></span><span>                   </span><span class="annot"><span class="annottext">PackageId
+</span><a href="#local-6989586621679365188"><span class="hs-identifier hs-var">pkgid</span></a></span><span>
+</span><span id="line-362"></span><span>                   </span><span class="annot"><span class="annottext">UnitId
+</span><a href="#local-6989586621679365190"><span class="hs-identifier hs-var">uid</span></a></span><span>
+</span><span id="line-363"></span><span>                   </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Compiler -&gt; CompilerInfo
+</span><a href="Distribution.Simple.Compiler.html#compilerInfo"><span class="hs-identifier hs-var">compilerInfo</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Compiler
+</span><a href="Distribution.Types.LocalBuildInfo.html#compiler"><span class="hs-identifier hs-var">compiler</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365189"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-364"></span><span>                   </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Platform
+</span><a href="Distribution.Types.LocalBuildInfo.html#hostPlatform"><span class="hs-identifier hs-var">hostPlatform</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679365189"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-365"></span><span>
+</span><span id="line-366"></span></pre></body></html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="annot"><span class="hs-comment">-- | See &lt;https://github.com/ezyang/ghc-proposals/blob/backpack/proposals/0000-backpack.rst&gt;</span></span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Backpack.ComponentsGraph</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-3"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#ComponentsGraph"><span class="hs-identifier">ComponentsGraph</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-4"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#ComponentsWithDeps"><span class="hs-identifier">ComponentsWithDeps</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-5"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#mkComponentsGraph"><span class="hs-identifier">mkComponentsGraph</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#componentsGraphToList"><span class="hs-identifier">componentsGraphToList</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#dispComponentsWithDeps"><span class="hs-identifier">dispComponentsWithDeps</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#componentCycleMsg"><span class="hs-identifier">componentCycleMsg</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#/Distribution.Package.html"><span class="hs-identifier">Distribution.Package</span></a></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.PackageDescription.html#/Distribution.PackageDescription.html"><span class="hs-identifier">Distribution.PackageDescription</span></a></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.BuildToolDepends.html"><span class="hs-identifier">Distribution.Simple.BuildToolDepends</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html"><span class="hs-identifier">Distribution.Simple.LocalBuildInfo</span></a></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentRequestedSpec.html#/Distribution.Types.ComponentRequestedSpec.html"><span class="hs-identifier">Distribution.Types.ComponentRequestedSpec</span></a></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#/Distribution.Compat.Graph.html"><span class="hs-identifier">Distribution.Compat.Graph</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#Graph/Distribution.Compat.Graph.html#Graph"><span class="hs-identifier">Graph</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#Node/Distribution.Compat.Graph.html#Node"><span class="hs-identifier">Node</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#/Distribution.Compat.Graph.html"><span class="hs-identifier">Distribution.Compat.Graph</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Graph</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.NonEmptySet.html#/Distribution.Compat.NonEmptySet.html"><span class="hs-identifier">Distribution.Compat.NonEmptySet</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">NES</span></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#/Distribution.Utils.Generic.html"><span class="hs-identifier">Distribution.Utils.Generic</span></a></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#/Distribution.Pretty.html"><span class="hs-identifier">Distribution.Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier">pretty</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.html#/Text.PrettyPrint.html"><span class="hs-identifier">Text.PrettyPrint</span></a></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-comment">------------------------------------------------------------------------------</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- Components graph</span><span>
+</span><span id="line-29"></span><span class="hs-comment">------------------------------------------------------------------------------</span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- | A graph of source-level components by their source-level</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- dependencies</span><span>
+</span><span id="line-33"></span><span class="hs-comment">--</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">type</span><span> </span><span id="ComponentsGraph"><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#ComponentsGraph"><span class="hs-identifier hs-var">ComponentsGraph</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#Graph/Distribution.Compat.Graph.html#Graph"><span class="hs-identifier hs-type">Graph</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#Node/Distribution.Compat.Graph.html#Node"><span class="hs-identifier hs-type">Node</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier hs-type">ComponentName</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#Component/Distribution.Types.Component.html#Component"><span class="hs-identifier hs-type">Component</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- | A list of components associated with the source level</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- dependencies between them.</span><span>
+</span><span id="line-38"></span><span class="hs-comment">--</span><span>
+</span><span id="line-39"></span><span class="hs-keyword">type</span><span> </span><span id="ComponentsWithDeps"><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#ComponentsWithDeps"><span class="hs-identifier hs-var">ComponentsWithDeps</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#Component/Distribution.Types.Component.html#Component"><span class="hs-identifier hs-type">Component</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier hs-type">ComponentName</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- | Pretty-print 'ComponentsWithDeps'.</span><span>
+</span><span id="line-42"></span><span class="hs-comment">--</span><span>
+</span><span id="line-43"></span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#dispComponentsWithDeps"><span class="hs-identifier hs-type">dispComponentsWithDeps</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#ComponentsWithDeps"><span class="hs-identifier hs-type">ComponentsWithDeps</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span>
+</span><span id="line-44"></span><span id="dispComponentsWithDeps"><span class="annot"><span class="annottext">dispComponentsWithDeps :: ComponentsWithDeps -&gt; Doc
+</span><a href="Distribution.Backpack.ComponentsGraph.html#dispComponentsWithDeps"><span class="hs-identifier hs-var hs-var">dispComponentsWithDeps</span></a></span></span><span> </span><span id="local-6989586621679365786"><span class="annot"><span class="annottext">ComponentsWithDeps
+</span><a href="#local-6989586621679365786"><span class="hs-identifier hs-var">graph</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-45"></span><span>    </span><span class="annot"><span class="annottext">[Doc] -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#vcat/Text.PrettyPrint.HughesPJ.html#vcat"><span class="hs-identifier hs-var">vcat</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Int -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#hang/Text.PrettyPrint.HughesPJ.html#hang"><span class="hs-identifier hs-var">hang</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;component&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Component -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentName/Distribution.Types.Component.html#componentName"><span class="hs-identifier hs-var">componentName</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365792"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">4</span></span><span>
+</span><span id="line-46"></span><span>                </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Doc] -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#vcat/Text.PrettyPrint.HughesPJ.html#vcat"><span class="hs-identifier hs-var">vcat</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;dependency&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679365793"><span class="hs-identifier hs-var">cdep</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679365793"><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679365793"><span class="hs-identifier hs-var">cdep</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[ComponentName]
+</span><a href="#local-6989586621679365794"><span class="hs-identifier hs-var">cdeps</span></a></span><span> </span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span>         </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679365792"><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365792"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679365794"><span class="annot"><span class="annottext">[ComponentName]
+</span><a href="#local-6989586621679365794"><span class="hs-identifier hs-var">cdeps</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ComponentsWithDeps
+</span><a href="#local-6989586621679365786"><span class="hs-identifier hs-var">graph</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- | Create a 'Graph' of 'Component', or report a cycle if there is a</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- problem.</span><span>
+</span><span id="line-51"></span><span class="hs-comment">--</span><span>
+</span><span id="line-52"></span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#mkComponentsGraph"><span class="hs-identifier hs-type">mkComponentsGraph</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentRequestedSpec.html#ComponentRequestedSpec/Distribution.Types.ComponentRequestedSpec.html#ComponentRequestedSpec"><span class="hs-identifier hs-type">ComponentRequestedSpec</span></a></span><span>
+</span><span id="line-53"></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span>
+</span><span id="line-54"></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Either.html#Either/Data.Either.html#Either"><span class="hs-identifier hs-type">Either</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier hs-type">ComponentName</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#ComponentsGraph"><span class="hs-identifier hs-type">ComponentsGraph</span></a></span><span>
+</span><span id="line-55"></span><span id="mkComponentsGraph"><span class="annot"><span class="annottext">mkComponentsGraph :: ComponentRequestedSpec
+-&gt; PackageDescription -&gt; Either [ComponentName] ComponentsGraph
+</span><a href="Distribution.Backpack.ComponentsGraph.html#mkComponentsGraph"><span class="hs-identifier hs-var hs-var">mkComponentsGraph</span></a></span></span><span> </span><span id="local-6989586621679365795"><span class="annot"><span class="annottext">ComponentRequestedSpec
+</span><a href="#local-6989586621679365795"><span class="hs-identifier hs-var">enabled</span></a></span></span><span> </span><span id="local-6989586621679365796"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365796"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-56"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679365804"><span class="annot"><span class="annottext">g :: ComponentsGraph
+</span><a href="#local-6989586621679365804"><span class="hs-identifier hs-var hs-var">g</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Node ComponentName Component] -&gt; ComponentsGraph
+forall a. (IsNode a, Show (Key a)) =&gt; [a] -&gt; Graph a
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#fromDistinctList/Distribution.Compat.Graph.html#fromDistinctList"><span class="hs-identifier hs-var">Graph.fromDistinctList</span></a></span><span>
+</span><span id="line-57"></span><span>                           </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Component
+-&gt; ComponentName -&gt; [ComponentName] -&gt; Node ComponentName Component
+forall k a. a -&gt; k -&gt; [k] -&gt; Node k a
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#N/Distribution.Compat.Graph.html#N"><span class="hs-identifier hs-var">N</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365807"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Component -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentName/Distribution.Types.Component.html#componentName"><span class="hs-identifier hs-var">componentName</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365807"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Component -&gt; [ComponentName]
+</span><a href="#local-6989586621679365808"><span class="hs-identifier hs-var">componentDeps</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365807"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span>                           </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679365807"><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365807"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; [Component]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#pkgBuildableComponents/Distribution.Types.PackageDescription.html#pkgBuildableComponents"><span class="hs-identifier hs-var">pkgBuildableComponents</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365796"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span>
+</span><span id="line-59"></span><span>                           </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ComponentRequestedSpec -&gt; Component -&gt; Bool
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentRequestedSpec.html#componentEnabled/Distribution.Types.ComponentRequestedSpec.html#componentEnabled"><span class="hs-identifier hs-var">componentEnabled</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentRequestedSpec
+</span><a href="#local-6989586621679365795"><span class="hs-identifier hs-var">enabled</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365807"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-60"></span><span>    </span><span class="hs-keyword">in</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ComponentsGraph -&gt; [[Node ComponentName Component]]
+forall a. Graph a -&gt; [[a]]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#cycles/Distribution.Compat.Graph.html#cycles"><span class="hs-identifier hs-var">Graph.cycles</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentsGraph
+</span><a href="#local-6989586621679365804"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-61"></span><span>          </span><span class="hs-special">[</span><span class="hs-special">]</span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ComponentsGraph -&gt; Either [ComponentName] ComponentsGraph
+forall a b. b -&gt; Either a b
+</span><a href="../../base-4.18.2.0/src/Data.Either.html#Right/Data.Either.html#Right"><span class="hs-identifier hs-var">Right</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentsGraph
+</span><a href="#local-6989586621679365804"><span class="hs-identifier hs-var">g</span></a></span><span>
+</span><span id="line-62"></span><span>          </span><span id="local-6989586621679365812"><span class="annot"><span class="annottext">[[Node ComponentName Component]]
+</span><a href="#local-6989586621679365812"><span class="hs-identifier hs-var">ccycles</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[ComponentName] -&gt; Either [ComponentName] ComponentsGraph
+forall a b. a -&gt; Either a b
+</span><a href="../../base-4.18.2.0/src/Data.Either.html#Left/Data.Either.html#Left"><span class="hs-identifier hs-var">Left</span></a></span><span>  </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Component -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentName/Distribution.Types.Component.html#componentName"><span class="hs-identifier hs-var">componentName</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365813"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#N/Distribution.Compat.Graph.html#N"><span class="hs-identifier hs-type">N</span></a></span><span> </span><span id="local-6989586621679365813"><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365813"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[ComponentName]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[[Node ComponentName Component]] -&gt; [Node ComponentName Component]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concat/Data.Foldable.html#concat"><span class="hs-identifier hs-var">concat</span></a></span><span> </span><span class="annot"><span class="annottext">[[Node ComponentName Component]]
+</span><a href="#local-6989586621679365812"><span class="hs-identifier hs-var">ccycles</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-comment">-- The dependencies for the given component</span><span>
+</span><span id="line-65"></span><span>    </span><span id="local-6989586621679365808"><span class="annot"><span class="annottext">componentDeps :: Component -&gt; [ComponentName]
+</span><a href="#local-6989586621679365808"><span class="hs-identifier hs-var hs-var">componentDeps</span></a></span></span><span> </span><span id="local-6989586621679365815"><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365815"><span class="hs-identifier hs-var">component</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-66"></span><span>        </span><span class="annot"><span class="annottext">[ComponentName]
+</span><a href="#local-6989586621679365816"><span class="hs-identifier hs-var">toolDependencies</span></a></span><span> </span><span class="annot"><span class="annottext">[ComponentName] -&gt; [ComponentName] -&gt; [ComponentName]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">[ComponentName]
+</span><a href="#local-6989586621679365817"><span class="hs-identifier hs-var">libDependencies</span></a></span><span>
+</span><span id="line-67"></span><span>      </span><span class="hs-keyword">where</span><span>
+</span><span id="line-68"></span><span>        </span><span id="local-6989586621679365818"><span class="annot"><span class="annottext">bi :: BuildInfo
+</span><a href="#local-6989586621679365818"><span class="hs-identifier hs-var hs-var">bi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Component -&gt; BuildInfo
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Component.html#componentBuildInfo/Distribution.Types.Component.html#componentBuildInfo"><span class="hs-identifier hs-var">componentBuildInfo</span></a></span><span> </span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365815"><span class="hs-identifier hs-var">component</span></a></span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span>        </span><span id="local-6989586621679365816"><span class="annot"><span class="annottext">toolDependencies :: [ComponentName]
+</span><a href="#local-6989586621679365816"><span class="hs-identifier hs-var hs-var">toolDependencies</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">UnqualComponentName -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CExeName/Distribution.Types.ComponentName.html#CExeName"><span class="hs-identifier hs-var">CExeName</span></a></span><span> </span><span class="annot"><span class="annottext">(UnqualComponentName -&gt; ComponentName)
+-&gt; [UnqualComponentName] -&gt; [ComponentName]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/Data.Functor.html#%3C%24%3E/Data.Functor.html#%3C%24%3E"><span class="hs-operator hs-var">&lt;$&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; BuildInfo -&gt; [UnqualComponentName]
+</span><a href="Distribution.Simple.BuildToolDepends.html#getAllInternalToolDependencies"><span class="hs-identifier hs-var">getAllInternalToolDependencies</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365796"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679365818"><span class="hs-identifier hs-var">bi</span></a></span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span>        </span><span id="local-6989586621679365817"><span class="annot"><span class="annottext">libDependencies :: [ComponentName]
+</span><a href="#local-6989586621679365817"><span class="hs-identifier hs-var hs-var">libDependencies</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-73"></span><span>            </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Dependency.html#Dependency/Distribution.Types.Dependency.html#Dependency"><span class="hs-identifier hs-type">Dependency</span></a></span><span> </span><span id="local-6989586621679365837"><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679365837"><span class="hs-identifier hs-var">pkgname</span></a></span></span><span> </span><span class="annot"><span class="annottext">VersionRange
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679365838"><span class="annot"><span class="annottext">NonEmptySet LibraryName
+</span><a href="#local-6989586621679365838"><span class="hs-identifier hs-var">lns</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">BuildInfo -&gt; [Dependency]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#targetBuildDepends/Distribution.Types.BuildInfo.html#targetBuildDepends"><span class="hs-identifier hs-var">targetBuildDepends</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679365818"><span class="hs-identifier hs-var">bi</span></a></span><span>
+</span><span id="line-74"></span><span>            </span><span class="annot"><span class="annottext">Bool -&gt; [()]
+forall (f :: * -&gt; *). Alternative f =&gt; Bool -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/Control.Monad.html#guard/Control.Monad.html#guard"><span class="hs-identifier hs-var">guard</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679365837"><span class="hs-identifier hs-var">pkgname</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; PackageName -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageName
+forall pkg. Package pkg =&gt; pkg -&gt; PackageName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#packageName/Distribution.Package.html#packageName"><span class="hs-identifier hs-var">packageName</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679365796"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span>            </span><span id="local-6989586621679365841"><span class="annot"><span class="annottext">LibraryName
+</span><a href="#local-6989586621679365841"><span class="hs-identifier hs-var">ln</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">NonEmptySet LibraryName -&gt; [LibraryName]
+forall a. NonEmptySet a -&gt; [a]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.NonEmptySet.html#toList/Distribution.Compat.NonEmptySet.html#toList"><span class="hs-identifier hs-var">NES.toList</span></a></span><span> </span><span class="annot"><span class="annottext">NonEmptySet LibraryName
+</span><a href="#local-6989586621679365838"><span class="hs-identifier hs-var">lns</span></a></span><span>
+</span><span id="line-77"></span><span>            </span><span class="annot"><span class="annottext">ComponentName -&gt; [ComponentName]
+forall a. a -&gt; [a]
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LibraryName -&gt; ComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#CLibName/Distribution.Types.ComponentName.html#CLibName"><span class="hs-identifier hs-var">CLibName</span></a></span><span> </span><span class="annot"><span class="annottext">LibraryName
+</span><a href="#local-6989586621679365841"><span class="hs-identifier hs-var">ln</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- | Given the package description and a 'PackageDescription' (used</span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- to determine if a package name is internal or not), sort the</span><span>
+</span><span id="line-81"></span><span class="hs-comment">-- components in dependency order (fewest dependencies first).  This is</span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- NOT necessarily the build order (although it is in the absence of</span><span>
+</span><span id="line-83"></span><span class="hs-comment">-- Backpack.)</span><span>
+</span><span id="line-84"></span><span class="hs-comment">--</span><span>
+</span><span id="line-85"></span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#componentsGraphToList"><span class="hs-identifier hs-type">componentsGraphToList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#ComponentsGraph"><span class="hs-identifier hs-type">ComponentsGraph</span></a></span><span>
+</span><span id="line-86"></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#ComponentsWithDeps"><span class="hs-identifier hs-type">ComponentsWithDeps</span></a></span><span>
+</span><span id="line-87"></span><span id="componentsGraphToList"><span class="annot"><span class="annottext">componentsGraphToList :: ComponentsGraph -&gt; ComponentsWithDeps
+</span><a href="Distribution.Backpack.ComponentsGraph.html#componentsGraphToList"><span class="hs-identifier hs-var hs-var">componentsGraphToList</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-88"></span><span>    </span><span class="annot"><span class="annottext">(Node ComponentName Component -&gt; (Component, [ComponentName]))
+-&gt; [Node ComponentName Component] -&gt; ComponentsWithDeps
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#N/Distribution.Compat.Graph.html#N"><span class="hs-identifier hs-type">N</span></a></span><span> </span><span id="local-6989586621679365845"><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365845"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679365846"><span class="annot"><span class="annottext">[ComponentName]
+</span><a href="#local-6989586621679365846"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Component
+</span><a href="#local-6989586621679365845"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[ComponentName]
+</span><a href="#local-6989586621679365846"><span class="hs-identifier hs-var">cs</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([Node ComponentName Component] -&gt; ComponentsWithDeps)
+-&gt; (ComponentsGraph -&gt; [Node ComponentName Component])
+-&gt; ComponentsGraph
+-&gt; ComponentsWithDeps
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentsGraph -&gt; [Node ComponentName Component]
+forall a. Graph a -&gt; [a]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Graph.html#revTopSort/Distribution.Compat.Graph.html#revTopSort"><span class="hs-identifier hs-var">Graph.revTopSort</span></a></span><span>
+</span><span id="line-89"></span><span>
+</span><span id="line-90"></span><span class="annot"><span class="hs-comment">-- | Error message when there is a cycle; takes the SCC of components.</span></span><span>
+</span><span id="line-91"></span><span class="annot"><a href="Distribution.Backpack.ComponentsGraph.html#componentCycleMsg"><span class="hs-identifier hs-type">componentCycleMsg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageIdentifier/Distribution.Types.PackageId.html#PackageIdentifier"><span class="hs-identifier hs-type">PackageIdentifier</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier hs-type">ComponentName</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#Doc/Text.PrettyPrint.HughesPJ.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span>
+</span><span id="line-92"></span><span id="componentCycleMsg"><span class="annot"><span class="annottext">componentCycleMsg :: PackageIdentifier -&gt; [ComponentName] -&gt; Doc
+</span><a href="Distribution.Backpack.ComponentsGraph.html#componentCycleMsg"><span class="hs-identifier hs-var hs-var">componentCycleMsg</span></a></span></span><span> </span><span id="local-6989586621679365849"><span class="annot"><span class="annottext">PackageIdentifier
+</span><a href="#local-6989586621679365849"><span class="hs-identifier hs-var">pn</span></a></span></span><span> </span><span id="local-6989586621679365850"><span class="annot"><span class="annottext">[ComponentName]
+</span><a href="#local-6989586621679365850"><span class="hs-identifier hs-var">cnames</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-93"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Components in the package&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">PackageIdentifier -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">PackageIdentifier
+</span><a href="#local-6989586621679365849"><span class="hs-identifier hs-var">pn</span></a></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;depend on each other in a cyclic way:&quot;</span></span><span>
+</span><span id="line-94"></span><span>    </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-95"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; String
+forall a. [a] -&gt; [[a]] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#intercalate/Data.OldList.html#intercalate"><span class="hs-identifier hs-var">intercalate</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; depends on &quot;</span></span><span>
+</span><span id="line-96"></span><span>            </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#showComponentName/Distribution.Types.ComponentName.html#showComponentName"><span class="hs-identifier hs-var">showComponentName</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679365854"><span class="hs-identifier hs-var">cname</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'&quot;</span></span><span>
+</span><span id="line-97"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679365854"><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679365854"><span class="hs-identifier hs-var">cname</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[ComponentName]
+</span><a href="#local-6989586621679365850"><span class="hs-identifier hs-var">cnames</span></a></span><span> </span><span class="annot"><span class="annottext">[ComponentName] -&gt; [ComponentName] -&gt; [ComponentName]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe ComponentName -&gt; [ComponentName]
+forall a. Maybe a -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.Maybe.html#maybeToList/Data.Maybe.html#maybeToList"><span class="hs-identifier hs-var">maybeToList</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[ComponentName] -&gt; Maybe ComponentName
+forall a. [a] -&gt; Maybe a
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#safeHead/Distribution.Utils.Generic.html#safeHead"><span class="hs-identifier hs-var">safeHead</span></a></span><span> </span><span class="annot"><span class="annottext">[ComponentName]
+</span><a href="#local-6989586621679365850"><span class="hs-identifier hs-var">cnames</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-98"></span></pre></body></html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Module      :  Distribution.TestSuite</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Copyright   :  Thomas Tuegel 2010</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- License     :  BSD3</span><span>
+</span><span id="line-9"></span><span class="hs-comment">--</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Maintainer  :  cabal-devel@haskell.org</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- This module defines the detailed test suite interface which makes it</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- possible to expose individual tests to Cabal or other test agents.</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.TestSuite</span><span>
+</span><span id="line-17"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#TestInstance"><span class="hs-identifier">TestInstance</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#OptionDescr"><span class="hs-identifier">OptionDescr</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#OptionType"><span class="hs-identifier">OptionType</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#Test"><span class="hs-identifier">Test</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#Options"><span class="hs-identifier">Options</span></a></span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#Progress"><span class="hs-identifier">Progress</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#Result"><span class="hs-identifier">Result</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#testGroup"><span class="hs-identifier">testGroup</span></a></span><span>
+</span><span id="line-25"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">data</span><span> </span><span id="TestInstance"><span class="annot"><a href="Distribution.TestSuite.html#TestInstance"><span class="hs-identifier hs-var">TestInstance</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="TestInstance"><span class="annot"><a href="Distribution.TestSuite.html#TestInstance"><span class="hs-identifier hs-var">TestInstance</span></a></span></span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="run"><span class="annot"><span class="annottext">TestInstance -&gt; IO Progress
+</span><a href="Distribution.TestSuite.html#run"><span class="hs-identifier hs-var hs-var">run</span></a></span></span><span>       </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#Progress"><span class="hs-identifier hs-type">Progress</span></a></span><span>      </span><span class="annot"><span class="hs-comment">-- ^ Perform the test.</span></span><span>
+</span><span id="line-32"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="name"><span class="annot"><span class="annottext">TestInstance -&gt; String
+</span><a href="Distribution.TestSuite.html#name"><span class="hs-identifier hs-var hs-var">name</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>           </span><span class="hs-comment">-- ^ A name for the test, unique within a</span><span>
+</span><span id="line-33"></span><span>                                    </span><span class="hs-comment">-- test suite.</span><span>
+</span><span id="line-34"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="tags"><span class="annot"><span class="annottext">TestInstance -&gt; [String]
+</span><a href="Distribution.TestSuite.html#tags"><span class="hs-identifier hs-var hs-var">tags</span></a></span></span><span>      </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span>         </span><span class="hs-comment">-- ^ Users can select groups of tests by</span><span>
+</span><span id="line-35"></span><span>                                    </span><span class="hs-comment">-- their tags.</span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="options"><span class="annot"><span class="annottext">TestInstance -&gt; [OptionDescr]
+</span><a href="Distribution.TestSuite.html#options"><span class="hs-identifier hs-var hs-var">options</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.TestSuite.html#OptionDescr"><span class="hs-identifier hs-type">OptionDescr</span></a></span><span class="hs-special">]</span><span>    </span><span class="hs-comment">-- ^ Descriptions of the options recognized</span><span>
+</span><span id="line-37"></span><span>                                    </span><span class="hs-comment">-- by this test.</span><span>
+</span><span id="line-38"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="setOption"><span class="annot"><span class="annottext">TestInstance -&gt; String -&gt; String -&gt; Either String TestInstance
+</span><a href="Distribution.TestSuite.html#setOption"><span class="hs-identifier hs-var hs-var">setOption</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Either.html#Either/Data.Either.html#Either"><span class="hs-identifier hs-type">Either</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#TestInstance"><span class="hs-identifier hs-type">TestInstance</span></a></span><span>
+</span><span id="line-39"></span><span>        </span><span class="hs-comment">-- ^ Try to set the named option to the given value. Returns an error</span><span>
+</span><span id="line-40"></span><span>        </span><span class="hs-comment">-- message if the option is not supported or the value could not be</span><span>
+</span><span id="line-41"></span><span>        </span><span class="hs-comment">-- correctly parsed; otherwise, a 'TestInstance' with the option set to</span><span>
+</span><span id="line-42"></span><span>        </span><span class="hs-comment">-- the given value is returned.</span><span>
+</span><span id="line-43"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-keyword">data</span><span> </span><span id="OptionDescr"><span class="annot"><a href="Distribution.TestSuite.html#OptionDescr"><span class="hs-identifier hs-var">OptionDescr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="OptionDescr"><span class="annot"><a href="Distribution.TestSuite.html#OptionDescr"><span class="hs-identifier hs-var">OptionDescr</span></a></span></span><span>
+</span><span id="line-46"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="optionName"><span class="annot"><span class="annottext">OptionDescr -&gt; String
+</span><a href="Distribution.TestSuite.html#optionName"><span class="hs-identifier hs-var hs-var">optionName</span></a></span></span><span>        </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-47"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="optionDescription"><span class="annot"><span class="annottext">OptionDescr -&gt; String
+</span><a href="Distribution.TestSuite.html#optionDescription"><span class="hs-identifier hs-var hs-var">optionDescription</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>       </span><span class="hs-comment">-- ^ A human-readable description of the</span><span>
+</span><span id="line-48"></span><span>                                        </span><span class="hs-comment">-- option to guide the user setting it.</span><span>
+</span><span id="line-49"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="optionType"><span class="annot"><span class="annottext">OptionDescr -&gt; OptionType
+</span><a href="Distribution.TestSuite.html#optionType"><span class="hs-identifier hs-var hs-var">optionType</span></a></span></span><span>        </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#OptionType"><span class="hs-identifier hs-type">OptionType</span></a></span><span>
+</span><span id="line-50"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="optionDefault"><span class="annot"><span class="annottext">OptionDescr -&gt; Maybe String
+</span><a href="Distribution.TestSuite.html#optionDefault"><span class="hs-identifier hs-var hs-var">optionDefault</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-51"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679343083"><span id="local-6989586621679343093"><span class="annot"><span class="annottext">OptionDescr -&gt; OptionDescr -&gt; Bool
+(OptionDescr -&gt; OptionDescr -&gt; Bool)
+-&gt; (OptionDescr -&gt; OptionDescr -&gt; Bool) -&gt; Eq OptionDescr
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: OptionDescr -&gt; OptionDescr -&gt; Bool
+== :: OptionDescr -&gt; OptionDescr -&gt; Bool
+$c/= :: OptionDescr -&gt; OptionDescr -&gt; Bool
+/= :: OptionDescr -&gt; OptionDescr -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679343099"><span id="local-6989586621679343103"><span id="local-6989586621679343106"><span id="local-6989586621679343128"><span class="annot"><span class="annottext">ReadPrec [OptionDescr]
+ReadPrec OptionDescr
+Int -&gt; ReadS OptionDescr
+ReadS [OptionDescr]
+(Int -&gt; ReadS OptionDescr)
+-&gt; ReadS [OptionDescr]
+-&gt; ReadPrec OptionDescr
+-&gt; ReadPrec [OptionDescr]
+-&gt; Read OptionDescr
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+$creadsPrec :: Int -&gt; ReadS OptionDescr
+readsPrec :: Int -&gt; ReadS OptionDescr
+$creadList :: ReadS [OptionDescr]
+readList :: ReadS [OptionDescr]
+$creadPrec :: ReadPrec OptionDescr
+readPrec :: ReadPrec OptionDescr
+$creadListPrec :: ReadPrec [OptionDescr]
+readListPrec :: ReadPrec [OptionDescr]
+</span><a href="../../base-4.18.2.0/src/GHC.Read.html#Read/GHC.Read.html#Read"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></a></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679343133"><span id="local-6989586621679343145"><span id="local-6989586621679343149"><span class="annot"><span class="annottext">Int -&gt; OptionDescr -&gt; ShowS
+[OptionDescr] -&gt; ShowS
+OptionDescr -&gt; String
+(Int -&gt; OptionDescr -&gt; ShowS)
+-&gt; (OptionDescr -&gt; String)
+-&gt; ([OptionDescr] -&gt; ShowS)
+-&gt; Show OptionDescr
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; OptionDescr -&gt; ShowS
+showsPrec :: Int -&gt; OptionDescr -&gt; ShowS
+$cshow :: OptionDescr -&gt; String
+show :: OptionDescr -&gt; String
+$cshowList :: [OptionDescr] -&gt; ShowS
+showList :: [OptionDescr] -&gt; ShowS
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-53"></span><span>
+</span><span id="line-54"></span><span class="hs-keyword">data</span><span> </span><span id="OptionType"><span class="annot"><a href="Distribution.TestSuite.html#OptionType"><span class="hs-identifier hs-var">OptionType</span></a></span></span><span>
+</span><span id="line-55"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="OptionFile"><span class="annot"><a href="Distribution.TestSuite.html#OptionFile"><span class="hs-identifier hs-var">OptionFile</span></a></span></span><span>
+</span><span id="line-56"></span><span>        </span><span class="hs-special">{</span><span> </span><span id="optionFileMustExist"><span class="annot"><span class="annottext">OptionType -&gt; Bool
+</span><a href="Distribution.TestSuite.html#optionFileMustExist"><span class="hs-identifier hs-var hs-var">optionFileMustExist</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-57"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="optionFileIsDir"><span class="annot"><span class="annottext">OptionType -&gt; Bool
+</span><a href="Distribution.TestSuite.html#optionFileIsDir"><span class="hs-identifier hs-var hs-var">optionFileIsDir</span></a></span></span><span>       </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-58"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="optionFileExtensions"><span class="annot"><span class="annottext">OptionType -&gt; [String]
+</span><a href="Distribution.TestSuite.html#optionFileExtensions"><span class="hs-identifier hs-var hs-var">optionFileExtensions</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-59"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-60"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="OptionString"><span class="annot"><a href="Distribution.TestSuite.html#OptionString"><span class="hs-identifier hs-var">OptionString</span></a></span></span><span>
+</span><span id="line-61"></span><span>        </span><span class="hs-special">{</span><span> </span><span id="optionStringMultiline"><span class="annot"><span class="annottext">OptionType -&gt; Bool
+</span><a href="Distribution.TestSuite.html#optionStringMultiline"><span class="hs-identifier hs-var hs-var">optionStringMultiline</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-62"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="OptionNumber"><span class="annot"><a href="Distribution.TestSuite.html#OptionNumber"><span class="hs-identifier hs-var">OptionNumber</span></a></span></span><span>
+</span><span id="line-64"></span><span>        </span><span class="hs-special">{</span><span> </span><span id="optionNumberIsInt"><span class="annot"><span class="annottext">OptionType -&gt; Bool
+</span><a href="Distribution.TestSuite.html#optionNumberIsInt"><span class="hs-identifier hs-var hs-var">optionNumberIsInt</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-65"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="optionNumberBounds"><span class="annot"><span class="annottext">OptionType -&gt; (Maybe String, Maybe String)
+</span><a href="Distribution.TestSuite.html#optionNumberBounds"><span class="hs-identifier hs-var hs-var">optionNumberBounds</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-66"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-67"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="OptionBool"><span class="annot"><a href="Distribution.TestSuite.html#OptionBool"><span class="hs-identifier hs-var">OptionBool</span></a></span></span><span>
+</span><span id="line-68"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="OptionEnum"><span class="annot"><a href="Distribution.TestSuite.html#OptionEnum"><span class="hs-identifier hs-var">OptionEnum</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-69"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="OptionSet"><span class="annot"><a href="Distribution.TestSuite.html#OptionSet"><span class="hs-identifier hs-var">OptionSet</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-70"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="OptionRngSeed"><span class="annot"><a href="Distribution.TestSuite.html#OptionRngSeed"><span class="hs-identifier hs-var">OptionRngSeed</span></a></span></span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679343167"><span id="local-6989586621679343182"><span class="annot"><span class="annottext">OptionType -&gt; OptionType -&gt; Bool
+(OptionType -&gt; OptionType -&gt; Bool)
+-&gt; (OptionType -&gt; OptionType -&gt; Bool) -&gt; Eq OptionType
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: OptionType -&gt; OptionType -&gt; Bool
+== :: OptionType -&gt; OptionType -&gt; Bool
+$c/= :: OptionType -&gt; OptionType -&gt; Bool
+/= :: OptionType -&gt; OptionType -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679343186"><span id="local-6989586621679343189"><span id="local-6989586621679343192"><span id="local-6989586621679343236"><span class="annot"><span class="annottext">ReadPrec [OptionType]
+ReadPrec OptionType
+Int -&gt; ReadS OptionType
+ReadS [OptionType]
+(Int -&gt; ReadS OptionType)
+-&gt; ReadS [OptionType]
+-&gt; ReadPrec OptionType
+-&gt; ReadPrec [OptionType]
+-&gt; Read OptionType
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+$creadsPrec :: Int -&gt; ReadS OptionType
+readsPrec :: Int -&gt; ReadS OptionType
+$creadList :: ReadS [OptionType]
+readList :: ReadS [OptionType]
+$creadPrec :: ReadPrec OptionType
+readPrec :: ReadPrec OptionType
+$creadListPrec :: ReadPrec [OptionType]
+readListPrec :: ReadPrec [OptionType]
+</span><a href="../../base-4.18.2.0/src/GHC.Read.html#Read/GHC.Read.html#Read"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></a></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679343240"><span id="local-6989586621679343260"><span id="local-6989586621679343263"><span class="annot"><span class="annottext">Int -&gt; OptionType -&gt; ShowS
+[OptionType] -&gt; ShowS
+OptionType -&gt; String
+(Int -&gt; OptionType -&gt; ShowS)
+-&gt; (OptionType -&gt; String)
+-&gt; ([OptionType] -&gt; ShowS)
+-&gt; Show OptionType
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; OptionType -&gt; ShowS
+showsPrec :: Int -&gt; OptionType -&gt; ShowS
+$cshow :: OptionType -&gt; String
+show :: OptionType -&gt; String
+$cshowList :: [OptionType] -&gt; ShowS
+showList :: [OptionType] -&gt; ShowS
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="hs-keyword">data</span><span> </span><span id="Test"><span class="annot"><a href="Distribution.TestSuite.html#Test"><span class="hs-identifier hs-var">Test</span></a></span></span><span>
+</span><span id="line-74"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="Test"><span class="annot"><a href="Distribution.TestSuite.html#Test"><span class="hs-identifier hs-var">Test</span></a></span></span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#TestInstance"><span class="hs-identifier hs-type">TestInstance</span></a></span><span>
+</span><span id="line-75"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="Group"><span class="annot"><a href="Distribution.TestSuite.html#Group"><span class="hs-identifier hs-var">Group</span></a></span></span><span>
+</span><span id="line-76"></span><span>        </span><span class="hs-special">{</span><span> </span><span id="groupName"><span class="annot"><span class="annottext">Test -&gt; String
+</span><a href="Distribution.TestSuite.html#groupName"><span class="hs-identifier hs-var hs-var">groupName</span></a></span></span><span>     </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-77"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="concurrently"><span class="annot"><span class="annottext">Test -&gt; Bool
+</span><a href="Distribution.TestSuite.html#concurrently"><span class="hs-identifier hs-var hs-var">concurrently</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-78"></span><span>            </span><span class="hs-comment">-- ^ If true, then children of this group may be run in parallel.</span><span>
+</span><span id="line-79"></span><span>            </span><span class="hs-comment">-- Note that this setting is not inherited by children. In</span><span>
+</span><span id="line-80"></span><span>            </span><span class="hs-comment">-- particular, consider a group F with &quot;concurrently = False&quot; that</span><span>
+</span><span id="line-81"></span><span>            </span><span class="hs-comment">-- has some children, including a group T with &quot;concurrently =</span><span>
+</span><span id="line-82"></span><span>            </span><span class="hs-comment">-- True&quot;. The children of group T may be run concurrently with each</span><span>
+</span><span id="line-83"></span><span>            </span><span class="hs-comment">-- other, as long as none are run at the same time as any of the</span><span>
+</span><span id="line-84"></span><span>            </span><span class="hs-comment">-- direct children of group F.</span><span>
+</span><span id="line-85"></span><span>        </span><span class="hs-special">,</span><span> </span><span id="groupTests"><span class="annot"><span class="annottext">Test -&gt; [Test]
+</span><a href="Distribution.TestSuite.html#groupTests"><span class="hs-identifier hs-var hs-var">groupTests</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.TestSuite.html#Test"><span class="hs-identifier hs-type">Test</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-86"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-87"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="ExtraOptions"><span class="annot"><a href="Distribution.TestSuite.html#ExtraOptions"><span class="hs-identifier hs-var">ExtraOptions</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.TestSuite.html#OptionDescr"><span class="hs-identifier hs-type">OptionDescr</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#Test"><span class="hs-identifier hs-type">Test</span></a></span><span>
+</span><span id="line-88"></span><span>
+</span><span id="line-89"></span><span class="hs-keyword">type</span><span> </span><span id="Options"><span class="annot"><a href="Distribution.TestSuite.html#Options"><span class="hs-identifier hs-var">Options</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span class="hs-keyword">data</span><span> </span><span id="Progress"><span class="annot"><a href="Distribution.TestSuite.html#Progress"><span class="hs-identifier hs-var">Progress</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Finished"><span class="annot"><a href="Distribution.TestSuite.html#Finished"><span class="hs-identifier hs-var">Finished</span></a></span></span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#Result"><span class="hs-identifier hs-type">Result</span></a></span><span>
+</span><span id="line-92"></span><span>              </span><span class="hs-glyph">|</span><span> </span><span id="Progress"><span class="annot"><a href="Distribution.TestSuite.html#Progress"><span class="hs-identifier hs-var">Progress</span></a></span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#Progress"><span class="hs-identifier hs-type">Progress</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span class="hs-keyword">data</span><span> </span><span id="Result"><span class="annot"><a href="Distribution.TestSuite.html#Result"><span class="hs-identifier hs-var">Result</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Pass"><span class="annot"><a href="Distribution.TestSuite.html#Pass"><span class="hs-identifier hs-var">Pass</span></a></span></span><span>
+</span><span id="line-95"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="Fail"><span class="annot"><a href="Distribution.TestSuite.html#Fail"><span class="hs-identifier hs-var">Fail</span></a></span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-96"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span id="Error"><span class="annot"><a href="Distribution.TestSuite.html#Error"><span class="hs-identifier hs-var">Error</span></a></span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-97"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679343278"><span id="local-6989586621679343283"><span class="annot"><span class="annottext">Result -&gt; Result -&gt; Bool
+(Result -&gt; Result -&gt; Bool)
+-&gt; (Result -&gt; Result -&gt; Bool) -&gt; Eq Result
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Result -&gt; Result -&gt; Bool
+== :: Result -&gt; Result -&gt; Bool
+$c/= :: Result -&gt; Result -&gt; Bool
+/= :: Result -&gt; Result -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679343287"><span id="local-6989586621679343291"><span id="local-6989586621679343294"><span id="local-6989586621679343307"><span class="annot"><span class="annottext">ReadPrec [Result]
+ReadPrec Result
+Int -&gt; ReadS Result
+ReadS [Result]
+(Int -&gt; ReadS Result)
+-&gt; ReadS [Result]
+-&gt; ReadPrec Result
+-&gt; ReadPrec [Result]
+-&gt; Read Result
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+$creadsPrec :: Int -&gt; ReadS Result
+readsPrec :: Int -&gt; ReadS Result
+$creadList :: ReadS [Result]
+readList :: ReadS [Result]
+$creadPrec :: ReadPrec Result
+readPrec :: ReadPrec Result
+$creadListPrec :: ReadPrec [Result]
+readListPrec :: ReadPrec [Result]
+</span><a href="../../base-4.18.2.0/src/GHC.Read.html#Read/GHC.Read.html#Read"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></a></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679343310"><span id="local-6989586621679343317"><span id="local-6989586621679343321"><span class="annot"><span class="annottext">Int -&gt; Result -&gt; ShowS
+[Result] -&gt; ShowS
+Result -&gt; String
+(Int -&gt; Result -&gt; ShowS)
+-&gt; (Result -&gt; String) -&gt; ([Result] -&gt; ShowS) -&gt; Show Result
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Result -&gt; ShowS
+showsPrec :: Int -&gt; Result -&gt; ShowS
+$cshow :: Result -&gt; String
+show :: Result -&gt; String
+$cshowList :: [Result] -&gt; ShowS
+showList :: [Result] -&gt; ShowS
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span class="hs-comment">-- | Create a named group of tests, which are assumed to be safe to run in</span><span>
+</span><span id="line-100"></span><span class="hs-comment">-- parallel.</span><span>
+</span><span id="line-101"></span><span class="annot"><a href="Distribution.TestSuite.html#testGroup"><span class="hs-identifier hs-type">testGroup</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.TestSuite.html#Test"><span class="hs-identifier hs-type">Test</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#Test"><span class="hs-identifier hs-type">Test</span></a></span><span>
+</span><span id="line-102"></span><span id="testGroup"><span class="annot"><span class="annottext">testGroup :: String -&gt; [Test] -&gt; Test
+</span><a href="Distribution.TestSuite.html#testGroup"><span class="hs-identifier hs-var hs-var">testGroup</span></a></span></span><span> </span><span id="local-6989586621679343323"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679343323"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span id="local-6989586621679343324"><span class="annot"><span class="annottext">[Test]
+</span><a href="#local-6989586621679343324"><span class="hs-identifier hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.TestSuite.html#Group"><span class="hs-identifier hs-type">Group</span></a></span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">groupName :: String
+</span><a href="Distribution.TestSuite.html#groupName"><span class="hs-identifier hs-var">groupName</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679343323"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">concurrently :: Bool
+</span><a href="Distribution.TestSuite.html#concurrently"><span class="hs-identifier hs-var">concurrently</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">groupTests :: [Test]
+</span><a href="Distribution.TestSuite.html#groupTests"><span class="hs-identifier hs-var">groupTests</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Test]
+</span><a href="#local-6989586621679343324"><span class="hs-identifier hs-var">ts</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-103"></span></pre></body></html>

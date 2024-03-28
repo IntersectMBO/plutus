@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Compat.Process</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-3"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Redefined functions</span></span><span>
+</span><span id="line-4"></span><span>    </span><span class="annot"><a href="Distribution.Compat.Process.html#proc"><span class="hs-identifier">proc</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-5"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Additions</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Distribution.Compat.Process.html#enableProcessJobs"><span class="hs-identifier">enableProcessJobs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="../../process-1.6.17.0/src/System.Process.html#/System.Process.html"><span class="hs-identifier">System.Process</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../process-1.6.17.0/src/System.Process.Common.html#CreateProcess/System.Process.Common.html#CreateProcess"><span class="hs-identifier">CreateProcess</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../process-1.6.17.0/src/System.Process.html#/System.Process.html"><span class="hs-identifier">System.Process</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Process</span></span><span class="hs-cpp">
+
+#if defined(mingw32_HOST_OS) &amp;&amp; MIN_VERSION_process(1,6,9)
+</span><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">System.IO.Unsafe</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">unsafePerformIO</span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">System.Win32.Info.Version</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">dwMajorVersion</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">dwMinorVersion</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">getVersionEx</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-------------------------------------------------------------------------------</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- enableProcessJobs</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-------------------------------------------------------------------------------</span><span class="hs-cpp">
+
+#if defined(mingw32_HOST_OS) &amp;&amp; MIN_VERSION_process(1,6,9)
+</span><span class="hs-comment">-- This exception, needed to support Windows 7, could be removed when</span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- the lowest GHC version cabal supports is a GHC that doesn&#8217;t support</span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- Windows 7 any more.</span><span>
+</span><span id="line-25"></span><span class="hs-pragma">{-# NOINLINE</span><span> </span><span class="hs-pragma">isWindows8OrLater</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-26"></span><span class="hs-identifier">isWindows8OrLater</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">Bool</span><span>
+</span><span id="line-27"></span><span class="hs-identifier">isWindows8OrLater</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">unsafePerformIO</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-identifier">v</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-identifier">getVersionEx</span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-identifier">pure</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">dwMajorVersion</span><span> </span><span class="hs-identifier">v</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">dwMinorVersion</span><span> </span><span class="hs-identifier">v</span><span class="hs-special">)</span><span> </span><span class="hs-operator">&gt;=</span><span> </span><span class="hs-special">(</span><span class="hs-number">6</span><span class="hs-special">,</span><span> </span><span class="hs-number">2</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- | Enable process jobs to ensure accurate determination of process completion</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- in the presence of @exec(3)@ on Windows.</span><span>
+</span><span id="line-34"></span><span class="hs-comment">--</span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- Unfortunately the process job support is badly broken in @process@ releases</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- prior to 1.6.9, so we disable it in these versions, despite the fact that</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- this means we may see sporadic build failures without jobs.</span><span>
+</span><span id="line-38"></span><span class="hs-comment">--</span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- On Windows 7 or before the jobs are disabled due to the fact that</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- processes on these systems can only have one job. This prevents</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- spawned process from assigning jobs to its own children. Suppose</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- process A spawns process B. The B process has a job assigned (call</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- it J1) and when it tries to spawn a new process C the C</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- automatically inherits the job. But at it also tries to assign a</span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- new job J2 to C since it doesn&#8217;t have access J1. This fails on</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- Windows 7 or before.</span><span>
+</span><span id="line-47"></span><span class="annot"><a href="Distribution.Compat.Process.html#enableProcessJobs"><span class="hs-identifier hs-type">enableProcessJobs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../process-1.6.17.0/src/System.Process.Common.html#CreateProcess/System.Process.Common.html#CreateProcess"><span class="hs-identifier hs-type">CreateProcess</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../process-1.6.17.0/src/System.Process.Common.html#CreateProcess/System.Process.Common.html#CreateProcess"><span class="hs-identifier hs-type">CreateProcess</span></a></span><span class="hs-cpp">
+#if defined(mingw32_HOST_OS) &amp;&amp; MIN_VERSION_process(1,6,9)
+</span><span class="hs-identifier">enableProcessJobs</span><span> </span><span class="hs-identifier">cp</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">cp</span><span> </span><span class="hs-special">{</span><span class="hs-identifier">Process.use_process_jobs</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">isWindows8OrLater</span><span class="hs-special">}</span><span class="hs-cpp">
+#else
+</span><span id="enableProcessJobs"><span class="annot"><span class="annottext">enableProcessJobs :: CreateProcess -&gt; CreateProcess
+</span><a href="Distribution.Compat.Process.html#enableProcessJobs"><span class="hs-identifier hs-var hs-var">enableProcessJobs</span></a></span></span><span> </span><span id="local-6989586621679339597"><span class="annot"><span class="annottext">CreateProcess
+</span><a href="#local-6989586621679339597"><span class="hs-identifier hs-var">cp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CreateProcess
+</span><a href="#local-6989586621679339597"><span class="hs-identifier hs-var">cp</span></a></span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-------------------------------------------------------------------------------</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- process redefinitions</span><span>
+</span><span id="line-56"></span><span class="hs-comment">-------------------------------------------------------------------------------</span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- | 'System.Process.proc' with process jobs enabled when appropriate,</span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- and defaulting 'delegate_ctlc' to 'True'.</span><span>
+</span><span id="line-60"></span><span class="annot"><a href="Distribution.Compat.Process.html#proc"><span class="hs-identifier hs-type">proc</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../process-1.6.17.0/src/System.Process.Common.html#CreateProcess/System.Process.Common.html#CreateProcess"><span class="hs-identifier hs-type">CreateProcess</span></a></span><span>
+</span><span id="line-61"></span><span id="proc"><span class="annot"><span class="annottext">proc :: FilePath -&gt; [FilePath] -&gt; CreateProcess
+</span><a href="Distribution.Compat.Process.html#proc"><span class="hs-identifier hs-var hs-var">proc</span></a></span></span><span> </span><span id="local-6989586621679339598"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679339598"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span id="local-6989586621679339599"><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679339599"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CreateProcess -&gt; CreateProcess
+</span><a href="Distribution.Compat.Process.html#enableProcessJobs"><span class="hs-identifier hs-var">enableProcessJobs</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath -&gt; [FilePath] -&gt; CreateProcess
+</span><a href="../../process-1.6.17.0/src/System.Process.html#proc/System.Process.html#proc"><span class="hs-identifier hs-var">Process.proc</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679339598"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679339599"><span class="hs-identifier hs-var">args</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><a href="../../process-1.6.17.0/src/System.Process.Common.html#delegate_ctlc/System.Process.Common.html#delegate_ctlc"><span class="hs-identifier hs-var">Process.delegate_ctlc</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">True</span></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-62"></span></pre></body></html>

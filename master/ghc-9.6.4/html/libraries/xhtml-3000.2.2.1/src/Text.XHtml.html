@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- Module      :  Text.XHtml</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Copyright   :  (c) Andy Gill, and the Oregon Graduate Institute of </span><span>
+</span><span id="line-5"></span><span class="hs-comment">--                Science and Technology, 1999-2001,</span><span>
+</span><span id="line-6"></span><span class="hs-comment">--                (c) Bjorn Bringert, 2004-2006</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- License     :  BSD-style (see the file LICENSE)</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- Maintainer  :  Chris Dornan &lt;chris@chrisdornan.com&gt;</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Stability   :  Stable</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Portability :  Portable</span><span>
+</span><span id="line-11"></span><span class="hs-comment">--</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- An XHTML combinator library.</span><span>
+</span><span id="line-13"></span><span class="hs-comment">--</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Based on the original Text.Html library by Andy Gill. </span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- See &lt;http://www.cse.ogi.edu/~andy/html/intro.htm&gt; for</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- an introduction to that library.</span><span>
+</span><span id="line-17"></span><span class="hs-comment">--</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- This module re-exports &quot;Text.XHtml.Transitional&quot;, which produces</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- XHTML 1.0 Transitional.</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- Use &quot;Text.XHtml.Strict&quot; if you want XHTML 1.0 Strict,</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- and &quot;Text.XHtml.Frameset&quot; if you want</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- to produce XHTML 1.0 Frameset.</span><span>
+</span><span id="line-23"></span><span class="hs-comment">--</span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- See &lt;http://www.w3.org/TR/xhtml1/&gt; for more information about</span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- XHTML 1.0.</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-comment">{-
+-- Changes by Bjorn Bringert:
+--
+-- * produces XHTML 1.0 Transitional (&lt;http://www.w3.org/TR/xhtml1/&gt;)
+--
+-- * escapes characters inside attribute values
+--
+-- * changed 'height' to a String attribute
+--
+-- * added 'Monoid' instance for 'Html'.
+--
+-- * added elements from HTML 4.0: 'abbr', 'acronym', 'bdo', 'button', 'col', 
+--  'colgroup', 'del', 'iframe', 'ins', 'label', 'legend', 'noframes', 
+--  'noscript', 'object', 'optgroup', 'script', 'strike', 'tbody', 'tfoot', 
+--  'thead', and 'quote'.
+--
+-- * 'defList' no longer makes terms bold.
+--
+-- * deprecated functions for elements and attributes 
+--   deprecated in HTML 4.0
+--
+-- * hid or removed some internal functions.
+--
+-- TODO:
+--
+-- * add new attributes introduced in HTML 4.0
+--
+-- * character encoding
+-}</span><span>
+</span><span id="line-57"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.XHtml</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-58"></span><span>                   </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Text.XHtml.Transitional.html"><span class="hs-identifier">Text.XHtml.Transitional</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-59"></span><span>                   </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html"><span class="hs-identifier">Text.XHtml.Table</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-60"></span><span>                   </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Text.XHtml.Debug.html"><span class="hs-identifier">Text.XHtml.Debug</span></a></span><span>
+</span><span id="line-61"></span><span>      </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.XHtml.Transitional.html"><span class="hs-identifier">Text.XHtml.Transitional</span></a></span><span>
+</span><span id="line-64"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.XHtml.Table.html"><span class="hs-identifier">Text.XHtml.Table</span></a></span><span>
+</span><span id="line-65"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Text.XHtml.Debug.html"><span class="hs-identifier">Text.XHtml.Debug</span></a></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span></pre></body></html>

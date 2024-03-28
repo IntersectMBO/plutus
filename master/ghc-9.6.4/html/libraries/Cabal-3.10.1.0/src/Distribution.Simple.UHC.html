@@ -1,0 +1,975 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Module      :  Distribution.Simple.UHC</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Copyright   :  Andres Loeh 2009</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- License     :  BSD3</span><span>
+</span><span id="line-9"></span><span class="hs-comment">--</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Maintainer  :  cabal-devel@haskell.org</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- This module contains most of the UHC-specific code for configuring, building</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- and installing packages.</span><span>
+</span><span id="line-15"></span><span class="hs-comment">--</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- Thanks to the authors of the other implementation-specific files, in</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- particular to Isaac Jones, Duncan Coutts and Henning Thielemann, for</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- inspiration on how to design this module.</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.UHC</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><a href="Distribution.Simple.UHC.html#configure"><span class="hs-identifier">configure</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.UHC.html#getInstalledPackages"><span class="hs-identifier">getInstalledPackages</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><a href="Distribution.Simple.UHC.html#buildLib"><span class="hs-identifier">buildLib</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.UHC.html#buildExe"><span class="hs-identifier">buildExe</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.UHC.html#installLib"><span class="hs-identifier">installLib</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.UHC.html#registerPackage"><span class="hs-identifier">registerPackage</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.UHC.html#inplacePackageDbPath"><span class="hs-identifier">inplacePackageDbPath</span></a></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.InstalledPackageInfo.html#/Distribution.InstalledPackageInfo.html"><span class="hs-identifier">Distribution.InstalledPackageInfo</span></a></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#/Distribution.Package.html"><span class="hs-identifier">Distribution.Package</span></a></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#installedUnitId/Distribution.Package.html#installedUnitId"><span class="hs-identifier">installedUnitId</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.PackageDescription.html#/Distribution.PackageDescription.html"><span class="hs-identifier">Distribution.PackageDescription</span></a></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.BuildPaths.html"><span class="hs-identifier">Distribution.Simple.BuildPaths</span></a></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html"><span class="hs-identifier">Distribution.Simple.Compiler</span></a></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.LocalBuildInfo.html"><span class="hs-identifier">Distribution.Simple.LocalBuildInfo</span></a></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.PackageIndex.html"><span class="hs-identifier">Distribution.Simple.PackageIndex</span></a></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.html"><span class="hs-identifier">Distribution.Simple.Program</span></a></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html"><span class="hs-identifier">Distribution.Simple.Utils</span></a></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#/Distribution.Pretty.html"><span class="hs-identifier">Distribution.Pretty</span></a></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Parsec.html#/Distribution.Parsec.html"><span class="hs-identifier">Distribution.Parsec</span></a></span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.MungedPackageId.html#/Distribution.Types.MungedPackageId.html"><span class="hs-identifier">Distribution.Types.MungedPackageId</span></a></span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html"><span class="hs-identifier">Distribution.Verbosity</span></a></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Version.html#/Distribution.Version.html"><span class="hs-identifier">Distribution.Version</span></a></span><span>
+</span><span id="line-42"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.System.html#/Distribution.System.html"><span class="hs-identifier">Distribution.System</span></a></span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#/Language.Haskell.Extension.html"><span class="hs-identifier">Language.Haskell.Extension</span></a></span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Path.html#/Distribution.Utils.Path.html"><span class="hs-identifier">Distribution.Utils.Path</span></a></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.html#/Data.Map.html"><span class="hs-identifier">Data.Map</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Map</span></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.Internal.html#empty/Data.Map.Internal.html#empty"><span class="hs-identifier">empty</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../directory-1.3.8.1/src/System.Directory.html#/System.Directory.html"><span class="hs-identifier">System.Directory</span></a></span><span>
+</span><span id="line-48"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../filepath-1.4.200.1/src/System.FilePath.html#/System.FilePath.html"><span class="hs-identifier">System.FilePath</span></a></span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- -----------------------------------------------------------------------------</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- Configuring</span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="annot"><a href="Distribution.Simple.UHC.html#configure"><span class="hs-identifier hs-type">configure</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-54"></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Db.html#ProgramDb"><span class="hs-identifier hs-type">ProgramDb</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.Compiler.html#Compiler"><span class="hs-identifier hs-type">Compiler</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.System.html#Platform/Distribution.System.html#Platform"><span class="hs-identifier hs-type">Platform</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Db.html#ProgramDb"><span class="hs-identifier hs-type">ProgramDb</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span><span id="configure"><span class="annot"><span class="annottext">configure :: Verbosity
+-&gt; Maybe FilePath
+-&gt; Maybe FilePath
+-&gt; ProgramDb
+-&gt; IO (Compiler, Maybe Platform, ProgramDb)
+</span><a href="Distribution.Simple.UHC.html#configure"><span class="hs-identifier hs-var hs-var">configure</span></a></span></span><span> </span><span id="local-6989586621679369874"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679369874"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span id="local-6989586621679369875"><span class="annot"><span class="annottext">Maybe FilePath
+</span><a href="#local-6989586621679369875"><span class="hs-identifier hs-var">hcPath</span></a></span></span><span> </span><span id="local-6989586621679369876"><span class="annot"><span class="annottext">Maybe FilePath
+</span><a href="#local-6989586621679369876"><span class="hs-identifier hs-var">_hcPkgPath</span></a></span></span><span> </span><span id="local-6989586621679369877"><span class="annot"><span class="annottext">ProgramDb
+</span><a href="#local-6989586621679369877"><span class="hs-identifier hs-var">progdb</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-special">(</span><span id="local-6989586621679369878"><span class="annot"><span class="annottext">ConfiguredProgram
+</span><a href="#local-6989586621679369878"><span class="hs-identifier hs-var">_uhcProg</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679369879"><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679369879"><span class="hs-identifier hs-var">uhcVersion</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679369880"><span class="annot"><span class="annottext">ProgramDb
+</span><a href="#local-6989586621679369880"><span class="hs-identifier hs-var">progdb'</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span>
+</span><span id="line-58"></span><span>    </span><span class="annot"><span class="annottext">Verbosity
+-&gt; Program
+-&gt; VersionRange
+-&gt; ProgramDb
+-&gt; IO (ConfiguredProgram, Version, ProgramDb)
+</span><a href="Distribution.Simple.Program.Db.html#requireProgramVersion"><span class="hs-identifier hs-var">requireProgramVersion</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679369874"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#uhcProgram"><span class="hs-identifier hs-var">uhcProgram</span></a></span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Version -&gt; VersionRange
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.VersionRange.Internal.html#orLaterVersion/Distribution.Types.VersionRange.Internal.html#orLaterVersion"><span class="hs-identifier hs-var">orLaterVersion</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int] -&gt; Version
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Version.html#mkVersion/Distribution.Types.Version.html#mkVersion"><span class="hs-identifier hs-var">mkVersion</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-60"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath -&gt; Maybe FilePath -&gt; ProgramDb -&gt; ProgramDb
+</span><a href="Distribution.Simple.Program.Db.html#userMaybeSpecifyPath"><span class="hs-identifier hs-var">userMaybeSpecifyPath</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;uhc&quot;</span></span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+</span><a href="#local-6989586621679369875"><span class="hs-identifier hs-var">hcPath</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramDb
+</span><a href="#local-6989586621679369877"><span class="hs-identifier hs-var">progdb</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679369886"><span class="annot"><span class="annottext">comp :: Compiler
+</span><a href="#local-6989586621679369886"><span class="hs-identifier hs-var hs-var">comp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#Compiler"><span class="hs-identifier hs-type">Compiler</span></a></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-63"></span><span>               </span><span class="annot"><span class="annottext">compilerId :: CompilerId
+</span><a href="Distribution.Simple.Compiler.html#compilerId"><span class="hs-identifier hs-var">compilerId</span></a></span><span>         </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">CompilerFlavor -&gt; Version -&gt; CompilerId
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compiler.html#CompilerId/Distribution.Compiler.html#CompilerId"><span class="hs-identifier hs-var">CompilerId</span></a></span><span> </span><span class="annot"><span class="annottext">CompilerFlavor
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compiler.html#UHC/Distribution.Compiler.html#UHC"><span class="hs-identifier hs-var">UHC</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="#local-6989586621679369879"><span class="hs-identifier hs-var">uhcVersion</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-64"></span><span>               </span><span class="annot"><span class="annottext">compilerAbiTag :: AbiTag
+</span><a href="#local-6989586621679369891"><span class="hs-identifier hs-var">compilerAbiTag</span></a></span><span>     </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">AbiTag
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compiler.html#NoAbiTag/Distribution.Compiler.html#NoAbiTag"><span class="hs-identifier hs-var">NoAbiTag</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-65"></span><span>               </span><span class="annot"><span class="annottext">compilerCompat :: [CompilerId]
+</span><a href="#local-6989586621679369893"><span class="hs-identifier hs-var">compilerCompat</span></a></span><span>     </span><span class="hs-glyph">=</span><span>  </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span>
+</span><span id="line-66"></span><span>               </span><span class="annot"><span class="annottext">compilerLanguages :: [(Language, FilePath)]
+</span><a href="#local-6989586621679369894"><span class="hs-identifier hs-var">compilerLanguages</span></a></span><span>  </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">[(Language, FilePath)]
+</span><a href="Distribution.Simple.UHC.html#uhcLanguages"><span class="hs-identifier hs-var">uhcLanguages</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-67"></span><span>               </span><span class="annot"><span class="annottext">compilerExtensions :: [(Extension, Maybe FilePath)]
+</span><a href="#local-6989586621679369896"><span class="hs-identifier hs-var">compilerExtensions</span></a></span><span> </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">[(Extension, Maybe FilePath)]
+</span><a href="Distribution.Simple.UHC.html#uhcLanguageExtensions"><span class="hs-identifier hs-var">uhcLanguageExtensions</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-68"></span><span>               </span><span class="annot"><span class="annottext">compilerProperties :: Map FilePath FilePath
+</span><a href="#local-6989586621679369898"><span class="hs-identifier hs-var">compilerProperties</span></a></span><span> </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">Map FilePath FilePath
+forall k a. Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#empty/Data.Map.Internal.html#empty"><span class="hs-identifier hs-var">Map.empty</span></a></span><span>
+</span><span id="line-69"></span><span>             </span><span class="hs-special">}</span><span>
+</span><span id="line-70"></span><span>      </span><span id="local-6989586621679369899"><span class="annot"><span class="annottext">compPlatform :: Maybe a
+</span><a href="#local-6989586621679369899"><span class="hs-identifier hs-var hs-var">compPlatform</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe a
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>
+</span><span id="line-71"></span><span>  </span><span class="annot"><span class="annottext">(Compiler, Maybe Platform, ProgramDb)
+-&gt; IO (Compiler, Maybe Platform, ProgramDb)
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Compiler
+</span><a href="#local-6989586621679369886"><span class="hs-identifier hs-var">comp</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe Platform
+forall a. Maybe a
+</span><a href="#local-6989586621679369899"><span class="hs-identifier hs-var">compPlatform</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ProgramDb
+</span><a href="#local-6989586621679369880"><span class="hs-identifier hs-var">progdb'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="annot"><a href="Distribution.Simple.UHC.html#uhcLanguages"><span class="hs-identifier hs-type">uhcLanguages</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#Language/Language.Haskell.Extension.html#Language"><span class="hs-identifier hs-type">Language</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#CompilerFlag"><span class="hs-identifier hs-type">CompilerFlag</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-74"></span><span id="uhcLanguages"><span class="annot"><span class="annottext">uhcLanguages :: [(Language, FilePath)]
+</span><a href="Distribution.Simple.UHC.html#uhcLanguages"><span class="hs-identifier hs-var hs-var">uhcLanguages</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Language
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#Haskell98/Language.Haskell.Extension.html#Haskell98"><span class="hs-identifier hs-var">Haskell98</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="annot"><span class="hs-comment">-- | The flags for the supported extensions.</span></span><span>
+</span><span id="line-77"></span><span class="annot"><a href="Distribution.Simple.UHC.html#uhcLanguageExtensions"><span class="hs-identifier hs-type">uhcLanguageExtensions</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#Extension/Language.Haskell.Extension.html#Extension"><span class="hs-identifier hs-type">Extension</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#CompilerFlag"><span class="hs-identifier hs-type">CompilerFlag</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-78"></span><span id="uhcLanguageExtensions"><span class="annot"><span class="annottext">uhcLanguageExtensions :: [(Extension, Maybe FilePath)]
+</span><a href="Distribution.Simple.UHC.html#uhcLanguageExtensions"><span class="hs-identifier hs-var hs-var">uhcLanguageExtensions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-79"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679369902"><span class="annot"><span class="annottext">doFlag :: (KnownExtension, (b, b)) -&gt; [(Extension, b)]
+</span><a href="#local-6989586621679369902"><span class="hs-identifier hs-var hs-var">doFlag</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679369903"><span class="annot"><span class="annottext">KnownExtension
+</span><a href="#local-6989586621679369903"><span class="hs-identifier hs-var">f</span></a></span></span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679369904"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679369904"><span class="hs-identifier hs-var">enable</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679369905"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679369905"><span class="hs-identifier hs-var">disable</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension -&gt; Extension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#EnableExtension/Language.Haskell.Extension.html#EnableExtension"><span class="hs-identifier hs-var">EnableExtension</span></a></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="#local-6989586621679369903"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679369904"><span class="hs-identifier hs-var">enable</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-80"></span><span>                                         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension -&gt; Extension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#DisableExtension/Language.Haskell.Extension.html#DisableExtension"><span class="hs-identifier hs-var">DisableExtension</span></a></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="#local-6989586621679369903"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679369905"><span class="hs-identifier hs-var">disable</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-81"></span><span>        </span><span id="local-6989586621679369908"><span class="annot"><span class="annottext">alwaysOn :: (Maybe a, Maybe a)
+</span><a href="#local-6989586621679369908"><span class="hs-identifier hs-var hs-var">alwaysOn</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe a
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe a
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span class="hs-comment">{- wrong -}</span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span>    </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">((KnownExtension, (Maybe FilePath, Maybe FilePath))
+ -&gt; [(Extension, Maybe FilePath)])
+-&gt; [(KnownExtension, (Maybe FilePath, Maybe FilePath))]
+-&gt; [(Extension, Maybe FilePath)]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concatMap/Data.Foldable.html#concatMap"><span class="hs-identifier hs-var">concatMap</span></a></span><span> </span><span class="annot"><span class="annottext">(KnownExtension, (Maybe FilePath, Maybe FilePath))
+-&gt; [(Extension, Maybe FilePath)]
+forall {b}. (KnownExtension, (b, b)) -&gt; [(Extension, b)]
+</span><a href="#local-6989586621679369902"><span class="hs-identifier hs-var">doFlag</span></a></span><span>
+</span><span id="line-83"></span><span>    </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#CPP/Language.Haskell.Extension.html#CPP"><span class="hs-identifier hs-var">CPP</span></a></span><span class="hs-special">,</span><span>                          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath -&gt; Maybe FilePath
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;--cpp&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span class="hs-comment">{- wrong -}</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-84"></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#PolymorphicComponents/Language.Haskell.Extension.html#PolymorphicComponents"><span class="hs-identifier hs-var">PolymorphicComponents</span></a></span><span class="hs-special">,</span><span>        </span><span class="annot"><span class="annottext">(Maybe FilePath, Maybe FilePath)
+forall {a} {a}. (Maybe a, Maybe a)
+</span><a href="#local-6989586621679369908"><span class="hs-identifier hs-var">alwaysOn</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-85"></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#ExistentialQuantification/Language.Haskell.Extension.html#ExistentialQuantification"><span class="hs-identifier hs-var">ExistentialQuantification</span></a></span><span class="hs-special">,</span><span>    </span><span class="annot"><span class="annottext">(Maybe FilePath, Maybe FilePath)
+forall {a} {a}. (Maybe a, Maybe a)
+</span><a href="#local-6989586621679369908"><span class="hs-identifier hs-var">alwaysOn</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-86"></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#ForeignFunctionInterface/Language.Haskell.Extension.html#ForeignFunctionInterface"><span class="hs-identifier hs-var">ForeignFunctionInterface</span></a></span><span class="hs-special">,</span><span>     </span><span class="annot"><span class="annottext">(Maybe FilePath, Maybe FilePath)
+forall {a} {a}. (Maybe a, Maybe a)
+</span><a href="#local-6989586621679369908"><span class="hs-identifier hs-var">alwaysOn</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-87"></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#UndecidableInstances/Language.Haskell.Extension.html#UndecidableInstances"><span class="hs-identifier hs-var">UndecidableInstances</span></a></span><span class="hs-special">,</span><span>         </span><span class="annot"><span class="annottext">(Maybe FilePath, Maybe FilePath)
+forall {a} {a}. (Maybe a, Maybe a)
+</span><a href="#local-6989586621679369908"><span class="hs-identifier hs-var">alwaysOn</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-88"></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#MultiParamTypeClasses/Language.Haskell.Extension.html#MultiParamTypeClasses"><span class="hs-identifier hs-var">MultiParamTypeClasses</span></a></span><span class="hs-special">,</span><span>        </span><span class="annot"><span class="annottext">(Maybe FilePath, Maybe FilePath)
+forall {a} {a}. (Maybe a, Maybe a)
+</span><a href="#local-6989586621679369908"><span class="hs-identifier hs-var">alwaysOn</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-89"></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#Rank2Types/Language.Haskell.Extension.html#Rank2Types"><span class="hs-identifier hs-var">Rank2Types</span></a></span><span class="hs-special">,</span><span>                   </span><span class="annot"><span class="annottext">(Maybe FilePath, Maybe FilePath)
+forall {a} {a}. (Maybe a, Maybe a)
+</span><a href="#local-6989586621679369908"><span class="hs-identifier hs-var">alwaysOn</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-90"></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#PatternSignatures/Language.Haskell.Extension.html#PatternSignatures"><span class="hs-identifier hs-var">PatternSignatures</span></a></span><span class="hs-special">,</span><span>            </span><span class="annot"><span class="annottext">(Maybe FilePath, Maybe FilePath)
+forall {a} {a}. (Maybe a, Maybe a)
+</span><a href="#local-6989586621679369908"><span class="hs-identifier hs-var">alwaysOn</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-91"></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#EmptyDataDecls/Language.Haskell.Extension.html#EmptyDataDecls"><span class="hs-identifier hs-var">EmptyDataDecls</span></a></span><span class="hs-special">,</span><span>               </span><span class="annot"><span class="annottext">(Maybe FilePath, Maybe FilePath)
+forall {a} {a}. (Maybe a, Maybe a)
+</span><a href="#local-6989586621679369908"><span class="hs-identifier hs-var">alwaysOn</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-92"></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#ImplicitPrelude/Language.Haskell.Extension.html#ImplicitPrelude"><span class="hs-identifier hs-var">ImplicitPrelude</span></a></span><span class="hs-special">,</span><span>              </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe FilePath
+forall a. Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Maybe FilePath
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;--no-prelude&quot;</span></span><span class="hs-comment">{- wrong -}</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-93"></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#TypeOperators/Language.Haskell.Extension.html#TypeOperators"><span class="hs-identifier hs-var">TypeOperators</span></a></span><span class="hs-special">,</span><span>                </span><span class="annot"><span class="annottext">(Maybe FilePath, Maybe FilePath)
+forall {a} {a}. (Maybe a, Maybe a)
+</span><a href="#local-6989586621679369908"><span class="hs-identifier hs-var">alwaysOn</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-94"></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#OverlappingInstances/Language.Haskell.Extension.html#OverlappingInstances"><span class="hs-identifier hs-var">OverlappingInstances</span></a></span><span class="hs-special">,</span><span>         </span><span class="annot"><span class="annottext">(Maybe FilePath, Maybe FilePath)
+forall {a} {a}. (Maybe a, Maybe a)
+</span><a href="#local-6989586621679369908"><span class="hs-identifier hs-var">alwaysOn</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-95"></span><span>     </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Language.Haskell.Extension.html#FlexibleInstances/Language.Haskell.Extension.html#FlexibleInstances"><span class="hs-identifier hs-var">FlexibleInstances</span></a></span><span class="hs-special">,</span><span>            </span><span class="annot"><span class="annottext">(Maybe FilePath, Maybe FilePath)
+forall {a} {a}. (Maybe a, Maybe a)
+</span><a href="#local-6989586621679369908"><span class="hs-identifier hs-var">alwaysOn</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span class="annot"><a href="Distribution.Simple.UHC.html#getInstalledPackages"><span class="hs-identifier hs-type">getInstalledPackages</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#Compiler"><span class="hs-identifier hs-type">Compiler</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#PackageDBStack"><span class="hs-identifier hs-type">PackageDBStack</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Db.html#ProgramDb"><span class="hs-identifier hs-type">ProgramDb</span></a></span><span>
+</span><span id="line-98"></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="Distribution.Simple.PackageIndex.html#InstalledPackageIndex"><span class="hs-identifier hs-type">InstalledPackageIndex</span></a></span><span>
+</span><span id="line-99"></span><span id="getInstalledPackages"><span class="annot"><span class="annottext">getInstalledPackages :: Verbosity
+-&gt; Compiler
+-&gt; PackageDBStack
+-&gt; ProgramDb
+-&gt; IO InstalledPackageIndex
+</span><a href="Distribution.Simple.UHC.html#getInstalledPackages"><span class="hs-identifier hs-var hs-var">getInstalledPackages</span></a></span></span><span> </span><span id="local-6989586621679369923"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679369923"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span id="local-6989586621679369924"><span class="annot"><span class="annottext">Compiler
+</span><a href="#local-6989586621679369924"><span class="hs-identifier hs-var">comp</span></a></span></span><span> </span><span id="local-6989586621679369925"><span class="annot"><span class="annottext">PackageDBStack
+</span><a href="#local-6989586621679369925"><span class="hs-identifier hs-var">packagedbs</span></a></span></span><span> </span><span id="local-6989586621679369926"><span class="annot"><span class="annottext">ProgramDb
+</span><a href="#local-6989586621679369926"><span class="hs-identifier hs-var">progdb</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679369927"><span class="annot"><span class="annottext">compilerid :: CompilerId
+</span><a href="#local-6989586621679369927"><span class="hs-identifier hs-var hs-var">compilerid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Compiler -&gt; CompilerId
+</span><a href="Distribution.Simple.Compiler.html#compilerId"><span class="hs-identifier hs-var">compilerId</span></a></span><span> </span><span class="annot"><span class="annottext">Compiler
+</span><a href="#local-6989586621679369924"><span class="hs-identifier hs-var">comp</span></a></span><span>
+</span><span id="line-101"></span><span>  </span><span id="local-6989586621679369928"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369928"><span class="hs-identifier hs-var">systemPkgDir</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; ProgramDb -&gt; IO FilePath
+</span><a href="Distribution.Simple.UHC.html#getGlobalPackageDir"><span class="hs-identifier hs-var">getGlobalPackageDir</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679369923"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramDb
+</span><a href="#local-6989586621679369926"><span class="hs-identifier hs-var">progdb</span></a></span><span>
+</span><span id="line-102"></span><span>  </span><span id="local-6989586621679369930"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369930"><span class="hs-identifier hs-var">userPkgDir</span></a></span></span><span>   </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO FilePath
+</span><a href="Distribution.Simple.UHC.html#getUserPackageDir"><span class="hs-identifier hs-var">getUserPackageDir</span></a></span><span>
+</span><span id="line-103"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679369937"><span class="annot"><span class="annottext">pkgDirs :: [FilePath]
+</span><a href="#local-6989586621679369937"><span class="hs-identifier hs-var hs-var">pkgDirs</span></a></span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath]
+forall a. Eq a =&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#nub/Data.OldList.html#nub"><span class="hs-identifier hs-var">nub</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(PackageDB -&gt; [FilePath]) -&gt; PackageDBStack -&gt; [FilePath]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concatMap/Data.Foldable.html#concatMap"><span class="hs-identifier hs-var">concatMap</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; PackageDB -&gt; [FilePath]
+</span><a href="Distribution.Simple.UHC.html#packageDbPaths"><span class="hs-identifier hs-var">packageDbPaths</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369930"><span class="hs-identifier hs-var">userPkgDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369928"><span class="hs-identifier hs-var">systemPkgDir</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">PackageDBStack
+</span><a href="#local-6989586621679369925"><span class="hs-identifier hs-var">packagedbs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-comment">-- putStrLn $ &quot;pkgdirs: &quot; ++ show pkgDirs</span><span>
+</span><span id="line-105"></span><span>  </span><span id="local-6989586621679369940"><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679369940"><span class="hs-identifier hs-var">pkgs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">([[FilePath]] -&gt; [FilePath]) -&gt; IO [[FilePath]] -&gt; IO [FilePath]
+forall (m :: * -&gt; *) a1 r. Monad m =&gt; (a1 -&gt; r) -&gt; m a1 -&gt; m r
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#liftM/GHC.Base.html#liftM"><span class="hs-identifier hs-var">liftM</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(FilePath -&gt; FilePath) -&gt; [FilePath] -&gt; [FilePath]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.UHC.html#addBuiltinVersions"><span class="hs-identifier hs-var">addBuiltinVersions</span></a></span><span> </span><span class="annot"><span class="annottext">([FilePath] -&gt; [FilePath])
+-&gt; ([[FilePath]] -&gt; [FilePath]) -&gt; [[FilePath]] -&gt; [FilePath]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">[[FilePath]] -&gt; [FilePath]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concat/Data.Foldable.html#concat"><span class="hs-identifier hs-var">concat</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(IO [[FilePath]] -&gt; IO [FilePath])
+-&gt; IO [[FilePath]] -&gt; IO [FilePath]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-106"></span><span>          </span><span class="annot"><span class="annottext">(FilePath -&gt; IO [FilePath]) -&gt; [FilePath] -&gt; IO [[FilePath]]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span><a href="../../base-4.18.2.0/src/Data.Traversable.html#traverse/Data.Traversable.html#traverse"><span class="hs-identifier hs-var">traverse</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span> </span><span id="local-6989586621679369946"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369946"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; IO [FilePath]
+</span><a href="../../directory-1.3.8.1/src/System.Directory.html#getDirectoryContents/System.Directory.html#getDirectoryContents"><span class="hs-identifier hs-var">getDirectoryContents</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369946"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">IO [FilePath] -&gt; ([FilePath] -&gt; IO [FilePath]) -&gt; IO [FilePath]
+forall a b. IO a -&gt; (a -&gt; IO b) -&gt; IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3E%3E%3D/GHC.Base.html#%3E%3E%3D"><span class="hs-operator hs-var">&gt;&gt;=</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO Bool) -&gt; [FilePath] -&gt; IO [FilePath]
+forall (m :: * -&gt; *) a.
+Applicative m =&gt;
+(a -&gt; m Bool) -&gt; [a] -&gt; m [a]
+</span><a href="../../base-4.18.2.0/src/Control.Monad.html#filterM/Control.Monad.html#filterM"><span class="hs-identifier hs-var">filterM</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath -&gt; IO Bool
+</span><a href="Distribution.Simple.UHC.html#isPkgDir"><span class="hs-identifier hs-var">isPkgDir</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">CompilerId -&gt; FilePath
+forall a. Pretty a =&gt; a -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="annot"><span class="annottext">CompilerId
+</span><a href="#local-6989586621679369927"><span class="hs-identifier hs-var">compilerid</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369946"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-107"></span><span>          </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679369937"><span class="hs-identifier hs-var">pkgDirs</span></a></span><span>
+</span><span id="line-108"></span><span>  </span><span class="hs-comment">-- putStrLn $ &quot;pkgs: &quot; ++ show pkgs</span><span>
+</span><span id="line-109"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679369952"><span class="annot"><span class="annottext">iPkgs :: [InstalledPackageInfo]
+</span><a href="#local-6989586621679369952"><span class="hs-identifier hs-var hs-var">iPkgs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-110"></span><span>        </span><span class="annot"><span class="annottext">(PackageIdentifier -&gt; InstalledPackageInfo)
+-&gt; [PackageIdentifier] -&gt; [InstalledPackageInfo]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">PackageIdentifier -&gt; InstalledPackageInfo
+</span><a href="Distribution.Simple.UHC.html#mkInstalledPackageInfo"><span class="hs-identifier hs-var">mkInstalledPackageInfo</span></a></span><span> </span><span class="annot"><span class="annottext">([PackageIdentifier] -&gt; [InstalledPackageInfo])
+-&gt; [PackageIdentifier] -&gt; [InstalledPackageInfo]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-111"></span><span>        </span><span class="annot"><span class="annottext">(FilePath -&gt; [PackageIdentifier])
+-&gt; [FilePath] -&gt; [PackageIdentifier]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concatMap/Data.Foldable.html#concatMap"><span class="hs-identifier hs-var">concatMap</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; [PackageIdentifier]
+</span><a href="Distribution.Simple.UHC.html#parsePackage"><span class="hs-identifier hs-var">parsePackage</span></a></span><span> </span><span class="annot"><span class="annottext">([FilePath] -&gt; [PackageIdentifier])
+-&gt; [FilePath] -&gt; [PackageIdentifier]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-112"></span><span>        </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679369940"><span class="hs-identifier hs-var">pkgs</span></a></span><span>
+</span><span id="line-113"></span><span>  </span><span class="hs-comment">-- putStrLn $ &quot;installed pkgs: &quot; ++ show iPkgs</span><span>
+</span><span id="line-114"></span><span>  </span><span class="annot"><span class="annottext">InstalledPackageIndex -&gt; IO InstalledPackageIndex
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[InstalledPackageInfo] -&gt; InstalledPackageIndex
+</span><a href="Distribution.Simple.PackageIndex.html#fromList"><span class="hs-identifier hs-var">fromList</span></a></span><span> </span><span class="annot"><span class="annottext">[InstalledPackageInfo]
+</span><a href="#local-6989586621679369952"><span class="hs-identifier hs-var">iPkgs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>
+</span><span id="line-116"></span><span class="annot"><a href="Distribution.Simple.UHC.html#getGlobalPackageDir"><span class="hs-identifier hs-type">getGlobalPackageDir</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Db.html#ProgramDb"><span class="hs-identifier hs-type">ProgramDb</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-117"></span><span id="getGlobalPackageDir"><span class="annot"><span class="annottext">getGlobalPackageDir :: Verbosity -&gt; ProgramDb -&gt; IO FilePath
+</span><a href="Distribution.Simple.UHC.html#getGlobalPackageDir"><span class="hs-identifier hs-var hs-var">getGlobalPackageDir</span></a></span></span><span> </span><span id="local-6989586621679369956"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679369956"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span id="local-6989586621679369957"><span class="annot"><span class="annottext">ProgramDb
+</span><a href="#local-6989586621679369957"><span class="hs-identifier hs-var">progdb</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-118"></span><span>    </span><span id="local-6989586621679369958"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369958"><span class="hs-identifier hs-var">output</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; Program -&gt; ProgramDb -&gt; [FilePath] -&gt; IO FilePath
+</span><a href="Distribution.Simple.Program.html#getDbProgramOutput"><span class="hs-identifier hs-var">getDbProgramOutput</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679369956"><span class="hs-identifier hs-var">verbosity</span></a></span><span>
+</span><span id="line-119"></span><span>                </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#uhcProgram"><span class="hs-identifier hs-var">uhcProgram</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramDb
+</span><a href="#local-6989586621679369957"><span class="hs-identifier hs-var">progdb</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;--meta-pkgdir-system&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-120"></span><span>    </span><span class="hs-comment">-- we need to trim because pkgdir contains an extra newline at the end</span><span>
+</span><span id="line-121"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679369960"><span class="annot"><span class="annottext">pkgdir :: FilePath
+</span><a href="#local-6989586621679369960"><span class="hs-identifier hs-var hs-var">pkgdir</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
+</span><a href="#local-6989586621679369961"><span class="hs-identifier hs-var">trimEnd</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369958"><span class="hs-identifier hs-var">output</span></a></span><span>
+</span><span id="line-122"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; IO FilePath
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369960"><span class="hs-identifier hs-var">pkgdir</span></a></span><span>
+</span><span id="line-123"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-124"></span><span>    </span><span id="local-6989586621679369961"><span class="annot"><span class="annottext">trimEnd :: FilePath -&gt; FilePath
+</span><a href="#local-6989586621679369961"><span class="hs-identifier hs-var hs-var">trimEnd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; FilePath -&gt; FilePath
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#dropWhileEnd/Data.OldList.html#dropWhileEnd"><span class="hs-identifier hs-var">dropWhileEnd</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Unicode.html#isSpace/GHC.Unicode.html#isSpace"><span class="hs-identifier hs-var">isSpace</span></a></span><span>
+</span><span id="line-125"></span><span>
+</span><span id="line-126"></span><span class="annot"><a href="Distribution.Simple.UHC.html#getUserPackageDir"><span class="hs-identifier hs-type">getUserPackageDir</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-127"></span><span id="getUserPackageDir"><span class="annot"><span class="annottext">getUserPackageDir :: IO FilePath
+</span><a href="Distribution.Simple.UHC.html#getUserPackageDir"><span class="hs-identifier hs-var hs-var">getUserPackageDir</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-128"></span><span>    </span><span id="local-6989586621679369964"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369964"><span class="hs-identifier hs-var">homeDir</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO FilePath
+</span><a href="../../directory-1.3.8.1/src/System.Directory.html#getHomeDirectory/System.Directory.html#getHomeDirectory"><span class="hs-identifier hs-var">getHomeDirectory</span></a></span><span>
+</span><span id="line-129"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; IO FilePath
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO FilePath) -&gt; FilePath -&gt; IO FilePath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369964"><span class="hs-identifier hs-var">homeDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;.cabal&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;lib&quot;</span></span><span>  </span><span class="hs-comment">-- TODO: determine in some other way</span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span class="annot"><a href="Distribution.Simple.UHC.html#packageDbPaths"><span class="hs-identifier hs-type">packageDbPaths</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#PackageDB"><span class="hs-identifier hs-type">PackageDB</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-132"></span><span id="packageDbPaths"><span class="annot"><span class="annottext">packageDbPaths :: FilePath -&gt; FilePath -&gt; PackageDB -&gt; [FilePath]
+</span><a href="Distribution.Simple.UHC.html#packageDbPaths"><span class="hs-identifier hs-var hs-var">packageDbPaths</span></a></span></span><span> </span><span id="local-6989586621679369967"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369967"><span class="hs-identifier hs-var">user</span></a></span></span><span> </span><span id="local-6989586621679369968"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369968"><span class="hs-identifier hs-var">system</span></a></span></span><span> </span><span id="local-6989586621679369969"><span class="annot"><span class="annottext">PackageDB
+</span><a href="#local-6989586621679369969"><span class="hs-identifier hs-var">db</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-133"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">PackageDB
+</span><a href="#local-6989586621679369969"><span class="hs-identifier hs-var">db</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-134"></span><span>    </span><span class="annot"><span class="annottext">PackageDB
+</span><a href="Distribution.Simple.Compiler.html#GlobalPackageDB"><span class="hs-identifier hs-var">GlobalPackageDB</span></a></span><span>         </span><span class="hs-glyph">-&gt;</span><span>  </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369968"><span class="hs-identifier hs-var">system</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-135"></span><span>    </span><span class="annot"><span class="annottext">PackageDB
+</span><a href="Distribution.Simple.Compiler.html#UserPackageDB"><span class="hs-identifier hs-var">UserPackageDB</span></a></span><span>           </span><span class="hs-glyph">-&gt;</span><span>  </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369967"><span class="hs-identifier hs-var">user</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-136"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Compiler.html#SpecificPackageDB"><span class="hs-identifier hs-type">SpecificPackageDB</span></a></span><span> </span><span id="local-6989586621679369973"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369973"><span class="hs-identifier hs-var">path</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span>  </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369973"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-137"></span><span>
+</span><span id="line-138"></span><span class="hs-comment">-- | Hack to add version numbers to UHC-built-in packages. This should sooner or</span><span>
+</span><span id="line-139"></span><span class="hs-comment">-- later be fixed on the UHC side.</span><span>
+</span><span id="line-140"></span><span class="annot"><a href="Distribution.Simple.UHC.html#addBuiltinVersions"><span class="hs-identifier hs-type">addBuiltinVersions</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-141"></span><span class="hs-comment">{-
+addBuiltinVersions &quot;uhcbase&quot;  = &quot;uhcbase-1.0&quot;
+addBuiltinVersions &quot;base&quot;  = &quot;base-3.0&quot;
+addBuiltinVersions &quot;array&quot; = &quot;array-0.2&quot;
+-}</span><span>
+</span><span id="line-146"></span><span id="addBuiltinVersions"><span class="annot"><span class="annottext">addBuiltinVersions :: FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.UHC.html#addBuiltinVersions"><span class="hs-identifier hs-var hs-var">addBuiltinVersions</span></a></span></span><span> </span><span id="local-6989586621679369974"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369974"><span class="hs-identifier hs-var">xs</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369974"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-147"></span><span>
+</span><span id="line-148"></span><span class="annot"><span class="hs-comment">-- | Name of the installed package config file.</span></span><span>
+</span><span id="line-149"></span><span class="annot"><a href="Distribution.Simple.UHC.html#installedPkgConfig"><span class="hs-identifier hs-type">installedPkgConfig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-150"></span><span id="installedPkgConfig"><span class="annot"><span class="annottext">installedPkgConfig :: FilePath
+</span><a href="Distribution.Simple.UHC.html#installedPkgConfig"><span class="hs-identifier hs-var hs-var">installedPkgConfig</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;installed-pkg-config&quot;</span></span><span>
+</span><span id="line-151"></span><span>
+</span><span id="line-152"></span><span class="hs-comment">-- | Check if a certain dir contains a valid package. Currently, we are</span><span>
+</span><span id="line-153"></span><span class="hs-comment">-- looking only for the presence of an installed package configuration.</span><span>
+</span><span id="line-154"></span><span class="hs-comment">-- TODO: Actually make use of the information provided in the file.</span><span>
+</span><span id="line-155"></span><span class="annot"><a href="Distribution.Simple.UHC.html#isPkgDir"><span class="hs-identifier hs-type">isPkgDir</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-156"></span><span id="isPkgDir"><span class="annot"><span class="annottext">isPkgDir :: FilePath -&gt; FilePath -&gt; FilePath -&gt; IO Bool
+</span><a href="Distribution.Simple.UHC.html#isPkgDir"><span class="hs-identifier hs-var hs-var">isPkgDir</span></a></span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-identifier">_</span></span><span>   </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'.'</span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; IO Bool
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>  </span><span class="hs-comment">-- ignore files starting with a .</span><span>
+</span><span id="line-157"></span><span class="annot"><a href="Distribution.Simple.UHC.html#isPkgDir"><span class="hs-identifier hs-var">isPkgDir</span></a></span><span> </span><span id="local-6989586621679369976"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369976"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679369977"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369977"><span class="hs-identifier hs-var">dir</span></a></span></span><span> </span><span id="local-6989586621679369978"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369978"><span class="hs-identifier hs-var">xs</span></a></span></span><span>         </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-158"></span><span>                              </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679369979"><span class="annot"><span class="annottext">candidate :: FilePath
+</span><a href="#local-6989586621679369979"><span class="hs-identifier hs-var hs-var">candidate</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369977"><span class="hs-identifier hs-var">dir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.UHC.html#uhcPackageDir"><span class="hs-identifier hs-var">uhcPackageDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369978"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369976"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-159"></span><span>                              </span><span class="hs-comment">-- putStrLn $ &quot;trying: &quot; ++ candidate</span><span>
+</span><span id="line-160"></span><span>                              </span><span class="annot"><span class="annottext">FilePath -&gt; IO Bool
+</span><a href="../../directory-1.3.8.1/src/System.Directory.html#doesFileExist/System.Directory.html#doesFileExist"><span class="hs-identifier hs-var">doesFileExist</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369979"><span class="hs-identifier hs-var">candidate</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="Distribution.Simple.UHC.html#installedPkgConfig"><span class="hs-identifier hs-var">installedPkgConfig</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-161"></span><span>
+</span><span id="line-162"></span><span class="annot"><a href="Distribution.Simple.UHC.html#parsePackage"><span class="hs-identifier hs-type">parsePackage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageId/Distribution.Types.PackageId.html#PackageId"><span class="hs-identifier hs-type">PackageId</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-163"></span><span id="parsePackage"><span class="annot"><span class="annottext">parsePackage :: FilePath -&gt; [PackageIdentifier]
+</span><a href="Distribution.Simple.UHC.html#parsePackage"><span class="hs-identifier hs-var hs-var">parsePackage</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe PackageIdentifier -&gt; [PackageIdentifier]
+forall a. Maybe a -&gt; [a]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#toList/Data.Foldable.html#toList"><span class="hs-identifier hs-var">toList</span></a></span><span>  </span><span class="annot"><span class="annottext">(Maybe PackageIdentifier -&gt; [PackageIdentifier])
+-&gt; (FilePath -&gt; Maybe PackageIdentifier)
+-&gt; FilePath
+-&gt; [PackageIdentifier]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Maybe PackageIdentifier
+forall a. Parsec a =&gt; FilePath -&gt; Maybe a
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Parsec.html#simpleParsec/Distribution.Parsec.html#simpleParsec"><span class="hs-identifier hs-var">simpleParsec</span></a></span><span>
+</span><span id="line-164"></span><span>
+</span><span id="line-165"></span><span class="annot"><span class="hs-comment">-- | Create a trivial package info from a directory name.</span></span><span>
+</span><span id="line-166"></span><span class="annot"><a href="Distribution.Simple.UHC.html#mkInstalledPackageInfo"><span class="hs-identifier hs-type">mkInstalledPackageInfo</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageId/Distribution.Types.PackageId.html#PackageId"><span class="hs-identifier hs-type">PackageId</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.InstalledPackageInfo.html#InstalledPackageInfo/Distribution.Types.InstalledPackageInfo.html#InstalledPackageInfo"><span class="hs-identifier hs-type">InstalledPackageInfo</span></a></span><span>
+</span><span id="line-167"></span><span id="mkInstalledPackageInfo"><span class="annot"><span class="annottext">mkInstalledPackageInfo :: PackageIdentifier -&gt; InstalledPackageInfo
+</span><a href="Distribution.Simple.UHC.html#mkInstalledPackageInfo"><span class="hs-identifier hs-var hs-var">mkInstalledPackageInfo</span></a></span></span><span> </span><span id="local-6989586621679369985"><span class="annot"><span class="annottext">PackageIdentifier
+</span><a href="#local-6989586621679369985"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InstalledPackageInfo
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.InstalledPackageInfo.html#emptyInstalledPackageInfo/Distribution.Types.InstalledPackageInfo.html#emptyInstalledPackageInfo"><span class="hs-identifier hs-var">emptyInstalledPackageInfo</span></a></span><span>
+</span><span id="line-168"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.InstalledPackageInfo.html#installedUnitId/Distribution.Types.InstalledPackageInfo.html#installedUnitId"><span class="hs-identifier hs-var">installedUnitId</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#mkLegacyUnitId/Distribution.Types.UnitId.html#mkLegacyUnitId"><span class="hs-identifier hs-type">mkLegacyUnitId</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679369985"><span class="hs-identifier hs-type">p</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-169"></span><span>    </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.InstalledPackageInfo.html#sourcePackageId/Distribution.Types.InstalledPackageInfo.html#sourcePackageId"><span class="hs-identifier hs-var">sourcePackageId</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679369985"><span class="hs-identifier hs-type">p</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-170"></span><span>
+</span><span id="line-171"></span><span>
+</span><span id="line-172"></span><span class="hs-comment">-- -----------------------------------------------------------------------------</span><span>
+</span><span id="line-173"></span><span class="hs-comment">-- Building</span><span>
+</span><span id="line-174"></span><span>
+</span><span id="line-175"></span><span class="annot"><a href="Distribution.Simple.UHC.html#buildLib"><span class="hs-identifier hs-type">buildLib</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-176"></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Library.html#Library/Distribution.Types.Library.html#Library"><span class="hs-identifier hs-type">Library</span></a></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-177"></span><span id="buildLib"><span class="annot"><span class="annottext">buildLib :: Verbosity
+-&gt; PackageDescription
+-&gt; LocalBuildInfo
+-&gt; Library
+-&gt; ComponentLocalBuildInfo
+-&gt; IO ()
+</span><a href="Distribution.Simple.UHC.html#buildLib"><span class="hs-identifier hs-var hs-var">buildLib</span></a></span></span><span> </span><span id="local-6989586621679369990"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679369990"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span id="local-6989586621679369991"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679369991"><span class="hs-identifier hs-var">pkg_descr</span></a></span></span><span> </span><span id="local-6989586621679369992"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679369992"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679369993"><span class="annot"><span class="annottext">Library
+</span><a href="#local-6989586621679369993"><span class="hs-identifier hs-var">lib</span></a></span></span><span> </span><span id="local-6989586621679369994"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679369994"><span class="hs-identifier hs-var">clbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-178"></span><span>
+</span><span id="line-179"></span><span>  </span><span id="local-6989586621679369995"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369995"><span class="hs-identifier hs-var">systemPkgDir</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; ProgramDb -&gt; IO FilePath
+</span><a href="Distribution.Simple.UHC.html#getGlobalPackageDir"><span class="hs-identifier hs-var">getGlobalPackageDir</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679369990"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; ProgramDb
+</span><a href="Distribution.Types.LocalBuildInfo.html#withPrograms"><span class="hs-identifier hs-var">withPrograms</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679369992"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-180"></span><span>  </span><span id="local-6989586621679369997"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369997"><span class="hs-identifier hs-var">userPkgDir</span></a></span></span><span>   </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO FilePath
+</span><a href="Distribution.Simple.UHC.html#getUserPackageDir"><span class="hs-identifier hs-var">getUserPackageDir</span></a></span><span>
+</span><span id="line-181"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679369998"><span class="annot"><span class="annottext">runUhcProg :: [FilePath] -&gt; IO ()
+</span><a href="#local-6989586621679369998"><span class="hs-identifier hs-var hs-var">runUhcProg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; Program -&gt; ProgramDb -&gt; [FilePath] -&gt; IO ()
+</span><a href="Distribution.Simple.Program.html#runDbProgram"><span class="hs-identifier hs-var">runDbProgram</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679369990"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#uhcProgram"><span class="hs-identifier hs-var">uhcProgram</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; ProgramDb
+</span><a href="Distribution.Types.LocalBuildInfo.html#withPrograms"><span class="hs-identifier hs-var">withPrograms</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679369992"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-182"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679370005"><span class="annot"><span class="annottext">uhcArgs :: [FilePath]
+</span><a href="#local-6989586621679370005"><span class="hs-identifier hs-var hs-var">uhcArgs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>    </span><span class="hs-comment">-- set package name</span><span>
+</span><span id="line-183"></span><span>                   </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;--pkg-build=&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">PackageIdentifier -&gt; FilePath
+forall a. Pretty a =&gt; a -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageIdentifier
+forall pkg. Package pkg =&gt; pkg -&gt; PackageIdentifier
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#packageId/Distribution.Package.html#packageId"><span class="hs-identifier hs-var">packageId</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679369991"><span class="hs-identifier hs-var">pkg_descr</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-184"></span><span>                   </span><span class="hs-comment">-- common flags lib/exe</span><span>
+</span><span id="line-185"></span><span>                </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+-&gt; FilePath
+-&gt; LocalBuildInfo
+-&gt; BuildInfo
+-&gt; ComponentLocalBuildInfo
+-&gt; FilePath
+-&gt; Verbosity
+-&gt; [FilePath]
+</span><a href="Distribution.Simple.UHC.html#constructUHCCmdLine"><span class="hs-identifier hs-var">constructUHCCmdLine</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369997"><span class="hs-identifier hs-var">userPkgDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679369995"><span class="hs-identifier hs-var">systemPkgDir</span></a></span><span>
+</span><span id="line-186"></span><span>                                       </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679369992"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Library -&gt; BuildInfo
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Library.html#libBuildInfo/Distribution.Types.Library.html#libBuildInfo"><span class="hs-identifier hs-var">libBuildInfo</span></a></span><span> </span><span class="annot"><span class="annottext">Library
+</span><a href="#local-6989586621679369993"><span class="hs-identifier hs-var">lib</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679369994"><span class="hs-identifier hs-var">clbi</span></a></span><span>
+</span><span id="line-187"></span><span>                                       </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; FilePath
+</span><a href="Distribution.Types.LocalBuildInfo.html#buildDir"><span class="hs-identifier hs-var">buildDir</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679369992"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679369990"><span class="hs-identifier hs-var">verbosity</span></a></span><span>
+</span><span id="line-188"></span><span>                   </span><span class="hs-comment">-- source files</span><span>
+</span><span id="line-189"></span><span>                   </span><span class="hs-comment">-- suboptimal: UHC does not understand module names, so</span><span>
+</span><span id="line-190"></span><span>                   </span><span class="hs-comment">-- we replace periods by path separators</span><span>
+</span><span id="line-191"></span><span>                </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; FilePath) -&gt; [FilePath] -&gt; [FilePath]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Char -&gt; Char) -&gt; FilePath -&gt; FilePath
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span> </span><span id="local-6989586621679370010"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679370010"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679370010"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'.'</span></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#pathSeparator/System.FilePath.Posix.html#pathSeparator"><span class="hs-identifier hs-var">pathSeparator</span></a></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679370010"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-192"></span><span>                       </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ModuleName -&gt; FilePath) -&gt; [ModuleName] -&gt; [FilePath]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName -&gt; FilePath
+forall a. Pretty a =&gt; a -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Library -&gt; ComponentLocalBuildInfo -&gt; [ModuleName]
+</span><a href="Distribution.Simple.LocalBuildInfo.html#allLibModules"><span class="hs-identifier hs-var">allLibModules</span></a></span><span> </span><span class="annot"><span class="annottext">Library
+</span><a href="#local-6989586621679369993"><span class="hs-identifier hs-var">lib</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679369994"><span class="hs-identifier hs-var">clbi</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-193"></span><span>
+</span><span id="line-194"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; IO ()
+</span><a href="#local-6989586621679369998"><span class="hs-identifier hs-var">runUhcProg</span></a></span><span> </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679370005"><span class="hs-identifier hs-var">uhcArgs</span></a></span><span>
+</span><span id="line-195"></span><span>
+</span><span id="line-196"></span><span>  </span><span class="annot"><span class="annottext">() -&gt; IO ()
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-197"></span><span>
+</span><span id="line-198"></span><span class="annot"><a href="Distribution.Simple.UHC.html#buildExe"><span class="hs-identifier hs-type">buildExe</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-199"></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Executable.html#Executable/Distribution.Types.Executable.html#Executable"><span class="hs-identifier hs-type">Executable</span></a></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-200"></span><span id="buildExe"><span class="annot"><span class="annottext">buildExe :: Verbosity
+-&gt; PackageDescription
+-&gt; LocalBuildInfo
+-&gt; Executable
+-&gt; ComponentLocalBuildInfo
+-&gt; IO ()
+</span><a href="Distribution.Simple.UHC.html#buildExe"><span class="hs-identifier hs-var hs-var">buildExe</span></a></span></span><span> </span><span id="local-6989586621679370013"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679370013"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span id="local-6989586621679370014"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679370014"><span class="hs-identifier hs-var">_pkg_descr</span></a></span></span><span> </span><span id="local-6989586621679370015"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370015"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679370016"><span class="annot"><span class="annottext">Executable
+</span><a href="#local-6989586621679370016"><span class="hs-identifier hs-var">exe</span></a></span></span><span> </span><span id="local-6989586621679370017"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679370017"><span class="hs-identifier hs-var">clbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-201"></span><span>  </span><span id="local-6989586621679370018"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370018"><span class="hs-identifier hs-var">systemPkgDir</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; ProgramDb -&gt; IO FilePath
+</span><a href="Distribution.Simple.UHC.html#getGlobalPackageDir"><span class="hs-identifier hs-var">getGlobalPackageDir</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679370013"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; ProgramDb
+</span><a href="Distribution.Types.LocalBuildInfo.html#withPrograms"><span class="hs-identifier hs-var">withPrograms</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370015"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-202"></span><span>  </span><span id="local-6989586621679370019"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370019"><span class="hs-identifier hs-var">userPkgDir</span></a></span></span><span>   </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO FilePath
+</span><a href="Distribution.Simple.UHC.html#getUserPackageDir"><span class="hs-identifier hs-var">getUserPackageDir</span></a></span><span>
+</span><span id="line-203"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679370020"><span class="annot"><span class="annottext">runUhcProg :: [FilePath] -&gt; IO ()
+</span><a href="#local-6989586621679370020"><span class="hs-identifier hs-var hs-var">runUhcProg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; Program -&gt; ProgramDb -&gt; [FilePath] -&gt; IO ()
+</span><a href="Distribution.Simple.Program.html#runDbProgram"><span class="hs-identifier hs-var">runDbProgram</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679370013"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="Distribution.Simple.Program.Builtin.html#uhcProgram"><span class="hs-identifier hs-var">uhcProgram</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; ProgramDb
+</span><a href="Distribution.Types.LocalBuildInfo.html#withPrograms"><span class="hs-identifier hs-var">withPrograms</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370015"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-204"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679370023"><span class="annot"><span class="annottext">uhcArgs :: [FilePath]
+</span><a href="#local-6989586621679370023"><span class="hs-identifier hs-var hs-var">uhcArgs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>    </span><span class="hs-comment">-- common flags lib/exe</span><span>
+</span><span id="line-205"></span><span>                   </span><span class="annot"><span class="annottext">FilePath
+-&gt; FilePath
+-&gt; LocalBuildInfo
+-&gt; BuildInfo
+-&gt; ComponentLocalBuildInfo
+-&gt; FilePath
+-&gt; Verbosity
+-&gt; [FilePath]
+</span><a href="Distribution.Simple.UHC.html#constructUHCCmdLine"><span class="hs-identifier hs-var">constructUHCCmdLine</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370019"><span class="hs-identifier hs-var">userPkgDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370018"><span class="hs-identifier hs-var">systemPkgDir</span></a></span><span>
+</span><span id="line-206"></span><span>                                       </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370015"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Executable -&gt; BuildInfo
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Executable.html#buildInfo/Distribution.Types.Executable.html#buildInfo"><span class="hs-identifier hs-var">buildInfo</span></a></span><span> </span><span class="annot"><span class="annottext">Executable
+</span><a href="#local-6989586621679370016"><span class="hs-identifier hs-var">exe</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679370017"><span class="hs-identifier hs-var">clbi</span></a></span><span>
+</span><span id="line-207"></span><span>                                       </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; FilePath
+</span><a href="Distribution.Types.LocalBuildInfo.html#buildDir"><span class="hs-identifier hs-var">buildDir</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370015"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679370013"><span class="hs-identifier hs-var">verbosity</span></a></span><span>
+</span><span id="line-208"></span><span>                   </span><span class="hs-comment">-- output file</span><span>
+</span><span id="line-209"></span><span>                </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;--output&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; FilePath
+</span><a href="Distribution.Types.LocalBuildInfo.html#buildDir"><span class="hs-identifier hs-var">buildDir</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370015"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName -&gt; FilePath
+forall a. Pretty a =&gt; a -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Executable -&gt; UnqualComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Executable.html#exeName/Distribution.Types.Executable.html#exeName"><span class="hs-identifier hs-var">exeName</span></a></span><span> </span><span class="annot"><span class="annottext">Executable
+</span><a href="#local-6989586621679370016"><span class="hs-identifier hs-var">exe</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-210"></span><span>                   </span><span class="hs-comment">-- main source module</span><span>
+</span><span id="line-211"></span><span>                </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Executable -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Executable.html#modulePath/Distribution.Types.Executable.html#modulePath"><span class="hs-identifier hs-var">modulePath</span></a></span><span> </span><span class="annot"><span class="annottext">Executable
+</span><a href="#local-6989586621679370016"><span class="hs-identifier hs-var">exe</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-212"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; IO ()
+</span><a href="#local-6989586621679370020"><span class="hs-identifier hs-var">runUhcProg</span></a></span><span> </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679370023"><span class="hs-identifier hs-var">uhcArgs</span></a></span><span>
+</span><span id="line-213"></span><span>
+</span><span id="line-214"></span><span class="annot"><a href="Distribution.Simple.UHC.html#constructUHCCmdLine"><span class="hs-identifier hs-type">constructUHCCmdLine</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-215"></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#BuildInfo/Distribution.Types.BuildInfo.html#BuildInfo"><span class="hs-identifier hs-type">BuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span>
+</span><span id="line-216"></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-217"></span><span id="constructUHCCmdLine"><span class="annot"><span class="annottext">constructUHCCmdLine :: FilePath
+-&gt; FilePath
+-&gt; LocalBuildInfo
+-&gt; BuildInfo
+-&gt; ComponentLocalBuildInfo
+-&gt; FilePath
+-&gt; Verbosity
+-&gt; [FilePath]
+</span><a href="Distribution.Simple.UHC.html#constructUHCCmdLine"><span class="hs-identifier hs-var hs-var">constructUHCCmdLine</span></a></span></span><span> </span><span id="local-6989586621679370027"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370027"><span class="hs-identifier hs-var">user</span></a></span></span><span> </span><span id="local-6989586621679370028"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370028"><span class="hs-identifier hs-var">system</span></a></span></span><span> </span><span id="local-6989586621679370029"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370029"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span id="local-6989586621679370030"><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679370030"><span class="hs-identifier hs-var">bi</span></a></span></span><span> </span><span id="local-6989586621679370031"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679370031"><span class="hs-identifier hs-var">clbi</span></a></span></span><span> </span><span id="local-6989586621679370032"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370032"><span class="hs-identifier hs-var">odir</span></a></span></span><span> </span><span id="local-6989586621679370033"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679370033"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-218"></span><span>     </span><span class="hs-comment">-- verbosity</span><span>
+</span><span id="line-219"></span><span>     </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span>      </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679370033"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; Verbosity -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="Distribution.Verbosity.html#deafening"><span class="hs-identifier hs-var">deafening</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;-v4&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-220"></span><span>      </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679370033"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; Verbosity -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="Distribution.Verbosity.html#normal"><span class="hs-identifier hs-var">normal</span></a></span><span>    </span><span class="hs-keyword">then</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-221"></span><span>      </span><span class="hs-keyword">else</span><span>                                </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;-v0&quot;</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-222"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">CompilerFlavor -&gt; BuildInfo -&gt; [FilePath]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#hcOptions/Distribution.Types.BuildInfo.html#hcOptions"><span class="hs-identifier hs-var">hcOptions</span></a></span><span> </span><span class="annot"><span class="annottext">CompilerFlavor
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compiler.html#UHC/Distribution.Compiler.html#UHC"><span class="hs-identifier hs-var">UHC</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679370030"><span class="hs-identifier hs-var">bi</span></a></span><span>
+</span><span id="line-223"></span><span>     </span><span class="hs-comment">-- flags for language extensions</span><span>
+</span><span id="line-224"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">Compiler -&gt; Maybe Language -&gt; [FilePath]
+</span><a href="Distribution.Simple.Compiler.html#languageToFlags"><span class="hs-identifier hs-var">languageToFlags</span></a></span><span>   </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Compiler
+</span><a href="Distribution.Types.LocalBuildInfo.html#compiler"><span class="hs-identifier hs-var">compiler</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370029"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BuildInfo -&gt; Maybe Language
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#defaultLanguage/Distribution.Types.BuildInfo.html#defaultLanguage"><span class="hs-identifier hs-var">defaultLanguage</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679370030"><span class="hs-identifier hs-var">bi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-225"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">Compiler -&gt; [Extension] -&gt; [FilePath]
+</span><a href="Distribution.Simple.Compiler.html#extensionsToFlags"><span class="hs-identifier hs-var">extensionsToFlags</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; Compiler
+</span><a href="Distribution.Types.LocalBuildInfo.html#compiler"><span class="hs-identifier hs-var">compiler</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370029"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BuildInfo -&gt; [Extension]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#usedExtensions/Distribution.Types.BuildInfo.html#usedExtensions"><span class="hs-identifier hs-var">usedExtensions</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679370030"><span class="hs-identifier hs-var">bi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-226"></span><span>     </span><span class="hs-comment">-- packages</span><span>
+</span><span id="line-227"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;--hide-all-packages&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-228"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; PackageDBStack -&gt; [FilePath]
+</span><a href="Distribution.Simple.UHC.html#uhcPackageDbOptions"><span class="hs-identifier hs-var">uhcPackageDbOptions</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370027"><span class="hs-identifier hs-var">user</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370028"><span class="hs-identifier hs-var">system</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; PackageDBStack
+</span><a href="Distribution.Types.LocalBuildInfo.html#withPackageDB"><span class="hs-identifier hs-var">withPackageDB</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370029"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-229"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;--package=uhcbase&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-230"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;--package=&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">MungedPackageName -&gt; FilePath
+forall a. Pretty a =&gt; a -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">MungedPackageId -&gt; MungedPackageName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.MungedPackageId.html#mungedName/Distribution.Types.MungedPackageId.html#mungedName"><span class="hs-identifier hs-var">mungedName</span></a></span><span> </span><span class="annot"><span class="annottext">MungedPackageId
+</span><a href="#local-6989586621679370045"><span class="hs-identifier hs-var">pkgid</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">UnitId
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679370045"><span class="annot"><span class="annottext">MungedPackageId
+</span><a href="#local-6989586621679370045"><span class="hs-identifier hs-var">pkgid</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo -&gt; [(UnitId, MungedPackageId)]
+</span><a href="Distribution.Types.ComponentLocalBuildInfo.html#componentPackageDeps"><span class="hs-identifier hs-var">componentPackageDeps</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679370031"><span class="hs-identifier hs-var">clbi</span></a></span><span> </span><span class="hs-special">]</span><span>
+</span><span id="line-231"></span><span>     </span><span class="hs-comment">-- search paths</span><span>
+</span><span id="line-232"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;-i&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370032"><span class="hs-identifier hs-var">odir</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-233"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;-i&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">SymbolicPath PackageDir SourceDir -&gt; FilePath
+forall from to. SymbolicPath from to -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Path.html#getSymbolicPath/Distribution.Utils.Path.html#getSymbolicPath"><span class="hs-identifier hs-var">getSymbolicPath</span></a></span><span> </span><span class="annot"><span class="annottext">SymbolicPath PackageDir SourceDir
+</span><a href="#local-6989586621679370048"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679370048"><span class="annot"><span class="annottext">SymbolicPath PackageDir SourceDir
+</span><a href="#local-6989586621679370048"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[SymbolicPath PackageDir SourceDir]
+-&gt; [SymbolicPath PackageDir SourceDir]
+forall a. Eq a =&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#nub/Data.OldList.html#nub"><span class="hs-identifier hs-var">nub</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BuildInfo -&gt; [SymbolicPath PackageDir SourceDir]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#hsSourceDirs/Distribution.Types.BuildInfo.html#hsSourceDirs"><span class="hs-identifier hs-var">hsSourceDirs</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679370030"><span class="hs-identifier hs-var">bi</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-234"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;-i&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; ComponentLocalBuildInfo -&gt; FilePath
+</span><a href="Distribution.Simple.BuildPaths.html#autogenComponentModulesDir"><span class="hs-identifier hs-var">autogenComponentModulesDir</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370029"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679370031"><span class="hs-identifier hs-var">clbi</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-235"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;-i&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; FilePath
+</span><a href="Distribution.Simple.BuildPaths.html#autogenPackageModulesDir"><span class="hs-identifier hs-var">autogenPackageModulesDir</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370029"><span class="hs-identifier hs-var">lbi</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-236"></span><span>     </span><span class="hs-comment">-- cpp options</span><span>
+</span><span id="line-237"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;--optP=&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370052"><span class="hs-identifier hs-var">opt</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679370052"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370052"><span class="hs-identifier hs-var">opt</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">BuildInfo -&gt; [FilePath]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#cppOptions/Distribution.Types.BuildInfo.html#cppOptions"><span class="hs-identifier hs-var">cppOptions</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679370030"><span class="hs-identifier hs-var">bi</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-238"></span><span>     </span><span class="hs-comment">-- output path</span><span>
+</span><span id="line-239"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;--odir=&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370032"><span class="hs-identifier hs-var">odir</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-240"></span><span>     </span><span class="hs-comment">-- optimization</span><span>
+</span><span id="line-241"></span><span>  </span><span class="annot"><span class="annottext">[FilePath] -&gt; [FilePath] -&gt; [FilePath]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; OptimisationLevel
+</span><a href="Distribution.Types.LocalBuildInfo.html#withOptimization"><span class="hs-identifier hs-var">withOptimization</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370029"><span class="hs-identifier hs-var">lbi</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-242"></span><span>        </span><span class="annot"><span class="annottext">OptimisationLevel
+</span><a href="Distribution.Simple.Compiler.html#NoOptimisation"><span class="hs-identifier hs-var">NoOptimisation</span></a></span><span>       </span><span class="hs-glyph">-&gt;</span><span>  </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;-O0&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-243"></span><span>        </span><span class="annot"><span class="annottext">OptimisationLevel
+</span><a href="Distribution.Simple.Compiler.html#NormalOptimisation"><span class="hs-identifier hs-var">NormalOptimisation</span></a></span><span>   </span><span class="hs-glyph">-&gt;</span><span>  </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;-O1&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-244"></span><span>        </span><span class="annot"><span class="annottext">OptimisationLevel
+</span><a href="Distribution.Simple.Compiler.html#MaximumOptimisation"><span class="hs-identifier hs-var">MaximumOptimisation</span></a></span><span>  </span><span class="hs-glyph">-&gt;</span><span>  </span><span class="hs-special">[</span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;-O2&quot;</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-245"></span><span>
+</span><span id="line-246"></span><span class="annot"><a href="Distribution.Simple.UHC.html#uhcPackageDbOptions"><span class="hs-identifier hs-type">uhcPackageDbOptions</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#PackageDBStack"><span class="hs-identifier hs-type">PackageDBStack</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-247"></span><span id="uhcPackageDbOptions"><span class="annot"><span class="annottext">uhcPackageDbOptions :: FilePath -&gt; FilePath -&gt; PackageDBStack -&gt; [FilePath]
+</span><a href="Distribution.Simple.UHC.html#uhcPackageDbOptions"><span class="hs-identifier hs-var hs-var">uhcPackageDbOptions</span></a></span></span><span> </span><span id="local-6989586621679370058"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370058"><span class="hs-identifier hs-var">user</span></a></span></span><span> </span><span id="local-6989586621679370059"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370059"><span class="hs-identifier hs-var">system</span></a></span></span><span> </span><span id="local-6989586621679370060"><span class="annot"><span class="annottext">PackageDBStack
+</span><a href="#local-6989586621679370060"><span class="hs-identifier hs-var">db</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; FilePath) -&gt; [FilePath] -&gt; [FilePath]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span> </span><span id="local-6989586621679370061"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370061"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;--pkg-searchpath=&quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370061"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-248"></span><span>                                         </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(PackageDB -&gt; [FilePath]) -&gt; PackageDBStack -&gt; [FilePath]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#concatMap/Data.Foldable.html#concatMap"><span class="hs-identifier hs-var">concatMap</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; PackageDB -&gt; [FilePath]
+</span><a href="Distribution.Simple.UHC.html#packageDbPaths"><span class="hs-identifier hs-var">packageDbPaths</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370058"><span class="hs-identifier hs-var">user</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370059"><span class="hs-identifier hs-var">system</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">PackageDBStack
+</span><a href="#local-6989586621679370060"><span class="hs-identifier hs-var">db</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-249"></span><span>
+</span><span id="line-250"></span><span class="hs-comment">-- -----------------------------------------------------------------------------</span><span>
+</span><span id="line-251"></span><span class="hs-comment">-- Installation</span><span>
+</span><span id="line-252"></span><span>
+</span><span id="line-253"></span><span class="annot"><a href="Distribution.Simple.UHC.html#installLib"><span class="hs-identifier hs-type">installLib</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span>
+</span><span id="line-254"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-255"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Library.html#Library/Distribution.Types.Library.html#Library"><span class="hs-identifier hs-type">Library</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentLocalBuildInfo.html#ComponentLocalBuildInfo"><span class="hs-identifier hs-type">ComponentLocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-256"></span><span id="installLib"><span class="annot"><span class="annottext">installLib :: Verbosity
+-&gt; LocalBuildInfo
+-&gt; FilePath
+-&gt; FilePath
+-&gt; FilePath
+-&gt; PackageDescription
+-&gt; Library
+-&gt; ComponentLocalBuildInfo
+-&gt; IO ()
+</span><a href="Distribution.Simple.UHC.html#installLib"><span class="hs-identifier hs-var hs-var">installLib</span></a></span></span><span> </span><span id="local-6989586621679370062"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679370062"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span id="local-6989586621679370063"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370063"><span class="hs-identifier hs-var">_lbi</span></a></span></span><span> </span><span id="local-6989586621679370064"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370064"><span class="hs-identifier hs-var">targetDir</span></a></span></span><span> </span><span id="local-6989586621679370065"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370065"><span class="hs-identifier hs-var">_dynlibTargetDir</span></a></span></span><span> </span><span id="local-6989586621679370066"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370066"><span class="hs-identifier hs-var">builtDir</span></a></span></span><span> </span><span id="local-6989586621679370067"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679370067"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679370068"><span class="annot"><span class="annottext">Library
+</span><a href="#local-6989586621679370068"><span class="hs-identifier hs-var">_library</span></a></span></span><span> </span><span id="local-6989586621679370069"><span class="annot"><span class="annottext">ComponentLocalBuildInfo
+</span><a href="#local-6989586621679370069"><span class="hs-identifier hs-var">_clbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-257"></span><span>    </span><span class="hs-comment">-- putStrLn $ &quot;dest:  &quot; ++ targetDir</span><span>
+</span><span id="line-258"></span><span>    </span><span class="hs-comment">-- putStrLn $ &quot;built: &quot; ++ builtDir</span><span>
+</span><span id="line-259"></span><span>    </span><span class="annot"><span class="annottext">Verbosity -&gt; FilePath -&gt; FilePath -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#installDirectoryContents"><span class="hs-identifier hs-var">installDirectoryContents</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679370062"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370066"><span class="hs-identifier hs-var">builtDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">PackageIdentifier -&gt; FilePath
+forall a. Pretty a =&gt; a -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageIdentifier
+forall pkg. Package pkg =&gt; pkg -&gt; PackageIdentifier
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#packageId/Distribution.Package.html#packageId"><span class="hs-identifier hs-var">packageId</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679370067"><span class="hs-identifier hs-var">pkg</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370064"><span class="hs-identifier hs-var">targetDir</span></a></span><span>
+</span><span id="line-260"></span><span>
+</span><span id="line-261"></span><span class="hs-comment">-- currently hard-coded UHC code generator and variant to use</span><span>
+</span><span id="line-262"></span><span class="annot"><a href="Distribution.Simple.UHC.html#uhcTarget"><span class="hs-identifier hs-type">uhcTarget</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.UHC.html#uhcTargetVariant"><span class="hs-identifier hs-type">uhcTargetVariant</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-263"></span><span id="uhcTarget"><span class="annot"><span class="annottext">uhcTarget :: FilePath
+</span><a href="Distribution.Simple.UHC.html#uhcTarget"><span class="hs-identifier hs-var hs-var">uhcTarget</span></a></span></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;bc&quot;</span></span><span>
+</span><span id="line-264"></span><span id="uhcTargetVariant"><span class="annot"><span class="annottext">uhcTargetVariant :: FilePath
+</span><a href="Distribution.Simple.UHC.html#uhcTargetVariant"><span class="hs-identifier hs-var hs-var">uhcTargetVariant</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;plain&quot;</span></span><span>
+</span><span id="line-265"></span><span>
+</span><span id="line-266"></span><span class="hs-comment">-- root directory for a package in UHC</span><span>
+</span><span id="line-267"></span><span class="annot"><a href="Distribution.Simple.UHC.html#uhcPackageDir"><span class="hs-identifier hs-type">uhcPackageDir</span></a></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-268"></span><span class="annot"><a href="Distribution.Simple.UHC.html#uhcPackageSubDir"><span class="hs-identifier hs-type">uhcPackageSubDir</span></a></span><span> </span><span class="hs-glyph">::</span><span>           </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-269"></span><span id="uhcPackageDir"><span class="annot"><span class="annottext">uhcPackageDir :: FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.UHC.html#uhcPackageDir"><span class="hs-identifier hs-var hs-var">uhcPackageDir</span></a></span></span><span>    </span><span id="local-6989586621679370074"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370074"><span class="hs-identifier hs-var">pkgid</span></a></span></span><span> </span><span id="local-6989586621679370075"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370075"><span class="hs-identifier hs-var">compilerid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370074"><span class="hs-identifier hs-var">pkgid</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.UHC.html#uhcPackageSubDir"><span class="hs-identifier hs-var">uhcPackageSubDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370075"><span class="hs-identifier hs-var">compilerid</span></a></span><span>
+</span><span id="line-270"></span><span id="uhcPackageSubDir"><span class="annot"><span class="annottext">uhcPackageSubDir :: FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.UHC.html#uhcPackageSubDir"><span class="hs-identifier hs-var hs-var">uhcPackageSubDir</span></a></span></span><span>       </span><span id="local-6989586621679370076"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370076"><span class="hs-identifier hs-var">compilerid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370076"><span class="hs-identifier hs-var">compilerid</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="Distribution.Simple.UHC.html#uhcTarget"><span class="hs-identifier hs-var">uhcTarget</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="Distribution.Simple.UHC.html#uhcTargetVariant"><span class="hs-identifier hs-var">uhcTargetVariant</span></a></span><span>
+</span><span id="line-271"></span><span>
+</span><span id="line-272"></span><span class="hs-comment">-- -----------------------------------------------------------------------------</span><span>
+</span><span id="line-273"></span><span class="hs-comment">-- Registering</span><span>
+</span><span id="line-274"></span><span>
+</span><span id="line-275"></span><span class="annot"><a href="Distribution.Simple.UHC.html#registerPackage"><span class="hs-identifier hs-type">registerPackage</span></a></span><span>
+</span><span id="line-276"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span>
+</span><span id="line-277"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#Compiler"><span class="hs-identifier hs-type">Compiler</span></a></span><span>
+</span><span id="line-278"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.Db.html#ProgramDb"><span class="hs-identifier hs-type">ProgramDb</span></a></span><span>
+</span><span id="line-279"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Compiler.html#PackageDBStack"><span class="hs-identifier hs-type">PackageDBStack</span></a></span><span>
+</span><span id="line-280"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.InstalledPackageInfo.html#InstalledPackageInfo/Distribution.Types.InstalledPackageInfo.html#InstalledPackageInfo"><span class="hs-identifier hs-type">InstalledPackageInfo</span></a></span><span>
+</span><span id="line-281"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-282"></span><span id="registerPackage"><span class="annot"><span class="annottext">registerPackage :: Verbosity
+-&gt; Compiler
+-&gt; ProgramDb
+-&gt; PackageDBStack
+-&gt; InstalledPackageInfo
+-&gt; IO ()
+</span><a href="Distribution.Simple.UHC.html#registerPackage"><span class="hs-identifier hs-var hs-var">registerPackage</span></a></span></span><span> </span><span id="local-6989586621679370077"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679370077"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span id="local-6989586621679370078"><span class="annot"><span class="annottext">Compiler
+</span><a href="#local-6989586621679370078"><span class="hs-identifier hs-var">comp</span></a></span></span><span> </span><span id="local-6989586621679370079"><span class="annot"><span class="annottext">ProgramDb
+</span><a href="#local-6989586621679370079"><span class="hs-identifier hs-var">progdb</span></a></span></span><span> </span><span id="local-6989586621679370080"><span class="annot"><span class="annottext">PackageDBStack
+</span><a href="#local-6989586621679370080"><span class="hs-identifier hs-var">packageDbs</span></a></span></span><span> </span><span id="local-6989586621679370081"><span class="annot"><span class="annottext">InstalledPackageInfo
+</span><a href="#local-6989586621679370081"><span class="hs-identifier hs-var">installedPkgInfo</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-283"></span><span>    </span><span id="local-6989586621679370082"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370082"><span class="hs-identifier hs-var">dbdir</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">PackageDBStack -&gt; PackageDB
+</span><a href="Distribution.Simple.Compiler.html#registrationPackageDB"><span class="hs-identifier hs-var">registrationPackageDB</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDBStack
+</span><a href="#local-6989586621679370080"><span class="hs-identifier hs-var">packageDbs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-284"></span><span>      </span><span class="annot"><span class="annottext">PackageDB
+</span><a href="Distribution.Simple.Compiler.html#GlobalPackageDB"><span class="hs-identifier hs-var">GlobalPackageDB</span></a></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Verbosity -&gt; ProgramDb -&gt; IO FilePath
+</span><a href="Distribution.Simple.UHC.html#getGlobalPackageDir"><span class="hs-identifier hs-var">getGlobalPackageDir</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679370077"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramDb
+</span><a href="#local-6989586621679370079"><span class="hs-identifier hs-var">progdb</span></a></span><span>
+</span><span id="line-285"></span><span>      </span><span class="annot"><span class="annottext">PackageDB
+</span><a href="Distribution.Simple.Compiler.html#UserPackageDB"><span class="hs-identifier hs-var">UserPackageDB</span></a></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO FilePath
+</span><a href="Distribution.Simple.UHC.html#getUserPackageDir"><span class="hs-identifier hs-var">getUserPackageDir</span></a></span><span>
+</span><span id="line-286"></span><span>      </span><span class="annot"><a href="Distribution.Simple.Compiler.html#SpecificPackageDB"><span class="hs-identifier hs-type">SpecificPackageDB</span></a></span><span> </span><span id="local-6989586621679370084"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370084"><span class="hs-identifier hs-var">dir</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; IO FilePath
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370084"><span class="hs-identifier hs-var">dir</span></a></span><span>
+</span><span id="line-287"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679370087"><span class="annot"><span class="annottext">pkgdir :: FilePath
+</span><a href="#local-6989586621679370087"><span class="hs-identifier hs-var hs-var">pkgdir</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370082"><span class="hs-identifier hs-var">dbdir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.UHC.html#uhcPackageDir"><span class="hs-identifier hs-var">uhcPackageDir</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageIdentifier -&gt; FilePath
+forall a. Pretty a =&gt; a -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="annot"><span class="annottext">PackageIdentifier
+</span><a href="#local-6989586621679370088"><span class="hs-identifier hs-var">pkgid</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">CompilerId -&gt; FilePath
+forall a. Pretty a =&gt; a -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="annot"><span class="annottext">CompilerId
+</span><a href="#local-6989586621679370089"><span class="hs-identifier hs-var">compilerid</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-288"></span><span>    </span><span class="annot"><span class="annottext">Verbosity -&gt; Bool -&gt; FilePath -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#createDirectoryIfMissingVerbose"><span class="hs-identifier hs-var">createDirectoryIfMissingVerbose</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679370077"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370087"><span class="hs-identifier hs-var">pkgdir</span></a></span><span>
+</span><span id="line-289"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; IO ()
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Utils.Generic.html#writeUTF8File/Distribution.Utils.Generic.html#writeUTF8File"><span class="hs-identifier hs-var">writeUTF8File</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679370087"><span class="hs-identifier hs-var">pkgdir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+</span><a href="../../filepath-1.4.200.1/src/System.FilePath.Posix.html#%3C%2F%3E/System.FilePath.Posix.html#%3C%2F%3E"><span class="hs-operator hs-var">&lt;/&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="Distribution.Simple.UHC.html#installedPkgConfig"><span class="hs-identifier hs-var">installedPkgConfig</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-290"></span><span>                  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">InstalledPackageInfo -&gt; FilePath
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.InstalledPackageInfo.html#showInstalledPackageInfo/Distribution.InstalledPackageInfo.html#showInstalledPackageInfo"><span class="hs-identifier hs-var">showInstalledPackageInfo</span></a></span><span> </span><span class="annot"><span class="annottext">InstalledPackageInfo
+</span><a href="#local-6989586621679370081"><span class="hs-identifier hs-var">installedPkgInfo</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-291"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-292"></span><span>    </span><span id="local-6989586621679370088"><span class="annot"><span class="annottext">pkgid :: PackageIdentifier
+</span><a href="#local-6989586621679370088"><span class="hs-identifier hs-var hs-var">pkgid</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InstalledPackageInfo -&gt; PackageIdentifier
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.InstalledPackageInfo.html#sourcePackageId/Distribution.Types.InstalledPackageInfo.html#sourcePackageId"><span class="hs-identifier hs-var">sourcePackageId</span></a></span><span> </span><span class="annot"><span class="annottext">InstalledPackageInfo
+</span><a href="#local-6989586621679370081"><span class="hs-identifier hs-var">installedPkgInfo</span></a></span><span>
+</span><span id="line-293"></span><span>    </span><span id="local-6989586621679370089"><span class="annot"><span class="annottext">compilerid :: CompilerId
+</span><a href="#local-6989586621679370089"><span class="hs-identifier hs-var hs-var">compilerid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Compiler -&gt; CompilerId
+</span><a href="Distribution.Simple.Compiler.html#compilerId"><span class="hs-identifier hs-var">compilerId</span></a></span><span> </span><span class="annot"><span class="annottext">Compiler
+</span><a href="#local-6989586621679370078"><span class="hs-identifier hs-var">comp</span></a></span><span>
+</span><span id="line-294"></span><span>
+</span><span id="line-295"></span><span class="annot"><a href="Distribution.Simple.UHC.html#inplacePackageDbPath"><span class="hs-identifier hs-type">inplacePackageDbPath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Types.LocalBuildInfo.html#LocalBuildInfo"><span class="hs-identifier hs-type">LocalBuildInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>
+</span><span id="line-296"></span><span id="inplacePackageDbPath"><span class="annot"><span class="annottext">inplacePackageDbPath :: LocalBuildInfo -&gt; FilePath
+</span><a href="Distribution.Simple.UHC.html#inplacePackageDbPath"><span class="hs-identifier hs-var hs-var">inplacePackageDbPath</span></a></span></span><span> </span><span id="local-6989586621679370093"><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370093"><span class="hs-identifier hs-var">lbi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo -&gt; FilePath
+</span><a href="Distribution.Types.LocalBuildInfo.html#buildDir"><span class="hs-identifier hs-var">buildDir</span></a></span><span> </span><span class="annot"><span class="annottext">LocalBuildInfo
+</span><a href="#local-6989586621679370093"><span class="hs-identifier hs-var">lbi</span></a></span><span>
+</span><span id="line-297"></span></pre></body></html>

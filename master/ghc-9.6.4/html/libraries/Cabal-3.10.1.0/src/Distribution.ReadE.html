@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Module      :  Distribution.ReadE</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- Copyright   :  Jose Iborra 2008</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- License     :  BSD3</span><span>
+</span><span id="line-7"></span><span class="hs-comment">--</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- Maintainer  :  cabal-devel@haskell.org</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-10"></span><span class="hs-comment">--</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Simple parsing with failure</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.ReadE</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-14"></span><span>   </span><span class="annot"><span class="hs-comment">-- * ReadE</span></span><span>
+</span><span id="line-15"></span><span>   </span><span class="annot"><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier">ReadE</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.ReadE.html#succeedReadE"><span class="hs-identifier">succeedReadE</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.ReadE.html#failReadE"><span class="hs-identifier">failReadE</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>   </span><span class="annot"><span class="hs-comment">-- * Projections</span></span><span>
+</span><span id="line-17"></span><span>   </span><span class="annot"><a href="Distribution.ReadE.html#parsecToReadE"><span class="hs-identifier">parsecToReadE</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.ReadE.html#parsecToReadEErr"><span class="hs-identifier">parsecToReadEErr</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>   </span><span class="annot"><span class="hs-comment">-- * Parse Errors</span></span><span>
+</span><span id="line-19"></span><span>   </span><span class="annot"><a href="Distribution.ReadE.html#unexpectMsgString"><span class="hs-identifier">unexpectMsgString</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Bifunctor.html#/Data.Bifunctor.html"><span class="hs-identifier">Data.Bifunctor</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Bi</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Bifunctor.html#first/Data.Bifunctor.html#first"><span class="hs-identifier">first</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Parsec.html#/Distribution.Parsec.html"><span class="hs-identifier">Distribution.Parsec</span></a></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../parsec-3.1.16.1/src/Text.Parsec.Error.html#/Text.Parsec.Error.html"><span class="hs-identifier">Text.Parsec.Error</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Parsec</span></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Parsec.FieldLineStream.html#/Distribution.Parsec.FieldLineStream.html"><span class="hs-identifier">Distribution.Parsec.FieldLineStream</span></a></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="annot"><span class="hs-comment">-- | Parser with simple error reporting</span></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">newtype</span><span> </span><span id="ReadE"><span class="annot"><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-var">ReadE</span></a></span></span><span> </span><span id="local-6989586621679340263"><span class="annot"><a href="#local-6989586621679340263"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ReadE"><span class="annot"><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-var">ReadE</span></a></span></span><span> </span><span class="hs-special">{</span><span id="runReadE"><span class="annot"><span class="annottext">forall a. ReadE a -&gt; String -&gt; Either String a
+</span><a href="Distribution.ReadE.html#runReadE"><span class="hs-identifier hs-var hs-var">runReadE</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Either.html#Either/Data.Either.html#Either"><span class="hs-identifier hs-type">Either</span></a></span><span> </span><span class="annot"><a href="Distribution.ReadE.html#ErrorMsg"><span class="hs-identifier hs-type">ErrorMsg</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679340263"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">type</span><span> </span><span id="ErrorMsg"><span class="annot"><a href="Distribution.ReadE.html#ErrorMsg"><span class="hs-identifier hs-var">ErrorMsg</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679340317"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#Functor/GHC.Base.html#Functor"><span class="hs-identifier hs-type">Functor</span></a></span><span> </span><span class="annot"><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-type">ReadE</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-35"></span><span>  </span><span id="local-6989586621679340321"><span class="annot"><span class="annottext">fmap :: forall a b. (a -&gt; b) -&gt; ReadE a -&gt; ReadE b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#fmap/GHC.Base.html#fmap"><span class="hs-identifier hs-var hs-var hs-var hs-var">fmap</span></a></span></span><span> </span><span id="local-6989586621679340322"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679340322"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-type">ReadE</span></a></span><span> </span><span id="local-6989586621679340323"><span class="annot"><span class="annottext">String -&gt; Either String a
+</span><a href="#local-6989586621679340323"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String b) -&gt; ReadE b
+forall a. (String -&gt; Either String a) -&gt; ReadE a
+</span><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-var">ReadE</span></a></span><span> </span><span class="annot"><span class="annottext">((String -&gt; Either String b) -&gt; ReadE b)
+-&gt; (String -&gt; Either String b) -&gt; ReadE b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679340324"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340324"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String a
+</span><a href="#local-6989586621679340323"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340324"><span class="hs-identifier hs-var">txt</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-36"></span><span>                                       </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Either.html#Right/Data.Either.html#Right"><span class="hs-identifier hs-type">Right</span></a></span><span> </span><span id="local-6989586621679340325"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679340325"><span class="hs-identifier hs-var">a</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">b -&gt; Either String b
+forall a b. b -&gt; Either a b
+</span><a href="../../base-4.18.2.0/src/Data.Either.html#Right/Data.Either.html#Right"><span class="hs-identifier hs-var">Right</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679340322"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679340325"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span>                                       </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Either.html#Left/Data.Either.html#Left"><span class="hs-identifier hs-type">Left</span></a></span><span> </span><span id="local-6989586621679340326"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340326"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String b
+forall a b. a -&gt; Either a b
+</span><a href="../../base-4.18.2.0/src/Data.Either.html#Left/Data.Either.html#Left"><span class="hs-identifier hs-var">Left</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340326"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span id="local-6989586621679340278"><span class="annot"><a href="Distribution.ReadE.html#succeedReadE"><span class="hs-identifier hs-type">succeedReadE</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679340278"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-type">ReadE</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679340278"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-40"></span><span id="succeedReadE"><span class="annot"><span class="annottext">succeedReadE :: forall a. (String -&gt; a) -&gt; ReadE a
+</span><a href="Distribution.ReadE.html#succeedReadE"><span class="hs-identifier hs-var hs-var">succeedReadE</span></a></span></span><span> </span><span id="local-6989586621679340327"><span class="annot"><span class="annottext">String -&gt; a
+</span><a href="#local-6989586621679340327"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String a) -&gt; ReadE a
+forall a. (String -&gt; Either String a) -&gt; ReadE a
+</span><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-var">ReadE</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; Either String a
+forall a b. b -&gt; Either a b
+</span><a href="../../base-4.18.2.0/src/Data.Either.html#Right/Data.Either.html#Right"><span class="hs-identifier hs-var">Right</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; Either String a)
+-&gt; (String -&gt; a) -&gt; String -&gt; Either String a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; a
+</span><a href="#local-6989586621679340327"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span id="local-6989586621679340283"><span class="annot"><a href="Distribution.ReadE.html#failReadE"><span class="hs-identifier hs-type">failReadE</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.ReadE.html#ErrorMsg"><span class="hs-identifier hs-type">ErrorMsg</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-type">ReadE</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679340283"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-43"></span><span id="failReadE"><span class="annot"><span class="annottext">failReadE :: forall a. String -&gt; ReadE a
+</span><a href="Distribution.ReadE.html#failReadE"><span class="hs-identifier hs-var hs-var">failReadE</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String a) -&gt; ReadE a
+forall a. (String -&gt; Either String a) -&gt; ReadE a
+</span><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-var">ReadE</span></a></span><span> </span><span class="annot"><span class="annottext">((String -&gt; Either String a) -&gt; ReadE a)
+-&gt; (String -&gt; String -&gt; Either String a) -&gt; String -&gt; ReadE a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Either String a -&gt; String -&gt; Either String a
+forall a b. a -&gt; b -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#const/GHC.Base.html#const"><span class="hs-identifier hs-var">const</span></a></span><span> </span><span class="annot"><span class="annottext">(Either String a -&gt; String -&gt; Either String a)
+-&gt; (String -&gt; Either String a)
+-&gt; String
+-&gt; String
+-&gt; Either String a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String a
+forall a b. a -&gt; Either a b
+</span><a href="../../base-4.18.2.0/src/Data.Either.html#Left/Data.Either.html#Left"><span class="hs-identifier hs-var">Left</span></a></span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span id="local-6989586621679340287"><span class="annot"><a href="Distribution.ReadE.html#runParsecFromString"><span class="hs-identifier hs-type">runParsecFromString</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Parsec.html#ParsecParser/Distribution.Parsec.html#ParsecParser"><span class="hs-identifier hs-type">ParsecParser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679340287"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Either.html#Either/Data.Either.html#Either"><span class="hs-identifier hs-type">Either</span></a></span><span> </span><span class="annot"><a href="../../parsec-3.1.16.1/src/Text.Parsec.Error.html#ParseError/Text.Parsec.Error.html#ParseError"><span class="hs-identifier hs-type">Parsec.ParseError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679340287"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-46"></span><span id="runParsecFromString"><span class="annot"><span class="annottext">runParsecFromString :: forall a. ParsecParser a -&gt; String -&gt; Either ParseError a
+</span><a href="Distribution.ReadE.html#runParsecFromString"><span class="hs-identifier hs-var hs-var">runParsecFromString</span></a></span></span><span> </span><span id="local-6989586621679340331"><span class="annot"><span class="annottext">ParsecParser a
+</span><a href="#local-6989586621679340331"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679340332"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340332"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-47"></span><span>    </span><span class="annot"><span class="annottext">ParsecParser a -&gt; String -&gt; FieldLineStream -&gt; Either ParseError a
+forall a.
+ParsecParser a -&gt; String -&gt; FieldLineStream -&gt; Either ParseError a
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Parsec.html#runParsecParser/Distribution.Parsec.html#runParsecParser"><span class="hs-identifier hs-var">runParsecParser</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecParser a
+</span><a href="#local-6989586621679340331"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&lt;parsecToReadE&gt;&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; FieldLineStream
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Parsec.FieldLineStream.html#fieldLineStreamFromString/Distribution.Parsec.FieldLineStream.html#fieldLineStreamFromString"><span class="hs-identifier hs-var">fieldLineStreamFromString</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340332"><span class="hs-identifier hs-var">txt</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span id="local-6989586621679340293"><span class="annot"><a href="Distribution.ReadE.html#parsecToReadE"><span class="hs-identifier hs-type">parsecToReadE</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.ReadE.html#ErrorMsg"><span class="hs-identifier hs-type">ErrorMsg</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Parsec.html#ParsecParser/Distribution.Parsec.html#ParsecParser"><span class="hs-identifier hs-type">ParsecParser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679340293"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-type">ReadE</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679340293"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-50"></span><span id="parsecToReadE"><span class="annot"><span class="annottext">parsecToReadE :: forall a. (String -&gt; String) -&gt; ParsecParser a -&gt; ReadE a
+</span><a href="Distribution.ReadE.html#parsecToReadE"><span class="hs-identifier hs-var hs-var">parsecToReadE</span></a></span></span><span> </span><span id="local-6989586621679340337"><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679340337"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span id="local-6989586621679340338"><span class="annot"><span class="annottext">ParsecParser a
+</span><a href="#local-6989586621679340338"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String a) -&gt; ReadE a
+forall a. (String -&gt; Either String a) -&gt; ReadE a
+</span><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-var">ReadE</span></a></span><span> </span><span class="annot"><span class="annottext">((String -&gt; Either String a) -&gt; ReadE a)
+-&gt; (String -&gt; Either String a) -&gt; ReadE a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679340339"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340339"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-51"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParseError -&gt; String
+forall a b. a -&gt; b -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#const/GHC.Base.html#const"><span class="hs-identifier hs-var">const</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; ParseError -&gt; String) -&gt; String -&gt; ParseError -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679340337"><span class="hs-identifier hs-var">err</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340339"><span class="hs-identifier hs-var">txt</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(ParseError -&gt; String) -&gt; Either ParseError a -&gt; Either String a
+forall a b c. (a -&gt; b) -&gt; Either a c -&gt; Either b c
+forall (p :: * -&gt; * -&gt; *) a b c.
+Bifunctor p =&gt;
+(a -&gt; b) -&gt; p a c -&gt; p b c
+</span><a href="../../base-4.18.2.0/src/Data.Bifunctor.html#first/Data.Bifunctor.html#first"><span class="hs-operator hs-var">`Bi.first`</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecParser a -&gt; String -&gt; Either ParseError a
+forall a. ParsecParser a -&gt; String -&gt; Either ParseError a
+</span><a href="Distribution.ReadE.html#runParsecFromString"><span class="hs-identifier hs-var">runParsecFromString</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecParser a
+</span><a href="#local-6989586621679340338"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340339"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span id="local-6989586621679340300"><span class="annot"><a href="Distribution.ReadE.html#parsecToReadEErr"><span class="hs-identifier hs-type">parsecToReadEErr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../parsec-3.1.16.1/src/Text.Parsec.Error.html#ParseError/Text.Parsec.Error.html#ParseError"><span class="hs-identifier hs-type">Parsec.ParseError</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.ReadE.html#ErrorMsg"><span class="hs-identifier hs-type">ErrorMsg</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Parsec.html#ParsecParser/Distribution.Parsec.html#ParsecParser"><span class="hs-identifier hs-type">ParsecParser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679340300"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-type">ReadE</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679340300"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-54"></span><span id="parsecToReadEErr"><span class="annot"><span class="annottext">parsecToReadEErr :: forall a. (ParseError -&gt; String) -&gt; ParsecParser a -&gt; ReadE a
+</span><a href="Distribution.ReadE.html#parsecToReadEErr"><span class="hs-identifier hs-var hs-var">parsecToReadEErr</span></a></span></span><span> </span><span id="local-6989586621679340341"><span class="annot"><span class="annottext">ParseError -&gt; String
+</span><a href="#local-6989586621679340341"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span id="local-6989586621679340342"><span class="annot"><span class="annottext">ParsecParser a
+</span><a href="#local-6989586621679340342"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String a) -&gt; ReadE a
+forall a. (String -&gt; Either String a) -&gt; ReadE a
+</span><a href="Distribution.ReadE.html#ReadE"><span class="hs-identifier hs-var">ReadE</span></a></span><span> </span><span class="annot"><span class="annottext">((String -&gt; Either String a) -&gt; ReadE a)
+-&gt; (String -&gt; Either String a) -&gt; ReadE a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-55"></span><span>    </span><span class="annot"><span class="annottext">(ParseError -&gt; String) -&gt; Either ParseError a -&gt; Either String a
+forall a b c. (a -&gt; b) -&gt; Either a c -&gt; Either b c
+forall (p :: * -&gt; * -&gt; *) a b c.
+Bifunctor p =&gt;
+(a -&gt; b) -&gt; p a c -&gt; p b c
+</span><a href="../../base-4.18.2.0/src/Data.Bifunctor.html#first/Data.Bifunctor.html#first"><span class="hs-identifier hs-var">Bi.first</span></a></span><span> </span><span class="annot"><span class="annottext">ParseError -&gt; String
+</span><a href="#local-6989586621679340341"><span class="hs-identifier hs-var">err</span></a></span><span> </span><span class="annot"><span class="annottext">(Either ParseError a -&gt; Either String a)
+-&gt; (String -&gt; Either ParseError a) -&gt; String -&gt; Either String a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecParser a -&gt; String -&gt; Either ParseError a
+forall a. ParsecParser a -&gt; String -&gt; Either ParseError a
+</span><a href="Distribution.ReadE.html#runParsecFromString"><span class="hs-identifier hs-var">runParsecFromString</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecParser a
+</span><a href="#local-6989586621679340342"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- Show only unexpected error messages</span><span>
+</span><span id="line-58"></span><span class="annot"><a href="Distribution.ReadE.html#unexpectMsgString"><span class="hs-identifier hs-type">unexpectMsgString</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../parsec-3.1.16.1/src/Text.Parsec.Error.html#ParseError/Text.Parsec.Error.html#ParseError"><span class="hs-identifier hs-type">Parsec.ParseError</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-59"></span><span id="unexpectMsgString"><span class="annot"><span class="annottext">unexpectMsgString :: ParseError -&gt; String
+</span><a href="Distribution.ReadE.html#unexpectMsgString"><span class="hs-identifier hs-var hs-var">unexpectMsgString</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#unlines/Data.OldList.html#unlines"><span class="hs-identifier hs-var">unlines</span></a></span><span>
+</span><span id="line-60"></span><span>   </span><span class="annot"><span class="annottext">([String] -&gt; String)
+-&gt; (ParseError -&gt; [String]) -&gt; ParseError -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">(Message -&gt; String) -&gt; [Message] -&gt; [String]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">Message -&gt; String
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Error.html#messageString/Text.Parsec.Error.html#messageString"><span class="hs-identifier hs-var">Parsec.messageString</span></a></span><span>
+</span><span id="line-61"></span><span>   </span><span class="annot"><span class="annottext">([Message] -&gt; [String])
+-&gt; (ParseError -&gt; [Message]) -&gt; ParseError -&gt; [String]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">(Message -&gt; Bool) -&gt; [Message] -&gt; [Message]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.List.html#filter/GHC.List.html#filter"><span class="hs-identifier hs-var">filter</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span> </span><span class="hs-special">{</span><span> </span><span class="annot"><a href="../../parsec-3.1.16.1/src/Text.Parsec.Error.html#UnExpect/Text.Parsec.Error.html#UnExpect"><span class="hs-identifier hs-type">Parsec.UnExpect</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">Message
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="hs-special">}</span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span>   </span><span class="annot"><span class="annottext">([Message] -&gt; [Message])
+-&gt; (ParseError -&gt; [Message]) -&gt; ParseError -&gt; [Message]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">ParseError -&gt; [Message]
+</span><a href="../../parsec-3.1.16.1/src/Text.Parsec.Error.html#errorMessages/Text.Parsec.Error.html#errorMessages"><span class="hs-identifier hs-var">Parsec.errorMessages</span></a></span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span></pre></body></html>

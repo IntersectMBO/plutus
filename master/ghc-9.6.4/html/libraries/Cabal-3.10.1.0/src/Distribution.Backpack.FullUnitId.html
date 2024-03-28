@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Backpack.FullUnitId</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-3"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#FullUnitId"><span class="hs-identifier">FullUnitId</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-4"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#FullDb"><span class="hs-identifier">FullDb</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-5"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#expandOpenUnitId"><span class="hs-identifier">expandOpenUnitId</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#expandUnitId"><span class="hs-identifier">expandUnitId</span></a></span><span>
+</span><span id="line-7"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Backpack.html#/Distribution.Backpack.html"><span class="hs-identifier">Distribution.Backpack</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#/Distribution.Types.ComponentId.html"><span class="hs-identifier">Distribution.Types.ComponentId</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Unlike OpenUnitId, which could direct to a UnitId.</span><span>
+</span><span id="line-14"></span><span class="hs-keyword">data</span><span> </span><span id="FullUnitId"><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#FullUnitId"><span class="hs-identifier hs-var">FullUnitId</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="FullUnitId"><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#FullUnitId"><span class="hs-identifier hs-var">FullUnitId</span></a></span></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Backpack.html#OpenModuleSubst/Distribution.Backpack.html#OpenModuleSubst"><span class="hs-identifier hs-type">OpenModuleSubst</span></a></span><span>
+</span><span id="line-15"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679338004"><span id="local-6989586621679338014"><span id="local-6989586621679338018"><span class="annot"><span class="annottext">Int -&gt; FullUnitId -&gt; ShowS
+[FullUnitId] -&gt; ShowS
+FullUnitId -&gt; String
+(Int -&gt; FullUnitId -&gt; ShowS)
+-&gt; (FullUnitId -&gt; String)
+-&gt; ([FullUnitId] -&gt; ShowS)
+-&gt; Show FullUnitId
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; FullUnitId -&gt; ShowS
+showsPrec :: Int -&gt; FullUnitId -&gt; ShowS
+$cshow :: FullUnitId -&gt; String
+show :: FullUnitId -&gt; String
+$cshowList :: [FullUnitId] -&gt; ShowS
+showList :: [FullUnitId] -&gt; ShowS
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679338024"><span id="local-6989586621679338026"><span class="annot"><span class="annottext">(forall x. FullUnitId -&gt; Rep FullUnitId x)
+-&gt; (forall x. Rep FullUnitId x -&gt; FullUnitId) -&gt; Generic FullUnitId
+forall x. Rep FullUnitId x -&gt; FullUnitId
+forall x. FullUnitId -&gt; Rep FullUnitId x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. FullUnitId -&gt; Rep FullUnitId x
+from :: forall x. FullUnitId -&gt; Rep FullUnitId x
+$cto :: forall x. Rep FullUnitId x -&gt; FullUnitId
+to :: forall x. Rep FullUnitId x -&gt; FullUnitId
+</span><a href="../../base-4.18.2.0/src/GHC.Generics.html#Generic/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></a></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">type</span><span> </span><span id="FullDb"><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#FullDb"><span class="hs-identifier hs-var">FullDb</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#DefUnitId/Distribution.Types.UnitId.html#DefUnitId"><span class="hs-identifier hs-type">DefUnitId</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#FullUnitId"><span class="hs-identifier hs-type">FullUnitId</span></a></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#expandOpenUnitId"><span class="hs-identifier hs-type">expandOpenUnitId</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#FullDb"><span class="hs-identifier hs-type">FullDb</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Backpack.html#OpenUnitId/Distribution.Backpack.html#OpenUnitId"><span class="hs-identifier hs-type">OpenUnitId</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#FullUnitId"><span class="hs-identifier hs-type">FullUnitId</span></a></span><span>
+</span><span id="line-20"></span><span id="expandOpenUnitId"><span class="annot"><span class="annottext">expandOpenUnitId :: FullDb -&gt; OpenUnitId -&gt; FullUnitId
+</span><a href="Distribution.Backpack.FullUnitId.html#expandOpenUnitId"><span class="hs-identifier hs-var hs-var">expandOpenUnitId</span></a></span></span><span> </span><span id="local-6989586621679338029"><span class="annot"><span class="annottext">FullDb
+</span><a href="#local-6989586621679338029"><span class="hs-identifier hs-var">_db</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Backpack.html#IndefFullUnitId/Distribution.Backpack.html#IndefFullUnitId"><span class="hs-identifier hs-type">IndefFullUnitId</span></a></span><span> </span><span id="local-6989586621679338031"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679338031"><span class="hs-identifier hs-var">cid</span></a></span></span><span> </span><span id="local-6989586621679338032"><span class="annot"><span class="annottext">OpenModuleSubst
+</span><a href="#local-6989586621679338032"><span class="hs-identifier hs-var">subst</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ComponentId -&gt; OpenModuleSubst -&gt; FullUnitId
+</span><a href="Distribution.Backpack.FullUnitId.html#FullUnitId"><span class="hs-identifier hs-var">FullUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679338031"><span class="hs-identifier hs-var">cid</span></a></span><span> </span><span class="annot"><span class="annottext">OpenModuleSubst
+</span><a href="#local-6989586621679338032"><span class="hs-identifier hs-var">subst</span></a></span><span>
+</span><span id="line-22"></span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#expandOpenUnitId"><span class="hs-identifier hs-var">expandOpenUnitId</span></a></span><span> </span><span id="local-6989586621679338033"><span class="annot"><span class="annottext">FullDb
+</span><a href="#local-6989586621679338033"><span class="hs-identifier hs-var">db</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Backpack.html#DefiniteUnitId/Distribution.Backpack.html#DefiniteUnitId"><span class="hs-identifier hs-type">DefiniteUnitId</span></a></span><span> </span><span id="local-6989586621679338035"><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679338035"><span class="hs-identifier hs-var">uid</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FullDb -&gt; FullDb
+</span><a href="Distribution.Backpack.FullUnitId.html#expandUnitId"><span class="hs-identifier hs-var">expandUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">FullDb
+</span><a href="#local-6989586621679338033"><span class="hs-identifier hs-var">db</span></a></span><span> </span><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679338035"><span class="hs-identifier hs-var">uid</span></a></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#expandUnitId"><span class="hs-identifier hs-type">expandUnitId</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#FullDb"><span class="hs-identifier hs-type">FullDb</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#DefUnitId/Distribution.Types.UnitId.html#DefUnitId"><span class="hs-identifier hs-type">DefUnitId</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#FullUnitId"><span class="hs-identifier hs-type">FullUnitId</span></a></span><span>
+</span><span id="line-26"></span><span id="expandUnitId"><span class="annot"><span class="annottext">expandUnitId :: FullDb -&gt; FullDb
+</span><a href="Distribution.Backpack.FullUnitId.html#expandUnitId"><span class="hs-identifier hs-var hs-var">expandUnitId</span></a></span></span><span> </span><span id="local-6989586621679338036"><span class="annot"><span class="annottext">FullDb
+</span><a href="#local-6989586621679338036"><span class="hs-identifier hs-var">db</span></a></span></span><span> </span><span id="local-6989586621679338037"><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679338037"><span class="hs-identifier hs-var">uid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FullDb
+</span><a href="#local-6989586621679338036"><span class="hs-identifier hs-var">db</span></a></span><span> </span><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679338037"><span class="hs-identifier hs-var">uid</span></a></span><span>
+</span><span id="line-27"></span></pre></body></html>

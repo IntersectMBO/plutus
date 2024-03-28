@@ -1,0 +1,519 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Module      :  Distribution.Make</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Copyright   :  Martin Sj&amp;#xF6;gren 2004</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- License     :  BSD3</span><span>
+</span><span id="line-9"></span><span class="hs-comment">--</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Maintainer  :  cabal-devel@haskell.org</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- This is an alternative build system that delegates everything to the @make@</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- program. All the commands just end up calling @make@ with appropriate</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- arguments. The intention was to allow preexisting packages that used</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- makefiles to be wrapped into Cabal packages. In practice essentially all</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- such packages were converted over to the \&quot;Simple\&quot; build system instead.</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- Consequently this module is not used much and it certainly only sees cursory</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- maintenance and no testing. Perhaps at some point we should stop pretending</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- that it works.</span><span>
+</span><span id="line-21"></span><span class="hs-comment">--</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- Uses the parsed command-line from &quot;Distribution.Simple.Setup&quot; in order to build</span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- Haskell tools using a back-end build system based on make. Obviously we</span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- assume that there is a configure script, and that after the ConfigCmd has</span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- been run, there is a Makefile. Further assumptions:</span><span>
+</span><span id="line-26"></span><span class="hs-comment">--</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- [ConfigCmd] We assume the configure script accepts</span><span>
+</span><span id="line-28"></span><span class="hs-comment">--              @--with-hc@,</span><span>
+</span><span id="line-29"></span><span class="hs-comment">--              @--with-hc-pkg@,</span><span>
+</span><span id="line-30"></span><span class="hs-comment">--              @--prefix@,</span><span>
+</span><span id="line-31"></span><span class="hs-comment">--              @--bindir@,</span><span>
+</span><span id="line-32"></span><span class="hs-comment">--              @--libdir@,</span><span>
+</span><span id="line-33"></span><span class="hs-comment">--              @--libexecdir@,</span><span>
+</span><span id="line-34"></span><span class="hs-comment">--              @--datadir@.</span><span>
+</span><span id="line-35"></span><span class="hs-comment">--</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- [BuildCmd] We assume that the default Makefile target will build everything.</span><span>
+</span><span id="line-37"></span><span class="hs-comment">--</span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- [InstallCmd] We assume there is an @install@ target. Note that we assume that</span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- this does *not* register the package!</span><span>
+</span><span id="line-40"></span><span class="hs-comment">--</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- [CopyCmd]    We assume there is a @copy@ target, and a variable @$(destdir)@.</span><span>
+</span><span id="line-42"></span><span class="hs-comment">--              The @copy@ target should probably just invoke @make install@</span><span>
+</span><span id="line-43"></span><span class="hs-comment">--              recursively (e.g. @$(MAKE) install prefix=$(destdir)\/$(prefix)</span><span>
+</span><span id="line-44"></span><span class="hs-comment">--              bindir=$(destdir)\/$(bindir)@. The reason we can\'t invoke @make</span><span>
+</span><span id="line-45"></span><span class="hs-comment">--              install@ directly here is that we don\'t know the value of @$(prefix)@.</span><span>
+</span><span id="line-46"></span><span class="hs-comment">--</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- [SDistCmd] We assume there is a @dist@ target.</span><span>
+</span><span id="line-48"></span><span class="hs-comment">--</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- [RegisterCmd] We assume there is a @register@ target and a variable @$(user)@.</span><span>
+</span><span id="line-50"></span><span class="hs-comment">--</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- [UnregisterCmd] We assume there is an @unregister@ target.</span><span>
+</span><span id="line-52"></span><span class="hs-comment">--</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- [HaddockCmd] We assume there is a @docs@ or @doc@ target.</span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="hs-comment">--                      copy :</span><span>
+</span><span id="line-57"></span><span class="hs-comment">--                              $(MAKE) install prefix=$(destdir)/$(prefix) \</span><span>
+</span><span id="line-58"></span><span class="hs-comment">--                                              bindir=$(destdir)/$(bindir) \</span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Make</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-61"></span><span>        </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#/Distribution.Package.html"><span class="hs-identifier">Distribution.Package</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-62"></span><span>        </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.License.html#License/Distribution.License.html#License"><span class="hs-identifier">License</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Version.html#Version/Distribution.Types.Version.html#Version"><span class="hs-identifier">Version</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-63"></span><span>        </span><span class="annot"><a href="Distribution.Make.html#defaultMain"><span class="hs-identifier">defaultMain</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Make.html#defaultMainArgs"><span class="hs-identifier">defaultMainArgs</span></a></span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-67"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- local</span><span>
+</span><span id="line-70"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#/Distribution.Package.html"><span class="hs-identifier">Distribution.Package</span></a></span><span>
+</span><span id="line-71"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Program.html"><span class="hs-identifier">Distribution.Simple.Program</span></a></span><span>
+</span><span id="line-72"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html"><span class="hs-identifier">Distribution.Simple.Setup</span></a></span><span>
+</span><span id="line-73"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Command.html"><span class="hs-identifier">Distribution.Simple.Command</span></a></span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html"><span class="hs-identifier">Distribution.Simple.Utils</span></a></span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.License.html#/Distribution.License.html"><span class="hs-identifier">Distribution.License</span></a></span><span>
+</span><span id="line-78"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Version.html#/Distribution.Version.html"><span class="hs-identifier">Distribution.Version</span></a></span><span>
+</span><span id="line-79"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#/Distribution.Pretty.html"><span class="hs-identifier">Distribution.Pretty</span></a></span><span>
+</span><span id="line-80"></span><span>
+</span><span id="line-81"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/System.Environment.html#/System.Environment.html"><span class="hs-identifier">System.Environment</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/System.Environment.html#getArgs/System.Environment.html#getArgs"><span class="hs-identifier">getArgs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/System.Environment.html#getProgName/System.Environment.html#getProgName"><span class="hs-identifier">getProgName</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="annot"><a href="Distribution.Make.html#defaultMain"><span class="hs-identifier hs-type">defaultMain</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-84"></span><span id="defaultMain"><span class="annot"><span class="annottext">defaultMain :: IO ()
+</span><a href="Distribution.Make.html#defaultMain"><span class="hs-identifier hs-var hs-var">defaultMain</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO [String]
+</span><a href="../../base-4.18.2.0/src/System.Environment.html#getArgs/System.Environment.html#getArgs"><span class="hs-identifier hs-var">getArgs</span></a></span><span> </span><span class="annot"><span class="annottext">IO [String] -&gt; ([String] -&gt; IO ()) -&gt; IO ()
+forall a b. IO a -&gt; (a -&gt; IO b) -&gt; IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3E%3E%3D/GHC.Base.html#%3E%3E%3D"><span class="hs-operator hs-var">&gt;&gt;=</span></a></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="Distribution.Make.html#defaultMainArgs"><span class="hs-identifier hs-var">defaultMainArgs</span></a></span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="annot"><a href="Distribution.Make.html#defaultMainArgs"><span class="hs-identifier hs-type">defaultMainArgs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-87"></span><span id="defaultMainArgs"><span class="annot"><span class="annottext">defaultMainArgs :: [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#defaultMainArgs"><span class="hs-identifier hs-var hs-var">defaultMainArgs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="Distribution.Make.html#defaultMainHelper"><span class="hs-identifier hs-var">defaultMainHelper</span></a></span><span>
+</span><span id="line-88"></span><span>
+</span><span id="line-89"></span><span class="annot"><a href="Distribution.Make.html#defaultMainHelper"><span class="hs-identifier hs-type">defaultMainHelper</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span id="defaultMainHelper"><span class="annot"><span class="annottext">defaultMainHelper :: [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#defaultMainHelper"><span class="hs-identifier hs-var hs-var">defaultMainHelper</span></a></span></span><span> </span><span id="local-6989586621679379446"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379446"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-91"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">CommandUI GlobalFlags
+-&gt; [Command (IO ())]
+-&gt; [String]
+-&gt; CommandParse (GlobalFlags, CommandParse (IO ()))
+forall a action.
+CommandUI a
+-&gt; [Command action]
+-&gt; [String]
+-&gt; CommandParse (a, CommandParse action)
+</span><a href="Distribution.Simple.Command.html#commandsRun"><span class="hs-identifier hs-var">commandsRun</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Command (IO ())] -&gt; CommandUI GlobalFlags
+forall action. [Command action] -&gt; CommandUI GlobalFlags
+</span><a href="Distribution.Simple.Setup.html#globalCommand"><span class="hs-identifier hs-var">globalCommand</span></a></span><span> </span><span class="annot"><span class="annottext">[Command (IO ())]
+</span><a href="#local-6989586621679379449"><span class="hs-identifier hs-var">commands</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Command (IO ())]
+</span><a href="#local-6989586621679379449"><span class="hs-identifier hs-var">commands</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379446"><span class="hs-identifier hs-var">args</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-92"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Command.html#CommandHelp"><span class="hs-identifier hs-type">CommandHelp</span></a></span><span>   </span><span id="local-6989586621679379451"><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679379451"><span class="hs-identifier hs-var">help</span></a></span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; IO ()
+</span><a href="#local-6989586621679379452"><span class="hs-identifier hs-var">printHelp</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679379451"><span class="hs-identifier hs-var">help</span></a></span><span>
+</span><span id="line-93"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Command.html#CommandList"><span class="hs-identifier hs-type">CommandList</span></a></span><span>   </span><span id="local-6989586621679379454"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379454"><span class="hs-identifier hs-var">opts</span></a></span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="#local-6989586621679379455"><span class="hs-identifier hs-var">printOptionsList</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379454"><span class="hs-identifier hs-var">opts</span></a></span><span>
+</span><span id="line-94"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Command.html#CommandErrors"><span class="hs-identifier hs-type">CommandErrors</span></a></span><span> </span><span id="local-6989586621679379457"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379457"><span class="hs-identifier hs-var">errs</span></a></span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+forall {b}. [String] -&gt; IO b
+</span><a href="#local-6989586621679379458"><span class="hs-identifier hs-var">printErrors</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379457"><span class="hs-identifier hs-var">errs</span></a></span><span>
+</span><span id="line-95"></span><span>    </span><span class="annot"><a href="Distribution.Simple.Command.html#CommandReadyToGo"><span class="hs-identifier hs-type">CommandReadyToGo</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679379460"><span class="annot"><span class="annottext">GlobalFlags
+</span><a href="#local-6989586621679379460"><span class="hs-identifier hs-var">flags</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679379461"><span class="annot"><span class="annottext">CommandParse (IO ())
+</span><a href="#local-6989586621679379461"><span class="hs-identifier hs-var">commandParse</span></a></span></span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-96"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">CommandParse (IO ())
+</span><a href="#local-6989586621679379461"><span class="hs-identifier hs-var">commandParse</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-97"></span><span>        </span><span class="annot"><span class="annottext">CommandParse (IO ())
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Flag Bool -&gt; Bool
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GlobalFlags -&gt; Flag Bool
+</span><a href="Distribution.Simple.Setup.html#globalVersion"><span class="hs-identifier hs-var">globalVersion</span></a></span><span> </span><span class="annot"><span class="annottext">GlobalFlags
+</span><a href="#local-6989586621679379460"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO ()
+</span><a href="#local-6989586621679379464"><span class="hs-identifier hs-var">printVersion</span></a></span><span>
+</span><span id="line-98"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Flag Bool -&gt; Bool
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GlobalFlags -&gt; Flag Bool
+</span><a href="Distribution.Simple.Setup.html#globalNumericVersion"><span class="hs-identifier hs-var">globalNumericVersion</span></a></span><span> </span><span class="annot"><span class="annottext">GlobalFlags
+</span><a href="#local-6989586621679379460"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO ()
+</span><a href="#local-6989586621679379466"><span class="hs-identifier hs-var">printNumericVersion</span></a></span><span>
+</span><span id="line-99"></span><span>        </span><span class="annot"><a href="Distribution.Simple.Command.html#CommandHelp"><span class="hs-identifier hs-type">CommandHelp</span></a></span><span>     </span><span id="local-6989586621679379467"><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679379467"><span class="hs-identifier hs-var">help</span></a></span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; IO ()
+</span><a href="#local-6989586621679379452"><span class="hs-identifier hs-var">printHelp</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679379467"><span class="hs-identifier hs-var">help</span></a></span><span>
+</span><span id="line-100"></span><span>        </span><span class="annot"><a href="Distribution.Simple.Command.html#CommandList"><span class="hs-identifier hs-type">CommandList</span></a></span><span>     </span><span id="local-6989586621679379468"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379468"><span class="hs-identifier hs-var">opts</span></a></span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="#local-6989586621679379455"><span class="hs-identifier hs-var">printOptionsList</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379468"><span class="hs-identifier hs-var">opts</span></a></span><span>
+</span><span id="line-101"></span><span>        </span><span class="annot"><a href="Distribution.Simple.Command.html#CommandErrors"><span class="hs-identifier hs-type">CommandErrors</span></a></span><span>   </span><span id="local-6989586621679379469"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379469"><span class="hs-identifier hs-var">errs</span></a></span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+forall {b}. [String] -&gt; IO b
+</span><a href="#local-6989586621679379458"><span class="hs-identifier hs-var">printErrors</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379469"><span class="hs-identifier hs-var">errs</span></a></span><span>
+</span><span id="line-102"></span><span>        </span><span class="annot"><a href="Distribution.Simple.Command.html#CommandReadyToGo"><span class="hs-identifier hs-type">CommandReadyToGo</span></a></span><span> </span><span id="local-6989586621679379470"><span class="annot"><span class="annottext">IO ()
+</span><a href="#local-6989586621679379470"><span class="hs-identifier hs-var">action</span></a></span></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO ()
+</span><a href="#local-6989586621679379470"><span class="hs-identifier hs-var">action</span></a></span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-105"></span><span>    </span><span id="local-6989586621679379452"><span class="annot"><span class="annottext">printHelp :: (String -&gt; String) -&gt; IO ()
+</span><a href="#local-6989586621679379452"><span class="hs-identifier hs-var hs-var">printHelp</span></a></span></span><span> </span><span id="local-6989586621679379472"><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679379472"><span class="hs-identifier hs-var">help</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO String
+</span><a href="../../base-4.18.2.0/src/System.Environment.html#getProgName/System.Environment.html#getProgName"><span class="hs-identifier hs-var">getProgName</span></a></span><span> </span><span class="annot"><span class="annottext">IO String -&gt; (String -&gt; IO ()) -&gt; IO ()
+forall a b. IO a -&gt; (a -&gt; IO b) -&gt; IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3E%3E%3D/GHC.Base.html#%3E%3E%3D"><span class="hs-operator hs-var">&gt;&gt;=</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/System.IO.html#putStr/System.IO.html#putStr"><span class="hs-identifier hs-var">putStr</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO ()) -&gt; (String -&gt; String) -&gt; String -&gt; IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="#local-6989586621679379472"><span class="hs-identifier hs-var">help</span></a></span><span>
+</span><span id="line-106"></span><span>    </span><span id="local-6989586621679379455"><span class="annot"><span class="annottext">printOptionsList :: [String] -&gt; IO ()
+</span><a href="#local-6989586621679379455"><span class="hs-identifier hs-var hs-var">printOptionsList</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/System.IO.html#putStr/System.IO.html#putStr"><span class="hs-identifier hs-var">putStr</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO ()) -&gt; ([String] -&gt; String) -&gt; [String] -&gt; IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#unlines/Data.OldList.html#unlines"><span class="hs-identifier hs-var">unlines</span></a></span><span>
+</span><span id="line-107"></span><span>    </span><span id="local-6989586621679379458"><span class="annot"><span class="annottext">printErrors :: [String] -&gt; IO b
+</span><a href="#local-6989586621679379458"><span class="hs-identifier hs-var hs-var">printErrors</span></a></span></span><span> </span><span id="local-6989586621679379477"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379477"><span class="hs-identifier hs-var">errs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-108"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/System.IO.html#putStr/System.IO.html#putStr"><span class="hs-identifier hs-var">putStr</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; String
+forall a. [a] -&gt; [[a]] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#intercalate/Data.OldList.html#intercalate"><span class="hs-identifier hs-var">intercalate</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379477"><span class="hs-identifier hs-var">errs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-109"></span><span>      </span><span class="annot"><span class="annottext">ExitCode -&gt; IO b
+forall a. ExitCode -&gt; IO a
+</span><a href="../../base-4.18.2.0/src/System.Exit.html#exitWith/System.Exit.html#exitWith"><span class="hs-identifier hs-var">exitWith</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; ExitCode
+</span><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#ExitFailure/GHC.IO.Exception.html#ExitFailure"><span class="hs-identifier hs-var">ExitFailure</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
+</span><span id="line-110"></span><span>    </span><span id="local-6989586621679379466"><span class="annot"><span class="annottext">printNumericVersion :: IO ()
+</span><a href="#local-6989586621679379466"><span class="hs-identifier hs-var hs-var">printNumericVersion</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/System.IO.html#putStrLn/System.IO.html#putStrLn"><span class="hs-identifier hs-var">putStrLn</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO ()) -&gt; String -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Version -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="Distribution.Simple.Utils.html#cabalVersion"><span class="hs-identifier hs-var">cabalVersion</span></a></span><span>
+</span><span id="line-111"></span><span>    </span><span id="local-6989586621679379464"><span class="annot"><span class="annottext">printVersion :: IO ()
+</span><a href="#local-6989586621679379464"><span class="hs-identifier hs-var hs-var">printVersion</span></a></span></span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/System.IO.html#putStrLn/System.IO.html#putStrLn"><span class="hs-identifier hs-var">putStrLn</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; IO ()) -&gt; String -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Cabal library version &quot;</span></span><span>
+</span><span id="line-112"></span><span>                                  </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">Version -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#prettyShow/Distribution.Pretty.html#prettyShow"><span class="hs-identifier hs-var">prettyShow</span></a></span><span> </span><span class="annot"><span class="annottext">Version
+</span><a href="Distribution.Simple.Utils.html#cabalVersion"><span class="hs-identifier hs-var">cabalVersion</span></a></span><span>
+</span><span id="line-113"></span><span>
+</span><span id="line-114"></span><span>    </span><span id="local-6989586621679379487"><span class="annot"><span class="annottext">progs :: ProgramDb
+</span><a href="#local-6989586621679379487"><span class="hs-identifier hs-var hs-var">progs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ProgramDb
+</span><a href="Distribution.Simple.Program.Db.html#defaultProgramDb"><span class="hs-identifier hs-var">defaultProgramDb</span></a></span><span>
+</span><span id="line-115"></span><span>    </span><span id="local-6989586621679379449"><span class="annot"><span class="annottext">commands :: [Command (IO ())]
+</span><a href="#local-6989586621679379449"><span class="hs-identifier hs-var hs-var">commands</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-116"></span><span>      </span><span class="hs-special">[</span><span class="annot"><span class="annottext">ProgramDb -&gt; CommandUI ConfigFlags
+</span><a href="Distribution.Simple.Setup.html#configureCommand"><span class="hs-identifier hs-var">configureCommand</span></a></span><span> </span><span class="annot"><span class="annottext">ProgramDb
+</span><a href="#local-6989586621679379487"><span class="hs-identifier hs-var">progs</span></a></span><span> </span><span class="annot"><span class="annottext">CommandUI ConfigFlags
+-&gt; (ConfigFlags -&gt; [String] -&gt; IO ()) -&gt; Command (IO ())
+forall flags action.
+CommandUI flags -&gt; (flags -&gt; [String] -&gt; action) -&gt; Command action
+</span><a href="Distribution.Simple.Command.html#commandAddAction"><span class="hs-operator hs-var">`commandAddAction`</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#configureAction"><span class="hs-identifier hs-var">configureAction</span></a></span><span>
+</span><span id="line-117"></span><span>      </span><span class="hs-special">,</span><span class="annot"><span class="annottext">ProgramDb -&gt; CommandUI BuildFlags
+</span><a href="Distribution.Simple.Setup.html#buildCommand"><span class="hs-identifier hs-var">buildCommand</span></a></span><span>     </span><span class="annot"><span class="annottext">ProgramDb
+</span><a href="#local-6989586621679379487"><span class="hs-identifier hs-var">progs</span></a></span><span> </span><span class="annot"><span class="annottext">CommandUI BuildFlags
+-&gt; (BuildFlags -&gt; [String] -&gt; IO ()) -&gt; Command (IO ())
+forall flags action.
+CommandUI flags -&gt; (flags -&gt; [String] -&gt; action) -&gt; Command action
+</span><a href="Distribution.Simple.Command.html#commandAddAction"><span class="hs-operator hs-var">`commandAddAction`</span></a></span><span> </span><span class="annot"><span class="annottext">BuildFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#buildAction"><span class="hs-identifier hs-var">buildAction</span></a></span><span>
+</span><span id="line-118"></span><span>      </span><span class="hs-special">,</span><span class="annot"><span class="annottext">CommandUI InstallFlags
+</span><a href="Distribution.Simple.Setup.html#installCommand"><span class="hs-identifier hs-var">installCommand</span></a></span><span>         </span><span class="annot"><span class="annottext">CommandUI InstallFlags
+-&gt; (InstallFlags -&gt; [String] -&gt; IO ()) -&gt; Command (IO ())
+forall flags action.
+CommandUI flags -&gt; (flags -&gt; [String] -&gt; action) -&gt; Command action
+</span><a href="Distribution.Simple.Command.html#commandAddAction"><span class="hs-operator hs-var">`commandAddAction`</span></a></span><span> </span><span class="annot"><span class="annottext">InstallFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#installAction"><span class="hs-identifier hs-var">installAction</span></a></span><span>
+</span><span id="line-119"></span><span>      </span><span class="hs-special">,</span><span class="annot"><span class="annottext">CommandUI CopyFlags
+</span><a href="Distribution.Simple.Setup.html#copyCommand"><span class="hs-identifier hs-var">copyCommand</span></a></span><span>            </span><span class="annot"><span class="annottext">CommandUI CopyFlags
+-&gt; (CopyFlags -&gt; [String] -&gt; IO ()) -&gt; Command (IO ())
+forall flags action.
+CommandUI flags -&gt; (flags -&gt; [String] -&gt; action) -&gt; Command action
+</span><a href="Distribution.Simple.Command.html#commandAddAction"><span class="hs-operator hs-var">`commandAddAction`</span></a></span><span> </span><span class="annot"><span class="annottext">CopyFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#copyAction"><span class="hs-identifier hs-var">copyAction</span></a></span><span>
+</span><span id="line-120"></span><span>      </span><span class="hs-special">,</span><span class="annot"><span class="annottext">CommandUI HaddockFlags
+</span><a href="Distribution.Simple.Setup.html#haddockCommand"><span class="hs-identifier hs-var">haddockCommand</span></a></span><span>         </span><span class="annot"><span class="annottext">CommandUI HaddockFlags
+-&gt; (HaddockFlags -&gt; [String] -&gt; IO ()) -&gt; Command (IO ())
+forall flags action.
+CommandUI flags -&gt; (flags -&gt; [String] -&gt; action) -&gt; Command action
+</span><a href="Distribution.Simple.Command.html#commandAddAction"><span class="hs-operator hs-var">`commandAddAction`</span></a></span><span> </span><span class="annot"><span class="annottext">HaddockFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#haddockAction"><span class="hs-identifier hs-var">haddockAction</span></a></span><span>
+</span><span id="line-121"></span><span>      </span><span class="hs-special">,</span><span class="annot"><span class="annottext">CommandUI CleanFlags
+</span><a href="Distribution.Simple.Setup.html#cleanCommand"><span class="hs-identifier hs-var">cleanCommand</span></a></span><span>           </span><span class="annot"><span class="annottext">CommandUI CleanFlags
+-&gt; (CleanFlags -&gt; [String] -&gt; IO ()) -&gt; Command (IO ())
+forall flags action.
+CommandUI flags -&gt; (flags -&gt; [String] -&gt; action) -&gt; Command action
+</span><a href="Distribution.Simple.Command.html#commandAddAction"><span class="hs-operator hs-var">`commandAddAction`</span></a></span><span> </span><span class="annot"><span class="annottext">CleanFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#cleanAction"><span class="hs-identifier hs-var">cleanAction</span></a></span><span>
+</span><span id="line-122"></span><span>      </span><span class="hs-special">,</span><span class="annot"><span class="annottext">CommandUI SDistFlags
+</span><a href="Distribution.Simple.Setup.html#sdistCommand"><span class="hs-identifier hs-var">sdistCommand</span></a></span><span>           </span><span class="annot"><span class="annottext">CommandUI SDistFlags
+-&gt; (SDistFlags -&gt; [String] -&gt; IO ()) -&gt; Command (IO ())
+forall flags action.
+CommandUI flags -&gt; (flags -&gt; [String] -&gt; action) -&gt; Command action
+</span><a href="Distribution.Simple.Command.html#commandAddAction"><span class="hs-operator hs-var">`commandAddAction`</span></a></span><span> </span><span class="annot"><span class="annottext">SDistFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#sdistAction"><span class="hs-identifier hs-var">sdistAction</span></a></span><span>
+</span><span id="line-123"></span><span>      </span><span class="hs-special">,</span><span class="annot"><span class="annottext">CommandUI RegisterFlags
+</span><a href="Distribution.Simple.Setup.html#registerCommand"><span class="hs-identifier hs-var">registerCommand</span></a></span><span>        </span><span class="annot"><span class="annottext">CommandUI RegisterFlags
+-&gt; (RegisterFlags -&gt; [String] -&gt; IO ()) -&gt; Command (IO ())
+forall flags action.
+CommandUI flags -&gt; (flags -&gt; [String] -&gt; action) -&gt; Command action
+</span><a href="Distribution.Simple.Command.html#commandAddAction"><span class="hs-operator hs-var">`commandAddAction`</span></a></span><span> </span><span class="annot"><span class="annottext">RegisterFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#registerAction"><span class="hs-identifier hs-var">registerAction</span></a></span><span>
+</span><span id="line-124"></span><span>      </span><span class="hs-special">,</span><span class="annot"><span class="annottext">CommandUI RegisterFlags
+</span><a href="Distribution.Simple.Setup.html#unregisterCommand"><span class="hs-identifier hs-var">unregisterCommand</span></a></span><span>      </span><span class="annot"><span class="annottext">CommandUI RegisterFlags
+-&gt; (RegisterFlags -&gt; [String] -&gt; IO ()) -&gt; Command (IO ())
+forall flags action.
+CommandUI flags -&gt; (flags -&gt; [String] -&gt; action) -&gt; Command action
+</span><a href="Distribution.Simple.Command.html#commandAddAction"><span class="hs-operator hs-var">`commandAddAction`</span></a></span><span> </span><span class="annot"><span class="annottext">RegisterFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#unregisterAction"><span class="hs-identifier hs-var">unregisterAction</span></a></span><span>
+</span><span id="line-125"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span class="annot"><a href="Distribution.Make.html#configureAction"><span class="hs-identifier hs-type">configureAction</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html#ConfigFlags"><span class="hs-identifier hs-type">ConfigFlags</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-128"></span><span id="configureAction"><span class="annot"><span class="annottext">configureAction :: ConfigFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#configureAction"><span class="hs-identifier hs-var hs-var">configureAction</span></a></span></span><span> </span><span id="local-6989586621679379508"><span class="annot"><span class="annottext">ConfigFlags
+</span><a href="#local-6989586621679379508"><span class="hs-identifier hs-var">flags</span></a></span></span><span> </span><span id="local-6989586621679379509"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379509"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-129"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="Distribution.Simple.Command.html#noExtraFlags"><span class="hs-identifier hs-var">noExtraFlags</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379509"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-130"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679379513"><span class="annot"><span class="annottext">verbosity :: Verbosity
+</span><a href="#local-6989586621679379513"><span class="hs-identifier hs-var hs-var">verbosity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Flag Verbosity -&gt; Verbosity
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ConfigFlags -&gt; Flag Verbosity
+</span><a href="Distribution.Simple.Setup.html#configVerbosity"><span class="hs-identifier hs-var">configVerbosity</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigFlags
+</span><a href="#local-6989586621679379508"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-131"></span><span>  </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#rawSystemExit"><span class="hs-identifier hs-var">rawSystemExit</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679379513"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;sh&quot;</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; IO ()) -&gt; [String] -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-132"></span><span>    </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;configure&quot;</span></span><span>
+</span><span id="line-133"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; [String]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; ConfigFlags -&gt; [String]
+</span><a href="Distribution.Simple.Setup.html#configureArgs"><span class="hs-identifier hs-var">configureArgs</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679379517"><span class="hs-identifier hs-var">backwardsCompatHack</span></a></span><span> </span><span class="annot"><span class="annottext">ConfigFlags
+</span><a href="#local-6989586621679379508"><span class="hs-identifier hs-var">flags</span></a></span><span>
+</span><span id="line-134"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679379517"><span class="annot"><span class="annottext">backwardsCompatHack :: Bool
+</span><a href="#local-6989586621679379517"><span class="hs-identifier hs-var hs-var">backwardsCompatHack</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-135"></span><span>
+</span><span id="line-136"></span><span class="annot"><a href="Distribution.Make.html#copyAction"><span class="hs-identifier hs-type">copyAction</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html#CopyFlags"><span class="hs-identifier hs-type">CopyFlags</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-137"></span><span id="copyAction"><span class="annot"><span class="annottext">copyAction :: CopyFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#copyAction"><span class="hs-identifier hs-var hs-var">copyAction</span></a></span></span><span> </span><span id="local-6989586621679379518"><span class="annot"><span class="annottext">CopyFlags
+</span><a href="#local-6989586621679379518"><span class="hs-identifier hs-var">flags</span></a></span></span><span> </span><span id="local-6989586621679379519"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379519"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-138"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="Distribution.Simple.Command.html#noExtraFlags"><span class="hs-identifier hs-var">noExtraFlags</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379519"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-139"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679379524"><span class="annot"><span class="annottext">destArgs :: [String]
+</span><a href="#local-6989586621679379524"><span class="hs-identifier hs-var hs-var">destArgs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Flag CopyDest -&gt; CopyDest
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag CopyDest -&gt; CopyDest) -&gt; Flag CopyDest -&gt; CopyDest
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">CopyFlags -&gt; Flag CopyDest
+</span><a href="Distribution.Simple.Setup.html#copyDest"><span class="hs-identifier hs-var">copyDest</span></a></span><span> </span><span class="annot"><span class="annottext">CopyFlags
+</span><a href="#local-6989586621679379518"><span class="hs-identifier hs-var">flags</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-140"></span><span>        </span><span class="annot"><span class="annottext">CopyDest
+</span><a href="Distribution.Simple.InstallDirs.html#NoCopyDest"><span class="hs-identifier hs-var">NoCopyDest</span></a></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;install&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-141"></span><span>        </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#CopyTo"><span class="hs-identifier hs-type">CopyTo</span></a></span><span> </span><span id="local-6989586621679379528"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379528"><span class="hs-identifier hs-var">path</span></a></span></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;copy&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;destdir=&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679379528"><span class="hs-identifier hs-var">path</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-142"></span><span>        </span><span class="annot"><a href="Distribution.Simple.InstallDirs.html#CopyToDb"><span class="hs-identifier hs-type">CopyToDb</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+forall a. HasCallStack =&gt; String -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Err.html#error/GHC.Err.html#error"><span class="hs-identifier hs-var">error</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;CopyToDb not supported via Make&quot;</span></span><span>
+</span><span id="line-143"></span><span>
+</span><span id="line-144"></span><span>  </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#rawSystemExit"><span class="hs-identifier hs-var">rawSystemExit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Flag Verbosity -&gt; Verbosity
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag Verbosity -&gt; Verbosity) -&gt; Flag Verbosity -&gt; Verbosity
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">CopyFlags -&gt; Flag Verbosity
+</span><a href="Distribution.Simple.Setup.html#copyVerbosity"><span class="hs-identifier hs-var">copyVerbosity</span></a></span><span> </span><span class="annot"><span class="annottext">CopyFlags
+</span><a href="#local-6989586621679379518"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;make&quot;</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379524"><span class="hs-identifier hs-var">destArgs</span></a></span><span>
+</span><span id="line-145"></span><span>
+</span><span id="line-146"></span><span class="annot"><a href="Distribution.Make.html#installAction"><span class="hs-identifier hs-type">installAction</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html#InstallFlags"><span class="hs-identifier hs-type">InstallFlags</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-147"></span><span id="installAction"><span class="annot"><span class="annottext">installAction :: InstallFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#installAction"><span class="hs-identifier hs-var hs-var">installAction</span></a></span></span><span> </span><span id="local-6989586621679379532"><span class="annot"><span class="annottext">InstallFlags
+</span><a href="#local-6989586621679379532"><span class="hs-identifier hs-var">flags</span></a></span></span><span> </span><span id="local-6989586621679379533"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379533"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-148"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="Distribution.Simple.Command.html#noExtraFlags"><span class="hs-identifier hs-var">noExtraFlags</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379533"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-149"></span><span>  </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#rawSystemExit"><span class="hs-identifier hs-var">rawSystemExit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Flag Verbosity -&gt; Verbosity
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag Verbosity -&gt; Verbosity) -&gt; Flag Verbosity -&gt; Verbosity
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">InstallFlags -&gt; Flag Verbosity
+</span><a href="Distribution.Simple.Setup.html#installVerbosity"><span class="hs-identifier hs-var">installVerbosity</span></a></span><span> </span><span class="annot"><span class="annottext">InstallFlags
+</span><a href="#local-6989586621679379532"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;make&quot;</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;install&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-150"></span><span>  </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#rawSystemExit"><span class="hs-identifier hs-var">rawSystemExit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Flag Verbosity -&gt; Verbosity
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag Verbosity -&gt; Verbosity) -&gt; Flag Verbosity -&gt; Verbosity
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">InstallFlags -&gt; Flag Verbosity
+</span><a href="Distribution.Simple.Setup.html#installVerbosity"><span class="hs-identifier hs-var">installVerbosity</span></a></span><span> </span><span class="annot"><span class="annottext">InstallFlags
+</span><a href="#local-6989586621679379532"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;make&quot;</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;register&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-151"></span><span>
+</span><span id="line-152"></span><span class="annot"><a href="Distribution.Make.html#haddockAction"><span class="hs-identifier hs-type">haddockAction</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html#HaddockFlags"><span class="hs-identifier hs-type">HaddockFlags</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-153"></span><span id="haddockAction"><span class="annot"><span class="annottext">haddockAction :: HaddockFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#haddockAction"><span class="hs-identifier hs-var hs-var">haddockAction</span></a></span></span><span> </span><span id="local-6989586621679379535"><span class="annot"><span class="annottext">HaddockFlags
+</span><a href="#local-6989586621679379535"><span class="hs-identifier hs-var">flags</span></a></span></span><span> </span><span id="local-6989586621679379536"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379536"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-154"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="Distribution.Simple.Command.html#noExtraFlags"><span class="hs-identifier hs-var">noExtraFlags</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379536"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-155"></span><span>  </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#rawSystemExit"><span class="hs-identifier hs-var">rawSystemExit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Flag Verbosity -&gt; Verbosity
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag Verbosity -&gt; Verbosity) -&gt; Flag Verbosity -&gt; Verbosity
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">HaddockFlags -&gt; Flag Verbosity
+</span><a href="Distribution.Simple.Setup.html#haddockVerbosity"><span class="hs-identifier hs-var">haddockVerbosity</span></a></span><span> </span><span class="annot"><span class="annottext">HaddockFlags
+</span><a href="#local-6989586621679379535"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;make&quot;</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;docs&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-156"></span><span>    </span><span class="annot"><span class="annottext">IO () -&gt; (IOException -&gt; IO ()) -&gt; IO ()
+forall a. IO a -&gt; (IOException -&gt; IO a) -&gt; IO a
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Exception.html#catchIO/Distribution.Compat.Exception.html#catchIO"><span class="hs-operator hs-var">`catchIO`</span></a></span><span> </span><span class="hs-glyph">\</span><span class="annot"><span class="annottext">IOException
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-157"></span><span>    </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#rawSystemExit"><span class="hs-identifier hs-var">rawSystemExit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Flag Verbosity -&gt; Verbosity
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag Verbosity -&gt; Verbosity) -&gt; Flag Verbosity -&gt; Verbosity
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">HaddockFlags -&gt; Flag Verbosity
+</span><a href="Distribution.Simple.Setup.html#haddockVerbosity"><span class="hs-identifier hs-var">haddockVerbosity</span></a></span><span> </span><span class="annot"><span class="annottext">HaddockFlags
+</span><a href="#local-6989586621679379535"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;make&quot;</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;doc&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-158"></span><span>
+</span><span id="line-159"></span><span class="annot"><a href="Distribution.Make.html#buildAction"><span class="hs-identifier hs-type">buildAction</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html#BuildFlags"><span class="hs-identifier hs-type">BuildFlags</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-160"></span><span id="buildAction"><span class="annot"><span class="annottext">buildAction :: BuildFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#buildAction"><span class="hs-identifier hs-var hs-var">buildAction</span></a></span></span><span> </span><span id="local-6989586621679379539"><span class="annot"><span class="annottext">BuildFlags
+</span><a href="#local-6989586621679379539"><span class="hs-identifier hs-var">flags</span></a></span></span><span> </span><span id="local-6989586621679379540"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379540"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-161"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="Distribution.Simple.Command.html#noExtraFlags"><span class="hs-identifier hs-var">noExtraFlags</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379540"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-162"></span><span>  </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#rawSystemExit"><span class="hs-identifier hs-var">rawSystemExit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Flag Verbosity -&gt; Verbosity
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag Verbosity -&gt; Verbosity) -&gt; Flag Verbosity -&gt; Verbosity
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">BuildFlags -&gt; Flag Verbosity
+</span><a href="Distribution.Simple.Setup.html#buildVerbosity"><span class="hs-identifier hs-var">buildVerbosity</span></a></span><span> </span><span class="annot"><span class="annottext">BuildFlags
+</span><a href="#local-6989586621679379539"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;make&quot;</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-163"></span><span>
+</span><span id="line-164"></span><span class="annot"><a href="Distribution.Make.html#cleanAction"><span class="hs-identifier hs-type">cleanAction</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html#CleanFlags"><span class="hs-identifier hs-type">CleanFlags</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-165"></span><span id="cleanAction"><span class="annot"><span class="annottext">cleanAction :: CleanFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#cleanAction"><span class="hs-identifier hs-var hs-var">cleanAction</span></a></span></span><span> </span><span id="local-6989586621679379542"><span class="annot"><span class="annottext">CleanFlags
+</span><a href="#local-6989586621679379542"><span class="hs-identifier hs-var">flags</span></a></span></span><span> </span><span id="local-6989586621679379543"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379543"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-166"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="Distribution.Simple.Command.html#noExtraFlags"><span class="hs-identifier hs-var">noExtraFlags</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379543"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-167"></span><span>  </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#rawSystemExit"><span class="hs-identifier hs-var">rawSystemExit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Flag Verbosity -&gt; Verbosity
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag Verbosity -&gt; Verbosity) -&gt; Flag Verbosity -&gt; Verbosity
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">CleanFlags -&gt; Flag Verbosity
+</span><a href="Distribution.Simple.Setup.html#cleanVerbosity"><span class="hs-identifier hs-var">cleanVerbosity</span></a></span><span> </span><span class="annot"><span class="annottext">CleanFlags
+</span><a href="#local-6989586621679379542"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;make&quot;</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;clean&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-168"></span><span>
+</span><span id="line-169"></span><span class="annot"><a href="Distribution.Make.html#sdistAction"><span class="hs-identifier hs-type">sdistAction</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html#SDistFlags"><span class="hs-identifier hs-type">SDistFlags</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-170"></span><span id="sdistAction"><span class="annot"><span class="annottext">sdistAction :: SDistFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#sdistAction"><span class="hs-identifier hs-var hs-var">sdistAction</span></a></span></span><span> </span><span id="local-6989586621679379545"><span class="annot"><span class="annottext">SDistFlags
+</span><a href="#local-6989586621679379545"><span class="hs-identifier hs-var">flags</span></a></span></span><span> </span><span id="local-6989586621679379546"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379546"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-171"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="Distribution.Simple.Command.html#noExtraFlags"><span class="hs-identifier hs-var">noExtraFlags</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379546"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-172"></span><span>  </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#rawSystemExit"><span class="hs-identifier hs-var">rawSystemExit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Flag Verbosity -&gt; Verbosity
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag Verbosity -&gt; Verbosity) -&gt; Flag Verbosity -&gt; Verbosity
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">SDistFlags -&gt; Flag Verbosity
+</span><a href="Distribution.Simple.Setup.html#sDistVerbosity"><span class="hs-identifier hs-var">sDistVerbosity</span></a></span><span> </span><span class="annot"><span class="annottext">SDistFlags
+</span><a href="#local-6989586621679379545"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;make&quot;</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;dist&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-173"></span><span>
+</span><span id="line-174"></span><span class="annot"><a href="Distribution.Make.html#registerAction"><span class="hs-identifier hs-type">registerAction</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html#RegisterFlags"><span class="hs-identifier hs-type">RegisterFlags</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-175"></span><span id="registerAction"><span class="annot"><span class="annottext">registerAction :: RegisterFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#registerAction"><span class="hs-identifier hs-var hs-var">registerAction</span></a></span></span><span>  </span><span id="local-6989586621679379548"><span class="annot"><span class="annottext">RegisterFlags
+</span><a href="#local-6989586621679379548"><span class="hs-identifier hs-var">flags</span></a></span></span><span> </span><span id="local-6989586621679379549"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379549"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-176"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="Distribution.Simple.Command.html#noExtraFlags"><span class="hs-identifier hs-var">noExtraFlags</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379549"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-177"></span><span>  </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#rawSystemExit"><span class="hs-identifier hs-var">rawSystemExit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Flag Verbosity -&gt; Verbosity
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag Verbosity -&gt; Verbosity) -&gt; Flag Verbosity -&gt; Verbosity
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">RegisterFlags -&gt; Flag Verbosity
+</span><a href="Distribution.Simple.Setup.html#regVerbosity"><span class="hs-identifier hs-var">regVerbosity</span></a></span><span> </span><span class="annot"><span class="annottext">RegisterFlags
+</span><a href="#local-6989586621679379548"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;make&quot;</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;register&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-178"></span><span>
+</span><span id="line-179"></span><span class="annot"><a href="Distribution.Make.html#unregisterAction"><span class="hs-identifier hs-type">unregisterAction</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Setup.html#RegisterFlags"><span class="hs-identifier hs-type">RegisterFlags</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-180"></span><span id="unregisterAction"><span class="annot"><span class="annottext">unregisterAction :: RegisterFlags -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Make.html#unregisterAction"><span class="hs-identifier hs-var hs-var">unregisterAction</span></a></span></span><span> </span><span id="local-6989586621679379551"><span class="annot"><span class="annottext">RegisterFlags
+</span><a href="#local-6989586621679379551"><span class="hs-identifier hs-var">flags</span></a></span></span><span> </span><span id="local-6989586621679379552"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379552"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-181"></span><span>  </span><span class="annot"><span class="annottext">[String] -&gt; IO ()
+</span><a href="Distribution.Simple.Command.html#noExtraFlags"><span class="hs-identifier hs-var">noExtraFlags</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679379552"><span class="hs-identifier hs-var">args</span></a></span><span>
+</span><span id="line-182"></span><span>  </span><span class="annot"><span class="annottext">Verbosity -&gt; String -&gt; [String] -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#rawSystemExit"><span class="hs-identifier hs-var">rawSystemExit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Flag Verbosity -&gt; Verbosity
+forall a. WithCallStack (Flag a -&gt; a)
+</span><a href="Distribution.Simple.Flag.html#fromFlag"><span class="hs-identifier hs-var">fromFlag</span></a></span><span> </span><span class="annot"><span class="annottext">(Flag Verbosity -&gt; Verbosity) -&gt; Flag Verbosity -&gt; Verbosity
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">RegisterFlags -&gt; Flag Verbosity
+</span><a href="Distribution.Simple.Setup.html#regVerbosity"><span class="hs-identifier hs-var">regVerbosity</span></a></span><span> </span><span class="annot"><span class="annottext">RegisterFlags
+</span><a href="#local-6989586621679379551"><span class="hs-identifier hs-var">flags</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;make&quot;</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;unregister&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-183"></span></pre></body></html>

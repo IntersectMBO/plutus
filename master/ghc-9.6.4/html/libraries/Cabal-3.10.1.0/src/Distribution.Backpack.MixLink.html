@@ -1,0 +1,892 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE NondecreasingIndentation #-}</span><span>
+</span><span id="line-2"></span><span class="annot"><span class="hs-comment">-- | See &lt;https://github.com/ezyang/ghc-proposals/blob/backpack/proposals/0000-backpack.rst&gt;</span></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Backpack.MixLink</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-4"></span><span>    </span><span class="annot"><a href="Distribution.Backpack.MixLink.html#mixLink"><span class="hs-identifier">mixLink</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-5"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Real.html#mod/GHC.Real.html#mod"><span class="hs-identifier">mod</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Backpack.html#/Distribution.Backpack.html"><span class="hs-identifier">Distribution.Backpack</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html"><span class="hs-identifier">Distribution.Backpack.UnifyM</span></a></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html"><span class="hs-identifier">Distribution.Backpack.FullUnitId</span></a></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Backpack.ModuleScope.html"><span class="hs-identifier">Distribution.Backpack.ModuleScope</span></a></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="Distribution.Utils.UnionFind.html"><span class="hs-identifier">Distribution.Utils.UnionFind</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">UnionFind</span></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#/Distribution.ModuleName.html"><span class="hs-identifier">Distribution.ModuleName</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#/Distribution.Pretty.html"><span class="hs-identifier">Distribution.Pretty</span></a></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#/Distribution.Types.ComponentId.html"><span class="hs-identifier">Distribution.Types.ComponentId</span></a></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.html#/Text.PrettyPrint.html"><span class="hs-identifier">Text.PrettyPrint</span></a></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Control.Monad.html#/Control.Monad.html"><span class="hs-identifier">Control.Monad</span></a></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.html#/Data.Map.html"><span class="hs-identifier">Data.Map</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Map</span></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Foldable.html#/Data.Foldable.html"><span class="hs-identifier">Data.Foldable</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">F</span></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-comment">-----------------------------------------------------------------------</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- Linking</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="annot"><span class="hs-comment">-- | Given to scopes of provisions and requirements, link them together.</span></span><span>
+</span><span id="line-29"></span><span id="local-6989586621679347412"><span class="annot"><a href="Distribution.Backpack.MixLink.html#mixLink"><span class="hs-identifier hs-type">mixLink</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleScopeU"><span class="hs-identifier hs-type">ModuleScopeU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347412"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnifyM"><span class="hs-identifier hs-type">UnifyM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347412"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleScopeU"><span class="hs-identifier hs-type">ModuleScopeU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347412"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-30"></span><span id="mixLink"><span class="annot"><span class="annottext">mixLink :: forall s. [ModuleScopeU s] -&gt; UnifyM s (ModuleScopeU s)
+</span><a href="Distribution.Backpack.MixLink.html#mixLink"><span class="hs-identifier hs-var hs-var">mixLink</span></a></span></span><span> </span><span id="local-6989586621679347527"><span class="annot"><span class="annottext">[ModuleScopeU s]
+</span><a href="#local-6989586621679347527"><span class="hs-identifier hs-var">scopes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679347532"><span class="annot"><span class="annottext">provs :: Map ModuleName [ModuleWithSourceU s]
+</span><a href="#local-6989586621679347532"><span class="hs-identifier hs-var hs-var">provs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([ModuleWithSourceU s]
+ -&gt; [ModuleWithSourceU s] -&gt; [ModuleWithSourceU s])
+-&gt; [Map ModuleName [ModuleWithSourceU s]]
+-&gt; Map ModuleName [ModuleWithSourceU s]
+forall (f :: * -&gt; *) k a.
+(Foldable f, Ord k) =&gt;
+(a -&gt; a -&gt; a) -&gt; f (Map k a) -&gt; Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#unionsWith/Data.Map.Internal.html#unionsWith"><span class="hs-identifier hs-var">Map.unionsWith</span></a></span><span> </span><span class="annot"><span class="annottext">[ModuleWithSourceU s]
+-&gt; [ModuleWithSourceU s] -&gt; [ModuleWithSourceU s]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">(++)</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ModuleScopeU s -&gt; Map ModuleName [ModuleWithSourceU s])
+-&gt; [ModuleScopeU s] -&gt; [Map ModuleName [ModuleWithSourceU s]]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleScopeU s -&gt; Map ModuleName [ModuleWithSourceU s]
+forall a b. (a, b) -&gt; a
+</span><a href="../../base-4.18.2.0/src/Data.Tuple.html#fst/Data.Tuple.html#fst"><span class="hs-identifier hs-var">fst</span></a></span><span> </span><span class="annot"><span class="annottext">[ModuleScopeU s]
+</span><a href="#local-6989586621679347527"><span class="hs-identifier hs-var">scopes</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span>        </span><span class="hs-comment">-- Invariant: any identically named holes refer to same mutable cell</span><span>
+</span><span id="line-33"></span><span>        </span><span id="local-6989586621679347537"><span class="annot"><span class="annottext">reqs :: Map ModuleName [ModuleWithSourceU s]
+</span><a href="#local-6989586621679347537"><span class="hs-identifier hs-var hs-var">reqs</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([ModuleWithSourceU s]
+ -&gt; [ModuleWithSourceU s] -&gt; [ModuleWithSourceU s])
+-&gt; [Map ModuleName [ModuleWithSourceU s]]
+-&gt; Map ModuleName [ModuleWithSourceU s]
+forall (f :: * -&gt; *) k a.
+(Foldable f, Ord k) =&gt;
+(a -&gt; a -&gt; a) -&gt; f (Map k a) -&gt; Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#unionsWith/Data.Map.Internal.html#unionsWith"><span class="hs-identifier hs-var">Map.unionsWith</span></a></span><span> </span><span class="annot"><span class="annottext">[ModuleWithSourceU s]
+-&gt; [ModuleWithSourceU s] -&gt; [ModuleWithSourceU s]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">(++)</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(ModuleScopeU s -&gt; Map ModuleName [ModuleWithSourceU s])
+-&gt; [ModuleScopeU s] -&gt; [Map ModuleName [ModuleWithSourceU s]]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleScopeU s -&gt; Map ModuleName [ModuleWithSourceU s]
+forall a b. (a, b) -&gt; b
+</span><a href="../../base-4.18.2.0/src/Data.Tuple.html#snd/Data.Tuple.html#snd"><span class="hs-identifier hs-var">snd</span></a></span><span> </span><span class="annot"><span class="annottext">[ModuleScopeU s]
+</span><a href="#local-6989586621679347527"><span class="hs-identifier hs-var">scopes</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span>        </span><span id="local-6989586621679347540"><span class="annot"><span class="annottext">filled :: Map ModuleName (UnifyM s [ModuleWithSourceU s])
+</span><a href="#local-6989586621679347540"><span class="hs-identifier hs-var hs-var">filled</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(ModuleName
+ -&gt; [ModuleWithSourceU s]
+ -&gt; [ModuleWithSourceU s]
+ -&gt; UnifyM s [ModuleWithSourceU s])
+-&gt; Map ModuleName [ModuleWithSourceU s]
+-&gt; Map ModuleName [ModuleWithSourceU s]
+-&gt; Map ModuleName (UnifyM s [ModuleWithSourceU s])
+forall k a b c.
+Ord k =&gt;
+(k -&gt; a -&gt; b -&gt; c) -&gt; Map k a -&gt; Map k b -&gt; Map k c
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#intersectionWithKey/Data.Map.Internal.html#intersectionWithKey"><span class="hs-identifier hs-var">Map.intersectionWithKey</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+-&gt; [ModuleWithSourceU s]
+-&gt; [ModuleWithSourceU s]
+-&gt; UnifyM s [ModuleWithSourceU s]
+forall s.
+ModuleName
+-&gt; [ModuleWithSourceU s]
+-&gt; [ModuleWithSourceU s]
+-&gt; UnifyM s [ModuleWithSourceU s]
+</span><a href="Distribution.Backpack.MixLink.html#linkProvision"><span class="hs-identifier hs-var">linkProvision</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName [ModuleWithSourceU s]
+</span><a href="#local-6989586621679347532"><span class="hs-identifier hs-var">provs</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName [ModuleWithSourceU s]
+</span><a href="#local-6989586621679347537"><span class="hs-identifier hs-var">reqs</span></a></span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><span class="annottext">Map ModuleName (UnifyM s [ModuleWithSourceU s]) -&gt; UnifyM s ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a.
+(Foldable t, Applicative f) =&gt;
+t (f a) -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#sequenceA_/Data.Foldable.html#sequenceA_"><span class="hs-identifier hs-var">F.sequenceA_</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName (UnifyM s [ModuleWithSourceU s])
+</span><a href="#local-6989586621679347540"><span class="hs-identifier hs-var">filled</span></a></span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679347545"><span class="annot"><span class="annottext">remaining :: Map ModuleName [ModuleWithSourceU s]
+</span><a href="#local-6989586621679347545"><span class="hs-identifier hs-var hs-var">remaining</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Map ModuleName [ModuleWithSourceU s]
+-&gt; Map ModuleName (UnifyM s [ModuleWithSourceU s])
+-&gt; Map ModuleName [ModuleWithSourceU s]
+forall k a b. Ord k =&gt; Map k a -&gt; Map k b -&gt; Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#difference/Data.Map.Internal.html#difference"><span class="hs-identifier hs-var">Map.difference</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName [ModuleWithSourceU s]
+</span><a href="#local-6989586621679347537"><span class="hs-identifier hs-var">reqs</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName (UnifyM s [ModuleWithSourceU s])
+</span><a href="#local-6989586621679347540"><span class="hs-identifier hs-var">filled</span></a></span><span>
+</span><span id="line-37"></span><span>    </span><span class="annot"><span class="annottext">ModuleScopeU s -&gt; UnifyM s (ModuleScopeU s)
+forall a. a -&gt; UnifyM s a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Map ModuleName [ModuleWithSourceU s]
+</span><a href="#local-6989586621679347532"><span class="hs-identifier hs-var">provs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Map ModuleName [ModuleWithSourceU s]
+</span><a href="#local-6989586621679347545"><span class="hs-identifier hs-var">remaining</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- | Link a list of possibly provided modules to a single</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- requirement.  This applies a side-condition that all</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- of the provided modules at the same name are *actually*</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- the same module.</span><span>
+</span><span id="line-43"></span><span id="local-6989586621679347436"><span class="annot"><a href="Distribution.Backpack.MixLink.html#linkProvision"><span class="hs-identifier hs-type">linkProvision</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#ModuleName/Distribution.ModuleName.html#ModuleName"><span class="hs-identifier hs-type">ModuleName</span></a></span><span>
+</span><span id="line-44"></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleWithSourceU"><span class="hs-identifier hs-type">ModuleWithSourceU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347436"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-comment">-- provs</span><span>
+</span><span id="line-45"></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleWithSourceU"><span class="hs-identifier hs-type">ModuleWithSourceU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347436"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-comment">-- reqs</span><span>
+</span><span id="line-46"></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnifyM"><span class="hs-identifier hs-type">UnifyM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347436"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleWithSourceU"><span class="hs-identifier hs-type">ModuleWithSourceU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347436"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-47"></span><span id="linkProvision"><span class="annot"><span class="annottext">linkProvision :: forall s.
+ModuleName
+-&gt; [ModuleWithSourceU s]
+-&gt; [ModuleWithSourceU s]
+-&gt; UnifyM s [ModuleWithSourceU s]
+</span><a href="Distribution.Backpack.MixLink.html#linkProvision"><span class="hs-identifier hs-var hs-var">linkProvision</span></a></span></span><span> </span><span id="local-6989586621679347578"><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679347578"><span class="hs-identifier hs-var">mod_name</span></a></span></span><span> </span><span id="local-6989586621679347579"><span class="annot"><span class="annottext">ret :: [ModuleWithSourceU s]
+</span><a href="#local-6989586621679347579"><span class="hs-identifier hs-var">ret</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span id="local-6989586621679347580"><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347580"><span class="hs-identifier hs-var">prov</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679347581"><span class="annot"><span class="annottext">[ModuleWithSourceU s]
+</span><a href="#local-6989586621679347581"><span class="hs-identifier hs-var">provs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679347582"><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347582"><span class="hs-identifier hs-var">req</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679347583"><span class="annot"><span class="annottext">[ModuleWithSourceU s]
+</span><a href="#local-6989586621679347583"><span class="hs-identifier hs-var">reqs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-48"></span><span>    </span><span class="hs-comment">-- TODO: coalesce all the non-unifying modules together</span><span>
+</span><span id="line-49"></span><span>    </span><span class="annot"><span class="annottext">[ModuleWithSourceU s]
+-&gt; (ModuleWithSourceU s -&gt; UnifyM s ()) -&gt; UnifyM s ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m ()
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#forM_/Data.Foldable.html#forM_"><span class="hs-identifier hs-var">forM_</span></a></span><span> </span><span class="annot"><span class="annottext">[ModuleWithSourceU s]
+</span><a href="#local-6989586621679347581"><span class="hs-identifier hs-var">provs</span></a></span><span> </span><span class="annot"><span class="annottext">((ModuleWithSourceU s -&gt; UnifyM s ()) -&gt; UnifyM s ())
+-&gt; (ModuleWithSourceU s -&gt; UnifyM s ()) -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679347585"><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347585"><span class="hs-identifier hs-var">prov'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-50"></span><span>        </span><span class="hs-comment">-- Careful: read it out BEFORE unifying, because the</span><span>
+</span><span id="line-51"></span><span>        </span><span class="hs-comment">-- unification algorithm preemptively unifies modules</span><span>
+</span><span id="line-52"></span><span>        </span><span id="local-6989586621679347586"><span class="annot"><span class="annottext">OpenModule
+</span><a href="#local-6989586621679347586"><span class="hs-identifier hs-var">mod</span></a></span></span><span>  </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ModuleU s -&gt; UnifyM s OpenModule
+forall s. ModuleU s -&gt; UnifyM s OpenModule
+</span><a href="Distribution.Backpack.UnifyM.html#convertModuleU"><span class="hs-identifier hs-var">convertModuleU</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleU s
+forall a. WithSource a -&gt; a
+</span><a href="Distribution.Backpack.ModuleScope.html#unWithSource"><span class="hs-identifier hs-var">unWithSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347580"><span class="hs-identifier hs-var">prov</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-53"></span><span>        </span><span id="local-6989586621679347589"><span class="annot"><span class="annottext">OpenModule
+</span><a href="#local-6989586621679347589"><span class="hs-identifier hs-var">mod'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ModuleU s -&gt; UnifyM s OpenModule
+forall s. ModuleU s -&gt; UnifyM s OpenModule
+</span><a href="Distribution.Backpack.UnifyM.html#convertModuleU"><span class="hs-identifier hs-var">convertModuleU</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleU s
+forall a. WithSource a -&gt; a
+</span><a href="Distribution.Backpack.ModuleScope.html#unWithSource"><span class="hs-identifier hs-var">unWithSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347585"><span class="hs-identifier hs-var">prov'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span>        </span><span id="local-6989586621679347590"><span class="annot"><span class="annottext">Maybe ()
+</span><a href="#local-6989586621679347590"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleWithSourceU s -&gt; UnifyM s (Maybe ())
+forall {s}.
+WithSource (ModuleU s)
+-&gt; WithSource (ModuleU s) -&gt; UnifyM s (Maybe ())
+</span><a href="#local-6989586621679347591"><span class="hs-identifier hs-var">unify</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347580"><span class="hs-identifier hs-var">prov</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347585"><span class="hs-identifier hs-var">prov'</span></a></span><span>
+</span><span id="line-55"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe ()
+</span><a href="#local-6989586621679347590"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-56"></span><span>            </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; UnifyM s ()
+forall a. a -&gt; UnifyM s a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span>            </span><span class="annot"><span class="annottext">Maybe ()
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-58"></span><span>                </span><span class="annot"><span class="annottext">MsgDoc -&gt; UnifyM s ()
+forall s. MsgDoc -&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.UnifyM.html#addErr"><span class="hs-identifier hs-var">addErr</span></a></span><span> </span><span class="annot"><span class="annottext">(MsgDoc -&gt; UnifyM s ()) -&gt; MsgDoc -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-59"></span><span>                  </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Ambiguous module&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#quotes/Text.PrettyPrint.HughesPJ.html#quotes"><span class="hs-identifier hs-var">quotes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleName -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679347578"><span class="hs-identifier hs-var">mod_name</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-60"></span><span>                  </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;It could refer to&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span>
+</span><span id="line-61"></span><span>                    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  &quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#quotes/Text.PrettyPrint.HughesPJ.html#quotes"><span class="hs-identifier hs-var">quotes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">OpenModule -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">OpenModule
+</span><a href="#local-6989586621679347586"><span class="hs-identifier hs-var">mod</span></a></span><span class="hs-special">)</span><span>  </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleSource -&gt; MsgDoc
+</span><a href="#local-6989586621679347598"><span class="hs-identifier hs-var">in_scope_by</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleSource
+forall a. WithSource a -&gt; ModuleSource
+</span><a href="Distribution.Backpack.ModuleScope.html#getSource"><span class="hs-identifier hs-var">getSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347580"><span class="hs-identifier hs-var">prov</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-62"></span><span>                      </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;or&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#quotes/Text.PrettyPrint.HughesPJ.html#quotes"><span class="hs-identifier hs-var">quotes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">OpenModule -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">OpenModule
+</span><a href="#local-6989586621679347589"><span class="hs-identifier hs-var">mod'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleSource -&gt; MsgDoc
+</span><a href="#local-6989586621679347598"><span class="hs-identifier hs-var">in_scope_by</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleSource
+forall a. WithSource a -&gt; ModuleSource
+</span><a href="Distribution.Backpack.ModuleScope.html#getSource"><span class="hs-identifier hs-var">getSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347585"><span class="hs-identifier hs-var">prov'</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-63"></span><span>                  </span><span class="annot"><span class="annottext">MsgDoc
+</span><a href="#local-6989586621679347600"><span class="hs-identifier hs-var">link_doc</span></a></span><span>
+</span><span id="line-64"></span><span>    </span><span id="local-6989586621679347601"><span class="annot"><span class="annottext">OpenModule
+</span><a href="#local-6989586621679347601"><span class="hs-identifier hs-var">mod</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ModuleU s -&gt; UnifyM s OpenModule
+forall s. ModuleU s -&gt; UnifyM s OpenModule
+</span><a href="Distribution.Backpack.UnifyM.html#convertModuleU"><span class="hs-identifier hs-var">convertModuleU</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleU s
+forall a. WithSource a -&gt; a
+</span><a href="Distribution.Backpack.ModuleScope.html#unWithSource"><span class="hs-identifier hs-var">unWithSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347580"><span class="hs-identifier hs-var">prov</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>    </span><span id="local-6989586621679347602"><span class="annot"><span class="annottext">OpenModule
+</span><a href="#local-6989586621679347602"><span class="hs-identifier hs-var">req_mod</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ModuleU s -&gt; UnifyM s OpenModule
+forall s. ModuleU s -&gt; UnifyM s OpenModule
+</span><a href="Distribution.Backpack.UnifyM.html#convertModuleU"><span class="hs-identifier hs-var">convertModuleU</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleU s
+forall a. WithSource a -&gt; a
+</span><a href="Distribution.Backpack.ModuleScope.html#unWithSource"><span class="hs-identifier hs-var">unWithSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347582"><span class="hs-identifier hs-var">req</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-66"></span><span>    </span><span id="local-6989586621679347603"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347603"><span class="hs-identifier hs-var">self_cid</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(UnifEnv s -&gt; ComponentId)
+-&gt; UnifyM s (UnifEnv s) -&gt; UnifyM s ComponentId
+forall a b. (a -&gt; b) -&gt; UnifyM s a -&gt; UnifyM s b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#fmap/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span class="annot"><span class="annottext">UnifEnv s -&gt; ComponentId
+forall s. UnifEnv s -&gt; ComponentId
+</span><a href="Distribution.Backpack.UnifyM.html#unify_self_cid"><span class="hs-identifier hs-var">unify_self_cid</span></a></span><span> </span><span class="annot"><span class="annottext">UnifyM s (UnifEnv s)
+forall s. UnifyM s (UnifEnv s)
+</span><a href="Distribution.Backpack.UnifyM.html#getUnifEnv"><span class="hs-identifier hs-var">getUnifEnv</span></a></span><span>
+</span><span id="line-67"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">OpenModule
+</span><a href="#local-6989586621679347601"><span class="hs-identifier hs-var">mod</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-68"></span><span>      </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Backpack.html#OpenModule/Distribution.Backpack.html#OpenModule"><span class="hs-identifier hs-type">OpenModule</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Backpack.html#IndefFullUnitId/Distribution.Backpack.html#IndefFullUnitId"><span class="hs-identifier hs-type">IndefFullUnitId</span></a></span><span> </span><span id="local-6989586621679347608"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347608"><span class="hs-identifier hs-var">cid</span></a></span></span><span> </span><span class="annot"><span class="annottext">OpenModuleSubst
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><span class="hs-identifier">_</span></span><span>
+</span><span id="line-69"></span><span>        </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347608"><span class="hs-identifier hs-var">cid</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId -&gt; ComponentId -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347603"><span class="hs-identifier hs-var">self_cid</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; UnifyM s ()
+forall s. MsgDoc -&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.UnifyM.html#addErr"><span class="hs-identifier hs-var">addErr</span></a></span><span> </span><span class="annot"><span class="annottext">(MsgDoc -&gt; UnifyM s ()) -&gt; MsgDoc -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-70"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Cannot instantiate requirement&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#quotes/Text.PrettyPrint.HughesPJ.html#quotes"><span class="hs-identifier hs-var">quotes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleName -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679347578"><span class="hs-identifier hs-var">mod_name</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span>
+</span><span id="line-71"></span><span>                </span><span class="annot"><span class="annottext">ModuleSource -&gt; MsgDoc
+</span><a href="#local-6989586621679347598"><span class="hs-identifier hs-var">in_scope_by</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleSource
+forall a. WithSource a -&gt; ModuleSource
+</span><a href="Distribution.Backpack.ModuleScope.html#getSource"><span class="hs-identifier hs-var">getSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347582"><span class="hs-identifier hs-var">req</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-72"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;with locally defined module&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleSource -&gt; MsgDoc
+</span><a href="#local-6989586621679347598"><span class="hs-identifier hs-var">in_scope_by</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleSource
+forall a. WithSource a -&gt; ModuleSource
+</span><a href="Distribution.Backpack.ModuleScope.html#getSource"><span class="hs-identifier hs-var">getSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347580"><span class="hs-identifier hs-var">prov</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-73"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;as this would create a cyclic dependency, which GHC does not support.&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-74"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Try moving this module to a separate library, e.g.,&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-75"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;create a new stanza: library 'sublib'.&quot;</span></span><span>
+</span><span id="line-76"></span><span>      </span><span class="annot"><span class="annottext">OpenModule
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; UnifyM s ()
+forall a. a -&gt; UnifyM s a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>    </span><span id="local-6989586621679347609"><span class="annot"><span class="annottext">Maybe ()
+</span><a href="#local-6989586621679347609"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleWithSourceU s -&gt; UnifyM s (Maybe ())
+forall {s}.
+WithSource (ModuleU s)
+-&gt; WithSource (ModuleU s) -&gt; UnifyM s (Maybe ())
+</span><a href="#local-6989586621679347591"><span class="hs-identifier hs-var">unify</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347580"><span class="hs-identifier hs-var">prov</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347582"><span class="hs-identifier hs-var">req</span></a></span><span>
+</span><span id="line-78"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe ()
+</span><a href="#local-6989586621679347609"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-79"></span><span>        </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-type">Just</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; UnifyM s ()
+forall a. a -&gt; UnifyM s a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span>        </span><span class="annot"><span class="annottext">Maybe ()
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Nothing/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-81"></span><span>            </span><span class="hs-comment">-- TODO: Record and report WHERE the bad constraint came from</span><span>
+</span><span id="line-82"></span><span>            </span><span class="annot"><span class="annottext">MsgDoc -&gt; UnifyM s ()
+forall s. MsgDoc -&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.UnifyM.html#addErr"><span class="hs-identifier hs-var">addErr</span></a></span><span> </span><span class="annot"><span class="annottext">(MsgDoc -&gt; UnifyM s ()) -&gt; MsgDoc -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Could not instantiate requirement&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#quotes/Text.PrettyPrint.HughesPJ.html#quotes"><span class="hs-identifier hs-var">quotes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleName -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679347578"><span class="hs-identifier hs-var">mod_name</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-83"></span><span>                     </span><span class="annot"><span class="annottext">Int -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#nest/Text.PrettyPrint.HughesPJ.html#nest"><span class="hs-identifier hs-var">nest</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">4</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Expected:&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">OpenModule -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">OpenModule
+</span><a href="#local-6989586621679347601"><span class="hs-identifier hs-var">mod</span></a></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-84"></span><span>                             </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Actual:  &quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">OpenModule -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">OpenModule
+</span><a href="#local-6989586621679347602"><span class="hs-identifier hs-var">req_mod</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-85"></span><span>                     </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#parens/Text.PrettyPrint.HughesPJ.html#parens"><span class="hs-identifier hs-var">parens</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;This can occur if an exposed module of&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span>
+</span><span id="line-86"></span><span>                             </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;a libraries shares a name with another module.&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-87"></span><span>                     </span><span class="annot"><span class="annottext">MsgDoc
+</span><a href="#local-6989586621679347600"><span class="hs-identifier hs-var">link_doc</span></a></span><span>
+</span><span id="line-88"></span><span>    </span><span class="annot"><span class="annottext">[ModuleWithSourceU s] -&gt; UnifyM s [ModuleWithSourceU s]
+forall a. a -&gt; UnifyM s a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">[ModuleWithSourceU s]
+</span><a href="#local-6989586621679347579"><span class="hs-identifier hs-var">ret</span></a></span><span>
+</span><span id="line-89"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-90"></span><span>    </span><span id="local-6989586621679347591"><span class="annot"><span class="annottext">unify :: WithSource (ModuleU s)
+-&gt; WithSource (ModuleU s) -&gt; UnifyM s (Maybe ())
+</span><a href="#local-6989586621679347591"><span class="hs-identifier hs-var hs-var">unify</span></a></span></span><span> </span><span id="local-6989586621679347612"><span class="annot"><span class="annottext">WithSource (ModuleU s)
+</span><a href="#local-6989586621679347612"><span class="hs-identifier hs-var">s1</span></a></span></span><span> </span><span id="local-6989586621679347613"><span class="annot"><span class="annottext">WithSource (ModuleU s)
+</span><a href="#local-6989586621679347613"><span class="hs-identifier hs-var">s2</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">UnifyM s () -&gt; UnifyM s (Maybe ())
+forall s a. UnifyM s a -&gt; UnifyM s (Maybe a)
+</span><a href="Distribution.Backpack.UnifyM.html#tryM"><span class="hs-identifier hs-var">tryM</span></a></span><span> </span><span class="annot"><span class="annottext">(UnifyM s () -&gt; UnifyM s (Maybe ()))
+-&gt; UnifyM s () -&gt; UnifyM s (Maybe ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; UnifyM s () -&gt; UnifyM s ()
+forall s a. MsgDoc -&gt; UnifyM s a -&gt; UnifyM s a
+</span><a href="Distribution.Backpack.UnifyM.html#addErrContext"><span class="hs-identifier hs-var">addErrContext</span></a></span><span> </span><span class="annot"><span class="annottext">MsgDoc
+</span><a href="#local-6989586621679347616"><span class="hs-identifier hs-var">short_link_doc</span></a></span><span>
+</span><span id="line-91"></span><span>                       </span><span class="annot"><span class="annottext">(UnifyM s () -&gt; UnifyM s ()) -&gt; UnifyM s () -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s -&gt; ModuleU s -&gt; UnifyM s ()
+forall s. ModuleU s -&gt; ModuleU s -&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.MixLink.html#unifyModule"><span class="hs-identifier hs-var">unifyModule</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">WithSource (ModuleU s) -&gt; ModuleU s
+forall a. WithSource a -&gt; a
+</span><a href="Distribution.Backpack.ModuleScope.html#unWithSource"><span class="hs-identifier hs-var">unWithSource</span></a></span><span> </span><span class="annot"><span class="annottext">WithSource (ModuleU s)
+</span><a href="#local-6989586621679347612"><span class="hs-identifier hs-var">s1</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">WithSource (ModuleU s) -&gt; ModuleU s
+forall a. WithSource a -&gt; a
+</span><a href="Distribution.Backpack.ModuleScope.html#unWithSource"><span class="hs-identifier hs-var">unWithSource</span></a></span><span> </span><span class="annot"><span class="annottext">WithSource (ModuleU s)
+</span><a href="#local-6989586621679347613"><span class="hs-identifier hs-var">s2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-92"></span><span>    </span><span id="local-6989586621679347598"><span class="annot"><span class="annottext">in_scope_by :: ModuleSource -&gt; MsgDoc
+</span><a href="#local-6989586621679347598"><span class="hs-identifier hs-var hs-var">in_scope_by</span></a></span></span><span> </span><span id="local-6989586621679347618"><span class="annot"><span class="annottext">ModuleSource
+</span><a href="#local-6989586621679347618"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;brought into scope by&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleSource -&gt; MsgDoc
+</span><a href="Distribution.Backpack.ModuleScope.html#dispModuleSource"><span class="hs-identifier hs-var">dispModuleSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleSource
+</span><a href="#local-6989586621679347618"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-93"></span><span>    </span><span id="local-6989586621679347616"><span class="annot"><span class="annottext">short_link_doc :: MsgDoc
+</span><a href="#local-6989586621679347616"><span class="hs-identifier hs-var hs-var">short_link_doc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;While filling requirement&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#quotes/Text.PrettyPrint.HughesPJ.html#quotes"><span class="hs-identifier hs-var">quotes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleName -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679347578"><span class="hs-identifier hs-var">mod_name</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span>    </span><span id="local-6989586621679347600"><span class="annot"><span class="annottext">link_doc :: MsgDoc
+</span><a href="#local-6989586621679347600"><span class="hs-identifier hs-var hs-var">link_doc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;While filling requirements of&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">MsgDoc
+</span><a href="#local-6989586621679347621"><span class="hs-identifier hs-var">reqs_doc</span></a></span><span>
+</span><span id="line-95"></span><span>    </span><span id="local-6989586621679347621"><span class="annot"><span class="annottext">reqs_doc :: MsgDoc
+</span><a href="#local-6989586621679347621"><span class="hs-identifier hs-var hs-var">reqs_doc</span></a></span></span><span>
+</span><span id="line-96"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">[ModuleWithSourceU s] -&gt; Bool
+forall a. [a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#null/Data.Foldable.html#null"><span class="hs-identifier hs-var">null</span></a></span><span> </span><span class="annot"><span class="annottext">[ModuleWithSourceU s]
+</span><a href="#local-6989586621679347583"><span class="hs-identifier hs-var">reqs</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ModuleSource -&gt; MsgDoc
+</span><a href="Distribution.Backpack.ModuleScope.html#dispModuleSource"><span class="hs-identifier hs-var">dispModuleSource</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleSource
+forall a. WithSource a -&gt; ModuleSource
+</span><a href="Distribution.Backpack.ModuleScope.html#getSource"><span class="hs-identifier hs-var">getSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347582"><span class="hs-identifier hs-var">req</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-97"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#otherwise/GHC.Base.html#otherwise"><span class="hs-identifier hs-var">otherwise</span></a></span><span> </span><span class="hs-glyph">=</span><span>  </span><span class="hs-special">(</span><span>       </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;   &quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleSource -&gt; MsgDoc
+</span><a href="Distribution.Backpack.ModuleScope.html#dispModuleSource"><span class="hs-identifier hs-var">dispModuleSource</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleSource
+forall a. WithSource a -&gt; ModuleSource
+</span><a href="Distribution.Backpack.ModuleScope.html#getSource"><span class="hs-identifier hs-var">getSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347582"><span class="hs-identifier hs-var">req</span></a></span><span class="hs-special">)</span><span>  </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-98"></span><span>                      </span><span class="annot"><span class="annottext">[MsgDoc] -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#vcat/Text.PrettyPrint.HughesPJ.html#vcat"><span class="hs-identifier hs-var">vcat</span></a></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;and&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleSource -&gt; MsgDoc
+</span><a href="Distribution.Backpack.ModuleScope.html#dispModuleSource"><span class="hs-identifier hs-var">dispModuleSource</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleWithSourceU s -&gt; ModuleSource
+forall a. WithSource a -&gt; ModuleSource
+</span><a href="Distribution.Backpack.ModuleScope.html#getSource"><span class="hs-identifier hs-var">getSource</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347625"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679347625"><span class="annot"><span class="annottext">ModuleWithSourceU s
+</span><a href="#local-6989586621679347625"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[ModuleWithSourceU s]
+</span><a href="#local-6989586621679347583"><span class="hs-identifier hs-var">reqs</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-99"></span><span class="annot"><a href="Distribution.Backpack.MixLink.html#linkProvision"><span class="hs-identifier hs-var">linkProvision</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[ModuleWithSourceU s]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[ModuleWithSourceU s]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; UnifyM s [ModuleWithSourceU s]
+forall a. HasCallStack =&gt; String -&gt; a
+</span><a href="../../base-4.18.2.0/src/GHC.Err.html#error/GHC.Err.html#error"><span class="hs-identifier hs-var">error</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;linkProvision&quot;</span></span><span>
+</span><span id="line-100"></span><span>
+</span><span id="line-101"></span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span class="hs-comment">-----------------------------------------------------------------------</span><span>
+</span><span id="line-104"></span><span class="hs-comment">-- The unification algorithm</span><span>
+</span><span id="line-105"></span><span>
+</span><span id="line-106"></span><span class="hs-comment">-- This is based off of https://gist.github.com/amnn/559551517d020dbb6588</span><span>
+</span><span id="line-107"></span><span class="hs-comment">-- which is a translation from Huet's thesis.</span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span id="local-6989586621679347486"><span class="annot"><a href="Distribution.Backpack.MixLink.html#unifyUnitId"><span class="hs-identifier hs-type">unifyUnitId</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdU"><span class="hs-identifier hs-type">UnitIdU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347486"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdU"><span class="hs-identifier hs-type">UnitIdU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347486"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnifyM"><span class="hs-identifier hs-type">UnifyM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347486"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-110"></span><span id="unifyUnitId"><span class="annot"><span class="annottext">unifyUnitId :: forall s. UnitIdU s -&gt; UnitIdU s -&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.MixLink.html#unifyUnitId"><span class="hs-identifier hs-var hs-var">unifyUnitId</span></a></span></span><span> </span><span id="local-6989586621679347639"><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347639"><span class="hs-identifier hs-var">uid1_u</span></a></span></span><span> </span><span id="local-6989586621679347640"><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347640"><span class="hs-identifier hs-var">uid2_u</span></a></span></span><span>
+</span><span id="line-111"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347639"><span class="hs-identifier hs-var">uid1_u</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s -&gt; UnitIdU s -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347640"><span class="hs-identifier hs-var">uid2_u</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">() -&gt; UnifyM s ()
+forall a. a -&gt; UnifyM s a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#otherwise/GHC.Base.html#otherwise"><span class="hs-identifier hs-var">otherwise</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-113"></span><span>        </span><span id="local-6989586621679347641"><span class="annot"><span class="annottext">UnitIdU' s
+</span><a href="#local-6989586621679347641"><span class="hs-identifier hs-var">xuid1</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ST s (UnitIdU' s) -&gt; UnifyM s (UnitIdU' s)
+forall s a. ST s a -&gt; UnifyM s a
+</span><a href="Distribution.Backpack.UnifyM.html#liftST"><span class="hs-identifier hs-var">liftST</span></a></span><span> </span><span class="annot"><span class="annottext">(ST s (UnitIdU' s) -&gt; UnifyM s (UnitIdU' s))
+-&gt; ST s (UnitIdU' s) -&gt; UnifyM s (UnitIdU' s)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s -&gt; ST s (UnitIdU' s)
+forall s a. Point s a -&gt; ST s a
+</span><a href="Distribution.Utils.UnionFind.html#find"><span class="hs-identifier hs-var">UnionFind.find</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347639"><span class="hs-identifier hs-var">uid1_u</span></a></span><span>
+</span><span id="line-114"></span><span>        </span><span id="local-6989586621679347644"><span class="annot"><span class="annottext">UnitIdU' s
+</span><a href="#local-6989586621679347644"><span class="hs-identifier hs-var">xuid2</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ST s (UnitIdU' s) -&gt; UnifyM s (UnitIdU' s)
+forall s a. ST s a -&gt; UnifyM s a
+</span><a href="Distribution.Backpack.UnifyM.html#liftST"><span class="hs-identifier hs-var">liftST</span></a></span><span> </span><span class="annot"><span class="annottext">(ST s (UnitIdU' s) -&gt; UnifyM s (UnitIdU' s))
+-&gt; ST s (UnitIdU' s) -&gt; UnifyM s (UnitIdU' s)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s -&gt; ST s (UnitIdU' s)
+forall s a. Point s a -&gt; ST s a
+</span><a href="Distribution.Utils.UnionFind.html#find"><span class="hs-identifier hs-var">UnionFind.find</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347640"><span class="hs-identifier hs-var">uid2_u</span></a></span><span>
+</span><span id="line-115"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">UnitIdU' s
+</span><a href="#local-6989586621679347641"><span class="hs-identifier hs-var">xuid1</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">UnitIdU' s
+</span><a href="#local-6989586621679347644"><span class="hs-identifier hs-var">xuid2</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-116"></span><span>            </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdThunkU"><span class="hs-identifier hs-type">UnitIdThunkU</span></a></span><span> </span><span id="local-6989586621679347646"><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679347646"><span class="hs-identifier hs-var">u1</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdThunkU"><span class="hs-identifier hs-type">UnitIdThunkU</span></a></span><span> </span><span id="local-6989586621679347647"><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679347647"><span class="hs-identifier hs-var">u2</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-117"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679347646"><span class="hs-identifier hs-var">u1</span></a></span><span> </span><span class="annot"><span class="annottext">DefUnitId -&gt; DefUnitId -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679347647"><span class="hs-identifier hs-var">u2</span></a></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; UnifyM s ()
+forall a. a -&gt; UnifyM s a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-118"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#otherwise/GHC.Base.html#otherwise"><span class="hs-identifier hs-var">otherwise</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-119"></span><span>                    </span><span class="annot"><span class="annottext">MsgDoc -&gt; UnifyM s ()
+forall s a. MsgDoc -&gt; UnifyM s a
+</span><a href="Distribution.Backpack.UnifyM.html#failWith"><span class="hs-identifier hs-var">failWith</span></a></span><span> </span><span class="annot"><span class="annottext">(MsgDoc -&gt; UnifyM s ()) -&gt; MsgDoc -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; Int -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#hang/Text.PrettyPrint.HughesPJ.html#hang"><span class="hs-identifier hs-var">hang</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Couldn't match unit IDs:&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">4</span></span><span>
+</span><span id="line-120"></span><span>                               </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;   &quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">DefUnitId -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679347646"><span class="hs-identifier hs-var">u1</span></a></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-121"></span><span>                                </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;and&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">DefUnitId -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679347647"><span class="hs-identifier hs-var">u2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-122"></span><span>            </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdThunkU"><span class="hs-identifier hs-type">UnitIdThunkU</span></a></span><span> </span><span id="local-6989586621679347650"><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679347650"><span class="hs-identifier hs-var">uid1</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdU"><span class="hs-identifier hs-type">UnitIdU</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679347652"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347652"><span class="hs-identifier hs-var">cid2</span></a></span></span><span> </span><span id="local-6989586621679347653"><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347653"><span class="hs-identifier hs-var">insts2</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-123"></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; DefUnitId
+-&gt; UnitIdU s
+-&gt; UnifyM s ()
+forall s.
+ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; DefUnitId
+-&gt; UnitIdU s
+-&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.MixLink.html#unifyThunkWith"><span class="hs-identifier hs-var">unifyThunkWith</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347652"><span class="hs-identifier hs-var">cid2</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347653"><span class="hs-identifier hs-var">insts2</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347640"><span class="hs-identifier hs-var">uid2_u</span></a></span><span> </span><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679347650"><span class="hs-identifier hs-var">uid1</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347639"><span class="hs-identifier hs-var">uid1_u</span></a></span><span>
+</span><span id="line-124"></span><span>            </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdU"><span class="hs-identifier hs-type">UnitIdU</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679347655"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347655"><span class="hs-identifier hs-var">cid1</span></a></span></span><span> </span><span id="local-6989586621679347656"><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347656"><span class="hs-identifier hs-var">insts1</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdThunkU"><span class="hs-identifier hs-type">UnitIdThunkU</span></a></span><span> </span><span id="local-6989586621679347657"><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679347657"><span class="hs-identifier hs-var">uid2</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-125"></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; DefUnitId
+-&gt; UnitIdU s
+-&gt; UnifyM s ()
+forall s.
+ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; DefUnitId
+-&gt; UnitIdU s
+-&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.MixLink.html#unifyThunkWith"><span class="hs-identifier hs-var">unifyThunkWith</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347655"><span class="hs-identifier hs-var">cid1</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347656"><span class="hs-identifier hs-var">insts1</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347639"><span class="hs-identifier hs-var">uid1_u</span></a></span><span> </span><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679347657"><span class="hs-identifier hs-var">uid2</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347640"><span class="hs-identifier hs-var">uid2_u</span></a></span><span>
+</span><span id="line-126"></span><span>            </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdU"><span class="hs-identifier hs-type">UnitIdU</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679347658"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347658"><span class="hs-identifier hs-var">cid1</span></a></span></span><span> </span><span id="local-6989586621679347659"><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347659"><span class="hs-identifier hs-var">insts1</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdU"><span class="hs-identifier hs-type">UnitIdU</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679347660"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347660"><span class="hs-identifier hs-var">cid2</span></a></span></span><span> </span><span id="local-6989586621679347661"><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347661"><span class="hs-identifier hs-var">insts2</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-127"></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; UnifyM s ()
+forall s.
+ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.MixLink.html#unifyInner"><span class="hs-identifier hs-var">unifyInner</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347658"><span class="hs-identifier hs-var">cid1</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347659"><span class="hs-identifier hs-var">insts1</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347639"><span class="hs-identifier hs-var">uid1_u</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347660"><span class="hs-identifier hs-var">cid2</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347661"><span class="hs-identifier hs-var">insts2</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347640"><span class="hs-identifier hs-var">uid2_u</span></a></span><span>
+</span><span id="line-128"></span><span>
+</span><span id="line-129"></span><span id="local-6989586621679347501"><span class="annot"><a href="Distribution.Backpack.MixLink.html#unifyThunkWith"><span class="hs-identifier hs-type">unifyThunkWith</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span>
+</span><span id="line-130"></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.Internal.html#Map/Data.Map.Internal.html#Map"><span class="hs-identifier hs-type">Map</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#ModuleName/Distribution.ModuleName.html#ModuleName"><span class="hs-identifier hs-type">ModuleName</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleU"><span class="hs-identifier hs-type">ModuleU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347501"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-131"></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdU"><span class="hs-identifier hs-type">UnitIdU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347501"><span class="hs-identifier hs-type">s</span></a></span><span>
+</span><span id="line-132"></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnitId.html#DefUnitId/Distribution.Types.UnitId.html#DefUnitId"><span class="hs-identifier hs-type">DefUnitId</span></a></span><span>
+</span><span id="line-133"></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdU"><span class="hs-identifier hs-type">UnitIdU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347501"><span class="hs-identifier hs-type">s</span></a></span><span>
+</span><span id="line-134"></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnifyM"><span class="hs-identifier hs-type">UnifyM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347501"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-135"></span><span id="unifyThunkWith"><span class="annot"><span class="annottext">unifyThunkWith :: forall s.
+ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; DefUnitId
+-&gt; UnitIdU s
+-&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.MixLink.html#unifyThunkWith"><span class="hs-identifier hs-var hs-var">unifyThunkWith</span></a></span></span><span> </span><span id="local-6989586621679347666"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347666"><span class="hs-identifier hs-var">cid1</span></a></span></span><span> </span><span id="local-6989586621679347667"><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347667"><span class="hs-identifier hs-var">insts1</span></a></span></span><span> </span><span id="local-6989586621679347668"><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347668"><span class="hs-identifier hs-var">uid1_u</span></a></span></span><span> </span><span id="local-6989586621679347669"><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679347669"><span class="hs-identifier hs-var">uid2</span></a></span></span><span> </span><span id="local-6989586621679347670"><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347670"><span class="hs-identifier hs-var">uid2_u</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-136"></span><span>    </span><span id="local-6989586621679347671"><span class="annot"><span class="annottext">FullDb
+</span><a href="#local-6989586621679347671"><span class="hs-identifier hs-var">db</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(UnifEnv s -&gt; FullDb) -&gt; UnifyM s (UnifEnv s) -&gt; UnifyM s FullDb
+forall a b. (a -&gt; b) -&gt; UnifyM s a -&gt; UnifyM s b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#fmap/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span class="annot"><span class="annottext">UnifEnv s -&gt; FullDb
+forall s. UnifEnv s -&gt; FullDb
+</span><a href="Distribution.Backpack.UnifyM.html#unify_db"><span class="hs-identifier hs-var">unify_db</span></a></span><span> </span><span class="annot"><span class="annottext">UnifyM s (UnifEnv s)
+forall s. UnifyM s (UnifEnv s)
+</span><a href="Distribution.Backpack.UnifyM.html#getUnifEnv"><span class="hs-identifier hs-var">getUnifEnv</span></a></span><span>
+</span><span id="line-137"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span class="annot"><a href="Distribution.Backpack.FullUnitId.html#FullUnitId"><span class="hs-identifier hs-type">FullUnitId</span></a></span><span> </span><span id="local-6989586621679347674"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347674"><span class="hs-identifier hs-var">cid2</span></a></span></span><span> </span><span id="local-6989586621679347675"><span class="annot"><span class="annottext">OpenModuleSubst
+</span><a href="#local-6989586621679347675"><span class="hs-identifier hs-var">insts2'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FullDb -&gt; FullDb
+</span><a href="Distribution.Backpack.FullUnitId.html#expandUnitId"><span class="hs-identifier hs-var">expandUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">FullDb
+</span><a href="#local-6989586621679347671"><span class="hs-identifier hs-var">db</span></a></span><span> </span><span class="annot"><span class="annottext">DefUnitId
+</span><a href="#local-6989586621679347669"><span class="hs-identifier hs-var">uid2</span></a></span><span>
+</span><span id="line-138"></span><span>    </span><span id="local-6989586621679347677"><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347677"><span class="hs-identifier hs-var">insts2</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">OpenModuleSubst -&gt; UnifyM s (Map ModuleName (ModuleU s))
+forall s. OpenModuleSubst -&gt; UnifyM s (Map ModuleName (ModuleU s))
+</span><a href="Distribution.Backpack.UnifyM.html#convertModuleSubst"><span class="hs-identifier hs-var">convertModuleSubst</span></a></span><span> </span><span class="annot"><span class="annottext">OpenModuleSubst
+</span><a href="#local-6989586621679347675"><span class="hs-identifier hs-var">insts2'</span></a></span><span>
+</span><span id="line-139"></span><span>    </span><span class="annot"><span class="annottext">ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; UnifyM s ()
+forall s.
+ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.MixLink.html#unifyInner"><span class="hs-identifier hs-var">unifyInner</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347666"><span class="hs-identifier hs-var">cid1</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347667"><span class="hs-identifier hs-var">insts1</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347668"><span class="hs-identifier hs-var">uid1_u</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347674"><span class="hs-identifier hs-var">cid2</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347677"><span class="hs-identifier hs-var">insts2</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347670"><span class="hs-identifier hs-var">uid2_u</span></a></span><span>
+</span><span id="line-140"></span><span>
+</span><span id="line-141"></span><span id="local-6989586621679347502"><span class="annot"><a href="Distribution.Backpack.MixLink.html#unifyInner"><span class="hs-identifier hs-type">unifyInner</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span>
+</span><span id="line-142"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.Internal.html#Map/Data.Map.Internal.html#Map"><span class="hs-identifier hs-type">Map</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#ModuleName/Distribution.ModuleName.html#ModuleName"><span class="hs-identifier hs-type">ModuleName</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleU"><span class="hs-identifier hs-type">ModuleU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347502"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-143"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdU"><span class="hs-identifier hs-type">UnitIdU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347502"><span class="hs-identifier hs-type">s</span></a></span><span>
+</span><span id="line-144"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentId.html#ComponentId/Distribution.Types.ComponentId.html#ComponentId"><span class="hs-identifier hs-type">ComponentId</span></a></span><span>
+</span><span id="line-145"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.Internal.html#Map/Data.Map.Internal.html#Map"><span class="hs-identifier hs-type">Map</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.ModuleName.html#ModuleName/Distribution.ModuleName.html#ModuleName"><span class="hs-identifier hs-type">ModuleName</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleU"><span class="hs-identifier hs-type">ModuleU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347502"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-146"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnitIdU"><span class="hs-identifier hs-type">UnitIdU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347502"><span class="hs-identifier hs-type">s</span></a></span><span>
+</span><span id="line-147"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnifyM"><span class="hs-identifier hs-type">UnifyM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347502"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-148"></span><span id="unifyInner"><span class="annot"><span class="annottext">unifyInner :: forall s.
+ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; ComponentId
+-&gt; Map ModuleName (ModuleU s)
+-&gt; UnitIdU s
+-&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.MixLink.html#unifyInner"><span class="hs-identifier hs-var hs-var">unifyInner</span></a></span></span><span> </span><span id="local-6989586621679347689"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347689"><span class="hs-identifier hs-var">cid1</span></a></span></span><span> </span><span id="local-6989586621679347690"><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347690"><span class="hs-identifier hs-var">insts1</span></a></span></span><span> </span><span id="local-6989586621679347691"><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347691"><span class="hs-identifier hs-var">uid1_u</span></a></span></span><span> </span><span id="local-6989586621679347692"><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347692"><span class="hs-identifier hs-var">cid2</span></a></span></span><span> </span><span id="local-6989586621679347693"><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347693"><span class="hs-identifier hs-var">insts2</span></a></span></span><span> </span><span id="local-6989586621679347694"><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347694"><span class="hs-identifier hs-var">uid2_u</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-149"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; UnifyM s () -&gt; UnifyM s ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#when/GHC.Base.html#when"><span class="hs-identifier hs-var">when</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347689"><span class="hs-identifier hs-var">cid1</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId -&gt; ComponentId -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347692"><span class="hs-identifier hs-var">cid2</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(UnifyM s () -&gt; UnifyM s ()) -&gt; UnifyM s () -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-150"></span><span>        </span><span class="hs-comment">-- TODO: if we had a package identifier, could be an</span><span>
+</span><span id="line-151"></span><span>        </span><span class="hs-comment">-- easier to understand error message.</span><span>
+</span><span id="line-152"></span><span>        </span><span class="annot"><span class="annottext">MsgDoc -&gt; UnifyM s ()
+forall s a. MsgDoc -&gt; UnifyM s a
+</span><a href="Distribution.Backpack.UnifyM.html#failWith"><span class="hs-identifier hs-var">failWith</span></a></span><span> </span><span class="annot"><span class="annottext">(MsgDoc -&gt; UnifyM s ()) -&gt; MsgDoc -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-153"></span><span>            </span><span class="annot"><span class="annottext">MsgDoc -&gt; Int -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#hang/Text.PrettyPrint.HughesPJ.html#hang"><span class="hs-identifier hs-var">hang</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Couldn't match component IDs:&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">4</span></span><span>
+</span><span id="line-154"></span><span>                 </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;   &quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347689"><span class="hs-identifier hs-var">cid1</span></a></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-155"></span><span>                  </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;and&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentId
+</span><a href="#local-6989586621679347692"><span class="hs-identifier hs-var">cid2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-156"></span><span>    </span><span class="hs-comment">-- The KEY STEP which makes this a Huet-style unification</span><span>
+</span><span id="line-157"></span><span>    </span><span class="hs-comment">-- algorithm.  (Also a payoff of using union-find.)</span><span>
+</span><span id="line-158"></span><span>    </span><span class="hs-comment">-- We can build infinite unit IDs this way, which is necessary</span><span>
+</span><span id="line-159"></span><span>    </span><span class="hs-comment">-- for support mutual recursion. NB: union keeps the SECOND</span><span>
+</span><span id="line-160"></span><span>    </span><span class="hs-comment">-- descriptor, so we always arrange for a UnitIdThunkU to live</span><span>
+</span><span id="line-161"></span><span>    </span><span class="hs-comment">-- there.</span><span>
+</span><span id="line-162"></span><span>    </span><span class="annot"><span class="annottext">ST s () -&gt; UnifyM s ()
+forall s a. ST s a -&gt; UnifyM s a
+</span><a href="Distribution.Backpack.UnifyM.html#liftST"><span class="hs-identifier hs-var">liftST</span></a></span><span> </span><span class="annot"><span class="annottext">(ST s () -&gt; UnifyM s ()) -&gt; ST s () -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s -&gt; UnitIdU s -&gt; ST s ()
+forall s a. Point s a -&gt; Point s a -&gt; ST s ()
+</span><a href="Distribution.Utils.UnionFind.html#union"><span class="hs-identifier hs-var">UnionFind.union</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347691"><span class="hs-identifier hs-var">uid1_u</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347694"><span class="hs-identifier hs-var">uid2_u</span></a></span><span>
+</span><span id="line-163"></span><span>    </span><span class="annot"><span class="annottext">Map ModuleName (UnifyM s ()) -&gt; UnifyM s ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a.
+(Foldable t, Applicative f) =&gt;
+t (f a) -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#sequenceA_/Data.Foldable.html#sequenceA_"><span class="hs-identifier hs-var">F.sequenceA_</span></a></span><span> </span><span class="annot"><span class="annottext">(Map ModuleName (UnifyM s ()) -&gt; UnifyM s ())
+-&gt; Map ModuleName (UnifyM s ()) -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">(ModuleU s -&gt; ModuleU s -&gt; UnifyM s ())
+-&gt; Map ModuleName (ModuleU s)
+-&gt; Map ModuleName (ModuleU s)
+-&gt; Map ModuleName (UnifyM s ())
+forall k a b c.
+Ord k =&gt;
+(a -&gt; b -&gt; c) -&gt; Map k a -&gt; Map k b -&gt; Map k c
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#intersectionWith/Data.Map.Internal.html#intersectionWith"><span class="hs-identifier hs-var">Map.intersectionWith</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s -&gt; ModuleU s -&gt; UnifyM s ()
+forall s. ModuleU s -&gt; ModuleU s -&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.MixLink.html#unifyModule"><span class="hs-identifier hs-var">unifyModule</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347690"><span class="hs-identifier hs-var">insts1</span></a></span><span> </span><span class="annot"><span class="annottext">Map ModuleName (ModuleU s)
+</span><a href="#local-6989586621679347693"><span class="hs-identifier hs-var">insts2</span></a></span><span>
+</span><span id="line-164"></span><span>
+</span><span id="line-165"></span><span class="annot"><span class="hs-comment">-- | Imperatively unify two modules.</span></span><span>
+</span><span id="line-166"></span><span id="local-6989586621679347481"><span class="annot"><a href="Distribution.Backpack.MixLink.html#unifyModule"><span class="hs-identifier hs-type">unifyModule</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleU"><span class="hs-identifier hs-type">ModuleU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347481"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleU"><span class="hs-identifier hs-type">ModuleU</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347481"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#UnifyM"><span class="hs-identifier hs-type">UnifyM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679347481"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-167"></span><span id="unifyModule"><span class="annot"><span class="annottext">unifyModule :: forall s. ModuleU s -&gt; ModuleU s -&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.MixLink.html#unifyModule"><span class="hs-identifier hs-var hs-var">unifyModule</span></a></span></span><span> </span><span id="local-6989586621679347710"><span class="annot"><span class="annottext">ModuleU s
+</span><a href="#local-6989586621679347710"><span class="hs-identifier hs-var">mod1_u</span></a></span></span><span> </span><span id="local-6989586621679347711"><span class="annot"><span class="annottext">ModuleU s
+</span><a href="#local-6989586621679347711"><span class="hs-identifier hs-var">mod2_u</span></a></span></span><span>
+</span><span id="line-168"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">ModuleU s
+</span><a href="#local-6989586621679347710"><span class="hs-identifier hs-var">mod1_u</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s -&gt; ModuleU s -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">ModuleU s
+</span><a href="#local-6989586621679347711"><span class="hs-identifier hs-var">mod2_u</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">() -&gt; UnifyM s ()
+forall a. a -&gt; UnifyM s a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-169"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#otherwise/GHC.Base.html#otherwise"><span class="hs-identifier hs-var">otherwise</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-170"></span><span>        </span><span id="local-6989586621679347712"><span class="annot"><span class="annottext">ModuleU' s
+</span><a href="#local-6989586621679347712"><span class="hs-identifier hs-var">mod1</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ST s (ModuleU' s) -&gt; UnifyM s (ModuleU' s)
+forall s a. ST s a -&gt; UnifyM s a
+</span><a href="Distribution.Backpack.UnifyM.html#liftST"><span class="hs-identifier hs-var">liftST</span></a></span><span> </span><span class="annot"><span class="annottext">(ST s (ModuleU' s) -&gt; UnifyM s (ModuleU' s))
+-&gt; ST s (ModuleU' s) -&gt; UnifyM s (ModuleU' s)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s -&gt; ST s (ModuleU' s)
+forall s a. Point s a -&gt; ST s a
+</span><a href="Distribution.Utils.UnionFind.html#find"><span class="hs-identifier hs-var">UnionFind.find</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s
+</span><a href="#local-6989586621679347710"><span class="hs-identifier hs-var">mod1_u</span></a></span><span>
+</span><span id="line-171"></span><span>        </span><span id="local-6989586621679347713"><span class="annot"><span class="annottext">ModuleU' s
+</span><a href="#local-6989586621679347713"><span class="hs-identifier hs-var">mod2</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ST s (ModuleU' s) -&gt; UnifyM s (ModuleU' s)
+forall s a. ST s a -&gt; UnifyM s a
+</span><a href="Distribution.Backpack.UnifyM.html#liftST"><span class="hs-identifier hs-var">liftST</span></a></span><span> </span><span class="annot"><span class="annottext">(ST s (ModuleU' s) -&gt; UnifyM s (ModuleU' s))
+-&gt; ST s (ModuleU' s) -&gt; UnifyM s (ModuleU' s)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s -&gt; ST s (ModuleU' s)
+forall s a. Point s a -&gt; ST s a
+</span><a href="Distribution.Utils.UnionFind.html#find"><span class="hs-identifier hs-var">UnionFind.find</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s
+</span><a href="#local-6989586621679347711"><span class="hs-identifier hs-var">mod2_u</span></a></span><span>
+</span><span id="line-172"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleU' s
+</span><a href="#local-6989586621679347712"><span class="hs-identifier hs-var">mod1</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ModuleU' s
+</span><a href="#local-6989586621679347713"><span class="hs-identifier hs-var">mod2</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-173"></span><span>            </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleVarU"><span class="hs-identifier hs-type">ModuleVarU</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ModuleU' s
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ST s () -&gt; UnifyM s ()
+forall s a. ST s a -&gt; UnifyM s a
+</span><a href="Distribution.Backpack.UnifyM.html#liftST"><span class="hs-identifier hs-var">liftST</span></a></span><span> </span><span class="annot"><span class="annottext">(ST s () -&gt; UnifyM s ()) -&gt; ST s () -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s -&gt; ModuleU s -&gt; ST s ()
+forall s a. Point s a -&gt; Point s a -&gt; ST s ()
+</span><a href="Distribution.Utils.UnionFind.html#union"><span class="hs-identifier hs-var">UnionFind.union</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s
+</span><a href="#local-6989586621679347710"><span class="hs-identifier hs-var">mod1_u</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s
+</span><a href="#local-6989586621679347711"><span class="hs-identifier hs-var">mod2_u</span></a></span><span>
+</span><span id="line-174"></span><span>            </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleU' s
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleVarU"><span class="hs-identifier hs-type">ModuleVarU</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ST s () -&gt; UnifyM s ()
+forall s a. ST s a -&gt; UnifyM s a
+</span><a href="Distribution.Backpack.UnifyM.html#liftST"><span class="hs-identifier hs-var">liftST</span></a></span><span> </span><span class="annot"><span class="annottext">(ST s () -&gt; UnifyM s ()) -&gt; ST s () -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s -&gt; ModuleU s -&gt; ST s ()
+forall s a. Point s a -&gt; Point s a -&gt; ST s ()
+</span><a href="Distribution.Utils.UnionFind.html#union"><span class="hs-identifier hs-var">UnionFind.union</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s
+</span><a href="#local-6989586621679347711"><span class="hs-identifier hs-var">mod2_u</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s
+</span><a href="#local-6989586621679347710"><span class="hs-identifier hs-var">mod1_u</span></a></span><span>
+</span><span id="line-175"></span><span>            </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleU"><span class="hs-identifier hs-type">ModuleU</span></a></span><span> </span><span id="local-6989586621679347716"><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347716"><span class="hs-identifier hs-var">uid1</span></a></span></span><span> </span><span id="local-6989586621679347717"><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679347717"><span class="hs-identifier hs-var">mod_name1</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Backpack.UnifyM.html#ModuleU"><span class="hs-identifier hs-type">ModuleU</span></a></span><span> </span><span id="local-6989586621679347718"><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347718"><span class="hs-identifier hs-var">uid2</span></a></span></span><span> </span><span id="local-6989586621679347719"><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679347719"><span class="hs-identifier hs-var">mod_name2</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-176"></span><span>                </span><span class="annot"><span class="annottext">Bool -&gt; UnifyM s () -&gt; UnifyM s ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#when/GHC.Base.html#when"><span class="hs-identifier hs-var">when</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679347717"><span class="hs-identifier hs-var">mod_name1</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName -&gt; ModuleName -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679347719"><span class="hs-identifier hs-var">mod_name2</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(UnifyM s () -&gt; UnifyM s ()) -&gt; UnifyM s () -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-177"></span><span>                    </span><span class="annot"><span class="annottext">MsgDoc -&gt; UnifyM s ()
+forall s a. MsgDoc -&gt; UnifyM s a
+</span><a href="Distribution.Backpack.UnifyM.html#failWith"><span class="hs-identifier hs-var">failWith</span></a></span><span> </span><span class="annot"><span class="annottext">(MsgDoc -&gt; UnifyM s ()) -&gt; MsgDoc -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-178"></span><span>                        </span><span class="annot"><span class="annottext">MsgDoc -&gt; Int -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#hang/Text.PrettyPrint.HughesPJ.html#hang"><span class="hs-identifier hs-var">hang</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Cannot match module names&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">4</span></span><span> </span><span class="annot"><span class="annottext">(MsgDoc -&gt; MsgDoc) -&gt; MsgDoc -&gt; MsgDoc
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span>
+</span><span id="line-179"></span><span>                            </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;   &quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679347717"><span class="hs-identifier hs-var">mod_name1</span></a></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%24%24/Text.PrettyPrint.HughesPJ.html#%24%24"><span class="hs-operator hs-var">$$</span></a></span><span>
+</span><span id="line-180"></span><span>                            </span><span class="annot"><span class="annottext">String -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#text/Text.PrettyPrint.HughesPJ.html#text"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;and&quot;</span></span><span> </span><span class="annot"><span class="annottext">MsgDoc -&gt; MsgDoc -&gt; MsgDoc
+</span><a href="../../pretty-1.1.3.6/src/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E/Text.PrettyPrint.HughesPJ.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName -&gt; MsgDoc
+forall a. Pretty a =&gt; a -&gt; MsgDoc
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Pretty.html#pretty/Distribution.Pretty.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679347719"><span class="hs-identifier hs-var">mod_name2</span></a></span><span>
+</span><span id="line-181"></span><span>                </span><span class="hs-comment">-- NB: this is not actually necessary (because we'll</span><span>
+</span><span id="line-182"></span><span>                </span><span class="hs-comment">-- detect loops eventually in 'unifyUnitId'), but it</span><span>
+</span><span id="line-183"></span><span>                </span><span class="hs-comment">-- seems harmless enough</span><span>
+</span><span id="line-184"></span><span>                </span><span class="annot"><span class="annottext">ST s () -&gt; UnifyM s ()
+forall s a. ST s a -&gt; UnifyM s a
+</span><a href="Distribution.Backpack.UnifyM.html#liftST"><span class="hs-identifier hs-var">liftST</span></a></span><span> </span><span class="annot"><span class="annottext">(ST s () -&gt; UnifyM s ()) -&gt; ST s () -&gt; UnifyM s ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s -&gt; ModuleU s -&gt; ST s ()
+forall s a. Point s a -&gt; Point s a -&gt; ST s ()
+</span><a href="Distribution.Utils.UnionFind.html#union"><span class="hs-identifier hs-var">UnionFind.union</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s
+</span><a href="#local-6989586621679347710"><span class="hs-identifier hs-var">mod1_u</span></a></span><span> </span><span class="annot"><span class="annottext">ModuleU s
+</span><a href="#local-6989586621679347711"><span class="hs-identifier hs-var">mod2_u</span></a></span><span>
+</span><span id="line-185"></span><span>                </span><span class="annot"><span class="annottext">UnitIdU s -&gt; UnitIdU s -&gt; UnifyM s ()
+forall s. UnitIdU s -&gt; UnitIdU s -&gt; UnifyM s ()
+</span><a href="Distribution.Backpack.MixLink.html#unifyUnitId"><span class="hs-identifier hs-var">unifyUnitId</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347716"><span class="hs-identifier hs-var">uid1</span></a></span><span> </span><span class="annot"><span class="annottext">UnitIdU s
+</span><a href="#local-6989586621679347718"><span class="hs-identifier hs-var">uid2</span></a></span><span>
+</span><span id="line-186"></span></pre></body></html>

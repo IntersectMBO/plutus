@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Types.ComponentInclude</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-2"></span><span>    </span><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ComponentInclude"><span class="hs-identifier">ComponentInclude</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-3"></span><span>    </span><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ci_id"><span class="hs-identifier">ci_id</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-4"></span><span>    </span><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ci_pkgid"><span class="hs-identifier">ci_pkgid</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-5"></span><span>    </span><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ci_cname"><span class="hs-identifier">ci_cname</span></a></span><span>
+</span><span id="line-6"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#/Distribution.Types.PackageId.html"><span class="hs-identifier">Distribution.Types.PackageId</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#/Distribution.Types.ComponentName.html"><span class="hs-identifier">Distribution.Types.ComponentName</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Types.AnnotatedId.html"><span class="hs-identifier">Distribution.Types.AnnotatedId</span></a></span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- Once ci_id is refined to an 'OpenUnitId' or 'DefUnitId',</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- the 'includeRequiresRn' is not so useful (because it</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- includes the requirements renaming that is no longer</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- needed); use 'ci_prov_renaming' instead.</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">data</span><span> </span><span id="ComponentInclude"><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ComponentInclude"><span class="hs-identifier hs-var">ComponentInclude</span></a></span></span><span> </span><span id="local-6989586621679343435"><span class="annot"><a href="#local-6989586621679343435"><span class="hs-identifier hs-type">id</span></a></span></span><span> </span><span id="local-6989586621679343436"><span class="annot"><a href="#local-6989586621679343436"><span class="hs-identifier hs-type">rn</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ComponentInclude"><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ComponentInclude"><span class="hs-identifier hs-var">ComponentInclude</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-17"></span><span>        </span><span id="ci_ann_id"><span class="annot"><span class="annottext">forall id rn. ComponentInclude id rn -&gt; AnnotatedId id
+</span><a href="Distribution.Types.ComponentInclude.html#ci_ann_id"><span class="hs-identifier hs-var hs-var">ci_ann_id</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679343435"><span class="hs-identifier hs-type">id</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>        </span><span id="ci_renaming"><span class="annot"><span class="annottext">forall id rn. ComponentInclude id rn -&gt; rn
+</span><a href="Distribution.Types.ComponentInclude.html#ci_renaming"><span class="hs-identifier hs-var hs-var">ci_renaming</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679343436"><span class="hs-identifier hs-type">rn</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>        </span><span class="hs-comment">-- | Did this come from an entry in @mixins@, or</span><span>
+</span><span id="line-20"></span><span>        </span><span class="hs-comment">-- was implicitly generated by @build-depends@?</span><span>
+</span><span id="line-21"></span><span>        </span><span id="ci_implicit"><span class="annot"><span class="annottext">forall id rn. ComponentInclude id rn -&gt; Bool
+</span><a href="Distribution.Types.ComponentInclude.html#ci_implicit"><span class="hs-identifier hs-var hs-var">ci_implicit</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span id="local-6989586621679343445"><span id="local-6989586621679343446"><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ci_id"><span class="hs-identifier hs-type">ci_id</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ComponentInclude"><span class="hs-identifier hs-type">ComponentInclude</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679343445"><span class="hs-identifier hs-type">id</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679343446"><span class="hs-identifier hs-type">rn</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679343445"><span class="hs-identifier hs-type">id</span></a></span></span></span><span>
+</span><span id="line-25"></span><span id="ci_id"><span class="annot"><span class="annottext">ci_id :: forall id rn. ComponentInclude id rn -&gt; id
+</span><a href="Distribution.Types.ComponentInclude.html#ci_id"><span class="hs-identifier hs-var hs-var">ci_id</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnnotatedId id -&gt; id
+forall id. AnnotatedId id -&gt; id
+</span><a href="Distribution.Types.AnnotatedId.html#ann_id"><span class="hs-identifier hs-var">ann_id</span></a></span><span> </span><span class="annot"><span class="annottext">(AnnotatedId id -&gt; id)
+-&gt; (ComponentInclude id rn -&gt; AnnotatedId id)
+-&gt; ComponentInclude id rn
+-&gt; id
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentInclude id rn -&gt; AnnotatedId id
+forall id rn. ComponentInclude id rn -&gt; AnnotatedId id
+</span><a href="Distribution.Types.ComponentInclude.html#ci_ann_id"><span class="hs-identifier hs-var">ci_ann_id</span></a></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span id="local-6989586621679343453"><span id="local-6989586621679343454"><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ci_pkgid"><span class="hs-identifier hs-type">ci_pkgid</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ComponentInclude"><span class="hs-identifier hs-type">ComponentInclude</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679343453"><span class="hs-identifier hs-type">id</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679343454"><span class="hs-identifier hs-type">rn</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageId/Distribution.Types.PackageId.html#PackageId"><span class="hs-identifier hs-type">PackageId</span></a></span></span></span><span>
+</span><span id="line-28"></span><span id="ci_pkgid"><span class="annot"><span class="annottext">ci_pkgid :: forall id rn. ComponentInclude id rn -&gt; PackageId
+</span><a href="Distribution.Types.ComponentInclude.html#ci_pkgid"><span class="hs-identifier hs-var hs-var">ci_pkgid</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnnotatedId id -&gt; PackageId
+forall id. AnnotatedId id -&gt; PackageId
+</span><a href="Distribution.Types.AnnotatedId.html#ann_pid"><span class="hs-identifier hs-var">ann_pid</span></a></span><span> </span><span class="annot"><span class="annottext">(AnnotatedId id -&gt; PackageId)
+-&gt; (ComponentInclude id rn -&gt; AnnotatedId id)
+-&gt; ComponentInclude id rn
+-&gt; PackageId
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentInclude id rn -&gt; AnnotatedId id
+forall id rn. ComponentInclude id rn -&gt; AnnotatedId id
+</span><a href="Distribution.Types.ComponentInclude.html#ci_ann_id"><span class="hs-identifier hs-var">ci_ann_id</span></a></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="annot"><span class="hs-comment">-- | This should always return 'CLibName' or 'CSubLibName'</span></span><span>
+</span><span id="line-31"></span><span id="local-6989586621679343459"><span id="local-6989586621679343460"><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ci_cname"><span class="hs-identifier hs-type">ci_cname</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Types.ComponentInclude.html#ComponentInclude"><span class="hs-identifier hs-type">ComponentInclude</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679343459"><span class="hs-identifier hs-type">id</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679343460"><span class="hs-identifier hs-type">rn</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier hs-type">ComponentName</span></a></span></span></span><span>
+</span><span id="line-32"></span><span id="ci_cname"><span class="annot"><span class="annottext">ci_cname :: forall id rn. ComponentInclude id rn -&gt; ComponentName
+</span><a href="Distribution.Types.ComponentInclude.html#ci_cname"><span class="hs-identifier hs-var hs-var">ci_cname</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnnotatedId id -&gt; ComponentName
+forall id. AnnotatedId id -&gt; ComponentName
+</span><a href="Distribution.Types.AnnotatedId.html#ann_cname"><span class="hs-identifier hs-var">ann_cname</span></a></span><span> </span><span class="annot"><span class="annottext">(AnnotatedId id -&gt; ComponentName)
+-&gt; (ComponentInclude id rn -&gt; AnnotatedId id)
+-&gt; ComponentInclude id rn
+-&gt; ComponentName
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentInclude id rn -&gt; AnnotatedId id
+forall id rn. ComponentInclude id rn -&gt; AnnotatedId id
+</span><a href="Distribution.Types.ComponentInclude.html#ci_ann_id"><span class="hs-identifier hs-var">ci_ann_id</span></a></span><span>
+</span><span id="line-33"></span></pre></body></html>

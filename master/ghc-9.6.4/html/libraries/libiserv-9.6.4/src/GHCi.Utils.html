@@ -1,0 +1,32 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LINE 1 &quot;libraries/libiserv/src/GHCi/Utils.hsc&quot; #-}</span><span>
+</span><span id="line-1"></span><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">GHCi.Utils</span><span>
+</span><span id="line-3"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="GHCi.Utils.html#getGhcHandle"><span class="hs-identifier">getGhcHandle</span></a></span><span>
+</span><span id="line-4"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Foreign.C.html#/Foreign.C.html"><span class="hs-identifier">Foreign.C</span></a></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Handle.html#/GHC.IO.Handle.html"><span class="hs-identifier">GHC.IO.Handle</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Handle.Types.html#Handle/GHC.IO.Handle.Types.html#Handle"><span class="hs-identifier">Handle</span></a></span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-pragma">{-# LINE 20 &quot;libraries/libiserv/src/GHCi/Utils.hsc&quot; #-}</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../unix-2.8.4.0/src/System.Posix.html#/System.Posix.html"><span class="hs-identifier">System.Posix</span></a></span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-pragma">{-# LINE 22 &quot;libraries/libiserv/src/GHCi/Utils.hsc&quot; #-}</span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="annot"><span class="hs-comment">-- | Gets a GHC Handle File description from the given OS Handle or POSIX fd.</span></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-pragma">{-# LINE 48 &quot;libraries/libiserv/src/GHCi/Utils.hsc&quot; #-}</span><span>
+</span><span id="line-48"></span><span class="annot"><a href="GHCi.Utils.html#getGhcHandle"><span class="hs-identifier hs-type">getGhcHandle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Foreign.C.Types.html#CInt/Foreign.C.Types.html#CInt"><span class="hs-identifier hs-type">CInt</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Handle.Types.html#Handle/GHC.IO.Handle.Types.html#Handle"><span class="hs-identifier hs-type">Handle</span></a></span><span>
+</span><span id="line-49"></span><span id="getGhcHandle"><span class="annot"><span class="annottext">getGhcHandle :: CInt -&gt; IO Handle
+</span><a href="GHCi.Utils.html#getGhcHandle"><span class="hs-identifier hs-var hs-var">getGhcHandle</span></a></span></span><span> </span><span id="local-6989586621679043229"><span class="annot"><span class="annottext">CInt
+</span><a href="#local-6989586621679043229"><span class="hs-identifier hs-var">fd</span></a></span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Fd -&gt; IO Handle
+</span><a href="../../unix-2.8.4.0/src/System.Posix.IO.Common.html#fdToHandle/System.Posix.IO.Common.html#fdToHandle"><span class="hs-identifier hs-var">fdToHandle</span></a></span><span> </span><span class="annot"><span class="annottext">(Fd -&gt; IO Handle) -&gt; Fd -&gt; IO Handle
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">CInt -&gt; Fd
+</span><a href="../../base-4.18.2.0/src/System.Posix.Types.html#Fd/System.Posix.Types.html#Fd"><span class="hs-identifier hs-var">Fd</span></a></span><span> </span><span class="annot"><span class="annottext">CInt
+</span><a href="#local-6989586621679043229"><span class="hs-identifier hs-var">fd</span></a></span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-pragma">{-# LINE 51 &quot;libraries/libiserv/src/GHCi/Utils.hsc&quot; #-}</span><span>
+</span><span id="line-51"></span></pre></body></html>

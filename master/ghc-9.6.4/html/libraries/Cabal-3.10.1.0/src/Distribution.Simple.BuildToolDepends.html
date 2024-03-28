@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- |</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- This modules provides functions for working with both the legacy</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- &quot;build-tools&quot; field, and its replacement, &quot;build-tool-depends&quot;. Prefer using</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- the functions contained to access those fields directly.</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.BuildToolDepends</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="../../containers-0.6.7/src/Data.Map.html#/Data.Map.html"><span class="hs-identifier">Data.Map</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Map</span></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#/Distribution.Package.html"><span class="hs-identifier">Distribution.Package</span></a></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.PackageDescription.html#/Distribution.PackageDescription.html"><span class="hs-identifier">Distribution.PackageDescription</span></a></span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- | Desugar a &quot;build-tools&quot; entry into proper a executable dependency if</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- possible.</span><span>
+</span><span id="line-18"></span><span class="hs-comment">--</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- An entry can be so desugared in two cases:</span><span>
+</span><span id="line-20"></span><span class="hs-comment">--</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- 1. The name in build-tools matches a locally defined executable.  The</span><span>
+</span><span id="line-22"></span><span class="hs-comment">--    executable dependency produced is on that exe in the current package.</span><span>
+</span><span id="line-23"></span><span class="hs-comment">--</span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- 2. The name in build-tools matches a hard-coded set of known tools.  For now,</span><span>
+</span><span id="line-25"></span><span class="hs-comment">--    the executable dependency produced is one an executable in a package of</span><span>
+</span><span id="line-26"></span><span class="hs-comment">--    the same, but the hard-coding could just as well be per-key.</span><span>
+</span><span id="line-27"></span><span class="hs-comment">--</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- The first cases matches first.</span><span>
+</span><span id="line-29"></span><span class="annot"><a href="Distribution.Simple.BuildToolDepends.html#desugarBuildTool"><span class="hs-identifier hs-type">desugarBuildTool</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span>
+</span><span id="line-30"></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LegacyExeDependency.html#LegacyExeDependency/Distribution.Types.LegacyExeDependency.html#LegacyExeDependency"><span class="hs-identifier hs-type">LegacyExeDependency</span></a></span><span>
+</span><span id="line-31"></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ExeDependency.html#ExeDependency/Distribution.Types.ExeDependency.html#ExeDependency"><span class="hs-identifier hs-type">ExeDependency</span></a></span><span>
+</span><span id="line-32"></span><span id="desugarBuildTool"><span class="annot"><span class="annottext">desugarBuildTool :: PackageDescription -&gt; LegacyExeDependency -&gt; Maybe ExeDependency
+</span><a href="Distribution.Simple.BuildToolDepends.html#desugarBuildTool"><span class="hs-identifier hs-var hs-var">desugarBuildTool</span></a></span></span><span> </span><span id="local-6989586621679340388"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679340388"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679340389"><span class="annot"><span class="annottext">LegacyExeDependency
+</span><a href="#local-6989586621679340389"><span class="hs-identifier hs-var">led</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679340390"><span class="hs-identifier hs-var">foundLocal</span></a></span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">ExeDependency -&gt; Maybe ExeDependency
+forall a. a -&gt; Maybe a
+</span><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Just/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span> </span><span class="annot"><span class="annottext">(ExeDependency -&gt; Maybe ExeDependency)
+-&gt; ExeDependency -&gt; Maybe ExeDependency
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; UnqualComponentName -&gt; VersionRange -&gt; ExeDependency
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ExeDependency.html#ExeDependency/Distribution.Types.ExeDependency.html#ExeDependency"><span class="hs-identifier hs-var">ExeDependency</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageName
+forall pkg. Package pkg =&gt; pkg -&gt; PackageName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#packageName/Distribution.Package.html#packageName"><span class="hs-identifier hs-var">packageName</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679340388"><span class="hs-identifier hs-var">pkg</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679340393"><span class="hs-identifier hs-var">toolName</span></a></span><span> </span><span class="annot"><span class="annottext">VersionRange
+</span><a href="#local-6989586621679340394"><span class="hs-identifier hs-var">reqVer</span></a></span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">String -&gt; Map String ExeDependency -&gt; Maybe ExeDependency
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#lookup/Data.Map.Internal.html#lookup"><span class="hs-identifier hs-var">Map.lookup</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340396"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Map String ExeDependency
+</span><a href="#local-6989586621679340397"><span class="hs-identifier hs-var">whiteMap</span></a></span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-37"></span><span>    </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.LegacyExeDependency.html#LegacyExeDependency/Distribution.Types.LegacyExeDependency.html#LegacyExeDependency"><span class="hs-identifier hs-type">LegacyExeDependency</span></a></span><span> </span><span id="local-6989586621679340396"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340396"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621679340394"><span class="annot"><span class="annottext">VersionRange
+</span><a href="#local-6989586621679340394"><span class="hs-identifier hs-var">reqVer</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LegacyExeDependency
+</span><a href="#local-6989586621679340389"><span class="hs-identifier hs-var">led</span></a></span><span>
+</span><span id="line-38"></span><span>    </span><span id="local-6989586621679340393"><span class="annot"><span class="annottext">toolName :: UnqualComponentName
+</span><a href="#local-6989586621679340393"><span class="hs-identifier hs-var hs-var">toolName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; UnqualComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnqualComponentName.html#mkUnqualComponentName/Distribution.Types.UnqualComponentName.html#mkUnqualComponentName"><span class="hs-identifier hs-var">mkUnqualComponentName</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340396"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-39"></span><span>    </span><span id="local-6989586621679340390"><span class="annot"><span class="annottext">foundLocal :: Bool
+</span><a href="#local-6989586621679340390"><span class="hs-identifier hs-var hs-var">foundLocal</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679340393"><span class="hs-identifier hs-var">toolName</span></a></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName -&gt; [UnqualComponentName] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#elem/Data.Foldable.html#elem"><span class="hs-operator hs-var">`elem`</span></a></span><span> </span><span class="annot"><span class="annottext">(Executable -&gt; UnqualComponentName)
+-&gt; [Executable] -&gt; [UnqualComponentName]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">Executable -&gt; UnqualComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.Executable.html#exeName/Distribution.Types.Executable.html#exeName"><span class="hs-identifier hs-var">exeName</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageDescription -&gt; [Executable]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#executables/Distribution.Types.PackageDescription.html#executables"><span class="hs-identifier hs-var">executables</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679340388"><span class="hs-identifier hs-var">pkg</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span>    </span><span id="local-6989586621679340407"><span class="annot"><span class="annottext">whitelist :: [String]
+</span><a href="#local-6989586621679340407"><span class="hs-identifier hs-var hs-var">whitelist</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;hscolour&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;haddock&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;happy&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;alex&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;hsc2hs&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;c2hs&quot;</span></span><span>
+</span><span id="line-41"></span><span>                </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;cpphs&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;greencard&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;hspec-discover&quot;</span></span><span>
+</span><span id="line-42"></span><span>                </span><span class="hs-special">]</span><span>
+</span><span id="line-43"></span><span>    </span><span id="local-6989586621679340397"><span class="annot"><span class="annottext">whiteMap :: Map String ExeDependency
+</span><a href="#local-6989586621679340397"><span class="hs-identifier hs-var hs-var">whiteMap</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(String, ExeDependency)] -&gt; Map String ExeDependency
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span><a href="../../containers-0.6.7/src/Data.Map.Internal.html#fromList/Data.Map.Internal.html#fromList"><span class="hs-identifier hs-var">Map.fromList</span></a></span><span> </span><span class="annot"><span class="annottext">([(String, ExeDependency)] -&gt; Map String ExeDependency)
+-&gt; [(String, ExeDependency)] -&gt; Map String ExeDependency
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">((String -&gt; (String, ExeDependency))
+ -&gt; [String] -&gt; [(String, ExeDependency)])
+-&gt; [String]
+-&gt; (String -&gt; (String, ExeDependency))
+-&gt; [(String, ExeDependency)]
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#flip/GHC.Base.html#flip"><span class="hs-identifier hs-var">flip</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; (String, ExeDependency))
+-&gt; [String] -&gt; [(String, ExeDependency)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679340407"><span class="hs-identifier hs-var">whitelist</span></a></span><span> </span><span class="annot"><span class="annottext">((String -&gt; (String, ExeDependency)) -&gt; [(String, ExeDependency)])
+-&gt; (String -&gt; (String, ExeDependency)) -&gt; [(String, ExeDependency)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679340412"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340412"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-44"></span><span>      </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340412"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; UnqualComponentName -&gt; VersionRange -&gt; ExeDependency
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ExeDependency.html#ExeDependency/Distribution.Types.ExeDependency.html#ExeDependency"><span class="hs-identifier hs-var">ExeDependency</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; PackageName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#mkPackageName/Distribution.Types.PackageName.html#mkPackageName"><span class="hs-identifier hs-var">mkPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340412"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; UnqualComponentName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnqualComponentName.html#mkUnqualComponentName/Distribution.Types.UnqualComponentName.html#mkUnqualComponentName"><span class="hs-identifier hs-var">mkUnqualComponentName</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679340412"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">VersionRange
+</span><a href="#local-6989586621679340394"><span class="hs-identifier hs-var">reqVer</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- | Get everything from &quot;build-tool-depends&quot;, along with entries from</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- &quot;build-tools&quot; that we know how to desugar.</span><span>
+</span><span id="line-48"></span><span class="hs-comment">--</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- This should almost always be used instead of just accessing the</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- `buildToolDepends` field directly.</span><span>
+</span><span id="line-51"></span><span class="annot"><a href="Distribution.Simple.BuildToolDepends.html#getAllToolDependencies"><span class="hs-identifier hs-type">getAllToolDependencies</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span>
+</span><span id="line-52"></span><span>                       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#BuildInfo/Distribution.Types.BuildInfo.html#BuildInfo"><span class="hs-identifier hs-type">BuildInfo</span></a></span><span>
+</span><span id="line-53"></span><span>                       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ExeDependency.html#ExeDependency/Distribution.Types.ExeDependency.html#ExeDependency"><span class="hs-identifier hs-type">ExeDependency</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-54"></span><span id="getAllToolDependencies"><span class="annot"><span class="annottext">getAllToolDependencies :: PackageDescription -&gt; BuildInfo -&gt; [ExeDependency]
+</span><a href="Distribution.Simple.BuildToolDepends.html#getAllToolDependencies"><span class="hs-identifier hs-var hs-var">getAllToolDependencies</span></a></span></span><span> </span><span id="local-6989586621679340416"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679340416"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679340417"><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679340417"><span class="hs-identifier hs-var">bi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-55"></span><span>  </span><span class="annot"><span class="annottext">BuildInfo -&gt; [ExeDependency]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#buildToolDepends/Distribution.Types.BuildInfo.html#buildToolDepends"><span class="hs-identifier hs-var">buildToolDepends</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679340417"><span class="hs-identifier hs-var">bi</span></a></span><span> </span><span class="annot"><span class="annottext">[ExeDependency] -&gt; [ExeDependency] -&gt; [ExeDependency]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">(LegacyExeDependency -&gt; Maybe ExeDependency)
+-&gt; [LegacyExeDependency] -&gt; [ExeDependency]
+forall a b. (a -&gt; Maybe b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/Data.Maybe.html#mapMaybe/Data.Maybe.html#mapMaybe"><span class="hs-identifier hs-var">mapMaybe</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PackageDescription -&gt; LegacyExeDependency -&gt; Maybe ExeDependency
+</span><a href="Distribution.Simple.BuildToolDepends.html#desugarBuildTool"><span class="hs-identifier hs-var">desugarBuildTool</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679340416"><span class="hs-identifier hs-var">pkg</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BuildInfo -&gt; [LegacyExeDependency]
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#buildTools/Distribution.Types.BuildInfo.html#buildTools"><span class="hs-identifier hs-var">buildTools</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679340417"><span class="hs-identifier hs-var">bi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- | Does the given executable dependency map to this current package?</span><span>
+</span><span id="line-58"></span><span class="hs-comment">--</span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- This is a tiny function, but used in a number of places.</span><span>
+</span><span id="line-60"></span><span class="hs-comment">--</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- This function is only sound to call on `BuildInfo`s from the given package</span><span>
+</span><span id="line-62"></span><span class="hs-comment">-- description. This is because it just filters the package names of each</span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- dependency, and does not check whether version bounds in fact exclude the</span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- current package, or the referenced components in fact exist in the current</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- package.</span><span>
+</span><span id="line-66"></span><span class="hs-comment">--</span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- This is OK because when a package is loaded, it is checked (in</span><span>
+</span><span id="line-68"></span><span class="hs-comment">-- `Distribution.Package.Check`) that dependencies matching internal components</span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- do indeed have version bounds accepting the current package, and any</span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- depended-on component in the current package actually exists. In fact this</span><span>
+</span><span id="line-71"></span><span class="hs-comment">-- check is performed by gathering the internal tool dependencies of each</span><span>
+</span><span id="line-72"></span><span class="hs-comment">-- component of the package according to this module, and ensuring those</span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- properties on each so-gathered dependency.</span><span>
+</span><span id="line-74"></span><span class="hs-comment">--</span><span>
+</span><span id="line-75"></span><span class="hs-comment">-- version bounds and components of the package are unchecked. This is because</span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- we sanitize exe deps so that the matching name implies these other</span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- conditions.</span><span>
+</span><span id="line-78"></span><span class="annot"><a href="Distribution.Simple.BuildToolDepends.html#isInternal"><span class="hs-identifier hs-type">isInternal</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ExeDependency.html#ExeDependency/Distribution.Types.ExeDependency.html#ExeDependency"><span class="hs-identifier hs-type">ExeDependency</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-79"></span><span id="isInternal"><span class="annot"><span class="annottext">isInternal :: PackageDescription -&gt; ExeDependency -&gt; Bool
+</span><a href="Distribution.Simple.BuildToolDepends.html#isInternal"><span class="hs-identifier hs-var hs-var">isInternal</span></a></span></span><span> </span><span id="local-6989586621679340422"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679340422"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ExeDependency.html#ExeDependency/Distribution.Types.ExeDependency.html#ExeDependency"><span class="hs-identifier hs-type">ExeDependency</span></a></span><span> </span><span id="local-6989586621679340423"><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679340423"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="annot"><span class="annottext">UnqualComponentName
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">VersionRange
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><a href="#local-6989586621679340423"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName -&gt; PackageName -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; PackageName
+forall pkg. Package pkg =&gt; pkg -&gt; PackageName
+</span><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#packageName/Distribution.Package.html#packageName"><span class="hs-identifier hs-var">packageName</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679340422"><span class="hs-identifier hs-var">pkg</span></a></span><span>
+</span><span id="line-80"></span><span>
+</span><span id="line-81"></span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- | Get internal &quot;build-tool-depends&quot;, along with internal &quot;build-tools&quot;</span><span>
+</span><span id="line-83"></span><span class="hs-comment">--</span><span>
+</span><span id="line-84"></span><span class="hs-comment">-- This is a tiny function, but used in a number of places. The same</span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- restrictions that apply to `isInternal` also apply to this function.</span><span>
+</span><span id="line-86"></span><span class="annot"><a href="Distribution.Simple.BuildToolDepends.html#getAllInternalToolDependencies"><span class="hs-identifier hs-type">getAllInternalToolDependencies</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageDescription.html#PackageDescription/Distribution.Types.PackageDescription.html#PackageDescription"><span class="hs-identifier hs-type">PackageDescription</span></a></span><span>
+</span><span id="line-87"></span><span>                               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.BuildInfo.html#BuildInfo/Distribution.Types.BuildInfo.html#BuildInfo"><span class="hs-identifier hs-type">BuildInfo</span></a></span><span>
+</span><span id="line-88"></span><span>                               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.UnqualComponentName.html#UnqualComponentName/Distribution.Types.UnqualComponentName.html#UnqualComponentName"><span class="hs-identifier hs-type">UnqualComponentName</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-89"></span><span id="getAllInternalToolDependencies"><span class="annot"><span class="annottext">getAllInternalToolDependencies :: PackageDescription -&gt; BuildInfo -&gt; [UnqualComponentName]
+</span><a href="Distribution.Simple.BuildToolDepends.html#getAllInternalToolDependencies"><span class="hs-identifier hs-var hs-var">getAllInternalToolDependencies</span></a></span></span><span> </span><span id="local-6989586621679340425"><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679340425"><span class="hs-identifier hs-var">pkg</span></a></span></span><span> </span><span id="local-6989586621679340426"><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679340426"><span class="hs-identifier hs-var">bi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679340427"><span class="hs-identifier hs-var">toolname</span></a></span><span>
+</span><span id="line-91"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679340428"><span class="annot"><span class="annottext">dep :: ExeDependency
+</span><a href="#local-6989586621679340428"><span class="hs-identifier hs-var">dep</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ExeDependency.html#ExeDependency/Distribution.Types.ExeDependency.html#ExeDependency"><span class="hs-identifier hs-type">ExeDependency</span></a></span><span> </span><span class="annot"><span class="annottext">PackageName
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679340427"><span class="annot"><span class="annottext">UnqualComponentName
+</span><a href="#local-6989586621679340427"><span class="hs-identifier hs-var">toolname</span></a></span></span><span> </span><span class="annot"><span class="annottext">VersionRange
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; BuildInfo -&gt; [ExeDependency]
+</span><a href="Distribution.Simple.BuildToolDepends.html#getAllToolDependencies"><span class="hs-identifier hs-var">getAllToolDependencies</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679340425"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">BuildInfo
+</span><a href="#local-6989586621679340426"><span class="hs-identifier hs-var">bi</span></a></span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">PackageDescription -&gt; ExeDependency -&gt; Bool
+</span><a href="Distribution.Simple.BuildToolDepends.html#isInternal"><span class="hs-identifier hs-var">isInternal</span></a></span><span> </span><span class="annot"><span class="annottext">PackageDescription
+</span><a href="#local-6989586621679340425"><span class="hs-identifier hs-var">pkg</span></a></span><span> </span><span class="annot"><span class="annottext">ExeDependency
+</span><a href="#local-6989586621679340428"><span class="hs-identifier hs-var">dep</span></a></span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-94"></span></pre></body></html>

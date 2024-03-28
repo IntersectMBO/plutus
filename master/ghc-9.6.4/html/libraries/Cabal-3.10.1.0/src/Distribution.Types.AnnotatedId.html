@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Types.AnnotatedId</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-2"></span><span>    </span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier">AnnotatedId</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-3"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#/Distribution.Package.html"><span class="hs-identifier">Distribution.Package</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#/Distribution.Types.ComponentName.html"><span class="hs-identifier">Distribution.Types.ComponentName</span></a></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- | An 'AnnotatedId' is a 'ComponentId', 'UnitId', etc.</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- which is annotated with some other useful information</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- that is useful for printing to users, etc.</span><span>
+</span><span id="line-14"></span><span class="hs-comment">--</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- Invariant: if ann_id x == ann_id y, then ann_pid x == ann_pid y</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- and ann_cname x == ann_cname y</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">data</span><span> </span><span id="AnnotatedId"><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-var">AnnotatedId</span></a></span></span><span> </span><span id="local-6989586621679343325"><span class="annot"><a href="#local-6989586621679343325"><span class="hs-identifier hs-type">id</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="AnnotatedId"><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-var">AnnotatedId</span></a></span></span><span> </span><span class="hs-special">{</span><span>
+</span><span id="line-18"></span><span>        </span><span id="ann_pid"><span class="annot"><span class="annottext">forall id. AnnotatedId id -&gt; PackageId
+</span><a href="Distribution.Types.AnnotatedId.html#ann_pid"><span class="hs-identifier hs-var hs-var">ann_pid</span></a></span></span><span>   </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageId.html#PackageId/Distribution.Types.PackageId.html#PackageId"><span class="hs-identifier hs-type">PackageId</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>        </span><span id="ann_cname"><span class="annot"><span class="annottext">forall id. AnnotatedId id -&gt; ComponentName
+</span><a href="Distribution.Types.AnnotatedId.html#ann_cname"><span class="hs-identifier hs-var hs-var">ann_cname</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.ComponentName.html#ComponentName/Distribution.Types.ComponentName.html#ComponentName"><span class="hs-identifier hs-type">ComponentName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>        </span><span id="ann_id"><span class="annot"><span class="annottext">forall id. AnnotatedId id -&gt; id
+</span><a href="Distribution.Types.AnnotatedId.html#ann_id"><span class="hs-identifier hs-var hs-var">ann_id</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679343325"><span class="hs-identifier hs-type">id</span></a></span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679343361"><span id="local-6989586621679343370"><span id="local-6989586621679343374"><span class="annot"><span class="annottext">Int -&gt; AnnotatedId id -&gt; ShowS
+[AnnotatedId id] -&gt; ShowS
+AnnotatedId id -&gt; String
+(Int -&gt; AnnotatedId id -&gt; ShowS)
+-&gt; (AnnotatedId id -&gt; String)
+-&gt; ([AnnotatedId id] -&gt; ShowS)
+-&gt; Show (AnnotatedId id)
+forall id. Show id =&gt; Int -&gt; AnnotatedId id -&gt; ShowS
+forall id. Show id =&gt; [AnnotatedId id] -&gt; ShowS
+forall id. Show id =&gt; AnnotatedId id -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall id. Show id =&gt; Int -&gt; AnnotatedId id -&gt; ShowS
+showsPrec :: Int -&gt; AnnotatedId id -&gt; ShowS
+$cshow :: forall id. Show id =&gt; AnnotatedId id -&gt; String
+show :: AnnotatedId id -&gt; String
+$cshowList :: forall id. Show id =&gt; [AnnotatedId id] -&gt; ShowS
+showList :: [AnnotatedId id] -&gt; ShowS
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679343338"><span id="local-6989586621679343380"><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="#local-6989586621679343338"><span class="hs-identifier hs-type">id</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679343338"><span class="hs-identifier hs-type">id</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-25"></span><span>    </span><span id="local-6989586621679343385"><span class="annot"><span class="annottext">AnnotatedId id
+</span><a href="#local-6989586621679343385"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679343386"><span class="annot"><span class="annottext">== :: AnnotatedId id -&gt; AnnotatedId id -&gt; Bool
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">==</span></span></span><span> </span><span id="local-6989586621679343387"><span class="annot"><span class="annottext">AnnotatedId id
+</span><a href="#local-6989586621679343387"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnnotatedId id -&gt; id
+forall id. AnnotatedId id -&gt; id
+</span><a href="Distribution.Types.AnnotatedId.html#ann_id"><span class="hs-identifier hs-var">ann_id</span></a></span><span> </span><span class="annot"><span class="annottext">AnnotatedId id
+</span><a href="#local-6989586621679343385"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">id -&gt; id -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">AnnotatedId id -&gt; id
+forall id. AnnotatedId id -&gt; id
+</span><a href="Distribution.Types.AnnotatedId.html#ann_id"><span class="hs-identifier hs-var">ann_id</span></a></span><span> </span><span class="annot"><span class="annottext">AnnotatedId id
+</span><a href="#local-6989586621679343387"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679343341"><span id="local-6989586621679343394"><span id="local-6989586621679343398"><span id="local-6989586621679343401"><span id="local-6989586621679343404"><span id="local-6989586621679343407"><span id="local-6989586621679343410"><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679343341"><span class="hs-identifier hs-type">id</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679343341"><span class="hs-identifier hs-type">id</span></a></span><span class="hs-special">)</span></span></span></span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-28"></span><span>    </span><span id="local-6989586621679343415"><span class="annot"><span class="annottext">compare :: AnnotatedId id -&gt; AnnotatedId id -&gt; Ordering
+</span><a href="#local-6989586621679343415"><span class="hs-identifier hs-var hs-var hs-var hs-var">compare</span></a></span></span><span> </span><span id="local-6989586621679343417"><span class="annot"><span class="annottext">AnnotatedId id
+</span><a href="#local-6989586621679343417"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679343418"><span class="annot"><span class="annottext">AnnotatedId id
+</span><a href="#local-6989586621679343418"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">id -&gt; id -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span><span class="hs-identifier hs-var">compare</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AnnotatedId id -&gt; id
+forall id. AnnotatedId id -&gt; id
+</span><a href="Distribution.Types.AnnotatedId.html#ann_id"><span class="hs-identifier hs-var">ann_id</span></a></span><span> </span><span class="annot"><span class="annottext">AnnotatedId id
+</span><a href="#local-6989586621679343417"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AnnotatedId id -&gt; id
+forall id. AnnotatedId id -&gt; id
+</span><a href="Distribution.Types.AnnotatedId.html#ann_id"><span class="hs-identifier hs-var">ann_id</span></a></span><span> </span><span class="annot"><span class="annottext">AnnotatedId id
+</span><a href="#local-6989586621679343418"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679343345"><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Package.html#Package/Distribution.Package.html#Package"><span class="hs-identifier hs-type">Package</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679343345"><span class="hs-identifier hs-type">id</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-31"></span><span>    </span><span id="local-6989586621679343422"><span class="annot"><span class="annottext">packageId :: AnnotatedId id -&gt; PackageId
+</span><a href="#local-6989586621679343422"><span class="hs-identifier hs-var hs-var hs-var hs-var">packageId</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AnnotatedId id -&gt; PackageId
+forall id. AnnotatedId id -&gt; PackageId
+</span><a href="Distribution.Types.AnnotatedId.html#ann_pid"><span class="hs-identifier hs-var">ann_pid</span></a></span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679343426"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#Functor/GHC.Base.html#Functor"><span class="hs-identifier hs-type">Functor</span></a></span><span> </span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-34"></span><span>    </span><span id="local-6989586621679343430"><span class="annot"><span class="annottext">fmap :: forall a b. (a -&gt; b) -&gt; AnnotatedId a -&gt; AnnotatedId b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#fmap/GHC.Base.html#fmap"><span class="hs-identifier hs-var hs-var hs-var hs-var">fmap</span></a></span></span><span> </span><span id="local-6989586621679343431"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679343431"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-type">AnnotatedId</span></a></span><span> </span><span id="local-6989586621679343432"><span class="annot"><span class="annottext">PackageId
+</span><a href="#local-6989586621679343432"><span class="hs-identifier hs-var">pid</span></a></span></span><span> </span><span id="local-6989586621679343433"><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679343433"><span class="hs-identifier hs-var">cn</span></a></span></span><span> </span><span id="local-6989586621679343434"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679343434"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PackageId -&gt; ComponentName -&gt; b -&gt; AnnotatedId b
+forall id. PackageId -&gt; ComponentName -&gt; id -&gt; AnnotatedId id
+</span><a href="Distribution.Types.AnnotatedId.html#AnnotatedId"><span class="hs-identifier hs-var">AnnotatedId</span></a></span><span> </span><span class="annot"><span class="annottext">PackageId
+</span><a href="#local-6989586621679343432"><span class="hs-identifier hs-var">pid</span></a></span><span> </span><span class="annot"><span class="annottext">ComponentName
+</span><a href="#local-6989586621679343433"><span class="hs-identifier hs-var">cn</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679343431"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679343434"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span></pre></body></html>

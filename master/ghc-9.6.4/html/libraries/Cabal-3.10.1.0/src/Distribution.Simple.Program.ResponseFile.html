@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE RankNTypes       #-}</span><span>
+</span><span id="line-3"></span><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- Module      :  Distribution.Simple.Program.ResponseFile</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Copyright   :  (c) Sergey Vinokurov 2017</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- License     :  BSD3-style</span><span>
+</span><span id="line-8"></span><span class="hs-comment">--</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Maintainer  :  cabal-devel@haskell.org</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Created     :  23 July 2017</span><span>
+</span><span id="line-11"></span><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.Program.ResponseFile</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.Program.ResponseFile.html#withResponseFile"><span class="hs-identifier">withResponseFile</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Prelude.html#/Prelude.html"><span class="hs-identifier">Prelude</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/System.IO.html#/System.IO.html"><span class="hs-identifier">System.IO</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Encoding.Types.html#TextEncoding/GHC.IO.Encoding.Types.html#TextEncoding"><span class="hs-identifier">TextEncoding</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Handle.html#hSetEncoding/GHC.IO.Handle.html#hSetEncoding"><span class="hs-identifier">hSetEncoding</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Handle.Text.html#hPutStr/GHC.IO.Handle.Text.html#hPutStr"><span class="hs-identifier">hPutStr</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Handle.html#hClose/GHC.IO.Handle.html#hClose"><span class="hs-identifier">hClose</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Compat.Prelude.html#/Distribution.Compat.Prelude.html"><span class="hs-identifier">Distribution.Compat.Prelude</span></a></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html"><span class="hs-identifier">Distribution.Simple.Utils</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.Utils.html#TempFileOptions"><span class="hs-identifier">TempFileOptions</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#withTempFileEx"><span class="hs-identifier">withTempFileEx</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#debug"><span class="hs-identifier">debug</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html"><span class="hs-identifier">Distribution.Verbosity</span></a></span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span id="local-6989586621679350515"><span class="annot"><a href="Distribution.Simple.Program.ResponseFile.html#withResponseFile"><span class="hs-identifier hs-type">withResponseFile</span></a></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Verbosity.html#Verbosity"><span class="hs-identifier hs-type">Verbosity</span></a></span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Distribution.Simple.Utils.html#TempFileOptions"><span class="hs-identifier hs-type">TempFileOptions</span></a></span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>           </span><span class="annot"><span class="hs-comment">-- ^ Working directory to create response file in.</span></span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span>           </span><span class="annot"><span class="hs-comment">-- ^ Template for response file name.</span></span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Maybe.html#Maybe/GHC.Maybe.html#Maybe"><span class="hs-identifier hs-type">Maybe</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Encoding.Types.html#TextEncoding/GHC.IO.Encoding.Types.html#TextEncoding"><span class="hs-identifier hs-type">TextEncoding</span></a></span><span> </span><span class="annot"><span class="hs-comment">-- ^ Encoding to use for response file contents.</span></span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">]</span><span>           </span><span class="annot"><span class="hs-comment">-- ^ Arguments to put into response file.</span></span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679350515"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679350515"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-31"></span><span id="withResponseFile"><span class="annot"><span class="annottext">withResponseFile :: forall a.
+Verbosity
+-&gt; TempFileOptions
+-&gt; FilePath
+-&gt; FilePath
+-&gt; Maybe TextEncoding
+-&gt; [FilePath]
+-&gt; (FilePath -&gt; IO a)
+-&gt; IO a
+</span><a href="Distribution.Simple.Program.ResponseFile.html#withResponseFile"><span class="hs-identifier hs-var hs-var">withResponseFile</span></a></span></span><span> </span><span id="local-6989586621679350556"><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679350556"><span class="hs-identifier hs-var">verbosity</span></a></span></span><span> </span><span id="local-6989586621679350557"><span class="annot"><span class="annottext">TempFileOptions
+</span><a href="#local-6989586621679350557"><span class="hs-identifier hs-var">tmpFileOpts</span></a></span></span><span> </span><span id="local-6989586621679350558"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350558"><span class="hs-identifier hs-var">workDir</span></a></span></span><span> </span><span id="local-6989586621679350559"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350559"><span class="hs-identifier hs-var">fileNameTemplate</span></a></span></span><span> </span><span id="local-6989586621679350560"><span class="annot"><span class="annottext">Maybe TextEncoding
+</span><a href="#local-6989586621679350560"><span class="hs-identifier hs-var">encoding</span></a></span></span><span> </span><span id="local-6989586621679350561"><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679350561"><span class="hs-identifier hs-var">arguments</span></a></span></span><span> </span><span id="local-6989586621679350562"><span class="annot"><span class="annottext">FilePath -&gt; IO a
+</span><a href="#local-6989586621679350562"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-32"></span><span>  </span><span class="annot"><span class="annottext">TempFileOptions
+-&gt; FilePath -&gt; FilePath -&gt; (FilePath -&gt; Handle -&gt; IO a) -&gt; IO a
+forall a.
+TempFileOptions
+-&gt; FilePath -&gt; FilePath -&gt; (FilePath -&gt; Handle -&gt; IO a) -&gt; IO a
+</span><a href="Distribution.Simple.Utils.html#withTempFileEx"><span class="hs-identifier hs-var">withTempFileEx</span></a></span><span> </span><span class="annot"><span class="annottext">TempFileOptions
+</span><a href="#local-6989586621679350557"><span class="hs-identifier hs-var">tmpFileOpts</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350558"><span class="hs-identifier hs-var">workDir</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350559"><span class="hs-identifier hs-var">fileNameTemplate</span></a></span><span> </span><span class="annot"><span class="annottext">((FilePath -&gt; Handle -&gt; IO a) -&gt; IO a)
+-&gt; (FilePath -&gt; Handle -&gt; IO a) -&gt; IO a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679350563"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350563"><span class="hs-identifier hs-var">responseFileName</span></a></span></span><span> </span><span id="local-6989586621679350564"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679350564"><span class="hs-identifier hs-var">hf</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-33"></span><span>    </span><span class="annot"><span class="annottext">(TextEncoding -&gt; IO ()) -&gt; Maybe TextEncoding -&gt; IO ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#traverse_/Data.Foldable.html#traverse_"><span class="hs-identifier hs-var">traverse_</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Handle -&gt; TextEncoding -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/GHC.IO.Handle.html#hSetEncoding/GHC.IO.Handle.html#hSetEncoding"><span class="hs-identifier hs-var">hSetEncoding</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679350564"><span class="hs-identifier hs-var">hf</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe TextEncoding
+</span><a href="#local-6989586621679350560"><span class="hs-identifier hs-var">encoding</span></a></span><span>
+</span><span id="line-34"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679350566"><span class="annot"><span class="annottext">responseContents :: FilePath
+</span><a href="#local-6989586621679350566"><span class="hs-identifier hs-var hs-var">responseContents</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[FilePath] -&gt; FilePath
+</span><a href="../../base-4.18.2.0/src/Data.OldList.html#unlines/Data.OldList.html#unlines"><span class="hs-identifier hs-var">unlines</span></a></span><span> </span><span class="annot"><span class="annottext">([FilePath] -&gt; FilePath) -&gt; [FilePath] -&gt; FilePath
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; FilePath) -&gt; [FilePath] -&gt; [FilePath]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#map/GHC.Base.html#map"><span class="hs-identifier hs-var">map</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.Program.ResponseFile.html#escapeResponseFileArg"><span class="hs-identifier hs-var">escapeResponseFileArg</span></a></span><span> </span><span class="annot"><span class="annottext">[FilePath]
+</span><a href="#local-6989586621679350561"><span class="hs-identifier hs-var">arguments</span></a></span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><span class="annottext">Handle -&gt; FilePath -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/GHC.IO.Handle.Text.html#hPutStr/GHC.IO.Handle.Text.html#hPutStr"><span class="hs-identifier hs-var">hPutStr</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679350564"><span class="hs-identifier hs-var">hf</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350566"><span class="hs-identifier hs-var">responseContents</span></a></span><span>
+</span><span id="line-36"></span><span>    </span><span class="annot"><span class="annottext">Handle -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/GHC.IO.Handle.html#hClose/GHC.IO.Handle.html#hClose"><span class="hs-identifier hs-var">hClose</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679350564"><span class="hs-identifier hs-var">hf</span></a></span><span>
+</span><span id="line-37"></span><span>    </span><span class="annot"><span class="annottext">Verbosity -&gt; FilePath -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#debug"><span class="hs-identifier hs-var">debug</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679350556"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350563"><span class="hs-identifier hs-var">responseFileName</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot; contents: &lt;&lt;&lt;&quot;</span></span><span>
+</span><span id="line-38"></span><span>    </span><span class="annot"><span class="annottext">Verbosity -&gt; FilePath -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#debug"><span class="hs-identifier hs-var">debug</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679350556"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350566"><span class="hs-identifier hs-var">responseContents</span></a></span><span>
+</span><span id="line-39"></span><span>    </span><span class="annot"><span class="annottext">Verbosity -&gt; FilePath -&gt; IO ()
+</span><a href="Distribution.Simple.Utils.html#debug"><span class="hs-identifier hs-var">debug</span></a></span><span> </span><span class="annot"><span class="annottext">Verbosity
+</span><a href="#local-6989586621679350556"><span class="hs-identifier hs-var">verbosity</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; IO ()) -&gt; FilePath -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><span class="hs-string">&quot;&gt;&gt;&gt; &quot;</span></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath -&gt; FilePath
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%2B%2B/GHC.Base.html#%2B%2B"><span class="hs-operator hs-var">++</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350563"><span class="hs-identifier hs-var">responseFileName</span></a></span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><span class="annottext">FilePath -&gt; IO a
+</span><a href="#local-6989586621679350562"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350563"><span class="hs-identifier hs-var">responseFileName</span></a></span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- Support a gcc-like response file syntax.  Each separate</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- argument and its possible parameter(s), will be separated in the</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- response file by an actual newline; all other whitespace,</span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- single quotes, double quotes, and the character used for escaping</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- (backslash) are escaped.  The called program will need to do a similar</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- inverse operation to de-escape and re-constitute the argument list.</span><span>
+</span><span id="line-48"></span><span class="annot"><a href="Distribution.Simple.Program.ResponseFile.html#escapeResponseFileArg"><span class="hs-identifier hs-type">escapeResponseFileArg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-49"></span><span id="escapeResponseFileArg"><span class="annot"><span class="annottext">escapeResponseFileArg :: FilePath -&gt; FilePath
+</span><a href="Distribution.Simple.Program.ResponseFile.html#escapeResponseFileArg"><span class="hs-identifier hs-var hs-var">escapeResponseFileArg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; FilePath
+forall a. [a] -&gt; [a]
+</span><a href="../../base-4.18.2.0/src/GHC.List.html#reverse/GHC.List.html#reverse"><span class="hs-identifier hs-var">reverse</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; FilePath)
+-&gt; (FilePath -&gt; FilePath) -&gt; FilePath -&gt; FilePath
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">(FilePath -&gt; Char -&gt; FilePath) -&gt; FilePath -&gt; FilePath -&gt; FilePath
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><a href="../../base-4.18.2.0/src/Data.Foldable.html#foldl%27/Data.Foldable.html#foldl%27"><span class="hs-identifier hs-var">foldl'</span></a></span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Char -&gt; FilePath
+</span><a href="#local-6989586621679350572"><span class="hs-identifier hs-var">escape</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-51"></span><span>    </span><span class="annot"><a href="#local-6989586621679350572"><span class="hs-identifier hs-type">escape</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-52"></span><span>    </span><span id="local-6989586621679350572"><span class="annot"><span class="annottext">escape :: FilePath -&gt; Char -&gt; FilePath
+</span><a href="#local-6989586621679350572"><span class="hs-identifier hs-var hs-var">escape</span></a></span></span><span> </span><span id="local-6989586621679350573"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350573"><span class="hs-identifier hs-var">cs</span></a></span></span><span> </span><span id="local-6989586621679350574"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679350574"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-53"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679350574"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-54"></span><span>        </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\\'</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679350574"><span class="hs-identifier hs-var">c</span></a></span><span class="annot"><span class="annottext">Char -&gt; FilePath -&gt; FilePath
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\\'</span></span><span class="annot"><span class="annottext">Char -&gt; FilePath -&gt; FilePath
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350573"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-55"></span><span>        </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\''</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679350574"><span class="hs-identifier hs-var">c</span></a></span><span class="annot"><span class="annottext">Char -&gt; FilePath -&gt; FilePath
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\\'</span></span><span class="annot"><span class="annottext">Char -&gt; FilePath -&gt; FilePath
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350573"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-56"></span><span>        </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679350574"><span class="hs-identifier hs-var">c</span></a></span><span class="annot"><span class="annottext">Char -&gt; FilePath -&gt; FilePath
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\\'</span></span><span class="annot"><span class="annottext">Char -&gt; FilePath -&gt; FilePath
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350573"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-57"></span><span>        </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Unicode.html#isSpace/GHC.Unicode.html#isSpace"><span class="hs-identifier hs-var">isSpace</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679350574"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679350574"><span class="hs-identifier hs-var">c</span></a></span><span class="annot"><span class="annottext">Char -&gt; FilePath -&gt; FilePath
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\\'</span></span><span class="annot"><span class="annottext">Char -&gt; FilePath -&gt; FilePath
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350573"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-58"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#otherwise/GHC.Base.html#otherwise"><span class="hs-identifier hs-var">otherwise</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679350574"><span class="hs-identifier hs-var">c</span></a></span><span class="annot"><span class="annottext">Char -&gt; FilePath -&gt; FilePath
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679350573"><span class="hs-identifier hs-var">cs</span></a></span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span></pre></body></html>

@@ -1,0 +1,1004 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Simple.Build.PathsModule.Z</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Simple.Build.PathsModule.Z.html#render"><span class="hs-identifier">render</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Simple.Build.PathsModule.Z.html#Z"><span class="hs-identifier">Z</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Distribution.ZinzaPrelude.html"><span class="hs-identifier">Distribution.ZinzaPrelude</span></a></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">data</span><span> </span><span id="Z"><span class="annot"><a href="Distribution.Simple.Build.PathsModule.Z.html#Z"><span class="hs-identifier hs-var">Z</span></a></span></span><span>
+</span><span id="line-5"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span id="Z"><span class="annot"><a href="Distribution.Simple.Build.PathsModule.Z.html#Z"><span class="hs-identifier hs-var">Z</span></a></span></span><span> </span><span class="hs-special">{</span><span id="zPackageName"><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var hs-var">zPackageName</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#PackageName/Distribution.Types.PackageName.html#PackageName"><span class="hs-identifier hs-type">PackageName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>         </span><span id="zVersionDigits"><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zVersionDigits"><span class="hs-identifier hs-var hs-var">zVersionDigits</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>         </span><span id="zSupportsCpp"><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zSupportsCpp"><span class="hs-identifier hs-var hs-var">zSupportsCpp</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>         </span><span id="zSupportsNoRebindableSyntax"><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zSupportsNoRebindableSyntax"><span class="hs-identifier hs-var hs-var">zSupportsNoRebindableSyntax</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>         </span><span id="zAbsolute"><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zAbsolute"><span class="hs-identifier hs-var hs-var">zAbsolute</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>         </span><span id="zRelocatable"><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zRelocatable"><span class="hs-identifier hs-var hs-var">zRelocatable</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>         </span><span id="zIsWindows"><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zIsWindows"><span class="hs-identifier hs-var hs-var">zIsWindows</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>         </span><span id="zIsI386"><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zIsI386"><span class="hs-identifier hs-var hs-var">zIsI386</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>         </span><span id="zIsX8664"><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zIsX8664"><span class="hs-identifier hs-var hs-var">zIsX8664</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>         </span><span id="zPrefix"><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPrefix"><span class="hs-identifier hs-var hs-var">zPrefix</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>         </span><span id="zBindir"><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zBindir"><span class="hs-identifier hs-var hs-var">zBindir</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>         </span><span id="zLibdir"><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zLibdir"><span class="hs-identifier hs-var hs-var">zLibdir</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>         </span><span id="zDynlibdir"><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zDynlibdir"><span class="hs-identifier hs-var hs-var">zDynlibdir</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>         </span><span id="zDatadir"><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zDatadir"><span class="hs-identifier hs-var hs-var">zDatadir</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>         </span><span id="zLibexecdir"><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zLibexecdir"><span class="hs-identifier hs-var hs-var">zLibexecdir</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>         </span><span id="zSysconfdir"><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zSysconfdir"><span class="hs-identifier hs-var hs-var">zSysconfdir</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#FilePath/GHC.IO.html#FilePath"><span class="hs-identifier hs-type">FilePath</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-21"></span><span>         </span><span id="zNot"><span class="annot"><span class="annottext">Z -&gt; Bool -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zNot"><span class="hs-identifier hs-var hs-var">zNot</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>         </span><span id="zManglePkgName"><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var hs-var">zManglePkgName</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../Cabal-syntax-3.10.1.0/src/Distribution.Types.PackageName.html#PackageName/Distribution.Types.PackageName.html#PackageName"><span class="hs-identifier hs-type">PackageName</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">)</span><span class="hs-special">}</span><span>
+</span><span id="line-23"></span><span>    </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679348120"><span id="local-6989586621679348122"><span class="annot"><span class="annottext">(forall x. Z -&gt; Rep Z x) -&gt; (forall x. Rep Z x -&gt; Z) -&gt; Generic Z
+forall x. Rep Z x -&gt; Z
+forall x. Z -&gt; Rep Z x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Z -&gt; Rep Z x
+from :: forall x. Z -&gt; Rep Z x
+$cto :: forall x. Rep Z x -&gt; Z
+to :: forall x. Rep Z x -&gt; Z
+</span><a href="../../base-4.18.2.0/src/GHC.Generics.html#Generic/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></a></span></span></span><span>
+</span><span id="line-24"></span><span class="annot"><a href="Distribution.Simple.Build.PathsModule.Z.html#render"><span class="hs-identifier hs-type">render</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Simple.Build.PathsModule.Z.html#Z"><span class="hs-identifier hs-type">Z</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Base.html#String/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span>
+</span><span id="line-25"></span><span id="render"><span class="annot"><span class="annottext">render :: Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#render"><span class="hs-identifier hs-var hs-var">render</span></a></span></span><span> </span><span id="local-6989586621679348125"><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Writer () -&gt; String
+forall a. Writer a -&gt; String
+</span><a href="Distribution.ZinzaPrelude.html#execWriter"><span class="hs-identifier hs-var">execWriter</span></a></span><span> </span><span class="annot"><span class="annottext">(Writer () -&gt; String) -&gt; Writer () -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zSupportsCpp"><span class="hs-identifier hs-var">zSupportsCpp</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-28"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;{-# LANGUAGE CPP #-}\n&quot;</span></span><span>
+</span><span id="line-29"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-31"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zSupportsNoRebindableSyntax"><span class="hs-identifier hs-var">zSupportsNoRebindableSyntax</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;{-# LANGUAGE NoRebindableSyntax #-}\n&quot;</span></span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-37"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zNot"><span class="hs-identifier hs-var">zNot</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zAbsolute"><span class="hs-identifier hs-var">zAbsolute</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;{-# LANGUAGE ForeignFunctionInterface #-}\n&quot;</span></span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-43"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zSupportsCpp"><span class="hs-identifier hs-var">zSupportsCpp</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-46"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#if __GLASGOW_HASKELL__ &gt;= 810\n&quot;</span></span><span>
+</span><span id="line-47"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;{-# OPTIONS_GHC -Wno-prepositive-qualified-module #-}\n&quot;</span></span><span>
+</span><span id="line-48"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#endif\n&quot;</span></span><span>
+</span><span id="line-49"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-51"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;{-# OPTIONS_GHC -fno-warn-missing-import-lists #-}\n&quot;</span></span><span>
+</span><span id="line-53"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;{-# OPTIONS_GHC -w #-}\n&quot;</span></span><span>
+</span><span id="line-54"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;module Paths_&quot;</span></span><span>
+</span><span id="line-55"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-56"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; (\n&quot;</span></span><span>
+</span><span id="line-57"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;    version,\n&quot;</span></span><span>
+</span><span id="line-58"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;    getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir,\n&quot;</span></span><span>
+</span><span id="line-59"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;    getDataFileName, getSysconfDir\n&quot;</span></span><span>
+</span><span id="line-60"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  ) where\n&quot;</span></span><span>
+</span><span id="line-61"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zNot"><span class="hs-identifier hs-var">zNot</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zAbsolute"><span class="hs-identifier hs-var">zAbsolute</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-64"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;import Foreign\n&quot;</span></span><span>
+</span><span id="line-65"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;import Foreign.C\n&quot;</span></span><span>
+</span><span id="line-66"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-67"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-68"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-69"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-70"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;import qualified Control.Exception as Exception\n&quot;</span></span><span>
+</span><span id="line-71"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;import qualified Data.List as List\n&quot;</span></span><span>
+</span><span id="line-72"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;import Data.Version (Version(..))\n&quot;</span></span><span>
+</span><span id="line-73"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;import System.Environment (getEnv)\n&quot;</span></span><span>
+</span><span id="line-74"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;import Prelude\n&quot;</span></span><span>
+</span><span id="line-75"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-76"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zRelocatable"><span class="hs-identifier hs-var">zRelocatable</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-78"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;import System.Environment (getExecutablePath)\n&quot;</span></span><span>
+</span><span id="line-79"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-81"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-83"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zSupportsCpp"><span class="hs-identifier hs-var">zSupportsCpp</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-85"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#if defined(VERSION_base)\n&quot;</span></span><span>
+</span><span id="line-86"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-87"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#if MIN_VERSION_base(4,0,0)\n&quot;</span></span><span>
+</span><span id="line-88"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;catchIO :: IO a -&gt; (Exception.IOException -&gt; IO a) -&gt; IO a\n&quot;</span></span><span>
+</span><span id="line-89"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#else\n&quot;</span></span><span>
+</span><span id="line-90"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;catchIO :: IO a -&gt; (Exception.Exception -&gt; IO a) -&gt; IO a\n&quot;</span></span><span>
+</span><span id="line-91"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#endif\n&quot;</span></span><span>
+</span><span id="line-92"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-93"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#else\n&quot;</span></span><span>
+</span><span id="line-94"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;catchIO :: IO a -&gt; (Exception.IOException -&gt; IO a) -&gt; IO a\n&quot;</span></span><span>
+</span><span id="line-95"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;#endif\n&quot;</span></span><span>
+</span><span id="line-96"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;catchIO = Exception.catch\n&quot;</span></span><span>
+</span><span id="line-97"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-98"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-99"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;catchIO :: IO a -&gt; (Exception.IOException -&gt; IO a) -&gt; IO a\n&quot;</span></span><span>
+</span><span id="line-100"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;catchIO = Exception.catch\n&quot;</span></span><span>
+</span><span id="line-101"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-102"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-103"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;version :: Version\n&quot;</span></span><span>
+</span><span id="line-104"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;version = Version &quot;</span></span><span>
+</span><span id="line-105"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zVersionDigits"><span class="hs-identifier hs-var">zVersionDigits</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-106"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; []\n&quot;</span></span><span>
+</span><span id="line-107"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-108"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getDataFileName :: FilePath -&gt; IO FilePath\n&quot;</span></span><span>
+</span><span id="line-109"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getDataFileName name = do\n&quot;</span></span><span>
+</span><span id="line-110"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  dir &lt;- getDataDir\n&quot;</span></span><span>
+</span><span id="line-111"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  return (dir `joinFileName` name)\n&quot;</span></span><span>
+</span><span id="line-112"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-113"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: IO FilePath\n&quot;</span></span><span>
+</span><span id="line-114"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-115"></span><span>  </span><span class="hs-keyword">let</span><span>
+</span><span id="line-116"></span><span>    </span><span id="local-6989586621679348148"><span class="annot"><span class="annottext">z_var0_function_defs :: Writer ()
+</span><a href="#local-6989586621679348148"><span class="hs-identifier hs-var hs-var">z_var0_function_defs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-117"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;minusFileName :: FilePath -&gt; String -&gt; FilePath\n&quot;</span></span><span>
+</span><span id="line-118"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;minusFileName dir \&quot;\&quot;     = dir\n&quot;</span></span><span>
+</span><span id="line-119"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;minusFileName dir \&quot;.\&quot;    = dir\n&quot;</span></span><span>
+</span><span id="line-120"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;minusFileName dir suffix =\n&quot;</span></span><span>
+</span><span id="line-121"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  minusFileName (fst (splitFileName dir)) (fst (splitFileName suffix))\n&quot;</span></span><span>
+</span><span id="line-122"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-123"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;splitFileName :: FilePath -&gt; (String, String)\n&quot;</span></span><span>
+</span><span id="line-124"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;splitFileName p = (reverse (path2++drive), reverse fname)\n&quot;</span></span><span>
+</span><span id="line-125"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  where\n&quot;</span></span><span>
+</span><span id="line-126"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;    (path,drive) = case p of\n&quot;</span></span><span>
+</span><span id="line-127"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;      (c:':':p') -&gt; (reverse p',[':',c])\n&quot;</span></span><span>
+</span><span id="line-128"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;      _          -&gt; (reverse p ,\&quot;\&quot;)\n&quot;</span></span><span>
+</span><span id="line-129"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;    (fname,path1) = break isPathSeparator path\n&quot;</span></span><span>
+</span><span id="line-130"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;    path2 = case path1 of\n&quot;</span></span><span>
+</span><span id="line-131"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;      []                           -&gt; \&quot;.\&quot;\n&quot;</span></span><span>
+</span><span id="line-132"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;      [_]                          -&gt; path1   -- don't remove the trailing slash if\n&quot;</span></span><span>
+</span><span id="line-133"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;                                              -- there is only one character\n&quot;</span></span><span>
+</span><span id="line-134"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;      (c:path') | isPathSeparator c -&gt; path'\n&quot;</span></span><span>
+</span><span id="line-135"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;      _                             -&gt; path1\n&quot;</span></span><span>
+</span><span id="line-136"></span><span>      </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-137"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-138"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-139"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zRelocatable"><span class="hs-identifier hs-var">zRelocatable</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-140"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-141"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-142"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getPrefixDirReloc :: FilePath -&gt; IO FilePath\n&quot;</span></span><span>
+</span><span id="line-143"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getPrefixDirReloc dirRel = do\n&quot;</span></span><span>
+</span><span id="line-144"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  exePath &lt;- getExecutablePath\n&quot;</span></span><span>
+</span><span id="line-145"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  let (dir,_) = splitFileName exePath\n&quot;</span></span><span>
+</span><span id="line-146"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  return ((dir `minusFileName` &quot;</span></span><span>
+</span><span id="line-147"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zBindir"><span class="hs-identifier hs-var">zBindir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-148"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;) `joinFileName` dirRel)\n&quot;</span></span><span>
+</span><span id="line-149"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-150"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getBinDir     = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-151"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-152"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_bindir\&quot;)     (\\_ -&gt; getPrefixDirReloc $ &quot;</span></span><span>
+</span><span id="line-153"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zBindir"><span class="hs-identifier hs-var">zBindir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-154"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;)\n&quot;</span></span><span>
+</span><span id="line-155"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getLibDir     = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-156"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-157"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_libdir\&quot;)     (\\_ -&gt; getPrefixDirReloc $ &quot;</span></span><span>
+</span><span id="line-158"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zLibdir"><span class="hs-identifier hs-var">zLibdir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-159"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;)\n&quot;</span></span><span>
+</span><span id="line-160"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getDynLibDir  = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-161"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-162"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_dynlibdir\&quot;)  (\\_ -&gt; getPrefixDirReloc $ &quot;</span></span><span>
+</span><span id="line-163"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zDynlibdir"><span class="hs-identifier hs-var">zDynlibdir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-164"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;)\n&quot;</span></span><span>
+</span><span id="line-165"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getDataDir    = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-166"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-167"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_datadir\&quot;)    (\\_ -&gt; getPrefixDirReloc $ &quot;</span></span><span>
+</span><span id="line-168"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zDatadir"><span class="hs-identifier hs-var">zDatadir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-169"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;)\n&quot;</span></span><span>
+</span><span id="line-170"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getLibexecDir = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-171"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-172"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_libexecdir\&quot;) (\\_ -&gt; getPrefixDirReloc $ &quot;</span></span><span>
+</span><span id="line-173"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zLibexecdir"><span class="hs-identifier hs-var">zLibexecdir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-174"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;)\n&quot;</span></span><span>
+</span><span id="line-175"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getSysconfDir = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-176"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-177"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_sysconfdir\&quot;) (\\_ -&gt; getPrefixDirReloc $ &quot;</span></span><span>
+</span><span id="line-178"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zSysconfdir"><span class="hs-identifier hs-var">zSysconfdir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-179"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;)\n&quot;</span></span><span>
+</span><span id="line-180"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-181"></span><span>    </span><span class="annot"><span class="annottext">Writer ()
+</span><a href="#local-6989586621679348148"><span class="hs-identifier hs-var">z_var0_function_defs</span></a></span><span>
+</span><span id="line-182"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-183"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-184"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-185"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zAbsolute"><span class="hs-identifier hs-var">zAbsolute</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-186"></span><span>    </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-187"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-188"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath\n&quot;</span></span><span>
+</span><span id="line-189"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;bindir     = &quot;</span></span><span>
+</span><span id="line-190"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zBindir"><span class="hs-identifier hs-var">zBindir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-191"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-192"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;libdir     = &quot;</span></span><span>
+</span><span id="line-193"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zLibdir"><span class="hs-identifier hs-var">zLibdir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-194"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-195"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;dynlibdir  = &quot;</span></span><span>
+</span><span id="line-196"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zDynlibdir"><span class="hs-identifier hs-var">zDynlibdir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-197"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-198"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;datadir    = &quot;</span></span><span>
+</span><span id="line-199"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zDatadir"><span class="hs-identifier hs-var">zDatadir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-200"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-201"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;libexecdir = &quot;</span></span><span>
+</span><span id="line-202"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zLibexecdir"><span class="hs-identifier hs-var">zLibexecdir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-203"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-204"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;sysconfdir = &quot;</span></span><span>
+</span><span id="line-205"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zSysconfdir"><span class="hs-identifier hs-var">zSysconfdir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-206"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-207"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-208"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getBinDir     = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-209"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-210"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_bindir\&quot;)     (\\_ -&gt; return bindir)\n&quot;</span></span><span>
+</span><span id="line-211"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getLibDir     = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-212"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-213"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_libdir\&quot;)     (\\_ -&gt; return libdir)\n&quot;</span></span><span>
+</span><span id="line-214"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getDynLibDir  = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-215"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-216"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_dynlibdir\&quot;)  (\\_ -&gt; return dynlibdir)\n&quot;</span></span><span>
+</span><span id="line-217"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getDataDir    = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-218"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-219"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_datadir\&quot;)    (\\_ -&gt; return datadir)\n&quot;</span></span><span>
+</span><span id="line-220"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getLibexecDir = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-221"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-222"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_libexecdir\&quot;) (\\_ -&gt; return libexecdir)\n&quot;</span></span><span>
+</span><span id="line-223"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getSysconfDir = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-224"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-225"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_sysconfdir\&quot;) (\\_ -&gt; return sysconfdir)\n&quot;</span></span><span>
+</span><span id="line-226"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-227"></span><span>      </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-228"></span><span>    </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-229"></span><span>      </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zIsWindows"><span class="hs-identifier hs-var">zIsWindows</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-230"></span><span>      </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-231"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-232"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;prefix :: FilePath\n&quot;</span></span><span>
+</span><span id="line-233"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;prefix = &quot;</span></span><span>
+</span><span id="line-234"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPrefix"><span class="hs-identifier hs-var">zPrefix</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-235"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-236"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-237"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getBinDir     = getPrefixDirRel $ &quot;</span></span><span>
+</span><span id="line-238"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zBindir"><span class="hs-identifier hs-var">zBindir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-239"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-240"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getLibDir     = &quot;</span></span><span>
+</span><span id="line-241"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zLibdir"><span class="hs-identifier hs-var">zLibdir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-242"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-243"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getDynLibDir  = &quot;</span></span><span>
+</span><span id="line-244"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zDynlibdir"><span class="hs-identifier hs-var">zDynlibdir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-245"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-246"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getDataDir    = catchIO (getEnv \&quot;&quot;</span></span><span>
+</span><span id="line-247"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zManglePkgName"><span class="hs-identifier hs-var">zManglePkgName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; PackageName
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zPackageName"><span class="hs-identifier hs-var">zPackageName</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-248"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_datadir\&quot;)    (\\_ -&gt; &quot;</span></span><span>
+</span><span id="line-249"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zDatadir"><span class="hs-identifier hs-var">zDatadir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-250"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;)\n&quot;</span></span><span>
+</span><span id="line-251"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getLibexecDir = &quot;</span></span><span>
+</span><span id="line-252"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zLibexecdir"><span class="hs-identifier hs-var">zLibexecdir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-253"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-254"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getSysconfDir = &quot;</span></span><span>
+</span><span id="line-255"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zSysconfdir"><span class="hs-identifier hs-var">zSysconfdir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-256"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-257"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-258"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getPrefixDirRel :: FilePath -&gt; IO FilePath\n&quot;</span></span><span>
+</span><span id="line-259"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;getPrefixDirRel dirRel = try_size 2048 -- plenty, PATH_MAX is 512 under Win32.\n&quot;</span></span><span>
+</span><span id="line-260"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  where\n&quot;</span></span><span>
+</span><span id="line-261"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;    try_size size = allocaArray (fromIntegral size) $ \\buf -&gt; do\n&quot;</span></span><span>
+</span><span id="line-262"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;        ret &lt;- c_GetModuleFileName nullPtr buf size\n&quot;</span></span><span>
+</span><span id="line-263"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;        case ret of\n&quot;</span></span><span>
+</span><span id="line-264"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;          0 -&gt; return (prefix `joinFileName` dirRel)\n&quot;</span></span><span>
+</span><span id="line-265"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;          _ | ret &lt; size -&gt; do\n&quot;</span></span><span>
+</span><span id="line-266"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;              exePath &lt;- peekCWString buf\n&quot;</span></span><span>
+</span><span id="line-267"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;              let (bindir,_) = splitFileName exePath\n&quot;</span></span><span>
+</span><span id="line-268"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;              return ((bindir `minusFileName` &quot;</span></span><span>
+</span><span id="line-269"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; String
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zBindir"><span class="hs-identifier hs-var">zBindir</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-270"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;) `joinFileName` dirRel)\n&quot;</span></span><span>
+</span><span id="line-271"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;            | otherwise  -&gt; try_size (size * 2)\n&quot;</span></span><span>
+</span><span id="line-272"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-273"></span><span>        </span><span class="annot"><span class="annottext">Writer ()
+</span><a href="#local-6989586621679348148"><span class="hs-identifier hs-var">z_var0_function_defs</span></a></span><span>
+</span><span id="line-274"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-275"></span><span>        </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zIsI386"><span class="hs-identifier hs-var">zIsI386</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-276"></span><span>        </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-277"></span><span>          </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;foreign import stdcall unsafe \&quot;windows.h GetModuleFileNameW\&quot;\n&quot;</span></span><span>
+</span><span id="line-278"></span><span>          </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  c_GetModuleFileName :: Ptr () -&gt; CWString -&gt; Int32 -&gt; IO Int32\n&quot;</span></span><span>
+</span><span id="line-279"></span><span>          </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-280"></span><span>        </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-281"></span><span>          </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zIsX8664"><span class="hs-identifier hs-var">zIsX8664</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-282"></span><span>          </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-283"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;foreign import ccall unsafe \&quot;windows.h GetModuleFileNameW\&quot;\n&quot;</span></span><span>
+</span><span id="line-284"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  c_GetModuleFileName :: Ptr () -&gt; CWString -&gt; Int32 -&gt; IO Int32\n&quot;</span></span><span>
+</span><span id="line-285"></span><span>            </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-286"></span><span>          </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-287"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;-- win32 supported only with I386, X86_64\n&quot;</span></span><span>
+</span><span id="line-288"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;c_GetModuleFileName :: Ptr () -&gt; CWString -&gt; Int32 -&gt; IO Int32\n&quot;</span></span><span>
+</span><span id="line-289"></span><span>            </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;c_GetModuleFileName  = _\n&quot;</span></span><span>
+</span><span id="line-290"></span><span>            </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-291"></span><span>          </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-292"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-293"></span><span>        </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-294"></span><span>      </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-295"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-296"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;notRelocAbsoluteOrWindows :: ()\n&quot;</span></span><span>
+</span><span id="line-297"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;notRelocAbsoluteOrWindows = _\n&quot;</span></span><span>
+</span><span id="line-298"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-299"></span><span>        </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-300"></span><span>      </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-301"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-302"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-303"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-304"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;joinFileName :: String -&gt; String -&gt; FilePath\n&quot;</span></span><span>
+</span><span id="line-305"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;joinFileName \&quot;\&quot;  fname = fname\n&quot;</span></span><span>
+</span><span id="line-306"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;joinFileName \&quot;.\&quot; fname = fname\n&quot;</span></span><span>
+</span><span id="line-307"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;joinFileName dir \&quot;\&quot;    = dir\n&quot;</span></span><span>
+</span><span id="line-308"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;joinFileName dir fname\n&quot;</span></span><span>
+</span><span id="line-309"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  | isPathSeparator (List.last dir) = dir ++ fname\n&quot;</span></span><span>
+</span><span id="line-310"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;  | otherwise                       = dir ++ pathSeparator : fname\n&quot;</span></span><span>
+</span><span id="line-311"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-312"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;pathSeparator :: Char\n&quot;</span></span><span>
+</span><span id="line-313"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zIsWindows"><span class="hs-identifier hs-var">zIsWindows</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-314"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-315"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;pathSeparator = '\\\\'\n&quot;</span></span><span>
+</span><span id="line-316"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-317"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-318"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;pathSeparator = '/'\n&quot;</span></span><span>
+</span><span id="line-319"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-320"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-321"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;isPathSeparator :: Char -&gt; Bool\n&quot;</span></span><span>
+</span><span id="line-322"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Z -&gt; Bool
+</span><a href="Distribution.Simple.Build.PathsModule.Z.html#zIsWindows"><span class="hs-identifier hs-var">zIsWindows</span></a></span><span> </span><span class="annot"><span class="annottext">Z
+</span><a href="#local-6989586621679348125"><span class="hs-identifier hs-var">z_root</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-323"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-324"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;isPathSeparator c = c == '/' || c == '\\\\'\n&quot;</span></span><span>
+</span><span id="line-325"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-326"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-327"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Writer ()
+</span><a href="Distribution.ZinzaPrelude.html#tell"><span class="hs-identifier hs-var">tell</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;isPathSeparator c = c == '/'\n&quot;</span></span><span>
+</span><span id="line-328"></span><span>    </span><span class="annot"><span class="annottext">() -&gt; Writer ()
+forall a. a -&gt; Writer a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-329"></span></pre></body></html>

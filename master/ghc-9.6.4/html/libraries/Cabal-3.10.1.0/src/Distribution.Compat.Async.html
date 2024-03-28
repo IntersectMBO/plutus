@@ -1,0 +1,319 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP                #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveDataTypeable #-}</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | 'Async', yet using 'MVar's.</span><span>
+</span><span id="line-4"></span><span class="hs-comment">--</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- Adopted from @async@ library</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Copyright (c) 2012, Simon Marlow</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Licensed under BSD-3-Clause</span><span>
+</span><span id="line-8"></span><span class="hs-comment">--</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- @since 3.2.0.0</span><span>
+</span><span id="line-10"></span><span class="hs-comment">--</span><span>
+</span><span id="line-11"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Distribution.Compat.Async</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Distribution.Compat.Async.html#AsyncM"><span class="hs-identifier">AsyncM</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Distribution.Compat.Async.html#withAsync"><span class="hs-identifier">withAsync</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#waitCatch"><span class="hs-identifier">waitCatch</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Distribution.Compat.Async.html#wait"><span class="hs-identifier">wait</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#asyncThreadId"><span class="hs-identifier">asyncThreadId</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Distribution.Compat.Async.html#cancel"><span class="hs-identifier">cancel</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#uninterruptibleCancel"><span class="hs-identifier">uninterruptibleCancel</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#AsyncCancelled"><span class="hs-identifier">AsyncCancelled</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Cabal extras</span></span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="Distribution.Compat.Async.html#withAsyncNF"><span class="hs-identifier">withAsyncNF</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Control.Concurrent.html#/Control.Concurrent.html"><span class="hs-identifier">Control.Concurrent</span></a></span><span>      </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Conc.Sync.html#ThreadId/GHC.Conc.Sync.html#ThreadId"><span class="hs-identifier">ThreadId</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Conc.Sync.html#forkIO/GHC.Conc.Sync.html#forkIO"><span class="hs-identifier">forkIO</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Control.Concurrent.MVar.html#/Control.Concurrent.MVar.html"><span class="hs-identifier">Control.Concurrent.MVar</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.MVar.html#MVar/GHC.MVar.html#MVar"><span class="hs-identifier">MVar</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.MVar.html#newEmptyMVar/GHC.MVar.html#newEmptyMVar"><span class="hs-identifier">newEmptyMVar</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.MVar.html#putMVar/GHC.MVar.html#putMVar"><span class="hs-identifier">putMVar</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.MVar.html#readMVar/GHC.MVar.html#readMVar"><span class="hs-identifier">readMVar</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../deepseq-1.4.8.1/src/Control.DeepSeq.html#/Control.DeepSeq.html"><span class="hs-identifier">Control.DeepSeq</span></a></span><span>         </span><span class="hs-special">(</span><span class="annot"><a href="../../deepseq-1.4.8.1/src/Control.DeepSeq.html#NFData/Control.DeepSeq.html#NFData"><span class="hs-identifier">NFData</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../deepseq-1.4.8.1/src/Control.DeepSeq.html#force/Control.DeepSeq.html#force"><span class="hs-identifier">force</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Control.Exception.html#/Control.Exception.html"><span class="hs-identifier">Control.Exception</span></a></span><span>
+</span><span id="line-24"></span><span>       </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#BlockedIndefinitelyOnMVar/GHC.IO.Exception.html#BlockedIndefinitelyOnMVar"><span class="hs-identifier">BlockedIndefinitelyOnMVar</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Exception.Type.html#Exception/GHC.Exception.Type.html#Exception"><span class="hs-identifier">Exception</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Exception.Type.html#SomeException/GHC.Exception.Type.html#SomeException"><span class="hs-identifier">SomeException</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#catch/GHC.IO.html#catch"><span class="hs-identifier">catch</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#evaluate/GHC.IO.html#evaluate"><span class="hs-identifier">evaluate</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#mask/GHC.IO.html#mask"><span class="hs-identifier">mask</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#throwIO/GHC.IO.html#throwIO"><span class="hs-identifier">throwIO</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Conc.Sync.html#throwTo/GHC.Conc.Sync.html#throwTo"><span class="hs-identifier">throwTo</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Control.Exception.Base.html#try/Control.Exception.Base.html#try"><span class="hs-identifier">try</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.html#uninterruptibleMask_/GHC.IO.html#uninterruptibleMask_"><span class="hs-identifier">uninterruptibleMask_</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Control.Monad.html#/Control.Monad.html"><span class="hs-identifier">Control.Monad</span></a></span><span>           </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Functor.html#void/Data.Functor.html#void"><span class="hs-identifier">void</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Typeable.html#/Data.Typeable.html"><span class="hs-identifier">Data.Typeable</span></a></span><span>           </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Typeable.Internal.html#Typeable/Data.Typeable.Internal.html#Typeable"><span class="hs-identifier">Typeable</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Exts.html#/GHC.Exts.html"><span class="hs-identifier">GHC.Exts</span></a></span><span>                </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">inline</span></span><span class="hs-special">)</span><span class="hs-cpp">
+
+#if MIN_VERSION_base(4,7,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Control.Exception.html#/Control.Exception.html"><span class="hs-identifier">Control.Exception</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#asyncExceptionFromException/GHC.IO.Exception.html#asyncExceptionFromException"><span class="hs-identifier">asyncExceptionFromException</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#asyncExceptionToException/GHC.IO.Exception.html#asyncExceptionToException"><span class="hs-identifier">asyncExceptionToException</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-33"></span><span class="annot"><span class="hs-comment">-- | Async, but based on 'MVar', as we don't depend on @stm@.</span></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">data</span><span> </span><span id="AsyncM"><span class="annot"><a href="Distribution.Compat.Async.html#AsyncM"><span class="hs-identifier hs-var">AsyncM</span></a></span></span><span> </span><span id="local-6989586621679338811"><span class="annot"><a href="#local-6989586621679338811"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Async"><span class="annot"><a href="Distribution.Compat.Async.html#Async"><span class="hs-identifier hs-var">Async</span></a></span></span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="asyncThreadId"><span class="annot"><span class="annottext">forall a. AsyncM a -&gt; ThreadId
+</span><a href="Distribution.Compat.Async.html#asyncThreadId"><span class="hs-identifier hs-var hs-var">asyncThreadId</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Conc.Sync.html#ThreadId/GHC.Conc.Sync.html#ThreadId"><span class="hs-identifier hs-type">ThreadId</span></a></span><span>
+</span><span id="line-36"></span><span>                  </span><span class="hs-comment">-- ^ Returns the 'ThreadId' of the thread running</span><span>
+</span><span id="line-37"></span><span>                  </span><span class="hs-comment">-- the given 'Async'.</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="_asyncMVar"><span class="annot"><span class="annottext">forall a. AsyncM a -&gt; MVar (Either SomeException a)
+</span><a href="Distribution.Compat.Async.html#_asyncMVar"><span class="hs-identifier hs-var hs-var">_asyncMVar</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.MVar.html#MVar/GHC.MVar.html#MVar"><span class="hs-identifier hs-type">MVar</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Either.html#Either/Data.Either.html#Either"><span class="hs-identifier hs-type">Either</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Exception.Type.html#SomeException/GHC.Exception.Type.html#SomeException"><span class="hs-identifier hs-type">SomeException</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338811"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- | Spawn an asynchronous action in a separate thread, and pass its</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- @Async@ handle to the supplied function.  When the function returns</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- or throws an exception, 'uninterruptibleCancel' is called on the @Async@.</span><span>
+</span><span id="line-44"></span><span class="hs-comment">--</span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- &gt; withAsync action inner = mask $ \restore -&gt; do</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- &gt;   a &lt;- async (restore action)</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- &gt;   restore (inner a) `finally` uninterruptibleCancel a</span><span>
+</span><span id="line-48"></span><span class="hs-comment">--</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- This is a useful variant of 'async' that ensures an @Async@ is</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- never left running unintentionally.</span><span>
+</span><span id="line-51"></span><span class="hs-comment">--</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- Note: a reference to the child thread is kept alive until the call</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- to `withAsync` returns, so nesting many `withAsync` calls requires</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- linear memory.</span><span>
+</span><span id="line-55"></span><span class="hs-comment">--</span><span>
+</span><span id="line-56"></span><span id="local-6989586621679338818"><span id="local-6989586621679338819"><span class="annot"><a href="Distribution.Compat.Async.html#withAsync"><span class="hs-identifier hs-type">withAsync</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338818"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Compat.Async.html#AsyncM"><span class="hs-identifier hs-type">AsyncM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338818"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338819"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338819"><span class="hs-identifier hs-type">b</span></a></span></span></span><span>
+</span><span id="line-57"></span><span id="withAsync"><span class="annot"><span class="annottext">withAsync :: forall a b. IO a -&gt; (AsyncM a -&gt; IO b) -&gt; IO b
+</span><a href="Distribution.Compat.Async.html#withAsync"><span class="hs-identifier hs-var hs-var">withAsync</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((IO () -&gt; IO ThreadId) -&gt; IO a -&gt; (AsyncM a -&gt; IO b) -&gt; IO b)
+-&gt; (IO () -&gt; IO ThreadId) -&gt; IO a -&gt; (AsyncM a -&gt; IO b) -&gt; IO b
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">inline</span></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ThreadId) -&gt; IO a -&gt; (AsyncM a -&gt; IO b) -&gt; IO b
+forall a b.
+(IO () -&gt; IO ThreadId) -&gt; IO a -&gt; (AsyncM a -&gt; IO b) -&gt; IO b
+</span><a href="Distribution.Compat.Async.html#withAsyncUsing"><span class="hs-identifier hs-var">withAsyncUsing</span></a></span><span> </span><span class="annot"><span class="annottext">IO () -&gt; IO ThreadId
+</span><a href="../../base-4.18.2.0/src/GHC.Conc.Sync.html#forkIO/GHC.Conc.Sync.html#forkIO"><span class="hs-identifier hs-var">forkIO</span></a></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span id="local-6989586621679338825"><span id="local-6989586621679338827"><span class="annot"><a href="Distribution.Compat.Async.html#withAsyncNF"><span class="hs-identifier hs-type">withAsyncNF</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="../../deepseq-1.4.8.1/src/Control.DeepSeq.html#NFData/Control.DeepSeq.html#NFData"><span class="hs-identifier hs-type">NFData</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338825"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338825"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Compat.Async.html#AsyncM"><span class="hs-identifier hs-type">AsyncM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338825"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338827"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338827"><span class="hs-identifier hs-type">b</span></a></span></span></span><span>
+</span><span id="line-60"></span><span id="withAsyncNF"><span class="annot"><span class="annottext">withAsyncNF :: forall a b. NFData a =&gt; IO a -&gt; (AsyncM a -&gt; IO b) -&gt; IO b
+</span><a href="Distribution.Compat.Async.html#withAsyncNF"><span class="hs-identifier hs-var hs-var">withAsyncNF</span></a></span></span><span> </span><span id="local-6989586621679338906"><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679338906"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((IO () -&gt; IO ThreadId) -&gt; IO a -&gt; (AsyncM a -&gt; IO b) -&gt; IO b)
+-&gt; (IO () -&gt; IO ThreadId) -&gt; IO a -&gt; (AsyncM a -&gt; IO b) -&gt; IO b
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">inline</span></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ThreadId) -&gt; IO a -&gt; (AsyncM a -&gt; IO b) -&gt; IO b
+forall a b.
+(IO () -&gt; IO ThreadId) -&gt; IO a -&gt; (AsyncM a -&gt; IO b) -&gt; IO b
+</span><a href="Distribution.Compat.Async.html#withAsyncUsing"><span class="hs-identifier hs-var">withAsyncUsing</span></a></span><span> </span><span class="annot"><span class="annottext">IO () -&gt; IO ThreadId
+</span><a href="../../base-4.18.2.0/src/GHC.Conc.Sync.html#forkIO/GHC.Conc.Sync.html#forkIO"><span class="hs-identifier hs-var">forkIO</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679338906"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">IO a -&gt; (a -&gt; IO a) -&gt; IO a
+forall a b. IO a -&gt; (a -&gt; IO b) -&gt; IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3E%3E%3D/GHC.Base.html#%3E%3E%3D"><span class="hs-operator hs-var">&gt;&gt;=</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; IO a
+</span><a href="#local-6989586621679338907"><span class="hs-identifier hs-var">evaluateNF</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-61"></span><span>    </span><span id="local-6989586621679338907"><span class="annot"><span class="annottext">evaluateNF :: a -&gt; IO a
+</span><a href="#local-6989586621679338907"><span class="hs-identifier hs-var hs-var">evaluateNF</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; IO a
+forall a. a -&gt; IO a
+</span><a href="../../base-4.18.2.0/src/GHC.IO.html#evaluate/GHC.IO.html#evaluate"><span class="hs-identifier hs-var">evaluate</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; IO a) -&gt; (a -&gt; a) -&gt; a -&gt; IO a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a
+forall a. NFData a =&gt; a -&gt; a
+</span><a href="../../deepseq-1.4.8.1/src/Control.DeepSeq.html#force/Control.DeepSeq.html#force"><span class="hs-identifier hs-var">force</span></a></span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span id="local-6989586621679338823"><span id="local-6989586621679338824"><span class="annot"><a href="Distribution.Compat.Async.html#withAsyncUsing"><span class="hs-identifier hs-type">withAsyncUsing</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Conc.Sync.html#ThreadId/GHC.Conc.Sync.html#ThreadId"><span class="hs-identifier hs-type">ThreadId</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338823"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Compat.Async.html#AsyncM"><span class="hs-identifier hs-type">AsyncM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338823"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338824"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338824"><span class="hs-identifier hs-type">b</span></a></span></span></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- The bracket version works, but is slow.  We can do better by</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- hand-coding it:</span><span>
+</span><span id="line-66"></span><span id="withAsyncUsing"><span class="annot"><span class="annottext">withAsyncUsing :: forall a b.
+(IO () -&gt; IO ThreadId) -&gt; IO a -&gt; (AsyncM a -&gt; IO b) -&gt; IO b
+</span><a href="Distribution.Compat.Async.html#withAsyncUsing"><span class="hs-identifier hs-var hs-var">withAsyncUsing</span></a></span></span><span> </span><span id="local-6989586621679338920"><span class="annot"><span class="annottext">IO () -&gt; IO ThreadId
+</span><a href="#local-6989586621679338920"><span class="hs-identifier hs-var">doFork</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679338921"><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679338921"><span class="hs-identifier hs-var">action</span></a></span></span><span> </span><span id="local-6989586621679338922"><span class="annot"><span class="annottext">AsyncM a -&gt; IO b
+</span><a href="#local-6989586621679338922"><span class="hs-identifier hs-var">inner</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-67"></span><span>  </span><span id="local-6989586621679338923"><span class="annot"><span class="annottext">MVar (Either SomeException a)
+</span><a href="#local-6989586621679338923"><span class="hs-identifier hs-var">var</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (MVar (Either SomeException a))
+forall a. IO (MVar a)
+</span><a href="../../base-4.18.2.0/src/GHC.MVar.html#newEmptyMVar/GHC.MVar.html#newEmptyMVar"><span class="hs-identifier hs-var">newEmptyMVar</span></a></span><span>
+</span><span id="line-68"></span><span>  </span><span class="annot"><span class="annottext">((forall a. IO a -&gt; IO a) -&gt; IO b) -&gt; IO b
+forall b. ((forall a. IO a -&gt; IO a) -&gt; IO b) -&gt; IO b
+</span><a href="../../base-4.18.2.0/src/GHC.IO.html#mask/GHC.IO.html#mask"><span class="hs-identifier hs-var">mask</span></a></span><span> </span><span class="annot"><span class="annottext">(((forall a. IO a -&gt; IO a) -&gt; IO b) -&gt; IO b)
+-&gt; ((forall a. IO a -&gt; IO a) -&gt; IO b) -&gt; IO b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679338924"><span class="annot"><span class="annottext">forall a. IO a -&gt; IO a
+</span><a href="#local-6989586621679338924"><span class="hs-identifier hs-var">restore</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-69"></span><span>    </span><span id="local-6989586621679338925"><span class="annot"><span class="annottext">ThreadId
+</span><a href="#local-6989586621679338925"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; IO ThreadId
+</span><a href="#local-6989586621679338920"><span class="hs-identifier hs-var">doFork</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ThreadId) -&gt; IO () -&gt; IO ThreadId
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%24/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">IO a -&gt; IO (Either SomeException a)
+forall e a. Exception e =&gt; IO a -&gt; IO (Either e a)
+</span><a href="../../base-4.18.2.0/src/Control.Exception.Base.html#try/Control.Exception.Base.html#try"><span class="hs-identifier hs-var">try</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IO a -&gt; IO a
+forall a. IO a -&gt; IO a
+</span><a href="#local-6989586621679338924"><span class="hs-identifier hs-var">restore</span></a></span><span> </span><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679338921"><span class="hs-identifier hs-var">action</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">IO (Either SomeException a)
+-&gt; (Either SomeException a -&gt; IO ()) -&gt; IO ()
+forall a b. IO a -&gt; (a -&gt; IO b) -&gt; IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#%3E%3E%3D/GHC.Base.html#%3E%3E%3D"><span class="hs-operator hs-var">&gt;&gt;=</span></a></span><span> </span><span class="annot"><span class="annottext">MVar (Either SomeException a) -&gt; Either SomeException a -&gt; IO ()
+forall a. MVar a -&gt; a -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/GHC.MVar.html#putMVar/GHC.MVar.html#putMVar"><span class="hs-identifier hs-var">putMVar</span></a></span><span> </span><span class="annot"><span class="annottext">MVar (Either SomeException a)
+</span><a href="#local-6989586621679338923"><span class="hs-identifier hs-var">var</span></a></span><span>
+</span><span id="line-70"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679338926"><span class="annot"><span class="annottext">a :: AsyncM a
+</span><a href="#local-6989586621679338926"><span class="hs-identifier hs-var hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ThreadId -&gt; MVar (Either SomeException a) -&gt; AsyncM a
+forall a. ThreadId -&gt; MVar (Either SomeException a) -&gt; AsyncM a
+</span><a href="Distribution.Compat.Async.html#Async"><span class="hs-identifier hs-var">Async</span></a></span><span> </span><span class="annot"><span class="annottext">ThreadId
+</span><a href="#local-6989586621679338925"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">MVar (Either SomeException a)
+</span><a href="#local-6989586621679338923"><span class="hs-identifier hs-var">var</span></a></span><span>
+</span><span id="line-71"></span><span>    </span><span id="local-6989586621679338927"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679338927"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO b -&gt; IO b
+forall a. IO a -&gt; IO a
+</span><a href="#local-6989586621679338924"><span class="hs-identifier hs-var">restore</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AsyncM a -&gt; IO b
+</span><a href="#local-6989586621679338922"><span class="hs-identifier hs-var">inner</span></a></span><span> </span><span class="annot"><span class="annottext">AsyncM a
+</span><a href="#local-6989586621679338926"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">IO b -&gt; (SomeException -&gt; IO b) -&gt; IO b
+forall a. IO a -&gt; (SomeException -&gt; IO a) -&gt; IO a
+</span><a href="Distribution.Compat.Async.html#catchAll"><span class="hs-operator hs-var">`catchAll`</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679338929"><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679338929"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-72"></span><span>        </span><span class="annot"><span class="annottext">AsyncM a -&gt; IO ()
+forall a. AsyncM a -&gt; IO ()
+</span><a href="Distribution.Compat.Async.html#uninterruptibleCancel"><span class="hs-identifier hs-var">uninterruptibleCancel</span></a></span><span> </span><span class="annot"><span class="annottext">AsyncM a
+</span><a href="#local-6989586621679338926"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-73"></span><span>        </span><span class="annot"><span class="annottext">SomeException -&gt; IO b
+forall e a. Exception e =&gt; e -&gt; IO a
+</span><a href="../../base-4.18.2.0/src/GHC.IO.html#throwIO/GHC.IO.html#throwIO"><span class="hs-identifier hs-var">throwIO</span></a></span><span> </span><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679338929"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-74"></span><span>    </span><span class="annot"><span class="annottext">AsyncM a -&gt; IO ()
+forall a. AsyncM a -&gt; IO ()
+</span><a href="Distribution.Compat.Async.html#uninterruptibleCancel"><span class="hs-identifier hs-var">uninterruptibleCancel</span></a></span><span> </span><span class="annot"><span class="annottext">AsyncM a
+</span><a href="#local-6989586621679338926"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-75"></span><span>    </span><span class="annot"><span class="annottext">b -&gt; IO b
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679338927"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- | Wait for an asynchronous action to complete, and return its</span><span>
+</span><span id="line-78"></span><span class="hs-comment">-- value.  If the asynchronous action threw an exception, then the</span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- exception is re-thrown by 'wait'.</span><span>
+</span><span id="line-80"></span><span class="hs-comment">--</span><span>
+</span><span id="line-81"></span><span class="hs-comment">-- &gt; wait = atomically . waitSTM</span><span>
+</span><span id="line-82"></span><span class="hs-comment">--</span><span>
+</span><span id="line-83"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#wait"><span class="hs-pragma hs-type">wait</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-84"></span><span id="local-6989586621679338855"><span class="annot"><a href="Distribution.Compat.Async.html#wait"><span class="hs-identifier hs-type">wait</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#AsyncM"><span class="hs-identifier hs-type">AsyncM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338855"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338855"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-85"></span><span id="wait"><span class="annot"><span class="annottext">wait :: forall a. AsyncM a -&gt; IO a
+</span><a href="Distribution.Compat.Async.html#wait"><span class="hs-identifier hs-var hs-var">wait</span></a></span></span><span> </span><span id="local-6989586621679338932"><span class="annot"><span class="annottext">AsyncM a
+</span><a href="#local-6989586621679338932"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-86"></span><span>    </span><span id="local-6989586621679338933"><span class="annot"><span class="annottext">Either SomeException a
+</span><a href="#local-6989586621679338933"><span class="hs-identifier hs-var">res</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">AsyncM a -&gt; IO (Either SomeException a)
+forall a. AsyncM a -&gt; IO (Either SomeException a)
+</span><a href="Distribution.Compat.Async.html#waitCatch"><span class="hs-identifier hs-var">waitCatch</span></a></span><span> </span><span class="annot"><span class="annottext">AsyncM a
+</span><a href="#local-6989586621679338932"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-87"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Either SomeException a
+</span><a href="#local-6989586621679338933"><span class="hs-identifier hs-var">res</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-88"></span><span>        </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Either.html#Left/Data.Either.html#Left"><span class="hs-identifier hs-type">Left</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Exception.Type.html#SomeException/GHC.Exception.Type.html#SomeException"><span class="hs-identifier hs-type">SomeException</span></a></span><span> </span><span id="local-6989586621679338937"><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679338937"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">e -&gt; IO a
+forall e a. Exception e =&gt; e -&gt; IO a
+</span><a href="../../base-4.18.2.0/src/GHC.IO.html#throwIO/GHC.IO.html#throwIO"><span class="hs-identifier hs-var">throwIO</span></a></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679338937"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-89"></span><span>        </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Either.html#Right/Data.Either.html#Right"><span class="hs-identifier hs-type">Right</span></a></span><span> </span><span id="local-6989586621679338938"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679338938"><span class="hs-identifier hs-var">x</span></a></span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a -&gt; IO a
+forall a. a -&gt; IO a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#return/GHC.Base.html#return"><span class="hs-identifier hs-var">return</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679338938"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span class="hs-comment">-- | Wait for an asynchronous action to complete, and return either</span><span>
+</span><span id="line-92"></span><span class="hs-comment">-- @Left e@ if the action raised an exception @e@, or @Right a@ if it</span><span>
+</span><span id="line-93"></span><span class="hs-comment">-- returned a value @a@.</span><span>
+</span><span id="line-94"></span><span class="hs-comment">--</span><span>
+</span><span id="line-95"></span><span class="hs-comment">-- &gt; waitCatch = atomically . waitCatchSTM</span><span>
+</span><span id="line-96"></span><span class="hs-comment">--</span><span>
+</span><span id="line-97"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#waitCatch"><span class="hs-pragma hs-type">waitCatch</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-98"></span><span id="local-6989586621679338857"><span class="annot"><a href="Distribution.Compat.Async.html#waitCatch"><span class="hs-identifier hs-type">waitCatch</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#AsyncM"><span class="hs-identifier hs-type">AsyncM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338857"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Either.html#Either/Data.Either.html#Either"><span class="hs-identifier hs-type">Either</span></a></span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Exception.Type.html#SomeException/GHC.Exception.Type.html#SomeException"><span class="hs-identifier hs-type">SomeException</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338857"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-99"></span><span id="waitCatch"><span class="annot"><span class="annottext">waitCatch :: forall a. AsyncM a -&gt; IO (Either SomeException a)
+</span><a href="Distribution.Compat.Async.html#waitCatch"><span class="hs-identifier hs-var hs-var">waitCatch</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Compat.Async.html#Async"><span class="hs-identifier hs-type">Async</span></a></span><span> </span><span class="annot"><span class="annottext">ThreadId
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679338939"><span class="annot"><span class="annottext">MVar (Either SomeException a)
+</span><a href="#local-6989586621679338939"><span class="hs-identifier hs-var">var</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO (Either SomeException a) -&gt; IO (Either SomeException a)
+forall a. IO a -&gt; IO a
+</span><a href="#local-6989586621679338940"><span class="hs-identifier hs-var">tryAgain</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">MVar (Either SomeException a) -&gt; IO (Either SomeException a)
+forall a. MVar a -&gt; IO a
+</span><a href="../../base-4.18.2.0/src/GHC.MVar.html#readMVar/GHC.MVar.html#readMVar"><span class="hs-identifier hs-var">readMVar</span></a></span><span> </span><span class="annot"><span class="annottext">MVar (Either SomeException a)
+</span><a href="#local-6989586621679338939"><span class="hs-identifier hs-var">var</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-101"></span><span>    </span><span class="hs-comment">-- See: https://github.com/simonmar/async/issues/14</span><span>
+</span><span id="line-102"></span><span>    </span><span id="local-6989586621679338940"><span class="annot"><span class="annottext">tryAgain :: IO a -&gt; IO a
+</span><a href="#local-6989586621679338940"><span class="hs-identifier hs-var hs-var">tryAgain</span></a></span></span><span> </span><span id="local-6989586621679338943"><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679338943"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679338943"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">IO a -&gt; (BlockedIndefinitelyOnMVar -&gt; IO a) -&gt; IO a
+forall e a. Exception e =&gt; IO a -&gt; (e -&gt; IO a) -&gt; IO a
+</span><a href="../../base-4.18.2.0/src/GHC.IO.html#catch/GHC.IO.html#catch"><span class="hs-operator hs-var">`catch`</span></a></span><span> </span><span class="hs-glyph">\</span><span class="annot"><span class="annottext">BlockedIndefinitelyOnMVar
+</span><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#BlockedIndefinitelyOnMVar/GHC.IO.Exception.html#BlockedIndefinitelyOnMVar"><span class="hs-identifier hs-var">BlockedIndefinitelyOnMVar</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679338943"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span id="local-6989586621679338850"><span class="annot"><a href="Distribution.Compat.Async.html#catchAll"><span class="hs-identifier hs-type">catchAll</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338850"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Exception.Type.html#SomeException/GHC.Exception.Type.html#SomeException"><span class="hs-identifier hs-type">SomeException</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338850"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679338850"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-105"></span><span id="catchAll"><span class="annot"><span class="annottext">catchAll :: forall a. IO a -&gt; (SomeException -&gt; IO a) -&gt; IO a
+</span><a href="Distribution.Compat.Async.html#catchAll"><span class="hs-identifier hs-var hs-var">catchAll</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO a -&gt; (SomeException -&gt; IO a) -&gt; IO a
+forall e a. Exception e =&gt; IO a -&gt; (e -&gt; IO a) -&gt; IO a
+</span><a href="../../base-4.18.2.0/src/GHC.IO.html#catch/GHC.IO.html#catch"><span class="hs-identifier hs-var">catch</span></a></span><span>
+</span><span id="line-106"></span><span>
+</span><span id="line-107"></span><span class="hs-comment">-- | Cancel an asynchronous action by throwing the @AsyncCancelled@</span><span>
+</span><span id="line-108"></span><span class="hs-comment">-- exception to it, and waiting for the `Async` thread to quit.</span><span>
+</span><span id="line-109"></span><span class="hs-comment">-- Has no effect if the 'Async' has already completed.</span><span>
+</span><span id="line-110"></span><span class="hs-comment">--</span><span>
+</span><span id="line-111"></span><span class="hs-comment">-- &gt; cancel a = throwTo (asyncThreadId a) AsyncCancelled &lt;* waitCatch a</span><span>
+</span><span id="line-112"></span><span class="hs-comment">--</span><span>
+</span><span id="line-113"></span><span class="hs-comment">-- Note that 'cancel' will not terminate until the thread the 'Async'</span><span>
+</span><span id="line-114"></span><span class="hs-comment">-- refers to has terminated. This means that 'cancel' will block for</span><span>
+</span><span id="line-115"></span><span class="hs-comment">-- as long said thread blocks when receiving an asynchronous exception.</span><span>
+</span><span id="line-116"></span><span class="hs-comment">--</span><span>
+</span><span id="line-117"></span><span class="hs-comment">-- For example, it could block if:</span><span>
+</span><span id="line-118"></span><span class="hs-comment">--</span><span>
+</span><span id="line-119"></span><span class="hs-comment">-- * It's executing a foreign call, and thus cannot receive the asynchronous</span><span>
+</span><span id="line-120"></span><span class="hs-comment">-- exception;</span><span>
+</span><span id="line-121"></span><span class="hs-comment">-- * It's executing some cleanup handler after having received the exception,</span><span>
+</span><span id="line-122"></span><span class="hs-comment">-- and the handler is blocking.</span><span>
+</span><span id="line-123"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#cancel"><span class="hs-pragma hs-type">cancel</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-124"></span><span id="local-6989586621679338946"><span class="annot"><a href="Distribution.Compat.Async.html#cancel"><span class="hs-identifier hs-type">cancel</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#AsyncM"><span class="hs-identifier hs-type">AsyncM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338946"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-125"></span><span id="cancel"><span class="annot"><span class="annottext">cancel :: forall a. AsyncM a -&gt; IO ()
+</span><a href="Distribution.Compat.Async.html#cancel"><span class="hs-identifier hs-var hs-var">cancel</span></a></span></span><span> </span><span id="local-6989586621679338952"><span class="annot"><span class="annottext">a :: AsyncM a
+</span><a href="#local-6989586621679338952"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Distribution.Compat.Async.html#Async"><span class="hs-identifier hs-type">Async</span></a></span><span> </span><span id="local-6989586621679338953"><span class="annot"><span class="annottext">ThreadId
+</span><a href="#local-6989586621679338953"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="annot"><span class="annottext">MVar (Either SomeException a)
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-126"></span><span>    </span><span class="annot"><span class="annottext">ThreadId -&gt; AsyncCancelled -&gt; IO ()
+forall e. Exception e =&gt; ThreadId -&gt; e -&gt; IO ()
+</span><a href="../../base-4.18.2.0/src/GHC.Conc.Sync.html#throwTo/GHC.Conc.Sync.html#throwTo"><span class="hs-identifier hs-var">throwTo</span></a></span><span> </span><span class="annot"><span class="annottext">ThreadId
+</span><a href="#local-6989586621679338953"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">AsyncCancelled
+</span><a href="Distribution.Compat.Async.html#AsyncCancelled"><span class="hs-identifier hs-var">AsyncCancelled</span></a></span><span>
+</span><span id="line-127"></span><span>    </span><span class="annot"><span class="annottext">IO (Either SomeException a) -&gt; IO ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><a href="../../base-4.18.2.0/src/Data.Functor.html#void/Data.Functor.html#void"><span class="hs-identifier hs-var">void</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AsyncM a -&gt; IO (Either SomeException a)
+forall a. AsyncM a -&gt; IO (Either SomeException a)
+</span><a href="Distribution.Compat.Async.html#waitCatch"><span class="hs-identifier hs-var">waitCatch</span></a></span><span> </span><span class="annot"><span class="annottext">AsyncM a
+</span><a href="#local-6989586621679338952"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-128"></span><span>
+</span><span id="line-129"></span><span class="annot"><span class="hs-comment">-- | The exception thrown by `cancel` to terminate a thread.</span></span><span>
+</span><span id="line-130"></span><span class="hs-keyword">data</span><span> </span><span id="AsyncCancelled"><span class="annot"><a href="Distribution.Compat.Async.html#AsyncCancelled"><span class="hs-identifier hs-var">AsyncCancelled</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="AsyncCancelled"><span class="annot"><a href="Distribution.Compat.Async.html#AsyncCancelled"><span class="hs-identifier hs-var">AsyncCancelled</span></a></span></span><span>
+</span><span id="line-131"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679338956"><span id="local-6989586621679338958"><span id="local-6989586621679338962"><span class="annot"><span class="annottext">Int -&gt; AsyncCancelled -&gt; ShowS
+[AsyncCancelled] -&gt; ShowS
+AsyncCancelled -&gt; String
+(Int -&gt; AsyncCancelled -&gt; ShowS)
+-&gt; (AsyncCancelled -&gt; String)
+-&gt; ([AsyncCancelled] -&gt; ShowS)
+-&gt; Show AsyncCancelled
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; AsyncCancelled -&gt; ShowS
+showsPrec :: Int -&gt; AsyncCancelled -&gt; ShowS
+$cshow :: AsyncCancelled -&gt; String
+show :: AsyncCancelled -&gt; String
+$cshowList :: [AsyncCancelled] -&gt; ShowS
+showList :: [AsyncCancelled] -&gt; ShowS
+</span><a href="../../base-4.18.2.0/src/GHC.Show.html#Show/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679338966"><span id="local-6989586621679338968"><span class="annot"><span class="annottext">AsyncCancelled -&gt; AsyncCancelled -&gt; Bool
+(AsyncCancelled -&gt; AsyncCancelled -&gt; Bool)
+-&gt; (AsyncCancelled -&gt; AsyncCancelled -&gt; Bool) -&gt; Eq AsyncCancelled
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: AsyncCancelled -&gt; AsyncCancelled -&gt; Bool
+== :: AsyncCancelled -&gt; AsyncCancelled -&gt; Bool
+$c/= :: AsyncCancelled -&gt; AsyncCancelled -&gt; Bool
+/= :: AsyncCancelled -&gt; AsyncCancelled -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span>
+</span><span id="line-132"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="../../base-4.18.2.0/src/Data.Typeable.Internal.html#Typeable/Data.Typeable.Internal.html#Typeable"><span class="hs-identifier hs-type">Typeable</span></a></span><span>
+</span><span id="line-133"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-134"></span><span>
+</span><span id="line-135"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679338979"><span class="annot"><a href="../../base-4.18.2.0/src/GHC.Exception.Type.html#Exception/GHC.Exception.Type.html#Exception"><span class="hs-identifier hs-type">Exception</span></a></span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#AsyncCancelled"><span class="hs-identifier hs-type">AsyncCancelled</span></a></span></span><span> </span><span class="hs-keyword">where</span><span class="hs-cpp">
+#if MIN_VERSION_base(4,7,0)
+</span><span>  </span><span class="hs-comment">-- wraps in SomeAsyncException</span><span>
+</span><span id="line-138"></span><span>  </span><span class="hs-comment">-- See https://github.com/ghc/ghc/commit/756a970eacbb6a19230ee3ba57e24999e4157b09</span><span>
+</span><span id="line-139"></span><span>  </span><span id="local-6989586621679338983"><span class="annot"><span class="annottext">fromException :: SomeException -&gt; Maybe AsyncCancelled
+</span><a href="#local-6989586621679338983"><span class="hs-identifier hs-var hs-var hs-var hs-var">fromException</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SomeException -&gt; Maybe AsyncCancelled
+forall e. Exception e =&gt; SomeException -&gt; Maybe e
+</span><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#asyncExceptionFromException/GHC.IO.Exception.html#asyncExceptionFromException"><span class="hs-identifier hs-var">asyncExceptionFromException</span></a></span><span>
+</span><span id="line-140"></span><span>  </span><span id="local-6989586621679338986"><span class="annot"><span class="annottext">toException :: AsyncCancelled -&gt; SomeException
+</span><a href="#local-6989586621679338986"><span class="hs-identifier hs-var hs-var hs-var hs-var">toException</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">AsyncCancelled -&gt; SomeException
+forall e. Exception e =&gt; e -&gt; SomeException
+</span><a href="../../base-4.18.2.0/src/GHC.IO.Exception.html#asyncExceptionToException/GHC.IO.Exception.html#asyncExceptionToException"><span class="hs-identifier hs-var">asyncExceptionToException</span></a></span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-143"></span><span class="hs-comment">-- | Cancel an asynchronous action</span><span>
+</span><span id="line-144"></span><span class="hs-comment">--</span><span>
+</span><span id="line-145"></span><span class="hs-comment">-- This is a variant of `cancel`, but it is not interruptible.</span><span>
+</span><span id="line-146"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#uninterruptibleCancel"><span class="hs-pragma hs-type">uninterruptibleCancel</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-147"></span><span id="local-6989586621679338851"><span class="annot"><a href="Distribution.Compat.Async.html#uninterruptibleCancel"><span class="hs-identifier hs-type">uninterruptibleCancel</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Distribution.Compat.Async.html#AsyncM"><span class="hs-identifier hs-type">AsyncM</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679338851"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-148"></span><span id="uninterruptibleCancel"><span class="annot"><span class="annottext">uninterruptibleCancel :: forall a. AsyncM a -&gt; IO ()
+</span><a href="Distribution.Compat.Async.html#uninterruptibleCancel"><span class="hs-identifier hs-var hs-var">uninterruptibleCancel</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; IO ()
+forall a. IO a -&gt; IO a
+</span><a href="../../base-4.18.2.0/src/GHC.IO.html#uninterruptibleMask_/GHC.IO.html#uninterruptibleMask_"><span class="hs-identifier hs-var">uninterruptibleMask_</span></a></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; IO ()) -&gt; (AsyncM a -&gt; IO ()) -&gt; AsyncM a -&gt; IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="../../base-4.18.2.0/src/GHC.Base.html#./GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">AsyncM a -&gt; IO ()
+forall a. AsyncM a -&gt; IO ()
+</span><a href="Distribution.Compat.Async.html#cancel"><span class="hs-identifier hs-var">cancel</span></a></span><span>
+</span><span id="line-149"></span></pre></body></html>
