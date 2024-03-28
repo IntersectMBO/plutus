@@ -2,13 +2,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Blueprint.Tests where
 
 import Prelude
 
-import Blueprint.Tests.Lib (Datum, Datum2, Param2a, Param2b, Params, Redeemer, Redeemer2,
-                            goldenJson, serialisedScript, validatorScript1, validatorScript2)
+import Blueprint.Tests.Lib (Datum, Param2a, Param2b, Params, Redeemer, Redeemer2, goldenJson,
+                            serialisedScript, validatorScript1, validatorScript2)
+import Blueprint.Tests.Lib.AsData.Blueprint (Datum2)
 import Data.Set qualified as Set
 import PlutusTx.Blueprint.Contract (ContractBlueprint (..))
 import PlutusTx.Blueprint.Definition (definitionRef, deriveDefinitions)
@@ -69,5 +71,13 @@ contractBlueprint =
               }
           ]
     , contractDefinitions =
-        deriveDefinitions @[Params, Redeemer, Datum, Param2a, Param2b, Redeemer2, Datum2]
+        deriveDefinitions
+          @[ Params
+           , Param2a
+           , Param2b
+           , Redeemer
+           , Redeemer2
+           , Datum
+           , Datum2
+           ]
     }

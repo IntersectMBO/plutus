@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -13,8 +14,12 @@
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
 
-module Blueprint.Tests.Lib where
+module Blueprint.Tests.Lib
+  ( module Blueprint.Tests.Lib
+  , module AsData
+  ) where
 
+import Blueprint.Tests.Lib.AsData.Decls as AsData (datum2)
 import Codec.Serialise (serialise)
 import Control.Lens (over, (&))
 import Control.Monad.Reader (asks)
@@ -24,6 +29,7 @@ import Data.Kind (Type)
 import Data.Void (Void)
 import Flat qualified
 import GHC.Generics (Generic)
+import PlutusTx.AsData (asData)
 import PlutusTx.Blueprint.Class (HasSchema (..))
 import PlutusTx.Blueprint.Definition (AsDefinitionId, definitionRef)
 import PlutusTx.Blueprint.Schema (Schema (..), emptyBytesSchema)
@@ -33,7 +39,7 @@ import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinData, BuiltinString, emptyByteString)
 import PlutusTx.Code qualified as PlutusTx
 import PlutusTx.IsData (FromData, ToData (..), UnsafeFromData (..))
-import PlutusTx.Lift qualified as PlutusTx
+import PlutusTx.Lift (liftCodeDef, makeLift)
 import PlutusTx.TH qualified as PlutusTx
 import Prelude
 import System.FilePath ((</>))
@@ -57,7 +63,7 @@ data Params = MkParams
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
 
-$(PlutusTx.makeLift ''Params)
+$(makeLift ''Params)
 $(makeIsDataSchemaIndexed ''Params [('MkParams, 0)])
 
 newtype Bytes (phantom :: Type) = MkAcmeBytes BuiltinByteString
@@ -109,7 +115,7 @@ typedValidator1 _params _datum _redeemer _context = False
 validatorScript1 :: PlutusTx.CompiledCode (Datum -> Redeemer -> ScriptContext -> Bool)
 validatorScript1 =
   $$(PlutusTx.compile [||typedValidator1||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef
+    `PlutusTx.unsafeApplyCode` liftCodeDef
       MkParams
         { myUnit = ()
         , myBool = True
@@ -125,17 +131,17 @@ newtype Param2a = MkParam2a Bool
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
 
-$(PlutusTx.makeLift ''Param2a)
+$(makeLift ''Param2a)
 $(makeIsDataSchemaIndexed ''Param2a [('MkParam2a, 0)])
 
 newtype Param2b = MkParam2b Bool
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
 
-$(PlutusTx.makeLift ''Param2b)
+$(makeLift ''Param2b)
 $(makeIsDataSchemaIndexed ''Param2b [('MkParam2b, 0)])
 
-type Datum2 = Integer
+$(asData datum2)
 
 type Redeemer2 = Integer
 
@@ -146,8 +152,8 @@ typedValidator2 _p1 _p2 _datum _redeemer _context = True
 validatorScript2 :: PlutusTx.CompiledCode (Datum2 -> Redeemer2 -> ScriptContext -> Bool)
 validatorScript2 =
   $$(PlutusTx.compile [||typedValidator2||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef (MkParam2a False)
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef (MkParam2b True)
+    `PlutusTx.unsafeApplyCode` liftCodeDef (MkParam2a False)
+    `PlutusTx.unsafeApplyCode` liftCodeDef (MkParam2b True)
 
 ----------------------------------------------------------------------------------------------------
 -- Helper functions --------------------------------------------------------------------------------
