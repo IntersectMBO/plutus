@@ -44,12 +44,13 @@ import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address (Network)
 import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..), TokenName)
 import PlutusTx.AsData (asData)
 import PlutusTx.DataMap (Map)
+import PlutusTx.DataPair (Pair)
 import PlutusTx.IsData (FromData, ToData, UnsafeFromData, makeIsDataIndexed, unstableMakeIsData)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude (Bool (..), BuiltinByteString, Eq (..), Integer, Ord ((<=), (>=)), any,
                          (&&))
 
-import PlutusLedgerApi.V1.Value qualified as Val
+import PlutusLedgerApi.V1.DataValue qualified as Val
 import PlutusLedgerApi.V2 qualified as Ledger (Address (..), Credential (..), PubKeyHash (..),
                                                ScriptHash (..), StakingCredential (..))
 import PlutusTx.DataMap qualified as Map
@@ -103,18 +104,17 @@ asData
   [d|
   -- | Token - represents a currency or token, it groups
   --   a pair of a currency symbol and token name.
-  data Token = Token CurrencySymbol TokenName
+  data Token = Token Val.CurrencySymbol Val.TokenName
     deriving stock (Generic, Data)
     deriving newtype (ToData, FromData, UnsafeFromData, Haskell.Eq, Haskell.Ord, Haskell.Show, Eq)
   |]
 
 -- | The accounts in a contract.
-type Accounts = Map (AccountId, Token) Integer
+type Accounts = Map (Pair AccountId Token) Integer
 
 -- | Values, as defined using Let ar e identified by name,
 --   and can be used by 'UseValue' construct.
 newtype ValueId = ValueId BuiltinByteString
-  deriving (IsString, Haskell.Show) via TokenName
   deriving stock (Haskell.Eq,Haskell.Ord,Generic,Data)
   deriving anyclass (Newtype)
   deriving newtype (Eq)
@@ -139,7 +139,7 @@ data Value a = AvailableMoney AccountId Token
           | UseValue ValueId
           | Cond a (Value a) (Value a)
   deriving stock (Generic, Data)
-  deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show)
+  deriving stock (Haskell.Eq, Haskell.Ord)
 
 instance Eq a => Eq (Value a) where
     {-# INLINABLE (==) #-}
@@ -187,7 +187,7 @@ data Observation = AndObs Observation Observation
                 | TrueObs
                 | FalseObs
   deriving stock (Generic, Data)
-  deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show)
+  deriving stock (Haskell.Eq, Haskell.Ord)
 
 instance Eq Observation where
     {-# INLINABLE (==) #-}

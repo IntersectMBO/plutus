@@ -12,6 +12,7 @@ import PlutusTx.AsData qualified as AsData
 import PlutusTx.DataPair (DataElem)
 import PlutusTx.Foldable qualified as Foldable
 import PlutusTx.IsData qualified as P
+import Prelude qualified as H
 
 AsData.asData
   [d|
@@ -28,3 +29,10 @@ foldr f u (Cons x xs) = f x (foldr f u xs)
 
 toList :: DataElem a => List a -> [a]
 toList = foldr (:) []
+
+map :: (DataElem a, DataElem b) => (a -> b) -> List a -> List b
+map f = foldr (\a b -> Cons (f a) b) Nil
+
+all = H.undefined
+
+revAppend = H.undefined

@@ -8,10 +8,12 @@ module PlutusTx.DataPair where
 
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.IsData qualified as P
+import PlutusTx.Prelude hiding (fst, snd)
 
 AsData.asData
   [d|
     data Pair a b = Pair a b
+      deriving newtype (Eq) -- todo fix?
       deriving newtype (P.ToData, P.FromData, P.UnsafeFromData)
   |]
 

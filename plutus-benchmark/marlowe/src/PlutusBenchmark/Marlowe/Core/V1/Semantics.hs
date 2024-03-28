@@ -105,6 +105,7 @@ import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
 import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..))
 import PlutusTx (FromData, ToData, UnsafeFromData)
 import PlutusTx.AsData (asData)
+import PlutusTx.AsData qualified as AsData
 import PlutusTx.IsData (makeIsDataIndexed)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude (AdditiveGroup ((-)), AdditiveSemigroup ((+)), Bool (..), Eq (..), Integer,
@@ -112,9 +113,11 @@ import PlutusTx.Prelude (AdditiveGroup ((-)), AdditiveSemigroup ((+)), Bool (..)
                          Ord (max, min, (<), (<=), (>), (>=)), all, foldMap, foldr, fst, negate,
                          not, otherwise, reverse, snd, ($), (&&), (++), (||))
 
-import PlutusLedgerApi.V2 qualified as Val
+import PlutusLedgerApi.V1.DataValue qualified as Val
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.DataList (List, pattern Cons, pattern Nil)
 import PlutusTx.DataMap qualified as Map
+import PlutusTx.DataPair (Pair, pattern Pair)
 import Prelude qualified as Haskell
 
 
@@ -144,20 +147,20 @@ data ReduceWarning = ReduceNoWarning
                    | ReduceShadowing ValueId Integer Integer
 --                                     oldVal ^  newVal ^
                    | ReduceAssertionFailed
-  deriving stock (Haskell.Show, Data)
+  deriving stock (Data)
 
 
 -- | Result of 'reduceContractStep'
 data ReduceStepResult = Reduced ReduceWarning ReduceEffect State Contract
                       | NotReduced
                       | AmbiguousTimeIntervalReductionError
-  deriving stock (Haskell.Show, Data)
+  deriving stock (Data)
 
 
 -- | Result of 'reduceContractUntilQuiescent'
 data ReduceResult = ContractQuiescent Bool [ReduceWarning] [Payment] State Contract
                   | RRAmbiguousTimeIntervalError
-  deriving stock (Haskell.Show, Data)
+  deriving stock (Data)
 
 
 -- | Warning of 'applyCases'
@@ -178,7 +181,7 @@ data ApplyAllResult = ApplyAllSuccess Bool [TransactionWarning] [Payment] State 
                     | ApplyAllNoMatchError
                     | ApplyAllAmbiguousTimeIntervalError
                     | ApplyAllHashMismatch
-  deriving stock (Haskell.Show, Data)
+  deriving stock (Data)
 
 
 -- | Warnings during transaction computation
@@ -189,7 +192,7 @@ data TransactionWarning = TransactionNonPositiveDeposit Party AccountId Token In
                         | TransactionShadowing ValueId Integer Integer
 --                                                 oldVal ^  newVal ^
                         | TransactionAssertionFailed
-  deriving stock (Haskell.Show, Generic, Haskell.Eq, Data)
+  deriving stock (Generic, Haskell.Eq, Data)
 
 
 -- | Transaction error
@@ -198,7 +201,7 @@ data TransactionError = TEAmbiguousTimeIntervalError
                       | TEIntervalError IntervalError
                       | TEUselessTransaction
                       | TEHashMismatch
-  deriving stock (Haskell.Show, Generic, Haskell.Eq, Data)
+  deriving stock (Generic, Haskell.Eq, Data)
 
 
 -- | Marlowe transaction input.
@@ -216,12 +219,12 @@ data TransactionOutput =
         , txOutState    :: State
         , txOutContract :: Contract }
     | Error TransactionError
-  deriving stock (Haskell.Show, Data)
+  deriving stock (Data)
 
 
 -- | Parameters constant during the course of a contract.
 newtype MarloweParams = MarloweParams { rolesCurrency :: CurrencySymbol }
-  deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord, Data)
+  deriving stock (Generic,Haskell.Eq,Haskell.Ord, Data)
 
 makeIsDataIndexed ''MarloweParams [('MarloweParams, 0)]
 
@@ -324,14 +327,14 @@ evalObservation env state obs = let
 -- | Pick the first account with money in it.
 refundOne :: Accounts -> Maybe ((Party, Token, Integer), Accounts)
 refundOne accounts = case Map.toList accounts of
-    [] -> Nothing
+    Nil -> Nothing
     -- SCP-5126: The return value of this function differs from
     -- Isabelle semantics in that it returns the least-recently
     -- added account-token combination rather than the first
     -- lexicographically ordered one. Also, the sequence
     -- `Map.unsafeFromList . tail . Map.toList` preserves the
     -- invariants of order and non-duplication.
-    ((accId, token), balance) : rest ->
+    (Cons (Pair (Pair accId token) balance) rest) ->
         if balance > 0
         then Just ((accId, token, balance), Map.unsafeFromList rest)
         else refundOne (Map.unsafeFromList rest)
@@ -345,7 +348,7 @@ moneyInAccount accId token accounts =
     -- Marlowe's Isabelle semantics given the precondition that
     -- the initial state's `accounts` in Isabelle was sorted and
     -- did not contain duplicate entries.
-    case Map.lookup (accId, token) accounts of
+    case Map.lookup (Pair accId token) accounts of
       Just x  -> x
       Nothing -> 0
 
@@ -359,7 +362,7 @@ updateMoneyInAccount accId token amount =
     -- Isabelle semantics given the precondition that the initial
     -- state's `accounts` in Isabelle was sorted and did not
     -- contain duplicate entries.
-    if amount <= 0 then Map.delete (accId, token) else Map.insert (accId, token) amount
+    if amount <= 0 then Map.delete (Pair accId token) else Map.insert (Pair accId token) amount
 
 
 -- | Add the given amount of money to an account (only if it is positive).
@@ -684,12 +687,12 @@ contractLifespanUpperBound contract = case contract of
 totalBalance :: Accounts -> Money
 totalBalance accounts = foldMap
     (\((_, Token cur tok), balance) -> Val.singleton cur tok balance)
-    (Map.toList accounts)
+    (Haskell.undefined accounts :: [((AccountId, Token), Integer)])
 
 
 -- | Check that all accounts have positive balance.
 allBalancesArePositive :: State -> Bool
-allBalancesArePositive State{..} = all (\(_, balance) -> balance > 0) (Map.toList accounts)
+allBalancesArePositive State{..} = all (\(_, balance) -> balance > 0) (Haskell.undefined accounts :: [((AccountId, Token), Integer)])
 
 
 instance Eq Payment where

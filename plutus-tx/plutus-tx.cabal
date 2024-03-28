@@ -75,6 +75,7 @@ library
     PlutusTx.DataList
     PlutusTx.DataMap
     PlutusTx.DataPair
+    PlutusTx.DataThese
     PlutusTx.Either
     PlutusTx.Enum
     PlutusTx.Eq
