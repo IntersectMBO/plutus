@@ -1,8 +1,12 @@
 {- | Shared code for benchmarking Plutus and Haskell versions of the Plutus nofib examples -}
-module Shared (benchWith, mkBenchMarks)
-where
+module Shared (
+    benchWith
+    , mkBenchMarks
+    , mkEvalCtx
+    , evaluateCekLikeInProd
+    ) where
 
-import PlutusBenchmark.Common (Term, getConfig)
+import PlutusBenchmark.Common (Term, evaluateCekLikeInProd, getConfig, mkEvalCtx)
 
 import PlutusBenchmark.NoFib.Clausify qualified as Clausify
 import PlutusBenchmark.NoFib.Knights qualified as Knights

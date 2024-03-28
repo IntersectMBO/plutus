@@ -7,6 +7,7 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     ( defaultBuiltinsRuntimeForSemanticsVariant
     , defaultBuiltinsRuntime
     , defaultCekCostModel
+    , toCekCostModel
     , defaultCekMachineCosts
     , defaultCekParameters
     , defaultCostModelParams
@@ -79,13 +80,17 @@ defaultCekMachineCosts =
 defaultCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 
+toCekCostModel :: BuiltinSemanticsVariant DefaultFun -> CostModel CekMachineCosts BuiltinCostModel
+toCekCostModel _ = defaultCekCostModel
+
 -- | The default cost model data.  This is exposed to the ledger, so let's not
 -- confuse anybody by mentioning the CEK machine
 defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
 defaultCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
-defaultCekParameters = mkMachineParameters def defaultCekCostModel
+-- See Note [noinline for saving on ticks].
+defaultCekParameters = noinline mkMachineParameters def defaultCekCostModel
 
 {- Note [noinline for saving on ticks]
 We use 'noinline' purely for saving on simplifier ticks for definitions, whose performance doesn't

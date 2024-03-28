@@ -23,7 +23,6 @@ module PlutusLedgerApi.Common.Eval
 
 import PlutusCore
 import PlutusCore.Data as Plutus
-import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudget as Plutus
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
@@ -106,14 +105,14 @@ mkTermToEvaluate ll pv script args = do
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
 toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachineParameters
-toMachineParameters _ = machineParameters
+toMachineParameters pv ctx = machineParameters ctx pv
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
 script.  This is so that they can be computed once and cached, rather than being recomputed on every
 evaluation.
 -}
 newtype EvaluationContext = EvaluationContext
-    { machineParameters :: DefaultMachineParameters
+    { machineParameters :: MajorProtocolVersion -> DefaultMachineParameters
     }
     deriving stock Generic
     deriving anyclass (NFData, NoThunks)
@@ -127,12 +126,12 @@ IMPORTANT: The evaluation context of every Plutus version must be recreated upon
 with the updated cost model parameters.
 -}
 mkDynEvaluationContext
-    :: MonadError CostModelApplyError m
-    => BuiltinSemanticsVariant DefaultFun
+    :: (MonadError CostModelApplyError m, SubDefaultFunSemanticsVariant semVar)
+    => (MajorProtocolVersion -> semVar)
     -> Plutus.CostModelParams
     -> m EvaluationContext
-mkDynEvaluationContext semvar newCMP =
-    EvaluationContext <$> mkMachineParametersFor semvar newCMP
+mkDynEvaluationContext toSemVar newCMP =
+    EvaluationContext <$> mkMachineParametersFor toSemVar newCMP
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()

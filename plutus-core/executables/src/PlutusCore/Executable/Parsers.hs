@@ -141,6 +141,7 @@ exampleOpts = ExampleOptions <$> exampleMode
 builtinSemanticsVariantReader :: String -> Maybe (BuiltinSemanticsVariant DefaultFun)
 builtinSemanticsVariantReader =
     \case
+     "0" -> Just DefaultFunSemanticsVariant0
      "1" -> Just DefaultFunSemanticsVariant1
      "2" -> Just DefaultFunSemanticsVariant2
      _   -> Nothing
@@ -149,6 +150,7 @@ builtinSemanticsVariantReader =
 showBuiltinSemanticsVariant :: BuiltinSemanticsVariant DefaultFun -> String
 showBuiltinSemanticsVariant =
     \case
+     DefaultFunSemanticsVariant0 -> "0"
      DefaultFunSemanticsVariant1 -> "1"
      DefaultFunSemanticsVariant2 -> "2"
 
@@ -160,7 +162,8 @@ builtinSemanticsVariant = option (maybeReader builtinSemanticsVariantReader)
   <> value DefaultFunSemanticsVariant2
   <> showDefaultWith showBuiltinSemanticsVariant
   <> help
-    ("Builtin semantics variant: 1 -> DefaultFunSemanticsVariant1, "
+    ("Builtin semantics variant: 0 -> DefaultFunSemanticsVariant0, "
+     <> "1 -> DefaultFunSemanticsVariant1"
      <> "2 -> DefaultFunSemanticsVariant2"
     )
   )
