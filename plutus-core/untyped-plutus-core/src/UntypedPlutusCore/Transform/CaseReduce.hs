@@ -8,6 +8,7 @@ import PlutusCore.MkPlc
 import UntypedPlutusCore.Core
 
 import Control.Lens (transformOf, (^?))
+import Data.Foldable
 import Data.List.Extras
 
 caseReduce :: Term name uni fun a -> Term name uni fun a
@@ -15,5 +16,5 @@ caseReduce = transformOf termSubterms processTerm
 
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case
-    Case ann (Constr _ i args) cs | Just c <- cs ^? wix i -> mkIterApp c ((ann,) <$> args)
-    t                                                     -> t
+    Case ann (Constr _ i args) cs | Just c <- toList cs ^? wix i -> mkIterApp c ((ann,) <$> args)
+    t                                                            -> t

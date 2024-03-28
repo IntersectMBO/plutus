@@ -133,7 +133,7 @@ badConstrScript :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 badConstrScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Constr () 0 []
 
 badCaseScript :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-badCaseScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Case () (UPLC.Error ()) []
+badCaseScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Case () (UPLC.Error ()) empty
 
 -- Note that bls can work also with plcversion==1.0.0
 blsExScript :: SerialisedScript

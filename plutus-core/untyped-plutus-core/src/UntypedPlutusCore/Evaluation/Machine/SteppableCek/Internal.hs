@@ -158,7 +158,7 @@ computeCek !ctx !env (Constr ann i es) = do
 -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
 computeCek !ctx !env (Case ann scrut cs) = do
     stepAndMaybeSpend BCase
-    computeCek (FrameCases ann env cs ctx) env scrut
+    computeCek (FrameCases ann env (toList cs) ctx) env scrut
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek !_ !_ (Error _) =
     throwing_ _EvaluationFailure

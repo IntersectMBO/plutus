@@ -24,6 +24,7 @@ import UntypedPlutusCore.Core.Type (Program (Program), Term (..), progTerm, term
 import UntypedPlutusCore.Parser (parseProgram, parseTerm)
 
 import Control.Lens (view)
+import Data.Foldable (toList)
 import Data.Text (Text)
 import Data.Text qualified as T
 
@@ -58,7 +59,7 @@ compareTerm (Delay _ t ) (Delay _ t')         = compareTerm t t'
 compareTerm (Constant _ x) (Constant _ y)     = x == y
 compareTerm (Builtin _ bi) (Builtin _ bi')    = bi == bi'
 compareTerm (Constr _ i es) (Constr _ i' es') = i == i' && maybe False (all (uncurry compareTerm)) (zipExact es es')
-compareTerm (Case _ arg cs) (Case _ arg' cs') = compareTerm arg arg' && maybe False (all (uncurry compareTerm)) (zipExact cs cs')
+compareTerm (Case _ arg cs) (Case _ arg' cs') = compareTerm arg arg' && maybe False (all (uncurry compareTerm)) (zipExact (toList cs) (toList cs'))
 compareTerm (Error _ ) (Error _ )             = True
 compareTerm _ _                               = False
 
