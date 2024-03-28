@@ -1,0 +1,92 @@
+{
+  "$id": "my-contract",
+  "$schema": "https://cips.cardano.org/cips/cip57/schemas/plutus-blueprint.json",
+  "$vocabulary": {
+    "https://cips.cardano.org/cips/cip57": true,
+    "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+    "https://json-schema.org/draft/2020-12/vocab/core": true,
+    "https://json-schema.org/draft/2020-12/vocab/validation": true
+  },
+  "preamble": {
+    "title": "My Contract",
+    "description": "A simple contract",
+    "version": "1.0.0",
+    "plutusVersion": "v2",
+    "license": "MIT"
+  },
+  "validators": [
+    {
+      "title": "My Validator",
+      "description": "An example validator",
+      "redeemer": {
+        "title": "My Redeemer",
+        "description": "A redeemer that does something awesome",
+        "purpose": {
+          "oneOf": [
+            "spend",
+            "mint"
+          ]
+        },
+        "schema": {
+          "$ref": "#/definitions/MyRedeemer"
+        }
+      },
+      "datum": {
+        "title": "My Datum",
+        "description": "A datum that contains something awesome",
+        "purpose": "spend",
+        "schema": {
+          "$ref": "#/definitions/Integer"
+        }
+      },
+      "parameters": [
+        {
+          "title": "My Validator Parameters",
+          "description": "Compile-time validator parameters",
+          "purpose": "spend",
+          "schema": {
+            "$ref": "#/definitions/MyParams"
+          }
+        }
+      ]
+    }
+  ],
+  "definitions": {
+    "Bool": {
+      "dataType": "#boolean"
+    },
+    "Integer": {
+      "dataType": "integer"
+    },
+    "MyParams": {
+      "title": "Title for the MyParams definition",
+      "description": "Description for the MyParams definition",
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Bool"
+        },
+        {
+          "$ref": "#/definitions/Integer"
+        }
+      ],
+      "index": 0
+    },
+    "MyRedeemer": {
+      "oneOf": [
+        {
+          "$comment": "Left redeemer",
+          "dataType": "constructor",
+          "fields": [],
+          "index": 0
+        },
+        {
+          "$comment": "Right redeemer",
+          "dataType": "constructor",
+          "fields": [],
+          "index": 1
+        }
+      ]
+    }
+  }
+}

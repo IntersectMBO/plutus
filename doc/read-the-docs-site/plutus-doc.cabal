@@ -69,6 +69,7 @@ executable doc-doctests
     BasicPlutusTx
     BasicPolicies
     BasicValidators
+    Cip57Blueprint
 
   build-depends:
     , aeson

@@ -9,4 +9,5 @@ How-to guides
 
    asdata
    exporting-a-script
+   exporting-a-blueprint
    profiling-scripts
