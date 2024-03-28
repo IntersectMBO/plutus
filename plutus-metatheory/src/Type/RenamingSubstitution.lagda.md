@@ -25,20 +25,35 @@ open _⊢⋆_
 
 ## Type renaming
 
-A type renaming is a mapping of type variables to type variables.
+Types can contain functions and as such are subject to a nontrivial equality relation. To
+explain the computation equation (the β-rule) we need to define substitution for a single
+type variable in a type. A type renaming is a function from type variables in one context to
+type variables in another. We only need the ability to
+introduce new variable on the right hand side of the context. The simplicity of the
+definition makes it easy to work with and we get some properties for free that we would
+have to pay for with a first order representation, such as not needing to define a lookup
+function, and we inherit the properties of functions provided by η-equality, such as
+associativity of composition, for free. Note that even though
+renamings are functions we do not require our metatheory (Agda’s type system) to support
+functional extensionality. We only ever need to make use of an equation
+between renamings on a point (a variable) and therefore need only a pointwise version
+of equality on functions to work with equality of renamings and substitutions.
 
 ```
 Ren : Ctx⋆ → Ctx⋆ → Set
 Ren Φ Ψ = ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J
 ```
 
-Let `ρ` range of renamings.
+Let `ρ` range over renamings.
 ```
 variable
   ρ ρ' : Ren Φ Ψ
 ```
 
-Extending a type renaming — used when going under a binder.
+As we are going to push renamings through types we need to be able to push them
+under a binder. To do this safely the newly bound variable should remain untouched and
+other renamings should be shifted by one to accommodate this. (Note: this is
+called `lift⋆` in the [paper](https://ci.iog.io/build/1230848/download/1/paper.pdf#page=8) ).
 
 ```
 ext : Ren Φ Ψ
@@ -48,7 +63,11 @@ ext ρ Z      =  Z
 ext ρ (S α)  =  S (ρ α)
 ```
 
-Apply a type renaming to a type.
+# Apply a type renaming to a type.
+
+This is defined by recursion on the type. Observe that we lift the renaming when
+we go under a binder and actually apply the renaming when we hit a variable. 
+
 ```
 ren : Ren Φ Ψ
       -----------------------
@@ -76,7 +95,9 @@ ren-VecList ρ [] = []
 ren-VecList ρ (xs ∷ xss) = ren-List ρ xs ∷ ren-VecList ρ xss
 ```
 
-Weakening is a special case of renaming.
+Weakening is a special case of renaming. We apply the renaming S which does double
+duty as the variable constructor, if we check the type of S we see that it is a renaming.
+Weakening shifts all the existing variables one place to the left in the context.
 
 ```
 weaken : Φ ⊢⋆ J
@@ -216,7 +237,9 @@ ren-comp-VecList (xs ∷ xss) = cong₂ _∷_ (ren-comp-List xs) (ren-comp-VecLi
 
 ## Type substitution
 
-A type substitution is a mapping of type variables to types.
+A type substitution is a mapping of type variables to types. Much of this section
+mirrors functions in the Type section above, so the explainations and design intent
+are the same. There are [Fusion Proofs](markdown-header-fusion-proofs) below.
 
 ```
 Sub : Ctx⋆ → Ctx⋆ → Set
@@ -229,7 +252,7 @@ variable
   σ σ' : Sub Φ Ψ
 ```
 
-Extending a type substitution — used when going under a binder.
+Extending a type substitution — used when going under a binder. (This is called `lifts` in the [paper](https://ci.iog.io/build/1230848/download/1/paper.pdf#page=8) ).
 
 ```
 exts : Sub Φ Ψ
@@ -375,6 +398,7 @@ sub-id-List (x ∷ xs) = cong₂ _∷_ (sub-id x) (sub-id-List xs)
 sub-id-VecList [] = refl
 sub-id-VecList (xs ∷ xss) = cong₂ _∷_ (sub-id-List xs) (sub-id-VecList xss)
 ```
+## Fusion proofs
 
 Fusion of `exts` and `ext`
 
@@ -528,6 +552,7 @@ sub-sub-cons : (σ : Sub Φ Ψ)
 sub-sub-cons σ M Z     = refl
 sub-sub-cons σ M (S α) = trans (sym (sub-ren (σ α))) (sub-id (σ α))
 ```
+## Additional lemmas
 
 A useful lemma for fixing up the types when renaming a `wrap` or `unwrap`
 

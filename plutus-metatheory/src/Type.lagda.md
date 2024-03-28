@@ -81,7 +81,10 @@ scope.
 A type is either a type variable, a pi type, a function type, a
 lambda, an application, an iso-recursive type `μ`, a size, or a type
 constant (base type). Note that recursive types range over an
-arbitrary kind `k` which goes beyond standard iso-recursive types.
+arbitrary kind `k` which goes beyond standard iso-recursive types. Also note that `Π`,
+`⇒`, and `µ` are effectively base types as they live at kind `*`.
+
+The Sum of Products types are based on Agda's standard Vectors and Lists.
 
 ```
 data _⊢⋆_ : Ctx⋆ → Kind → Set
