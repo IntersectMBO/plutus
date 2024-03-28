@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE ConstraintKinds      #-}
+{-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -100,7 +101,7 @@ eqTermM (Constr ann1 i1 args1) (Constr ann2 i2 args2) = do
 eqTermM (Case ann1 a1 cs1) (Case ann2 a2 cs2) = do
     eqM ann1 ann2
     eqTermM a1 a2
-    case zipExact cs1 cs2 of
+    case zipExact (toList cs1) (toList cs2) of
         Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
         Nothing -> empty
 eqTermM Constant{} _ = empty

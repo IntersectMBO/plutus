@@ -1,7 +1,9 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -13,6 +15,8 @@ module UntypedPlutusCore.Core.Type
     , TPLC.Binder (..)
     , Term (..)
     , Program (..)
+    , SixList (..)
+    , lookupSixList
     , progAnn
     , progVer
     , progTerm
@@ -28,7 +32,9 @@ module UntypedPlutusCore.Core.Type
 import Control.Lens
 import PlutusPrelude
 
+import Data.Hashable
 import Data.Word
+import GHC.Exts as Exts (IsList (..), inline)
 import PlutusCore.Builtin qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc
@@ -85,8 +91,129 @@ data Term name uni fun ann
     -- TODO: try spine-strict list or strict list or vector
     -- See Note [Constr tag type]
     | Constr !ann !Word64 ![Term name uni fun ann]
-    | Case !ann !(Term name uni fun ann) ![Term name uni fun ann]
+    | Case !ann !(Term name uni fun ann) !(SixList (Term name uni fun ann))
     deriving stock (Functor, Generic)
+
+data SixList a
+    = SixList0
+    | SixList1  !a
+    | SixList2  !a !a
+    | SixList3  !a !a !a
+    | SixList4  !a !a !a !a
+    | SixList5  !a !a !a !a !a
+    | SixList6  !a !a !a !a !a !a
+    | SixList7  !a !a !a !a !a !a !a
+    | SixList8  !a !a !a !a !a !a !a !a
+    | SixList9  !a !a !a !a !a !a !a !a !a
+    | SixList10 !a !a !a !a !a !a !a !a !a !a
+    | SixList11 !a !a !a !a !a !a !a !a !a !a !a
+    | SixList12 !a !a !a !a !a !a !a !a !a !a !a !a
+    | SixList13 !a !a !a !a !a !a !a !a !a !a !a !a !a
+    | SixList14 !a !a !a !a !a !a !a !a !a !a !a !a !a !a (SixList a)
+    deriving stock (Show, Eq, Functor, Foldable, Traversable, Generic)
+    deriving anyclass (NFData, Hashable)
+
+instance IsList (SixList a) where
+    type Item (SixList a) = a
+
+    fromList []                                   = SixList0
+    fromList [x0]                                 = SixList1 x0
+    fromList [x0, x1]                             = SixList2 x0 x1
+    fromList [x0, x1, x2]                         = SixList3 x0 x1 x2
+    fromList [x0, x1, x2, x3]                     = SixList4 x0 x1 x2 x3
+    fromList [x0, x1, x2, x3, x4]                 = SixList5 x0 x1 x2 x3 x4
+    fromList [x0, x1, x2, x3, x4, x5]             = SixList6 x0 x1 x2 x3 x4 x5
+    fromList [x0, x1, x2, x3, x4, x5, x6]         = SixList7 x0 x1 x2 x3 x4 x5 x6
+    fromList [x0, x1, x2, x3, x4, x5, x6, x7]     = SixList8 x0 x1 x2 x3 x4 x5 x6 x7
+    fromList [x0, x1, x2, x3, x4, x5, x6, x7, x8] = SixList9 x0 x1 x2 x3 x4 x5 x6 x7 x8
+    fromList [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9] = SixList10 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
+    fromList [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10] = SixList11 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10
+    fromList [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11] = SixList12 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11
+    fromList [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12] = SixList13 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12
+    fromList (x0:x1:x2:x3:x4:x5:x6:x7:x8:x9:x10:x11:x12:x13:xs) = SixList14 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 (fromList xs)
+
+    toList !xs0 = goStep xs0 where
+        goStep :: SixList a -> [a]
+        goStep SixList0                        = []
+        goStep (SixList1 x0)                   = [x0]
+        goStep (SixList2 x0 x1)                = [x0, x1]
+        goStep (SixList3 x0 x1 x2)             = [x0, x1, x2]
+        goStep (SixList4 x0 x1 x2 x3)          = [x0, x1, x2, x3]
+        goStep (SixList5 x0 x1 x2 x3 x4)       = [x0, x1, x2, x3, x4]
+        goStep (SixList6 x0 x1 x2 x3 x4 x5)    = [x0, x1, x2, x3, x4, x5]
+        goStep (SixList7 x0 x1 x2 x3 x4 x5 x6) = [x0, x1, x2, x3, x4, x5, x6]
+        goStep (SixList8 x0 x1 x2 x3 x4 x5 x6 x7) = [x0, x1, x2, x3, x4, x5, x6, x7]
+        goStep (SixList9 x0 x1 x2 x3 x4 x5 x6 x7 x8) = [x0, x1, x2, x3, x4, x5, x6, x7, x8]
+        goStep (SixList10 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9) = [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9]
+        goStep (SixList11 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10) = [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10]
+        goStep (SixList12 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11) = [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11]
+        goStep (SixList13 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12) = [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12]
+        goStep (SixList14 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 xs) = x0 : x1 : x2 : x3 : x4 : x5 : x6 : x7 : x8 : x9 : x10 : x11 : x12 : x13 : goRec xs
+        {-# INLINE goStep #-}
+
+        goRec :: SixList a -> [a]
+        goRec !xs = goStep xs
+        {-# NOINLINE goRec #-}
+    {-# INLINE toList #-}
+
+-- >>> import GHC.IsList (fromList)
+-- >>> import Data.Maybe
+-- >>> mapMaybe (\i -> lookupSixList i $ fromList [0..20 :: Int]) [0..20]
+-- [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+lookupSixList :: Word64 -> SixList a -> Maybe a
+lookupSixList !i0 = goStep i0 . inline Exts.toList where
+    goStep :: Word64 -> [a] -> Maybe a
+    goStep 0 = \case
+        x:_ -> Just x
+        _   -> Nothing
+    goStep 1 = \case
+        _:x:_ -> Just x
+        _     -> Nothing
+    goStep 2 = \case
+        _:_:x:_ -> Just x
+        _       -> Nothing
+    goStep 3 = \case
+        _:_:_:x:_ -> Just x
+        _         -> Nothing
+    goStep 4 = \case
+        _:_:_:_:x:_ -> Just x
+        _           -> Nothing
+    goStep 5 = \case
+        _:_:_:_:_:x:_ -> Just x
+        _             -> Nothing
+    goStep 6 = \case
+        _:_:_:_:_:_:x:_ -> Just x
+        _               -> Nothing
+    goStep 7 = \case
+        _:_:_:_:_:_:_:x:_ -> Just x
+        _                 -> Nothing
+    goStep 8 = \case
+        _:_:_:_:_:_:_:_:x:_ -> Just x
+        _                   -> Nothing
+    goStep 9 = \case
+        _:_:_:_:_:_:_:_:_:x:_ -> Just x
+        _                     -> Nothing
+    goStep 10 = \case
+        _:_:_:_:_:_:_:_:_:_:x:_ -> Just x
+        _                       -> Nothing
+    goStep 11 = \case
+        _:_:_:_:_:_:_:_:_:_:_:x:_ -> Just x
+        _                         -> Nothing
+    goStep 12 = \case
+        _:_:_:_:_:_:_:_:_:_:_:_:x:_ -> Just x
+        _                           -> Nothing
+    goStep 13 = \case
+        _:_:_:_:_:_:_:_:_:_:_:_:_:x:_ -> Just x
+        _                             -> Nothing
+    goStep i = \case
+        _:_:_:_:_:_:_:_:_:_:_:_:_:_:xs -> goRec (i - 14) xs
+        _                              -> Nothing
+    {-# INLINE goStep #-}
+
+    goRec :: Word64 -> [a] -> Maybe a
+    goRec !i = goStep i
+    {-# NOINLINE goRec #-}
+{-# INLINE lookupSixList #-}
 
 deriving stock instance (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (Term name uni fun ann)
@@ -123,7 +250,7 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     iWrap    = \_ _ _ -> id
     error    = \ann _ -> Error ann
     constr   = \ann _ i es -> Constr ann i es
-    kase     = \ann _ arg cs -> Case ann arg cs
+    kase     = \ann _ arg cs -> Case ann arg $ fromList cs
 
 instance TPLC.HasConstant (Term name uni fun ()) where
     asConstant (Constant _ val) = pure val
