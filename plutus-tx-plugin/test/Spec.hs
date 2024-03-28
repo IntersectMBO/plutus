@@ -12,6 +12,7 @@ import IsData.Spec qualified as IsData
 import Lift.Spec qualified as Lift
 import Optimization.Spec qualified as Optimization
 import Plugin.Spec qualified as Plugin
+import ShortCircuit.Spec qualified as ShortCircuit
 import StdLib.Spec qualified as Lib
 import Strictness.Spec qualified as Strictness
 import TH.Spec qualified as TH
@@ -38,6 +39,7 @@ tests =
       , Budget.tests
       , AsData.Budget.tests
       , Optimization.tests
+      , pure ShortCircuit.tests
       , Strictness.tests
       , Blueprint.Tests.goldenTests
       ]

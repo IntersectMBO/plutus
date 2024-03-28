@@ -158,6 +158,9 @@ test-suite plutus-tx-plugin-tests
     Plugin.Strict.Spec
     Plugin.Typeclasses.Lib
     Plugin.Typeclasses.Spec
+    ShortCircuit.Spec
+    ShortCircuit.WithGHCOptimisations
+    ShortCircuit.WithoutGHCOptimisations
     StdLib.Spec
     Strictness.Spec
     TH.Spec
