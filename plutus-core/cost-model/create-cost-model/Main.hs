@@ -9,6 +9,8 @@ import System.Directory
 import System.Exit
 import System.IO (hPutStrLn, stderr)
 
+import Language.R (defaultConfig, runRegion, withEmbeddedR)
+
 {- | This takes a CSV file of benchmark results for built-in functions, runs the R
    code in `models.R` to construct costing functions based on the benchmark
    results, and then produces JSON output containing the types and coefficients
@@ -145,5 +147,5 @@ main = do
   (BenchmarkFile bmfile, RFile rfile, out) <- execParser arguments
   checkBenchmarkFile bmfile
   checkRFile rfile
-  model <- createBuiltinCostModel bmfile rfile
+  model <- withEmbeddedR defaultConfig $ runRegion $ createBuiltinCostModel bmfile rfile
   writeOutput out $ encodePretty' (defConfig { confCompare = \_ _-> EQ }) model

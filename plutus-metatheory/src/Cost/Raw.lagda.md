@@ -89,7 +89,6 @@ data RawModel : Set where
     MultipliedSizes       : LinearFunction → RawModel
     MinSize               : LinearFunction → RawModel
     MaxSize               : LinearFunction → RawModel
-    LinearCost            : LinearFunction → RawModel
     LinearInX             : LinearFunction → RawModel
     LinearInY             : LinearFunction → RawModel
     LinearInZ             : LinearFunction → RawModel
@@ -99,13 +98,13 @@ data RawModel : Set where
     SubtractedSizes       : LinearFunction → CostingNat → RawModel
     ConstAboveDiagonal    : CostingNat → RawModel → RawModel
     ConstBelowDiagonal    : CostingNat → RawModel → RawModel
-    LinearOnDiagonal      : LinearFunction → CostingNat → RawModel
+    ConstOffDiagonal      : CostingNat → RawModel → RawModel
 
 {-# COMPILE GHC RawModel = data Model (ConstantCost | AddedSizes | MultipliedSizes |
-                                   MinSize | MaxSize | LinearCost | LinearInX | LinearInY |
-                                   LinearInZ | LiteralInYOrLinearInZ | QuadraticInY |
-                                   QuadraticInZ | SubtractedSizes | ConstAboveDiagonal |
-                                   ConstBelowDiagonal | LinearOnDiagonal)  #-}
+                                   MinSize | MaxSize | LinearInX | LinearInY | LinearInZ |
+                                   LiteralInYOrLinearInZ | QuadraticInY | QuadraticInZ |
+                                   SubtractedSizes | ConstAboveDiagonal | ConstBelowDiagonal |
+                                   ConstOffDiagonal)  #-}
 
 record CpuAndMemoryModel : Set where
      constructor mkCpuAndMemoryModel
