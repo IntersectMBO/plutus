@@ -145,6 +145,7 @@ benchmark nofib
     , deepseq
     , nofib-internal
     , plutus-benchmark-common
+    , plutus-core              ^>=1.24
 
 benchmark nofib-hs
   import:         lang, ghc-version-support
