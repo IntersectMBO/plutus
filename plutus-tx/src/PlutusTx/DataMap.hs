@@ -20,6 +20,10 @@ AsData.asData
       deriving newtype (P.ToData, P.FromData, P.UnsafeFromData)
   |]
 
+instance Semigroup (Map k v)
+
+instance Monoid (Map k v)
+
 empty :: (DataElem k, DataElem v) => Map k v
 empty = Map Nil
 
@@ -86,3 +90,6 @@ map
     :: (DataElem k, DataElem v1, DataElem v2)
     => (v1 -> v2) -> Map k v1 -> Map k v2
 map = H.undefined
+
+foldMap :: (DataElem k, DataElem v, Monoid m) => (v -> m) -> Map k v -> m
+foldMap = H.undefined

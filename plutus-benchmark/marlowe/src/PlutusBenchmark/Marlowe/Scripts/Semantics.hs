@@ -78,9 +78,18 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Short qualified as SBS
 import PlutusCore.Version (plcVersion100)
 import PlutusLedgerApi.V1.Address qualified as Address (scriptHashAddress)
-import PlutusLedgerApi.V1.DataValue qualified as Val
+import PlutusLedgerApi.V1.DataValue qualified as Data
+import PlutusLedgerApi.V1.DataValue qualified as DataValue
+import PlutusLedgerApi.V1.Value qualified as SOP
 import PlutusLedgerApi.V2 qualified as Ledger (Address (Address))
 import PlutusTx qualified
+import PlutusTx.AssocMap qualified as AssocMap
+import PlutusTx.DataList qualified as Data
+import PlutusTx.DataList qualified as DataList
+import PlutusTx.DataMap qualified as Data
+import PlutusTx.DataMap qualified as DataMap
+import PlutusTx.DataPair qualified as Data
+import PlutusTx.DataPair qualified as DataPair
 import PlutusTx.Trace (traceError, traceIfFalse)
 import Prelude qualified as Haskell
 
@@ -111,6 +120,15 @@ closeInterval (Interval (LowerBound (Finite (POSIXTime l)) lc) (UpperBound (Fini
 closeInterval _ = Nothing
 
 
+toDataValue :: SOP.Value -> Data.Value
+toDataValue = Haskell.undefined
+
+toDataCurrencySymbol :: SOP.CurrencySymbol -> Data.CurrencySymbol
+toDataCurrencySymbol = Haskell.undefined
+
+toDataTokenName :: SOP.TokenName -> Data.TokenName
+toDataTokenName = Haskell.undefined
+
 {-# INLINABLE mkMarloweValidator #-}
 -- | The Marlowe semantics validator.
 mkMarloweValidator
@@ -125,7 +143,7 @@ mkMarloweValidator
     marloweTxInputs
     ctx@ScriptContext{scriptContextTxInfo} = do
 
-    let scriptInValue = txOutValue $ txInInfoResolved ownInput
+    let scriptInValue = toDataValue $ txOutValue $ txInInfoResolved ownInput
     let interval =
             -- Marlowe semantics require a closed interval, so we might adjust by one millisecond.
             case closeInterval $ txInfoValidRange scriptContextTxInfo of
@@ -179,7 +197,7 @@ mkMarloweValidator
 
                 -- Each party must receive as least as much value as the semantics specify.
                 -- [Marlowe-Cardano Specification: "Constraint 15. Sufficient payment."]
-                payoutsByParty = AssocMap.toList $ foldMap payoutByParty txOutPayments
+                payoutsByParty = DataMap.toList $ DataList.foldMap payoutByParty (DataList.fromSOP txOutPayments)
                 payoutsOk = payoutConstraints payoutsByParty
 
                 checkContinuation = case txOutContract of
@@ -187,7 +205,7 @@ mkMarloweValidator
                     Close -> traceIfFalse "c" hasNoOutputToOwnScript
                     _ -> let
                         totalIncome = foldMap collectDeposits inputContents
-                        totalPayouts = foldMap snd payoutsByParty
+                        totalPayouts = DataList.foldMap DataPair.snd payoutsByParty
                         finalBalance = scriptInValue + totalIncome - totalPayouts
                         in
                              -- [Marlowe-Cardano Specification: "Constraint 3. Single Marlowe output".]
@@ -202,7 +220,7 @@ mkMarloweValidator
             preconditionsOk && inputsOk && payoutsOk && checkContinuation
               -- [Marlowe-Cardano Specification: "20. Single satsifaction".]
               -- Either there must be no payouts, or there must be no other validators.
-              && traceIfFalse "z" (null payoutsByParty || noOthers)
+              && traceIfFalse "z" (DataList.null payoutsByParty || noOthers)
         Error TEAmbiguousTimeIntervalError -> traceError "i"
         Error TEApplyNoMatchError -> traceError "n"
         Error (TEIntervalError (InvalidInterval _)) -> traceError "j"
@@ -262,7 +280,7 @@ mkMarloweValidator
     sameValidatorHash _ _ = False
 
     -- Check a state for the correct value, positive accounts, and no duplicates.
-    checkState :: BuiltinString -> Val.Value -> State -> Bool
+    checkState :: BuiltinString -> Data.Value -> State -> Bool
     checkState tag expected State{..} =
       let
         positiveBalance :: (a, Integer) -> Bool
@@ -293,7 +311,7 @@ mkMarloweValidator
     findDatumHash' datum = findDatumHash (Datum $ PlutusTx.toBuiltinData datum) scriptContextTxInfo
 
     -- Check that the correct datum and value is being output to the script.
-    checkOwnOutputConstraint :: MarloweData -> Val.Value -> Bool
+    checkOwnOutputConstraint :: MarloweData -> Data.Value -> Bool
     checkOwnOutputConstraint ocDatum ocValue =
         let hsh = findDatumHash' ocDatum
         in traceIfFalse "d" -- "Output constraint"
@@ -305,9 +323,9 @@ mkMarloweValidator
         _     -> traceError "o" -- No continuation or multiple Marlowe contract outputs is forbidden.
 
     -- Check that address, value, and datum match the specified.
-    checkScriptOutput :: (Val.Value -> Val.Value -> Bool) -> Ledger.Address -> Maybe DatumHash -> Val.Value -> TxOut -> Bool
+    checkScriptOutput :: (Data.Value -> Data.Value -> Bool) -> Ledger.Address -> Maybe DatumHash -> Data.Value -> TxOut -> Bool
     checkScriptOutput comparison addr hsh value TxOut{txOutAddress, txOutValue, txOutDatum=OutputDatumHash svh} =
-                    txOutValue `comparison` value && hsh == Just svh && txOutAddress == addr
+                    toDataValue txOutValue `comparison` value && hsh == Just svh && txOutAddress == addr
     checkScriptOutput _ _ _ _ _ = False
 
     -- Check for any output to the script address.
@@ -341,42 +359,44 @@ mkMarloweValidator
           where
             validatePartyWitness :: Party -> Bool
             validatePartyWitness (Address _ address) = traceIfFalse "s" $ txSignedByAddress address  -- The key must have signed.
-            validatePartyWitness (Role role)         = traceIfFalse "t"                              -- The role token must be present.
-                                                       $ Val.singleton rolesCurrency role 1 `Val.leq` valueSpent scriptContextTxInfo
+            validatePartyWitness (Role role)         =
+              traceIfFalse "t"                              -- The role token must be present.
+              $ DataValue.singleton (toDataCurrencySymbol rolesCurrency) (toDataTokenName role) 1
+              `DataValue.leq` (toDataValue $ valueSpent scriptContextTxInfo)
 
     -- Tally the deposits in the input.
-    collectDeposits :: InputContent -> Val.Value
+    collectDeposits :: InputContent -> Data.Value
     collectDeposits (IDeposit _ _ (Token cur tok) amount)
-      | amount > 0    = Val.singleton cur tok amount  -- SCP-5123: Semantically negative deposits
+      | amount > 0    = DataValue.singleton cur tok amount  -- SCP-5123: Semantically negative deposits
       | otherwise     = zero                          -- do not remove funds from the script's UTxO.
     collectDeposits _ = zero
 
     -- Extract the payout to a party.
-    payoutByParty :: Payment -> AssocMap.Map Party Val.Value
+    payoutByParty :: Payment -> Data.Map Party Data.Value
     payoutByParty (Payment _ (Party party) (Token cur tok) amount)
-      | amount > 0 = AssocMap.singleton party $ Val.singleton cur tok amount
-      | otherwise  = AssocMap.empty  -- NOTE: Perhaps required because semantics may make zero payments
+      | amount > 0 = DataMap.singleton party $ DataValue.singleton cur tok amount
+      | otherwise  = DataMap.empty  -- NOTE: Perhaps required because semantics may make zero payments
                                      -- (though this passes the test suite), but removing this function's
                                      -- guard reduces the validator size by 20 bytes.
-    payoutByParty (Payment _ (Account _) _ _ )       = AssocMap.empty
+    payoutByParty (Payment _ (Account _) _ _ )       = DataMap.empty
 
     -- Check outgoing payments.
-    payoutConstraints :: [(Party, Val.Value)] -> Bool
-    payoutConstraints = all payoutToTxOut
+    payoutConstraints :: Data.List (Data.Pair Party Data.Value)-> Bool
+    payoutConstraints = DataList.all payoutToTxOut
       where
-        payoutToTxOut :: (Party, Val.Value) -> Bool
-        payoutToTxOut (party, value) = case party of
+        payoutToTxOut :: Data.Pair Party Data.Value -> Bool
+        payoutToTxOut (Data.Pair party value) = case party of
             -- [Marlowe-Cardano Specification: "Constraint 15. Sufficient Payment".]
             -- SCP-5128: Note that the payment to an address may be split into several outputs but the payment to a role must be
             -- a single output. The flexibily of multiple outputs accommodates wallet-related practicalities such as the change and
             -- the return of the role token being in separate UTxOs in situations where a contract is also paying to the address
             -- where that change and that role token are sent.
-            Address _ address  -> traceIfFalse "p" $ value `Val.leq` valuePaidToAddress address  -- At least sufficient value paid.
+            Address _ address  -> traceIfFalse "p" $ value `DataValue.leq` valuePaidToAddress address  -- At least sufficient value paid.
             Role role -> let
                 hsh = findDatumHash' (rolesCurrency, role)
                 addr = Address.scriptHashAddress rolePayoutValidatorHash
                 -- Some output must have the correct value and datum to the role-payout address.
-                in traceIfFalse "r" $ any (checkScriptOutput Val.geq addr hsh value) allOutputs
+                in traceIfFalse "r" $ any (checkScriptOutput DataValue.geq addr hsh value) allOutputs
 
     -- The key for the address must have signed.
     txSignedByAddress :: Ledger.Address -> Bool
@@ -384,8 +404,8 @@ mkMarloweValidator
     txSignedByAddress _                                         = False
 
     -- Tally the value paid to an address.
-    valuePaidToAddress :: Ledger.Address -> Val.Value
-    valuePaidToAddress address = foldMap txOutValue $ filter ((== address) . txOutAddress) allOutputs
+    valuePaidToAddress :: Ledger.Address -> Data.Value
+    valuePaidToAddress address = foldMap (toDataValue . txOutValue) $ filter ((== address) . txOutAddress) allOutputs
 
 
 -- | Convert semantics input to transaction input.

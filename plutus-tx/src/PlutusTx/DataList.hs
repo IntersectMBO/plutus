@@ -12,6 +12,7 @@ import PlutusTx.AsData qualified as AsData
 import PlutusTx.DataPair (DataElem)
 import PlutusTx.Foldable qualified as Foldable
 import PlutusTx.IsData qualified as P
+import PlutusTx.Prelude hiding (foldr)
 import Prelude qualified as H
 
 AsData.asData
@@ -36,3 +37,11 @@ map f = foldr (\a b -> Cons (f a) b) Nil
 all = H.undefined
 
 revAppend = H.undefined
+
+null = H.undefined
+
+foldMap :: (DataElem a, Monoid m) => (a -> m) -> List a -> m
+foldMap = H.undefined
+
+fromSOP :: (DataElem a) => [a] -> List a
+fromSOP = H.undefined

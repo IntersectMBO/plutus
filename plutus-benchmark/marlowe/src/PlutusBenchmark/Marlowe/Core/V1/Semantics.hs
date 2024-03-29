@@ -56,7 +56,7 @@ module PlutusBenchmark.Marlowe.Core.V1.Semantics
   ( -- * Semantics
     MarloweData(MarloweData, marloweParams, marloweState, marloweContract)
   , MarloweParams(..)
-  , Payment(..)
+  , Payment (..)
   , TransactionInput(..)
   , TransactionOutput(..)
   , computeTransaction
@@ -125,8 +125,11 @@ import Prelude qualified as Haskell
     when positive balances are payed out on contract closure.
 -}
 data Payment = Payment AccountId Payee Token Integer
-  deriving stock (Haskell.Eq, Haskell.Show, Data)
+    deriving stock (Haskell.Eq, Haskell.Show, Data)
 
+instance ToData Payment
+instance FromData Payment
+instance UnsafeFromData Payment
 
 -- | Extract the money value from a payment.
 paymentMoney :: Payment -> Money
