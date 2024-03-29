@@ -1,4 +1,5 @@
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE PatternSynonyms    #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE ViewPatterns       #-}
@@ -8,10 +9,11 @@ module PlutusTx.DataMap where
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.DataList (List, pattern Cons, pattern Nil)
 import PlutusTx.DataList qualified as List
-import PlutusTx.DataPair
-import PlutusTx.DataThese
+import PlutusTx.DataPair (DataElem, Pair, fst, pattern Pair, snd)
+import PlutusTx.DataPair qualified as Pair
+import PlutusTx.DataThese (These, pattern That, pattern These, pattern This)
 import PlutusTx.IsData qualified as P
-import PlutusTx.Prelude hiding (fst, map, snd)
+import PlutusTx.Prelude hiding (foldr, fst, map, snd)
 import Prelude qualified as H
 
 AsData.asData
@@ -20,9 +22,11 @@ AsData.asData
       deriving newtype (P.ToData, P.FromData, P.UnsafeFromData)
   |]
 
-instance Semigroup (Map k v)
+instance (DataElem k, DataElem v, Eq k, Semigroup v) =>  Semigroup (Map k v) where
+  (<>) = unionWith (<>)
 
-instance Monoid (Map k v)
+instance (DataElem k, DataElem v, Eq k, Semigroup v) => Monoid (Map k v) where
+  mempty = empty
 
 empty :: (DataElem k, DataElem v) => Map k v
 empty = Map Nil
@@ -74,22 +78,73 @@ singleton :: (DataElem k, DataElem v) => k -> v -> Map k v
 singleton k v = Map $ Cons (Pair k v) Nil
 
 union
-    :: (DataElem k, DataElem v1, DataElem v2)
+    :: forall k v1 v2
+    . (DataElem k, DataElem v1, DataElem v2, Eq k)
     => Map k v1 -> Map k v2 -> Map k (These v1 v2)
-union = H.undefined
+union (Map ls) (Map rs) =
+  let
+    f :: v1 -> Maybe v2 -> These v1 v2
+    f a b' = case b' of
+      Nothing -> This a
+      Just b  -> These a b
+
+    ls' :: List (Pair k (These v1 v2))
+    ls' = List.map (\(Pair c i) -> Pair c (f i (lookup c (Map rs)))) ls
+
+    -- Keeps only those keys which don't appear in the left map.
+    rs' :: List (Pair k v2)
+    rs' = List.filter (\(Pair c _) -> not (List.any (\(Pair c' _) -> c' == c) ls)) rs
+
+    rs'' :: List (Pair k (These v1 v2))
+    rs'' = List.map (Pair.map That) rs'
+   in
+    Map (ls' <> rs'')
+
+unionWith
+  :: forall k a
+  . (DataElem k, DataElem a, Eq k)
+  => (a -> a -> a) -> Map k a -> Map k a -> Map k a
+unionWith merge (Map ls) (Map rs) =
+  let
+    f :: a -> Maybe a -> a
+    f a b' = case b' of
+      Nothing -> a
+      Just b  -> merge a b
+
+    ls' :: List (Pair k a)
+    ls' = List.map (\(Pair c i) -> Pair c (f i (lookup c (Map rs)))) ls
+
+    rs' :: List (Pair k a)
+    rs' = List.filter (\(Pair c _) -> not (List.any (\(Pair c' _) -> c' == c) ls)) rs
+   in
+    Map (ls' <> rs')
 
 all :: (DataElem k, DataElem v) => (v -> Bool) -> Map k v -> Bool
-all = H.undefined
+all f (Map m) = go m
+  where
+    go = \case
+      Nil -> True
+      (Cons (Pair _ x) xs) -> if f x then go xs else False
 
 mapThese
     :: (DataElem k, DataElem v1, DataElem v2)
     => (v1 -> These v1 v2) -> Map k v1 -> (Map k v1, Map k v2)
-mapThese = H.undefined
+mapThese f mps = (Map mpl, Map mpr)
+  where
+    (mpl, mpr) = List.foldr f' (Nil, Nil) mps'
+    Map mps' = map f mps
+    f' (Pair k v) (as, bs) = case v of
+      This a    -> (Cons (Pair k a) as, bs)
+      That b    -> (as, Cons (Pair k b) bs)
+      These a b -> (Cons (Pair k a) as, Cons (Pair k b) bs)
 
 map
     :: (DataElem k, DataElem v1, DataElem v2)
     => (v1 -> v2) -> Map k v1 -> Map k v2
-map = H.undefined
+map f (Map l) = Map $ List.map (Pair.map f) l
+
+foldr :: (DataElem k, DataElem a) => (a -> b -> b) -> b -> Map k a -> b
+foldr f z (Map mp) = List.foldr (f . snd) z mp
 
 foldMap :: (DataElem k, DataElem v, Monoid m) => (v -> m) -> Map k v -> m
-foldMap = H.undefined
+foldMap f = foldr (\a b -> f a <> b) mempty

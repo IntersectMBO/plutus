@@ -56,7 +56,8 @@ module PlutusBenchmark.Marlowe.Core.V1.Semantics
   ( -- * Semantics
     MarloweData(MarloweData, marloweParams, marloweState, marloweContract)
   , MarloweParams(..)
-  , Payment (..)
+  , Payment
+  , pattern Payment
   , TransactionInput(..)
   , TransactionOutput(..)
   , computeTransaction
@@ -116,6 +117,7 @@ import PlutusTx.Prelude (AdditiveGroup ((-)), AdditiveSemigroup ((+)), Bool (..)
 import PlutusLedgerApi.V1.DataValue qualified as Val
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.DataList (List, pattern Cons, pattern Nil)
+import PlutusTx.DataList qualified as List
 import PlutusTx.DataMap qualified as Map
 import PlutusTx.DataPair (Pair, pattern Pair)
 import Prelude qualified as Haskell
@@ -124,12 +126,12 @@ import Prelude qualified as Haskell
 {-| Payment occurs during 'Pay' contract evaluation, and
     when positive balances are payed out on contract closure.
 -}
-data Payment = Payment AccountId Payee Token Integer
-    deriving stock (Haskell.Eq, Haskell.Show, Data)
-
-instance ToData Payment
-instance FromData Payment
-instance UnsafeFromData Payment
+asData
+    [d|
+        data Payment = Payment AccountId Payee Token Integer
+            deriving stock (Haskell.Eq, Haskell.Show, Data)
+            deriving newtype (ToData, FromData, UnsafeFromData)
+    |]
 
 -- | Extract the money value from a payment.
 paymentMoney :: Payment -> Money
@@ -688,14 +690,14 @@ contractLifespanUpperBound contract = case contract of
 
 -- | Total the balance in all accounts.
 totalBalance :: Accounts -> Money
-totalBalance accounts = foldMap
-    (\((_, Token cur tok), balance) -> Val.singleton cur tok balance)
-    (Haskell.undefined accounts :: [((AccountId, Token), Integer)])
+totalBalance accounts = List.foldMap
+    (\(Pair (Pair _ (Token cur tok)) balance) -> Val.singleton cur tok balance)
+    (Map.toList accounts)
 
 
 -- | Check that all accounts have positive balance.
 allBalancesArePositive :: State -> Bool
-allBalancesArePositive State{..} = all (\(_, balance) -> balance > 0) (Haskell.undefined accounts :: [((AccountId, Token), Integer)])
+allBalancesArePositive State{..} = List.all (\(Pair _ balance) -> balance > 0) (Map.toList accounts)
 
 
 instance Eq Payment where

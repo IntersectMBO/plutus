@@ -24,3 +24,6 @@ fst (Pair a _) = a
 
 snd :: (DataElem a, DataElem b) => Pair a b -> b
 snd (Pair _ b) = b
+
+map :: (DataElem a, DataElem b, DataElem c) => (b -> c) -> Pair a b -> Pair a c
+map f (Pair a b) = Pair a (f b)

@@ -19,6 +19,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE ViewPatterns          #-}
@@ -46,11 +47,12 @@ module PlutusBenchmark.Marlowe.Scripts.Semantics
 import GHC.Generics (Generic)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics as Semantics (MarloweData (..),
                                                                MarloweParams (MarloweParams, rolesCurrency),
-                                                               Payment (..),
+                                                               Payment,
                                                                TransactionError (TEAmbiguousTimeIntervalError, TEApplyNoMatchError, TEHashMismatch, TEIntervalError, TEUselessTransaction),
                                                                TransactionInput (TransactionInput, txInputs, txInterval),
                                                                TransactionOutput (Error, TransactionOutput, txOutContract, txOutPayments, txOutState),
-                                                               computeTransaction, totalBalance)
+                                                               computeTransaction, pattern Payment,
+                                                               totalBalance)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
 import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidatorHash)
 import PlutusLedgerApi.V2 (Credential (..), Datum (Datum), DatumHash (DatumHash), Extended (..),
@@ -88,6 +90,7 @@ import PlutusTx.DataList qualified as Data
 import PlutusTx.DataList qualified as DataList
 import PlutusTx.DataMap qualified as Data
 import PlutusTx.DataMap qualified as DataMap
+import PlutusTx.DataPair (DataElem)
 import PlutusTx.DataPair qualified as Data
 import PlutusTx.DataPair qualified as DataPair
 import PlutusTx.Trace (traceError, traceIfFalse)
@@ -119,15 +122,15 @@ closeInterval (Interval (LowerBound (Finite (POSIXTime l)) lc) (UpperBound (Fini
     )
 closeInterval _ = Nothing
 
-
+-- TODO: abstract away
 toDataValue :: SOP.Value -> Data.Value
-toDataValue = Haskell.undefined
+toDataValue = PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData
 
 toDataCurrencySymbol :: SOP.CurrencySymbol -> Data.CurrencySymbol
-toDataCurrencySymbol = Haskell.undefined
+toDataCurrencySymbol = PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData
 
 toDataTokenName :: SOP.TokenName -> Data.TokenName
-toDataTokenName = Haskell.undefined
+toDataTokenName = PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData
 
 {-# INLINABLE mkMarloweValidator #-}
 -- | The Marlowe semantics validator.
@@ -283,24 +286,24 @@ mkMarloweValidator
     checkState :: BuiltinString -> Data.Value -> State -> Bool
     checkState tag expected State{..} =
       let
-        positiveBalance :: (a, Integer) -> Bool
-        positiveBalance (_, balance) = balance > 0
-        -- noDuplicates :: Eq k => AssocMap.Map k v -> Bool
-        noDuplicates am = Haskell.undefined
-          -- let
-          --   test [] = True           -- An empty list has no duplicates.
-          --   test (x : xs)            -- Look for a duplicate of the head in the tail.
-          --     | elem x xs = False    -- A duplicate is present.
-          --     | otherwise = test xs  -- Continue searching for a duplicate.
-          -- in
-          --   test $ AssocMap.keys am
+        positiveBalance :: DataElem a => (Data.Pair a Integer) -> Bool
+        positiveBalance (Data.Pair _ balance) = balance > 0
+        noDuplicates :: (DataElem k, DataElem v, Eq k) => Data.Map k v -> Bool
+        noDuplicates am =
+          let
+            test DataList.Nil = True           -- An empty list has no duplicates.
+            test (DataList.Cons x xs)            -- Look for a duplicate of the head in the tail.
+              | DataList.elem x xs = False    -- A duplicate is present.
+              | otherwise = test xs  -- Continue searching for a duplicate.
+          in
+            test $ DataMap.keys am
       in
            -- [Marlowe-Cardano Specification: "Constraint 5. Input value from script".]
            -- and/or
            -- [Marlowe-Cardano Specification: "Constraint 18. Final balance."]
            traceIfFalse ("v"  <> tag) (totalBalance accounts == expected)
            -- [Marlowe-Cardano Specification: "Constraint 13. Positive balances".]
-        && traceIfFalse ("b"  <> tag) (all positiveBalance (Haskell.undefined accounts :: [((AccountId, Token), Integer)]))
+        && traceIfFalse ("b"  <> tag) (DataList.all positiveBalance (DataMap.toList accounts))
            -- [Marlowe-Cardano Specification: "Constraint 19. No duplicates".]
         && traceIfFalse ("ea" <> tag) (noDuplicates accounts)
         && traceIfFalse ("ec" <> tag) (noDuplicates choices)

@@ -75,11 +75,11 @@ import PlutusTx.DataList (List, pattern Cons, pattern Nil)
 import PlutusTx.DataList qualified as List
 import PlutusTx.DataMap (Map)
 import PlutusTx.DataMap qualified as Map
-import PlutusTx.DataPair (DataElem, Pair, pattern Pair)
+import PlutusTx.DataPair (DataElem, Pair, fst, pattern Pair, snd)
 import PlutusTx.DataThese (These, pattern That, pattern These, pattern This)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
-import PlutusTx.Prelude as PlutusTx hiding (sort)
+import PlutusTx.Prelude as PlutusTx hiding (fst, snd, sort)
 import PlutusTx.Show qualified as PlutusTx
 import Prettyprinter (Pretty, (<>))
 import Prettyprinter.Extras (PrettyShow (PrettyShow))
