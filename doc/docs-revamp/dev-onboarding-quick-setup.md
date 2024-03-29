@@ -47,8 +47,8 @@ After installing, configure Nix to use IOHK’s binary caches to speed up the bu
 Stack is a cross-platform program for developing Haskell projects. It handles dependency management, building, and testing your Haskell code. 
 
 To install the Stack: 
-1. Visit the [official Haskell Stack website](https://docs.haskellstack.org/). 
-2. Follow the installation instructions for your operating system (Linux, macOS, or Windows).
+1. For installation on Mac and Linux `curl -sSL https://get.haskellstack.org/ | sh`
+2. For installation on Windows see the [official Haskell Stack website](https://docs.haskellstack.org/).
 3. Verify your installation by running `stack --version` in your terminal.
 
 #### GHC (Glasgow Haskell Compiler)
@@ -94,7 +94,7 @@ main = do
 5. Run the command `stack runghc Main.hs`.
 6. Verify that the output is correct. 
 
-## Core concepts of Plutus smart contracts
+## Core concepts of Plutus smart contracts (this section is very wordy and difficult to follow -- a graphic may help here)
 Before we start building our vesting smart contract, let's go over the following core concepts that underpin Plutus smart contracts.
 
 ### Datum
@@ -118,7 +118,7 @@ To set up a Plutus project for our vesting contract, follow these steps:
 
 1. Create a new directory for your project and navigate to it in your terminal.
 
-2. If you are using Nix, enter a Nix shell that provides the necessary development environment by running `nix develop` in your project directory. If you are not using Nix, make sure that all required C libraries are installed since PlutusTx depends on `cardano-base`, which in turn depends on cryptographic C libraries like `libblst`, `libsecp256k1`, and `libsodium`. 
+2. If you are using Nix, enter a Nix shell that provides the necessary development environment by running `nix develop` in your project directory. If you are not using Nix, make sure that all required C libraries are installed since PlutusTx depends on `cardano-base`, which in turn depends on cryptographic C libraries like `libblst`, `libsecp256k1`, and `libsodium`. (this section needs more info -- where are these packages? How do I use them? can they be installed at the command line? Do they need to be cloned and built from Github? What are the instructions to do that?)
 
 3. Create a new directory named `src` and a new file named `VestingContract.hs` inside it. This is where we'll write our smart contract code using Plutus Tx.
 
@@ -151,7 +151,7 @@ For this example, we will walk through a smart contract that is designed to use 
    - `saveVal` is a helper function that saves and writes the validator script to a file. 
    - `printVestingDatumJSON` is a helper function to print the vesting datum in JSON format, given a public key hash and a deadline in ISO 8601 format.
 
-### Section 1: Importing the required modules and functions
+### Section 1: Importing the required modules and functions (formatting hard to follow if coding along, easy if copy/paste)
 
 ```haskell
 {-# LANGUAGE DataKinds         #-}
@@ -276,7 +276,7 @@ These helper functions provide convenient ways to save the validator script to a
 
 The `printVestingDatumJSON` function is another helper function that takes the beneficiary's public key hash and the deadline as a string in ISO 8601 format. It constructs the `VestingDatum` using the provided values. The `fromJust` function is used to extract the `POSIXTime` value from the result of `posixTimeFromIso8601`. The `posixTimeFromIso8601` function converts the deadline string to a POSIXTime value. The constructed `VestingDatum` is then printed as JSON to the console using the `printDataToJSON` function.
 
-If we run this function and input a date and time together with a public key hash, we get the following example output: 
+If we run (how do we run this? What is the command?) this function and input a date and time together with a public key hash, we get the following example output: 
 
 ```
 Prelude> import Vesting
