@@ -3,19 +3,8 @@
 {- | Plutus benchmarks for the CEK machine based on some nofib examples. -}
 module Main where
 
-import Shared (benchWith, evaluateCekLikeInProd, mkEvalCtx)
-
-import UntypedPlutusCore.Evaluation.Machine.Cek (unsafeExtractEvaluationResult)
-
-import Control.DeepSeq (force)
-import Control.Exception (evaluate)
-import Criterion (nf)
+import PlutusBenchmark.Common (benchTermCek)
+import Shared (benchWith)
 
 main :: IO ()
-main = do
-  evalCtx <- evaluate $ force mkEvalCtx
-  let mkCekBM term =
-          -- `force` to try to ensure that deserialiation is not included in benchmarking time.
-          let eval = unsafeExtractEvaluationResult . evaluateCekLikeInProd evalCtx
-          in nf eval term
-  benchWith mkCekBM
+main = benchWith benchTermCek

@@ -142,10 +142,8 @@ benchmark nofib
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
-    , deepseq
     , nofib-internal
     , plutus-benchmark-common
-    , plutus-core              ^>=1.24
 
 benchmark nofib-hs
   import:         lang, ghc-version-support

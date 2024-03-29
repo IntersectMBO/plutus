@@ -87,7 +87,7 @@ defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
 defaultCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
-defaultCekParameters = mkMachineParameters def defaultCekCostModel
+defaultCekParameters = noinline mkMachineParameters def defaultCekCostModel
 
 {- Note [noinline for saving on ticks]
 We use 'noinline' purely for saving on simplifier ticks for definitions, whose performance doesn't
