@@ -37,6 +37,7 @@ import PlutusPrelude
 defaultBuiltinCostModel :: BuiltinCostModel
 defaultBuiltinCostModel =
     $$(readJSONFromFile DFP.builtinCostModelFile)
+{-# NOINLINE defaultBuiltinCostModel #-}
 
 {- Note [Modifying the cost model]
    When the Haskell representation of the cost model is changed, for example by
@@ -66,6 +67,7 @@ defaultBuiltinCostModel =
 defaultCekMachineCosts :: CekMachineCosts
 defaultCekMachineCosts =
   $$(readJSONFromFile DFP.cekMachineCostsFile)
+{-# NOINLINE defaultCekMachineCosts #-}
 
 {-| The default cost model, including both builtin costs and machine step costs.
     Note that this is not necessarily the cost model in use on the chain at any
