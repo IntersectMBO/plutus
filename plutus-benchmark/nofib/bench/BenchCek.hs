@@ -9,7 +9,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek (unsafeExtractEvaluationResult)
 
 import Control.DeepSeq (force)
 import Control.Exception (evaluate)
-import Criterion (whnf)
+import Criterion (nf)
 
 main :: IO ()
 main = do
@@ -17,5 +17,5 @@ main = do
   let mkCekBM term =
           -- `force` to try to ensure that deserialiation is not included in benchmarking time.
           let eval = unsafeExtractEvaluationResult . evaluateCekLikeInProd evalCtx
-          in whnf eval term
+          in nf eval term
   benchWith mkCekBM
