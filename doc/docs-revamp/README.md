@@ -10,6 +10,8 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
    - Review comments incorporated as of March 26. 
 ## 4. [Simple example](simple-example.md)
 ## 5. [Using Plutus Tx](using-plutus-tx.md)
+   - Ported over existing content as of March 29 into new org structure. 
+   - Code block includes are not yet functional. Working with web dev team to figure out how we will handle this if we discontinue using .rst files and migrate to Docusaurus and .md files. 
 ## 6. [Working with scripts](working-with-scripts.md)
 ## 7. [Working with Plutus Core](working-with-plutus-core.md)
 ## 8. [Reference](reference.md)
