@@ -8,7 +8,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 ## 2. [Core concepts](core-concepts.md)
 ## 3. [Developer onboarding and quick setup](dev-onboarding-quick-setup.md)
    - Review comments incorporated as of March 26. 
-   - Ziyang's comments in PR speak to intended audience, scope, and reconsidering our example contract selection. 
+   - Ziyang's comments in [Draft PR](https://github.com/IntersectMBO/plutus/pull/5866/commits) speak to intended audience, scope, and reconsidering our example contract selection. 
 ## 4. [Simple example](simple-example.md)
 ## 5. [Using Plutus Tx](using-plutus-tx.md)
    - Ported over existing content as of March 29 into new org structure. 
