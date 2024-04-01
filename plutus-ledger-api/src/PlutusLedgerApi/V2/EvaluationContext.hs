@@ -1,5 +1,4 @@
 -- editorconfig-checker-disable
-{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
 module PlutusLedgerApi.V2.EvaluationContext
     ( EvaluationContext
@@ -15,27 +14,10 @@ import PlutusLedgerApi.Common.Versions (conwayPV)
 import PlutusLedgerApi.V2.ParamName as V2
 
 import PlutusCore.Default as Plutus (BuiltinSemanticsVariant (DefaultFunSemanticsVariant0, DefaultFunSemanticsVariant1))
-import PlutusCore.Evaluation.Machine.MachineParameters.Default (SubDefaultFunSemanticsVariant (..))
 
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Writer.Strict
-
-data DefaultFunSemanticsVariant_V2
-    = DefaultFunSemanticsVariant0_V2
-    | DefaultFunSemanticsVariant1_V2
-    deriving stock (Bounded, Enum)
-
-instance SubDefaultFunSemanticsVariant DefaultFunSemanticsVariant_V2 where
-    toDefaultFunSemanticsVariant DefaultFunSemanticsVariant0_V2 = DefaultFunSemanticsVariant0
-    toDefaultFunSemanticsVariant DefaultFunSemanticsVariant1_V2 = DefaultFunSemanticsVariant1
-
-    memoSemVarM f = do
-        r0 <- f DefaultFunSemanticsVariant0_V2
-        r1 <- f DefaultFunSemanticsVariant1_V2
-        pure $ \case
-            DefaultFunSemanticsVariant0_V2 -> r0
-            DefaultFunSemanticsVariant1_V2 -> r1
 
 {-|  Build the 'EvaluationContext'.
 
@@ -56,6 +38,7 @@ mkEvaluationContext =
     tagWithParamNames @V2.ParamName
     >=> pure . toCostModelParams
     >=> mkDynEvaluationContext
+        [DefaultFunSemanticsVariant0, DefaultFunSemanticsVariant1]
         (\pv -> if pv < conwayPV
-            then DefaultFunSemanticsVariant0_V2
-            else DefaultFunSemanticsVariant1_V2)
+            then Plutus.DefaultFunSemanticsVariant0
+            else Plutus.DefaultFunSemanticsVariant1)

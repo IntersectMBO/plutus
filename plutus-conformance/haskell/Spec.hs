@@ -1,10 +1,8 @@
-{-# LANGUAGE TypeApplications #-}
-
 {- | Conformance tests for the Haskell implementation. -}
+
 module Main (main) where
 
 import PlutusConformance.Common (UplcEvaluator (..), runUplcEvalTests)
-import PlutusCore.Default.Builtins as PLC
 import PlutusCore.Evaluation.Machine.MachineParameters.Default
 import PlutusPrelude (def)
 import UntypedPlutusCore qualified as UPLC
@@ -14,8 +12,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek (CountingSt (..), counting, runC
 evalUplcProg :: UplcEvaluator
 evalUplcProg = UplcEvaluatorWithCosting $ \modelParams (UPLC.Program a v t) ->
     do
-        let semVarDef = def @(PLC.BuiltinSemanticsVariant PLC.DefaultFun)
-        params <- case mkMachineParametersFor (const semVarDef) modelParams of
+        params <- case mkMachineParametersFor [def] (const def) modelParams of
           Left _  -> Nothing
           Right p -> Just $ p ()
         -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with free variables,
