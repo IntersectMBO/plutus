@@ -223,8 +223,10 @@ benchmark lists
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
+    , deepseq
     , lists-internal
     , plutus-benchmark-common
+    , plutus-ledger-api
 
 test-suite plutus-benchmark-lists-tests
   import:         lang, ghc-version-support
@@ -321,13 +323,16 @@ benchmark cek-calibration
   main-is:          Main.hs
   hs-source-dirs:   cek-calibration
   build-depends:
-    , base              >=4.9     && <5
-    , criterion         >=1.5.9.0
+    , base                     >=4.9     && <5
+    , criterion                >=1.5.9.0
+    , deepseq
     , lens
     , mtl
-    , plutus-core       ^>=1.24
-    , plutus-tx         ^>=1.24
-    , plutus-tx-plugin  ^>=1.24
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.24
+    , plutus-ledger-api        ^>=1.24
+    , plutus-tx                ^>=1.24
+    , plutus-tx-plugin         ^>=1.24
 
 ---------------- Signature verification throughput ----------------
 

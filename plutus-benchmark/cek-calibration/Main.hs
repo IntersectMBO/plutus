@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -16,14 +17,15 @@ module Main (main) where
 
 import Prelude qualified as Haskell
 
+import PlutusBenchmark.Common (evaluateCekLikeInProd, mkEvalCtx)
 import PlutusCore
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Pretty qualified as PP
+import PlutusLedgerApi.Common (EvaluationContext)
 import PlutusTx qualified as Tx
 import PlutusTx.Prelude as Tx
 import UntypedPlutusCore as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek
 
+import Control.DeepSeq
 import Control.Exception
 import Control.Lens
 import Control.Monad.Except
@@ -32,12 +34,11 @@ import Criterion.Types qualified as C
 
 type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
 
-
-benchCek :: UPLC.Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
-benchCek t = case runExcept @UPLC.FreeVariableError $ runQuoteT $ UPLC.unDeBruijnTerm t of
-    Left e   -> throw e
-    Right t' -> whnf (unsafeEvaluateCekNoEmit defaultCekParameters) t'
-
+benchCek :: EvaluationContext -> UPLC.Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
+benchCek ctx t =
+    let !benchTerm = force t
+        eval = either (Haskell.error . show) (\_ -> ()) . evaluateCekLikeInProd ctx
+    in whnf eval benchTerm
 
 {-# INLINABLE rev #-}
 rev :: [()] -> [()]
@@ -74,11 +75,11 @@ mkListTerm n =
   let (UPLC.Program _ _ code) = mkListProg n
   in code
 
-mkListBM :: Integer -> Benchmark
-mkListBM n = bench (Haskell.show n) $ benchCek (mkListTerm n)
+mkListBM :: EvaluationContext -> Integer -> Benchmark
+mkListBM ctx n = bench (Haskell.show n) $ benchCek ctx (mkListTerm n)
 
-mkListBMs :: [Integer] -> Benchmark
-mkListBMs ns = bgroup "List" [mkListBM n | n <- ns]
+mkListBMs :: EvaluationContext -> [Integer] -> Benchmark
+mkListBMs ctx ns = bgroup "List" [mkListBM ctx n | n <- ns]
 
 writePlc :: UPLC.Program NamedDeBruijn DefaultUni DefaultFun () -> Haskell.IO ()
 writePlc p =
@@ -91,10 +92,13 @@ writePlc p =
 
 
 main1 :: Haskell.IO ()
-main1 =
-  defaultMainWith (defaultConfig { C.csvFile = Just "cek-lists.csv" }) $ [mkListBMs [0,10..1000]]
+main1 = do
+  evalCtx <- evaluate mkEvalCtx
+  defaultMainWith
+      (defaultConfig { C.csvFile = Just "cek-lists.csv" })
+      [mkListBMs evalCtx [0,10..1000]]
 
-main2:: Haskell.IO ()
+main2 :: Haskell.IO ()
 main2 = writePlc (mkListProg 999)
 
 main :: Haskell.IO ()

@@ -11,7 +11,6 @@ module PlutusBenchmark.Common
     , toNamedDeBruijnTerm
     , compiledCodeToTerm
     , haskellValueToTerm
-    , benchTermCek
     , benchProgramCek
     , unsafeRunTermCek
     , runTermCek
@@ -111,12 +110,6 @@ compiledCodeToTerm (Tx.getPlcNoAnn -> UPLC.Program _ _ body) = body
 haskellValueToTerm
     :: Tx.Lift DefaultUni a => a -> Term
 haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
-
-
-{- | Convert a de-Bruijn-named UPLC term to a CEK Benchmark -}
-benchTermCek :: Term -> Benchmarkable
-benchTermCek term =
-    nf unsafeRunTermCek $! term -- Or whnf?
 
 {- | Convert a de-Bruijn-named UPLC term to a CEK Benchmark -}
 benchProgramCek :: Program -> Benchmarkable
