@@ -3,7 +3,7 @@
 {-# LANGUAGE BangPatterns #-}
 module Main where
 
-import Common (benchWith, evaluateCekLikeInProd, mkEvalCtx, unsafeUnflat)
+import Common (benchWith, evaluateCekForBench, mkEvalCtx, unsafeUnflat)
 import Control.DeepSeq (force)
 import Control.Exception (evaluate)
 import PlutusBenchmark.Common (toNamedDeBruijnTerm)
@@ -26,6 +26,5 @@ main = do
           -- don't count the undebruijn . unflat cost
           -- `force` to try to ensure that deserialiation is not included in benchmarking time.
           let !benchTerm = force . toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file program
-              eval = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
-          in whnf eval benchTerm
+          in whnf (evaluateCekForBench evalCtx) benchTerm
   benchWith mkCekBM

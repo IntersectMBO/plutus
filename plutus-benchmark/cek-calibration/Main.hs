@@ -17,7 +17,7 @@ module Main (main) where
 
 import Prelude qualified as Haskell
 
-import PlutusBenchmark.Common (evaluateCekLikeInProd, mkEvalCtx)
+import PlutusBenchmark.Common (evaluateCekForBench, mkEvalCtx)
 import PlutusCore
 import PlutusCore.Pretty qualified as PP
 import PlutusLedgerApi.Common (EvaluationContext)
@@ -37,8 +37,7 @@ type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
 benchCek :: EvaluationContext -> UPLC.Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
 benchCek ctx t =
     let !benchTerm = force t
-        eval = either (Haskell.error . show) (\_ -> ()) . evaluateCekLikeInProd ctx
-    in whnf eval benchTerm
+    in whnf (evaluateCekForBench ctx) benchTerm
 
 {-# INLINABLE rev #-}
 rev :: [()] -> [()]

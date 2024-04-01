@@ -6,7 +6,7 @@ module Main (main) where
 
 import Criterion.Main
 
-import PlutusBenchmark.Common (evaluateCekLikeInProd, getConfig, mkEvalCtx)
+import PlutusBenchmark.Common (evaluateCekForBench, getConfig, mkEvalCtx)
 import PlutusBenchmark.Lists.Sort qualified as Sort
 import PlutusBenchmark.Lists.Sum.Compiled qualified as Sum.Compiled
 import PlutusBenchmark.Lists.Sum.HandWritten qualified as Sum.HandWritten
@@ -46,15 +46,13 @@ benchmarks ctx =
         bgroup name $ sizesForSort <&> \n ->
           bench (show n) $
             let !benchTerm = force $ f n
-                eval = either (error . show) (\_ -> ()) . evaluateCekLikeInProd ctx
-            in whnf eval benchTerm
+            in whnf (evaluateCekForBench ctx) benchTerm
       sizesForSort = [10, 20..500]
       mkBMsForSum name f =
         bgroup name $ sizesForSum <&> \n ->
           bench (show n) $
             let !benchTerm = force f $ [1..n]
-                eval = either (error . show) (\_ -> ()) . evaluateCekLikeInProd ctx
-            in whnf eval benchTerm
+            in whnf (evaluateCekForBench ctx) benchTerm
       sizesForSum = [10, 50, 100, 500, 1000, 5000, 10000]
 
 main :: IO ()

@@ -3,10 +3,10 @@ module Shared (
     benchWith
     , mkBenchMarks
     , mkEvalCtx
-    , evaluateCekLikeInProd
+    , evaluateCekForBench
     ) where
 
-import PlutusBenchmark.Common (Term, evaluateCekLikeInProd, getConfig, mkEvalCtx)
+import PlutusBenchmark.Common (Term, evaluateCekForBench, getConfig, mkEvalCtx)
 
 import PlutusBenchmark.NoFib.Clausify qualified as Clausify
 import PlutusBenchmark.NoFib.Knights qualified as Knights

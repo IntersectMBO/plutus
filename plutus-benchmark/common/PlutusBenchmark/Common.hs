@@ -17,6 +17,7 @@ module PlutusBenchmark.Common
     , cekResultMatchesHaskellValue
     , mkEvalCtx
     , evaluateCekLikeInProd
+    , evaluateCekForBench
     , benchTermAgdaCek
     , benchProgramAgdaCek
     , TestSize (..)
@@ -180,10 +181,16 @@ evaluateCekLikeInProd
             (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
 evaluateCekLikeInProd evalCtx term = do
     let (getRes, _, _) =
-            let pv = LedgerApi.ledgerLanguageIntroducedIn LedgerApi.PlutusV1
-            -- The validation benchmarks were all created from PlutusV1 scripts
+            let -- The validation benchmarks were all created from PlutusV1 scripts
+                pv = LedgerApi.ledgerLanguageIntroducedIn LedgerApi.PlutusV1
             in LedgerApi.evaluateTerm UPLC.restrictingEnormous pv LedgerApi.Quiet evalCtx term
     getRes
+
+evaluateCekForBench
+    :: LedgerApi.EvaluationContext
+    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+    -> ()
+evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
 
 ---------------- Run a term or program using the plutus-metatheory CEK evaluator ----------------
 
