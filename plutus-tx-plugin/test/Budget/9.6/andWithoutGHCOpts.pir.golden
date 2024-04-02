@@ -75,14 +75,10 @@
                  v)
   in
   \(x : integer) (y : integer) ->
-    let
-      !l : Bool = `<` {integer} `$fOrdInteger` x 3
-      !r : Bool = `<` {integer} `$fOrdInteger` y 3
-    in
     Bool_match
-      l
+      (`<` {integer} `$fOrdInteger` x 3)
       {all dead. Bool}
-      (/\dead -> r)
+      (/\dead -> `<` {integer} `$fOrdInteger` y 3)
       (/\dead -> False)
       {all dead. dead})
   4
