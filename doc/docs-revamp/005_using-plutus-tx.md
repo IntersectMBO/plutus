@@ -1,78 +1,76 @@
 ---
 title: "Using Plutus Tx"
 description: ""
-date: 2024-03-29
+date: 2024-04-02
 ---
+
+<!-- Probably will need one section for `About Plutus Tx` and another section for `Using Plutus Tx` -->
 
 # Section 5. Using Plutus Tx
 
 Plutus applications are written as a single Haskell program, which describes both the code that runs off the chain (on a user's computer, or in their wallet, for example), and on the chain as part of transaction validation.
 
 The parts of the program that describe the on-chain code are still just Haskell, but they are compiled into `Plutus Core`{.interpreted-text role="term"}, rather than into the normal compilation target language.
-We refer to them as `Plutus Tx`{.interpreted-text role="term"} programs (where \'Tx\' indicates that these components usually go into transactions).
+We refer to them as `Plutus Tx`{.interpreted-text role="term"} programs (where 'Tx' indicates that these components usually go into transactions).
 
-::: warning
-::: title
-Warning
-:::
-
-Strictly speaking, while the majority of simple Haskell will work, only a subset of Haskell is supported by the Plutus Tx compiler. 
-The Plutus Tx compiler will tell you if you are attempting to use an unsupported component.
-:::
+> **Warning:**
+> 
+> Strictly speaking, while the majority of simple Haskell will work, only a subset of Haskell is supported by the Plutus Tx compiler. 
+> The Plutus Tx compiler will tell you if you are attempting to use an unsupported component.
 
 The key technique that we use to implement Plutus Tx is called *staged metaprogramming*, which means that the main Haskell program generates *another* program (in this case, the Plutus Core program that will run on the blockchain). 
 Plutus Tx is the mechanism we use to write those programs, but since Plutus Tx is just part of the main Haskell program, we can share types and definitions between the two.
 
-## Template Haskell preliminaries {#template_haskell_preliminaries}
+## Template Haskell preliminaries
 
 Plutus Tx uses Haskell's metaprogramming support, Template Haskell, for two main reasons:
 
 -   Template Haskell enables us to work at compile time, which is when we do Plutus Tx compilation.
 -   It allows us to wire up the machinery that invokes the Plutus Tx compiler.
 
+### Simple pattern
+
 Template Haskell is very versatile, but we only use a few features.
+Essentially, we often use the same simple pattern: 
+
+- make a quote, 
+- immediately call `PlutusTx.TH.compile`{.interpreted-text role="hsobj"}, and then 
+- splice the result back in.
+
+### Quotes
 
 Template Haskell begins with *quotes*. A Template Haskell quote is a Haskell expression `e` inside special brackets `[|| e ||]`. 
 It has type `Q (TExp a)` where `e` has type `a`. 
-`TExp a` is a *representation* an expression of type `a`, ie, the syntax of the actual Haskell expression that was quoted. 
+`TExp a` is a *representation* of an expression of type `a`; in other words, the syntax of the actual Haskell expression that was quoted. 
 The quote lives in the type `Q` of quotes, which isn't very interesting for us.
 
-::: note
-::: title
-Note
-:::
+> **NOTE:**
+> 
+> There is also an abbreviation `TExpQ a` for `Q (TExp a)`, which avoids some parentheses.
 
-There is also an abbreviation `TExpQ a` for `Q (TExp a)`, which avoids some parentheses.
-:::
+### Splicing quotes
 
 You can *splice* a quote into your program using the `$$` operator. 
 This inserts the syntax represented by the quote into the program at the point where the splice is written.
 
 Simply put, a quote allows us to talk about Haskell programs as *values*.
 
-The Plutus Tx compiler compiles Haskell *expressions* (not values!), so naturally it takes a quote (representing an expression) as an argument.
+The Plutus Tx compiler compiles Haskell *expressions* (not values), so naturally it takes a quote (representing an expression) as an argument.
 The result is a new quote, this time for a Haskell program that represents the *compiled* program. 
 In Haskell, the type of `PlutusTx.TH.compile`{.interpreted-text role="hsobj"} is `TExpQ a → TExpQ (CompiledCode a)`. 
 This is just what we already said:
 
--   `TExpQ a` is a quoted representing a program of type `a`.
--   `TExpQ (CompiledCode a)` is quote representing a compiled Plutus Core program.
+-   `TExpQ a` is a quote representing a program of type `a`.
+-   `TExpQ (CompiledCode a)` is a quote representing a compiled Plutus Core program.
 
-::: note
-::: title
-Note
-:::
-
-`PlutusTx.CompiledCode`{.interpreted-text role="hsobj"} also has a type parameter `a`, which corresponds to the type of the original expression.
-
-:   This lets us \"remember\" the type of the original Haskell program we compiled.
-:::
+> **NOTE:**
+> 
+> `PlutusTx.CompiledCode`{.interpreted-text role="hsobj"} also has a type parameter `a`, which corresponds to the type of the original expression.
+> 
+> This lets us "remember" the type of the original Haskell program we compiled.
 
 Since `PlutusTx.TH.compile`{.interpreted-text role="hsobj"} produces a quote, to use the result we need to splice it back into our program. 
 The Plutus Tx compiler runs when compiling the main program, and the compiled program will be inserted into the main program.
-
-This is all you need to know about the Template Haskell! 
-We often use the same simple pattern: make a quote, immediately call `PlutusTx.TH.compile`{.interpreted-text role="hsobj"}, and then splice the result back in.
 
 ## Writing basic Plutus Tx programs {#writing_basic_plutustx_programs}
 
@@ -82,15 +80,11 @@ BasicPlutusTx.hs
 
 This simple program just evaluates to the integer `1`.
 
-::: note
-::: title
-Note
-:::
-
-The examples that show the Plutus Core generated from compilation include doctests. 
-The syntax of Plutus Core might look unfamiliar, since this syntax is used for the 'assembly language', which means you don't need to inspect the compiler's output. 
-But for the purpose of this tutorial, it is useful to understand what is happening.
-:::
+> **NOTE:**
+> 
+> The examples that show the Plutus Core generated from compilation include doctests. 
+> The syntax of Plutus Core might look unfamiliar, since this syntax is used for the 'assembly language', which means you don't need to inspect the compiler's output. 
+> But for the purpose of this tutorial, it is useful to understand what is happening.
 
 ::: {.literalinclude start-after="BLOCK2" end-before="BLOCK3"}
 BasicPlutusTx.hs
@@ -99,17 +93,19 @@ BasicPlutusTx.hs
 We can see how the metaprogramming works: the Haskell program `1` was turned into a `CompiledCode Integer` at compile time, which we spliced into our Haskell program. 
 We can inspect the generated program at runtime to see the generated Plutus Core (or to put it on the blockchain).
 
+### Plutus Tx standard usage pattern (how all of our Plutus Tx programs are written)
+
 We also see the standard usage pattern: a TH quote, wrapped in a call to `PlutusTx.TH.compile`{.interpreted-text role="hsobj"}, wrapped in a `$$` splice. 
 This is how all our Plutus Tx programs are written.
 
-This is a slightly more complex program. 
+The following is a slightly more complex program. 
 It includes the identity function on integers.
 
 ::: {.literalinclude start-after="BLOCK3" end-before="BLOCK4"}
 BasicPlutusTx.hs
 :::
 
-## Functions and datatypes {#functions_and_datatypes}
+### Functions and datatypes {#functions_and_datatypes}
 
 You can use functions inside your expression. 
 In practice, you will usually want to define the entirety of your Plutus Tx program as a definition outside the quote, and then simply call it inside the quote.
@@ -125,7 +121,9 @@ BasicPlutusTx.hs
 :::
 
 Unlike functions, datatypes do not need any kind of special annotation to be used inside a quote, hence we can use types like `Maybe` from the Haskell `Prelude`. 
-This works for your own datatypes too!
+This works for your own datatypes too.
+
+### Example
 
 Here's a small example with a datatype representing a potentially open-ended end date.
 
@@ -139,12 +137,14 @@ We could also have defined the `pastEnd` function as a separate `INLINABLE` bind
 
 So far we have used functions like `lessThanEqInteger` for comparing `Integer`s, which is much less convenient than `<` from the standard Haskell `Ord` typeclass.
 
-Plutus Tx does support typeclasses, but we cannot use many of the standard typeclasses, since we require their class methods to be `INLINABLE`, and the implementations for types such as `Integer` use the Plutus Tx built-ins.
+While Plutus Tx does support typeclasses, we cannot use many of the standard typeclasses, since we require their class methods to be `INLINABLE`, and the implementations for types such as `Integer` use the Plutus Tx built-ins.
+
+### Plutus Tx Prelude has redefined versions of many standard typeclasses
 
 Redefined versions of many standard typeclasses are available in the Plutus Tx Prelude. 
 As such, you should be able to use most typeclass functions in your Plutus Tx programs.
 
-For example, here is a version of the `pastEnd` function using `<`. 
+For example, the following is a version of the `pastEnd` function using `<`. 
 This will be compiled to exactly the same code as the previous definition.
 
 ::: {.literalinclude start-after="BLOCK7" end-before="BLOCK8"}
@@ -153,23 +153,25 @@ BasicPlutusTx.hs
 
 ## The Plutus Tx Prelude {#the_plutus_tx_prelude}
 
-The `PlutusTx.Prelude`{.interpreted-text role="hsmod"} module is a drop-in replacement for the normal Haskell Prelude, with some redefined functions and typeclasses that makes it easier for the Plutus Tx compiler to handle (ie,`INLINABLE`).
+The `PlutusTx.Prelude`{.interpreted-text role="hsmod"} module is a drop-in replacement for the normal Haskell Prelude, with some redefined functions and typeclasses that make it easier for the Plutus Tx compiler to handle (such as `INLINABLE`).
 
 Use the Plutus Tx Prelude for code that you expect to compile with the Plutus Tx compiler. 
-All the definitions in the Plutus Tx Prelude include working Haskell definitions, which means that you can use them in normal Haskell code too, although the Haskell Prelude versions will probably perform better.
+All the definitions in the Plutus Tx Prelude include working Haskell definitions, which means that you can use them in normal Haskell code too, although for normal Haskell code, the Haskell Prelude versions will probably perform better.
 
 To use the Plutus Tx Prelude, use the `NoImplicitPrelude` language pragma and import `PlutusTx.Prelude`{.interpreted-text role="hsmod"}.
 
 Plutus Tx includes some built-in types and functions for working with primitive data (integers and bytestrings), as well as a few special functions. 
 These types are also exported from the Plutus Tx Prelude.
 
+### Method for triggering a validation failure
+
 The `PlutusTx.Builtins.error`{.interpreted-text role="hsobj"} built-in deserves a special mention. 
 `PlutusTx.Builtins.error`{.interpreted-text role="hsobj"} causes the transaction to abort when it is evaluated, which is one way to trigger a validation failure.
 
-## Lifting values {#lifting_values}
+## Lifting values for generating code dynamically {#lifting_values}
 
 So far we've seen how to define pieces of code *statically* (when you *compile* your main Haskell program), but you might want to generate code *dynamically* (that is, when you *run* your main Haskell program).
-For example, you might be writing the body of a transaction to initiate a crowdfunding smart contract, which would need to be parameterized by data determining the size of the goal, the campaign start and end times, etc.
+For example, you might be writing the body of a transaction to initiate a crowdfunding smart contract, which would need to be parameterized by data determining the size of the goal, the campaign start and end times, and any additional data that may be required.
 
 We can do this in the same way that we parameterize code in functional programming: write the static code as a *function* and provide the argument later to configure it.
 
@@ -177,14 +179,10 @@ In our case, there is a slight complication: we want to make the argument and ap
 Plutus Tx addresses this through *lifting*. 
 Lifting enables the use of the same types, both inside your Plutus Tx program *and* in the external code that uses it.
 
-::: note
-::: title
-Note
-:::
-
-In this context, *runtime* means the runtime of the main Haskell program, **not** when the Plutus Core runs on the chain. 
-We want to configure our code when the main Haskell program runs, as that is when we will be getting user input.
-:::
+> **NOTE:**
+> 
+> In this context, *runtime* means the runtime of the main Haskell program, **not** when the Plutus Core runs on the chain. 
+> We want to configure our code when the main Haskell program runs, as that is when we will be getting user input.
 
 In this example, we add an add-one function.
 
@@ -203,14 +201,10 @@ We lifted the argument using the `PlutusTx.liftCode`{.interpreted-text role="hso
 To use this, a type must have an instance of the `PlutusTx.Lift`{.interpreted-text role="hsobj"} class. 
 For your own datatypes you should generate these with the `PlutusTx.makeLift`{.interpreted-text role="hsobj"} TH function from `PlutusTx.Lift`{.interpreted-text role="hsmod"}.
 
-::: note
-::: title
-Note
-:::
-
-`PlutusTx.liftCode`{.interpreted-text role="hsobj"} is relatively unsafe because it ignores any errors that might occur from lifting something that might not be supported. 
-There is a `PlutusTx.safeLiftCode`{.interpreted-text role="hsobj"} if you want to explicitly handle these occurrences.
-:::
+> **NOTE:**
+> 
+> `PlutusTx.liftCode`{.interpreted-text role="hsobj"} is relatively unsafe because it ignores any errors that might occur from lifting something that might not be supported. 
+> There is a `PlutusTx.safeLiftCode`{.interpreted-text role="hsobj"} if you want to explicitly handle these occurrences.
 
 The combined program applies the original compiled lambda to the lifted value (notice that the lambda is a bit complicated now, since we have compiled the addition into a built-in).
 
@@ -220,23 +214,18 @@ Here's an example with our custom datatype. The output is the encoded version of
 BasicPlutusTx.hs
 :::
 
-## Plutus Tx Compiler Options
+## Reference: Plutus Tx Compiler Options
 
 A number of options can be passed to the Plutus Tx compiler. 
 See `plutus_tx_options`{.interpreted-text role="ref"} for details.
 
-- GHC Extensions, Flags and Pragmas
-   - Extensions
-   - Flags
-   - Pragmas
-
-# GHC Extensions, Flags and Pragmas
+## GHC Extensions, Flags and Pragmas
 
 Plutus Tx is a subset of Haskell and is compiled to Untyped Plutus Core by the Plutus Tx compiler, a GHC (Glasgow Haskell Compiler) plugin.
 
 In order to ensure the success and correct compilation of Plutus Tx programs, all Plutus Tx modules (that is, Haskell modules that contain code to be compiled by the Plutus Tx compiler) should use the following GHC extensions, flags and pragmas.
 
-## Extensions
+### Extensions
 
 Plutus Tx modules should use the `Strict` extension: :
 
@@ -251,15 +240,15 @@ At this time, it is not possible to make function applications non-strict: `(\(~
 
 Making let bindings strict by default has the following advantages:
 
--   It makes let bindings and function applications semantically equivalent, eg, `let x = 3 + 4 in 42` has the same semantics as `(\x -> 42) (3 + 4)`. 
+-   It makes let bindings and function applications semantically equivalent. For example, `let x = 3 + 4 in 42` has the same semantics as `(\x -> 42) (3 + 4)`. 
 This is what one would come to expect, as it is the case in most other programming languages, regardless of whether the language is strict or non-strict. 
 -   Untyped Plutus Core programs, which are compiled from Plutus Tx, are not evaluated lazily (unlike Haskell), that is, there is no memoization of the results of evaluated expressions. 
 Thus using non-strict bindings can cause an expression to be inadvertently evaluated for an unbounded number of times. 
 Consider `let x = <expensive> in \y -> x + y`. 
-If `x` is non-strict, `<expensive>` will be evalutated every time `\y -> x + y` is applied to an argument, which means it can be evaluated 0 time, 1 time, 2 times, or any number of times (this is not the case if lazy evaluation was employed). 
+If `x` is non-strict, `<expensive>` will be evalutated every time `\y -> x + y` is applied to an argument, which means it can be evaluated 0 times, 1 time, 2 times, or any number of times (this is not the case if lazy evaluation was employed). 
 On the other hand, if `x` is strict, it is always evaluated once, which is at most one more time than what is necessary.
 
-## Flags
+### Flags
 
 GHC has a variety of optimization flags, many of which are on by default. 
 Although Plutus Tx is, syntactically, a subset of Haskell, it has different semantics and a different evaluation strategy (Haskell: non-strict semantics, call by need; Plutus Tx: strict semantics, call by value). As a result, some GHC optimizations are not helpful for Plutus Tx programs, and can even be harmful, in the sense that it can make Plutus Tx programs less efficient, or fail to be compiled. 
@@ -267,7 +256,7 @@ An example is the full laziness optimization, controlled by GHC flag `-ffull-laz
 Since Untyped Plutus Core does not employ lazy evaluation, the full laziness optimization is usually not beneficial, and can sometimes make a Plutus Tx program more expensive. 
 Conversely, some GHC features must be turned on in order to ensure Plutus Tx programs are compiled successfully.
 
-All Plutus Tx modules should use the following GHC flags: :
+All Plutus Tx modules should use the following GHC flags:
 
     -fno-ignore-interface-pragmas
     -fno-omit-interface-pragmas
@@ -281,7 +270,7 @@ All Plutus Tx modules should use the following GHC flags: :
 `-fno-ignore-interface-pragmas` and `-fno-omit-interface-pragmas` ensure unfoldings of Plutus Tx functions are available. 
 The rest are GHC optimizations that are generally bad for Plutus Tx, and should thus be turned off.
 
-These flags can be specified either in a Haskell module, e.g.: :
+These flags can be specified either in a Haskell module, for example: 
 
     {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 
@@ -293,15 +282,15 @@ For example, if your project is built using Cabal, you can add the flags to the 
 > :   -fno-ignore-interface-pragmas
 
 Note that this section only covers GHC flags, not Plutus Tx compiler flags. 
-Information about the latter can be found in `plutus_tx_options`{.interpreted-text role="ref"}.
+Information about the latter can be found in Reference > Writing scripts > Plutus Tx Compiler Options: `plutus_tx_options`{.interpreted-text role="ref"}.
 
-## Pragmas
+### Pragmas
 
 All functions and methods should have the `INLINEABLE` pragma, so that their unfoldings are made available to the Plutus Tx compiler.
 
 The `-fexpose-all-unfoldings` flag also makes GHC expose all unfoldings, but unfoldings exposed this way can be more optimized than unfoldings exposed via `INLINEABLE`. 
-In general we do not want GHC to perform optimizations, since GHC optimizes a program based on the assumption that it has non-strict semantics and is evaluated lazily (call by need), which is not true for Plutus Tx programs. 
-Therefore, `INLINEABLE` is preferred over `-fexpose-all-unfoldings` even though the latter is simpler.
+In general, we do not want GHC to perform optimizations, since GHC optimizes a program based on the assumption that it has non-strict semantics and is evaluated lazily (call by need), which is not true for Plutus Tx programs. 
+Therefore, `INLINEABLE` is preferred over `-fexpose-all-unfoldings`, even though the latter is simpler.
 
 `-fexpose-all-unfoldings` can be useful for functions that are generated by GHC and do not have the `INLINEABLE` pragma. 
 `-fspecialise` and `-fspec-constr` are two examples of optimizations that can generate such functions. 
