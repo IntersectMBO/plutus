@@ -1,9 +1,10 @@
 .. highlight:: haskell
 .. _exporting_a_blueprint:
 
-How to produce a Plutus Contract Blueprint (CIP-57)
----------------------------------------------------
-`CIP-0057`_ Plutus Contract Blueprints are used to document the binary interface of a
+How to produce a Plutus Contract Blueprint
+==========================================
+
+Plutus Contract Blueprints (`CIP-0057`_) are used to document the binary interface of a
 Plutus contract in a machine-readable format (JSON schema).
 
 A contract Blueprint can be produced by using the
@@ -245,6 +246,53 @@ to produce the JSON schema definition:
     ]
   }
 
+It is also possible to annotate validator's parameter or argument **type** 
+(as opposed to annotating *constructors*):
+
+.. code-block:: haskell
+
+  {-# ANN type MyParams (SchemaTitle "Example parameter title") #-}
+  {-# ANN type MyRedeemer (SchemaTitle "Example redeemer title") #-}
+
+and then instead of providing them literally
+
+.. code-block:: haskell
+
+  myValidator =
+    MkValidatorBlueprint
+      { ... elided
+      , validatorParameters =
+          [ MkParameterBlueprint
+              { parameterTitle = Just "My Validator Parameters"
+              , parameterDescription = Just "Compile-time validator parameters"
+              , parameterPurpose = Set.singleton Spend
+              , parameterSchema = definitionRef @MyParams
+              }
+          ]
+      , validatorRedeemer =
+          MkArgumentBlueprint
+            { argumentTitle = Just "My Redeemer"
+            , argumentDescription = Just "A redeemer that does something awesome"
+            , argumentPurpose = Set.fromList [Spend, Mint]
+            , argumentSchema = definitionRef @MyRedeemer
+            }
+      , ... elided
+      }
+
+use TH to have a more concise version :
+
+.. code-block:: haskell
+
+  myValidator =
+    MkValidatorBlueprint
+      { ... elided
+      , validatorParameters =
+          [ $(deriveParameterBlueprint ''MyParams (Set.singleton Purpose.Spend)) ]
+      , validatorRedeemer =
+          $(deriveArgumentBlueprint ''MyRedeemer (Set.fromList [Purpose.Spend, Purpose.Mint]))
+      , ... elided
+      }
+
 
 Result
 ------
@@ -345,7 +393,6 @@ Here is the full `CIP-0057`_ blueprint produced by this "howto" example:
       }
     }
   }
-
 
 .. note::
   You can find a more elaborate example of a contract blueprint in the ``Blueprint.Tests``
