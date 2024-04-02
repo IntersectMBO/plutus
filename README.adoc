@@ -4,7 +4,7 @@
 :toc: left
 :reproducible:
 
-image:https://img.shields.io/badge/policy-Cardano%20Engineering%20Handbook-informational[link=https://input-output-hk.github.io/cardano-engineering-handbook]
+image:https://img.shields.io/matrix/plutus-core%3Amatrix.org[link=https://matrix.to/#/#plutus-core:matrix.org]
 
 == Introduction
 
