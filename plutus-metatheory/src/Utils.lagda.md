@@ -66,7 +66,7 @@ cong₃ f refl refl refl = refl
 ## Natural Sum Type
 
 The type `n ∔ n' ≡ m` 
-allows to take two naturals `n` and `n'` such that they sum m.
+allows to take two naturals `n` and `n'` such that they sum to m.
 It is helpful when one wants to do `m` things, while keeping track
 of the number of done things (`n`) and things to do (`n'`).
 ```
@@ -148,9 +148,7 @@ record Writer (M : Set)(A : Set) : Set where
      wrvalue : A 
      accum : M
 
-module WriterMonad {M : Set}(e : M)(_∙_ : M → M → M)
-    where
-
+module WriterMonad {M : Set}(e : M)(_∙_ : M → M → M) where
   instance 
     WriterMonad : Monad (Writer M)
     Monad.return WriterMonad x = x , e
@@ -258,7 +256,7 @@ postulate Bls12-381-MlResult : Set
 
 The kind of types is `*`. Plutus core core is based on System Fω which
 is higher order so we have `⇒` for type level functions. We also have
-a kind called `#` which is used for sized integers and bytestrings.
+a kind called `#` which is used for builtin types.
 
 ```
 data Kind : Set where
