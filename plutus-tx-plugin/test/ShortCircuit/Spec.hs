@@ -22,6 +22,9 @@ import UntypedPlutusCore.Core.Type (Term (Constr), progTerm)
 import UntypedPlutusCore.Evaluation.Machine.Cek (counting, noEmitter)
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, runCekDeBruijn)
 
+-- These tests are here to ensure that the short-circuiting behaviour of the logical operators
+-- is preserved when the code is compiled with and without GHC optimisations.
+-- See also Note [Lazy boolean operators] in the plugin.
 tests :: TestTree
 tests =
   testGroup
