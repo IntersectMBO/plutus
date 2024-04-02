@@ -254,7 +254,7 @@ postulate Bls12-381-MlResult : Set
 {-# COMPILE GHC Bls12-381-MlResult = type Pairing.MlResult #-}
 ```
 
-Kinds
+## Kinds
 
 The kind of types is `*`. Plutus core core is based on System Fω which
 is higher order so we have `⇒` for type level functions. We also have
