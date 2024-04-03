@@ -924,7 +924,7 @@
                 "intercept": 57996947,
                 "slope": 18975
             },
-            "type": "linear_in_y"
+            "type": "linear_in_z"
         },
         "memory": {
             "arguments": 10,
