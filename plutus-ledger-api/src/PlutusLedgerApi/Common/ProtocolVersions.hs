@@ -20,7 +20,7 @@ import Data.Set qualified as Set
 import GHC.Generics (Generic)
 import Prettyprinter
 
-{- Note [Adding new builtins]
+{- Note [Adding new builtins: protocol versions]
 
   *** ATTENTION! ***
   New built-in functions must initially be added under `futurePV` and should

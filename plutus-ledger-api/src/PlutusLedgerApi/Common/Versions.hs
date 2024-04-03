@@ -56,7 +56,7 @@ later ledger-languages/protocol-versions.
 Note that this doesn't currently handle removals, although it fairly straighforwardly
 could do, just by tracking when they were removed.
 
-See also Note [Adding new builtins].
+See also Note [Adding new builtins: protocol versions].
 -}
 
 {-| The Plutus ledger language. These are entirely different script languages from the ledger's perspective,
