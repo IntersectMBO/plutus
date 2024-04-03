@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 
-# Run the `check-Notes.awk` script to .  This should be run from the root of the
-# Plutus repository.  This will return 1 if any problems are found and 0
-# otherwise.  To avoid quotation problems the Awk script is in its own file
-# rather than being supplied as a command line argument to the `awk` command.
+# Run the `check-Notes.awk` script to make sure that Notes are properly
+# formatted and cross-referenced.  See the awk file for a full description
+# of the rules that are enforced.
+
+# This script hould be run from the root of the Plutus repository.  It will
+# return 1 if any problems are found and 0 otherwise.  To avoid quotation
+# problems the Awk script is in its own file rather than being supplied as a
+# command line argument to the `awk` command.
 
 usage() {
     echo "usage: $0 [-l]"
