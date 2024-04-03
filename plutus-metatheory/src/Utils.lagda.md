@@ -65,8 +65,7 @@ cong₃ f refl refl refl = refl
  ```
 ## Natural Sum Type
 
-The type `n ∔ n' ≡ m` 
-allows to take two naturals `n` and `n'` such that they sum to m.
+The type `n ∔ n' ≡ m` takes two naturals `n` and `n'` such that they sum to m.
 It is helpful when one wants to do `m` things, while keeping track
 of the number of done things (`n`) and things to do (`n'`).
 ```
