@@ -685,6 +685,18 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
   case e of
+    {- Note [Lazy boolean operators]
+      (||) and (&&) have a special treatment: we want them lazy in the second argument,
+      as this is the behavior in Haskell and other PLs.
+      Covered by this spec: plutus-tx-plugin/test/ShortCircuit/Spec.hs
+    -}
+    -- Lazy ||
+    GHC.App (GHC.App (GHC.Var fid) a) b | GHC.getOccString fid == "||" -> do
+      compileExpr $ GHC.mkIfThenElse a (GHC.Var GHC.trueDataConId) b
+    -- Lazy &&
+    GHC.App (GHC.App (GHC.Var fid) a) b | GHC.getOccString fid == "&&" -> do
+      compileExpr $ GHC.mkIfThenElse a b (GHC.Var GHC.falseDataConId)
+
     -- See Note [String literals]
     -- IsString has only one method, so it's enough to know that it's an IsString method
     -- to know we're looking at fromString.

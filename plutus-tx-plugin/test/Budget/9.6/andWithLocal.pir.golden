@@ -7,14 +7,10 @@
           ifThenElse {Bool} (lessThanInteger x y) True False
   in
   \(x : integer) (y : integer) ->
-    let
-      !l : Bool = lessThanInteger x 3
-      !r : Bool = lessThanInteger y 3
-    in
     Bool_match
-      l
+      (lessThanInteger x 3)
       {all dead. Bool}
-      (/\dead -> r)
+      (/\dead -> lessThanInteger y 3)
       (/\dead -> False)
       {all dead. dead})
   4
