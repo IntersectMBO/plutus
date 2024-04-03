@@ -16,10 +16,11 @@ this might allow the builtin to be used for free on a testnet (for example)
 which might be confusing. We try to encourage the use of a default costing
 function which is maximally expensive, but the implementer might miss that.
 It's still possible to provide a costing function which is unrealistically
-cheap, but it would be difficult to spot that automatically.  For our purposes
-here it's sufficient to check that the costing function for a builtin is nonzero
-at a single point, and we do this by running the fucntion with a list of small
-inputs. -}
+cheap, but it would be difficult to spot that automatically.  Here we check that
+the costing functions for each builtin are nonzero at a single point, and we do
+this by running the function with a list of small arguments.  For CPU costs we
+actually check that the cost is at least 1000 ExCPU and for memory costs we
+check that the cost is strictly positive. -}
 
 module CostModelSafety.Spec (test_costModelSafety)
 where
@@ -52,8 +53,8 @@ import Type.Reflection (TypeRep, eqTypeRep, pattern App, typeRep, (:~~:) (..))
 -- Machine costs
 checkBudget :: Identity ExBudget  -> IO ()
 checkBudget (Identity (ExBudget cpu mem)) = do
-  assertBool "exBudgetCPU entry in CEK machine costs is not strictly positive" $ cpu > 0
-  assertBool "exBudgetMemory entry in CEK machine costs is not strictly positive" $ mem > 0
+  assertBool "exBudgetCPU  <= 0 in CEK machine costs" $ cpu > 0
+  assertBool "exBudgetMemory <= 0 in CEK machine costs" $ mem > 0
 
 -- Check that the machine costs are all strictly positive.  All of the fields are matched explicitly
 -- to make sure that we don't forget any new ones that get added.
@@ -189,10 +190,10 @@ testCosts semvar runtimes bn =
   in do
     -- Every builtin is expected to have a CPU cost of at least 1000 ExCPU (~ 1
     -- ns).  There's code in models.R which is supposed to ensure this.
-    assertBool ("cpuUsage < 1000 in " ++ show bn) $ cpuUsage >= 1000
+    assertBool ("CPU cost < 1000 in " ++ show bn) $ cpuUsage >= 1000
     -- Some memory usage functions return 0 for inputs of size zero, but this
     -- should be OK since there should never be any inputs of size zero.
-    assertBool ("memUsage <= 0 in " ++ show bn) $ memUsage > 0
+    assertBool ("Memory usage <= 0 in " ++ show bn) $ memUsage > 0
 
 testBuiltinCostModel :: BuiltinSemanticsVariant DefaultFun -> TestTree
 testBuiltinCostModel semvar =
