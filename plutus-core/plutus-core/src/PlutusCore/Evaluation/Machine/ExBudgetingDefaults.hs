@@ -37,6 +37,7 @@ import PlutusPrelude
 defaultBuiltinCostModel :: BuiltinCostModel
 defaultBuiltinCostModel =
     $$(readJSONFromFile DFP.builtinCostModelFile)
+-- This is a huge record, inlining it is wasteful.
 {-# NOINLINE defaultBuiltinCostModel #-}
 
 {- Note [Modifying the cost model]
@@ -67,6 +68,9 @@ defaultBuiltinCostModel =
 defaultCekMachineCosts :: CekMachineCosts
 defaultCekMachineCosts =
   $$(readJSONFromFile DFP.cekMachineCostsFile)
+-- We don't want this to get inlined, as otherwise the default 'CekMachineCosts' appears faster
+-- than 'CekMachineCosts' that we get in production after applying the costing parameters provided
+-- by the ledger.
 {-# NOINLINE defaultCekMachineCosts #-}
 
 {-| The default cost model, including both builtin costs and machine step costs.
@@ -87,7 +91,10 @@ defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
 defaultCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
-defaultCekParameters = mkMachineParameters def defaultCekCostModel
+defaultCekParameters =
+    -- We don't want this to get inlined in order for this definition not to appear faster than the
+    -- one used in production. Also see Note [noinline for saving on ticks].
+    noinline mkMachineParameters def defaultCekCostModel
 
 {- Note [noinline for saving on ticks]
 We use 'noinline' purely for saving on simplifier ticks for definitions, whose performance doesn't

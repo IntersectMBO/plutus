@@ -186,6 +186,8 @@ evaluateCekLikeInProd evalCtx term = do
             in LedgerApi.evaluateTerm UPLC.restrictingEnormous pv LedgerApi.Quiet evalCtx term
     getRes
 
+-- | Evaluate a term and either throw if evaluation fails or discard the result and return '()'.
+-- Useful for benchmarking.
 evaluateCekForBench
     :: LedgerApi.EvaluationContext
     -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
