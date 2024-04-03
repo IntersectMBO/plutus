@@ -14,6 +14,26 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
    - Ported over existing content as of March 29 into new org structure. 
    - Code block includes are not yet functional. Working with web dev team to figure out how we will handle this if we discontinue using .rst files and migrate to Docusaurus and .md files. 
 ## 6. [Working with scripts](006_working-with-scripts.md)
+- Writing basic validator scripts
+   - Validator arguments
+   - The Data type
+   - Signaling failure
+   - Validator functions
+   - Plutus script context versions
+- Writing basic minting policies
+   - Minting policy arguments
+   - Plutus script context versions
+   - Writing minting policies
+   - Other policy examples
+- Creating and submitting transactions using an off-chain framework
+- Libraries for writing Plutus Tx scripts
+- Exporting scripts, datums and redeemers
+- Profiling the budget usage of Plutus scripts
+   - Compiling a script for profiling
+   - Acquiring an executable script
+   - Running the script
+   - Analyzing the results
+
 ## 7. [Working with Plutus Core](007_working-with-plutus-core.md)
 ## 8. [Reference](008_reference.md)
 ## 9. [Troubleshooting](009_troubleshooting.md)

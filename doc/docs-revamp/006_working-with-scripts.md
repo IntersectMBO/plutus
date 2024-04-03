@@ -1,7 +1,7 @@
 ---
 title: "Working with scripts"
 description: "writing validator scripts, writing minting policies, creating and submitting transactions using an off-chain framework, libraries for writing Plutux Tx scripts, exporting scripts datums and redeemers, profiling the budget usage of Plutus scripts"
-date: 2024-04-02
+date: 2024-04-03
 ---
 
 # Section 6. Working with scripts
