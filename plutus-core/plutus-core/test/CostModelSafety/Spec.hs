@@ -128,7 +128,7 @@ smallConstant tr
     | trList `App` trElem <- tr
     , Just HRefl <- eqTypeRep trList (typeRep @[]) =
         case smallConstant trElem of
-          -- FIXME: can we return the empty list?  We apparently need the type to do that.
+          -- FIXME: can we return the empty list?  We apparently need the element type to do that.
           SomeConst c -> SomeConst [c]
     | trSomeConstant `App` _ `App` trEl <- tr
     , Just HRefl <- eqTypeRep trSomeConstant (typeRep @SomeConstant) =
