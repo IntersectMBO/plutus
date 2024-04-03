@@ -182,9 +182,9 @@ testCosts semvar runtimes bn = do
       eval _ _ =
         error $ "Wrong number of args for builtin " <> show bn <> ": " <> show args0
 
-      runtime0 = lookupBuiltin bn runtimes
-      args0 = genArgs semvar bn
-      ExBudget cpuUsage memUsage = eval args0 runtime0
+      args = genArgs semvar bn
+      runtime = lookupBuiltin bn runtimes
+      ExBudget cpuUsage memUsage = eval args runtime
   assertBool ("cpuUsage <= 0 in " ++ show bn) $ cpuUsage > 0
   assertBool ("memUsage <= 0 in " ++ show bn) $ memUsage > 0
   -- Some memory usage functions return 0 for inputs of size zero, but this is
