@@ -330,7 +330,7 @@ data ModelTwoArguments =
     deriving anyclass (NFData)
 
 instance Default ModelTwoArguments where
-    def = ModelTwoArgumentsConstantCost maxBound
+    def = ModelTwoArgumentsConstantCost 0
 
 -- See Note [runCostingFun* API].
 runCostingFunTwoArguments
