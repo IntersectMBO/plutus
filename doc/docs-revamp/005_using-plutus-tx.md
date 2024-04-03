@@ -8,6 +8,19 @@ date: 2024-04-02
 
 # Section 5. Using Plutus Tx
 
+- Template Haskell preliminaries
+- Writing basic Plutus Tx programs
+- Functions and datatypes
+- Typeclasses
+- The Plutus Tx Prelude
+- Lifting values
+- Plutus Tx Compiler Options
+- GHC Extensions, Flags and Pragmas
+   - Extensions
+   - Flags
+   - Pragmas
+- Alternatives to Plutus Tx
+
 Plutus applications are written as a single Haskell program, which describes both the code that runs off the chain (on a user's computer, or in their wallet, for example), and on the chain as part of transaction validation.
 
 The parts of the program that describe the on-chain code are still just Haskell, but they are compiled into `Plutus Core`{.interpreted-text role="term"}, rather than into the normal compilation target language.
@@ -105,7 +118,7 @@ It includes the identity function on integers.
 BasicPlutusTx.hs
 :::
 
-### Functions and datatypes {#functions_and_datatypes}
+## Functions and datatypes {#functions_and_datatypes}
 
 You can use functions inside your expression. 
 In practice, you will usually want to define the entirety of your Plutus Tx program as a definition outside the quote, and then simply call it inside the quote.

@@ -11,8 +11,23 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
    - Ziyang's comments in [Draft PR](https://github.com/IntersectMBO/plutus/pull/5866/commits) speak to intended audience, scope, and reconsidering our example contract selection. 
 ## 4. [Simple example](004_simple-example.md)
 ## 5. [Using Plutus Tx](005_using-plutus-tx.md)
-   - Ported over existing content as of March 29 into new org structure. 
-   - Code block includes are not yet functional. Working with web dev team to figure out how we will handle this if we discontinue using .rst files and migrate to Docusaurus and .md files. 
+> **Notes**
+> - Ported over existing content as of March 29 into new org structure. 
+> - Code block includes are not yet functional. Working with web dev team to figure out how we will handle this if we discontinue using .rst files and migrate to Docusaurus and .md files. 
+
+- Template Haskell preliminaries
+- Writing basic Plutus Tx programs
+- Functions and datatypes
+- Typeclasses
+- The Plutus Tx Prelude
+- Lifting values
+- Plutus Tx Compiler Options
+- GHC Extensions, Flags and Pragmas
+   - Extensions
+   - Flags
+   - Pragmas
+- Alternatives to Plutus Tx
+
 ## 6. [Working with scripts](006_working-with-scripts.md)
 - Writing basic validator scripts
    - Validator arguments
