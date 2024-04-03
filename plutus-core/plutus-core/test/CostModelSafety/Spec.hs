@@ -172,8 +172,11 @@ testCosts
   -> BuiltinsRuntime DefaultFun Term
   -> DefaultFun
   -> IO ()
-testCosts semvar runtimes bn = do
-  let eval :: [Term] -> BuiltinRuntime Term -> ExBudget
+testCosts semvar runtimes bn =
+  let args0 = genArgs semvar bn
+      runtime0 = lookupBuiltin bn runtimes
+
+      eval :: [Term] -> BuiltinRuntime Term -> ExBudget
       eval [] (BuiltinCostedResult budgetStream _) = sumExBudgetStream budgetStream
       eval (arg : args) (BuiltinExpectArgument toRuntime) =
         eval args (toRuntime arg)
@@ -182,13 +185,12 @@ testCosts semvar runtimes bn = do
       eval _ _ =
         error $ "Wrong number of args for builtin " <> show bn <> ": " <> show args0
 
-      args = genArgs semvar bn
-      runtime = lookupBuiltin bn runtimes
-      ExBudget cpuUsage memUsage = eval args runtime
-  assertBool ("cpuUsage <= 0 in " ++ show bn) $ cpuUsage > 0
-  assertBool ("memUsage <= 0 in " ++ show bn) $ memUsage > 0
-  -- Some memory usage functions return 0 for inputs of size zero, but this is
-  -- OK since there should not be any inputs of size zero.
+      ExBudget cpuUsage memUsage = eval args0 runtime0
+  in do
+    assertBool ("cpuUsage <= 0 in " ++ show bn) $ cpuUsage > 0
+    assertBool ("memUsage <= 0 in " ++ show bn) $ memUsage > 0
+    -- Some memory usage functions return 0 for inputs of size zero, but this
+    -- should be OK since there should never be any inputs of size zero.
 
 testBuiltinCostModel :: BuiltinSemanticsVariant DefaultFun -> TestTree
 testBuiltinCostModel semvar =
