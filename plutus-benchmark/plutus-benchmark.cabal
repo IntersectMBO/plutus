@@ -93,7 +93,6 @@ library plutus-benchmark-common
     , flat               ^>=0.6
     , plutus-core        ^>=1.25
     , plutus-ledger-api  ^>=1.25
-    , plutus-metatheory
     , plutus-tx          ^>=1.25
     , tasty
     , tasty-golden
