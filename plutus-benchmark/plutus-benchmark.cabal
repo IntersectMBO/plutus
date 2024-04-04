@@ -87,10 +87,12 @@ library plutus-benchmark-common
     , base          >=4.9   && <5
     , bytestring
     , criterion
+    , deepseq
     , directory
     , filepath
     , flat          ^>=0.6
     , plutus-core   ^>=1.25
+    , plutus-metatheory
     , plutus-tx     ^>=1.25
     , tasty
     , tasty-golden
@@ -148,6 +150,7 @@ benchmark nofib
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
+    , deepseq
     , nofib-internal
     , plutus-benchmark-common
 
@@ -223,8 +226,10 @@ benchmark lists
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
+    , deepseq
     , lists-internal
     , plutus-benchmark-common
+    , plutus-ledger-api
 
 test-suite plutus-benchmark-lists-tests
   import:         lang, ghc-version-support
@@ -265,7 +270,6 @@ benchmark validation
     , optparse-applicative
     , plutus-benchmark-common
     , plutus-core              ^>=1.25
-    , plutus-ledger-api        ^>=1.25
 
 ---------------- validation-decode ----------------
 
@@ -318,13 +322,16 @@ benchmark cek-calibration
   main-is:          Main.hs
   hs-source-dirs:   cek-calibration
   build-depends:
-    , base              >=4.9     && <5
-    , criterion         >=1.5.9.0
+    , base                     >=4.9     && <5
+    , criterion                >=1.5.9.0
+    , deepseq
     , lens
     , mtl
-    , plutus-core       ^>=1.25
-    , plutus-tx         ^>=1.25
-    , plutus-tx-plugin  ^>=1.25
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.25
+    , plutus-ledger-api        ^>=1.25
+    , plutus-tx                ^>=1.25
+    , plutus-tx-plugin         ^>=1.25
 
 ---------------- Signature verification throughput ----------------
 
@@ -563,7 +570,6 @@ benchmark validation-agda-cek
     , optparse-applicative
     , plutus-benchmark-common
     , plutus-core              ^>=1.25
-    , plutus-ledger-api        ^>=1.25
 
 benchmark nofib-agda-cek
   import:         lang, ghc-version-support
