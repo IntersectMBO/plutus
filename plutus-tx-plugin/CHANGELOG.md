@@ -1,4 +1,11 @@
 
+<a id='changelog-1.25.0.0'></a>
+# 1.25.0.0 — 2024-04-03
+
+## Changed
+
+- (&&) and (||) now short-circuit regardless of the GHC optimisations.
+
 <a id='changelog-1.22.0.0'></a>
 # 1.22.0.0 — 2024-02-21
 
