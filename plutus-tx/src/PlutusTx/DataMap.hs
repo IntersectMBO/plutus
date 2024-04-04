@@ -1,13 +1,24 @@
+{-# LANGUAGE ConstraintKinds    #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveLift         #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedLists    #-}
 {-# LANGUAGE PatternSynonyms    #-}
 {-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE ViewPatterns       #-}
 
 module PlutusTx.DataMap where
 
+import Control.DeepSeq (NFData)
+import Data.Data (Data)
+import GHC.Generics (Generic)
+import Language.Haskell.TH.Syntax as TH (Lift)
 import PlutusTx.AsData qualified as AsData
-import PlutusTx.DataList (List, pattern Cons, pattern Nil)
+import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.DataList (List (List_), pattern Cons, pattern Nil)
 import PlutusTx.DataList qualified as List
 import PlutusTx.DataPair (DataElem, Pair, fst, pattern Pair, snd)
 import PlutusTx.DataPair qualified as Pair
@@ -16,11 +27,20 @@ import PlutusTx.IsData qualified as P
 import PlutusTx.Prelude hiding (foldr, fst, map, snd)
 import Prelude qualified as H
 
-AsData.asData
-  [d|
-    data Map k v = Map (List (Pair k v))
-      deriving newtype (P.ToData, P.FromData, P.UnsafeFromData)
-  |]
+newtype Map k v = Map_ BuiltinData
+  deriving stock (Generic, Data, H.Show)
+  deriving anyclass (NFData)
+  deriving newtype (P.ToData, P.FromData, P.UnsafeFromData)
+
+pattern Map :: List (Pair k v) -> Map k v
+pattern Map l <- Map_ (BI.unsafeDataAsMap -> BI.mkMap -> List_ -> l)
+  where
+    Map l = Map_ . P.toBuiltinData $ l
+
+{-# COMPLETE Map #-}
+
+-- I think ^ doesn't work because the Data encoding doesn't know that
+-- BuiltinList (BuiltinPair BuiltinData BuiltinData) is an instance of BuiltinList BuiltinData
 
 instance (DataElem k, DataElem v, Eq k, Semigroup v) =>  Semigroup (Map k v) where
   (<>) = unionWith (<>)
@@ -28,7 +48,7 @@ instance (DataElem k, DataElem v, Eq k, Semigroup v) =>  Semigroup (Map k v) whe
 instance (DataElem k, DataElem v, Eq k, Semigroup v) => Monoid (Map k v) where
   mempty = empty
 
-empty :: (DataElem k, DataElem v) => Map k v
+empty :: Map k v
 empty = Map Nil
 
 lookup :: (DataElem k, DataElem v, Eq k) => k -> Map k v -> Maybe v

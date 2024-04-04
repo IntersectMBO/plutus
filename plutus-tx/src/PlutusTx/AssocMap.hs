@@ -11,6 +11,7 @@
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# LANGUAGE InstanceSigs          #-}
 
 -- | A map represented as an "association list" of key-value pairs.
 module PlutusTx.AssocMap (
@@ -352,4 +353,5 @@ all f (Map m) = go m
       []          -> True
       (_, x) : xs -> if f x then go xs else False
 
+-- TODO: use this for DataMap
 makeLift ''Map

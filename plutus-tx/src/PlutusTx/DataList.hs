@@ -1,25 +1,60 @@
 {-# LANGUAGE ConstraintKinds    #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveLift         #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedLists    #-}
 {-# LANGUAGE PatternSynonyms    #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE ViewPatterns       #-}
+{-# OPTIONS_GHC -ddump-splices #-}
 
 module PlutusTx.DataList where
 
+import Control.DeepSeq (NFData)
+import Data.Data (Data)
+import GHC.Generics (Generic)
+import Language.Haskell.TH.Syntax as TH (Lift)
 import PlutusTx.AsData qualified as AsData
+import PlutusTx.Builtins qualified as B
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.DataPair (DataElem)
 import PlutusTx.Foldable qualified as Foldable
 import PlutusTx.IsData qualified as P
 import PlutusTx.Prelude hiding (all, any, elem, filter, foldr)
 import Prelude qualified as H
 
-AsData.asData
-  [d|
-    data List a = Nil | Cons a (List a)
-      deriving newtype (P.ToData, P.FromData, P.UnsafeFromData)
-  |]
+newtype List a = List_ { getList :: BuiltinData }
+  deriving stock (Generic, Data, H.Show)
+  deriving anyclass (NFData)
+  deriving newtype (P.ToData, P.FromData, P.UnsafeFromData)
+
+mkNil :: List a
+mkNil = List_ . BI.mkList . BI.mkNilData $ BI.unitval
+
+mkCons :: DataElem a => a -> List a -> List a
+mkCons x (List_ xs) =
+  let xData = P.toBuiltinData x
+      builtinList = BI.unsafeDataAsList xs
+   in List_ $ BI.mkList $ BI.mkCons xData builtinList
+
+pattern Nil :: List a
+pattern Nil <- (List_ (BI.unsafeDataAsList -> B.headMaybe -> Nothing))
+  where Nil = mkNil
+
+pattern Cons :: DataElem a => a -> List a -> List a
+pattern Cons x xs <-
+  (List_
+    (BI.unsafeDataAsList ->
+      B.unsafeUncons ->
+        (P.unsafeFromBuiltinData -> x, BI.head -> P.unsafeFromBuiltinData -> xs)
+    )
+  )
+  where
+    Cons a as = mkCons a as
+
+{-# COMPLETE Nil, Cons #-}
 
 instance (DataElem a) => Semigroup (List a) where
   Nil <> l         = l

@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveLift         #-}
 {-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
@@ -68,6 +69,7 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
+import Language.Haskell.TH.Syntax as TH (Lift)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusTx qualified
 import PlutusTx.AsData qualified as AsData
@@ -221,14 +223,11 @@ taken to be zero.
 There is no 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
 do the right thing in some cases.
  -}
-AsData.asData
-    [d|
-        data Value = Value { getValue :: Map CurrencySymbol (Map TokenName Integer) }
-            deriving stock (Generic, Data, Haskell.Show)
-            deriving anyclass (NFData)
-            deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-            deriving Pretty via (PrettyShow Value)
-    |]
+newtype Value = Value { getValue :: Map CurrencySymbol (Map TokenName Integer) }
+    deriving stock (Generic, Data, Haskell.Show)
+    deriving anyclass (NFData)
+    deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving Pretty via (PrettyShow Value)
 
 instance Haskell.Eq Value where
     (==) = eq
@@ -551,5 +550,5 @@ newtype Lovelace = Lovelace { getLovelace :: Integer }
 makeLift ''CurrencySymbol
 makeLift ''TokenName
 makeLift ''AssetClass
-makeLift ''Value
+-- makeLift ''Value
 makeLift ''Lovelace
