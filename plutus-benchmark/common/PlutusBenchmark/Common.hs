@@ -16,8 +16,6 @@ module PlutusBenchmark.Common
     , unsafeRunTermCek
     , runTermCek
     , cekResultMatchesHaskellValue
-    , benchTermAgdaCek
-    , benchProgramAgdaCek
     , TestSize (..)
     , printHeader
     , printSizeStatistics
@@ -37,8 +35,6 @@ import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusTx qualified as Tx
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
-
-import MAlonzo.Code.Evaluator.Term (runUAgda)
 
 import Criterion.Main
 import Criterion.Types (Config (..))
@@ -156,20 +152,6 @@ cekResultMatchesHaskellValue
 cekResultMatchesHaskellValue term matches value =
     (unsafeRunTermCek term) `matches` (unsafeRunTermCek $ haskellValueToTerm value)
 
-
----------------- Run a term or program using the plutus-metatheory CEK evaluator ----------------
-
-benchTermAgdaCek :: Term -> Benchmarkable
-benchTermAgdaCek term =
-    nf unsafeRunAgdaCek $! term
-
-benchProgramAgdaCek :: Program -> Benchmarkable
-benchProgramAgdaCek (UPLC.Program _ _ term) =
-    nf unsafeRunAgdaCek $! term
-
-unsafeRunAgdaCek :: Term -> EvaluationResult Term
-unsafeRunAgdaCek =
-    either (error . \e -> "Agda evaluation error: " ++ show e) EvaluationSuccess . runUAgda
 
 ---------------- Printing tables of information about costs ----------------
 
