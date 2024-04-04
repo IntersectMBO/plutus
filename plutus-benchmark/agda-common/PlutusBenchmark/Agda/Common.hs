@@ -10,7 +10,7 @@ import UntypedPlutusCore qualified as UPLC
 
 import MAlonzo.Code.Evaluator.Term (runUAgda)
 
-import Criterion.Main
+import Criterion.Main (Benchmarkable, nf)
 
 -- This code is in its own file so that we only build the metatheory when we really need it.
 
