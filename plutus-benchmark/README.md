@@ -1,5 +1,7 @@
 ## Plutus Benchmarks
 
+When implementing evaluation benchmarks, make sure to use 'mkEvalCtx' and 'evaluateCekForBench' to mimic the behavior of the ledger. If you use something else for evaluation, the results are likely not going to be representative of what actually happens in production.
+
 This directory contains four sets of benchmarks:
 
 * `nofib`: Plutus versions of some of Haskell's `nofib` benchmarks from https://github.com/ghc/nofib.

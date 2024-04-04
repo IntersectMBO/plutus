@@ -1,6 +1,8 @@
 ```
 module Utils where
-
+```
+## Imports
+```
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂;subst)
 open import Function using (const;_∘_)
 open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_)
@@ -23,9 +25,13 @@ open import Data.Unit using (⊤)
 
 {-# FOREIGN GHC import Raw #-}
 
--- we cannot use the standard library's Either as it is not set up to
--- compile the Haskell's Either and compile pragmas have to go in the
--- same module as definitions
+```
+## Either
+
+We cannot use the standard library's Either as it is not set up to
+compile the Haskell's Either and compile pragmas have to go in the
+same module as definitions.
+```
 
 data Either (A B : Set) : Set where
   inj₁ : A → Either A B
@@ -57,9 +63,9 @@ cong₃ f refl refl refl = refl
                     subst P p z ≡ subst P q z
 ≡-subst-removable P refl refl z = refl 
  ```
+## Natural Sum Type
 
-The type `n ∔ n' ≡ m` 
-allows to take two naturals `n` and `n'` such that they sum m.
+The type `n ∔ n' ≡ m` takes two naturals `n` and `n'` such that they sum to m.
 It is helpful when one wants to do `m` things, while keeping track
 of the number of done things (`n`) and things to do (`n'`).
 ```
@@ -84,8 +90,12 @@ unique∔ (bubble p) (bubble p') = cong bubble (unique∔ p p')
 alldone : ∀(n : ℕ) → n ∔ zero ≣ n
 alldone n = +2∔ n 0 n (+-identityʳ n)
 
--- Monads
+```
+## Monads
 
+This introduces the Monad operators. 
+
+```
 record Monad (F : Set → Set) : Set₁ where
   field
     return : ∀{A} → A → F A
@@ -127,7 +137,9 @@ dec2Either : {A : Set} → Dec A → Either (¬ A) A
 dec2Either (yes p) = inj₂ p
 dec2Either (no ¬p) = inj₁ ¬p
 
--- writer monad
+```
+# Writer Monad
+```
 
 record Writer (M : Set)(A : Set) : Set where
    constructor _,_
@@ -135,9 +147,7 @@ record Writer (M : Set)(A : Set) : Set where
      wrvalue : A 
      accum : M
 
-module WriterMonad {M : Set}(e : M)(_∙_ : M → M → M)
-    where
-
+module WriterMonad {M : Set}(e : M)(_∙_ : M → M → M) where
   instance 
     WriterMonad : Monad (Writer M)
     Monad.return WriterMonad x = x , e
@@ -146,7 +156,10 @@ module WriterMonad {M : Set}(e : M)(_∙_ : M → M → M)
   tell : (w : M) → Writer M ⊤ 
   tell w = _ , w
 
----------------------
+```
+## Errors and ByteStrings
+
+```
 data RuntimeError : Set where
   gasError : RuntimeError
   userError : RuntimeError
@@ -158,6 +171,9 @@ postulate ByteString : Set
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 
+```
+## Record Types
+```
 
 record _×_ (A B : Set) : Set where
     constructor _,_ 
@@ -170,6 +186,10 @@ infixr 2 _×_
 
 {-# FOREIGN GHC type Pair a b = (a , b) #-}
 {-# COMPILE GHC _×_ = data Pair ((,))  #-}
+
+```
+## Lists and Maps
+```
 
 data List (A : Set) : Set where
   []  : List A
@@ -201,6 +221,9 @@ infixr 5 _∷_
 
 {-# COMPILE GHC List = data [] ([] | (:)) #-}
 
+```
+## DATA
+```
 
 data DATA : Set where
   ConstrDATA :  I.ℤ → List DATA → DATA
@@ -228,11 +251,11 @@ postulate Bls12-381-MlResult : Set
 {-# COMPILE GHC Bls12-381-MlResult = type Pairing.MlResult #-}
 ```
 
-Kinds
+## Kinds
 
 The kind of types is `*`. Plutus core core is based on System Fω which
 is higher order so we have `⇒` for type level functions. We also have
-a kind called `#` which is used for sized integers and bytestrings.
+a kind called `#` which is used for builtin types.
 
 ```
 data Kind : Set where

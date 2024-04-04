@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE LambdaCase   #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -11,11 +12,14 @@ module PlutusBenchmark.Common
     , toNamedDeBruijnTerm
     , compiledCodeToTerm
     , haskellValueToTerm
-    , benchTermCek
     , benchProgramCek
     , unsafeRunTermCek
     , runTermCek
     , cekResultMatchesHaskellValue
+    , mkEvalCtx
+    , evaluateCekLikeInProd
+    , evaluateCekForBench
+    , benchTermCek
     , benchTermAgdaCek
     , benchProgramAgdaCek
     , TestSize (..)
@@ -29,17 +33,23 @@ where
 import Paths_plutus_benchmark as Export
 import PlutusBenchmark.ProtocolParameters as PP
 
+import PlutusLedgerApi.Common qualified as LedgerApi
+
+import PlutusTx qualified as Tx
+
 import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusTx qualified as Tx
+
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import MAlonzo.Code.Evaluator.Term (runUAgda)
 
+import Control.DeepSeq (force)
 import Criterion.Main
 import Criterion.Types (Config (..))
 import Data.ByteString qualified as BS
@@ -104,12 +114,6 @@ compiledCodeToTerm (Tx.getPlcNoAnn -> UPLC.Program _ _ body) = body
 haskellValueToTerm
     :: Tx.Lift DefaultUni a => a -> Term
 haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
-
-
-{- | Convert a de-Bruijn-named UPLC term to a CEK Benchmark -}
-benchTermCek :: Term -> Benchmarkable
-benchTermCek term =
-    nf unsafeRunTermCek $! term -- Or whnf?
 
 {- | Convert a de-Bruijn-named UPLC term to a CEK Benchmark -}
 benchProgramCek :: Program -> Benchmarkable
@@ -183,10 +187,23 @@ evaluateCekLikeInProd
             (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
 evaluateCekLikeInProd evalCtx term = do
     let (getRes, _, _) =
-            let pv = LedgerApi.ledgerLanguageIntroducedIn LedgerApi.PlutusV1
-            -- The validation benchmarks were all created from PlutusV1 scripts
+            let -- The validation benchmarks were all created from PlutusV1 scripts
+                pv = LedgerApi.ledgerLanguageIntroducedIn LedgerApi.PlutusV1
             in LedgerApi.evaluateTerm UPLC.restrictingEnormous pv LedgerApi.Quiet evalCtx term
     getRes
+
+-- | Evaluate a term and either throw if evaluation fails or discard the result and return '()'.
+-- Useful for benchmarking.
+evaluateCekForBench
+    :: LedgerApi.EvaluationContext
+    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+    -> ()
+evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
+
+benchTermCek :: LedgerApi.EvaluationContext -> Term -> Benchmarkable
+benchTermCek evalCtx term =
+    let !term' = force term
+    in whnf (evaluateCekForBench evalCtx) term'
 
 ---------------- Run a term or program using the plutus-metatheory CEK evaluator ----------------
 
