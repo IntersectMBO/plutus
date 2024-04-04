@@ -1,4 +1,11 @@
 
+<a id='changelog-1.25.0.0'></a>
+# 1.25.0.0 — 2024-04-03
+
+## Changed
+
+- Partially applied builtins are estimated to be pure and work-free to better inform other optimizations, e.g. common subexpression elimination.
+
 <a id='changelog-1.22.0.0'></a>
 # 1.22.0.0 — 2024-02-21
 
