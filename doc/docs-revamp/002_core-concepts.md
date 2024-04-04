@@ -19,6 +19,7 @@ date: 2024-03-12
 - Different kinds of scripts
 - Plutus Core
 - Plutus Tx
+- Plutus Haskell SDK
 - Plutus language versions
 
 ## Understanding the Plutus platform
@@ -33,3 +34,4 @@ date: 2024-03-12
 - The Extended UTXO Model (EUTXO):
 	- How it differs from the account-based model
 	- Advantages for smart contracts
+

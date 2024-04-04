@@ -5,11 +5,26 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 # Reorganized top levels
 
 ## 1. [Introduction](001_introduction.md)
+
 ## 2. [Core concepts](002_core-concepts.md)
+
 ## 3. [Developer onboarding and quick setup](003_dev-onboarding-quick-setup.md)
-   - Review comments incorporated as of March 26. 
-   - Ziyang's comments in [Draft PR](https://github.com/IntersectMBO/plutus/pull/5866/commits) speak to intended audience, scope, and reconsidering our example contract selection. 
+
+> **Notes**
+>   - Review comments incorporated as of March 26. 
+>   - Ziyang's comments in [Draft PR](https://github.com/IntersectMBO/plutus/pull/5866/commits) speak to intended audience, scope, and reconsidering our example contract selection. 
+
+- Objective
+- Setting up and testing your development environment
+- Testing your environment setup
+- Core concepts of Plutus smart contracts
+- Writing your first Plutus smart contract
+- First smart contract example
+   - Code example with explanations
+- The larger context and next steps
+
 ## 4. [Simple example](004_simple-example.md)
+
 ## 5. [Using Plutus Tx](005_using-plutus-tx.md)
 > **Notes**
 > - Ported over existing content as of March 29 into new org structure. 
@@ -29,6 +44,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 - Alternatives to Plutus Tx
 
 ## 6. [Working with scripts](006_working-with-scripts.md)
+
 - Writing basic validator scripts
    - Validator arguments
    - The Data type
@@ -50,8 +66,50 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
    - Analyzing the results
 
 ## 7. [Working with Plutus Core](007_working-with-plutus-core.md)
+
+> **Note**
+> 
+> First draft outline for review and feedback. 
+> The scope of this draft may encompass more than is needed for our docs. 
+
+- Introduction to Plutus Core
+
+- Plutus Core Syntax and Semantics
+   - The basic constructs of Plutus Core, such as variables, functions, and applications, as well as the type system that includes types and kinds
+   - Syntax and semantics of Plutus Core
+   - Understanding data types used in Plutus Core and how they relate to the types in Haskell
+
+- Compilation Process
+   - Understanding how high-level Plutus Tx code is compiled down to Plutus Core, including the role of the Plutus compiler and the abstract syntax tree (AST)
+   - Understanding the compilation target and execution environment of your Plutus Tx code
+
+- Execution Model
+   - Understanding how your contracts will execute on-chain
+   - The low-level execution model of Plutus Core 
+   - The cost model for computing resource usage
+
+- Built-in Functions
+   - Exploring the built-in functions and types provided by Plutus Core that are essential for contract execution.
+
+- Formal Specification of Plutus Core
+   - The formal [Plutus Core Specification](https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.plutus-core-spec/latest/download/1) for understanding the precise behavior of the Plutus Core language.
+
+- Security Considerations
+   - The security aspects of smart contract development, including auditing Plutus Core code for safety and correctness.
+
+- Interacting with the Extended UTXO Model (EUTXO)
+   - Understanding how Plutus Core interacts with the ledger and the EUTXO model specific to Cardano.
+
+- Advanced Topics
+   - Optimizations, bytecode generation, and other advanced features of Plutus Core for those who want to understand the language at a deeper level.
+
+- Tools and Resources
+   - The tools available for Plutus Core development, such as decompilers, pretty-printers, and debuggers.
+   - Troubleshooting
+
 ## 8. [Reference](008_reference.md)
+
 ## 9. [Troubleshooting](009_troubleshooting.md)
+
 ## 10. [FAQ](010_faq.md)
    - Draft list of questions in place. Changes to the questions are pending. 
-
