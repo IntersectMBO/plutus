@@ -16,8 +16,6 @@ module PlutusBenchmark.Common
     , unsafeRunTermCek
     , runTermCek
     , cekResultMatchesHaskellValue
-    , mkEvalCtx
-    , evaluateCekLikeInProd
     , benchTermAgdaCek
     , benchProgramAgdaCek
     , TestSize (..)
@@ -31,19 +29,14 @@ where
 import Paths_plutus_benchmark as Export
 import PlutusBenchmark.ProtocolParameters as PP
 
-import PlutusLedgerApi.Common qualified as LedgerApi
-
-import PlutusTx qualified as Tx
-
 import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-
+import PlutusTx qualified as Tx
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import MAlonzo.Code.Evaluator.Term (runUAgda)
 
