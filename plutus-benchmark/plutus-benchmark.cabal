@@ -550,7 +550,7 @@ test-suite plutus-benchmark-marlowe-tests
 
 -- TODO: Add benchmarks for the executable semantics when we have a UPLC version
 
-library agda-benchmarks-internal
+library agda-internal
   import:          lang, ghc-version-support
   ghc-options:     -Wno-unused-packages
   hs-source-dirs:  agda-common
@@ -568,18 +568,18 @@ benchmark validation-agda-cek
   hs-source-dirs: validation/bench
   other-modules:  Common
   build-depends:
-    , agda-benchmarks-internal
-    , base                      >=4.9     && <5
+    , agda-internal
+    , base                     >=4.9     && <5
     , bytestring
-    , criterion                 >=1.5.9.0
+    , criterion                >=1.5.9.0
     , deepseq
     , directory
     , filepath
-    , flat                      ^>=0.6
+    , flat                     ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core               ^>=1.25
-    , plutus-ledger-api         ^>=1.25
+    , plutus-core              ^>=1.25
+    , plutus-ledger-api        ^>=1.25
 
 benchmark nofib-agda-cek
   import:         lang, ghc-version-support
@@ -588,9 +588,9 @@ benchmark nofib-agda-cek
   hs-source-dirs: nofib/bench
   other-modules:  Shared
   build-depends:
-    , agda-benchmarks-internal
-    , base                      >=4.9     && <5
-    , criterion                 >=1.5.9.0
+    , agda-internal
+    , base                     >=4.9     && <5
+    , criterion                >=1.5.9.0
     , nofib-internal
     , plutus-benchmark-common
 
@@ -601,10 +601,10 @@ benchmark marlowe-agda-cek
   other-modules:  Shared
   hs-source-dirs: marlowe/bench
   build-depends:
-    , agda-benchmarks-internal
-    , base                      >=4.9   && <5
+    , agda-internal
+    , base                     >=4.9   && <5
     , criterion
     , marlowe-internal
     , plutus-benchmark-common
-    , plutus-ledger-api         ^>=1.25
-    , plutus-tx                 ^>=1.25
+    , plutus-ledger-api        ^>=1.25
+    , plutus-tx                ^>=1.25
