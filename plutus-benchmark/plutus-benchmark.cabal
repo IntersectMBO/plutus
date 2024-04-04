@@ -27,7 +27,7 @@ source-repository head
 -- In a number of places where we use plutus-tx-plugin you get a warning that
 -- it's unused despite the fact that it _is_ used, and this causes failures in
 -- CI.  Use this to stop that happening and make it clear why we're turning the
--- warnings off It's a bit of a blunt instrument because it turns off genuine
+-- warnings off.  It's a bit of a blunt instrument because it turns off genuine
 -- warnings, but it doesn't seem to be possible to solve the problem in a more
 -- fine-grained way.
 common turn-off-plugin-warning
