@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE LambdaCase   #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -18,6 +19,7 @@ module PlutusBenchmark.Common
     , mkEvalCtx
     , evaluateCekLikeInProd
     , evaluateCekForBench
+    , benchTermCek
     , benchTermAgdaCek
     , benchProgramAgdaCek
     , TestSize (..)
@@ -47,6 +49,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import MAlonzo.Code.Evaluator.Term (runUAgda)
 
+import Control.DeepSeq (force)
 import Criterion.Main
 import Criterion.Types (Config (..))
 import Data.ByteString qualified as BS
@@ -193,6 +196,11 @@ evaluateCekForBench
     -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
     -> ()
 evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
+
+benchTermCek :: LedgerApi.EvaluationContext -> Term -> Benchmarkable
+benchTermCek evalCtx term =
+    let !term' = force term
+    in whnf (evaluateCekForBench evalCtx) term'
 
 ---------------- Run a term or program using the plutus-metatheory CEK evaluator ----------------
 

@@ -17,7 +17,7 @@ module Main (main) where
 
 import Prelude qualified as Haskell
 
-import PlutusBenchmark.Common (evaluateCekForBench, mkEvalCtx)
+import PlutusBenchmark.Common (benchTermCek, mkEvalCtx)
 import PlutusCore
 import PlutusCore.Pretty qualified as PP
 import PlutusLedgerApi.Common (EvaluationContext)
@@ -25,7 +25,6 @@ import PlutusTx qualified as Tx
 import PlutusTx.Prelude as Tx
 import UntypedPlutusCore as UPLC
 
-import Control.DeepSeq
 import Control.Exception
 import Control.Lens
 import Control.Monad.Except
@@ -33,11 +32,6 @@ import Criterion.Main
 import Criterion.Types qualified as C
 
 type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
-
-benchCek :: EvaluationContext -> UPLC.Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
-benchCek ctx t =
-    let !benchTerm = force t
-    in whnf (evaluateCekForBench ctx) benchTerm
 
 {-# INLINABLE rev #-}
 rev :: [()] -> [()]
@@ -75,7 +69,7 @@ mkListTerm n =
   in code
 
 mkListBM :: EvaluationContext -> Integer -> Benchmark
-mkListBM ctx n = bench (Haskell.show n) $ benchCek ctx (mkListTerm n)
+mkListBM ctx n = bench (Haskell.show n) $ benchTermCek ctx (mkListTerm n)
 
 mkListBMs :: EvaluationContext -> [Integer] -> Benchmark
 mkListBMs ctx ns = bgroup "List" [mkListBM ctx n | n <- ns]

@@ -4,12 +4,12 @@ module Common (
     benchWith
     , unsafeUnflat
     , mkEvalCtx
-    , evaluateCekForBench
+    , benchTermCek
     , peelDataArguments
     , Term
     ) where
 
-import PlutusBenchmark.Common (evaluateCekForBench, getConfig, getDataDir, mkEvalCtx)
+import PlutusBenchmark.Common (benchTermCek, getConfig, getDataDir, mkEvalCtx)
 import PlutusBenchmark.NaturalSort
 
 import PlutusCore.Builtin qualified as PLC
