@@ -83,10 +83,8 @@ testMachineCostModel (
     checkBudget cekConstrBudget
     checkBudget cekCaseBudget
 
-loadAndTestMachineCostModel :: IO ()
-loadAndTestMachineCostModel =  testMachineCostModel defaultCekMachineCosts
-
 -- Builtin costs
+
 {- Much of the code here is based on Evaluation.Spec and
    PlutusCore.Generators.Hedgehog.Builtin.  The tests are complicated by the
    fact that We can't just read the models from `builtinCostModels.json` and
@@ -162,7 +160,7 @@ genArgs semvar bn = case meaning of
             TypeSchemeResult    -> []
             TypeSchemeArrow sch ->
               case smallConstant (typeRep @(Head args)) of
-                SomeConst x -> (PLC.Constant () $ PLC.someValue x): go sch
+                SomeConst x -> (PLC.Constant () $ PLC.someValue x) : go sch
             TypeSchemeAll _ sch -> go sch
   where
     meaning :: BuiltinMeaning Term (CostingPart DefaultUni DefaultFun)
@@ -206,6 +204,6 @@ test_costModelSafety :: TestTree
 test_costModelSafety =
   testGroup "Default cost model safety test"
   (
-  (testCase "Machine costs" $ loadAndTestMachineCostModel) :
+  (testCase "Machine costs" $ testMachineCostModel defaultCekMachineCosts) :
     (fmap testBuiltinCostModel $ enumerate @(BuiltinSemanticsVariant DefaultFun))
   )
