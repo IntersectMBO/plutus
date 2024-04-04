@@ -41,6 +41,7 @@ pattern Map l <- Map_ (BI.unsafeDataAsMap -> BI.mkMap -> List_ -> l)
 
 -- I think ^ doesn't work because the Data encoding doesn't know that
 -- BuiltinList (BuiltinPair BuiltinData BuiltinData) is an instance of BuiltinList BuiltinData
+-- also Map is a completely different constructor from List ( this is the actual reason)
 
 instance (DataElem k, DataElem v, Eq k, Semigroup v) =>  Semigroup (Map k v) where
   (<>) = unionWith (<>)
