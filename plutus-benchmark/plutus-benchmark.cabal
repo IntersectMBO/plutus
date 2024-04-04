@@ -139,7 +139,7 @@ benchmark nofib
   hs-source-dirs: nofib/bench
   other-modules:  Shared
   build-depends:
-    , base                     >=4.9 && <5
+    , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
     , nofib-internal
     , plutus-benchmark-common
@@ -163,7 +163,7 @@ test-suite plutus-benchmark-nofib-tests
   hs-source-dirs: nofib/test
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-    , base                                            >=4.9 && <5
+    , base                                            >=4.9   && <5
     , nofib-internal
     , plutus-benchmark-common
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.25
