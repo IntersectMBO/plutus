@@ -19,6 +19,7 @@ module Blueprint.Tests.Lib
   , module AsData
   ) where
 
+import Blueprint.Tests.Lib.AsData.Blueprint qualified as SchemaTypes
 import Blueprint.Tests.Lib.AsData.Decls as AsData (datum2)
 import Codec.Serialise (serialise)
 import Control.Lens (over, (&))
@@ -31,7 +32,7 @@ import Flat qualified
 import GHC.Generics (Generic)
 import PlutusTx.AsData (asData)
 import PlutusTx.Blueprint.Class (HasSchema (..))
-import PlutusTx.Blueprint.Definition (AsDefinitionId, definitionRef)
+import PlutusTx.Blueprint.Definition (AsDefinitionId, HasSchemaDefinition, definitionRef)
 import PlutusTx.Blueprint.Schema (Schema (..), emptyBytesSchema)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaComment (..), SchemaDescription (..),
                                              SchemaInfo (..), SchemaTitle (..), emptySchemaInfo)
@@ -142,6 +143,19 @@ $(makeLift ''Param2b)
 $(makeIsDataSchemaIndexed ''Param2b [('MkParam2b, 0)])
 
 $(asData datum2)
+
+-- We can't derive 'HasSchema' for 'Datum2' (AsData) code-generated above
+-- because it's an opaque newtype which doesn't reveal its logical sturcture to the TH.
+-- Instead, we declare this instance manually and delegate its implementation to another instance
+-- derived for the non-AsData, non-opaque 'Datum2' type which is defined in a dedicated module,
+-- specifically for this purpose.
+instance
+  ( HasSchemaDefinition Integer referencedTypes
+  , HasSchemaDefinition Bool referencedTypes
+  )
+  => HasSchema Datum2 referencedTypes
+  where
+  schema = schema @SchemaTypes.Datum2
 
 type Redeemer2 = Integer
 
