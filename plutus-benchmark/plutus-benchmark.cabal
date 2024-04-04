@@ -552,6 +552,7 @@ test-suite plutus-benchmark-marlowe-tests
 
 library agda-benchmarks-internal
   import:          lang, ghc-version-support
+  ghc-options:     -Wno-unused-packages
   hs-source-dirs:  agda-common
   exposed-modules: PlutusBenchmark.Agda.Common
   build-depends:
