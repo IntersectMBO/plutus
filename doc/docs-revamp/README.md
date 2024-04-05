@@ -5,8 +5,16 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 # Reorganized top levels
 
 ## 1. [Introduction](001_introduction.md)
+> **Status**
+> 
+> - Draft outline in progress.
+> - Not ready for review. 
 
 ## 2. [Core concepts](002_core-concepts.md)
+> **Status**
+> 
+> - Draft outline in progress.
+> - Not ready for review. 
 
 ## 3. [Developer onboarding and quick setup](003_dev-onboarding-quick-setup.md)
 
@@ -24,11 +32,17 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 - The larger context and next steps
 
 ## 4. [Simple example](004_simple-example.md)
+> **Status**
+> 
+> - Draft outline in progress.
+> - Not ready for review. 
 
 ## 5. [Using Plutus Tx](005_using-plutus-tx.md)
-> **Notes**
+> **Status**
+> 
 > - Ported over existing content as of March 29 into new org structure. 
 > - Code block includes are not yet functional. Working with web dev team to figure out how we will handle this if we discontinue using .rst files and migrate to Docusaurus and .md files. 
+> - Not ready for review -- more editing planned. 
 
 - Template Haskell preliminaries
 - Writing basic Plutus Tx programs
@@ -44,6 +58,11 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 - Alternatives to Plutus Tx
 
 ## 6. [Working with scripts](006_working-with-scripts.md)
+> **Status**
+> 
+> - Ported over existing content as of April 3 into new org structure. 
+> - Code block includes are not yet functional. Working with web dev team to figure out how we will handle this if we discontinue using .rst files and migrate to Docusaurus and .md files. 
+> - Not ready for review -- more editing planned. 
 
 - Writing basic validator scripts
    - Validator arguments
@@ -67,49 +86,48 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 
 ## 7. [Working with Plutus Core](007_working-with-plutus-core.md)
 
-> **Note**
+> **Status**
 > 
 > First draft outline for review and feedback. 
 > The scope of this draft may encompass more than is needed for our docs. 
 
 - Introduction to Plutus Core
-
 - Plutus Core Syntax and Semantics
    - The basic constructs of Plutus Core, such as variables, functions, and applications, as well as the type system that includes types and kinds
    - Syntax and semantics of Plutus Core
    - Understanding data types used in Plutus Core and how they relate to the types in Haskell
-
 - Compilation Process
    - Understanding how high-level Plutus Tx code is compiled down to Plutus Core, including the role of the Plutus compiler and the abstract syntax tree (AST)
    - Understanding the compilation target and execution environment of your Plutus Tx code
-
 - Execution Model
    - Understanding how your contracts will execute on-chain
    - The low-level execution model of Plutus Core 
    - The cost model for computing resource usage
-
 - Built-in Functions
    - Exploring the built-in functions and types provided by Plutus Core that are essential for contract execution.
-
 - Formal Specification of Plutus Core
    - The formal [Plutus Core Specification](https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.plutus-core-spec/latest/download/1) for understanding the precise behavior of the Plutus Core language.
-
 - Security Considerations
    - The security aspects of smart contract development, including auditing Plutus Core code for safety and correctness.
-
 - Interacting with the Extended UTXO Model (EUTXO)
    - Understanding how Plutus Core interacts with the ledger and the EUTXO model specific to Cardano.
-
 - Advanced Topics
    - Optimizations, bytecode generation, and other advanced features of Plutus Core for those who want to understand the language at a deeper level.
-
 - Tools and Resources
    - The tools available for Plutus Core development, such as decompilers, pretty-printers, and debuggers.
    - Troubleshooting
 
 ## 8. [Reference](008_reference.md)
+> **Status**
+> 
+> - Draft outline in progress.
+> - Not ready for review. 
 
 ## 9. [Troubleshooting](009_troubleshooting.md)
+> **Status**
+> 
+> - Draft outline in progress.
+> - Not ready for review. 
 
 ## 10. [FAQ](010_faq.md)
    - Draft list of questions in place. Changes to the questions are pending. 
