@@ -542,7 +542,7 @@ test-suite plutus-benchmark-marlowe-tests
 -- TODO: Add benchmarks for the executable semantics when we have a UPLC version
 
 library agda-internal
-  import:          lang, turn-off-plugin-warning, ghc-version-support
+  import:          lang
   hs-source-dirs:  agda-common
   exposed-modules: PlutusBenchmark.Agda.Common
   build-depends:
@@ -550,10 +550,9 @@ library agda-internal
     , criterion
     , plutus-core        ^>=1.25
     , plutus-metatheory
-    , plutus-tx-plugin   ^>=1.25
 
 benchmark validation-agda-cek
-  import:         lang, ghc-version-support
+  import:         lang
   type:           exitcode-stdio-1.0
   main-is:        BenchAgdaCek.hs
   hs-source-dirs: validation/bench
@@ -572,7 +571,7 @@ benchmark validation-agda-cek
     , plutus-core              ^>=1.25
 
 benchmark nofib-agda-cek
-  import:         lang, ghc-version-support
+  import:         lang, turn-off-plugin-warning, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        BenchAgdaCek.hs
   hs-source-dirs: nofib/bench
@@ -583,9 +582,10 @@ benchmark nofib-agda-cek
     , criterion                >=1.5.9.0
     , nofib-internal
     , plutus-benchmark-common
+    , plutus-tx-plugin         ^>=1.25
 
 benchmark marlowe-agda-cek
-  import:         lang, ghc-version-support
+  import:         lang, turn-off-plugin-warning, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        BenchAgdaCek.hs
   other-modules:  Shared
@@ -598,3 +598,4 @@ benchmark marlowe-agda-cek
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.25
     , plutus-tx                ^>=1.25
+    , plutus-tx-plugin         ^>=1.25
