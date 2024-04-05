@@ -58,7 +58,7 @@ isCanonicalFlatEncodedByteString bs =
     _      -> False   -- Not the encoding of a bytestring.
   where
     go [] = False  -- We've fallen off the end, possibly due to having dropped too many bytes.
-    go l@(w:ws) =  -- w is the purported size of chunk.
+    go l@(w:ws) =  -- w is the purported size of the next chunk.
       if w == 0xFF
       then go (drop 255 ws)   -- Throw away any initial 255-byte chunks.
       else l == end || drop (fromIntegral w) ws == end
