@@ -138,7 +138,7 @@ instance Serialise a => Flat (AsSerialize a) where
         case errOrX of
             Left err -> fail $ show err  -- Here we embed a 'Serialise' error into a 'Flat' one.
             Right x  -> pure x
-    size = size . serialise
+    size = size . BSL.toStrict . serialise
 
 safeEncodeBits :: NumBits -> Word8 -> Encoding
 safeEncodeBits maxBits v =
