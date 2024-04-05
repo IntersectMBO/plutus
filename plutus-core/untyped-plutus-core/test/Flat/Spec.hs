@@ -1,18 +1,22 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
 module Flat.Spec (test_flat) where
 
 import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as BSL
+import Data.Char (ord)
 import Data.Word
 import Flat
 import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
 import PlutusCore.Generators.QuickCheck.Builtin ()
 import Test.Tasty
+import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 import UntypedPlutusCore ()
 import UntypedPlutusCore.Core.Type
@@ -85,6 +89,87 @@ test_canonicalByteString :: TestTree
 test_canonicalByteString =
   test_canonicalEncoding @BS.ByteString "flat encodes ByteStrings canonically" 1000
 
+{- Some tests that non-canonically encoded bytestrings decode correctly to strict
+bytestrings.  One strategey is to encode lazy bytestrings and decode the results
+to get strict bytestrings and then check that the result is the same as
+converting the original input into a strict bytestring.  However this will only
+test what we want when the lazy bytestring is encoded non-canonically, and this
+in fact happens quite rarely. To make sure that we really do test some
+non-canonical inputs there are a few handwritten examples as well. -}
+test_nonCanonicalByteStringDecoding :: TestTree
+test_nonCanonicalByteStringDecoding =
+  let target = "This is a test." :: BS.ByteString
+
+      ch :: Char -> Word8
+      ch = fromIntegral . ord
+
+      input1 = BS.pack [ 0x01
+                       , 0x01, ch 'T'
+                       , 0x01, ch 'h'
+                       , 0x01, ch 'i'
+                       , 0x01, ch 's'
+                       , 0x01, ch ' '
+                       , 0x01, ch 'i'
+                       , 0x01, ch 's'
+                       , 0x01, ch ' '
+                       , 0x01, ch 'a'
+                       , 0x01, ch ' '
+                       , 0x01, ch 't'
+                       , 0x01, ch 'e'
+                       , 0x01, ch 's'
+                       , 0x01, ch 't'
+                       , 0x01, ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input2 = BS.pack [ 0x01
+                       , 0x01, ch 'T'
+                       , 0x0e, ch 'h', ch 'i', ch 's', ch ' ', ch 'i', ch 's', ch ' '
+                       , ch 'a', ch ' ', ch 't', ch 'e', ch 's', ch 't', ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input3 = BS.pack [ 0x01
+                       , 0x01, ch 'T'
+                       , 0x0d, ch 'h', ch 'i', ch 's', ch ' ', ch 'i', ch 's', ch ' '
+                       , ch 'a', ch ' ', ch 't', ch 'e', ch 's', ch 't'
+                       , 0x01, ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input4 = BS.pack [ 0x01
+                       , 0x03, ch 'T', ch 'h', ch 'i'
+                       , 0x01, ch 's'
+                       , 0x05, ch ' ', ch 'i', ch 's', ch ' ', ch 'a'
+                       , 0x02, ch ' ', ch 't'
+                       , 0x04, ch 'e', ch 's', ch 't', ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input5 = BS.pack [ 0x01
+                       , 0x01, ch 'T'
+                       , 0x02, ch 'h', ch 'i'
+                       , 0x03, ch 's', ch ' ', ch 'i'
+                       , 0x04, ch 's', ch ' ', ch 'a', ch ' '
+                       , 0x05, ch 't', ch 'e', ch 's', ch 't', ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      mkTest input =
+        assertBool "Input failed to decode successfully" $
+        (Right target == unflat input)
+
+  in testGroup "Non-canonically encoded bytestrings decode properly"
+     [ testProperty "Lazy bytestrings" $
+       withMaxSuccess 10000 $
+       forAll (arbitrary @BSL.ByteString) (\bs -> Right (BSL.toStrict bs) === unflat (flat bs) )
+     , testCase "Explicit input 1" $ mkTest input1
+     , testCase "Explicit input 2" $ mkTest input2
+     , testCase "Explicit input 3" $ mkTest input3
+     , testCase "Explicit input 4" $ mkTest input4
+     , testCase "Explicit input 5" $ mkTest input5
+     ]
+
 test_flat :: TestTree
 test_flat = testGroup "FlatProp"
     [ test_deBruijnIso
@@ -95,6 +180,7 @@ test_flat = testGroup "FlatProp"
     , test_binderFake
     , test_canonicalData
     , test_canonicalByteString
+    , test_nonCanonicalByteStringDecoding
     ]
 
 -- Helpers
