@@ -53,13 +53,13 @@ bytestrings]. -}
 isCanonicalFlatEncodedByteString :: BS.ByteString -> Bool
 isCanonicalFlatEncodedByteString bs =
   case BS.unpack bs of
-    []  -> False   -- Should never happen.
-    1:a -> go a    -- 1 is the tag for an encoded bytestring.
-    _   -> False   -- Not the encoding of a bytestring.
+    []     -> False   -- Should never happen.
+    0x01:r -> go r    -- 0x01 is the tag for an encoded bytestring.
+    _      -> False   -- Not the encoding of a bytestring.
   where
     go [] = False  -- We've fallen off the end, possibly due to having dropped too many bytes.
-    go l@(w:ws) =  -- w = purported size of chunk.
-      if w == 255
+    go l@(w:ws) =  -- w is the purported size of chunk.
+      if w == 0xFF
       then go (drop 255 ws)   -- Throw away any initial 255-byte chunks.
       else l == end || drop (fromIntegral w) ws == end
       -- Either we've arrived exactly at the end or we have a single short chunk before the end.
