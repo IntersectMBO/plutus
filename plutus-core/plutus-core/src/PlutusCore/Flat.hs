@@ -22,7 +22,7 @@ import PlutusCore.DeBruijn
 import PlutusCore.Name.Unique
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
-import Data.ByteString qualified as BS (toStrict)
+import Data.ByteString.Lazy qualified as BSL (toStrict)
 import Data.Proxy
 import Flat
 import Flat.Decoder
@@ -132,7 +132,7 @@ newtype AsSerialize a = AsSerialize
 
 instance Serialise a => Flat (AsSerialize a) where
     -- See Note [Flat serialisation for strict and lazy bytestrings]
-    encode = encode . BS.toStrict . serialise
+    encode = encode . BSL.toStrict . serialise
     decode = do
         errOrX <- deserialiseOrFail <$> decode
         case errOrX of
