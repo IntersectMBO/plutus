@@ -2,7 +2,6 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.ErrorCodes where
 
-import Control.Lens (isn't)
 import Data.Map (Map)
 import Data.Map qualified as Map
 import PlutusTx.Builtins as Builtins
