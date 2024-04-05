@@ -187,7 +187,7 @@ test_nonCanonicalByteStringDecoding =
         assertBool "Input failed to decode successfully" $
         (Right target == unflat input)
 
-  in testGroup "Non-canonically encoded bytestrings decode properly"
+  in testGroup "Non-canonical bytestring encodings decode succesfully"
      [ testProperty "Data via lazy bytestrings" $
        withMaxSuccess 10000 $
        forAll (arbitrary @Data) (\d -> Right d === unflat (flat $ (serialise d :: BSL.ByteString)))
