@@ -126,13 +126,47 @@ test_nonCanonicalByteStringDecoding =
                        , 0x01 ]
 
       input2 = BS.pack [ 0x01
+                       , 0x03, ch 'T', ch 'h', ch 'i'
+                       , 0x03, ch 's', ch ' ', ch 'i'
+                       , 0x03, ch 's', ch ' ', ch 'a'
+                       , 0x03, ch ' ', ch 't', ch 'e'
+                       , 0x03, ch 's', ch 't', ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input3 = BS.pack [ 0x01
+                       , 0x01, ch 'T'
+                       , 0x02, ch 'h', ch 'i'
+                       , 0x03, ch 's', ch ' ', ch 'i'
+                       , 0x04, ch 's', ch ' ', ch 'a', ch ' '
+                       , 0x05, ch 't', ch 'e', ch 's', ch 't', ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input4 = BS.pack [ 0x01
+                       , 0x05, ch 'T', ch 'h', ch 'i', ch 's', ch ' '
+                       , 0x05, ch 'i', ch 's', ch ' ', ch 'a', ch ' '
+                       , 0x05, ch 't', ch 'e', ch 's', ch 't', ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input5 = BS.pack [ 0x01
+                       , 0x05, ch 'T', ch 'h', ch 'i', ch 's', ch ' '
+                       , 0x04, ch 'i', ch 's', ch ' ', ch 'a'
+                       , 0x03, ch ' ', ch 't', ch 'e'
+                       , 0x02, ch 's', ch 't'
+                       , 0x01, ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input6 = BS.pack [ 0x01
                        , 0x01, ch 'T'
                        , 0x0e, ch 'h', ch 'i', ch 's', ch ' ', ch 'i', ch 's', ch ' '
                        , ch 'a', ch ' ', ch 't', ch 'e', ch 's', ch 't', ch '.'
                        , 0x00
                        , 0x01 ]
 
-      input3 = BS.pack [ 0x01
+      input7 = BS.pack [ 0x01
                        , 0x01, ch 'T'
                        , 0x0d, ch 'h', ch 'i', ch 's', ch ' ', ch 'i', ch 's', ch ' '
                        , ch 'a', ch ' ', ch 't', ch 'e', ch 's', ch 't'
@@ -140,21 +174,12 @@ test_nonCanonicalByteStringDecoding =
                        , 0x00
                        , 0x01 ]
 
-      input4 = BS.pack [ 0x01
+      input8 = BS.pack [ 0x01
                        , 0x03, ch 'T', ch 'h', ch 'i'
                        , 0x01, ch 's'
                        , 0x05, ch ' ', ch 'i', ch 's', ch ' ', ch 'a'
                        , 0x02, ch ' ', ch 't'
                        , 0x04, ch 'e', ch 's', ch 't', ch '.'
-                       , 0x00
-                       , 0x01 ]
-
-      input5 = BS.pack [ 0x01
-                       , 0x01, ch 'T'
-                       , 0x02, ch 'h', ch 'i'
-                       , 0x03, ch 's', ch ' ', ch 'i'
-                       , 0x04, ch 's', ch ' ', ch 'a', ch ' '
-                       , 0x05, ch 't', ch 'e', ch 's', ch 't', ch '.'
                        , 0x00
                        , 0x01 ]
 
@@ -174,6 +199,9 @@ test_nonCanonicalByteStringDecoding =
      , testCase "Explicit input 3" $ mkTest input3
      , testCase "Explicit input 4" $ mkTest input4
      , testCase "Explicit input 5" $ mkTest input5
+     , testCase "Explicit input 6" $ mkTest input6
+     , testCase "Explicit input 7" $ mkTest input7
+     , testCase "Explicit input 8" $ mkTest input8
      ]
 
 test_flat :: TestTree
