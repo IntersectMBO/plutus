@@ -63,6 +63,6 @@ uconv i UError         = Error ()
 uconv i (UBuiltin b)   = Builtin () b
 uconv i (UDelay t)     = Delay () (uconv i t)
 uconv i (UForce t)     = Force () (uconv i t)
-uconv i (UConstr j xs) = Constr () (fromInteger j) (fromList (fmap (uconv i) xs))
+uconv i (UConstr j xs) = Constr () (fromInteger j) (fmap (uconv i) xs)
 uconv i (UCase t xs)   = Case () (uconv i t) (fromList (fmap (uconv i) xs))
 

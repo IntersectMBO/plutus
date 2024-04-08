@@ -16,7 +16,7 @@ eraseTerm (TyInst ann term _)      = UPLC.Force ann (eraseTerm term)
 eraseTerm (Unwrap _ term)          = eraseTerm term
 eraseTerm (IWrap _ _ _ term)       = eraseTerm term
 eraseTerm (Error ann _)            = UPLC.Error ann
-eraseTerm (Constr ann _ i args)    = UPLC.Constr ann i (fromList $ fmap eraseTerm args)
+eraseTerm (Constr ann _ i args)    = UPLC.Constr ann i (fmap eraseTerm args)
 eraseTerm (Case ann _ arg cs)      = UPLC.Case ann (eraseTerm arg) (fromList $ fmap eraseTerm cs)
 
 eraseProgram :: Program tyname name uni fun ann -> UPLC.Program name uni fun ann

@@ -40,8 +40,8 @@ caseOfCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 caseOfCase1 = runQuote $ do
   b <- freshName "b"
   let ite = Force () (Builtin () PLC.IfThenElse)
-      true = Constr () 0 mempty
-      false = Constr () 1 mempty
+      true = Constr () 0 []
+      false = Constr () 1 []
       alts = V.fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
@@ -55,7 +55,7 @@ caseOfCase2 = runQuote $ do
   t <- freshName "t"
   let ite = Force () (Builtin () PLC.IfThenElse)
       true = Var () t
-      false = Constr () 1 mempty
+      false = Constr () 1 []
       alts = V.fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
@@ -69,8 +69,8 @@ caseOfCase3 = runQuote $ do
   xs <- freshName "xs"
   f <- freshName "f"
   let ite = Force () (Builtin () PLC.IfThenElse)
-      true = Constr () 0 (V.fromList [Var () x, Var () xs])
-      false = Constr () 1 mempty
+      true = Constr () 0 [Var () x, Var () xs]
+      false = Constr () 1 []
       altTrue = Var () f
       altFalse = mkConstant @Integer () 2
       alts = V.fromList [altTrue, altFalse]

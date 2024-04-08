@@ -75,7 +75,7 @@ errorTerm = withSpan $ \sp ->
 constrTerm :: Parser PTerm
 constrTerm = withSpan $ \sp ->
     inParens $ do
-      res <- UPLC.Constr sp <$> (symbol "constr" *> lexeme Lex.decimal) <*> (V.fromList <$> many term)
+      res <- UPLC.Constr sp <$> (symbol "constr" *> lexeme Lex.decimal) <*> many term
       whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
       pure res
 

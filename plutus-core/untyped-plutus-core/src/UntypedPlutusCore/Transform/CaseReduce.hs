@@ -16,5 +16,5 @@ caseReduce = transformOf termSubterms processTerm
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case
     Case ann (Constr _ i args) cs | Just c <- (V.!?) cs (fromIntegral i) ->
-                                    mkIterApp c ((ann,) <$> (V.toList args))
+                                    mkIterApp c ((ann,) <$> args)
     t                                                     -> t
