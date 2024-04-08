@@ -767,7 +767,13 @@ enterComputeCek = computeCek
           []             -> returnCek ctx $ VConstr i done'
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
-        -- TODO: handle word/int conversion better
+        -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
+        -- As it happens, this will currently never trigger, since i is a Word64, and the largest
+        -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
+        -- "apparently good" value.
+        (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
+                        throwingDischarged _MachineError (MissingCaseBranch i) e
+        -- Otherwise, we can safely convert the index to an Int and use it
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
