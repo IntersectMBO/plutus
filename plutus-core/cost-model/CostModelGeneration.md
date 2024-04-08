@@ -139,9 +139,9 @@ codebase.
         let xorByteStringDenotation :: Data.ByteString.ByteString -> Data.ByteString.ByteString -> Data.ByteString.ByteString
             xorByteStringDenotation a b =
                       Data.ByteString.pack $ zipWith (Data.Bits.xor) (Data.ByteString.unpack a) (Data.ByteString.unpack b)
-        makeBuiltinMeaning
-            xorByteStringDenotation
-            (runCostingFunTwoArguments . def)
+        in makeBuiltinMeaning
+               xorByteStringDenotation
+               (runCostingFunTwoArguments . unimplementedCostingFun)
     ```
 
     This assumes that the appropriate modules have been imported.  The
@@ -153,11 +153,9 @@ codebase.
 
     The final argument of `makeBuiltinMeaning` contains the costing functions
     for the relevant builtin.  Initially this should be set to
-    `runCostingFun<N>Arguments . def` (where `<N>` is the number of arguments
-    taken by the builtin: `One`, `Two`, etc); we'll come back and fix it later.
-    The default costing function `def` assigns a very large cost to the builtin
-    to prevent it from being accidentally used in situations where precise costs
-    are important before a proper cost model has been defined.
+    `unimplementedCostingFun`; we'll come back and fix it later.  This assigns a
+    very large cost to prevent the uncosted version from being accidentally used
+    in situations where precise costs are important.
 
     Note that there are certain restrictions on built-in functions: for example,
     the function should be deterministic, it **must not throw any exceptions**,
@@ -186,7 +184,7 @@ to check that the semantics of the new builtin are correct.
 
 After the above steps have been carried out the new builtin will be available in
 Plutus Core, but will not incur any charges when it is called.  To fix this we
-have to add a costing function of a suitable shape and replace the `def` in
+have to add a costing function of a suitable shape and replace the `unimplementedCostingFun` in
 the definition of the function.
 
 #### Step 1: add the basic type of the costing function to the cost model type
@@ -282,7 +280,7 @@ the Cost Model" note.
 
 Now go back to
 [`Builtins.hs`](../plutus-core/src/PlutusCore/Default/Builtins.hs) and replace
-`def` in the definition of the builtin with the appropriate
+`unimplementedCostingFun` in the definition of the builtin with the appropriate
 `param<builtin-name>` function:
 
     ```
@@ -290,9 +288,9 @@ Now go back to
         let xorByteStringDenotation :: Data.ByteString.ByteString -> Data.ByteString.ByteString -> Data.ByteString.ByteString
             xorByteStringDenotation a b =
                       Data.ByteString.pack $ zipWith (Data.Bits.xor) (Data.ByteString.unpack a) (Data.ByteString.unpack b)
-        makeBuiltinMeaning
-            xorByteStringDenotation
-            (runCostingFunTwoArguments . paramXorByteString)
+        in makeBuiltinMeaning
+               xorByteStringDenotation
+               (runCostingFunTwoArguments . paramXorByteString)
     ```
 
 #### Step 5: add a benchmark for the new builtin and run it

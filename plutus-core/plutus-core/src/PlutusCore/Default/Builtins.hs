@@ -1818,15 +1818,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
-    {- *** IMPORTANT! *** When you're adding a new builtin above you typically won't be
-       able to add a sensible costing function until the implementation is complete
-       and you can benchmark it. It's still necessary to supply `toBuiltinMeaning`
-       with a temporary costing function though: this **MUST** be of the form
-       `(runCostingFunction<N>Arguments . def)`.  This will assign a maximal cost to
-       any invocation of the function, preventing it from being used in places where
+    {- *** IMPORTANT! *** When you're adding a new builtin above you typically won't
+       be able to add a sensible costing function until the implementation is
+       complete and you can benchmark it.  It's still necessary to supply
+       `toBuiltinMeaning` with some costing function though: this **MUST** be
+       `unimplementedCostingFun`: this will assign a very large cost to any
+       invocation of the function, preventing it from being used in places where
        costs are important (for example on testnets) until the implementation is
-       complete and a proper costing function has been defined: at that point replace
-       `def` with the appropriate `param<BuiltinName>` from BuiltinCostModelBase.
+       complete and a proper costing function has been defined.  Once the
+       builtin is ready for general use replace `unimplementedCostingFun` with
+       the appropriate `param<BuiltinName>` from BuiltinCostModelBase.
 
        Please leave this comment immediately after the definition of the final
        builtin to maximise the chances of it being seen the next time someone
