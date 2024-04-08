@@ -24,20 +24,19 @@ source-repository head
   type:     git
   location: https://github.com/iohk/plutus
 
--- In a number of places where we use plutus-tx-plugin you get a warning that
--- it's unused despite the fact that it _is_ used, and this causes failures in
--- CI.  Use this to stop that happening and make it clear why we're turning the
--- warnings off.  It's a bit of a blunt instrument because it turns off genuine
--- warnings, but it doesn't seem to be possible to solve the problem in a more
--- fine-grained way.
-common turn-off-plugin-warning
-  ghc-options: -Wno-unused-packages
+-- Any files that use a `$$(...)` splice from the plugin should mention
+-- `PlutusTx.Plugin()` somewhere, even if it's just `import PlutusTx.Plugin()`.
+-- If none of your files mention the plugin explicitly then the code will still
+-- compile (assuming that there's a dependence on `plutus-tx-plugin`) but you'll
+-- get a warning that `plutus-tx-plugin` was not needed for compilation, and
+-- that will cause a CI failure.
+
 
 -- This should be used for anything that depends on plutus-tx-plugin, even
 -- transitively.  If you miss it out somewhere then nix will probably produce an
 -- error message saying "the component is not buildable in the current
--- environment" if eg the nix shell supplies an unsupported GCH version.
--- See the section on GHC versions in CONTRIBUTING.
+-- environment" if e.g. the nix shell supplies an unsupported GCH version.  See
+-- the section on GHC versions in `CONTRIBUTING.md`.
 common ghc-version-support
   if (impl(ghc <9.6) || impl(ghc >=9.7))
     buildable: False
@@ -102,7 +101,7 @@ library plutus-benchmark-common
 ---------------- nofib ----------------
 
 library nofib-internal
-  import:          lang, turn-off-plugin-warning, ghc-version-support
+  import:          lang, ghc-version-support
   hs-source-dirs:  nofib/src
   exposed-modules:
     PlutusBenchmark.NoFib.Clausify
@@ -185,7 +184,7 @@ test-suite plutus-benchmark-nofib-tests
 ---------------- lists ----------------
 
 library lists-internal
-  import:          lang, turn-off-plugin-warning, ghc-version-support
+  import:          lang, ghc-version-support
   hs-source-dirs:  lists/src
   exposed-modules:
     PlutusBenchmark.Lists.Lookup.Compiled
@@ -316,7 +315,7 @@ benchmark validation-full
 ---------------- Cek cost model calibration ----------------
 
 benchmark cek-calibration
-  import:           lang, turn-off-plugin-warning, ghc-version-support
+  import:           lang, ghc-version-support
   type:             exitcode-stdio-1.0
   default-language: Haskell2010
   main-is:          Main.hs
@@ -324,7 +323,6 @@ benchmark cek-calibration
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
-    , deepseq
     , lens
     , mtl
     , plutus-benchmark-common
@@ -336,7 +334,7 @@ benchmark cek-calibration
 ---------------- Signature verification throughput ----------------
 
 executable ed25519-costs
-  import:           lang, turn-off-plugin-warning, ghc-version-support
+  import:           lang, ghc-version-support
   default-language: Haskell2010
   hs-source-dirs:   ed25519-costs/exe ed25519-costs/src
   main-is:          Main.hs
@@ -354,7 +352,7 @@ executable ed25519-costs
 -- Calculate the predicted costs of sequences of ed25519 signature verification
 -- operations and compare them with a golden file.
 test-suite ed25519-costs-test
-  import:         lang, turn-off-plugin-warning, ghc-version-support
+  import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: ed25519-costs/test ed25519-costs/src
@@ -375,7 +373,7 @@ test-suite ed25519-costs-test
 library bls12-381lib-internal
   -- bls12-381-internal isn't allowed: you must have at least one letter in each
   -- component.
-  import:          lang, turn-off-plugin-warning, ghc-version-support
+  import:          lang, ghc-version-support
   hs-source-dirs:  bls12-381-costs/src
   exposed-modules:
     PlutusBenchmark.BLS12_381.RunTests
@@ -432,7 +430,7 @@ benchmark bls12-381-benchmarks
 ---------------- script contexts ----------------
 
 library script-contexts-internal
-  import:          lang, turn-off-plugin-warning, ghc-version-support
+  import:          lang, ghc-version-support
   hs-source-dirs:  script-contexts/src
   exposed-modules: PlutusBenchmark.ScriptContexts
   build-depends:
@@ -571,7 +569,7 @@ benchmark validation-agda-cek
     , plutus-core              ^>=1.25
 
 benchmark nofib-agda-cek
-  import:         lang, turn-off-plugin-warning, ghc-version-support
+  import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        BenchAgdaCek.hs
   hs-source-dirs: nofib/bench
@@ -582,10 +580,9 @@ benchmark nofib-agda-cek
     , criterion                >=1.5.9.0
     , nofib-internal
     , plutus-benchmark-common
-    , plutus-tx-plugin         ^>=1.25
 
 benchmark marlowe-agda-cek
-  import:         lang, turn-off-plugin-warning, ghc-version-support
+  import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        BenchAgdaCek.hs
   other-modules:  Shared
@@ -598,4 +595,3 @@ benchmark marlowe-agda-cek
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.25
     , plutus-tx                ^>=1.25
-    , plutus-tx-plugin         ^>=1.25

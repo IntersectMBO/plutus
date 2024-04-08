@@ -27,6 +27,7 @@ import Data.Char (isSpace)
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx as PlutusTx
 import PlutusTx.Builtins as Tx
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude as PLC hiding (Semigroup (..), check, foldMap)
 import Prelude qualified as Haskell
 
