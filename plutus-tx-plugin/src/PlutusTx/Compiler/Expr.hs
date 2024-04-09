@@ -33,6 +33,7 @@ import GHC.Types.TyThing qualified as GHC
 import GHC.Tc.Utils.TcType qualified as GHC
 #endif
 
+import PlutusTx.Bool qualified
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
@@ -684,6 +685,8 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
     _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
+  boolOperatorOr <- GHC.getName <$> getThing '(PlutusTx.Bool.||)
+  boolOperatorAnd <- GHC.getName <$> getThing '(PlutusTx.Bool.&&)
   case e of
     {- Note [Lazy boolean operators]
       (||) and (&&) have a special treatment: we want them lazy in the second argument,
@@ -691,10 +694,10 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       Covered by this spec: plutus-tx-plugin/test/ShortCircuit/Spec.hs
     -}
     -- Lazy ||
-    GHC.App (GHC.App (GHC.Var fid) a) b | GHC.getOccString fid == "||" -> do
+    GHC.App (GHC.App (GHC.Var var) a) b | GHC.getName var == boolOperatorOr ->
       compileExpr $ GHC.mkIfThenElse a (GHC.Var GHC.trueDataConId) b
     -- Lazy &&
-    GHC.App (GHC.App (GHC.Var fid) a) b | GHC.getOccString fid == "&&" -> do
+    GHC.App (GHC.App (GHC.Var var) a) b | GHC.getName var == boolOperatorAnd ->
       compileExpr $ GHC.mkIfThenElse a b (GHC.Var GHC.falseDataConId)
 
     -- See Note [String literals]
