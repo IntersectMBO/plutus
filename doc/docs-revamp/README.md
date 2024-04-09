@@ -21,6 +21,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 > **Notes**
 >   - Review comments incorporated as of March 26. 
 >   - Ziyang's comments in [Draft PR](https://github.com/IntersectMBO/plutus/pull/5866/commits) speak to intended audience, scope, and reconsidering our example contract selection. 
+>   - Take into account the [Plutus-tx-template repo](https://github.com/IntersectMBO/plutus-tx-template) and how to use it. 
 
 - Objective
 - Setting up and testing your development environment
@@ -34,8 +35,27 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 ## 4. [Simple example](004_simple-example.md)
 > **Status**
 > 
-> - Draft outline in progress.
-> - Not ready for review. 
+> - Ported over content. 
+> - Intending to prune down and edit. 
+> - Some content will probably be moved to other sections. 
+
+- Section 4. Simple example
+   - Overview
+- The EUTXO model, datum, redeemer and script context
+- Auction properties
+- Plutus Tx code
+   - Data types
+   - Main validator function
+- Life cycle of the auction smart contract
+   - Initial UTXO
+   - The first bid
+   - The second bid
+   - Closing the auction
+- Libraries for writing Plutus Tx scripts
+- Alternatives to Plutus Tx
+- Off-chain code
+- Further reading
+   - The EUTXO model
 
 ## 5. [Using Plutus Tx](005_using-plutus-tx.md)
 > **Status**
@@ -77,6 +97,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
    - Other policy examples
 - Creating and submitting transactions using an off-chain framework
 - Libraries for writing Plutus Tx scripts
+- **Using AsData to optimize scripts** (advanced topic)
 - Exporting scripts, datums and redeemers
 - Profiling the budget usage of Plutus scripts
    - Compiling a script for profiling
@@ -126,8 +147,19 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 ## 9. [Troubleshooting](009_troubleshooting.md)
 > **Status**
 > 
-> - Draft outline in progress.
+> - Ported over content. 
 > - Not ready for review. 
 
+- Plugin errors
+   - Haddock
+   - Non-`INLINABLE` functions
+- Haskell Language Server issues
+   - Wrong version
+- Error codes
+   - Ledger errors
+   - Prelude errors
+   - State machine errors
+   - Currency errors
+
 ## 10. [FAQ](010_faq.md)
-   - Draft list of questions in place. Changes to the questions are pending. 
+- Draft list of questions in place. Changes to the questions are pending. 
