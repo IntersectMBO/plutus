@@ -118,6 +118,7 @@ import PlutusLedgerApi.V1.DataValue qualified as Val
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.DataList (List, pattern Cons, pattern Nil)
 import PlutusTx.DataList qualified as List
+import PlutusTx.DataMap (pattern MCons, pattern MNil)
 import PlutusTx.DataMap qualified as Map
 import PlutusTx.DataPair (Pair, pattern Pair)
 import Prelude qualified as Haskell
@@ -331,18 +332,18 @@ evalObservation env state obs = let
 -- TODO: should avoid (non-data) list conversions in this func
 -- | Pick the first account with money in it.
 refundOne :: Accounts -> Maybe ((Party, Token, Integer), Accounts)
-refundOne accounts = case Map.toList accounts of
-    Nil -> Nothing
+refundOne accounts = case accounts of
+    MNil -> Nothing
     -- SCP-5126: The return value of this function differs from
     -- Isabelle semantics in that it returns the least-recently
     -- added account-token combination rather than the first
     -- lexicographically ordered one. Also, the sequence
     -- `Map.unsafeFromList . tail . Map.toList` preserves the
     -- invariants of order and non-duplication.
-    (Cons (Pair (Pair accId token) balance) rest) ->
+    (MCons (Pair (Pair accId token) balance) rest) ->
         if balance > 0
-        then Just ((accId, token, balance), Map.unsafeFromList rest)
-        else refundOne (Map.unsafeFromList rest)
+        then Just ((accId, token, balance), rest)
+        else refundOne rest
 
 
 -- | Obtains the amount of money available an account.
@@ -690,14 +691,14 @@ contractLifespanUpperBound contract = case contract of
 
 -- | Total the balance in all accounts.
 totalBalance :: Accounts -> Money
-totalBalance accounts = List.foldMap
+totalBalance accounts = Map.foldMapPair
     (\(Pair (Pair _ (Token cur tok)) balance) -> Val.singleton cur tok balance)
-    (Map.toList accounts)
+    accounts
 
 
 -- | Check that all accounts have positive balance.
 allBalancesArePositive :: State -> Bool
-allBalancesArePositive State{..} = List.all (\(Pair _ balance) -> balance > 0) (Map.toList accounts)
+allBalancesArePositive State{..} = Map.all (\balance -> balance > 0) accounts
 
 
 instance Eq Payment where

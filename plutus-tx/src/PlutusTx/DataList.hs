@@ -48,7 +48,7 @@ pattern Cons x xs <-
   (List_
     (BI.unsafeDataAsList ->
       B.unsafeUncons ->
-        (P.unsafeFromBuiltinData -> x, BI.head -> P.unsafeFromBuiltinData -> xs)
+        (P.unsafeFromBuiltinData -> x, BI.mkList -> List_ -> xs)
     )
   )
   where

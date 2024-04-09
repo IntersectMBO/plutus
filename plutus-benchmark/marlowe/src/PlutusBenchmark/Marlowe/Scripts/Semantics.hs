@@ -72,7 +72,7 @@ import PlutusTx.Prelude as PlutusTxPrelude (AdditiveGroup ((-)), AdditiveMonoid 
                                             BuiltinData, BuiltinString, Enum (fromEnum), Eq (..),
                                             Functor (fmap), Integer, Maybe (..), Ord ((>)),
                                             Semigroup ((<>)), all, any, check, elem, filter, find,
-                                            foldMap, null, otherwise, snd, toBuiltin, ($), (&&),
+                                            foldMap, id, null, otherwise, snd, toBuiltin, ($), (&&),
                                             (.), (/=), (||))
 
 import Cardano.Crypto.Hash qualified as Hash
@@ -200,7 +200,7 @@ mkMarloweValidator
 
                 -- Each party must receive as least as much value as the semantics specify.
                 -- [Marlowe-Cardano Specification: "Constraint 15. Sufficient payment."]
-                payoutsByParty = DataMap.toList $ DataList.foldMap payoutByParty (DataList.fromSOP txOutPayments)
+                payoutsByParty = DataList.foldMap payoutByParty (DataList.fromSOP txOutPayments)
                 payoutsOk = payoutConstraints payoutsByParty
 
                 checkContinuation = case txOutContract of
@@ -208,7 +208,7 @@ mkMarloweValidator
                     Close -> traceIfFalse "c" hasNoOutputToOwnScript
                     _ -> let
                         totalIncome = foldMap collectDeposits inputContents
-                        totalPayouts = DataList.foldMap DataPair.snd payoutsByParty
+                        totalPayouts = DataMap.foldMap id payoutsByParty
                         finalBalance = scriptInValue + totalIncome - totalPayouts
                         in
                              -- [Marlowe-Cardano Specification: "Constraint 3. Single Marlowe output".]
@@ -223,7 +223,7 @@ mkMarloweValidator
             preconditionsOk && inputsOk && payoutsOk && checkContinuation
               -- [Marlowe-Cardano Specification: "20. Single satsifaction".]
               -- Either there must be no payouts, or there must be no other validators.
-              && traceIfFalse "z" (DataList.null payoutsByParty || noOthers)
+              && traceIfFalse "z" (DataMap.null payoutsByParty || noOthers)
         Error TEAmbiguousTimeIntervalError -> traceError "i"
         Error TEApplyNoMatchError -> traceError "n"
         Error (TEIntervalError (InvalidInterval _)) -> traceError "j"
@@ -286,8 +286,8 @@ mkMarloweValidator
     checkState :: BuiltinString -> Data.Value -> State -> Bool
     checkState tag expected State{..} =
       let
-        positiveBalance :: DataElem a => (Data.Pair a Integer) -> Bool
-        positiveBalance (Data.Pair _ balance) = balance > 0
+        positiveBalance :: Integer -> Bool
+        positiveBalance balance = balance > 0
         noDuplicates :: (DataElem k, DataElem v, Eq k) => Data.Map k v -> Bool
         noDuplicates am =
           let
@@ -303,7 +303,7 @@ mkMarloweValidator
            -- [Marlowe-Cardano Specification: "Constraint 18. Final balance."]
            traceIfFalse ("v"  <> tag) (totalBalance accounts == expected)
            -- [Marlowe-Cardano Specification: "Constraint 13. Positive balances".]
-        && traceIfFalse ("b"  <> tag) (DataList.all positiveBalance (DataMap.toList accounts))
+        && traceIfFalse ("b"  <> tag) (DataMap.all positiveBalance accounts)
            -- [Marlowe-Cardano Specification: "Constraint 19. No duplicates".]
         && traceIfFalse ("ea" <> tag) (noDuplicates accounts)
         && traceIfFalse ("ec" <> tag) (noDuplicates choices)
@@ -384,8 +384,8 @@ mkMarloweValidator
     payoutByParty (Payment _ (Account _) _ _ )       = DataMap.empty
 
     -- Check outgoing payments.
-    payoutConstraints :: Data.List (Data.Pair Party Data.Value)-> Bool
-    payoutConstraints = DataList.all payoutToTxOut
+    payoutConstraints :: Data.Map Party Data.Value-> Bool
+    payoutConstraints = DataMap.allPair payoutToTxOut
       where
         payoutToTxOut :: Data.Pair Party Data.Value -> Bool
         payoutToTxOut (Data.Pair party value) = case party of

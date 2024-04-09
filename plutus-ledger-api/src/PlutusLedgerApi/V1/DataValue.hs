@@ -75,7 +75,7 @@ import PlutusTx qualified
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.DataList (List, pattern Cons, pattern Nil)
 import PlutusTx.DataList qualified as List
-import PlutusTx.DataMap (Map)
+import PlutusTx.DataMap (Map, pattern MCons, pattern MNil)
 import PlutusTx.DataMap qualified as Map
 import PlutusTx.DataPair (DataElem, Pair, fst, pattern Pair, snd)
 import PlutusTx.DataThese (These, pattern That, pattern These, pattern This)
@@ -290,7 +290,7 @@ currencySymbolValueOf (Value mp) cur = case Map.lookup cur mp of
     Just tokens ->
         -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
         -- the latter materializes the intermediate result of `Map.elems tokens`.
-        List.foldr (\(Pair _ amt) acc -> amt + acc) 0 (Map.toList tokens)
+        Map.foldr (\amt acc -> amt + acc) 0 tokens
 
 {-# INLINABLE symbols #-}
 -- | The list of 'CurrencySymbol's of a 'Value'.
@@ -352,15 +352,15 @@ unionWith f ls rs =
 -- Note that the result isn't sorted, meaning @v1 == v2@ doesn't generally imply
 -- @flattenValue v1 == flattenValue v2@.
 -- Also assumes that there are no duplicate keys in the 'Value' 'Map'.
-flattenValue :: Value -> (List (Pair (Pair CurrencySymbol TokenName) Integer))
-flattenValue v = goOuter Nil (Map.toList $ getValue v)
+flattenValue :: Value -> Map (Pair CurrencySymbol TokenName) Integer
+flattenValue v = goOuter MNil $ getValue v
   where
-    goOuter acc Nil                   = acc
-    goOuter acc (Cons (Pair cs m) tl) = goOuter (goInner cs acc (Map.toList m)) tl
+    goOuter acc MNil                   = acc
+    goOuter acc (MCons (Pair cs m) tl) = goOuter (goInner cs acc m) tl
 
-    goInner _ acc Nil = acc
-    goInner cs acc (Cons (Pair tn a) tl)
-        | a /= 0    = goInner cs (Cons (Pair (Pair cs tn) a) acc) tl
+    goInner _ acc MNil = acc
+    goInner cs acc (MCons (Pair tn a) tl)
+        | a /= 0    = goInner cs (MCons (Pair (Pair cs tn) a) acc) tl
         | otherwise = goInner cs acc tl
 
 -- Num operations
@@ -470,17 +470,17 @@ https://github.com/IntersectMBO/plutus/issues/5135
 unordEqWith
     :: forall k v
     . (DataElem k, DataElem v, Eq k)
-    => (v -> Bool) -> (v -> v -> Bool) -> (List (Pair k v)) -> (List (Pair k v)) -> Bool
+    => (v -> Bool) -> (v -> v -> Bool) -> Map k v -> Map k v -> Bool
 unordEqWith is0 eqV = goBoth where
     -- Recurse on the spines of both the lists simultaneously.
-    goBoth :: (List (Pair k v)) -> (List (Pair k v)) -> Bool
+    goBoth :: Map k v -> Map k v -> Bool
     -- One spine is longer than the other one, but this still can result in a succeeding equality
     -- check if the non-empty list only contains zero values.
-    goBoth Nil                 kvsR                             = List.all (is0 . snd) kvsR
+    goBoth MNil                 kvsR                             = Map.allPair (is0 . snd) kvsR
     -- Symmetric to the previous case.
-    goBoth kvsL               Nil = List.all (is0 . snd) kvsL
+    goBoth kvsL               MNil = Map.allPair (is0 . snd) kvsL
     -- Both spines are non-empty.
-    goBoth (Cons (Pair kL vL) kvsL') kvsR0@(Cons kvR0@(Pair kR0 vR0) kvsR0')
+    goBoth (MCons (Pair kL vL) kvsL') kvsR0@(MCons kvR0@(Pair kR0 vR0) kvsR0')
         -- We could've avoided having this clause if we always searched for the right key-value pair
         -- using @goRight@, however the sheer act of invoking that function, passing an empty list
         -- to it as an accumulator and calling 'revAppend' afterwards affects performance quite a
@@ -492,22 +492,22 @@ unordEqWith is0 eqV = goBoth where
         | is0 vL     = goBoth kvsL' kvsR0
         | otherwise  =
             let kvR0List
-                    | not $ is0 vR0 = Cons kvR0 Nil
-                    | otherwise = Nil
+                    | not $ is0 vR0 = MCons kvR0 MNil
+                    | otherwise = MNil
              in goRight kvR0List kvsR0'
         where
             -- Recurse on the spine of the right list looking for a key-value pair whose key matches
             -- @kL@, i.e. the first key in the remaining part of the left list. The accumulator
             -- contains (in reverse order) all elements of the right list processed so far whose
             -- keys are not equal to @kL@ and values are non-zero.
-            goRight :: List (Pair k v) -> List (Pair k v) -> Bool
-            goRight _   Nil = False
-            goRight acc (Cons kvR@(Pair kR vR) kvsR')
+            goRight :: Map k v -> Map k v -> Bool
+            goRight _   MNil = False
+            goRight acc (MCons kvR@(Pair kR vR) kvsR')
                 | is0 vR    = goRight acc kvsR'
                 -- @revAppend@ recreates @kvsR0'@ with @(kR, vR)@ removed, since that pair
                 -- equals @(kL, vL)@ from the left list, hence we throw both of them away.
-                | kL == kR  = if vL `eqV` vR then goBoth kvsL' (List.revAppend acc kvsR') else False
-                | otherwise = goRight (Cons kvR acc) kvsR'
+                | kL == kR  = if vL `eqV` vR then goBoth kvsL' (Map.revAppend acc kvsR') else False
+                | otherwise = goRight (MCons kvR acc) kvsR'
 
 {-# INLINABLE eqMapWith #-}
 -- | Check equality of two 'Map's given a function checking whether a value is zero and a function
@@ -516,7 +516,7 @@ eqMapWith
     :: forall k v
     . (DataElem k, DataElem v, Eq k)
     => (v -> Bool) -> (v -> v -> Bool) -> Map.Map k v -> Map.Map k v -> Bool
-eqMapWith is0 eqV (Map.toList -> xs1) (Map.toList -> xs2) = unordEqWith is0 eqV xs1 xs2
+eqMapWith = unordEqWith
 
 {-# INLINABLE eq #-}
 -- | Check equality of two 'Value's. Does not assume orderness of lists within a 'Value' or a lack

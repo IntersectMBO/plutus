@@ -10,7 +10,31 @@
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE ViewPatterns       #-}
 
-module PlutusTx.DataMap where
+module PlutusTx.DataMap (
+  Map,
+  singleton,
+  empty,
+  keys,
+  lookup,
+  member,
+  insert,
+  delete,
+  union,
+  unionWith,
+  filter,
+  mapMaybe,
+  all,
+  mapThese,
+  map,
+  foldr,
+  revAppend,
+  allPair,
+  null,
+  foldMapPair,
+  foldMap,
+  pattern MNil,
+  pattern MCons,
+) where
 
 import Control.DeepSeq (NFData)
 import Data.Data (Data)
@@ -25,7 +49,8 @@ import PlutusTx.DataPair (DataElem, Pair, fst, pattern Pair, snd)
 import PlutusTx.DataPair qualified as Pair
 import PlutusTx.DataThese (These, pattern That, pattern These, pattern This)
 import PlutusTx.IsData qualified as P
-import PlutusTx.Prelude hiding (all, any, concat, filter, foldr, fst, map, snd, toList)
+import PlutusTx.Prelude hiding (all, any, concat, filter, foldMap, foldr, fst, map, null, revAppend,
+                         snd, toList)
 import Prelude qualified as H
 
 newtype Map k v = Map_ BuiltinData
@@ -194,6 +219,15 @@ all f =
         then all f xs
         else False
 
+allPair :: (DataElem k, DataElem v) => (Pair k v -> Bool) -> Map k v -> Bool
+allPair f =
+  \case
+    MNil -> True
+    (MCons x xs) ->
+      if f x
+        then allPair f xs
+        else False
+
 mapThese
     :: (DataElem k, DataElem v1, DataElem v2)
     => (v1 -> These v1 v2) -> Map k v1 -> (Map k v1, Map k v2)
@@ -212,7 +246,18 @@ map
 map f = mapPair (Pair.map f)
 
 foldr :: (DataElem k, DataElem a) => (a -> b -> b) -> b -> Map k a -> b
-foldr f z (toList -> mp) = List.foldr (f . snd) z mp
+foldr f z MNil                  = z
+foldr f z (MCons (Pair _ v) xs) = f v (foldr f z xs)
+
+foldrPair :: (DataElem k, DataElem v) => (Pair k v -> b -> b) -> b -> Map k v -> b
+foldrPair f z MNil         = z
+foldrPair f z (MCons x xs) = f x (foldrPair f z xs)
 
 foldMap :: (DataElem k, DataElem v, Monoid m) => (v -> m) -> Map k v -> m
 foldMap f = foldr (\a b -> f a <> b) mempty
+
+foldMapPair :: (DataElem k, DataElem v, Monoid m) => (Pair k v -> m) -> Map k v -> m
+foldMapPair f = foldrPair (\a b -> f a <> b) mempty
+
+revAppend MNil a         = a
+revAppend (MCons x xs) a = revAppend xs (MCons x a)
