@@ -20,6 +20,7 @@ module PlutusTx.Plugin (plugin, plc) where
 
 import Data.Bifunctor
 import PlutusPrelude
+import PlutusTx.Bool ((&&), (||))
 import PlutusTx.Code
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -79,6 +80,7 @@ import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Set qualified as Set
+import Data.Type.Bool qualified as PlutusTx.Bool
 import GHC.Num.Integer qualified
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
@@ -392,7 +394,15 @@ compileMarkedExpr locStr codeTy origE = do
             GHC.showSDocForUser flags GHC.emptyUnitState GHC.alwaysQualify (GHC.ppr moduleName)
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo $
-        builtinNames ++ [''Bool, 'False, 'True, 'traceBool, 'GHC.Num.Integer.integerNegate]
+        builtinNames ++
+          [''Bool
+          , 'False
+          , 'True
+          , 'traceBool
+          , 'GHC.Num.Integer.integerNegate
+          , '(PlutusTx.Bool.&&)
+          , '(PlutusTx.Bool.||)
+          ]
     modBreaks <- asks pcModuleModBreaks
     let coverage = CoverageOpts . Set.fromList $
                    [ l | _posCoverageAll opts, l <- [minBound .. maxBound]]
