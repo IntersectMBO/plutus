@@ -2,8 +2,12 @@
 
 module Main where
 
-import PlutusBenchmark.Common (benchProgramCek)
+import PlutusBenchmark.Common (benchProgramCek, mkEvalCtx)
 import Shared (runBenchmarks)
 
+import Control.Exception (evaluate)
+
 main :: IO ()
-main = runBenchmarks benchProgramCek
+main = do
+  evalCtx <- evaluate mkEvalCtx
+  runBenchmarks (benchProgramCek evalCtx)

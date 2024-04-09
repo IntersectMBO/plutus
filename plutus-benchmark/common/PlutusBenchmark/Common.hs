@@ -115,11 +115,6 @@ haskellValueToTerm
     :: Tx.Lift DefaultUni a => a -> Term
 haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
 
-{- | Convert a de-Bruijn-named UPLC term to a CEK Benchmark -}
-benchProgramCek :: Program -> Benchmarkable
-benchProgramCek (UPLC.Program _ _ term) =
-    nf unsafeRunTermCek $! term -- Or whnf?
-
 {- | Just run a term to obtain an `EvaluationResult` (used for tests etc.) -}
 unsafeRunTermCek :: Term -> EvaluationResult Term
 unsafeRunTermCek =
@@ -201,6 +196,11 @@ benchTermCek :: LedgerApi.EvaluationContext -> Term -> Benchmarkable
 benchTermCek evalCtx term =
     let !term' = force term
     in whnf (evaluateCekForBench evalCtx) term'
+
+{- | Convert a de-Bruijn-named UPLC term to a CEK Benchmark -}
+benchProgramCek :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
+benchProgramCek evalCtx (UPLC.Program _ _ term) =
+   benchTermCek evalCtx term
 
 ---------------- Run a term or program using the plutus-metatheory CEK evaluator ----------------
 
