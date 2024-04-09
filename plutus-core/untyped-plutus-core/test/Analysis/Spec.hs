@@ -4,7 +4,6 @@ module Analysis.Spec where
 
 import Test.Tasty.Extras
 
-import Data.Vector qualified as V
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc
 import PlutusCore.Pretty (prettyPlcReadableDef)
