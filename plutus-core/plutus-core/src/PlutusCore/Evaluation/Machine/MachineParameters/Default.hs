@@ -9,7 +9,6 @@ import PlutusPrelude
 
 import PlutusCore.Builtin
 import PlutusCore.Default
-import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -67,15 +66,14 @@ mkMachineParametersFor
     -> CostModelParams
     -> m (a -> DefaultMachineParameters)
 mkMachineParametersFor semVars toSemVar newCMP =
-    getToCostModel <&> \toCostModel x ->
-        let !semVar = toSemVar x
-        in inline mkMachineParameters semVar $ toCostModel semVar
+    getToCostModel <&> \toMachineParameters -> toMachineParameters . toSemVar
   where
     getToCostModel
-        :: m (BuiltinSemanticsVariant DefaultFun -> CostModel CekMachineCosts BuiltinCostModel)
+        :: m (BuiltinSemanticsVariant DefaultFun -> DefaultMachineParameters)
     getToCostModel = do
         costModels <- for semVars $ \semVar ->
-            (,) semVar <$> applyCostModelParams (toCekCostModel semVar) newCMP
+            (,) semVar . inline mkMachineParameters semVar <$>
+                applyCostModelParams (toCekCostModel semVar) newCMP
         pure $ \semVar ->
             fromMaybe (error "semantics variant not found") $
                 lookup semVar costModels
