@@ -49,6 +49,7 @@ in
     pkgs.bzip2
     pkgs.gawk
     pkgs.scriv
+    pkgs.ghcid
 
     # Needed to make building things work, not for commands
     pkgs.zlib

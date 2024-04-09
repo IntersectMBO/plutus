@@ -17,6 +17,8 @@ import Control.DeepSeq (NFData)
 import Data.Data (Data)
 import GHC.Generics (Generic)
 import PlutusTx.AsData qualified as AsData
+import PlutusTx.Builtins qualified as B
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData qualified as P
 import PlutusTx.Prelude hiding (fst, snd)
 import Prelude qualified as H
@@ -40,3 +42,15 @@ snd (Pair _ b) = b
 
 map :: (DataElem a, DataElem b, DataElem c) => (b -> c) -> Pair a b -> Pair a c
 map f (Pair a b) = Pair a (f b)
+
+toBuiltinPair
+  :: (DataElem a, DataElem b)
+  => Pair a b -> BI.BuiltinPair BuiltinData BuiltinData
+toBuiltinPair (Pair (P.toBuiltinData -> a) (P.toBuiltinData -> b)) =
+  BI.mkPairData a b
+
+fromBuiltinPair
+  :: (DataElem a, DataElem b)
+  => BI.BuiltinPair BuiltinData BuiltinData -> Pair a b
+fromBuiltinPair (B.pairToPair -> (a, b)) =
+  Pair (P.unsafeFromBuiltinData a) (P.unsafeFromBuiltinData b)
