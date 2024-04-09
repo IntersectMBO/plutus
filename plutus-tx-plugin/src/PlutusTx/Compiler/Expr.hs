@@ -136,8 +136,11 @@ compileLiteral = \case
 stringExprContent :: GHC.CoreExpr -> Maybe BS.ByteString
 stringExprContent = \case
   GHC.Lit (GHC.LitString bs) -> Just bs
-  -- unpackCString# is just a wrapper around a literal
-  GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> stringExprContent expr
+  -- unpackCString# / unpackCStringUtf8# are just wrappers around a literal
+  GHC.Var n `GHC.App` expr
+    | let name = GHC.getName n
+    , name == GHC.unpackCStringName || name == GHC.unpackCStringUtf8Name ->
+      stringExprContent expr
   -- See Note [unpackFoldrCString#]
   GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
     | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> stringExprContent expr
