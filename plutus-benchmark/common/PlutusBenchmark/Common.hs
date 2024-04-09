@@ -193,7 +193,6 @@ benchTermCek evalCtx term =
     let !term' = force term
     in whnf (evaluateCekForBench evalCtx) term'
 
-{- | Convert a de-Bruijn-named UPLC term to a CEK Benchmark -}
 benchProgramCek :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
 benchProgramCek evalCtx (UPLC.Program _ _ term) =
    benchTermCek evalCtx term
