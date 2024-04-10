@@ -1,18 +1,23 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
 module Flat.Spec (test_flat) where
 
+import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as BSL
+import Data.Char (ord)
 import Data.Word
 import Flat
 import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
 import PlutusCore.Generators.QuickCheck.Builtin ()
 import Test.Tasty
+import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 import UntypedPlutusCore ()
 import UntypedPlutusCore.Core.Type
@@ -49,12 +54,14 @@ single byte giving its length and the end of the bytestring is marked by a
 zero-length chunk.  The encoding is canonical if it consists of a (possibly
 empty) sequence of 255-byte chunks followed by an optional smaller block
 followed by an empty block.  See Note [Flat serialisation for strict and lazy
-bytestrings]. -}
+bytestrings].  See Appendix C of the Plutus Core specification for details of
+the `flat` encoding, in particular Section C.2.5. -}
 isCanonicalFlatEncodedByteString :: BS.ByteString -> Bool
 isCanonicalFlatEncodedByteString bs =
   case BS.unpack bs of
     []     -> False   -- Should never happen.
-    0x01:r -> go r    -- 0x01 is the tag for an encoded bytestring.
+    0x01:r -> go r    -- 0x01 is the tag for an encoded bytestring
+                      --  (Plutus Core specification, Table C.2)
     _      -> False   -- Not the encoding of a bytestring.
   where
     go [] = False  -- We've fallen off the end, possibly due to having dropped too many bytes.
@@ -85,6 +92,120 @@ test_canonicalByteString :: TestTree
 test_canonicalByteString =
   test_canonicalEncoding @BS.ByteString "flat encodes ByteStrings canonically" 1000
 
+{- Some tests that non-canonically encoded bytestrings decode correctly to strict
+bytestrings.  One strategy is to encode lazy bytestrings and decode the results
+to get strict bytestrings and then check that the result is the same as
+converting the original input into a strict bytestring, and we do this with
+arbitrary lazy bytestrings and also ones obtained by CBOR-serialising `Data`
+objects. However this will only test what we want when the lazy bytestring is
+encoded non-canonically, which in fact happens quite rarely. To make sure that
+we really do test some non-canonical inputs there are a few handwritten examples
+as well. -}
+test_nonCanonicalByteStringDecoding :: TestTree
+test_nonCanonicalByteStringDecoding =
+  let target = "This is a test." :: BS.ByteString
+
+      ch :: Char -> Word8
+      ch = fromIntegral . ord
+
+      input1 = BS.pack [ 0x01  -- 0x01 is the tag for an encoded bytestring.
+                       , 0x01, ch 'T'
+                       , 0x01, ch 'h'
+                       , 0x01, ch 'i'
+                       , 0x01, ch 's'
+                       , 0x01, ch ' '
+                       , 0x01, ch 'i'
+                       , 0x01, ch 's'
+                       , 0x01, ch ' '
+                       , 0x01, ch 'a'
+                       , 0x01, ch ' '
+                       , 0x01, ch 't'
+                       , 0x01, ch 'e'
+                       , 0x01, ch 's'
+                       , 0x01, ch 't'
+                       , 0x01, ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input2 = BS.pack [ 0x01
+                       , 0x03, ch 'T', ch 'h', ch 'i'
+                       , 0x03, ch 's', ch ' ', ch 'i'
+                       , 0x03, ch 's', ch ' ', ch 'a'
+                       , 0x03, ch ' ', ch 't', ch 'e'
+                       , 0x03, ch 's', ch 't', ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input3 = BS.pack [ 0x01
+                       , 0x01, ch 'T'
+                       , 0x02, ch 'h', ch 'i'
+                       , 0x03, ch 's', ch ' ', ch 'i'
+                       , 0x04, ch 's', ch ' ', ch 'a', ch ' '
+                       , 0x05, ch 't', ch 'e', ch 's', ch 't', ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input4 = BS.pack [ 0x01
+                       , 0x05, ch 'T', ch 'h', ch 'i', ch 's', ch ' '
+                       , 0x05, ch 'i', ch 's', ch ' ', ch 'a', ch ' '
+                       , 0x05, ch 't', ch 'e', ch 's', ch 't', ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input5 = BS.pack [ 0x01
+                       , 0x05, ch 'T', ch 'h', ch 'i', ch 's', ch ' '
+                       , 0x04, ch 'i', ch 's', ch ' ', ch 'a'
+                       , 0x03, ch ' ', ch 't', ch 'e'
+                       , 0x02, ch 's', ch 't'
+                       , 0x01, ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input6 = BS.pack [ 0x01
+                       , 0x01, ch 'T'
+                       , 0x0e, ch 'h', ch 'i', ch 's', ch ' ', ch 'i', ch 's', ch ' '
+                       , ch 'a', ch ' ', ch 't', ch 'e', ch 's', ch 't', ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input7 = BS.pack [ 0x01
+                       , 0x01, ch 'T'
+                       , 0x0d, ch 'h', ch 'i', ch 's', ch ' ', ch 'i', ch 's', ch ' '
+                       , ch 'a', ch ' ', ch 't', ch 'e', ch 's', ch 't'
+                       , 0x01, ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      input8 = BS.pack [ 0x01
+                       , 0x03, ch 'T', ch 'h', ch 'i'
+                       , 0x01, ch 's'
+                       , 0x05, ch ' ', ch 'i', ch 's', ch ' ', ch 'a'
+                       , 0x02, ch ' ', ch 't'
+                       , 0x04, ch 'e', ch 's', ch 't', ch '.'
+                       , 0x00
+                       , 0x01 ]
+
+      mkTest input =
+        assertBool "Input failed to decode successfully" $
+        (Right target == unflat input)
+
+  in testGroup "Non-canonical bytestring encodings decode succesfully"
+     [ testProperty "Data via lazy bytestrings" $
+       withMaxSuccess 10000 $
+       forAll (arbitrary @Data) (\d -> Right d === unflat (flat $ (serialise d :: BSL.ByteString)))
+     , testProperty "Arbitrary lazy bytestrings" $
+       withMaxSuccess 10000 $
+       forAll (arbitrary @BSL.ByteString) (\bs -> Right (BSL.toStrict bs) === unflat (flat bs) )
+     , testCase "Explicit input 1" $ mkTest input1
+     , testCase "Explicit input 2" $ mkTest input2
+     , testCase "Explicit input 3" $ mkTest input3
+     , testCase "Explicit input 4" $ mkTest input4
+     , testCase "Explicit input 5" $ mkTest input5
+     , testCase "Explicit input 6" $ mkTest input6
+     , testCase "Explicit input 7" $ mkTest input7
+     , testCase "Explicit input 8" $ mkTest input8
+     ]
+
 test_flat :: TestTree
 test_flat = testGroup "FlatProp"
     [ test_deBruijnIso
@@ -95,6 +216,7 @@ test_flat = testGroup "FlatProp"
     , test_binderFake
     , test_canonicalData
     , test_canonicalByteString
+    , test_nonCanonicalByteStringDecoding
     ]
 
 -- Helpers

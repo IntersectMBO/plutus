@@ -22,6 +22,7 @@ import PlutusCore
 import PlutusCore.Pretty qualified as PP
 import PlutusLedgerApi.Common (EvaluationContext)
 import PlutusTx qualified as Tx
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 import UntypedPlutusCore as UPLC
 

@@ -152,6 +152,8 @@ test-suite plutus-tx-plugin-tests
     Plugin.Laziness.Spec
     Plugin.Lib
     Plugin.NoTrace.Spec
+    Plugin.NoTrace.WithoutTraces
+    Plugin.NoTrace.WithTraces
     Plugin.Optimization.Spec
     Plugin.Patterns.Spec
     Plugin.Primitives.Spec
@@ -167,6 +169,7 @@ test-suite plutus-tx-plugin-tests
     Strictness.Spec
     TH.Spec
     TH.TestTH
+    Unicode.Spec
 
   build-depends:
     , base                                            >=4.9   && <5

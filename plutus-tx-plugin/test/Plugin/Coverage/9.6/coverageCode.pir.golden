@@ -104,6 +104,27 @@
     )
     (termbind
       (nonstrict)
+      (vardecl `&&` (fun Bool (fun Bool Bool)))
+      (lam
+        ds
+        Bool
+        (lam
+          x
+          Bool
+          {
+            [
+              [
+                { [ Bool_match ds ] (all dead (type) Bool) } (abs dead (type) x)
+              ]
+              (abs dead (type) False)
+            ]
+            (all dead (type) dead)
+          }
+        )
+      )
+    )
+    (termbind
+      (nonstrict)
       (vardecl
         `==`
         (all
@@ -214,123 +235,96 @@
                         (abs
                           dead
                           (type)
-                          {
+                          [
                             [
+                              `&&`
                               [
+                                [
+                                  [
+                                    traceBool
+                                    (con
+                                      string
+                                      "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 46, _covLocEndLine = 46, _covLocStartCol = 14, _covLocEndCol = 24}) True"
+                                    )
+                                  ]
+                                  (con
+                                    string
+                                    "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 46, _covLocEndLine = 46, _covLocStartCol = 14, _covLocEndCol = 24}) False"
+                                  )
+                                ]
                                 {
                                   [
-                                    Bool_match
                                     [
+                                      { (builtin trace) (all dead (type) Bool) }
+                                      (con
+                                        string
+                                        "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 46, _covLocEndLine = 46, _covLocStartCol = 14, _covLocEndCol = 24})"
+                                      )
+                                    ]
+                                    (abs
+                                      dead
+                                      (type)
                                       [
-                                        [
-                                          traceBool
-                                          (con
-                                            string
-                                            "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 46, _covLocEndLine = 46, _covLocStartCol = 14, _covLocEndCol = 24}) True"
-                                          )
-                                        ]
-                                        (con
-                                          string
-                                          "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 46, _covLocEndLine = 46, _covLocStartCol = 14, _covLocEndCol = 24}) False"
-                                        )
-                                      ]
-                                      {
                                         [
                                           [
-                                            {
-                                              (builtin trace)
-                                              (all dead (type) Bool)
-                                            }
-                                            (con
-                                              string
-                                              "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 46, _covLocEndLine = 46, _covLocStartCol = 14, _covLocEndCol = 24})"
-                                            )
+                                            { `==` (con integer) } `$fEqInteger`
                                           ]
-                                          (abs
-                                            dead
-                                            (type)
+                                          {
                                             [
                                               [
-                                                [
-                                                  { `==` (con integer) }
-                                                  `$fEqInteger`
-                                                ]
                                                 {
-                                                  [
-                                                    [
-                                                      {
-                                                        (builtin trace)
-                                                        (all
-                                                          dead
-                                                          (type)
-                                                          (con integer)
-                                                        )
-                                                      }
-                                                      (con
-                                                        string
-                                                        "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 46, _covLocEndLine = 46, _covLocStartCol = 15, _covLocEndCol = 16})"
-                                                      )
-                                                    ]
-                                                    (abs dead (type) x)
-                                                  ]
-                                                  (all dead (type) dead)
-                                                }
-                                              ]
-                                              {
-                                                [
-                                                  [
-                                                    {
-                                                      (builtin trace)
-                                                      (all
-                                                        dead
-                                                        (type)
-                                                        (con integer)
-                                                      )
-                                                    }
-                                                    (con
-                                                      string
-                                                      "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 46, _covLocEndLine = 46, _covLocStartCol = 22, _covLocEndCol = 23})"
-                                                    )
-                                                  ]
-                                                  (abs
-                                                    dead (type) (con integer 5)
+                                                  (builtin trace)
+                                                  (all
+                                                    dead (type) (con integer)
                                                   )
-                                                ]
-                                                (all dead (type) dead)
-                                              }
+                                                }
+                                                (con
+                                                  string
+                                                  "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 46, _covLocEndLine = 46, _covLocStartCol = 15, _covLocEndCol = 16})"
+                                                )
+                                              ]
+                                              (abs dead (type) x)
                                             ]
-                                          )
+                                            (all dead (type) dead)
+                                          }
                                         ]
-                                        (all dead (type) dead)
-                                      }
-                                    ]
-                                  ]
-                                  (all dead (type) Bool)
-                                }
-                                (abs
-                                  dead
-                                  (type)
-                                  {
-                                    [
-                                      [
                                         {
-                                          (builtin trace) (all dead (type) Bool)
+                                          [
+                                            [
+                                              {
+                                                (builtin trace)
+                                                (all dead (type) (con integer))
+                                              }
+                                              (con
+                                                string
+                                                "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 46, _covLocEndLine = 46, _covLocStartCol = 22, _covLocEndCol = 23})"
+                                              )
+                                            ]
+                                            (abs dead (type) (con integer 5))
+                                          ]
+                                          (all dead (type) dead)
                                         }
-                                        (con
-                                          string
-                                          "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 46, _covLocEndLine = 46, _covLocStartCol = 28, _covLocEndCol = 32})"
-                                        )
                                       ]
-                                      (abs dead (type) True)
-                                    ]
-                                    (all dead (type) dead)
-                                  }
-                                )
+                                    )
+                                  ]
+                                  (all dead (type) dead)
+                                }
                               ]
-                              (abs dead (type) False)
                             ]
-                            (all dead (type) dead)
-                          }
+                            {
+                              [
+                                [
+                                  { (builtin trace) (all dead (type) Bool) }
+                                  (con
+                                    string
+                                    "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 46, _covLocEndLine = 46, _covLocStartCol = 28, _covLocEndCol = 32})"
+                                  )
+                                ]
+                                (abs dead (type) True)
+                              ]
+                              (all dead (type) dead)
+                            }
+                          ]
                         )
                       ]
                       (all dead (type) dead)

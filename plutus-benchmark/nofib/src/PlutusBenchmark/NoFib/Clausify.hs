@@ -13,6 +13,7 @@ module PlutusBenchmark.NoFib.Clausify where
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import PlutusTx qualified as Tx
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Plutus
 import Prelude qualified as Haskell
 

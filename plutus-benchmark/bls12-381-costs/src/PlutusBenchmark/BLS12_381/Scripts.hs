@@ -44,6 +44,7 @@ where
 import PlutusCore (DefaultFun, DefaultUni)
 import PlutusLedgerApi.V1.Bytes qualified as P (bytes, fromHex)
 import PlutusTx qualified as Tx
+import PlutusTx.Plugin ()
 import UntypedPlutusCore qualified as UPLC
 
 import PlutusTx.Prelude as Tx hiding (sort, (<>))
