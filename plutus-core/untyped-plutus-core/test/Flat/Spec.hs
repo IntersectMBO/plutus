@@ -54,12 +54,14 @@ single byte giving its length and the end of the bytestring is marked by a
 zero-length chunk.  The encoding is canonical if it consists of a (possibly
 empty) sequence of 255-byte chunks followed by an optional smaller block
 followed by an empty block.  See Note [Flat serialisation for strict and lazy
-bytestrings]. -}
+bytestrings].  See Appendix C of the Plutus Core specification for details of
+the `flat` encoding, in particular Section C.2.5. -}
 isCanonicalFlatEncodedByteString :: BS.ByteString -> Bool
 isCanonicalFlatEncodedByteString bs =
   case BS.unpack bs of
     []     -> False   -- Should never happen.
-    0x01:r -> go r    -- 0x01 is the tag for an encoded bytestring.
+    0x01:r -> go r    -- 0x01 is the tag for an encoded bytestring
+                      --  (Plutus Core specification, Table C.2)
     _      -> False   -- Not the encoding of a bytestring.
   where
     go [] = False  -- We've fallen off the end, possibly due to having dropped too many bytes.
@@ -106,7 +108,7 @@ test_nonCanonicalByteStringDecoding =
       ch :: Char -> Word8
       ch = fromIntegral . ord
 
-      input1 = BS.pack [ 0x01
+      input1 = BS.pack [ 0x01  -- 0x01 is the tag for an encoded bytestring.
                        , 0x01, ch 'T'
                        , 0x01, ch 'h'
                        , 0x01, ch 'i'
