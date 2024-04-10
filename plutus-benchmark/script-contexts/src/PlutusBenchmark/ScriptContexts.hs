@@ -13,6 +13,7 @@ import PlutusLedgerApi.V3 (OutputDatum (NoOutputDatum), PubKeyHash (..), ScriptC
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
 -- | A very crude deterministic generator for 'ScriptContext's with size
