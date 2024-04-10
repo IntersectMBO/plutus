@@ -141,8 +141,52 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 ## 8. [Reference](008_reference.md)
 > **Status**
 > 
-> - Draft outline in progress.
+> - Ported over content. 
 > - Not ready for review. 
+> - I expect to break this section into multiple pages once we have our docs platform available to use. It is admittedly pretty long right now, but useful to see it all in one file for this stage. 
+
+- Writing scripts
+   - Plutus Tx Compiler Options
+   - Optimization techniques for Plutus scripts
+      - Identifying problem areas
+      - Using strict let-bindings to avoid recomputation
+      - Specializing higher-order functions
+      - Common sub-expression elimination
+      - Using `error` for faster failure
+   - Examples
+   - Common weaknesses
+      - Double satisfaction
+         - What is going wrong here?
+         - Risks
+         - Solutions
+            - Unique outputs
+            - Ban other scripts
+      - Hard limits
+         - Risks
+         - Solutions
+            - Careful testing
+            - Bounding data usage
+            - Providing datums when creating outputs
+            - Reducing script size costs through reference inputs
+- Plutus on Cardano
+   - Plutus language changes
+      - Language versions
+         - Plutus V1
+         - Plutus V2
+      - Examples
+      - Built-in functions and types
+         - Alonzo
+         - Vasil
+         - PlutusV3
+         - Sums of products
+         - New cryptographic primitives
+         - Bitwise primitives
+  - Upgrading to Vasil and Plutus script addresses
+      - A Plutus V2 script will not have the same hash value as a Plutus V1 script
+      - A Plutus V1 script will not necessarily have the same hash value when recompiled with a later version of the Plutus Compiler
+      - When to export and save the output of a compiled script
+  - Cost model parameters
+- Glossary
 
 ## 9. [Troubleshooting](009_troubleshooting.md)
 > **Status**
