@@ -438,6 +438,7 @@ test-suite untyped-plutus-core-test
     , pretty-show
     , prettyprinter
     , QuickCheck
+    , serialise
     , split
     , tasty
     , tasty-golden
