@@ -107,16 +107,6 @@ member k m =
         Just _  -> True
         Nothing -> False
 
--- TODO: this possibly could be improved?
-toList :: (DataElem k, DataElem v) => Map k v -> List (Pair k v)
-toList MNil         = Nil
-toList (MCons x xs) = Cons x (toList xs)
-
--- TODO: this possibly could be improved?
-unsafeFromList :: (DataElem k, DataElem v) => List (Pair k v) -> Map k v
-unsafeFromList Nil         = MNil
-unsafeFromList (Cons x xs) = MCons x (unsafeFromList xs)
-
 delete :: (DataElem k, DataElem v, Eq k) => k -> Map k v -> Map k v
 delete key =
   \case
@@ -231,14 +221,13 @@ allPair f =
 mapThese
     :: (DataElem k, DataElem v1, DataElem v2)
     => (v1 -> These v1 v2) -> Map k v1 -> (Map k v1, Map k v2)
-mapThese f mps = (unsafeFromList mpl, unsafeFromList mpr)
+mapThese f mps = foldrPair f' (MNil, MNil) mps'
   where
-    (mpl, mpr) = List.foldr f' (Nil, Nil) mps'
-    mps' = toList $ map f mps
+    mps' = map f mps
     f' (Pair k v) (as, bs) = case v of
-      This a    -> (Cons (Pair k a) as, bs)
-      That b    -> (as, Cons (Pair k b) bs)
-      These a b -> (Cons (Pair k a) as, Cons (Pair k b) bs)
+      This a    -> (MCons (Pair k a) as, bs)
+      That b    -> (as, MCons (Pair k b) bs)
+      These a b -> (MCons (Pair k a) as, MCons (Pair k b) bs)
 
 map
     :: (DataElem k, DataElem v1, DataElem v2)
