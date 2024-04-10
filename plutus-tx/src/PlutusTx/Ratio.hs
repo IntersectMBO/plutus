@@ -292,7 +292,7 @@ properFraction (Rational n d) =
 {-# INLINABLE recip #-}
 recip :: Rational -> Rational
 recip (Rational n d)
-  | n P.== P.zero = Builtins.error ()
+  | n P.== P.zero = P.traceError P.reciprocalOfZeroError
   | n P.< P.zero = Rational (P.negate d) (P.negate n)
   | P.True = Rational d n
 
