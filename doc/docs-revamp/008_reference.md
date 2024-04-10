@@ -448,6 +448,22 @@ redeemers </howtos/exporting-a-script>`{.interpreted-text role="doc"}.
 > The cost model parameters has been automatically generated in the Read-the-docs platform. 
 > Will need to investigate what approach will make sense for Docusaurus and/or markdown files. 
 
+The cost model for Plutus Core scripts has a number of parameters.
+These are listed and briefly described below.
+All of these parameters are listed in the Cardano protocol parameters and can be individually adjusted.
+
+```
+.. csv-table:: Machine parameters
+   :file: ./machine-parameters.csv
+   :widths: 20, 30, 40
+   :header-rows: 1
+
+.. csv-table:: Builtin parameters
+   :file: ./builtin-parameters.csv
+   :widths: 20, 30, 40
+   :header-rows: 1
+```
+
 # Glossary
 
 **address**  

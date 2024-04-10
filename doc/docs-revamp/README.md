@@ -185,7 +185,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
       - A Plutus V2 script will not have the same hash value as a Plutus V1 script
       - A Plutus V1 script will not necessarily have the same hash value when recompiled with a later version of the Plutus Compiler
       - When to export and save the output of a compiled script
-  - Cost model parameters
+  - Cost model parameters (Need to investigate how to migrate this content)
 - Glossary
 
 ## 9. [Troubleshooting](009_troubleshooting.md)
