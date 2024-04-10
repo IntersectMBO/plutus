@@ -8,6 +8,8 @@ import Prelude (Bool (..), otherwise)
 
 {- HLINT ignore -}
 
+-- See Note [Lazy boolean operators] in the plugin.
+
 {-# INLINE (&&) #-}
 -- | Logical AND
 --
@@ -37,31 +39,6 @@ infixr 2 ||
 --
 not :: Bool -> Bool
 not a = if a then False else True
-
-{- Note [Short-circuit evaluation for && and ||]
-TLDR: as it stands, the behaviors of `&&` and `||` are inconsistent: they sometimes
-short-circuit, sometimes don't.
-
-Function applications in Plutus Tx are strictly evaluated. This includes applications of
-`&&` and `||`. There are two problems with this: (1) `&&` and `||` should be made to
-short-circuit, otherwise they are not very useful; (2) in fact, their behaviors are
-not consistent - sometimes they short-circuit, sometimes they don't!
-
-Why do they short-circuit some of the times, but not always? This is due to the effect
-of GHC's inlining. Suppose we run `compile` (which invokes the plugin) in module A:
-
-  - If the module using `&&` is compiled with optimization, and it is an imported
-    module (say module B), then module B is compiled first, during which `&&` is likely
-    inlined, turning `x && y` into `if x then y else False`, thus enabling short-circuit
-    evaluation.
-  - If the module using `&&` is compiled without optimization (specifically,
-    `-O0 -fmax-simplifier-iteration=0`), then GHC does not inline `&&` and it will not
-    short-circuit.
-  - If the module using `&&` is module `A` itself, then GHC will not inline `&&` (and thus
-    it won't short-circuit) even if module `A` is compiled with optimization. This is
-    because the plugin runs before the GHC inliner, and it would have done with
-    compiling `&&` before GHC has a chance to inline it.
--}
 
 {- Note [Lazy patterns on function parameters]
 In theory, Lazy patterns (~) on function parameters shouldn't make any difference.
