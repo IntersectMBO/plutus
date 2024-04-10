@@ -7,9 +7,11 @@ module Main where
 import Criterion.Main
 
 import PlutusBenchmark.BLS12_381.Scripts
-import PlutusBenchmark.Common (benchProgramCek)
+import PlutusBenchmark.Common (benchProgramCek, benchProgramCek2, mkEvalCtx)
+import PlutusLedgerApi.Common (EvaluationContext)
 import PlutusTx.Prelude qualified as Tx
 
+import Control.Exception (evaluate)
 import Data.ByteString qualified as BS (empty)
 
 benchHashAndAddG1 :: Integer -> Benchmark
@@ -72,8 +74,12 @@ schnorrG1Verify = bench "schnorrVerifyG1" $ benchProgramCek mkSchnorrG1VerifyPol
 schnorrG2Verify :: Benchmark
 schnorrG2Verify = bench "schnorrVerifyG2" $ benchProgramCek mkSchnorrG2VerifyPolicy
 
+schnorrG2Verify2 :: EvaluationContext -> Benchmark
+schnorrG2Verify2 ctx = bench "schnorrVerifyG2" $ benchProgramCek2 ctx mkSchnorrG2VerifyPolicy
+
 main :: IO ()
 main = do
+  ctx <- evaluate mkEvalCtx
   defaultMain [
         bgroup "hashAndAddG1" $ fmap benchHashAndAddG1 [0, 10..150]
       , bgroup "hashAndAddG2" $ fmap benchHashAndAddG2 [0, 10..150]
@@ -89,4 +95,5 @@ main = do
       , aggregateSigMultiKey
       , schnorrG1Verify
       , schnorrG2Verify
+      , schnorrG2Verify2 ctx
        ]
