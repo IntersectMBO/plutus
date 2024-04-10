@@ -8,11 +8,15 @@
   \noindent\textbf{Note \thenotenumberD. #1}
 }
 
+\newcommand{\itobs}{\textsf{itobs}}
+\newcommand{\bstoi}{\textsf{bstoi}}
+
 \subsection{Batch 4}
 \label{sec:default-builtins-4}
 The fourth batch of builtins adds support for
 \begin{itemize}
-\item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions (Section \ref{sec:misc-builtins-4})
+\item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions.
+\item Conversions functions from integers to bytestrings and vice-versa.
 \item BLS12-381 elliptic curve pairing operations
 (see~\cite{CIP-0381}, \cite{BLS12-381}, \cite[4.2.1]{IETF-pairing-friendly-curves}, \cite{BLST-library}).
  For clarity these are described separately in Sections~\ref{sec:bls-types-4} and \ref{sec:bls-builtins-4}.
@@ -22,7 +26,7 @@ The fourth batch of builtins adds support for
 \label{sec:misc-builtins-4}
 
 \setlength{\LTleft}{-10mm} % Shift the table left a bit to centre it on the page
-\begin{longtable}[H]{|l|p{5cm}|p{55mm}|c|c|}
+\begin{longtable}[H]{|l|p{45mm}|p{4cm}|c|c|}
     \hline \text{Function} & \text{Signature} & \text{Denotation} & \text{Can}
     & \text{Note} \\ & & & fail?
     & \\ \hline \endfirsthead \hline \text{Function} & \text{Type}
@@ -42,7 +46,21 @@ The fourth batch of builtins adds support for
     \TT{keccak\_256}  & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using}
                                                                    \TT{Keccak-256}~\cite{KeccakRef3}. &  & \\
     \hline
+    \TT{integerToByteString} & $[\ty{boolean}, \ty{boolean}, \ty{integer}]$  \text{\: $\to \ty{bytestring}$}
+                                        & \itobs & Yes & \ref{note:itobs}\\
+    \TT{byteStringToInteger} & $[\ty{boolean}, \ty{bytestring}] $ \text{\: $ \to \ty{bytestring}$}
+                                        & \bstoi & & \ref{note:bstoi} \\
+
+    \hline
 \end{longtable}
+
+\note{Integer to bytestring conversion.}
+\label{note:itobs}
+Blah blah blah.
+
+\note{Bytestring to integer conversion.}
+\label{note:bstoi}
+Blah blah blah.
 
 \subsubsection{BLS12-381 built-in types}
 \label{sec:bls-types-4}
