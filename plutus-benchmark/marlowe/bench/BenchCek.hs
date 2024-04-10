@@ -5,5 +5,6 @@ module Main where
 import PlutusBenchmark.Common (benchProgramCek)
 import Shared (runBenchmarks)
 
+
 main :: IO ()
 main = runBenchmarks benchProgramCek
