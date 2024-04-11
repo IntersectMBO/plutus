@@ -398,5 +398,5 @@ toBuiltinsRuntime
     -> cost
     -> BuiltinsRuntime fun val
 toBuiltinsRuntime semvar cost =
-    BuiltinsRuntime $ toBuiltinRuntime cost . inline toBuiltinMeaning semvar
+    lazy . BuiltinsRuntime $ toBuiltinRuntime cost . inline toBuiltinMeaning semvar
 {-# INLINE toBuiltinsRuntime #-}
