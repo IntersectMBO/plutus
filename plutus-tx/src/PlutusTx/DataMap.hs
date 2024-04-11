@@ -9,6 +9,8 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE ViewPatterns       #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:profile-all #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:conservative-optimisation #-}
 
 module PlutusTx.DataMap (
   Map,
