@@ -55,7 +55,7 @@ would be considerably less compact.}
 The universe $\Uni$ consists entirely of \textit{names}, and the semantics of
 these names are given by \textit{denotations}. Each built-in type $\tn \in \Uni$
 is associated with some mathematical set $\denote{\tn}$, the \textit{denotation}
-of $\tn$. For example, we might have $\denote{\texttt{boolean}}=
+of $\tn$. For example, we might have $\denote{\texttt{bool}}=
 \{\mathsf{true}, \mathsf{false}\}$ and $\denote{\texttt{integer}} = \mathbb{Z}$
 and $\denote{\pairOf{a}{b}} = \denote{a} \times \denote{b}$.
 
@@ -326,7 +326,7 @@ $$[\iota_1, \ldots, \iota_n] \rightarrow \tau$$ with
 \noindent For example, in our default set of built-in functions we have the
 functions \texttt{mkCons} with signature $[\forall a_\#, a_\#,$  %% Allow line break
   $\listOf{a_\#}] \rightarrow \listOf{a_\#}$ and \texttt{ifThenElse} with signature
-$[\forall a_*, \mathtt{boolean}, a_*, a_*] \rightarrow a_*$.  When we use
+$[\forall a_*, \mathtt{bool}, a_*, a_*] \rightarrow a_*$.  When we use
 \texttt{mkCons} its arguments must be of built-in types, but the two final
 arguments of \texttt{ifThenElse} can be any Plutus Core values.
 

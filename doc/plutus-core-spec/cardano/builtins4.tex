@@ -8,8 +8,10 @@
   \noindent\textbf{Note \thenotenumberD. #1}
 }
 
-\newcommand{\itobs}{\textsf{itobs}}
-\newcommand{\bstoi}{\textsf{bstoi}}
+\newcommand{\itobsBE}{\mathsf{itobs_{LE}}}
+\newcommand{\itobsLE}{\mathsf{itobs_{BE}}}
+\newcommand{\bstoiBE}{\mathsf{bstoi_{LE}}}
+\newcommand{\bstoiLE}{\mathsf{bstoi_{BE}}}
 
 \subsection{Batch 4}
 \label{sec:default-builtins-4}
@@ -26,7 +28,7 @@ The fourth batch of builtins adds support for
 \label{sec:misc-builtins-4}
 
 \setlength{\LTleft}{-10mm} % Shift the table left a bit to centre it on the page
-\begin{longtable}[H]{|l|p{45mm}|p{4cm}|c|c|}
+\begin{longtable}[H]{|l|p{45mm}|p{60mm}|c|c|}
     \hline \text{Function} & \text{Signature} & \text{Denotation} & \text{Can}
     & \text{Note} \\ & & & fail?
     & \\ \hline \endfirsthead \hline \text{Function} & \text{Type}
@@ -45,22 +47,87 @@ The fourth batch of builtins adds support for
                                                                    \TT{Blake2b-224}~\cite{IETF-Blake2}. &  & \\
     \TT{keccak\_256}  & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using}
                                                                    \TT{Keccak-256}~\cite{KeccakRef3}. &  & \\
-    \hline
-    \TT{integerToByteString} & $[\ty{boolean}, \ty{integer}, \ty{integer}]$  \text{\: $\to \ty{bytestring}$}
-                                        & \itobs & Yes & \ref{note:itobs}\\
-    \TT{byteStringToInteger} & $[\ty{boolean}, \ty{bytestring}] $ \text{\: $ \to \ty{bytestring}$}
-                                        & \bstoi & & \ref{note:bstoi} \\
+    \hline\strut
+    \TT{integerToByteString} & $[\ty{bool}, \ty{integer}, \ty{integer}]$  \text{\: $\to \ty{bytestring}$}
+                                        & $(e, w, n) $ \text{$\mapsto \begin{cases}
+                                        \itobsLE(w,n) & \text{if $e=\mathtt{false}$}\\
+                                        \bstoiBE(w,n) & \text{if $e=\mathtt{true}$}\\
+                                        \end{cases}$}
+                                        & Yes & \ref{note:itobs}\strut\\ \strut
+    \TT{byteStringToInteger} & $[\ty{bool}, \ty{bytestring}] $ \text{\: $ \to \ty{bytestring}$}
+                                        & $(e, [c_0, \ldots, c_{N-1}]) $ \text{\; $\mapsto \begin{cases}
+                                        \sum_{i=0}^{N-1}c_i256^i & \text{if $e=\mathtt{false}$}\\
+                                        \sum_{i=0}^{N-1}c_{N-1-i}256^i & \text{if $e=\mathtt{true}$}\\
+                                        \end{cases}$}
+                                        &  & \ref{note:bstoi} \\
 
     \hline
 \end{longtable}
 
 \note{Integer to bytestring conversion.}
 \label{note:itobs}
-Blah blah blah.
+The \texttt{integerToByteString} function converts non-negative integers to bytestrings.
+It takes three arguments:
+\begin{itemize}
+\item An endianness flag $e$.
+\item A width argument $w$.
+\item The integer $n$ to be converted.
+\end{itemize}
+
+\noindent If $e$ is \texttt{True} then the conversion is big-endian, otherwise it is
+little-endian. If the width $w$ is zero then the output is a bytestring which is
+just large enough to hold the converted integer.  If $w>0$ then the output is
+exactly $w$ bytes long, and it is an error if $n$ does not fit into a bytestring
+of that size; if necessary, the output is padded with 0x00 bytes (on the left if
+$e = \mathtt{True}$ and on the right if $e = \mathtt{False}$) to make it the
+correct length.  In all cases it is an error if $n<0$.
+
+The precise semantics are given by the functions $\itobsBE
+: \Z \times \Z \rightarrow \B^*$ and $\itobsLE : \Z \times \Z \rightarrow \B^*$.
+Writing $n = \sum_{i=0}^Na_i256^i$ with $a_N \ne 0$, we have 
+
+$$
+\itobsLE (w,n) =
+\begin{cases}
+  [a_0, \ldots, a_N] & \text{if $w=0$} \\
+  [b_0, \ldots, b_w] &  \text{if $w > 0$ and $N\le w$, where }
+      b_i = \begin{cases}
+                a_i & \text{if $i \leq N$} \\
+                0   & \text{if $i > N$}\\
+            \end{cases}\\
+  \errorX & \text{otherwise}
+\end{cases}
+$$
+
+\noindent and
+
+$$
+\noindent
+\itobsBE (w,n) =
+\begin{cases}
+  [a_N, \ldots, a_0] & \text{if $w=0$} \\
+  [b_w, \ldots, b_0] &  \text{if $w > 0$ and $N\le w$, where }
+      b_i = \begin{cases}
+                a_i & \text{if $i \leq N$} \\
+                0   & \text{if $i > N$}\\
+            \end{cases}\\
+  \errorX & \text{otherwise}
+\end{cases}
+$$
+
+\noindent We have $\itobsLE(0,0) = \itobsBE(0,0) = 0$.
 
 \note{Bytestring to integer conversion.}
 \label{note:bstoi}
-Blah blah blah.
+The \texttt{byteStringToInteger} function converts bytestrings to non-negative
+integers.  It takes two arguments:
+\begin{itemize}
+\item An endianness flag $e$.
+\item The bytestring $s$ to be converted.
+\end{itemize}
+\noindent  
+If $e$ is \texttt{True} then the conversion is big-endian, otherwise it is
+little-endian.  In both cases the empty bytestring is converted to the integer 0.
 
 \subsubsection{BLS12-381 built-in types}
 \label{sec:bls-types-4}
