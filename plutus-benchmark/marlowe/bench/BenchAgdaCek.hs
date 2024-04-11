@@ -2,7 +2,7 @@
 
 module Main where
 
-import PlutusBenchmark.Common (benchProgramAgdaCek)
+import PlutusBenchmark.Agda.Common (benchProgramAgdaCek)
 import Shared (runBenchmarks)
 
 main :: IO ()

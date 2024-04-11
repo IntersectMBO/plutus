@@ -9,6 +9,7 @@ import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Lift ()
 import PlutusTx.List qualified as L
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as P
 
 {-
