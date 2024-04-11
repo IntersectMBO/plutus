@@ -1,2 +1,6 @@
-({cpu: 1460719571
-| mem: 5306491})
+An error has occurred:  User error:
+The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
+Final budget: ({cpu: 2152414087
+| mem: 7794046})
+Logs: vi
+PT5
