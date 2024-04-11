@@ -13,8 +13,24 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 ## 2. [Core concepts](002_core-concepts.md)
 > **Status**
 > 
-> - Draft outline in progress.
+> - Ported over existing content. 
+> - Planning further reorganization and editing. 
 > - Not ready for review. 
+
+- The Plutus Platform
+   - Applications
+   - The Plutus Platform
+   - Further reading
+- Ledgers
+   - Account-based and UTXO-based ledgers
+   - Scripts and the Extended UTXO Model
+   - Different kinds of scripts
+   - Further reading
+- Plutus Foundation
+   - Plutus Core
+   - Plutus Tx
+   - Further reading
+- Plutus language versions
 
 ## 3. [Developer onboarding and quick setup](003_dev-onboarding-quick-setup.md)
 
@@ -80,7 +96,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 ## 6. [Working with scripts](006_working-with-scripts.md)
 > **Status**
 > 
-> - Ported over existing content as of April 3 into new org structure. 
+> - Ported over existing content into new org structure. 
 > - Code block includes are not yet functional. Working with web dev team to figure out how we will handle this if we discontinue using .rst files and migrate to Docusaurus and .md files. 
 > - Not ready for review -- more editing planned. 
 
