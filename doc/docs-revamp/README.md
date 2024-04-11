@@ -7,7 +7,8 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 ## 1. [Introduction](001_introduction.md)
 > **Status**
 > 
-> - Draft outline in progress.
+> - Ported over existing content. 
+> - Planning further reorganization and editing. 
 > - Not ready for review. 
 
 ## 2. [Core concepts](002_core-concepts.md)
