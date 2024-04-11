@@ -14,6 +14,7 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     ( BuiltinCostModel
     , BuiltinCostModelBase(..)
     , CostingFun(..)
+    , UnimplementedCostingFun(..)
     , Intercept(..)
     , Slope(..)
     , Coefficient0(..)

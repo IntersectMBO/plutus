@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NumericUnderscores    #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -10,6 +11,7 @@
 {-# LANGUAGE StrictData            #-}
 module PlutusCore.Evaluation.Machine.CostingFun.Core
     ( CostingFun(..)
+    , UnimplementedCostingFun(..)
     , Intercept(..)
     , Slope(..)
     , Coefficient0(..)
@@ -77,12 +79,46 @@ instance ab ~ ExBudgetStream => OnMemoryUsages ExBudgetStream ab where
     onMemoryUsages = id
     {-# INLINE onMemoryUsages #-}
 
+{- | A type of costing functions parametric over a model type.  In practice the we
+have one model type `Model<N>Arguments` for every N, where N is the arity of the
+builtin whose costs we want to model.  Each model type has a number of
+constructors defining different "shapes" of N-parameter functions which
+calculate a cost given the sizes of the builtin's arguments. -}
 data CostingFun model = CostingFun
     { costingFunCpu    :: model
     , costingFunMemory :: model
     }
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (Default, NFData)
+
+{- | In the initial stages of implementing a new builtin it is necessary to
+   provide a temporary costing function which is used until the builtin has been
+   properly costed: `see CostModelGeneration.md`.  Each `Model<N>Arguments` type
+   defines an instance of this class where `unimplementedCostingFun` is a
+   constant costing function which returns a very high cost for all inputs.
+   This prevents new functions from being used in situations where costs are
+   important until a sensible costing function has been implemented. -}
+class UnimplementedCostingFun a where
+  unimplementedCostingFun :: b -> CostingFun a
+
+{- | Make a very expensive pair of CPU and memory costing functions.  The name is
+   slightly misleading because it actually makes a function which returns such a
+   pair, which is what is required at the use site in `PlutusCore.Default.Builtins`,
+   where properly implemented costing functions are constructed from a
+   BuiltinCostModel object.  We can't use maxBound :: CostingInteger because then the
+   evaluator always fails; instead we assign a cost of 100,000,000,000, which is well
+   beyond the current on-chain CPU and memory limits (10,000,000,000 and 14,000,000
+   respectively) but still allows over 92,000,000 evaluations before the maximum
+   CostingInteger is reached.  This allows us to use an "uncosted" builtin for
+   testing and for running costing benchmarks, but will prevent it from being used
+   when the Plutus Core evaluator is invoked by the ledger.
+-}
+makeUnimplementedCostingFun :: (CostingInteger -> model) -> b -> CostingFun model
+makeUnimplementedCostingFun c =
+  const $ CostingFun (c k) (c k)
+  where k = 100_000_000_000
+
+---------------- Types for use within costing functions ----------------
 
 -- | A wrapped 'CostingInteger' that is supposed to be used as an intercept.
 newtype Intercept = Intercept
@@ -124,8 +160,12 @@ data ModelOneArgument =
     | ModelOneArgumentLinearCost OneVariableLinearFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
+
 instance Default ModelOneArgument where
-    def = ModelOneArgumentConstantCost 0
+    def = ModelOneArgumentConstantCost maxBound
+
+instance UnimplementedCostingFun ModelOneArgument where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelOneArgumentConstantCost
 
 {- Note [runCostingFun* API]
 Costing functions take unlifted values, compute the 'ExMemory' of each of them and then invoke
@@ -330,7 +370,10 @@ data ModelTwoArguments =
     deriving anyclass (NFData)
 
 instance Default ModelTwoArguments where
-    def = ModelTwoArgumentsConstantCost 0
+    def = ModelTwoArgumentsConstantCost maxBound
+
+instance UnimplementedCostingFun ModelTwoArguments where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelTwoArgumentsConstantCost
 
 -- See Note [runCostingFun* API].
 runCostingFunTwoArguments
@@ -458,7 +501,10 @@ data ModelThreeArguments =
     deriving anyclass (NFData)
 
 instance Default ModelThreeArguments where
-    def = ModelThreeArgumentsConstantCost 0
+    def = ModelThreeArgumentsConstantCost maxBound
+
+instance UnimplementedCostingFun ModelThreeArguments where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelThreeArgumentsConstantCost
 
 runThreeArgumentModel
     :: ModelThreeArguments
@@ -528,7 +574,10 @@ data ModelFourArguments =
     deriving anyclass (NFData)
 
 instance Default ModelFourArguments where
-    def = ModelFourArgumentsConstantCost 0
+    def = ModelFourArgumentsConstantCost maxBound
+
+instance UnimplementedCostingFun ModelFourArguments where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelFourArgumentsConstantCost
 
 runFourArgumentModel
     :: ModelFourArguments
@@ -570,7 +619,10 @@ data ModelFiveArguments =
     deriving anyclass (NFData)
 
 instance Default ModelFiveArguments where
-    def = ModelFiveArgumentsConstantCost 0
+    def = ModelFiveArgumentsConstantCost maxBound
+
+instance UnimplementedCostingFun ModelFiveArguments where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelFiveArgumentsConstantCost
 
 runFiveArgumentModel
     :: ModelFiveArguments
@@ -614,7 +666,10 @@ data ModelSixArguments =
     deriving anyclass (NFData)
 
 instance Default ModelSixArguments where
-    def = ModelSixArgumentsConstantCost 0
+    def = ModelSixArgumentsConstantCost maxBound
+
+instance UnimplementedCostingFun ModelSixArguments where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelSixArgumentsConstantCost
 
 runSixArgumentModel
     :: ModelSixArguments

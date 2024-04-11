@@ -353,6 +353,7 @@ test-suite plutus-core-test
     CBOR.DataStability
     Check.Spec
     CostModelInterface.Spec
+    CostModelSafety.Spec
     Evaluation.Machines
     Evaluation.Spec
     Generators.QuickCheck.Utils
@@ -370,6 +371,7 @@ test-suite plutus-core-test
     , bytestring
     , containers
     , data-default-class
+    , extra
     , filepath
     , flat                                            ^>=0.6
     , hedgehog
