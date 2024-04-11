@@ -38,6 +38,7 @@ mkEvaluationContext =
     tagWithParamNames @V1.ParamName
     >=> pure . toCostModelParams
     >=> mkDynEvaluationContext
+        "PlutusV1"
         [DefaultFunSemanticsVariant0, DefaultFunSemanticsVariant1]
         (\pv -> if pv < conwayPV
             then DefaultFunSemanticsVariant0

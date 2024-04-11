@@ -170,6 +170,7 @@ mkEvalCtx =
             let errOrCtx =
                     -- The validation benchmarks were all created from PlutusV1 scripts
                     LedgerApi.mkDynEvaluationContext
+                        "PlutusV1"
                         [DefaultFunSemanticsVariant1]
                         (const DefaultFunSemanticsVariant1)
                         p

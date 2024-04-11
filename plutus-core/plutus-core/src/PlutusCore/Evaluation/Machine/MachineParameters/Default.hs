@@ -64,19 +64,12 @@ mkMachineParametersFor
     => [BuiltinSemanticsVariant DefaultFun]
     -> (a -> BuiltinSemanticsVariant DefaultFun)
     -> CostModelParams
-    -> m (a -> DefaultMachineParameters)
-mkMachineParametersFor semVars toSemVar newCMP =
-    getToCostModel <&> \toMachineParameters -> toMachineParameters . toSemVar
-  where
-    getToCostModel
-        :: m (BuiltinSemanticsVariant DefaultFun -> DefaultMachineParameters)
-    getToCostModel = do
-        costModels <- for semVars $ \semVar ->
-            (,) semVar . inline mkMachineParameters semVar <$>
-                applyCostModelParams (toCekCostModel semVar) newCMP
-        pure $ \semVar ->
-            fromMaybe (error "semantics variant not found") $
-                lookup semVar costModels
+    -> m (a -> Maybe DefaultMachineParameters)
+mkMachineParametersFor semVars toSemVar newCMP = do
+    semVarAndMachineParametersCache <- for semVars $ \semVar ->
+        (,) semVar . inline mkMachineParameters semVar <$>
+            applyCostModelParams (toCekCostModel semVar) newCMP
+    pure $ \x -> lookup (toSemVar x) semVarAndMachineParametersCache
 -- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
 -- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down
 -- the line.

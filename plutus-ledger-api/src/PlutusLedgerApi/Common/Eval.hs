@@ -128,12 +128,18 @@ with the updated cost model parameters.
 -}
 mkDynEvaluationContext
     :: MonadError CostModelApplyError m
-    => [BuiltinSemanticsVariant DefaultFun]
+    => String
+    -> [BuiltinSemanticsVariant DefaultFun]
     -> (MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun)
     -> Plutus.CostModelParams
     -> m EvaluationContext
-mkDynEvaluationContext semVars toSemVar newCMP =
-    EvaluationContext <$> mkMachineParametersFor semVars toSemVar newCMP
+mkDynEvaluationContext lv semVars toSemVar newCMP =
+    mkMachineParametersFor semVars toSemVar newCMP <&> \getMachPars ->
+        EvaluationContext $ \pv ->
+            case getMachPars pv of
+                Nothing -> error $ Prelude.concat
+                    ["Internal error: ", show lv, " does not support ", show pv]
+                Just machPars -> machPars
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
