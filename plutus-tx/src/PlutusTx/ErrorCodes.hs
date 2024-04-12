@@ -55,6 +55,8 @@ plutusPreludeErrorCodes = Map.fromDistinctAscList
   , ("PT18", "PlutusTx.Enum.Ordering.toEnum: bad argument")
   , ("PT19", "PlutusTx.List.last: empty list")
   , ("PT20", "PlutusTx.Ratio.recip: reciprocal of zero")
+  , ("PT21", "PlutusTx.List.indexBuiltinList: negative index")
+  , ("PT22", "PlutusTx.List.indexBuiltinList: index too large")
   ]
 
 -- | The error happens in TH generation of indexed data
@@ -151,3 +153,13 @@ lastEmptyListError = "PT19"
 {-# INLINABLE reciprocalOfZeroError #-}
 reciprocalOfZeroError :: Builtins.BuiltinString
 reciprocalOfZeroError = "PT20"
+
+-- | PlutusTx.List.indexBuiltinList: negative index
+{-# INLINABLE builtinListNegativeIndexError #-}
+builtinListNegativeIndexError :: Builtins.BuiltinString
+builtinListNegativeIndexError = "PT21"
+
+-- | PlutusTx.List.indexBuiltinList: index too large
+{-# INLINABLE builtinListIndexTooLargeError #-}
+builtinListIndexTooLargeError :: Builtins.BuiltinString
+builtinListIndexTooLargeError = "PT22"
