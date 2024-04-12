@@ -527,7 +527,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 pure $ ExBudgetCons budget budgets'
 
             -- Just a random model that keeps the costs coming from the 'ExMemoryUsage' instance.
-            linear1 = ModelOneArgumentLinearCost $ OneVariableLinearFunction 1 1
+            linear1 = ModelOneArgumentLinearInX $ OneVariableLinearFunction 1 1
             model   = CostingFun linear1 linear1
         pure $ makeBuiltinMeaning
             @(Data -> [Integer])

@@ -57,11 +57,11 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens hiding (Context)
 import Control.Monad
-import Data.List.Extras (wix)
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.Semigroup (stimes)
 import Data.Text (Text)
+import Data.Vector qualified as V
 import Data.Word (Word64)
 import GHC.TypeNats
 
@@ -99,7 +99,7 @@ data Context uni fun ann
     | FrameAwaitFunValue ann !(CekValue uni fun ann) !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
     | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
-    | FrameCases ann !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
+    | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
     | NoFrame
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -154,7 +154,7 @@ computeCek !ctx !env (Constr ann i es) = do
     stepAndMaybeSpend BConstr
     case es of
         (t : rest) -> computeCek (FrameConstr ann env i rest EmptyStack ctx) env t
-        _          -> returnCek ctx $ VConstr i EmptyStack
+        []         -> returnCek ctx $ VConstr i EmptyStack
 -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
 computeCek !ctx !env (Case ann scrut cs) = do
     stepAndMaybeSpend BCase
@@ -192,10 +192,16 @@ returnCek (FrameConstr ann env i todo done ctx) e = do
     let done' = ConsStack e done
     case todo of
         (next : todo') -> computeCek (FrameConstr ann env i todo' done' ctx) env next
-        _              -> returnCek ctx $ VConstr i done'
+        []             -> returnCek ctx $ VConstr i done'
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
 returnCek (FrameCases ann env cs ctx) e = case e of
-    (VConstr i args) -> case cs ^? wix i of
+    -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
+    -- As it happens, this will currently never trigger, since i is a Word64, and the largest
+    -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
+    -- "apparently good" value.
+    (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
+                    throwingDischarged _MachineError (MissingCaseBranch i) e
+    (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
         Just t  ->
               let ctx' = transferArgStack ann args ctx
               in computeCek ctx' env t

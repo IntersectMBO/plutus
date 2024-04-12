@@ -20,6 +20,15 @@ import Data.Set qualified as Set
 import GHC.Generics (Generic)
 import Prettyprinter
 
+{- Note [Adding new builtins: protocol versions]
+
+  *** ATTENTION! ***
+  New built-in functions must initially be added under `futurePV` and should
+  only be moved to an earlier MajorProtocolVersion once they have been fully
+  implemented and costed and their release under the relevant protocol version
+  has been officially approved.
+-}
+
 -- | This represents the major component of the Cardano protocol version.
 -- The ledger can only supply the major component of the protocol version, not the minor
 -- component, and Plutus should only need to care about the major component anyway.
@@ -64,9 +73,10 @@ conwayPV = MajorProtocolVersion 9
 knownPVs :: Set.Set MajorProtocolVersion
 knownPVs = Set.fromList [ shelleyPV, allegraPV, maryPV, alonzoPV, vasilPV, valentinePV, conwayPV ]
 
--- | This is a placeholder for when we don't yet know what protocol
--- version will be used for something. It's a very high protocol
--- version that should never appear in reality.
+-- | This is a placeholder for when we don't yet know what protocol version will
+-- be used for something. It's a very high protocol version that should never
+-- appear in reality.  New builtins should always be given this protocol version
+-- until they've been finalised.
 --
 -- We should not assign names to future protocol versions until it's
 -- confirmed that they are correct, otherwise we could accidentally
