@@ -1,10 +1,14 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+
 -- | Optimization passes for removing dead code, mainly dead let bindings.
-module PlutusIR.Transform.DeadCode (removeDeadBindings, removeDeadBindingsPass, removeDeadBindingsPassSC) where
+module PlutusIR.Transform.DeadCode
+  ( removeDeadBindings
+  , removeDeadBindingsPass
+  , removeDeadBindingsPassSC
+  ) where
 
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
@@ -112,7 +116,7 @@ liveBinding =
                 -- Nothing is live, remove the whole thing
                 (False, False) -> pure Nothing
                 -- See Note [Dependencies for datatype bindings, and pruning them]
-                 -- Datatype is live but no term-level parts are, replace with a trivial type binding
+                -- Datatype is live but no term-level parts are, replace with a trivial type binding
                 (True, False)  -> Just . TypeBind x d <$> mkTypeOfKind (_tyVarDeclKind d)
 
 -- | Given a kind, make a type (any type!) of that kind.
