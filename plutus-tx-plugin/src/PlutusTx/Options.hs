@@ -189,7 +189,7 @@ pluginOptions =
                 "Always inline constants. Inlining constants always reduces script \
                 \costs slightly, but may increase script sizes if a large constant \
                 \is used more than once. Implied by ``no-conservative-optimisation``."
-           in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
+           in (k, PluginOption typeRep (setTrue k) posInlineConstants desc [])
         , let k = "optimize"
               desc = "Run optimization passes such as simplification and floating let-bindings."
            in (k, PluginOption typeRep (setTrue k) posOptimize desc [])
@@ -256,7 +256,7 @@ pluginOptions =
               desc =
                 "Turn off optimisations that may alter (i.e., add, remove or change the \
                 \order of) trace messages. Implied by ``conservative-optimisation``."
-           in (k, PluginOption typeRep (setTrue k) posRemoveTrace desc [])
+           in (k, PluginOption typeRep (setTrue k) posPreserveLogging desc [])
         , let k = "remove-trace"
               desc = "Eliminate calls to ``trace`` from Plutus Core"
            in (k, PluginOption typeRep (setTrue k) posRemoveTrace desc [])

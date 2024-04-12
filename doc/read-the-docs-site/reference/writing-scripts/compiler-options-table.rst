@@ -75,7 +75,7 @@
 
    * - ``inline-constants``
      - Bool
-     - False
+     - True
      - Always inline constants. Inlining constants always reduces script costs slightly, but may increase script sizes if a large constant is used more than once. Implied by ``no-conservative-optimisation``.
 
 
