@@ -256,9 +256,9 @@ xs0 !! n0 = go n0 xs0
 indexBuiltinList :: forall a. BI.BuiltinList a -> Integer -> a
 indexBuiltinList xs0 i0
   | i0 `Builtins.lessThanInteger` 0 = traceError builtinListNegativeIndexError
-  | otherwise = go xs0 i0 ()
+  | otherwise = go xs0 i0
   where
-    go :: BI.BuiltinList a -> Integer -> () -> a
+    go :: BI.BuiltinList a -> Integer -> a
     go xs i =
       Builtins.matchList
         xs
@@ -266,8 +266,9 @@ indexBuiltinList xs0 i0
         ( \hd tl _ ->
             if i `Builtins.equalsInteger` 0
               then hd
-              else go tl (Builtins.subtractInteger i 1) ()
+              else go tl (Builtins.subtractInteger i 1)
         )
+        ()
 
 {-# INLINABLE revAppend #-}
 -- | Cons each element of the first list to the second one in reverse order (i.e. the last element
