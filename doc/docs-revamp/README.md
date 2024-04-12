@@ -4,14 +4,14 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 
 # Reorganized top levels
 
-## 1. [Introduction](001_introduction.md)
+## 1. [Introduction](010_introduction.md)
 > **Status**
 > 
 > - Ported over existing content. 
 > - Planning further reorganization and editing. 
 > - Not ready for review. 
 
-## 2. [Core concepts](002_core-concepts.md)
+## 2. [Core concepts](020_core-concepts.md)
 > **Status**
 > 
 > - Ported over existing content. 
@@ -33,7 +33,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
    - Further reading
 - Plutus language versions
 
-## 3. [Developer onboarding and quick setup](003_dev-onboarding-quick-setup.md)
+## 3. [Developer onboarding and quick setup](030_dev-onboarding-quick-setup.md)
 
 > **Notes**
 >   - Review comments incorporated as of March 26. 
@@ -49,7 +49,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
    - Code example with explanations
 - The larger context and next steps
 
-## 4. [Simple example](004_simple-example.md)
+## 4. [Simple example](040_simple-example.md)
 > **Status**
 > 
 > - Ported over content. 
@@ -74,7 +74,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 - Further reading
    - The EUTXO model
 
-## 5. [Using Plutus Tx](005_using-plutus-tx.md)
+## 5. [Using Plutus Tx](050_using-plutus-tx.md)
 > **Status**
 > 
 > - Ported over existing content as of March 29 into new org structure. 
@@ -94,7 +94,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
    - Pragmas
 - Alternatives to Plutus Tx
 
-## 6. [Working with scripts](006_working-with-scripts.md)
+## 6. [Working with scripts](060_working-with-scripts.md)
 > **Status**
 > 
 > - Ported over existing content into new org structure. 
@@ -122,7 +122,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
    - Running the script
    - Analyzing the results
 
-## 7. [Working with Plutus Core](007_working-with-plutus-core.md)
+## 7. [Working with Plutus Core](070_working-with-plutus-core.md)
 
 > **Status**
 > 
@@ -155,7 +155,15 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
    - The tools available for Plutus Core development, such as decompilers, pretty-printers, and debuggers.
    - Troubleshooting
 
-## 8. [Reference](008_reference.md)
+## 8a. [ADR 1](081_adr1.md)
+
+## 8b. [ADR 2](082_adr2.md)
+
+## 8c. [ADR 3](083_adr3.md)
+
+## 8d. [ADR 4](084_adr4.md)
+
+## 9. [Reference](090_reference.md)
 > **Status**
 > 
 > - Ported over content. 
@@ -205,7 +213,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
   - Cost model parameters (Need to investigate how to migrate this content)
 - Glossary
 
-## 9. [Troubleshooting](009_troubleshooting.md)
+## 10. [Troubleshooting](100_troubleshooting.md)
 > **Status**
 > 
 > - Ported over content. 
@@ -222,5 +230,5 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
    - State machine errors
    - Currency errors
 
-## 10. [FAQ](010_faq.md)
+## 11. [FAQ](110_faq.md)
 - Draft list of questions in place. Changes to the questions are pending. 
