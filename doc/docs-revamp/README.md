@@ -155,6 +155,8 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
    - The tools available for Plutus Core development, such as decompilers, pretty-printers, and debuggers.
    - Troubleshooting
 
+## 8. [Architectural decision records](080_adr-index.md)
+
 ## 8a. [ADR 1](081_adr1.md)
 
 ## 8b. [ADR 2](082_adr2.md)
