@@ -11,6 +11,7 @@ import PlutusBenchmark.Common (benchProgramCek, mkEvalCtx)
 import PlutusLedgerApi.Common (EvaluationContext)
 import PlutusTx.Prelude qualified as Tx
 
+import Control.DeepSeq (force)
 import Control.Exception (evaluate)
 import Data.ByteString qualified as BS (empty)
 
@@ -77,7 +78,7 @@ schnorrG2Verify ctx = bench "schnorrVerifyG2" $ benchProgramCek ctx mkSchnorrG2V
 
 main :: IO ()
 main = do
-  evalCtx <- evaluate mkEvalCtx
+  evalCtx <- evaluate $ force mkEvalCtx
   defaultMain [
         bgroup "hashAndAddG1" $ fmap (benchHashAndAddG1 evalCtx) [0, 10..150]
       , bgroup "hashAndAddG2" $ fmap (benchHashAndAddG2 evalCtx) [0, 10..150]
