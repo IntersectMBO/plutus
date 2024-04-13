@@ -1,0 +1,135 @@
+program
+  1.1.0
+  ((\`$d(%,%)` ->
+      (\`$p1(%,%)` ->
+         (\`$p0(%,%)` ->
+            (\all inp ->
+               force (force all)
+                 `$d(%,%)`
+                 `$d(%,%)`
+                 (\v ->
+                    force ifThenElse
+                      (lessThanInteger v 10)
+                      (constr 0 [])
+                      (constr 1 []))
+                 inp)
+              ((\s ->
+                  s s)
+                 (\s
+                   x ->
+                    (\all ->
+                       delay
+                         (delay
+                            (\`$d(%,%)`
+                              `$d(%,%)`
+                              eta
+                              eta ->
+                               (\cse ->
+                                  force
+                                    (case
+                                       (force (force chooseList)
+                                          cse
+                                          (\ds -> constr 1 [])
+                                          (\ds ->
+                                             (\h ->
+                                                (\ds -> constr 0 [h])
+                                                  (force tailList cse))
+                                               (force headList cse))
+                                          (constr 0 []))
+                                       [ (\ipv ->
+                                            delay
+                                              ((\cse ->
+                                                  (\cse ->
+                                                     (\cse ->
+                                                        (\cse ->
+                                                           (\tup ->
+                                                              force
+                                                                (force
+                                                                   ifThenElse
+                                                                   (equalsInteger
+                                                                      0
+                                                                      (force
+                                                                         (force
+                                                                            fstPair)
+                                                                         tup))
+                                                                   (delay
+                                                                      ((\l ->
+                                                                          (\ds ->
+                                                                             force
+                                                                               (case
+                                                                                  (eta
+                                                                                     (cse
+                                                                                        (force
+                                                                                           headList
+                                                                                           (force
+                                                                                              tailList
+                                                                                              l))))
+                                                                                  [ (delay
+                                                                                       (force
+                                                                                          (force
+                                                                                             (all
+                                                                                                (delay
+                                                                                                   (\x ->
+                                                                                                      x))))
+                                                                                          `$d(%,%)`
+                                                                                          `$d(%,%)`
+                                                                                          eta
+                                                                                          (mapData
+                                                                                             (force
+                                                                                                tailList
+                                                                                                cse))))
+                                                                                  , (delay
+                                                                                       (constr 1
+                                                                                          [  ])) ]))
+                                                                            (cse
+                                                                               (force
+                                                                                  headList
+                                                                                  l)))
+                                                                         (force
+                                                                            (force
+                                                                               sndPair)
+                                                                            tup)))
+                                                                   (delay
+                                                                      (case
+                                                                         error
+                                                                         [ error ]))))
+                                                             (unConstrData
+                                                                ((\eta ->
+                                                                    (\arg0_ ->
+                                                                       (\arg1_ ->
+                                                                          constrData
+                                                                            0
+                                                                            (force
+                                                                               mkCons
+                                                                               (cse
+                                                                                  arg0_)
+                                                                               (force
+                                                                                  mkCons
+                                                                                  (cse
+                                                                                     arg1_)
+                                                                                  [  ])))
+                                                                         (cse
+                                                                            (force
+                                                                               (force
+                                                                                  sndPair)
+                                                                               eta)))
+                                                                      (cse
+                                                                         (force
+                                                                            (force
+                                                                               fstPair)
+                                                                            eta)))
+                                                                   (force
+                                                                      headList
+                                                                      cse))))
+                                                          (`$p0(%,%)`
+                                                             `$d(%,%)`))
+                                                       (`$p1(%,%)` `$d(%,%)`))
+                                                    (`$p0(%,%)` `$d(%,%)`))
+                                                 (`$p1(%,%)` `$d(%,%)`)))
+                                       , (delay (constr 0 [])) ]))
+                                 (unMapData eta))))
+                      (s s))
+                 (delay (\x -> x))))
+           (\v -> case v [(\v v -> v)]))
+        (\v -> case v [(\v v -> v)]))
+     (constr 0 [unIData, (\i -> iData i)]))

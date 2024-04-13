@@ -1,0 +1,152 @@
+let
+  data (`(%,%)` :: * -> * -> *) a b | `(%,%)_match` where
+    `(%,%)` : a -> b -> `(%,%)` a b
+  !`$d(%,%)` : `(%,%)` ((\a -> data -> a) integer) ((\a -> a -> data) integer)
+    = `(%,%)`
+        {(\a -> data -> a) integer}
+        {(\a -> a -> data) integer}
+        unIData
+        (\(i : integer) -> iData i)
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  data Unit | Unit_match where
+    Unit : Unit
+  !`$p0(%,%)` : all a b. `(%,%)` a b -> a
+    = /\a b ->
+        \(v : `(%,%)` a b) ->
+          `(%,%)_match` {a} {b} v {a} (\(v : a) (v : b) -> v)
+  !`$p1(%,%)` : all a b. `(%,%)` a b -> b
+    = /\a b ->
+        \(v : `(%,%)` a b) ->
+          `(%,%)_match` {a} {b} v {b} (\(v : a) (v : b) -> v)
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !all :
+     all k v.
+       `(%,%)` ((\a -> data -> a) k) ((\a -> a -> data) k) ->
+       `(%,%)` ((\a -> data -> a) v) ((\a -> a -> data) v) ->
+       (v -> Bool) ->
+       (\k v -> data) k v ->
+       Bool
+    = /\k v ->
+        \(`$d(%,%)` : `(%,%)` ((\a -> data -> a) k) ((\a -> a -> data) k))
+         (`$d(%,%)` : `(%,%)` ((\a -> data -> a) v) ((\a -> a -> data) v))
+         (eta : v -> Bool)
+         (eta : (\k v -> data) k v) ->
+          let
+            !l : list (pair data data) = unMapData eta
+          in
+          Maybe_match
+            {pair data data}
+            (chooseList
+               {pair data data}
+               {Unit -> Maybe (pair data data)}
+               l
+               (\(ds : Unit) -> Nothing {pair data data})
+               (\(ds : Unit) ->
+                  let
+                    !h : pair data data = headList {pair data data} l
+                    !ds : list (pair data data) = tailList {pair data data} l
+                  in
+                  Just {pair data data} h)
+               Unit)
+            {all dead. Bool}
+            (\(ipv : pair data data) ->
+               /\dead ->
+                 let
+                   !l : list (pair data data) = unMapData eta
+                   !`$dToData` : (\a -> a -> data) k
+                     = `$p1(%,%)`
+                         {(\a -> data -> a) k}
+                         {(\a -> a -> data) k}
+                         `$d(%,%)`
+                   !`$dUnsafeFromData` : (\a -> data -> a) k
+                     = `$p0(%,%)`
+                         {(\a -> data -> a) k}
+                         {(\a -> a -> data) k}
+                         `$d(%,%)`
+                   !`$dToData` : (\a -> a -> data) v
+                     = `$p1(%,%)`
+                         {(\a -> data -> a) v}
+                         {(\a -> a -> data) v}
+                         `$d(%,%)`
+                   !`$dUnsafeFromData` : (\a -> data -> a) v
+                     = `$p0(%,%)`
+                         {(\a -> data -> a) v}
+                         {(\a -> a -> data) v}
+                         `$d(%,%)`
+                   !tup : pair integer (list data)
+                     = unConstrData
+                         (let
+                           !eta : pair data data = headList {pair data data} l
+                           !arg0_ : k
+                             = `$p0(%,%)`
+                                 {(\a -> data -> a) k}
+                                 {(\a -> a -> data) k}
+                                 `$d(%,%)`
+                                 (fstPair {data} {data} eta)
+                           !arg1_ : v
+                             = `$p0(%,%)`
+                                 {(\a -> data -> a) v}
+                                 {(\a -> a -> data) v}
+                                 `$d(%,%)`
+                                 (sndPair {data} {data} eta)
+                         in
+                         constrData
+                           0
+                           (mkCons
+                              {data}
+                              (`$p1(%,%)`
+                                 {(\a -> data -> a) k}
+                                 {(\a -> a -> data) k}
+                                 `$d(%,%)`
+                                 arg0_)
+                              (mkCons
+                                 {data}
+                                 (`$p1(%,%)`
+                                    {(\a -> data -> a) v}
+                                    {(\a -> a -> data) v}
+                                    `$d(%,%)`
+                                    arg1_)
+                                 [])))
+                 in
+                 ifThenElse
+                   {all dead. Bool}
+                   (equalsInteger 0 (fstPair {integer} {list data} tup))
+                   (/\dead ->
+                      let
+                        !l : list data = sndPair {integer} {list data} tup
+                        !ds : k = `$dUnsafeFromData` (headList {data} l)
+                      in
+                      Bool_match
+                        (eta
+                           (`$dUnsafeFromData`
+                              (headList {data} (tailList {data} l))))
+                        {all dead. Bool}
+                        (/\dead ->
+                           all
+                             {k}
+                             {v}
+                             `$d(%,%)`
+                             `$d(%,%)`
+                             eta
+                             (mapData (tailList {pair data data} l)))
+                        (/\dead -> False)
+                        {all dead. dead})
+                   (/\dead -> Unit_match (error {Unit}) {Bool} (error {Bool}))
+                   {all dead. dead})
+            (/\dead -> True)
+            {all dead. dead}
+in
+\(inp : data) ->
+  all
+    {integer}
+    {integer}
+    `$d(%,%)`
+    `$d(%,%)`
+    (\(v : integer) -> ifThenElse {Bool} (lessThanInteger v 10) True False)
+    inp

@@ -26,6 +26,7 @@ module PlutusTx.DataMap (
   filter,
   mapMaybe,
   all,
+  all2,
   mapThese,
   map,
   foldr,
@@ -210,6 +211,19 @@ all f =
       if f x
         then all f xs
         else False
+
+all2 :: forall k a. (P.UnsafeFromData a) => (a -> Bool) -> Map k a -> Bool
+all2 p (Map_ d) = go (BI.unsafeDataAsMap d)
+  where
+    go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
+    go xs =
+      B.matchList
+        xs
+        True
+        ( \hd tl ->
+            let a = P.unsafeFromBuiltinData (BI.snd hd)
+             in if p a then go tl else False
+        )
 
 allPair :: (DataElem k, DataElem v) => (Pair k v -> Bool) -> Map k v -> Bool
 allPair f =

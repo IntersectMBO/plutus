@@ -1,0 +1,23 @@
+program
+  1.1.0
+  ((\go inp -> go (unMapData inp))
+     ((\s -> s s)
+        (\s x ->
+           (\go ->
+              force (force chooseList)
+                x
+                (\ds -> constr 0 [])
+                (\ds ->
+                   (\hd ->
+                      (\tl ->
+                         force
+                           (force ifThenElse
+                              (lessThanInteger
+                                 (unIData (force (force sndPair) hd))
+                                 10)
+                              (delay (go tl))
+                              (delay (constr 1 []))))
+                        (force tailList x))
+                     (force headList x))
+                (constr 0 []))
+             (s s))))

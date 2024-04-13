@@ -10,6 +10,7 @@ import IntegerLiterals.Strict.NegativeLiterals.Spec qualified as IntegerLiterals
 import IntegerLiterals.Strict.NoNegativeLiterals.Spec qualified as IntegerLiterals.Strict.NoNegativeLiterals
 import IsData.Spec qualified as IsData
 import Lift.Spec qualified as Lift
+import Map.Spec qualified as Map
 import Optimization.Spec qualified as Optimization
 import Plugin.Spec qualified as Plugin
 import StdLib.Spec qualified as Lib
@@ -40,4 +41,5 @@ tests =
       , Optimization.tests
       , Strictness.tests
       , Blueprint.Tests.goldenTests
+      , Map.tests
       ]
