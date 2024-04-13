@@ -21,6 +21,7 @@ import Universe
 
 import Data.Foldable (for_)
 import Data.Hashable
+import Data.Vector qualified as V
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
             Eq (Term Name uni fun ann) where
@@ -34,6 +35,11 @@ type HashableTermConstraints uni fun ann =
   , Hashable ann
   , Hashable fun
   )
+
+-- This instance is the only logical one, and exists also in the package `vector-instances`.
+-- Since this is the same implementation as that one, there isn't even much risk of incoherence.
+instance Hashable a => Hashable (V.Vector a) where
+  hashWithSalt s = hashWithSalt s . toList
 
 instance HashableTermConstraints uni fun ann => Hashable (Term Name uni fun ann)
 
@@ -100,7 +106,7 @@ eqTermM (Constr ann1 i1 args1) (Constr ann2 i2 args2) = do
 eqTermM (Case ann1 a1 cs1) (Case ann2 a2 cs2) = do
     eqM ann1 ann2
     eqTermM a1 a2
-    case zipExact cs1 cs2 of
+    case zipExact (toList cs1) (toList cs2) of
         Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
         Nothing -> empty
 eqTermM Constant{} _ = empty
