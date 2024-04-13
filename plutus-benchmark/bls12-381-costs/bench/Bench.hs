@@ -71,10 +71,10 @@ aggregateSigMultiKey :: EvaluationContext -> Benchmark
 aggregateSigMultiKey ctx = bench "aggregateSignatureMultiKey" $ benchProgramCek ctx mkAggregateMultiKeyG2Policy
 
 schnorrG1Verify :: EvaluationContext -> Benchmark
-schnorrG1Verify ctx = bench "schnorrVerifyG1" $ benchProgramCek ctx mkSchnorrG1VerifyPolicy
+schnorrG1Verify ctx = bench "schnorrG1Verify" $ benchProgramCek ctx mkSchnorrG1VerifyPolicy
 
 schnorrG2Verify :: EvaluationContext -> Benchmark
-schnorrG2Verify ctx = bench "schnorrVerifyG2" $ benchProgramCek ctx mkSchnorrG2VerifyPolicy
+schnorrG2Verify ctx = bench "schnorrG2Verify" $ benchProgramCek ctx mkSchnorrG2VerifyPolicy
 
 main :: IO ()
 main = do
