@@ -13,6 +13,7 @@ module PlutusBenchmark.Common
     , compiledCodeToTerm
     , haskellValueToTerm
     , benchProgramCek
+    , benchProgramCek2
     , unsafeRunTermCek
     , runTermCek
     , cekResultMatchesHaskellValue
@@ -115,6 +116,10 @@ haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
 benchProgramCek :: Program -> Benchmarkable
 benchProgramCek (UPLC.Program _ _ term) =
     nf unsafeRunTermCek $! term -- Or whnf?
+
+benchProgramCek2 :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
+benchProgramCek2 evalCtx (UPLC.Program _ _ term) =
+  benchTermCek evalCtx term
 
 {- | Just run a term to obtain an `EvaluationResult` (used for tests etc.) -}
 unsafeRunTermCek :: Term -> EvaluationResult Term

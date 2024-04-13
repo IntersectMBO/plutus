@@ -425,6 +425,7 @@ benchmark bls12-381-benchmarks
     , bytestring
     , criterion                >=1.5.9.0
     , plutus-benchmark-common
+    , plutus-ledger-api        ^>=1.25
     , plutus-tx                ^>=1.25
 
 ---------------- script contexts ----------------
