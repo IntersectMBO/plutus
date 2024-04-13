@@ -505,6 +505,8 @@ runCompiler moduleName opts expr = do
                     (opts ^. posDoSimplifierEvaluateBuiltins)
                  & set (PIR.ccOpts . PIR.coDoSimplifierStrictifyBindings)
                     (opts ^. posDoSimplifierStrictifyBindings)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierRemoveDeadBindings)
+                    (opts ^. posDoSimplifierRemoveDeadBindings)
                  & set (PIR.ccOpts . PIR.coInlineConstants)
                     (opts ^. posInlineConstants)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints

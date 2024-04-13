@@ -16,6 +16,7 @@ import Control.Lens ((&), (.~))
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
+import Data.Vector qualified as V
 import Test.Tasty
 import Test.Tasty.Golden
 
@@ -41,7 +42,7 @@ caseOfCase1 = runQuote $ do
   let ite = Force () (Builtin () PLC.IfThenElse)
       true = Constr () 0 []
       false = Constr () 1 []
-      alts = [mkConstant @Integer () 1, mkConstant @Integer () 2]
+      alts = V.fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
 {- | This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
@@ -55,7 +56,7 @@ caseOfCase2 = runQuote $ do
   let ite = Force () (Builtin () PLC.IfThenElse)
       true = Var () t
       false = Constr () 1 []
-      alts = [mkConstant @Integer () 1, mkConstant @Integer () 2]
+      alts = V.fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
 {- | Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
@@ -72,7 +73,7 @@ caseOfCase3 = runQuote $ do
       false = Constr () 1 []
       altTrue = Var () f
       altFalse = mkConstant @Integer () 2
-      alts = [altTrue, altFalse]
+      alts = V.fromList [altTrue, altFalse]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
 -- | The `Delay` should be floated into the lambda.
@@ -357,7 +358,7 @@ cse1 = runQuote $ do
       branch1 = plus onePlusTwoPlusX threePlusX
       branch2 = plus twoPlusX threePlusX
       branch3 = fourPlusX
-      caseExpr = Case () (Var () y) [branch1, branch2, branch3]
+      caseExpr = Case () (Var () y) (V.fromList [branch1, branch2, branch3])
   pure $ LamAbs () x (LamAbs () y body)
 
 -- | This is the second example in Note [CSE].

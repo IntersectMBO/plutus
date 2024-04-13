@@ -167,6 +167,15 @@ typeCheckTerm = do
   tcconfig <- view ccTypeCheckConfig
   pure $ mwhen doTc $ P.typecheckPass tcconfig
 
+dce :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
+dce = do
+  opts <- view ccOpts
+  typeCheckConfig <- view ccTypeCheckConfig
+  builtinsInfo <- view ccBuiltinsInfo
+  pure $
+    mwhen (opts ^. coDoSimplifierRemoveDeadBindings) $
+      DeadCode.removeDeadBindingsPassSC typeCheckConfig builtinsInfo
+
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
 -- to dump a "readable" version of pir (i.e. floated).
@@ -177,14 +186,8 @@ compileToReadable
   -> m (Program TyName Name uni fun b)
 compileToReadable (Program a v t) = do
   validateOpts v
-  let
-    pipeline :: m (P.Pass m TyName Name uni fun b)
-    pipeline = getAp $ foldMap Ap
-        [ typeCheckTerm
-        , DeadCode.removeDeadBindingsPassSC <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo
-        , simplifier
-        , floatOutPasses
-        ]
+  let pipeline :: m (P.Pass m TyName Name uni fun b)
+      pipeline = ala Ap foldMap [typeCheckTerm, dce, simplifier, floatOutPasses]
   Program a v <$> runCompilerPass pipeline t
 
 -- | The 2nd half of the PIR compiler pipeline.
@@ -195,7 +198,7 @@ compileReadableToPlc (Program a v t) = do
 
   let
     pipeline :: m (P.Pass m TyName Name uni fun b)
-    pipeline = getAp $ foldMap Ap
+    pipeline = ala Ap foldMap
         [ floatInPasses
         , NonStrict.compileNonStrictBindingsPassSC <$> view ccTypeCheckConfig <*> pure False
         , ThunkRec.thunkRecursionsPass <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo
@@ -204,9 +207,9 @@ compileReadableToPlc (Program a v t) = do
         , NonStrict.compileNonStrictBindingsPassSC <$> view ccTypeCheckConfig <*> pure True
         , Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.DataTypes
         , Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.RecTerms
-        -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
-        -- can eliminate any of them which are unused here.
-        , DeadCode.removeDeadBindingsPassSC <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo
+        -- We introduce some non-recursive let bindings while eliminating recursive let-bindings,
+        -- so we can eliminate any of them which are unused here.
+        , dce
         , simplifier
         , Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.Types
         , Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.NonRecTerms
