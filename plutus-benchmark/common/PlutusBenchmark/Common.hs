@@ -167,6 +167,7 @@ mkEvalCtx =
         Nothing -> error "Couldn't get cost model params"
 
 -- | Evaluate a term as it would be evaluated using the on-chain evaluator.
+{-# INLINE evaluateCekLikeInProd #-}
 evaluateCekLikeInProd
     :: LedgerApi.EvaluationContext
     -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
@@ -182,20 +183,23 @@ evaluateCekLikeInProd evalCtx term = do
 
 -- | Evaluate a term and either throw if evaluation fails or discard the result and return '()'.
 -- Useful for benchmarking.
+{-# INLINE evaluateCekForBench #-}
 evaluateCekForBench
     :: LedgerApi.EvaluationContext
     -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
     -> ()
 evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
 
-benchProgramCek :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
-benchProgramCek evalCtx (UPLC.Program _ _ term) =
-   benchTermCek evalCtx term
-
+{-# INLINE benchTermCek #-}
 benchTermCek :: LedgerApi.EvaluationContext -> Term -> Benchmarkable
 benchTermCek evalCtx term =
     let !term' = force term
     in whnf (evaluateCekForBench evalCtx) term'
+
+{-# INLINE benchProgramCek #-}
+benchProgramCek :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
+benchProgramCek evalCtx (UPLC.Program _ _ term) =
+   benchTermCek evalCtx term
 
 ---------------- Printing tables of information about costs ----------------
 
