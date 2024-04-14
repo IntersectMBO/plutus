@@ -21,10 +21,10 @@ module PlutusBenchmark.Common
     , printSizeStatistics
     , goldenVsTextualOutput
     , checkGoldenFileExists
-    , benchTermCek
-    , benchProgramCek
     , unsafeRunTermCek
     , runTermCek
+    , benchProgramCek
+    , benchTermCek
     )
 where
 
