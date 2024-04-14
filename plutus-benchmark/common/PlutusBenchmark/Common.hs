@@ -7,10 +7,6 @@ module PlutusBenchmark.Common
     ( module Export
     , Program
     , Term
-    , benchTermCek
-    , benchProgramCek
-    , unsafeRunTermCek
-    , runTermCek
     , mkEvalCtx
     , evaluateCekLikeInProd
     , evaluateCekForBench
@@ -25,6 +21,10 @@ module PlutusBenchmark.Common
     , printSizeStatistics
     , goldenVsTextualOutput
     , checkGoldenFileExists
+    , benchTermCek
+    , benchProgramCek
+    , unsafeRunTermCek
+    , runTermCek
     )
 where
 
