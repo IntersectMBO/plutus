@@ -6,25 +6,25 @@
 module PlutusBenchmark.Common
     ( module Export
     , Program
-    , Term
-    , getConfig
-    , toAnonDeBruijnTerm
-    , toNamedDeBruijnTerm
-    , compiledCodeToTerm
-    , haskellValueToTerm
-    , benchProgramCek
-    , unsafeRunTermCek
-    , runTermCek
-    , cekResultMatchesHaskellValue
-    , mkEvalCtx
-    , TestSize (..)
-    , printHeader
-    , printSizeStatistics
-    , goldenVsTextualOutput
     , checkGoldenFileExists
-    , evaluateCekLikeInProd
-    , evaluateCekForBench
+    , goldenVsTextualOutput
+    , printSizeStatistics
+    , printHeader
+    , TestSize (..)
     , benchTermCek
+    , evaluateCekForBench
+    , evaluateCekLikeInProd
+    , mkEvalCtx
+    , cekResultMatchesHaskellValue
+    , runTermCek
+    , unsafeRunTermCek
+    , benchProgramCek
+    , haskellValueToTerm
+    , compiledCodeToTerm
+    , toNamedDeBruijnTerm
+    , toAnonDeBruijnTerm
+    , getConfig
+    , Term
     )
 where
 
