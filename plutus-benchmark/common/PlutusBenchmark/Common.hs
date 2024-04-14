@@ -7,19 +7,19 @@ module PlutusBenchmark.Common
     ( module Export
     , Program
     , Term
+    , benchTermCek
+    , benchProgramCek
+    , unsafeRunTermCek
+    , runTermCek
+    , mkEvalCtx
+    , evaluateCekLikeInProd
+    , evaluateCekForBench
     , getConfig
     , toAnonDeBruijnTerm
     , toNamedDeBruijnTerm
     , compiledCodeToTerm
     , haskellValueToTerm
-    , benchProgramCek
-    , unsafeRunTermCek
-    , runTermCek
     , cekResultMatchesHaskellValue
-    , mkEvalCtx
-    , evaluateCekLikeInProd   -- Not used elsewhere
---    , evaluateCekForBench   -- Not used elsewhere
-    , benchTermCek
     , TestSize (..)
     , printHeader
     , printSizeStatistics
