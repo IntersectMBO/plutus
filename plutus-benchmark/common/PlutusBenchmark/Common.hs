@@ -6,25 +6,26 @@
 module PlutusBenchmark.Common
     ( module Export
     , Program
-    , checkGoldenFileExists
-    , goldenVsTextualOutput
-    , printSizeStatistics
-    , printHeader
-    , TestSize (..)
-    , benchTermCek
-    , evaluateCekForBench
-    , evaluateCekLikeInProd
-    , mkEvalCtx
-    , cekResultMatchesHaskellValue
-    , runTermCek
-    , unsafeRunTermCek
-    , benchProgramCek
-    , haskellValueToTerm
-    , compiledCodeToTerm
-    , toNamedDeBruijnTerm
-    , toAnonDeBruijnTerm
-    , getConfig
     , Term
+    , getConfig
+    , toAnonDeBruijnTerm
+    , toNamedDeBruijnTerm
+    , compiledCodeToTerm
+    , haskellValueToTerm
+    , benchProgramCek
+    , benchProgramCek2
+    , unsafeRunTermCek
+    , runTermCek
+    , cekResultMatchesHaskellValue
+    , mkEvalCtx
+    , evaluateCekLikeInProd
+    , evaluateCekForBench
+    , benchTermCek
+    , TestSize (..)
+    , printHeader
+    , printSizeStatistics
+    , goldenVsTextualOutput
+    , checkGoldenFileExists
     )
 where
 
@@ -198,6 +199,10 @@ benchTermCek :: LedgerApi.EvaluationContext -> Term -> Benchmarkable
 benchTermCek evalCtx term =
     let !term' = force term
     in whnf (evaluateCekForBench evalCtx) term'
+
+benchProgramCek2 :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
+benchProgramCek2 evalCtx (Program _ _ term) =
+  bencTermCek evalCtx term
 
 ---------------- Printing tables of information about costs ----------------
 
