@@ -7,9 +7,6 @@ module PlutusBenchmark.Common
     ( module Export
     , Program
     , Term
-    , evaluateCekLikeInProd
-    , evaluateCekForBench
-    , benchTermCek
     , getConfig
     , toAnonDeBruijnTerm
     , toNamedDeBruijnTerm
@@ -25,6 +22,9 @@ module PlutusBenchmark.Common
     , printSizeStatistics
     , goldenVsTextualOutput
     , checkGoldenFileExists
+    , evaluateCekLikeInProd
+    , evaluateCekForBench
+    , benchTermCek
     )
 where
 
