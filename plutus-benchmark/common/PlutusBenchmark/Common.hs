@@ -201,7 +201,7 @@ benchTermCek evalCtx term =
     in whnf (evaluateCekForBench evalCtx) term'
 
 benchProgramCek2 :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
-benchProgramCek2 evalCtx (Program _ _ term) =
+benchProgramCek2 evalCtx (UPLC.Program _ _ term) =
   bencTermCek evalCtx term
 
 ---------------- Printing tables of information about costs ----------------
