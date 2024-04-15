@@ -27,7 +27,7 @@ import PlutusCore.Quote
 import PlutusCore.StdLib.Type qualified as Types
 import PlutusCore.TypeCheck.Internal qualified as PLC
 import PlutusCore.Version qualified as PLC
-import PlutusIR.Transform.RewriteRules.Rules
+import PlutusIR.Transform.RewriteRules.Internal (RewriteRules)
 import PlutusPrelude
 
 import Control.Monad.Error.Lens (throwing)
