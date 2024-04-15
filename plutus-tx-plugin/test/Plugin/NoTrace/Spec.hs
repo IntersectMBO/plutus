@@ -8,15 +8,12 @@ module Plugin.NoTrace.Spec where
 
 import Prelude
 
-import Control.Lens (universeOf, (^.))
+import Plugin.NoTrace.Lib (countTraces)
 import Plugin.NoTrace.WithoutTraces qualified as WithoutTraces
 import Plugin.NoTrace.WithTraces qualified as WithTraces
-import PlutusCore.Default.Builtins qualified as Builtin
-import PlutusTx.Code (CompiledCode, getPlcNoAnn)
 import Test.Tasty (testGroup)
 import Test.Tasty.Extras (TestNested)
 import Test.Tasty.HUnit (testCase, (@=?))
-import UntypedPlutusCore.Core qualified as UPLC
 
 noTrace :: TestNested
 noTrace = pure do
@@ -24,36 +21,32 @@ noTrace = pure do
     "remove-trace"
     [ testGroup
         "Trace calls are present"
-        [ testCase "trace" $
-            1 @=? countTraces WithTraces.trace
+        [ testCase "trace-argument" $
+            1 @=? countTraces WithTraces.traceArgument
+        , testCase "trace-show" $
+            1 @=? countTraces WithTraces.traceShow
         , testCase "trace-complex" $
             2 @=? countTraces WithTraces.traceComplex
         , testCase "trace-direct" $
             1 @=? countTraces WithTraces.traceDirect
-        , testCase "trace-prelude" $
-            1 @=? countTraces WithTraces.tracePrelude
+        , testCase "trace-non-constant" $
+            1 @=? countTraces WithTraces.traceNonConstant
         , testCase "trace-repeatedly" $
             3 @=? countTraces WithTraces.traceRepeatedly
         ]
     , testGroup
         "Trace calls are absent"
-        [ testCase "trace" $
-            0 @=? countTraces WithoutTraces.trace
+        [ testCase "trace-argument" $
+            0 @=? countTraces WithoutTraces.traceArgument
+        , testCase "trace-show" $
+            0 @=? countTraces WithoutTraces.traceShow
         , testCase "trace-complex" $
             0 @=? countTraces WithoutTraces.traceComplex
         , testCase "trace-direct" $
             0 @=? countTraces WithoutTraces.traceDirect
-        , testCase "trace-prelude" $
-            0 @=? countTraces WithoutTraces.tracePrelude
+        , testCase "trace-non-constant" $
+            0 @=? countTraces WithoutTraces.traceNonConstant
         , testCase "trace-repeatedly" $
             0 @=? countTraces WithoutTraces.traceRepeatedly
         ]
-    ]
-
-countTraces :: CompiledCode a -> Int
-countTraces code =
-  length
-    [ subterm
-    | subterm@(UPLC.Builtin _ Builtin.Trace) <-
-        universeOf UPLC.termSubterms (getPlcNoAnn code ^. UPLC.progTerm)
     ]
