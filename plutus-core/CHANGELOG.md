@@ -1,4 +1,34 @@
 
+<a id='changelog-1.25.0.0'></a>
+# 1.25.0.0 — 2024-04-03
+
+## Changed
+
+- Partially applied builtins are estimated to be pure and work-free to better inform other optimizations, e.g. common subexpression elimination.
+
+<a id='changelog-1.22.0.0'></a>
+# 1.22.0.0 — 2024-02-21
+
+## Added
+
+- Cost modelling code updated for `ByteStringToInteger` and `IntegerToByteString`.
+- Preliminary budgeting for `ByteStringToInteger` and `IntegerToByteString`.
+
+<a id='changelog-1.21.0.0'></a>
+# 1.21.0.0 — 2024-01-25
+
+## Changed
+
+- #5728 added `BuiltinResult` and leveraged in places where we used to use `Emitter (EvaluationResult Smth)`.
+
+<a id='changelog-1.20.0.0'></a>
+# 1.20.0.0 — 2024-01-15
+
+## Added
+
+- Implementations for the primitive operations described in
+  [CIP-0087](https://github.com/mlabs-haskell/CIPs/blob/koz/to-from-bytestring/CIP-0087/CIP-0087.md)
+
 <a id='changelog-1.19.0.0'></a>
 # 1.19.0.0 — 2023-12-23
 
@@ -163,7 +193,7 @@ instead of the previous indirection via Natural.
   `PlutusCore.MkPlc.mkIterTyApp` to require an annotation to be provided
   for each argument.
 
-- Updated the parser and the pretty-printers to the new syntax of `Data` in [#5391](https://github.com/input-output-hk/plutus/pull/5391) according to [this](https://github.com/input-output-hk/plutus/issues/4751#issuecomment-1538377273), for example:
+- Updated the parser and the pretty-printers to the new syntax of `Data` in [#5391](https://github.com/IntersectMBO/plutus/pull/5391) according to [this](https://github.com/IntersectMBO/plutus/issues/4751#issuecomment-1538377273), for example:
 
 ```
 Constr 1
@@ -315,7 +345,7 @@ Constr 1
 
 - `Version` no longer has an annotation, as this was entirely unused.
 
-- Made `geq` faster in certain cases, -1% of total validation time. [#5061](https://github.com/input-output-hk/plutus/pull/5061)
+- Made `geq` faster in certain cases, -1% of total validation time. [#5061](https://github.com/IntersectMBO/plutus/pull/5061)
 
 - Made the Haskell-Tx file input to the debugger optional.
 

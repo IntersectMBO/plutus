@@ -4,11 +4,11 @@
 
 # Do something like
 #    `cabal bench plutus-benchmarks:validation >results1 2>&1`
-# in one branch and then 
+# in one branch and then
 #    `cabal bench plutus-benchmarks:validation >results2 2>&1`
 # in another, then
 #    `bench-compare results1 results2 "Old results" "New results"`
-# to see the comparison.  
+# to see the comparison.
 # The (optional) third and fourth arguments will be used as column headers.
 #
 # You probably want to do this on a quiet machine, with things like Slack and
@@ -39,27 +39,52 @@ trap 'rm -f "$TMP1" "$TMP2"' EXIT
 awk '/^bench/ {printf ("%-40s ", $2)}
      /^time/ {printf ("%10s %-2s\n", $2, $3)}' "$INPUT1" > "$TMP1"  # %-2s to get the units properly aligned
 awk '/^time/ {printf ("%10s %-2s\n", $2, $3)}' "$INPUT2" > "$TMP2"
-paste "$TMP1" "$TMP2" |
-  awk -v hdr1="${3:-Old}" -v hdr2="${4:-New}" 'BEGIN {
-       # Initialise array of unit conversion factors
-       ps["s"]  = 12  # 1 s = 10^12 ps
-       ps["ms"] = 9 
-       ps["µs"] = 6   # 0xb5; Criterion uses this
-       ps["μs"] = 6   # 0x03bc
-       ps["ns"] = 3
-       ps["ps"] = 0
-       # Print markdown table headers, attempting to make the output reasonably well aligned even in raw form.
-       printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", "Script", hdr1, hdr2, " Change")
-       printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", ":------", ":------:", ":------:", ":------:")
-   }
-   {
-   time1 = $2
-   time2 = $4 * 10^(ps[$5]-ps[$3]) # Adjust for different units
-   d = (time2-time1)/time1 * 100
-   sign = (d<0) ? "" : ((d==0) ? " " : "+")     # We get the "-" anyway if d<0
-   change = sprintf ("%s%.1f%%", sign, d)
-   printf ("| %-40s |  %s %s  |  %s %s  |  %7s   |\n", $1, $2, $3, $4, $5, change)
- }' 
+paste -d " " "$TMP1" "$TMP2" |
+  awk -v hdr1="${3:-Old}" -v hdr2="${4:-New}" '
+      function normalise (t,    unit) { # Format a time with the most sensible units
+          unit = 0
+          for ( ;t > 1000; t /= 1000) unit += 3
+          # Make sure that the output has exactly four digits, like Criterion does
+          if (t < 10)  return (sprintf ("%.3f %s", t, ustr[unit]))
+          else if (t < 100) return (sprintf ("%.2f %s", t, ustr[unit]))
+          else return (sprintf ("%.1f %s", t, ustr[unit]))
+      }
+      function percentage_change (t1, t2,    d, sign) {
+          d = (t2-t1)/t1 * 100
+          sign = (d<0) ? "" : ((d==0) ? " " : "+")     # We get the "-" anyway if d<0
+          return (sprintf ("%s%.1f%%", sign, d))
+      }
 
+      BEGIN {
+          # Initialise array of unit conversion factors
+          ps["s"]  = 12  # 1 s = 10^12 ps
+          ps["ms"] = 9
+          ps["µs"] = 6   # 0xb5; Criterion uses this
+          ps["μs"] = 6   # 0x03bc
+          ps["ns"] = 3
+          ps["ps"] = 0
 
+          ustr[12] = "s "
+          ustr[9]  = "ms"
+          ustr[6]  = "µs"
+          ustr[3]  = "ns"
+          ustr[0]  = "ps"
 
+          # Print markdown table headers, attempting to make the output reasonably well aligned even in raw form.
+          printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", "Script", hdr1, hdr2, " Change")
+          printf ("| %-40s |  %-8s  |  %-8s  |  %-8s  |\n", ":------", ":------:", ":------:", ":------:")
+      }
+      {
+          time1 = $2
+          time2 = $4 * 10^(ps[$5]-ps[$3]) # Adjust for different units
+          printf ("| %-40s |  %s %s  |  %s %s  |  %7s   |\n", $1, $2, $3, $4, $5, percentage_change(time1, time2))
+          total1 += $2 * 10^ps[$3] # Total time in ps, normalised later
+          total2 += $4 * 10^ps[$5]
+      }
+      END {
+          printf ("| %-41s|%12s|%12s|%12s|\n", "", "", "", "")
+          printf ("| %-41s|  %s  |  %s  |  %7s   |\n", "TOTAL",
+                  normalise(total1), normalise(total2),
+                  percentage_change(total1, total2))
+      }
+      '

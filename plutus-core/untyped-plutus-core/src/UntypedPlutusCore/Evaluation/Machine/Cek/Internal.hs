@@ -85,7 +85,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts
                                                                  CekMachineCostsBase (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
-import Control.Lens ((^?))
 import Control.Lens.Review
 import Control.Monad (unless, when)
 import Control.Monad.Catch
@@ -97,10 +96,10 @@ import Data.DList qualified as DList
 import Data.Functor.Identity
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
-import Data.List.Extras (wix)
 import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
+import Data.Vector qualified as V
 import Data.Word
 import GHC.TypeLits
 import Prettyprinter
@@ -240,7 +239,7 @@ data CekValue uni fun ann =
       -- 'BuiltinRuntime', so that we don't need to store it here, but somehow doing so was
       -- consistently slowing evaluation down by half a percent. Might be noise, might be not, but
       -- at least we know that removing this @fun@ is not helpful anyway. See this commit reversing
-      -- the change: https://github.com/input-output-hk/plutus/pull/4778/commits/86a3e24ca3c671cc27c6f4344da2bcd14f961706
+      -- the change: https://github.com/IntersectMBO/plutus/pull/4778/commits/86a3e24ca3c671cc27c6f4344da2bcd14f961706
       (NTerm uni fun ())
       -- ^ This must be lazy. It represents the fully discharged partial application of the builtin
       -- function that we're going to run when it's fully saturated.  We need the 'Term' to be able
@@ -343,7 +342,7 @@ Instead of emitting log lines one by one, we have a 'DList' of them in the type 
 (see 'CekEmitter'). That 'DList' comes from 'Emitter' and allows the latter to be an efficient
 monad for logging. We leak this implementation detail in the type of emitters, because it's the
 most efficient way of doing emitting, see
-https://github.com/input-output-hk/plutus/pull/4421#issuecomment-1059186586
+https://github.com/IntersectMBO/plutus/pull/4421#issuecomment-1059186586
 -}
 
 -- See Note [DList-based emitting].
@@ -574,7 +573,7 @@ data Context uni fun ann
     -- See Note [Accumulators for terms]
     | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
-    | FrameCases !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
+    | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
     | NoFrame
 
@@ -652,14 +651,14 @@ evalBuiltinApp
     -> BuiltinRuntime (CekValue uni fun ann)
     -> CekM uni fun s (CekValue uni fun ann)
 evalBuiltinApp fun term runtime = case runtime of
-    BuiltinResult budgets getX -> do
+    BuiltinCostedResult budgets getX -> do
         spendBudgetStreamCek (BBuiltinApp fun) budgets
         case getX of
-            MakeKnownFailure logs err       -> do
+            BuiltinFailure logs err       -> do
                 ?cekEmitter logs
-                throwKnownTypeErrorWithCause term err
-            MakeKnownSuccess x              -> pure x
-            MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
+                throwBuiltinErrorWithCause term err
+            BuiltinSuccess x              -> pure x
+            BuiltinSuccessWithLogs logs x -> ?cekEmitter logs $> x
     _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
@@ -765,10 +764,17 @@ enterComputeCek = computeCek
         let done' = ConsStack e done
         case todo of
           (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
-          _              -> returnCek ctx $ VConstr i done'
+          []             -> returnCek ctx $ VConstr i done'
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
-        (VConstr i args) -> case cs ^? wix i of
+        -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
+        -- As it happens, this will currently never trigger, since i is a Word64, and the largest
+        -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
+        -- "apparently good" value.
+        (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
+                        throwingDischarged _MachineError (MissingCaseBranch i) e
+        -- Otherwise, we can safely convert the index to an Int and use it
+        (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e

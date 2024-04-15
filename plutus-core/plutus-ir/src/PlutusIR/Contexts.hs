@@ -10,7 +10,7 @@ module PlutusIR.Contexts where
 import Control.Lens
 import Data.Functor (void)
 import PlutusCore.Arity
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR.Analysis.VarInfo
 import PlutusIR.Core
 import PlutusIR.MkPir
@@ -114,7 +114,7 @@ saturates (TypeAppContext _ _ ctx) (TypeParam:arities) = saturates ctx arities
 -- Param/arg mismatch
 saturates (TermAppContext{}) (TypeParam:_)             = Nothing
 saturates (TypeAppContext{}) (TermParam:_)             = Nothing
--- Arguments lef - undersaturated
+-- Arguments left - undersaturated
 saturates (TermAppContext{}) []                        = Just Oversaturated
 saturates (TypeAppContext{}) []                        = Just Oversaturated
 

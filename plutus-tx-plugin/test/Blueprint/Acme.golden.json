@@ -1,0 +1,192 @@
+{
+  "$schema": "https://cips.cardano.org/cips/cip57/schemas/plutus-blueprint.json",
+  "$vocabulary": {
+    "https://cips.cardano.org/cips/cip57": true,
+    "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+    "https://json-schema.org/draft/2020-12/vocab/core": true,
+    "https://json-schema.org/draft/2020-12/vocab/validation": true
+  },
+  "preamble": {
+    "title": "Acme Contract",
+    "description": "A contract that does something awesome",
+    "version": "1.1.0",
+    "plutusVersion": "v3",
+    "license": "MIT"
+  },
+  "validators": [
+    {
+      "title": "Acme Validator #1",
+      "description": "A validator that does something awesome",
+      "redeemer": {
+        "title": "Acme Redeemer",
+        "description": "A redeemer that does something awesome",
+        "purpose": "spend",
+        "schema": {
+          "$ref": "#/definitions/String"
+        }
+      },
+      "datum": {
+        "title": "Acme Datum",
+        "description": "A datum that contains something awesome",
+        "purpose": "spend",
+        "schema": {
+          "$ref": "#/definitions/Datum"
+        }
+      },
+      "parameters": [
+        {
+          "title": "Acme Parameter",
+          "description": "A parameter that does something awesome",
+          "purpose": "spend",
+          "schema": {
+            "$ref": "#/definitions/Params"
+          }
+        }
+      ],
+      "compiledCode": "584f01010032222801199999a8911199a891199a89100111111400401600900380140044252005001001400084a400a0020038004008848a400e0050012410101010101010101000498101030048810001",
+      "hash": "a0a2b4161839094c666e8ea1952510e7f337aa10786cef62706244ba"
+    },
+    {
+      "title": "Acme Validator #2",
+      "description": "Another validator that does something awesome",
+      "redeemer": {
+        "purpose": "mint",
+        "schema": {
+          "$ref": "#/definitions/Integer"
+        }
+      },
+      "datum": {
+        "purpose": "mint",
+        "schema": {
+          "$ref": "#/definitions/Datum2"
+        }
+      },
+      "parameters": [
+        {
+          "purpose": "spend",
+          "schema": {
+            "$ref": "#/definitions/Param2a"
+          }
+        },
+        {
+          "purpose": "mint",
+          "schema": {
+            "$ref": "#/definitions/Param2b"
+          }
+        }
+      ],
+      "compiledCode": "58290101003322222800199a89110014002004424520070028008ccd4488800e0010022122900380140041",
+      "hash": "67923a88b5dfccdef62abd8b3f4ff857d7582b52cde4c07b8cd34175"
+    }
+  ],
+  "definitions": {
+    "Bool": {
+      "dataType": "#boolean"
+    },
+    "ByteString": {
+      "dataType": "bytes"
+    },
+    "Bytes_Void": {
+      "title": "SchemaBytes",
+      "dataType": "bytes"
+    },
+    "Data": {},
+    "Datum": {
+      "oneOf": [
+        {
+          "title": "Datum",
+          "description": "DatumLeft",
+          "$comment": "This constructor is parameterless",
+          "dataType": "constructor",
+          "fields": [],
+          "index": 0
+        },
+        {
+          "title": "Datum",
+          "description": "DatumRight",
+          "$comment": "This constructor has a payload",
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/DatumPayload"
+            }
+          ],
+          "index": 1
+        }
+      ]
+    },
+    "Datum2": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Integer"
+        },
+        {
+          "$ref": "#/definitions/Bool"
+        }
+      ],
+      "index": 0
+    },
+    "DatumPayload": {
+      "$comment": "MkDatumPayload",
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Integer"
+        },
+        {
+          "$ref": "#/definitions/Bytes_Void"
+        }
+      ],
+      "index": 0
+    },
+    "Integer": {
+      "dataType": "integer"
+    },
+    "Param2a": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Bool"
+        }
+      ],
+      "index": 0
+    },
+    "Param2b": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Bool"
+        }
+      ],
+      "index": 0
+    },
+    "Params": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Unit"
+        },
+        {
+          "$ref": "#/definitions/Bool"
+        },
+        {
+          "$ref": "#/definitions/Integer"
+        },
+        {
+          "$ref": "#/definitions/Data"
+        },
+        {
+          "$ref": "#/definitions/ByteString"
+        }
+      ],
+      "index": 0
+    },
+    "String": {
+      "dataType": "#string"
+    },
+    "Unit": {
+      "dataType": "#unit"
+    }
+  }
+}

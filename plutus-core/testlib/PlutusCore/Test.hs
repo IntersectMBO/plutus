@@ -151,12 +151,15 @@ instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
   toUPlc = pure
 
 instance
-    ( TPLC.Typecheckable uni fun
-    , Hashable fun
-    )
-    => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun where
-    toUPlc =
-        pure . TPLC.runQuote . flip runReaderT TPLC.defaultCompilationOpts . TPLC.compileProgram
+  ( TPLC.Typecheckable uni fun
+  , Hashable fun
+  )
+  => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun where
+  toUPlc =
+    pure
+      . TPLC.runQuote
+      . flip runReaderT TPLC.defaultCompilationOpts
+      . TPLC.compileProgram
 
 instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where
   toUPlc p =
@@ -294,7 +297,7 @@ runUPlcProfile' values = do
       (res, UPLC.CountingSt _, logs) =
         UPLC.runCek TPLC.defaultCekParameters UPLC.counting UPLC.logWithBudgetEmitter t
   case res of
-    Left err -> throwError (SomeException $ err)
+    Left err -> throwError (SomeException err)
     Right _  -> pure logs
 
 ppCatch :: (PrettyPlc a) => ExceptT SomeException IO a -> IO (Doc ann)
@@ -406,7 +409,7 @@ goldenUEvalBudget ::
   -> [a]
   -> TestNested
 goldenUEvalBudget name values =
-  nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcBudget values
+  nestedGoldenVsDocM name ".budget" $ ppCatch $ runUPlcBudget values
 
 goldenSize ::
   (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>

@@ -7,7 +7,7 @@ module PlutusCore.Examples.Data.Pair
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import PlutusCore.StdLib.Data.Pair

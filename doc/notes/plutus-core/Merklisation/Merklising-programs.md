@@ -10,7 +10,7 @@ The document mentioned above and the one examining
 [erasure](Erasure.md) of types and other information from Plutus Core
 ASTs both contain statistics for validation code from the sample
 contracts in
-[`plutus-use-cases`](https://github.com/input-output-hk/plutus/tree/master/plutus-use-cases).
+[`plutus-use-cases`](https://github.com/IntersectMBO/plutus/tree/master/plutus-use-cases).
 However, those documents deal with unapplied validators, which are
 just functions.  To study the full potential of Merklisation we
 require executable validators, which are obtained by applying

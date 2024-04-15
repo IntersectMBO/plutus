@@ -1,4 +1,4 @@
-A small tool to help with rapid interation when working with Plutus IR compiler.
+A small tool to help with rapid interaction when working with Plutus IR compiler.
 
 For instance, when debugging an issue when compiling a file from the `marlowe`
 package, we can:

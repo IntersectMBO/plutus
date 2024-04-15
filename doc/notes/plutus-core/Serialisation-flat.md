@@ -11,11 +11,11 @@ numbers are very small (see the figures [here](Merklisation/Compressibility.md))
 `flat` is bit-oriented and produces significantly smaller serialised scripts.
 
 The `CBOR` and `flat` encodings for Plutus Core coexisted for a considerable
-time, but the `CBOR` version was eventually removed in [PR 3521](https://github.com/input-output-hk/plutus/pull/3521).
+time, but the `CBOR` version was eventually removed in [PR 3521](https://github.com/IntersectMBO/plutus/pull/3521).
 This also removed  some benchmarks (in `plutus-benchmark/flat`)
 comparing the time and size performance of different serialisation methods.
 For reference, here are the results of these at commit
-[abeb9b2](https://github.com/input-output-hk/plutus/commit/abeb9d26f1f9db206dd723b669d3c37e7516efb0)
+[abeb9b2](https://github.com/IntersectMBO/plutus/commit/abeb9d26f1f9db206dd723b669d3c37e7516efb0)
 on the reference machine used for benchmarking (a machine with eight Intel Xeon CPUs (E3-1240 v5 @ 3.50GHz)
 and 32GB of memory, running `NixOS 19.09pre-git (Loris)` with the `Linux 4.19.95` kernel).
 

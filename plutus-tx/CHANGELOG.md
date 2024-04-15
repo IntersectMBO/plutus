@@ -1,4 +1,43 @@
 
+<a id='changelog-1.24.0.0'></a>
+# 1.24.0.0 — 2024-03-26
+
+## Added
+
+- Documented functions which unsafely construct `PlutusTx.AssocMap.Map`s, or depend on the precondition that the input `Map`s do not contain duplicate entries.
+
+## Changed
+
+- Renamed `PlutusTx.AssocMap.Map.fromList` to `PlutusTx.AssocMap.Map.unsafeFromList`.
+- Renamed `PlutusTx.AssocMap.Map.fromListSafe` to `PlutusTx.AssocMap.Map.safeFromList`.
+
+<a id='changelog-1.22.0.0'></a>
+# 1.22.0.0 — 2024-02-21
+
+## Removed
+
+- `PlutusTx.Ratio.reduce` removed in favor of `PlutusTx.Ratio.unsafeRatio` as it
+was violating the "positive denominator" invariant.
+
+## Added
+
+- Builtins updated to include `ByteStringToInteger` and `IntegerToByteString`.
+
+<a id='changelog-1.20.0.0'></a>
+# 1.20.0.0 — 2024-01-15
+
+## Added
+
+- Entries in `PlutusTx.Builtins` for [CIP-0087
+  primitives](https://github.com/mlabs-haskell/CIPs/blob/koz/to-from-bytestring/CIP-0087/CIP-0087.md)
+- Entries in `PlutusTx.Builtins.Internal` for [CIP-0087
+  primitives](https://github.com/mlabs-haskell/CIPs/blob/koz/to-from-bytestring/CIP-0087/CIP-0087.md)
+
+## Fixed
+
+- The `blake2b_224` function in the plutus-tx plugin was erroneously
+  calling `blake2b_256` instead.  Now fixed.
+
 <a id='changelog-1.19.0.0'></a>
 # 1.19.0.0 — 2023-12-23
 

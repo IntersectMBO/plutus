@@ -14,17 +14,18 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     ( BuiltinCostModel
     , BuiltinCostModelBase(..)
     , CostingFun(..)
+    , UnimplementedCostingFun(..)
     , Intercept(..)
     , Slope(..)
+    , Coefficient0(..)
+    , Coefficient1(..)
+    , Coefficient2(..)
     , OneVariableLinearFunction(..)
+    , OneVariableQuadraticFunction(..)
     , TwoVariableLinearFunction(..)
-    , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
-    , ModelConstantOrLinear(..)
+    , ModelConstantOrOneArgument(..)
     , ModelConstantOrTwoArguments(..)
-    , ModelMultipliedSizes(..)
-    , ModelMinSize(..)
-    , ModelMaxSize(..)
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)
@@ -157,13 +158,16 @@ data BuiltinCostModelBase f =
     -- Keccak_256, Blake2b_224
     , paramKeccak_256                      :: f ModelOneArgument
     , paramBlake2b_224                     :: f ModelOneArgument
+    -- Bitwise operations
+    , paramIntegerToByteString             :: f ModelThreeArguments
+    , paramByteStringToInteger             :: f ModelTwoArguments
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)
 
-deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
+deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerInitialCharacter)]
              (BuiltinCostModelBase CostingFun) instance ToJSON (BuiltinCostModelBase CostingFun)
-deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
+deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerInitialCharacter)]
              (BuiltinCostModelBase CostingFun) instance FromJSON (BuiltinCostModelBase CostingFun)
 
 -- | Same as 'CostingFun' but maybe missing.
@@ -173,7 +177,7 @@ newtype MCostingFun a = MCostingFun (Maybe (CostingFun a))
     deriving (Semigroup, Monoid) via (Alt Maybe (CostingFun a)) -- for mempty == MCostingFun Nothing
 
 -- Omit generating JSON for any costing functions that have not been set (are missing).
-deriving via CustomJSON '[OmitNothingFields, FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
+deriving via CustomJSON '[OmitNothingFields, FieldLabelModifier (StripPrefix "param", LowerInitialCharacter)]
              (BuiltinCostModelBase MCostingFun) instance ToJSON (BuiltinCostModelBase MCostingFun)
 
 -- Needed to help derive various instances for BuiltinCostModelBase

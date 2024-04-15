@@ -63,7 +63,7 @@ import Text.Megaparsec as MP
 import Text.Megaparsec.Char as MP
 import Text.Megaparsec.Char.Lexer as MP
 
-{- NOTE [Budgeting implementation for the debugger]
+{- Note [Budgeting implementation for the debugger]
 To retrieve the budget(s) (spent and remaining), we cannot simply
 rely on `CekState`: the debuggable version of CEK tries to closely match the original CEK and
 so it also inherits its pluggable spenders/emitters approach. Thus, for the debugger as well
@@ -202,7 +202,7 @@ driverThread driverMailbox brickMailbox prog mbudget = do
             Right t -> pure t
             Left _  -> fail $ "deBruijnTerm failed: " <> PLC.displayPlcDef (void term)
     -- if user provided `--budget` the mode is restricting; otherwise just counting
-    -- See NOTE [Budgeting implementation for the debugger]
+    -- See Note [Budgeting implementation for the debugger]
     let exBudgetMode = case mbudget of
             Just budgetLimit -> coerceMode $ restricting $ ExRestrictingBudget budgetLimit
             _                -> coerceMode counting
@@ -216,7 +216,7 @@ driverThread driverMailbox brickMailbox prog mbudget = do
 
     where
         -- this gets rid of the CountingSt/RestrictingSt newtype wrappers
-        -- See NOTE [Budgeting implementation for the debugger]
+        -- See Note [Budgeting implementation for the debugger]
         coerceMode :: Coercible cost ExBudget
                    => ExBudgetMode cost uni fun
                    -> ExBudgetMode ExBudget uni fun

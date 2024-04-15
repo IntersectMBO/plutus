@@ -8,11 +8,9 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
--- | Flat instances for Plutus Core types. Make sure to read the
--- Note [Stable encoding of PLC] before touching anything in this
--- file.  Also see the Notes [Serialising unit annotations] and
--- [Serialising Scripts] before using anything in this file.
-
+-- | Flat instances for Plutus Core types. Make sure to read Note [Stable
+-- encoding of TPLC] and Note [Stable encoding of UPLC] before touching anything
+-- in this file.
 module PlutusCore.Flat
     ( AsSerialize (..)
     , safeEncodeBits
@@ -21,9 +19,10 @@ module PlutusCore.Flat
 import PlutusCore.Core
 import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
+import Data.ByteString.Lazy qualified as BSL (toStrict)
 import Data.Proxy
 import Flat
 import Flat.Decoder
@@ -31,7 +30,7 @@ import Flat.Encoder
 import PlutusPrelude
 import Universe
 
-{- Note [Stable encoding of PLC]
+{- Note [Stable encoding of TPLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
 
 We need the encoding of PLC on the blockchain to be *extremely* stable. It *must not* change
@@ -52,7 +51,7 @@ However, having this flexibility allows us to encode e.g. PLC with substantial a
 for testing.
 -}
 
-{- Note [Encoding/decoding constructor tags using Flat]
+{- Note [Encoding/decoding TPLC constructor tags using Flat]
 Flat saves space when compared to CBOR by allowing tags to use the minimum
 number of bits required for their encoding.
 
@@ -106,6 +105,25 @@ This phase-1 validation is in place both for normal (locked scripts) and for inl
 so the nodes' behavior does not change.
 -}
 
+{- Note [Flat serialisation for strict and lazy bytestrings]
+The `flat` serialisation of a bytestring consists of a sequence of chunks, with each chunk preceded
+by a single byte saying how long it is.  The end of a serialised bytestring is marked by a
+zero-length chunk.  In the Plutus Core specification we recommend that all bytestrings should be
+serialised in a canonical way as a sequence of zero or more 255-byte chunks followed by an optional
+final chunk of length less than 255 followed by a zero-length chunk (ie, a 0x00 byte). We do allow
+the decoder to accept non-canonical encodings.  The `flat` library always encodes strict Haskell
+bytestrings in this way, but lazy bytestrings, which are essentially lists of strict bytestrings,
+may be encoded non-canonically since it's more efficient just to emit a short chunk as is.  The
+Plutus Core `bytestring` type is strict so bytestring values are always encoded canonically.
+However, we serialise `Data` objects (and perhaps objects of other types as well) by encoding them
+to CBOR and then flat-serialising the resulting bytestring; but the `serialise` method from
+`Codec.Serialise` produces lazy bytestrings and if we were to serialise them directly then we could
+end up with non-canonical encodings, which would mean that identical `Data` objects might be
+serialised into different bytestrings.  To avoid this we convert the output of `serialise` into a
+strict bytestring before flat-encoding it.  This may lead to a small loss of efficiency during
+encoding, but this doesn't matter because we only ever do flat serialisation off the chain.  We can
+convert `Data` objects to bytestrings on the chain using the `serialiseData` builtin, but this
+performs CBOR serialisation and the result is always in a canonical form. -}
 
 -- | For deriving 'Flat' instances via 'Serialize'.
 newtype AsSerialize a = AsSerialize
@@ -113,13 +131,14 @@ newtype AsSerialize a = AsSerialize
     } deriving newtype (Serialise)
 
 instance Serialise a => Flat (AsSerialize a) where
-    encode = encode . serialise
+    -- See Note [Flat serialisation for strict and lazy bytestrings]
+    encode = encode . BSL.toStrict . serialise
     decode = do
         errOrX <- deserialiseOrFail <$> decode
         case errOrX of
             Left err -> fail $ show err  -- Here we embed a 'Serialise' error into a 'Flat' one.
             Right x  -> pure x
-    size = size . serialise
+    size = size . BSL.toStrict . serialise
 
 safeEncodeBits :: NumBits -> Word8 -> Encoding
 safeEncodeBits maxBits v =
@@ -385,7 +404,7 @@ deriving newtype instance Flat (Binder NamedTyDeBruijn)
 {- This instance is going via Flat DeBruijn.
 FakeNamedDeBruijn <-> DeBruijn are isomorphic: we could use iso-deriving package,
 but we do not need any other isomorphic Flat deriving for the moment.
-See NOTE: [Why newtype FakeNamedDeBruijn]
+See Note [Why newtype FakeNamedDeBruijn]
 -}
 instance Flat FakeNamedDeBruijn where
     size = size . fromFake
@@ -397,7 +416,7 @@ Binder FakeNamedDeBruijn <-> Binder DeBruijn are isomorphic because
 FakeNamedDeBruijn <-> DeBruijn are isomorphic and Binder is a functor:
 we could use iso-deriving package,
 but  we do not need any other isomorphic Flat deriving for the moment.
-See NOTE: [Why newtype FakeNamedDeBruijn]
+See Note [Why newtype FakeNamedDeBruijn]
 NOTE: the serialization roundtrip holds iff the invariant binder.index==0 holds
 -}
 instance Flat (Binder FakeNamedDeBruijn) where

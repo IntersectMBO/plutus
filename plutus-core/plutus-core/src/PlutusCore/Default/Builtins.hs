@@ -17,15 +17,16 @@ module PlutusCore.Default.Builtins where
 import PlutusPrelude
 
 import PlutusCore.Builtin
-import PlutusCore.Data
+import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
-import PlutusCore.Evaluation.Machine.ExBudgetStream
-import PlutusCore.Evaluation.Machine.ExMemoryUsage
-import PlutusCore.Evaluation.Result
-import PlutusCore.Pretty
+import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, LiteralByteSize (..),
+                                                    memoryUsage, singletonRose)
+import PlutusCore.Evaluation.Result (EvaluationResult (..))
+import PlutusCore.Pretty (PrettyConfigPlc)
 
-import PlutusCore.Builtin.Convert as Convert
+import PlutusCore.Bitwise.Convert as Convert
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -36,13 +37,12 @@ import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorr
 import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
-import Data.Char
-import Data.Ix
+import Data.Ix (Ix)
 import Data.Text (Text, pack)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
-import Flat.Decoder
-import Flat.Encoder as Flat
+import Flat.Decoder (Get, dBEBits8)
+import Flat.Encoder as Flat (Encoding, NumBits, eBits)
 import Prettyprinter (viaShow)
 
 -- See Note [Pattern matching on built-in types].
@@ -50,7 +50,7 @@ import Prettyprinter (viaShow)
 -- | Default built-in functions.
 --
 -- When updating these, make sure to add them to the protocol version listing!
--- See Note [New builtins and protocol versions]
+-- See Note [New builtins/language versions and protocol versions]
 data DefaultFun
     -- Integers
     = AddInteger
@@ -120,7 +120,7 @@ data DefaultFun
     -- Misc monomorphized constructors.
     -- We could simply replace those with constants, but we use built-in functions for consistency
     -- with monomorphic built-in types. Polymorphic built-in constructors are generally problematic,
-    -- See note [Representable built-in functions over polymorphic built-in types].
+    -- See Note [Representable built-in functions over polymorphic built-in types].
     | MkPairData
     | MkNilData
     | MkNilPairData
@@ -161,10 +161,7 @@ data DefaultFun
  the built-in functions are obtained by applying the function below to the
  constructor names above. -}
 instance Pretty DefaultFun where
-    pretty fun = pretty $ case show fun of
-        ""    -> ""  -- It's really weird to have a function's name displayed as an empty string,
-                     -- but if it's what the 'Show' instance does, the user has asked for it.
-        c : s -> toLower c : s
+    pretty fun = pretty $ lowerInitialChar $ show fun
 
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = singletonRose 1
@@ -234,7 +231,7 @@ built-in function.
 This Note explains how to add a built-in function and how to read definitions of existing built-in
 functions. It does not attempt to explain why things the way they are, that is explained in comments
 in relevant modules, check out the following for an overview of the module structure:
-https://github.com/input-output-hk/plutus/blob/97c2b2c6975e41ce25ee5efa1dff0f1bd891a589/plutus-core/docs/BuiltinsOverview.md
+https://github.com/IntersectMBO/plutus/blob/97c2b2c6975e41ce25ee5efa1dff0f1bd891a589/plutus-core/docs/BuiltinsOverview.md
 
 In order to add a new built-in function one needs to add a constructor to 'DefaultFun' and handle
 it within the @ToBuiltinMeaning uni DefaultFun@ instance. The general pattern is
@@ -304,7 +301,7 @@ You can feed 'encodeUtf8' directly to 'makeBuiltinMeaning' without specifying an
 
 This will add the builtin, the only two things that remain are implementing costing for this
 builtin (out of the scope of this Note) and handling it within the @Flat DefaultFun@ instance
-(see Note [Stable encoding of PLC]).
+(see Note [Stable encoding of TPLC]).
 
 2. Unconstrained type variables are fine, you don't need to instantiate them. For example
 
@@ -722,9 +719,10 @@ However it's not always possible to use automatic unlifting, see next.
             nullListDenotation
             <costingFunction>
 
-we'll get an error, saying that a polymorphic built-in type can't be applied to a type variable.
-It's not impossible to make it work, see Note [Unlifting values of built-in types], but not in the
-general case, plus it has to be very inefficient.
+we'll get an error, saying that a polymorphic built-in type can't be applied to
+a type variable.  It's not impossible to make it work, see Note [Unlifting a
+term as a value of a built-in type], but not in the general case, plus it has to
+be very inefficient.
 
 Instead we have to use 'SomeConstant' to automatically unlift the argument as a constant and then
 check that the value inside of it is a list (by matching on the type tag):
@@ -983,7 +981,7 @@ built-in functions were allowed, we could define not only matchers, but also fol
 recursion on the Haskell side for conversions from 'Data', which can potentially have a huge
 positive impact on performance.
 
-See https://github.com/input-output-hk/plutus/pull/5486 for how higher-order builtins would look
+See https://github.com/IntersectMBO/plutus/pull/5486 for how higher-order builtins would look
 like.
 
 Read Note [Representable built-in functions over polymorphic built-in types] next.
@@ -1066,7 +1064,7 @@ and then defining
 and then the Plutus Tx compiler can provide a type class or something for constructing singletons
 for built-in types.
 
-This was investigated in https://github.com/input-output-hk/plutus/pull/4337 but we decided not to
+This was investigated in https://github.com/IntersectMBO/plutus/pull/4337 but we decided not to
 do it quite yet, even though it worked (the Plutus Tx part wasn't implemented).
 -}
 
@@ -1286,10 +1284,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning semvar VerifyEd25519Signature =
         let verifyEd25519SignatureDenotation
-                :: BS.ByteString
-                -> BS.ByteString
-                -> BS.ByteString
-                -> Emitter (EvaluationResult Bool)
+                :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
             verifyEd25519SignatureDenotation =
                 case semvar of
                   DefaultFunSemanticsVariant1 -> verifyEd25519Signature_V1
@@ -1301,6 +1296,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             -- execution times, so it's safe to use the same costing function for
             -- both.
             (runCostingFunThreeArguments . paramVerifyEd25519Signature)
+
     {- Note [ECDSA secp256k1 signature verification].  An ECDSA signature
        consists of a pair of values (r,s), and for each value of r there are in
        fact two valid values of s, one effectively the negative of the other.
@@ -1317,13 +1313,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
           https://github.com/bitcoin-core/secp256k1.
      -}
-
     toBuiltinMeaning _semvar VerifyEcdsaSecp256k1Signature =
         let verifyEcdsaSecp256k1SignatureDenotation
-                :: BS.ByteString
-                -> BS.ByteString
-                -> BS.ByteString
-                -> Emitter (EvaluationResult Bool)
+                :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
             verifyEcdsaSecp256k1SignatureDenotation = verifyEcdsaSecp256k1Signature
             {-# INLINE verifyEcdsaSecp256k1SignatureDenotation #-}
         in makeBuiltinMeaning
@@ -1332,10 +1324,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar VerifySchnorrSecp256k1Signature =
         let verifySchnorrSecp256k1SignatureDenotation
-                :: BS.ByteString
-                -> BS.ByteString
-                -> BS.ByteString
-                -> Emitter (EvaluationResult Bool)
+                :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
             verifySchnorrSecp256k1SignatureDenotation = verifySchnorrSecp256k1Signature
             {-# INLINE verifySchnorrSecp256k1SignatureDenotation #-}
         in makeBuiltinMeaning
@@ -1448,7 +1437,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                   -- since in UPLC one can create an ill-typed program that attempts to prepend
                   -- a value of the wrong type to a list.
                   -- Should that rather give us an 'UnliftingError'? For that we need
-                  -- https://github.com/input-output-hk/plutus/pull/3035
+                  -- https://github.com/IntersectMBO/plutus/pull/3035
                   Just Refl <- pure $ uniA `geq` uniA'
                   pure . fromValueOf uniListA $ x : xs
             {-# INLINE mkConsDenotation #-}
@@ -1809,22 +1798,41 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramBlake2b_224)
 
     -- Conversions
+    {- See Note [Input length limitation for IntegerToByteString] -}
     toBuiltinMeaning _semvar IntegerToByteString =
-      let integerToByteStringDenotation :: Bool -> Integer -> Integer -> Emitter (EvaluationResult BS.ByteString)
-          integerToByteStringDenotation = integerToByteStringWrapper
+      let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> BuiltinResult BS.ByteString
+          {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
+             costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
+          integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
+          {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
           integerToByteStringDenotation
-          -- FIXME: Cost this function.
-          (runCostingFunThreeArguments . const def)
+          (runCostingFunThreeArguments . paramIntegerToByteString)
     toBuiltinMeaning _semvar ByteStringToInteger =
       let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
           byteStringToIntegerDenotation = byteStringToIntegerWrapper
+          {-# INLINE byteStringToIntegerDenotation #-}
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
-            -- FIXME: Cost this function.
-            (runCostingFunTwoArguments . const def)
+            (runCostingFunTwoArguments . paramByteStringToInteger)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
+
+    {- *** IMPORTANT! *** When you're adding a new builtin above you typically won't
+       be able to add a sensible costing function until the implementation is
+       complete and you can benchmark it.  It's still necessary to supply
+       `toBuiltinMeaning` with some costing function though: this **MUST** be
+       `unimplementedCostingFun`: this will assign a very large cost to any
+       invocation of the function, preventing it from being used in places where
+       costs are important (for example on testnets) until the implementation is
+       complete and a proper costing function has been defined.  Once the
+       builtin is ready for general use replace `unimplementedCostingFun` with
+       the appropriate `param<BuiltinName>` from BuiltinCostModelBase.
+
+       Please leave this comment immediately after the definition of the final
+       builtin to maximise the chances of it being seen the next time someone
+       implements a new builtin.
+    -}
 
 instance Default (BuiltinSemanticsVariant DefaultFun) where
     def = DefaultFunSemanticsVariant2
@@ -1845,7 +1853,7 @@ encodeBuiltin = eBits builtinTagWidth
 decodeBuiltin :: Get Word8
 decodeBuiltin = dBEBits8 builtinTagWidth
 
--- See Note [Stable encoding of PLC]
+-- See Note [Stable encoding of TPLC]
 instance Flat DefaultFun where
     encode = encodeBuiltin . \case
               AddInteger                      -> 0

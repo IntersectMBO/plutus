@@ -137,6 +137,9 @@ and create the internal (nameful) representation of cost model parameters, by as
 to its value: see `PlutusLedgerApi.Common.ParamName.tagWithParamNames` and the `ParamName` datatypes in
 plutus-ledger-api.
 
+See https://github.com/IntersectMBO/cardano-ledger/issues/2902 for a discussion
+of these issues and the rationale for adopting the system described above.
+
 -}
 
 
@@ -270,7 +273,7 @@ applySplitCostModelParams prefix model params =
                  <*> applyParams (_builtinCostModel model) builtinparams
 
 -- | Update a CostModel for the CEK machine with a given set of parameters.
--- Note that this is costly. See [here](https://github.com/input-output-hk/plutus/issues/4962).
+-- Note that this is costly. See [here](https://github.com/IntersectMBO/plutus/issues/4962).
 -- Callers are recommended to call this once and cache the results.
 applyCostModelParams
     :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)

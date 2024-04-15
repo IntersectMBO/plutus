@@ -1,5 +1,3 @@
--- editorconfig-checker-disable-file
-
 -- | The interface to Plutus V3 for the ledger.
 module PlutusLedgerApi.V3 (
   -- * Scripts
@@ -28,6 +26,7 @@ module PlutusLedgerApi.V3 (
   GovernanceActionId (..),
   Committee (..),
   Constitution (..),
+  ProtocolVersion (..),
   GovernanceAction (..),
   ChangedParameters (..),
   ProposalProcedure (..),
@@ -90,11 +89,11 @@ module PlutusLedgerApi.V3 (
   -- *** Types for representing transactions
   V2.Address (..),
   V2.PubKeyHash (..),
-  V2.TxId (..),
+  TxId (..),
   TxInfo (..),
   V2.TxOut (..),
-  V2.TxOutRef (..),
-  V2.TxInInfo (..),
+  TxOutRef (..),
+  TxInInfo (..),
   V2.OutputDatum (..),
 
   -- *** Intervals
@@ -111,9 +110,15 @@ module PlutusLedgerApi.V3 (
   V2.strictLowerBound,
   V2.strictUpperBound,
 
+  -- *** Ratio
+  Ratio.Rational,
+  Ratio.ratio,
+  Ratio.fromGHC,
+  Ratio.toGHC,
+
   -- *** Association maps
   V2.Map,
-  V2.fromList,
+  V2.unsafeFromList,
 
   -- *** Newtypes and hash types
   V2.ScriptHash (..),
@@ -138,17 +143,18 @@ module PlutusLedgerApi.V3 (
   V2.ScriptDecodeError (..),
 ) where
 
+import PlutusCore.Data qualified as PLC
 import PlutusLedgerApi.Common as Common hiding (deserialiseScript, evaluateScriptCounting,
                                          evaluateScriptRestricting)
 import PlutusLedgerApi.Common qualified as Common (deserialiseScript, evaluateScriptCounting,
                                                    evaluateScriptRestricting)
-import PlutusLedgerApi.V2 qualified as V2 hiding (ScriptContext (..), ScriptPurpose (..),
-                                           TxInfo (..))
+import PlutusLedgerApi.V2 qualified as V2 hiding (ScriptContext (..), ScriptPurpose (..), TxId (..),
+                                           TxInfo (..), TxOutRef (..))
 import PlutusLedgerApi.V3.Contexts
 import PlutusLedgerApi.V3.EvaluationContext
 import PlutusLedgerApi.V3.ParamName
-
-import PlutusCore.Data qualified as PLC
+import PlutusLedgerApi.V3.Tx
+import PlutusTx.Ratio qualified as Ratio
 
 import Control.Monad.Except (MonadError)
 

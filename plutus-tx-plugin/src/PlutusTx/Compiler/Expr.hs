@@ -33,6 +33,7 @@ import GHC.Types.TyThing qualified as GHC
 import GHC.Tc.Utils.TcType qualified as GHC
 #endif
 
+import PlutusTx.Bool qualified
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
@@ -136,8 +137,11 @@ compileLiteral = \case
 stringExprContent :: GHC.CoreExpr -> Maybe BS.ByteString
 stringExprContent = \case
   GHC.Lit (GHC.LitString bs) -> Just bs
-  -- unpackCString# is just a wrapper around a literal
-  GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> stringExprContent expr
+  -- unpackCString# / unpackCStringUtf8# are just wrappers around a literal
+  GHC.Var n `GHC.App` expr
+    | let name = GHC.getName n
+    , name == GHC.unpackCStringName || name == GHC.unpackCStringUtf8Name ->
+      stringExprContent expr
   -- See Note [unpackFoldrCString#]
   GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
     | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> stringExprContent expr
@@ -304,7 +308,7 @@ In this case we make a strict binding, in all others we make a non-strict bindin
 
 {- Note [Evaluation-only cases]
 GHC sometimes generates case expressions where there is only a single alternative, and where none
-of the variables bound by the alternative are live (see Note [Occurrence analsis] for how we tell
+of the variables bound by the alternative are live (see Note [Occurrence analysis] for how we tell
 that this is the case).
 
 What this amounts to is ensuring the expression is evaluated - hence one place this appears is bang
@@ -684,7 +688,21 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
     _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
+  boolOperatorOr <- GHC.getName <$> getThing '(PlutusTx.Bool.||)
+  boolOperatorAnd <- GHC.getName <$> getThing '(PlutusTx.Bool.&&)
   case e of
+    {- Note [Lazy boolean operators]
+      (||) and (&&) have a special treatment: we want them lazy in the second argument,
+      as this is the behavior in Haskell and other PLs.
+      Covered by this spec: plutus-tx-plugin/test/ShortCircuit/Spec.hs
+    -}
+    -- Lazy ||
+    GHC.App (GHC.App (GHC.Var var) a) b | GHC.getName var == boolOperatorOr ->
+      compileExpr $ GHC.mkIfThenElse a (GHC.Var GHC.trueDataConId) b
+    -- Lazy &&
+    GHC.App (GHC.App (GHC.Var var) a) b | GHC.getName var == boolOperatorAnd ->
+      compileExpr $ GHC.mkIfThenElse a b (GHC.Var GHC.falseDataConId)
+
     -- See Note [String literals]
     -- IsString has only one method, so it's enough to know that it's an IsString method
     -- to know we're looking at fromString.
@@ -747,7 +765,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
     -- See Note [noinline hack]
     GHC.Var n `GHC.App` GHC.Type _ `GHC.App` arg | GHC.getName n == GHC.noinlineIdName -> compileExpr arg
-    -- See note [GHC runtime errors]
+    -- See Note [GHC runtime errors]
     -- <error func> <runtime rep> <overall type> <call stack> <message>
     GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ `GHC.App` _ ->
       PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
@@ -784,7 +802,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- Special kinds of id
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
     -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
-    -- want to check the unfoldings case first), see the GHC Note [ClassOp/DFun selection] for why. That
+    -- want to check the unfoldings case first), see GHC:Note [ClassOp/DFun selection] for why. That
     -- means we have to reconstruct the RHS ourselves, though, which is a pain.
     GHC.Var n@(GHC.idDetails -> GHC.ClassOpId cls) -> do
       -- This code (mostly) lifted from MkId.mkDictSelId, which makes unfoldings for those dictionary
@@ -1223,7 +1241,7 @@ a data constructor.
 The easiest way to ensure that we always have a DEFAULT case is just to put one in if it's missing.
 -}
 
-{- Note [Sharing DEFAULT bodes]
+{- Note [Sharing DEFAULT bodies]
 Consider the following program:
 ```
 data A = B | C | D

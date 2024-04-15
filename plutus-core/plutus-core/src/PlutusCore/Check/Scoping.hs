@@ -10,7 +10,7 @@
 
 module PlutusCore.Check.Scoping where
 
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import Control.Monad (join, unless)

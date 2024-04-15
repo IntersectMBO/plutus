@@ -22,13 +22,13 @@ scripts, requiring some knowledge of the Haskell programming language.
 This guide is also meant for certification companies, certification auditors,
 and people who need an accurate specification. See, for example:
 
-* the `Cardano Ledger Specification <https://github.com/input-output-hk/cardano-ledger#cardano-ledger>`_ and
-* the `Plutus Core Specification <https://github.com/input-output-hk/plutus#specifications-and-design>`_.
+* the `Cardano Ledger Specification <https://github.com/IntersectMBO/cardano-ledger#cardano-ledger>`_ and
+* the `Plutus Core Specification <https://github.com/IntersectMBO/plutus#specifications-and-design>`_.
 
 The Plutus repository
 ----------------------------------
 
-The `Plutus repository <https://github.com/input-output-hk/plutus>`_ contains
+The `Plutus repository <https://github.com/IntersectMBO/plutus>`_ contains
 the implementation, specification, and mechanized metatheory of Plutus Core.
 It also contains the Plutus Tx compiler and the libraries, such as ``PlutusTx.List``,
 for writing Haskell code that can be compiled to Plutus Core.

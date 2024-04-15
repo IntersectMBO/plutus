@@ -15,7 +15,7 @@ The first part of the name specifies the slot containing the first script event
 in the file; the number of events per file is not fixed, but the more recent
 files typically contain about 50,000 events.  The files contain scripts which
 have been run on the chain, together with their inputs encoded using the
-[Data](https://github.com/input-output-hk/plutus/blob/master/plutus-core/plutus-core/src/PlutusCore/Data.hs)
+[Data](https://github.com/IntersectMBO/plutus/blob/master/plutus-core/plutus-core/src/PlutusCore/Data.hs)
 type. For standard validation scripts the inputs consist of datum, redeemer, and
 script context; for minting policies the inputs are a redeemer and script
 context.

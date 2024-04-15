@@ -82,28 +82,6 @@ outputformat = option (maybeReader formatReader)
   <> showDefault
   <> help ("Output format: " ++ formatHelp))
 
--- -x -> run 100 times and print the mean time
-timing1 :: Parser TimingMode
-timing1 = flag NoTiming (Timing 100)
-  (  short 'x'
-  <> help "Report mean execution time of program over 100 repetitions"
-  )
-
--- -X N -> run N times and print the mean time
-timing2 :: Parser TimingMode
-timing2 = Timing <$> option auto
-  (  long "time-execution"
-  <> short 'X'
-  <> metavar "N"
-  <> help ("Report mean execution time of program over N repetitions. "
-  <> " Use a large value of N if possible to get accurate results.")
-  )
-
--- We really do need two separate parsers here.
--- See https://github.com/pcapriotti/optparse-applicative/issues/194#issuecomment-205103230
-timingmode :: Parser TimingMode
-timingmode = timing1 <|> timing2
-
 tracemode :: Parser TraceMode
 tracemode = option auto
   (  long "trace-mode"

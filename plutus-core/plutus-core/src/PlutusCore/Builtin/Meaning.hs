@@ -28,7 +28,7 @@ import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Control.DeepSeq
 import Data.Array
@@ -229,37 +229,37 @@ instance (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res) 
             KnownMonotype val '[] res where
     knownMonotype = TypeSchemeResult
 
-    -- We need to lift the 'ReadKnownM' action into 'MakeKnownM',
+    -- We need to lift the 'ReadKnownM' action into 'BuiltinResult',
     -- hence 'liftReadKnownM'.
     toMonoF =
         either
             -- Unlifting has failed and we don't care about costing at this point, since we're about
             -- to terminate evaluation anyway, hence we put 'mempty' as the cost of the operation.
             --
-            -- Note that putting the cost inside of 'MakeKnownM' is not an option, since forcing
-            -- the 'MakeKnownM' computation is exactly forcing the builtin application, which we
+            -- Note that putting the cost inside of 'BuiltinResult' is not an option, since forcing
+            -- the 'BuiltinResult' computation is exactly forcing the builtin application, which we
             -- can't do before accounting for the cost of the application, i.e. the cost must be
-            -- outside of 'MakeKnownM'.
+            -- outside of 'BuiltinResult'.
             --
-            -- We could introduce a level of indirection and say that a 'BuiltinResult' is either
-            -- a budgeting failure or a budgeting success with a cost and a 'MakeKnownM' computation
-            -- inside, but that would slow things down a bit and the current strategy is
+            -- We could introduce a level of indirection and say that a 'BuiltinCostedResult' is
+            -- either a budgeting failure or a budgeting success with a cost and a 'BuiltinResult'
+            -- computation inside, but that would slow things down a bit and the current strategy is
             -- reasonable enough.
-            (BuiltinResult (ExBudgetLast mempty) . MakeKnownFailure mempty)
-            (\(x, cost) -> BuiltinResult cost $ makeKnown x)
+            (BuiltinCostedResult (ExBudgetLast mempty) . BuiltinFailure mempty)
+            (\(x, cost) -> BuiltinCostedResult cost $ makeKnown x)
     {-# INLINE toMonoF #-}
 
 {- Note [One-shotting runtime denotations]
 In @KnownMonotype val (arg ': args) res@ we 'oneShot' the runtime denotations. Otherwise GHC creates
 let-bindings and lifts them out of some of the lambdas in the runtime denotation, which would speed
 up partial applications if they were getting reused, but at some point it was verified that we
-didn't have any reusage of partial applications: https://github.com/input-output-hk/plutus/pull/4629
+didn't have any reusage of partial applications: https://github.com/IntersectMBO/plutus/pull/4629
 
 One-shotting the runtime denotations alone made certain game contracts slower by ~9%. A lot of time
 was spent on the investigation, but we still don't know why that was happening. Plus, basically any
 other change to the builtins machinery would cause the same kind of slowdown, so we just admitted
 defeat and decided it wasn't worth investigating the issue further.
-Relevant thread: https://github.com/input-output-hk/plutus/pull/4620
+Relevant thread: https://github.com/IntersectMBO/plutus/pull/4620
 
 The speedup that adding a call to 'oneShot' gives us, if any, is smaller than our noise threshold,
 however it also makes those confusing allocations disappear from the generated Core, which is enough

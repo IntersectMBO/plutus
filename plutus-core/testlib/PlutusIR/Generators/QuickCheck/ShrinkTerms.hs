@@ -9,9 +9,10 @@
 
 module PlutusIR.Generators.QuickCheck.ShrinkTerms where
 
+import PlutusPrelude
+
 import PlutusIR.Generators.QuickCheck.Common
 
-import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Common
 import PlutusCore.Generators.QuickCheck.ShrinkTypes
 import PlutusCore.Generators.QuickCheck.Substitutions
@@ -24,18 +25,15 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing (ident
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.MkPlc (mkConstantOf, mkTyBuiltinOf)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.Subst (typeSubstClosedType)
 import PlutusIR
 import PlutusIR.Subst
 
 import Data.Bifunctor
-import Data.Either
-import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
-import Data.Proxy
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
 import GHC.Stack
@@ -47,10 +45,6 @@ addTmBind :: Binding TyName Name DefaultUni DefaultFun ()
 addTmBind (TermBind _ _ (VarDecl _ x a) _) = Map.insert x a
 addTmBind (DatatypeBind _ dat)             = (Map.fromList (matchType dat : constrTypes dat) <>)
 addTmBind _                                = id
-
-shrinkConstant :: DefaultUni (Esc a) -> a -> [Term TyName Name DefaultUni DefaultFun ()]
-shrinkConstant uni x =
-    map (mkConstantOf () uni) $ bring (Proxy @ArbitraryBuiltin) uni $ shrinkBuiltin x
 
 scopeCheckTyVars :: TypeCtx
                  -> (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
@@ -88,7 +82,9 @@ fixupTerm_ :: TypeCtx
 fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm0 =
   case inferTypeInContext tyctxNew ctxNew tm0 of
     Left _ -> case tm0 of
-      LamAbs _ x a tm | TyFun () _ b <- tyNew -> bimap (TyFun () a) (LamAbs () x a)
+      -- Make @a@ the new type of @x@. We can't take the old type of @x@, because it may reference
+      -- a removed binding. And we're trying to change the type of @tm0@ to @tyNew@ anyway.
+      LamAbs _ x _ tm | TyFun () a b <- tyNew -> bimap (TyFun () a) (LamAbs () x a)
                                               $ fixupTerm_ tyctxOld (Map.insert x a ctxOld)
                                                            tyctxNew (Map.insert x a ctxNew) b tm
       Apply _ (Apply _ (TyInst _ (Builtin _ Trace) _) s) tm ->
@@ -275,9 +271,19 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = concat
           | TyFun _ _ b <- [ty]
           ]
 
-        Apply _ fun arg | Right argTy <- inferTypeInContext tyctx ctx arg ->
-          -- Drop substerms
-          [(argTy, arg), (TyFun () argTy ty, fun)]
+        -- Drop substerms
+        Apply _ fun arg -> case inferTypeInContext tyctx ctx arg of
+          Right argTy ->
+            [ -- Prefer to keep the same type, so that we don't need to change types elsewhere,
+              -- which may remove or cover up the culprit.
+              (ty, fixupTerm tyctx ctx tyctx ctx ty arg)
+            , (ty, fixupTerm tyctx ctx tyctx ctx ty fun)
+            , -- But support type-changing shrinking as well in case it's 'fixupTerm' that removes
+              -- or covers up the culprit.
+              (argTy, arg)
+            , (TyFun () argTy ty, fun)
+            ]
+          Left err -> error $ displayPlcCondensedErrorClassic err
 
         TyAbs _ x _ body ->
           [ fixupTerm_ (Map.insert x k tyctx) ctx tyctx ctx tyInner' body
@@ -285,12 +291,16 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = concat
           , let tyInner' = typeSubstClosedType y (minimalType k) tyInner
           ]
 
-        -- Builtins can shrink to unit. More fine-grained shrinking is in `structural` below.
-        Constant _ val -> do
-            val'@(Some (ValueOf uni _)) <- shrink val
-            pure (mkTyBuiltinOf () uni, Constant () val')
-
-        _ -> []
+        -- TODO: allow non-structural shrinking for some of these.
+        Var{} -> []
+        Constant{} -> []
+        Builtin{} -> []
+        TyInst{} -> []
+        Error{} -> []
+        IWrap{} -> []
+        Unwrap{} -> []
+        PlutusIR.Constr{} -> []
+        Case{} -> []
 
     -- These are the structural (basically homomorphic) cases in shrinking.
     -- They all just try to shrink a single subterm at a time. We also
@@ -320,13 +330,18 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = concat
                   tyctxInner = foldr addTyBind tyctx binds
                   ctxInner   = foldr addTmBind ctx binds
 
-        -- TODO: shrink the function too!
         TyInst _ fun argTy -> case inferTypeInContext tyctx ctx fun of
-          Right (TyForall _ x k tyInner) ->
+          Right funTy@(TyForall _ x k tyInner) ->
+            [ (substType (Map.singleton x' argTy') tyInner', TyInst () fun' argTy')
+            | (TyForall () x' k' tyInner', fun') <- go tyctx ctx (funTy, fun)
+            , let argTy' | k == k' = argTy
+                         -- TODO: define and use proper fixupType
+                         | otherwise = minimalType k'
+            ] ++
             [ (substType (Map.singleton x argTy') tyInner', TyInst () fun' argTy')
             | (k', argTy') <- shrinkKindAndType tyctx (k, argTy)
             , let tyInner' | k == k'   = tyInner
-                           -- TODO: use proper fixupType
+                           -- TODO: define and use proper fixupType
                            | otherwise = substType (Map.singleton x $ minimalType k) tyInner
                   fun' = fixupTerm tyctx ctx tyctx ctx (TyForall () x k' tyInner') fun
             ]
@@ -363,10 +378,20 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = concat
             , let fun' = fixupTerm tyctx ctx tyctx ctx (TyFun () argTy' ty) fun
             ]
 
-        Constant _ (Some (ValueOf uni x)) -> map ((,) ty) $ shrinkConstant uni x
+        Constant _ val ->
+          shrink val <&> \val'@(Some (ValueOf uni _)) ->
+            (mkTyBuiltinOf () uni, Constant () val')
 
-        -- TODO: handle all the cases explicitly.
-        _ -> []
+        Error _ _ -> shrinkType tyctx ty <&> \ty' -> (ty', Error () ty')
+
+        -- TODO: allow structural shrinking for some of these.
+        Var{} -> []
+        IWrap{} -> []
+        Unwrap{} -> []
+        Builtin{} -> []
+        Case{} -> []
+        TyAbs{} -> []
+        PlutusIR.Constr{} -> []
 
 shrinkClosedTypedTerm :: (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
                       -> [(Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())]

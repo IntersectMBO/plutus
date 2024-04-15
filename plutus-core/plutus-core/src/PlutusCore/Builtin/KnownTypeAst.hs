@@ -33,9 +33,10 @@ module PlutusCore.Builtin.KnownTypeAst
 import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.KnownKind
 import PlutusCore.Builtin.Polymorphism
+import PlutusCore.Builtin.Result
 import PlutusCore.Core
 import PlutusCore.Evaluation.Result
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Subst (typeMapNames)
 
 import Data.Kind qualified as GHC (Constraint, Type)
@@ -220,6 +221,13 @@ instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (EvaluationResult 
     type IsBuiltin _ (EvaluationResult a) = 'False
     type ToHoles _ (EvaluationResult a) = '[TypeHole a]
     type ToBinds uni acc (EvaluationResult a) = ToBinds uni acc a
+    toTypeAst _ = toTypeAst $ Proxy @a
+    {-# INLINE toTypeAst #-}
+
+instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (BuiltinResult a) where
+    type IsBuiltin _ (BuiltinResult a) = 'False
+    type ToHoles _ (BuiltinResult a) = '[TypeHole a]
+    type ToBinds uni acc (BuiltinResult a) = ToBinds uni acc a
     toTypeAst _ = toTypeAst $ Proxy @a
     {-# INLINE toTypeAst #-}
 

@@ -1,0 +1,7 @@
+Type mismatch at test:2:4-2:41
+Expected a term of type
+  '(sop [field_0] ...)' for some 'field_0'
+But found one of type
+  '(sop [] [])'
+Namely,
+  '(constr (sop [] []) 0 (con integer 2))'

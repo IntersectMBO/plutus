@@ -6,6 +6,9 @@ Simple example
 Plutus script for an auction smart contract
 -------------------------------------------------
 
+.. caution:: 
+   This conceptual guide to an auction smart contract in Plutus introduces fundamentals for educational use. However, it is not optimized for security or efficiency and should not be deployed in production environments. This example simplifies some security aspects, leading to potential vulnerabilities. For detailed insights on developing secure smart contracts, please refer to the `Cardano Plutus Script Vulnerability Guide <https://library.mlabs.city/common-plutus-security-vulnerabilities>`_ by MLabs. 
+
 Overview
 ~~~~~~~~~~~~
 
@@ -73,7 +76,7 @@ Plutus Tx code
 
 Recall that Plutus Tx is a subset of Haskell. It is the source language one uses to write Plutus validators.
 A Plutus Tx program is compiled into Plutus Core, which is interpreted on-chain.
-The full Plutus Tx code for the auction smart contract can be found at `AuctionValidator.hs <https://github.com/input-output-hk/plutus/blob/master/doc/read-the-docs-site/tutorials/AuctionValidator.hs>`_.
+The full Plutus Tx code for the auction smart contract can be found at `AuctionValidator.hs <https://github.com/IntersectMBO/plutus/blob/master/doc/read-the-docs-site/tutorials/AuctionValidator.hs>`_.
 
 Data types
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -283,7 +286,7 @@ Libraries for writing Plutus Tx scripts
 
 This auction example shows a relatively low-level way of writing scripts using Plutus Tx.
 In practice, you may consider using a higher-level library that abstracts away some of the details.
-For example, `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ provides a constraint library for writing Plutus Tx.
+For example, `plutus-apps <https://github.com/IntersectMBO/plutus-apps>`_ provides a constraint library for writing Plutus Tx.
 Using these libraries, writing a validator in Plutus Tx becomes a matter of defining state transactions and the corresponding constraints, e.g., the condition ``refundsPreviousHighestBid`` can simply be written as ``Constraints.mustPayToPubKey bidder (lovelaceValue amt)``.
 
 Alternatives to Plutus Tx
@@ -308,12 +311,12 @@ Since the main purpose of this example is to introduce Plutus Tx and Plutus Core
 In addition to the on-chain code, one typically needs the accompanying off-chain code and services to perform tasks like building transactions, submitting transactions, deploying smart contracts, querying for available UTXOs on the chain, etc.
 
 A full suite of solutions is `in development <https://plutus-apps.readthedocs.io/en/latest/plutus/explanations/plutus-tools-component-descriptions.html>`_.
-See the `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ repo and its accompanying `Plutus tools SDK user guide <https://plutus-apps.readthedocs.io/en/latest/>`_ for more details.
+See the `plutus-apps <https://github.com/IntersectMBO/plutus-apps>`_ repo and its accompanying `Plutus tools SDK user guide <https://plutus-apps.readthedocs.io/en/latest/>`_ for more details.
 
 Some other alternatives include `cardano-transaction-lib <https://github.com/Plutonomicon/cardano-transaction-lib>`_ and `lucid <https://github.com/spacebudz/lucid>`_.
-All these are based on the `Cardano API <https://github.com/input-output-hk/cardano-node/tree/master/cardano-api>`_, a low-level API that provides the capability to do the off-chain work with a local running node.
+All these are based on the `Cardano API <https://github.com/IntersectMBO/cardano-node/tree/master/cardano-api>`_, a low-level API that provides the capability to do the off-chain work with a local running node.
 
-See also: `Plutus application development <https://docs.cardano.org/plutus/dapp-development>`_, a high-level overview of resources for building DApps using Plutus.
+See also: `Plutus application development <https://docs.cardano.org/smart-contracts/plutus/dapp-development/>`_, a high-level overview of resources for building DApps using Plutus.
 A DApp is basically a smart contract plus a front end.
 
 Further reading

@@ -4,7 +4,7 @@
 
 module Rational.Laws.Construction (constructionLaws) where
 
-import Hedgehog (Gen, Property, cover, property, (===))
+import Hedgehog (Gen, Property, assert, cover, property, (===))
 import Hedgehog.Gen qualified as Gen
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as Ratio
@@ -23,10 +23,9 @@ constructionLaws = [
   testPropertyNamed "if ratio x y = Just r, then unsafeRatio x y = r" "propConstructionAgreement" propConstructionAgreement,
   testPropertyNamed "if r = fromInteger x, then numerator r = x" "propFromIntegerNum" propFromIntegerNum,
   testPropertyNamed "if r = fromInteger x, then denominator r = 1" "propFromIntegerDen" propFromIntegerDen,
-  testPropertyNamed "ratio x y = ratio (x * z) (y * z) for z /= 0" "propRatioScale" propRatioScale
+  testPropertyNamed "ratio x y = ratio (x * z) (y * z) for z /= 0" "propRatioScale" propRatioScale,
+  testPropertyNamed "denominator (unsafeRatio x y) > 0" "propUnsafeRatioDenomPos" propUnsafeRatioDenomPos
   ]
-
--- Helpers
 
 propZeroDenom :: Property
 propZeroDenom = property $ do
@@ -97,3 +96,9 @@ propRatioScale = property $ do
   let lhs = Ratio.ratio x y
   let rhs = Ratio.ratio (x Plutus.* z) (y Plutus.* z)
   lhs `normalAndEquivalentToMaybe` rhs
+
+propUnsafeRatioDenomPos :: Property
+propUnsafeRatioDenomPos = property $ do
+  n <- forAllWithPP genInteger
+  d <- forAllWithPP $ Gen.filter (/= Plutus.zero) genInteger
+  assert $ Ratio.denominator (Ratio.unsafeRatio n d) > 0

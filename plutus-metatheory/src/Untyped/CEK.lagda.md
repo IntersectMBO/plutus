@@ -491,6 +491,17 @@ BUILTIN blake2b-224 = λ
   { (app base (V-con bytestring b)) -> inj₂ (V-con bytestring (BLAKE2B-224 b))
   ; _ -> inj₁ userError
   }
+BUILTIN byteStringToInteger = λ
+  { (app (app base (V-con bool e)) (V-con bytestring s)) -> inj₂ (V-con integer (BStoI e s))
+  ; _ -> inj₁ userError
+  }
+BUILTIN integerToByteString = λ
+  { (app (app (app base (V-con bool e)) (V-con integer w)) (V-con integer n)) -> case ItoBS e w n of λ
+      { (just s) -> inj₂ (V-con bytestring s)
+      ; nothing -> inj₁ userError
+      }
+  ; _ -> inj₁ userError
+  }
 
 -- Take an apparently more general index and show that it is a fully applied builtin.
 mkFullyAppliedBuiltin : ∀ { b }

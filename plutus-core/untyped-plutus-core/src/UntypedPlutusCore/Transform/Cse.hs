@@ -1,30 +1,33 @@
+{-# LANGUAGE BlockArguments    #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
 
 module UntypedPlutusCore.Transform.Cse (cse) where
 
 import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
+import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
-import UntypedPlutusCore.Size
+import UntypedPlutusCore.Size (termSize)
 
-import Control.Lens
-import Control.Monad
-import Control.Monad.Trans.Class
-import Control.Monad.Trans.Reader
-import Control.Monad.Trans.State.Strict
-import Data.Foldable
-import Data.Hashable
+import Control.Arrow ((>>>))
+import Control.Lens (foldrOf, transformOf)
+import Control.Monad (join, void)
+import Control.Monad.Trans.Class (MonadTrans (lift))
+import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, local)
+import Control.Monad.Trans.State.Strict (State, evalState, get, put)
+import Data.Foldable (Foldable (foldl'))
+import Data.Hashable (Hashable)
 import Data.HashMap.Strict (HashMap)
 import Data.HashMap.Strict qualified as Map
-import Data.List.Extra
-import Data.Ord
-import Data.Traversable
-import Data.Tuple.Extra
+import Data.List.Extra (isSuffixOf, sortOn)
+import Data.Ord (Down (..))
+import Data.Proxy (Proxy (..))
+import Data.Traversable (for)
+import Data.Tuple.Extra (snd3, thd3)
+import PlutusCore.Arity (builtinArity)
 
 {- Note [CSE]
 
@@ -207,12 +210,13 @@ data CseCandidate uni fun ann = CseCandidate
 cse ::
   ( MonadQuote m
   , Hashable (Term Name uni fun ())
-  , Hashable fun
   , Rename (Term Name uni fun ann)
+  , ToBuiltinMeaning uni fun
   ) =>
+  BuiltinSemanticsVariant fun ->
   Term Name uni fun ann ->
   m (Term Name uni fun ann)
-cse t0 = do
+cse builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t
       commonSubexprs =
@@ -224,23 +228,8 @@ cse t0 = do
           . filter ((> 1) . thd3)
           . join
           . Map.elems
-          $ countOccs (calcBuiltinArity t) annotated
+          $ countOccs builtinSemanticsVariant annotated
   mkCseTerm commonSubexprs annotated
-
--- | The first pass. See Note [CSE].
-calcBuiltinArity ::
-  forall name uni fun ann.
-  (Hashable fun) =>
-  Term name uni fun ann ->
-  HashMap fun Int
-calcBuiltinArity = foldrOf termSubtermsDeep go Map.empty
-  where
-    go :: Term name uni fun ann -> HashMap fun Int -> HashMap fun Int
-    go = \case
-      t@Apply{}
-        | (Builtin _ fun, args) <- splitApplication t ->
-            Map.insertWith max fun (length args)
-      _ -> id
 
 -- | The second pass. See Note [CSE].
 annotate :: Term name uni fun ann -> Term name uni fun (Path, ann)
@@ -279,14 +268,14 @@ annotate = flip evalState 0 . flip runReaderT [] . go
 -- | The third pass. See Note [CSE].
 countOccs ::
   forall name uni fun ann.
-  (Hashable (Term name uni fun ()), Hashable fun) =>
-  HashMap fun Int ->
+  (Hashable (Term name uni fun ()), ToBuiltinMeaning uni fun) =>
+  BuiltinSemanticsVariant fun ->
   Term name uni fun (Path, ann) ->
   -- | Here, the value of the inner map not only contains the count, but also contains
   -- the annotated term, corresponding to the term that is the key of the outer map.
   -- The annotated terms need to be recorded since they will be used for substitution.
   HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
-countOccs arityInfo = foldrOf termSubtermsDeep addToMap Map.empty
+countOccs builtinSemanticsVariant = foldrOf termSubtermsDeep addToMap Map.empty
   where
     addToMap ::
       Term name uni fun (Path, ann) ->
@@ -296,15 +285,14 @@ countOccs arityInfo = foldrOf termSubtermsDeep addToMap Map.empty
       -- We don't consider work-free terms for CSE, because doing so may or may not
       -- have a size benefit, but certainly doesn't have any cost benefit (the cost
       -- will in fact be slightly higher due to the additional application).
-      --
-      -- `isWorkFree` currently doesn't check whether a builtin application is saturated,
-      -- or whether an term is the (possibly repeated) forcing of a builtin (which should
-      -- be workfree), so we check it separately.
-      | isWorkFree t0 || not (isBuiltinSaturated t0) || isForcingBuiltin t0 = id
+      | isWorkFree builtinSemanticsVariant t0
+        || not (isBuiltinSaturated t0)
+        || isForcingBuiltin t0 =
+          id
       | otherwise =
           Map.alter
             ( \case
-                Nothing -> Just $ [(path, t0, 1)]
+                Nothing -> Just [(path, t0, 1)]
                 Just paths -> Just $ combinePaths t0 path paths
             )
             t
@@ -312,11 +300,11 @@ countOccs arityInfo = foldrOf termSubtermsDeep addToMap Map.empty
         t = void t0
         path = fst (termAnn t0)
 
-    isBuiltinSaturated = \case
-      t@Apply{}
-        | (Builtin _ fun, args) <- splitApplication t ->
-            length args >= Map.findWithDefault 0 fun arityInfo
-      _ -> True
+    isBuiltinSaturated =
+      splitApplication >>> \case
+        (Builtin _ fun, args) ->
+          length args >= length (builtinArity (Proxy @uni) builtinSemanticsVariant fun)
+        _term -> True
 
     isForcingBuiltin = \case
       Builtin{} -> True

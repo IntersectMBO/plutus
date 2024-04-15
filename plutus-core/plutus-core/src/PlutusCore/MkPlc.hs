@@ -61,7 +61,7 @@ import Prelude hiding (error)
 
 import PlutusCore.Builtin
 import PlutusCore.Core
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import Data.Word

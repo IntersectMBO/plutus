@@ -42,12 +42,12 @@ Some things you can do to fix it:
   - ``{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}``
   - ``{-# OPTIONS_GHC -fobject-code #-}``
 
-  Some more details are in `the plutus-tx readme <https://github.com/input-output-hk/plutus/tree/master/plutus-tx#building-projects-with-plutus-tx>`_.
+  Some more details are in `the plutus-tx readme <https://github.com/IntersectMBO/plutus/tree/master/plutus-tx#building-projects-with-plutus-tx>`_.
 
 Haskell Language Server issues
 ------------------------------
 
-For more advice on using Haskell Language Server (HLS), consult the `CONTRIBUTING guide <https://github.com/input-output-hk/plutus/blob/master/CONTRIBUTING.adoc>`_ in the ``plutus`` repository.
+For more advice on using Haskell Language Server (HLS), consult the `CONTRIBUTING guide <https://github.com/IntersectMBO/plutus/blob/master/CONTRIBUTING.adoc>`_ in the ``plutus`` repository.
 
 Wrong version
 ~~~~~~~~~~~~~
@@ -96,12 +96,10 @@ To reduce code size, on-chain errors only output codes. Here's what they mean:
   - ``Li: DecodingError``
 
 - Prelude errors
-
   - ``PT1: TH Generation of Indexed Data Error``
-  - ``PT2: Void is not supported``
-  - ``PT3: Ratio number can't have a zero denominator``
-  - ``PT4: 'round' got an incorrect input``
-  - ``PT5: 'check' input is 'False'``
+  - ``PT2: PlutusTx.IsData.Class.unsafeFromBuiltinData: Void is not supported``
+  - ``PT3: PlutusTx.Ratio: zero denominator``
+  - ``PT5: PlutusTx.Prelude.check: input is 'False'``
   - ``PT6: PlutusTx.List.!!: negative index``
   - ``PT7: PlutusTx.List.!!: index too large``
   - ``PT8: PlutusTx.List.head: empty list``
@@ -115,6 +113,8 @@ To reduce code size, on-chain errors only output codes. Here's what they mean:
   - ``PT16: PlutusTx.Enum.Ordering.succ: bad argument``
   - ``PT17: PlutusTx.Enum.Ordering.pred: bad argument``
   - ``PT18: PlutusTx.Enum.Ordering.toEnum: bad argument``
+  - ``PT19: PlutusTx.List.last: empty list``
+  - ``PT20: PlutusTx.Ratio.recip: reciprocal of zero``
 
 - State machine errors
 

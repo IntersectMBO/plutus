@@ -22,13 +22,15 @@ module PlutusCore.Rename.Monad
     , withRenamedName
     ) where
 
-import PlutusPrelude
+import PlutusPrelude (Alternative, Coercible, Lens', coerce, over, view, (&), (.~), (^.))
 
-import PlutusCore.Name
-import PlutusCore.Quote
+import PlutusCore.Name.Unique (HasUnique (..), TermUnique (TermUnique), TypeUnique (TypeUnique),
+                               Unique (Unique))
+import PlutusCore.Name.UniqueMap (UniqueMap (UniqueMap), insertByName, lookupName)
+import PlutusCore.Quote (MonadQuote, freshUnique)
 
-import Control.Lens
-import Control.Monad.Reader
+import Control.Lens (makeLenses)
+import Control.Monad.Reader (MonadReader (local), ReaderT (..), asks)
 
 -- | The monad the renamer runs in.
 newtype RenameT ren m a = RenameT

@@ -42,7 +42,7 @@ import PlutusCore.Core (UniOf)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 
 import Universe
 
@@ -52,14 +52,6 @@ import Data.Word
 import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
 
 -- Datatypes
-
-{- Note: [Serialization of PIR]
-The serialized version of Plutus-IR will be included in  the final
-executable for helping debugging and testing and providing better error
-reporting. It is not meant to be stored on the chain, which means that
-the underlying representation can vary. The `Generic` instances of the
-terms can thus be used as backwards compatibility is not required.
--}
 
 data Datatype tyname name uni a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] name [VarDecl tyname name uni a]
     deriving stock (Functor, Show, Generic)
@@ -128,9 +120,9 @@ It would be nice to resolve the inconsistency, but this would probably require c
 Plutus Core to use reified declarations.
 -}
 
--- See note [PIR as a PLC extension]
+-- See Note [PIR as a PLC extension]
 data Term tyname name uni fun a =
-                        -- Plutus Core (ish) forms, see note [Declarations in Plutus Core]
+                        -- Plutus Core (ish) forms, see Note [Declarations in Plutus Core]
                           Let a Recursivity (NonEmpty (Binding tyname name uni fun a)) (Term tyname name uni fun a)
                         | Var a name
                         | TyAbs a tyname (Kind a) (Term tyname name uni fun a)

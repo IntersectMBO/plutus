@@ -7,10 +7,13 @@ module PlutusBenchmark.ScriptContexts where
 
 import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Value
-import PlutusLedgerApi.V3
-import PlutusTx qualified as PlutusTx
+import PlutusLedgerApi.V3 (OutputDatum (NoOutputDatum), PubKeyHash (..), ScriptContext (..),
+                           ScriptPurpose (Spending), TxId (..), TxInfo (..), TxOut (..),
+                           TxOutRef (..), always)
+import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
 -- | A very crude deterministic generator for 'ScriptContext's with size
@@ -113,7 +116,7 @@ for comparison.
 -- costed cheaply).
 {-# INLINABLE scriptContextEqualityData #-}
 scriptContextEqualityData :: ScriptContext -> PlutusTx.BuiltinData -> ()
--- See note [Redundant arguments to equality benchmarks]
+-- See Note [Redundant arguments to equality benchmarks]
 scriptContextEqualityData _ d =
   if PlutusTx.equalsData d d
   then ()
@@ -131,7 +134,7 @@ mkScriptContextEqualityDataCode sc =
 -- functions. This can be quite expensive for a large structure!
 {-# INLINABLE scriptContextEqualityTerm #-}
 scriptContextEqualityTerm :: ScriptContext -> PlutusTx.BuiltinData -> ()
--- See note [Redundant arguments to equality benchmarks]
+-- See Note [Redundant arguments to equality benchmarks]
 scriptContextEqualityTerm sc _ =
   if sc PlutusTx.== sc
   then ()
@@ -145,7 +148,7 @@ mkScriptContextEqualityTermCode sc =
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
 
 -- This example is just the overhead from the previous two
--- See note [Redundant arguments to equality benchmarks]
+-- See Note [Redundant arguments to equality benchmarks]
 {-# INLINABLE scriptContextEqualityOverhead #-}
 scriptContextEqualityOverhead :: ScriptContext -> PlutusTx.BuiltinData -> ()
 scriptContextEqualityOverhead _ _ = ()

@@ -7,7 +7,6 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  !reconstructCaseError : string = "PT1"
   data Unit | Unit_match where
     Unit : Unit
   !traceError : all a. string -> a
@@ -33,7 +32,7 @@ in
              {all dead. Maybe a}
              (equalsInteger 0 index)
              (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
-             (/\dead -> traceError {Maybe a} reconstructCaseError)
+             (/\dead -> traceError {Maybe a} "PT1")
              {all dead. dead})
         {all dead. dead})
     (\(d : data) ->
@@ -51,6 +50,6 @@ in
               {integer}
               (unIData (headList {data} args))
               (unIData (headList {data} (tailList {data} args))))
-         (/\dead -> traceError {Tuple2 integer integer} reconstructCaseError)
+         (/\dead -> traceError {Tuple2 integer integer} "PT1")
          {all dead. dead})
     ds

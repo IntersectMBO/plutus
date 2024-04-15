@@ -27,7 +27,7 @@ import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 
 import Control.Monad ((>=>))

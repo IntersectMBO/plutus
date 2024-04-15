@@ -106,6 +106,8 @@ module PlutusTx.Prelude (
     bls12_381_millerLoop,
     bls12_381_mulMlResult,
     bls12_381_finalVerify,
+    byteStringToInteger,
+    integerToByteString,
     -- * Conversions
     fromBuiltin,
     toBuiltin
@@ -127,12 +129,13 @@ import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Eleme
                           bls12_381_G2_compressed_zero, bls12_381_G2_equals,
                           bls12_381_G2_hashToGroup, bls12_381_G2_neg, bls12_381_G2_scalarMul,
                           bls12_381_G2_uncompress, bls12_381_finalVerify, bls12_381_millerLoop,
-                          bls12_381_mulMlResult, consByteString, decodeUtf8, emptyByteString,
-                          emptyString, encodeUtf8, equalsByteString, equalsString, error,
-                          fromBuiltin, greaterThanByteString, indexByteString, keccak_256,
-                          lengthOfByteString, lessThanByteString, sha2_256, sha3_256,
-                          sliceByteString, toBuiltin, trace, verifyEcdsaSecp256k1Signature,
-                          verifyEd25519Signature, verifySchnorrSecp256k1Signature)
+                          bls12_381_mulMlResult, byteStringToInteger, consByteString, decodeUtf8,
+                          emptyByteString, emptyString, encodeUtf8, equalsByteString, equalsString,
+                          error, fromBuiltin, greaterThanByteString, indexByteString,
+                          integerToByteString, keccak_256, lengthOfByteString, lessThanByteString,
+                          sha2_256, sha3_256, sliceByteString, toBuiltin, trace,
+                          verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
+                          verifySchnorrSecp256k1Signature)
 
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either as Either

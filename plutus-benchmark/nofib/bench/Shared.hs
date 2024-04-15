@@ -1,12 +1,20 @@
 {- | Shared code for benchmarking Plutus and Haskell versions of the Plutus nofib examples -}
-module Shared (mkBenchMarks, BenchmarkRunners)
-where
+module Shared (
+    benchWith
+    , mkBenchMarks
+    , mkEvalCtx
+    , benchTermCek
+    ) where
+
+import PlutusBenchmark.Common (Term, benchTermCek, getConfig, mkEvalCtx)
+
+import PlutusBenchmark.NoFib.Clausify qualified as Clausify
+import PlutusBenchmark.NoFib.Knights qualified as Knights
+import PlutusBenchmark.NoFib.Prime qualified as Prime
+import PlutusBenchmark.NoFib.Queens qualified as Queens
 
 import Criterion.Main
 
-import PlutusBenchmark.NoFib.Clausify qualified as Clausify
-import PlutusBenchmark.NoFib.Prime qualified as Prime
-import PlutusBenchmark.NoFib.Queens qualified as Queens
 
 {- | Package together functions to create benchmarks for each program given suitable inputs. -}
 type BenchmarkRunners =
@@ -55,3 +63,49 @@ mkBenchMarks (benchClausify, benchKnights, benchPrime, benchQueens) = [
                     ]
        ]
 
+
+---------------- Create a benchmark with given inputs ----------------
+
+benchClausifyWith :: (Term -> Benchmarkable) -> Clausify.StaticFormula -> Benchmarkable
+benchClausifyWith benchmarker f = benchmarker $ Clausify.mkClausifyTerm f
+
+benchPrimeWith :: (Term -> Benchmarkable) -> Prime.PrimeID -> Benchmarkable
+benchPrimeWith benchmarker pid = benchmarker $ Prime.mkPrimalityBenchTerm pid
+
+benchQueensWith :: (Term -> Benchmarkable) -> Integer -> Queens.Algorithm -> Benchmarkable
+benchQueensWith benchmarker sz alg = benchmarker $ Queens.mkQueensTerm sz alg
+
+benchKnightsWith :: (Term -> Benchmarkable) -> Integer -> Integer -> Benchmarkable
+benchKnightsWith benchmarker depth sz = benchmarker $ Knights.mkKnightsTerm depth sz
+
+{- This runs all of the benchmarks, which will take a long time.
+   To run an individual benmark, try, for example,
+
+     cabal bench plutus-benchmark:nofib --benchmark-options "primetest/40digits".
+
+   Better results will be obtained with more repetitions of the benchmark.  Set
+   the minimum time for the benchmarking process (in seconds) with the -L
+   option. For example,
+
+     stack bench plutus-benchmark:nofib --ba "primetest/40digits -L300"
+
+   You can list the avaiable benchmarks with
+
+     stack bench plutus-benchmark:nofib --ba --list
+
+   or
+
+     cabal bench plutus-benchmark:nofib --benchmark-options --list
+
+-}
+
+
+-- Given a function (involving some evaluator) which constructs a Benchmarkable
+-- from a Term, use it to construct and run all of the benchmarks
+benchWith :: (Term -> Benchmarkable) -> IO ()
+benchWith benchmarker = do
+  let runners = ( benchClausifyWith benchmarker, benchKnightsWith benchmarker
+                , benchPrimeWith benchmarker, benchQueensWith benchmarker)
+  -- Run each benchmark for at least one minute.  Change this with -L or --timeout.
+  config <- getConfig 60.0
+  defaultMainWith config $ mkBenchMarks runners

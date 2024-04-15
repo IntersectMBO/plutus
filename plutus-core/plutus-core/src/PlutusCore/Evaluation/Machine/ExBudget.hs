@@ -57,7 +57,7 @@ The CEK machine does budgeting in these steps:
 - The memory cost of the initial AST is added to the budget. See Note [Memory
   Usage for Plutus]. This operation currently does not cost any CPU. It
   currently costs as much memory as the AST itself, before aborting. See
-  https://github.com/input-output-hk/plutus/issues/1799 for more discussion.
+  https://github.com/IntersectMBO/plutus/issues/1799 for more discussion.
 - Then each machine reduction step requires a certain amount of memory and CPU.
 - The builtin operations may require different amounts of memory and CPU,
   depending on the input size.
@@ -74,7 +74,7 @@ possible to adjust them at runtime.
 
 -}
 
-{-| Note [Budgeting units]
+{- Note [Budgeting units]
 
  We use picoseconds for measuring times and words for measuring memory usage.
  Some care is required with time units because different units are used in
@@ -139,7 +139,7 @@ module PlutusCore.Evaluation.Machine.ExBudget
     , minusExBudget
     , ExBudgetBuiltin(..)
     , ExRestrictingBudget(..)
-    , LowerIntialCharacter
+    , LowerInitialCharacter
     , enormousBudget
     ) where
 
@@ -147,7 +147,6 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusPrelude hiding (toList)
 
 import Codec.Serialise (Serialise (..))
-import Data.Char (toLower)
 import Data.Semigroup
 import Deriving.Aeson
 import Language.Haskell.TH.Lift (Lift)
@@ -157,10 +156,9 @@ import Prettyprinter
 
 -- | This is used elsewhere to convert cost models into JSON objects where the
 -- names of the fields are exactly the same as the names of the builtins.
-data LowerIntialCharacter
-instance StringModifier LowerIntialCharacter where
-  getStringModifier ""       = ""
-  getStringModifier (c : xs) = toLower c : xs
+data LowerInitialCharacter
+instance StringModifier LowerInitialCharacter where
+  getStringModifier = lowerInitialChar
 
 -- | A class for injecting a 'Builtin' into an @exBudgetCat@.
 -- We need it, because the constant application machinery calls 'spendBudget' before reducing a
@@ -176,8 +174,8 @@ instance ExBudgetBuiltin fun () where
 data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic, Lift)
     deriving anyclass (PrettyBy config, NFData, NoThunks, Serialise)
-    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] ExBudget
-    -- LowerIntialCharacter won't actually do anything here, but let's have it in case we change the field names.
+    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerInitialCharacter] ExBudget
+    -- LowerInitialCharacter won't actually do anything here, but let's have it in case we change the field names.
 
 -- | Subract one 'ExBudget' from another. Does not guarantee that the result is positive.
 minusExBudget :: ExBudget -> ExBudget -> ExBudget

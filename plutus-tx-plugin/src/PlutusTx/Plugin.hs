@@ -20,6 +20,7 @@ module PlutusTx.Plugin (plugin, plc) where
 
 import Data.Bifunctor
 import PlutusPrelude
+import PlutusTx.Bool ((&&), (||))
 import PlutusTx.Code
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -50,6 +51,7 @@ import GHC.Types.TyThing qualified as GHC
 import GHC.Utils.Logger qualified as GHC
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Pretty as PLC
 import PlutusCore.Quote
@@ -78,9 +80,11 @@ import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Set qualified as Set
+import Data.Type.Bool qualified as PlutusTx.Bool
 import GHC.Num.Integer qualified
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
+import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
 import Prettyprinter qualified as PP
 import System.IO (openTempFile)
@@ -390,7 +394,15 @@ compileMarkedExpr locStr codeTy origE = do
             GHC.showSDocForUser flags GHC.emptyUnitState GHC.alwaysQualify (GHC.ppr moduleName)
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo $
-        builtinNames ++ [''Bool, 'False, 'True, 'traceBool, 'GHC.Num.Integer.integerNegate]
+        builtinNames ++
+          [''Bool
+          , 'False
+          , 'True
+          , 'traceBool
+          , 'GHC.Num.Integer.integerNegate
+          , '(PlutusTx.Bool.&&)
+          , '(PlutusTx.Bool.||)
+          ]
     modBreaks <- asks pcModuleModBreaks
     let coverage = CoverageOpts . Set.fromList $
                    [ l | _posCoverageAll opts, l <- [minBound .. maxBound]]
@@ -493,6 +505,10 @@ runCompiler moduleName opts expr = do
                     (opts ^. posDoSimplifierEvaluateBuiltins)
                  & set (PIR.ccOpts . PIR.coDoSimplifierStrictifyBindings)
                     (opts ^. posDoSimplifierStrictifyBindings)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierRemoveDeadBindings)
+                    (opts ^. posDoSimplifierRemoveDeadBindings)
+                 & set (PIR.ccOpts . PIR.coInlineConstants)
+                    (opts ^. posInlineConstants)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
                  & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
                  & set (PIR.ccOpts . PIR.coCaseOfCaseConservative)
@@ -516,6 +532,8 @@ runCompiler moduleName opts expr = do
             & set (PLC.coSimplifyOpts . UPLC.soConservativeOpts)
                 (opts ^. posConservativeOpts)
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
+            & set (PLC.coSimplifyOpts . UPLC.soInlineConstants)
+                (opts ^. posInlineConstants)
 
     -- GHC.Core -> Pir translation.
     pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)

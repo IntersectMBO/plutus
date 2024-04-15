@@ -10,6 +10,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , singletonRose
     , ExMemoryUsage(..)
     , flattenCostRose
+    , LiteralByteSize(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -41,7 +42,7 @@ import Universe
  *  It is unsafe to increase the memory usage of a type because that may increase   *
  *  the resource usage of existing scripts beyond the limits set (and paid for)     *
  *  when they were uploaded to the chain, but because our costing functions are all *
- *  monotone) it is safe to decrease memory usage, as long it decreases for *all*   *
+ *  monotone it is safe to decrease memory usage, as long it decreases for *all*    *
  *  possible values of the type.                                                    *
  ************************************************************************************
 -}
@@ -110,7 +111,7 @@ singletonRose cost = CostRose cost []
 
 -- See Note [Global local functions].
 -- This is one way to define the worker. There are many more, see
--- https://github.com/input-output-hk/plutus/pull/5239#discussion_r1151197471
+-- https://github.com/IntersectMBO/plutus/pull/5239#discussion_r1151197471
 -- We chose this one, because it's the simplest (no CPS shenanigans) among the safest (retrieving
 -- the next element takes O(1) time in the worst case).
 --
@@ -167,9 +168,26 @@ instance ExMemoryUsage () where
     memoryUsage () = singletonRose 1
     {-# INLINE memoryUsage #-}
 
+{- | When invoking a built-in function, a value of type LiteralByteSize can be
+   used transparently as a built-in Integer but with a different size measure:
+   see Note [Integral types as Integer].  This is required by the
+   `integerToByteString` builtin, which takes an argument `w` specifying the
+   width (in bytes) of the output bytestring (zero-padded to the desired size).
+   The memory consumed by the function is given by `w`, *not* the size of `w`.
+   The `LiteralByteSize` type wraps an Integer `w` in a newtype whose
+   `ExMemoryUsage` is equal to the number of eight-byte words required to
+   contain `w` bytes, allowing its costing function to work properly.
+-}
+newtype LiteralByteSize = LiteralByteSize { unLiteralByteSize :: Integer }
+instance ExMemoryUsage LiteralByteSize where
+    memoryUsage (LiteralByteSize n) = singletonRose . fromIntegral $ ((n-1) `div` 8) + 1
+    {-# INLINE memoryUsage #-}
+
 -- | Calculate a 'CostingInteger' for the given 'Integer'.
 memoryUsageInteger :: Integer -> CostingInteger
 -- integerLog2# is unspecified for 0 (but in practice returns -1)
+-- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
+-- keep this special case for the time being though.
 memoryUsageInteger 0 = 1
 -- Assume 64 Int
 memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
@@ -185,13 +203,12 @@ instance ExMemoryUsage Word8 where
     memoryUsage _ = singletonRose 1
     {-# INLINE memoryUsage #-}
 
-{- Bytestrings: we want things of length 0 to have size 0, 1-8 to have size 1,
-   9-16 to have size 2, etc.  Note that (-1) div 8 == -1, so the code below
-   gives the correct answer for the empty bytestring.  Maybe we should just use
-   1 + (toInteger $ BS.length bs) `div` 8, which would count one extra for
-   things whose sizes are multiples of 8. -}
+{- Bytestrings: we want the empty bytestring and bytestrings of length 1-8 to have
+   size 1, bytestrings of length 9-16 to have size 2, etc.  Note that (-1)
+   `quot` 8 == 0, so the code below gives the correct answer for the empty
+   bytestring.  -}
 instance ExMemoryUsage BS.ByteString where
-    -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
+    -- Don't use `div` here!  That gives 0 instead of 1 for the empty bytestring.
     memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1 where
         n = BS.length bs
     {-# INLINE memoryUsage #-}

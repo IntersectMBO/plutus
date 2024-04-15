@@ -59,7 +59,7 @@ Ultimately, we wrote it because we needed it ourselves to do anything useful!
 Conceptually, the Platform breaks down based on which part of the system we're interested in:
 
 - :ref:`Plutus Foundation<what_is_plutus_foundation>`: support for writing the trusted kernel of code, and executing it on the chain
-- `The Plutus Application Framework <https://github.com/input-output-hk/plutus-apps>`_: support for writing applications ("Plutus Applications") in a particular style
+- `The Plutus Application Framework <https://github.com/IntersectMBO/plutus-apps>`_: support for writing applications ("Plutus Applications") in a particular style
 
 .. figure:: ./platform-architecture.png
 

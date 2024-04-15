@@ -1,4 +1,34 @@
 
+<a id='changelog-1.22.0.0'></a>
+# 1.22.0.0 — 2024-02-21
+
+## Added
+
+- PlutusV3 cost model parameter names updated for `ByteStringToInteger` and `IntegerToByteString`.
+
+- `PlutusLedgerApi.V1.Value.currencySymbolValueOf`, which calculates the total amount for
+  the given `CurrencySymbol`.
+
+## Changed
+
+- Changed the `TxId`'s `BuiltingData` representation:
+  removed a newtype constructor wrapping the underlying `BuiltinByteString`.
+
+<a id='changelog-1.20.0.0'></a>
+# 1.20.0.0 — 2024-01-15
+
+## Changed
+
+- More fields in the V3 script context use `Lovelace`
+
+- Removed `GovernanceActionId` from the `Voting` script purpose. It is not needed because
+  the script for a given voter will be run only once for all votes.
+
+- Updated the `Certifying` and `Proposing` script purposes, whose arguments now consist of
+  both an integer index and the actual argument (`TxCert` and `ProposalProcedure`).
+
+- Updated the `NewCommittee` variant of `GovernanceAction` to `UpdateCommittee`.
+
 <a id='changelog-1.19.0.0'></a>
 # 1.19.0.0 — 2023-12-23
 
@@ -39,7 +69,7 @@
 
 ## Changed
 
-- Optimized equality checking of `Value`s in [#5593](https://github.com/input-output-hk/plutus/pull/5593)
+- Optimized equality checking of `Value`s in [#5593](https://github.com/IntersectMBO/plutus/pull/5593)
 
 <a id='changelog-1.14.0.0'></a>
 # 1.14.0.0 — 2023-09-28

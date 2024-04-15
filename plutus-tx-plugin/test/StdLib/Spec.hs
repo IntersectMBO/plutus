@@ -16,7 +16,6 @@ import Control.Exception (SomeException, evaluate, try)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Ratio ((%))
 import GHC.Exts (fromString)
-import GHC.Real (reduce)
 import Hedgehog (MonadGen, Property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
@@ -39,7 +38,6 @@ import PlutusTx.Plugin (plc)
 import PlutusCore.Data qualified as PLC
 
 import Data.Proxy (Proxy (Proxy))
-import Data.Ratio qualified as GHCRatio
 import PlutusPrelude (reoption)
 
 roundPlc :: CompiledCode (Ratio.Rational -> Integer)
@@ -55,7 +53,6 @@ tests =
     , pure $ testPropertyNamed "ord" "testOrd" testOrd
     , pure $ testPropertyNamed "divMod" "testDivMod" testDivMod
     , pure $ testPropertyNamed "quotRem" "testQuotRem" testQuotRem
-    , pure $ testPropertyNamed "reduce" "testReduce" testReduce
     , pure $ testPropertyNamed "Eq @Data" "eqData" eqData
     , goldenPir "errorTrace" errorTrace
     ]
@@ -99,28 +96,6 @@ testQuotRem = Hedgehog.property $ do
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)
-
-testReduce :: Property
-testReduce = Hedgehog.property $ do
-    let gen = Gen.integral (Range.linear (-10000) 100000)
-        -- Ratio must have non-zero denominator or else an ArithException will be thrown.
-        gen' = Gen.filter (/= 0) gen
-    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen'
-    ghcResult <- tryHard $ reduce n1 n2
-    plutusResult <- tryHard $ Ratio.toGHC $ Ratio.reduce n1 n2
-    Hedgehog.annotateShow ghcResult
-    Hedgehog.annotateShow plutusResult
-    -- GHC permits negative denominators, while we don't. Thus, we have to do
-    -- some normalization of our own to ensure it all behaves.
-    case ghcResult of
-      Nothing -> Hedgehog.assert (ghcResult == plutusResult)
-      Just ghcR -> case signum . GHCRatio.denominator $ ghcR of
-        (-1) -> case plutusResult of
-          Nothing -> Hedgehog.assert (ghcResult == plutusResult)
-          Just plutusR -> do
-                Hedgehog.assert (GHCRatio.numerator plutusR == (negate . GHCRatio.numerator $ ghcR))
-                Hedgehog.assert (GHCRatio.denominator plutusR == (negate . GHCRatio.denominator $ ghcR))
-        _ -> Hedgehog.assert (ghcResult == plutusResult)
 
 testOrd :: Property
 testOrd = Hedgehog.property $ do

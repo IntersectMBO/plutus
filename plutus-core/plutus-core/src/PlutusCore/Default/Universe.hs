@@ -31,9 +31,8 @@
 {-# LANGUAGE UndecidableInstances     #-}
 #include "MachDeps.h"
 
--- effectfully: to the best of my experimentation, -O2 here improves performance, however by
--- inspecting GHC Core I was only able to see a difference in how the 'KnownTypeIn' instance for
--- 'Int' is compiled (one more call is inlined with -O2). This needs to be investigated.
+-- effectfully: to the best of my experimentation, -O2 here improves
+-- performance, but it's not clear why. This needs to be investigated.
 {-# OPTIONS_GHC -O2 #-}
 
 module PlutusCore.Default.Universe
@@ -49,7 +48,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
-import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (LiteralByteSize (..))
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty.Extra
 
@@ -369,7 +368,7 @@ instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int64 wher
 
 instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 where
     readKnown term =
-        -- See Note [Performance of KnownTypeIn instances].
+        -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
         -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
         -- (go figure why).
         inline readKnownConstant term >>= oneShot \(i :: Integer) ->
@@ -418,12 +417,19 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word8 wher
                _       -> throwing_ _EvaluationFailure
     {-# INLINE readKnown #-}
 
+-- deriving newtype doesn't work here (or at least not easily), so we have an explicit instance.
+instance KnownTypeAst tyname DefaultUni LiteralByteSize where
+     toTypeAst _ = toTypeAst $ Proxy @Integer
+
+deriving newtype instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term LiteralByteSize
+deriving newtype instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term LiteralByteSize
+
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
 universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'
 and 'decodeUni' must be amended only in a backwards compatible manner.
 
-See Note [Stable encoding of PLC]
+See Note [Stable encoding of TPLC]
 -}
 
 instance Closed DefaultUni where

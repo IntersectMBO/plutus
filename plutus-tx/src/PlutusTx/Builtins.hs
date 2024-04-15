@@ -105,8 +105,8 @@ module PlutusTx.Builtins (
                          -- * Conversions
                          , fromBuiltin
                          , toBuiltin
-                         , builtinIntegerToByteString
-                         , builtinByteStringToInteger
+                         , integerToByteString
+                         , byteStringToInteger
                          ) where
 
 import Data.Maybe
@@ -118,6 +118,8 @@ import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
                                    BuiltinByteString (..), BuiltinData, BuiltinString)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Integer (Integer)
+
+import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
 
 {-# INLINABLE appendByteString #-}
 -- | Concatenates two 'ByteString's.
@@ -162,7 +164,7 @@ sha3_256 = BI.sha3_256
 {-# INLINABLE blake2b_224 #-}
 -- | The BLAKE2B-224 hash of a 'ByteString'
 blake2b_224 :: BuiltinByteString -> BuiltinByteString
-blake2b_224 = BI.blake2b_256
+blake2b_224 = BI.blake2b_224
 
 {-# INLINABLE blake2b_256 #-}
 -- | The BLAKE2B-256 hash of a 'ByteString'
@@ -604,16 +606,39 @@ bls12_381_mulMlResult = BI.bls12_381_mulMlResult
 bls12_381_finalVerify :: BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> Bool
 bls12_381_finalVerify a b = fromBuiltin (BI.bls12_381_finalVerify a b)
 
--- Conversions
+-- Bitwise conversions
+
+-- The PLC builtins take a boolean argument to indicate the endianness of the
+-- conversion, but here we use GHC.ByteOrder.ByteOrder for clarity.
+byteOrderToBool :: ByteOrder -> Bool
+byteOrderToBool BigEndian    = True
+byteOrderToBool LittleEndian = False
+
 
 -- | Convert a 'BuiltinInteger' into a 'BuiltinByteString', as described in
 -- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
-{-# INLINEABLE builtinIntegerToByteString #-}
-builtinIntegerToByteString :: Bool -> Integer -> Integer -> BuiltinByteString
-builtinIntegerToByteString endiannessArg = BI.builtinIntegerToByteString (toBuiltin endiannessArg)
+-- The first argument indicates the endianness of the conversion and the third
+-- argument is the integer to be converted, which must be non-negative.  The
+-- second argument must also be non-negative and it indicates the required width
+-- of the output.  If the width is zero then the output is the smallest
+-- bytestring which can contain the converted input (and in this case, the
+-- integer 0 encodes to the empty bytestring).  If the width is nonzero then the
+-- output bytestring will be padded to the required width with 0x00 bytes (on
+-- the left for big-endian conversions and on the right for little-endian
+-- conversions); if the input integer is too big to fit into a bytestring of the
+-- specified width then the conversion will fail.  Conversion will also fail if
+-- the specified width is greater than 8192 or the input integer is too big to
+-- fit into a bytestring of length 8192.
+{-# INLINABLE integerToByteString #-}
+integerToByteString :: ByteOrder -> Integer -> Integer -> BuiltinByteString
+integerToByteString endianness = BI.integerToByteString (toBuiltin (byteOrderToBool endianness))
 
 -- | Convert a 'BuiltinByteString' to a 'BuiltinInteger', as described in
 -- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
-builtinByteStringToInteger :: Bool -> BuiltinByteString -> Integer
-builtinByteStringToInteger statedEndiannessArg =
-  BI.builtinByteStringToInteger (toBuiltin statedEndiannessArg)
+-- The first argument indicates the endianness of the conversion and the second
+-- is the bytestring to be converted.  There is no limitation on the size of
+-- the bytestring.  The empty bytestring is converted to the integer 0.
+{-# INLINABLE byteStringToInteger #-}
+byteStringToInteger :: ByteOrder -> BuiltinByteString -> Integer
+byteStringToInteger endianness =
+  BI.byteStringToInteger (toBuiltin (byteOrderToBool endianness))

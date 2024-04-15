@@ -3,7 +3,7 @@
 module PlutusIR.Transform.KnownCon (knownCon, knownConPass, knownConPassSC) where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR
 import PlutusIR.Contexts
 import PlutusIR.Transform.Rename ()

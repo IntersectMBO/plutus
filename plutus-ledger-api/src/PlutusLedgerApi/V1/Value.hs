@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingVia        #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
@@ -38,6 +39,7 @@ module PlutusLedgerApi.V1.Value (
     , Value(..)
     , singleton
     , valueOf
+    , currencySymbolValueOf
     , lovelaceValue
     , lovelaceValueOf
     , scale
@@ -69,6 +71,7 @@ import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
+import PlutusTx.List qualified
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
 import PlutusTx.Show qualified as PlutusTx
@@ -83,7 +86,7 @@ A `Value` is a map from `CurrencySymbol`'s to a map from `TokenName` to an `Inte
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
+ [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
     deriving
@@ -107,7 +110,7 @@ Forms an `AssetClass` along with a `CurrencySymbol`.
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
+ [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
     deriving stock (Generic, Data)
@@ -176,7 +179,23 @@ pair. To distinguish between the two we write the former with a capital "V" and 
 quotes and we write the latter with a lower case "v" and without the quotes, i.e. 'Value' vs value.
 -}
 
+{- Note [Optimising Value]
+
+We have attempted to improve the performance of 'Value' and other usages of
+'PlutusTx.AssocMap.Map' by choosing a different representation for 'PlutusTx.AssocMap.Map',
+see https://github.com/IntersectMBO/plutus/pull/5697.
+This approach has been found to not be suitable, as the PR's description mentions.
+
+Another approach was to define a specialised 'ByteStringMap', where the key type was 'BuiltinByteString',
+since that is the representation of both 'CurrencySymbol' and 'TokenName'.
+Unfortunately, this approach actually had worse performance in practice. We believe it is worse
+because having two map libraries would make some optimisations, such as CSE, less effective.
+We base this on the fact that turning off all optimisations ended up making the code more performant.
+See https://github.com/IntersectMBO/plutus/pull/5779 for details on the experiment done.
+-}
+
 -- See Note [Value vs value].
+-- See Note [Optimising Value].
 {- | The 'Value' type represents a collection of amounts of different currencies.
 We can think of 'Value' as a vector space whose dimensions are currencies.
 
@@ -243,6 +262,7 @@ instance MeetSemiLattice Value where
 
 {-# INLINABLE valueOf #-}
 -- | Get the quantity of the given currency in the 'Value'.
+-- Assumes that the underlying map doesn't contain duplicate keys.
 valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
 valueOf (Value mp) cur tn =
     case Map.lookup cur mp of
@@ -250,6 +270,17 @@ valueOf (Value mp) cur tn =
         Just i  -> case Map.lookup tn i of
             Nothing -> 0
             Just v  -> v
+
+{-# INLINABLE currencySymbolValueOf #-}
+-- | Get the total value of the currency symbol in the 'Value' map.
+-- Assumes that the underlying map doesn't contain duplicate keys.
+currencySymbolValueOf :: Value -> CurrencySymbol -> Integer
+currencySymbolValueOf (Value mp) cur = case Map.lookup cur mp of
+    Nothing     -> 0
+    Just tokens ->
+        -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
+        -- the latter materializes the intermediate result of `Map.elems tokens`.
+        PlutusTx.List.foldr (\(_, amt) acc -> amt + acc) 0 (Map.toList tokens)
 
 {-# INLINABLE symbols #-}
 -- | The list of 'CurrencySymbol's of a 'Value'.
@@ -262,8 +293,8 @@ singleton :: CurrencySymbol -> TokenName -> Integer -> Value
 singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 
 {-# INLINABLE lovelaceValue #-}
-lovelaceValue :: Lovelace -> Value
 -- | A 'Value' containing the given quantity of Lovelace.
+lovelaceValue :: Lovelace -> Value
 lovelaceValue = singleton adaSymbol adaToken . getLovelace
 
 {-# INLINABLE lovelaceValueOf #-}
@@ -282,7 +313,7 @@ assetClassValueOf :: Value -> AssetClass -> Integer
 assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
 
 {-# INLINABLE unionVal #-}
--- | Combine two 'Value' maps
+-- | Combine two 'Value' maps, assumes the well-definedness of the two maps.
 unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (These Integer Integer))
 unionVal (Value l) (Value r) =
     let
@@ -294,6 +325,8 @@ unionVal (Value l) (Value r) =
     in unThese <$> combined
 
 {-# INLINABLE unionWith #-}
+-- | Combine two 'Value' maps with the argument function.
+-- Assumes the well-definedness of the two maps.
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
 unionWith f ls rs =
     let
@@ -308,6 +341,7 @@ unionWith f ls rs =
 -- | Convert a 'Value' to a simple list, keeping only the non-zero amounts.
 -- Note that the result isn't sorted, meaning @v1 == v2@ doesn't generally imply
 -- @flattenValue v1 == flattenValue v2@.
+-- Also assumes that there are no duplicate keys in the 'Value' 'Map'.
 flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
 flattenValue v = goOuter [] (Map.toList $ getValue v)
   where
@@ -326,24 +360,42 @@ flattenValue v = goOuter [] (Map.toList $ getValue v)
 isZero :: Value -> Bool
 isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 
+{-# INLINABLE checkPred #-}
+-- | Checks whether a predicate holds for all the values in a 'Value'
+-- union. Assumes the well-definedness of the two underlying 'Map's.
+checkPred :: (These Integer Integer -> Bool) -> Value -> Value -> Bool
+checkPred f l r =
+    let
+      inner :: Map.Map TokenName (These Integer Integer) -> Bool
+      inner = Map.all f
+    in
+      Map.all inner (unionVal l r)
+
+{-# INLINABLE checkBinRel #-}
+-- | Check whether a binary relation holds for value pairs of two 'Value' maps,
+--   supplying 0 where a key is only present in one of them.
+checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
+checkBinRel f l r =
+    let
+        unThese k' = case k' of
+            This a    -> f a 0
+            That b    -> f 0 b
+            These a b -> f a b
+    in checkPred unThese l r
+
 {-# INLINABLE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation
 -- of how operations on 'Value's work.
 geq :: Value -> Value -> Bool
-geq l (Value r) =
-  -- This is more efficient than first flattening the second `Value` with `flattenValue`, because
-  -- the latter traverses the second `Value` and creates the entire intermediate result.
-  all
-    ( \(currency, tokens) ->
-        all (\(token, n) -> valueOf l currency token >= n) (Map.toList tokens)
-    )
-    (Map.toList r)
+-- If both are zero then checkBinRel will be vacuously true, but this is fine.
+geq = checkBinRel (>=)
 
 {-# INLINABLE leq #-}
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of
 -- how operations on 'Value's work.
 leq :: Value -> Value -> Bool
-leq = flip geq
+-- If both are zero then checkBinRel will be vacuously true, but this is fine.
+leq = checkBinRel (<=)
 
 {-# INLINABLE gt #-}
 -- | Check whether one 'Value' is strictly greater than another.
@@ -373,8 +425,11 @@ split (Value mp) = (negate (Value neg), Value pos) where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
 
 {-# INLINABLE unordEqWith #-}
-{- | Check equality of two lists given a function checking whether a 'Value' is zero and a function
-checking equality of values.
+{- | Check equality of two lists of distinct key-value pairs, each value being uniquely
+identified by a key, given a function checking whether a 'Value' is zero and a function
+checking equality of values. Note that the caller must ensure that the two lists are
+well-defined in this sense. This is not checked or enforced in `unordEqWith`, and therefore
+it might yield undefined results for ill-defined input.
 
 This function recurses on both the lists in parallel and checks whether the key-value pairs are
 equal pointwise. If there is a mismatch, then it tries to find the left key-value pair in the right
@@ -400,7 +455,7 @@ in the other, since in that case computing equality of values was expensive and 
    pressing
 
 The algorithm we use here is very similar, if not identical, to @valueEqualsValue4@ from
-https://github.com/input-output-hk/plutus/issues/5135
+https://github.com/IntersectMBO/plutus/issues/5135
 -}
 unordEqWith :: forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> Bool
 unordEqWith is0 eqV = goBoth where

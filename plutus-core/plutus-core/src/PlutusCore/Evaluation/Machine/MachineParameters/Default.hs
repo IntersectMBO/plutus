@@ -26,7 +26,7 @@ that allows GHC to look under lambdas and completely optimize multiple abstracti
 There are two ways of doing that: by relying on 'INLINE' pragmas all the way up from the
 'ToBuiltinMeaning' instance for the default set of builtins or by ensuring that 'toBuiltinsRuntime'
 is compiled efficient by turning it into a one-method class (see
-https://github.com/input-output-hk/plutus/pull/4419 for how that looks like). We chose the former,
+https://github.com/IntersectMBO/plutus/pull/4419 for how that looks like). We chose the former,
 because it's simpler. Although it's also less reliable: machine parameters are computed in
 multiple places and we need to make sure that benchmarking, cost model calculations and the actual
 production path have builtins compiled in the same way, 'cause otherwise performance analysis and

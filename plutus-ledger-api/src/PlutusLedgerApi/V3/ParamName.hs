@@ -75,8 +75,8 @@ data ParamName =
   | EncodeUtf8'memory'arguments'intercept
   | EncodeUtf8'memory'arguments'slope
   | EqualsByteString'cpu'arguments'constant
-  | EqualsByteString'cpu'arguments'intercept
-  | EqualsByteString'cpu'arguments'slope
+  | EqualsByteString'cpu'arguments'model'arguments'intercept
+  | EqualsByteString'cpu'arguments'model'arguments'slope
   | EqualsByteString'memory'arguments
   | EqualsData'cpu'arguments'intercept
   | EqualsData'cpu'arguments'slope
@@ -85,8 +85,8 @@ data ParamName =
   | EqualsInteger'cpu'arguments'slope
   | EqualsInteger'memory'arguments
   | EqualsString'cpu'arguments'constant
-  | EqualsString'cpu'arguments'intercept
-  | EqualsString'cpu'arguments'slope
+  | EqualsString'cpu'arguments'model'arguments'intercept
+  | EqualsString'cpu'arguments'model'arguments'slope
   | EqualsString'memory'arguments
   | FstPair'cpu'arguments
   | FstPair'memory'arguments
@@ -238,5 +238,15 @@ data ParamName =
   | Blake2b_224'cpu'arguments'intercept
   | Blake2b_224'cpu'arguments'slope
   | Blake2b_224'memory'arguments
+  | IntegerToByteString'cpu'arguments'c0
+  | IntegerToByteString'cpu'arguments'c1
+  | IntegerToByteString'cpu'arguments'c2
+  | IntegerToByteString'memory'arguments'intercept
+  | IntegerToByteString'memory'arguments'slope
+  | ByteStringToInteger'cpu'arguments'c0
+  | ByteStringToInteger'cpu'arguments'c1
+  | ByteStringToInteger'cpu'arguments'c2
+  | ByteStringToInteger'memory'arguments'intercept
+  | ByteStringToInteger'memory'arguments'slope
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)

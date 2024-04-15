@@ -63,7 +63,7 @@ of Haskell libraries.
 ## Installation
 
 plutus-metatheory is a module inside plutus, so the instructions are
-the same as for other plutus components, see the top-level [README](https://github.com/input-output-hk/plutus).
+the same as for other plutus components, see the top-level [README](https://github.com/IntersectMBO/plutus).
 
 You can execute the plc-agda command like this:
 

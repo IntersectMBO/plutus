@@ -36,7 +36,7 @@ import Type.Reflection
 type Term uni fun = PLC.Term TyName Name uni fun ()
 
 {- | Evaluating a builtin function should never throw any exception (the evaluation is allowed
- to fail with a `KnownTypeError`, of course).
+ to fail with a `BuiltinError`, of course).
 
  The test covers both succeeding and failing evaluations and verifies that in either case
  no exception is thrown. The failing cases use arbitrary `Term` arguments (which doesn't
@@ -119,20 +119,20 @@ prop_builtinEvaluation ::
     (fun -> Gen [Term uni fun]) ->
     -- | A function that takes a builtin function, a list of arguments, and the evaluation
     -- outcome, and decides whether to pass or fail the property.
-    (fun -> [Term uni fun] -> Either SomeException (MakeKnownM (Term uni fun)) -> PropertyT IO ()) ->
+    (fun -> [Term uni fun] -> Either SomeException (BuiltinResult (Term uni fun)) -> PropertyT IO ()) ->
     Property
 prop_builtinEvaluation runtimes bn mkGen f = property $ do
     args0 <- forAllNoShow $ mkGen bn
     let
-        eval :: [Term uni fun] -> BuiltinRuntime (Term uni fun) -> MakeKnownM (Term uni fun)
-        eval [] (BuiltinResult _ getX) =
+        eval :: [Term uni fun] -> BuiltinRuntime (Term uni fun) -> BuiltinResult (Term uni fun)
+        eval [] (BuiltinCostedResult _ getX) =
             getX
         eval (arg : args) (BuiltinExpectArgument toRuntime) =
             eval args (toRuntime arg)
         eval args (BuiltinExpectForce runtime) =
             eval args runtime
         eval _ _ =
-            -- TODO: can we make this function run in @GenT MakeKnownM@ and generate arguments
+            -- TODO: can we make this function run in @GenT BuiltinResult@ and generate arguments
             -- on the fly to avoid this error case?
             error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
         runtime0 = lookupBuiltin bn runtimes

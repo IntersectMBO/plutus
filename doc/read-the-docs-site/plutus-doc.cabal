@@ -15,7 +15,7 @@ build-type:    Simple
 
 source-repository head
   type:     git
-  location: https://github.com/input-output-hk/plutus
+  location: https://github.com/IntersectMBO/plutus
 
 flag defer-plugin-errors
   description:
@@ -77,9 +77,9 @@ executable doc-doctests
     , containers
     , flat               ^>=0.6
     , lens
-    , plutus-core        ^>=1.19
-    , plutus-ledger-api  ^>=1.19
-    , plutus-tx          ^>=1.19
+    , plutus-core        ^>=1.25
+    , plutus-ledger-api  ^>=1.25
+    , plutus-tx          ^>=1.25
     , prettyprinter
     , random
     , serialise
@@ -104,10 +104,10 @@ executable quick-start
     , base               >=4.9   && <5
     , base16-bytestring
     , bytestring
-    , plutus-core        ^>=1.19
-    , plutus-ledger-api  ^>=1.19
-    , plutus-tx          ^>=1.19
-    , plutus-tx-plugin   ^>=1.19
+    , plutus-core        ^>=1.25
+    , plutus-ledger-api  ^>=1.25
+    , plutus-tx          ^>=1.25
+    , plutus-tx-plugin   ^>=1.25
 
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin

@@ -21,7 +21,7 @@ import PlutusPrelude (showText)
 
 import PlutusCore.Core
 import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import Control.Lens.Indexed (ifor, itraverse)

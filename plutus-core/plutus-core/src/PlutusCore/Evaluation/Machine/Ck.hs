@@ -33,7 +33,7 @@ import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Result
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.Subst
 
@@ -74,10 +74,10 @@ evalBuiltinApp
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
 evalBuiltinApp term runtime = case runtime of
-    BuiltinResult _ getX -> case getX of
-        MakeKnownFailure logs err       -> emitCkM logs *> throwKnownTypeErrorWithCause term err
-        MakeKnownSuccess x              -> pure x
-        MakeKnownSuccessWithLogs logs x -> emitCkM logs $> x
+    BuiltinCostedResult _ getX -> case getX of
+        BuiltinFailure logs err       -> emitCkM logs *> throwBuiltinErrorWithCause term err
+        BuiltinSuccess x              -> pure x
+        BuiltinSuccessWithLogs logs x -> emitCkM logs $> x
     _ -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()

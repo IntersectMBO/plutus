@@ -1,2 +1,1 @@
-({cpu: 46100
-| mem: 300})
+(constr 0 (con integer 3))

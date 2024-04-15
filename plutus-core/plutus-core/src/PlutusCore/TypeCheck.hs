@@ -30,7 +30,7 @@ import PlutusPrelude
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Normalize
 import PlutusCore.Quote
 import PlutusCore.Rename
