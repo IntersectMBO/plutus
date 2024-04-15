@@ -12,14 +12,13 @@ module PlutusBenchmark.Common
     , toNamedDeBruijnTerm
     , compiledCodeToTerm
     , haskellValueToTerm
+    , benchProgramCek
     , unsafeRunTermCek
     , runTermCek
     , cekResultMatchesHaskellValue
     , mkEvalCtx
     , evaluateCekLikeInProd
---    , evaluateCekForBench
     , benchTermCek
-    , benchProgramCek
     , TestSize (..)
     , printHeader
     , printSizeStatistics
