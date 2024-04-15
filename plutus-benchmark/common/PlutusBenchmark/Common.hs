@@ -16,8 +16,6 @@ module PlutusBenchmark.Common
     , runTermCek
     , cekResultMatchesHaskellValue
     , mkEvalCtx
-    , evaluateCekLikeInProd
-    , evaluateCekForBench
     , benchTermCek
     , benchProgramCek
     , TestSize (..)
