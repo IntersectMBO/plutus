@@ -14,6 +14,7 @@ import Control.DeepSeq
 import Control.Lens
 import GHC.Exts (inline)
 import GHC.Generics
+import NoThunks.Class
 
 {-| We need to account for the costs of evaluator steps and also built-in function
    evaluation.  The models for these have different structures and are used in
@@ -42,6 +43,11 @@ data MachineParameters machinecosts fun val =
     }
     deriving stock Generic
     deriving anyclass (NFData)
+
+-- For some reason the generic instance gives incorrect nothunk errors,
+-- see https://github.com/input-output-hk/nothunks/issues/24
+instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineParameters machinecosts fun val) where
+  wNoThunks ctx (MachineParameters costs runtime) = allNoThunks [ noThunks ctx costs, noThunks ctx runtime ]
 
 {- Note [The CostingPart constraint in mkMachineParameters]
 Discharging the @CostingPart uni fun ~ builtincosts@ constraint in 'mkMachineParameters' causes GHC
@@ -80,6 +86,6 @@ mkMachineParameters ::
     => BuiltinSemanticsVariant fun
     -> CostModel machinecosts builtincosts
     -> MachineParameters machinecosts fun val
-mkMachineParameters semVar (CostModel mchnCosts builtinCosts) =
-    MachineParameters mchnCosts (inline toBuiltinsRuntime semVar builtinCosts)
+mkMachineParameters semvar (CostModel mchnCosts builtinCosts) =
+    MachineParameters mchnCosts (inline toBuiltinsRuntime semvar builtinCosts)
 {-# INLINE mkMachineParameters #-}

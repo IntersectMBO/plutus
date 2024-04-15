@@ -398,5 +398,15 @@ toBuiltinsRuntime
     -> cost
     -> BuiltinsRuntime fun val
 toBuiltinsRuntime semvar cost =
+    -- A call to 'lazy' is to make sure that the returned 'BuiltinsRuntime' is properly cached in a
+    -- 'let'-binding. This makes it easier for GHC to optimize the internals of builtins, because
+    -- without a 'let'-binding GHC would sometimes refuse to cooperate and push 'toBuiltinRuntime'
+    -- to the inside of the inlined 'toBuiltinMeaning' call, creating lots of 'BuiltinMeaning's
+    -- instead of 'BuiltinRuntime's with the former hiding the costing optimizations behind a lambda
+    -- binding the @cost@ variable, which makes the optimizations useless.
+    -- By using 'lazy' we tell GHC to create a separate thunk, which it can properly optimize,
+    -- because the other bazillion things don't get in the way. We used to use an explicit
+    -- 'let'-binding marked with @NOINLINE@, but that turned out to be unreliable, because GHC
+    -- feels free to turn it into a join point instead of a proper thunk.
     lazy . BuiltinsRuntime $ toBuiltinRuntime cost . inline toBuiltinMeaning semvar
 {-# INLINE toBuiltinsRuntime #-}
