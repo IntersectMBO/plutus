@@ -1,5 +1,7 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE LambdaCase     #-}
+
 {- | This module contains the code for handling the various kinds of version that we care about:
 
 * Protocol versions
@@ -28,6 +30,7 @@ import PlutusPrelude
 
 import Data.Map qualified as Map
 import Data.Set qualified as Set
+import NoThunks.Class (NoThunks)
 import PlutusCore.Version (plcVersion100, plcVersion110)
 import Prettyprinter
 
@@ -72,6 +75,7 @@ data PlutusLedgerLanguage =
     | PlutusV2 -- ^ introduced in vasil era
     | PlutusV3 -- ^ not yet enabled
    deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
+   deriving anyclass (NFData, NoThunks)
 
 instance Pretty PlutusLedgerLanguage where
     pretty = viaShow

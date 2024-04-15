@@ -43,6 +43,7 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
+import NoThunks.Class (NoThunks)
 import Prettyprinter (viaShow)
 
 -- See Note [Pattern matching on built-in types].
@@ -1079,7 +1080,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         = DefaultFunSemanticsVariant0
         | DefaultFunSemanticsVariant1
         | DefaultFunSemanticsVariant2
-        deriving stock (Eq, Enum, Bounded, Show)
+        deriving stock (Eq, Enum, Bounded, Show, Generic)
+        deriving anyclass (NFData, NoThunks)
 
     -- Integers
     toBuiltinMeaning

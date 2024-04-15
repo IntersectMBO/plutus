@@ -14,6 +14,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
+import Control.DeepSeq (force)
 import Control.Monad.Except
 import GHC.Exts (inline)
 
@@ -60,16 +61,15 @@ inlining).
 -- This function is expensive, so its result needs to be cached if it's going to be used multiple
 -- times.
 mkMachineParametersFor
-    :: forall m a. MonadError CostModelApplyError m
+    :: forall m. MonadError CostModelApplyError m
     => [BuiltinSemanticsVariant DefaultFun]
-    -> (a -> BuiltinSemanticsVariant DefaultFun)
     -> CostModelParams
-    -> m (a -> Maybe DefaultMachineParameters)
-mkMachineParametersFor semVars toSemVar newCMP = do
-    semVarAndMachineParametersCache <- for semVars $ \semVar ->
+    -> m [(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]
+mkMachineParametersFor semVars newCMP = do
+    res <- for semVars $ \semVar ->
         (,) semVar . inline mkMachineParameters semVar <$>
             applyCostModelParams (toCekCostModel semVar) newCMP
-    pure $ \x -> lookup (toSemVar x) semVarAndMachineParametersCache
+    pure $ force res
 -- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
 -- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down
 -- the line.

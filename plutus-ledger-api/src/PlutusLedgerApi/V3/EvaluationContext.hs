@@ -36,6 +36,6 @@ mkEvaluationContext =
     tagWithParamNames @V3.ParamName
     >=> pure . toCostModelParams
     >=> mkDynEvaluationContext
-        "PlutusV3"
+        PlutusV3
         [DefaultFunSemanticsVariant2]
         (const Plutus.DefaultFunSemanticsVariant2)
