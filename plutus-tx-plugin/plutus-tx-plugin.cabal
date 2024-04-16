@@ -151,6 +151,7 @@ test-suite plutus-tx-plugin-tests
     Plugin.Functions.Spec
     Plugin.Laziness.Spec
     Plugin.Lib
+    Plugin.NoTrace.Lib
     Plugin.NoTrace.Spec
     Plugin.NoTrace.WithoutTraces
     Plugin.NoTrace.WithTraces

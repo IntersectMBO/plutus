@@ -26,6 +26,7 @@ import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 import UntypedPlutusCore as UPLC
 
+import Control.DeepSeq (force)
 import Control.Exception
 import Control.Lens
 import Control.Monad.Except
@@ -87,7 +88,7 @@ writePlc p =
 
 main1 :: Haskell.IO ()
 main1 = do
-  evalCtx <- evaluate mkEvalCtx
+  evalCtx <- evaluate $ force mkEvalCtx
   defaultMainWith
       (defaultConfig { C.csvFile = Just "cek-lists.csv" })
       [mkListBMs evalCtx [0,10..1000]]
