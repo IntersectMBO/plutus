@@ -9,7 +9,7 @@ letrec
           {data}
           {Unit -> Unit -> data}
           xs
-          (\(ds : Unit) (eta : Unit) -> error {data})
+          (\(ds : Unit) -> error {Unit -> data})
           (\(ds : Unit) (ds : Unit) ->
              let
                !hd : data = headList {data} xs

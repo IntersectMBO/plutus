@@ -6,7 +6,7 @@ program
            (\go i ->
               force (force chooseList)
                 x
-                (\ds eta -> error)
+                (\ds -> error)
                 (\ds ds ->
                    (\hd ->
                       (\tl ->
