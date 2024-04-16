@@ -1,5 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
-
 -- | Defines the type of default machine parameters and a function for creating a value of the type.
 -- We keep them separate, because the function unfolds into multiple thousands of lines of Core that
 -- we need to be able to visually inspect, hence we dedicate a separate file to it.
