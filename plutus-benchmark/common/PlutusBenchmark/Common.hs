@@ -25,6 +25,9 @@ module PlutusBenchmark.Common
     , goldenVsTextualOutput
     , checkGoldenFileExists
     )
+-- ### CAUTION! ###.  Changing the number and/or order of the exports here may
+-- change the execution times of the validation benchmarks.  See
+-- https://github.com/IntersectMBO/plutus/issues/5906.
 where
 
 import Paths_plutus_benchmark as Export
