@@ -14,7 +14,6 @@ get an idea of the average cost of the basic CEK operations.
 -- See plutus-core/cost-model/CostModelGeneration.hs
 module Main (main) where
 
-
 import Prelude qualified as Haskell
 
 import PlutusBenchmark.Common (benchTermCek, mkEvalCtx)
