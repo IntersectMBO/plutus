@@ -33,3 +33,6 @@ traceComplex = plc (Proxy @"traceComplex") Lib.traceComplex
 
 traceRepeatedly :: CompiledCode Integer
 traceRepeatedly = plc (Proxy @"traceRepeatedly") Lib.traceRepeatedly
+
+traceImpure :: CompiledCode ()
+traceImpure = plc (Proxy @"traceImpure") Lib.traceImpure
