@@ -69,8 +69,8 @@ The \texttt{integerToByteString} function converts non-negative integers to byte
 It takes three arguments:
 \begin{itemize}
 \item An endianness flag $e$.
-\item A width argument $w$.
-\item The integer $n$ to be converted.
+\item A width argument $w$ with $0 \leq w < 8192$.
+\item The integer $n$ to be converted: it is required that $0 \leq n < 256^{8192} = 2^{65536}$.
 \end{itemize}
 
 \noindent If $e$ is \texttt{True} then the conversion is big-endian, otherwise it is
@@ -84,8 +84,21 @@ make it the correct length.  In all cases it is an error if $n<0$.
 \newpage
 \noindent The precise semantics of \texttt{integerToByteString} are given
 by the functions $\itobsBE: \Z \times \Z \rightarrow \B^*$ and $\itobsLE
-: \Z \times \Z \rightarrow \B^*$.  Writing $n = \sum_{i=0}^{N-1}a_i256^i$ with
-$a_{N-1} \ne 0$, we have
+: \Z \times \Z \rightarrow \B^*$.  Firstly we deal with out-of-range cases and
+the case $n=0$:
+
+$$
+\itobsLE (w,n) = \itobsBE (w,n) = 
+\begin{cases}
+  \errorX & \text{if $n<0$ or $n \geq 2^{65536}$}\\
+  \errorX & \text{if $w<0$ or $w > 8192$}\\
+  [] & \text{if $n=0$ and $0 \leq w \leq 8192$}\\
+\end{cases}
+$$
+
+\noindent  Now assume that none of the conditions above hold, so $0 < n < 2^{65536}$ and
+$0 \leq w \leq 8192$.  Since $n>0$ we can write
+$n = \sum_{i=0}^{N-1}a_i256^i$ with $a_{N-1} \ne 0$ and $N \geq 1$.   We then  have
 
 $$
 \itobsLE (w,n) =
@@ -106,7 +119,7 @@ $$
 \noindent
 \itobsBE (w,n) =
 \begin{cases}
-  [b_0, \ldots, b_{N-1}] & \text{if $w=0$, where $b_i = a_{N-1-i}$} \\
+  [a_{N-1}, \ldots, a_0] & \text{if $w=0$} \\
   [b_0, \ldots, b_{w-1}] &  \text{if $w > 0$ and $N\leq w$, where }
       b_i = \begin{cases}
                 a_{w-1-i} & \text{if $i \geq w-N$} \\
@@ -115,8 +128,6 @@ $$
   \errorX & \text{if $w > 0$ and $N > w$.}
 \end{cases}
 $$
-
-\noindent In the vacuous case $N=0$ we have $\itobsLE(0,0) = \itobsBE(0,0) = []$, the empty bytestring.
 
 \note{Bytestring to integer conversion.}
 \label{note:bstoi}
@@ -128,7 +139,8 @@ integers.  It takes two arguments:
 \end{itemize}
 \noindent  
 If $e$ is \texttt{True} then the conversion is big-endian, otherwise it is
-little-endian.  In both cases the empty bytestring is converted to the integer 0.
+little-endian.  In both cases the empty bytestring is converted to the integer
+0. There is no limitation on the size of $s$.
 
 \subsubsection{BLS12-381 built-in types}
 \label{sec:bls-types-4}
