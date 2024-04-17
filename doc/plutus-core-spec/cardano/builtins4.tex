@@ -8,10 +8,10 @@
   \noindent\textbf{Note \thenotenumberD. #1}
 }
 
-\newcommand{\itobsBE}{\mathsf{itobs_{LE}}}
-\newcommand{\itobsLE}{\mathsf{itobs_{BE}}}
-\newcommand{\bstoiBE}{\mathsf{bstoi_{LE}}}
-\newcommand{\bstoiLE}{\mathsf{bstoi_{BE}}}
+\newcommand{\itobsBE}{\mathsf{itobs_{BE}}}
+\newcommand{\itobsLE}{\mathsf{itobs_{LE}}}
+\newcommand{\bstoiBE}{\mathsf{bstoi_{BE}}}
+\newcommand{\bstoiLE}{\mathsf{bstoi_{LE}}}
 
 \subsection{Batch 4}
 \label{sec:default-builtins-4}
@@ -51,16 +51,15 @@ The fourth batch of builtins adds support for
     \TT{integerToByteString} & $[\ty{bool}, \ty{integer}, \ty{integer}]$  \text{\: $\to \ty{bytestring}$}
                                         & $(e, w, n) $ \text{$\mapsto \begin{cases}
                                         \itobsLE(w,n) & \text{if $e=\mathtt{false}$}\\
-                                        \bstoiBE(w,n) & \text{if $e=\mathtt{true}$}\\
+                                        \itobsBE(w,n) & \text{if $e=\mathtt{true}$}\\
                                         \end{cases}$}
                                         & Yes & \ref{note:itobs}\strut\\ \strut
     \TT{byteStringToInteger} & $[\ty{bool}, \ty{bytestring}] $ \text{\: $ \to \ty{bytestring}$}
                                         & $(e, [c_0, \ldots, c_{N-1}]) $ \text{\; $\mapsto \begin{cases}
                                         \sum_{i=0}^{N-1}c_i256^i & \text{if $e=\mathtt{false}$}\\
-                                        \sum_{i=0}^{N-1}c_{N-1-i}256^i & \text{if $e=\mathtt{true}$}\\
+                                        \sum_{i=0}^{N-1}c_i256^{N-1-i} & \text{if $e=\mathtt{true}$}\\
                                         \end{cases}$}
-                                        &  & \ref{note:bstoi} \\
-
+                                        &  & \ref{note:bstoi}\\
     \hline
 \end{longtable}
 
@@ -78,22 +77,22 @@ It takes three arguments:
 little-endian. If the width $w$ is zero then the output is a bytestring which is
 just large enough to hold the converted integer.  If $w>0$ then the output is
 exactly $w$ bytes long, and it is an error if $n$ does not fit into a bytestring
-of that size; if necessary, the output is padded with 0x00 bytes (on the left if
-$e = \mathtt{True}$ and on the right if $e = \mathtt{False}$) to make it the
-correct length.  In all cases it is an error if $n<0$.
+of that size; if necessary, the output is padded with \texttt{0x00} bytes (on
+the left if $e = \mathtt{True}$ and on the right if $e = \mathtt{False}$) to
+make it the correct length.  In all cases it is an error if $n<0$.
 
 The precise semantics are given by the functions $\itobsBE
 : \Z \times \Z \rightarrow \B^*$ and $\itobsLE : \Z \times \Z \rightarrow \B^*$.
-Writing $n = \sum_{i=0}^Na_i256^i$ with $a_N \ne 0$, we have 
+Writing $n = \sum_{i=0}^{N-1}a_i256^i$ with $a_{N-1} \ne 0$, we have 
 
 $$
 \itobsLE (w,n) =
 \begin{cases}
-  [a_0, \ldots, a_N] & \text{if $w=0$} \\
-  [b_0, \ldots, b_w] &  \text{if $w > 0$ and $N\le w$, where }
+  [a_0, \ldots, a_{N-1}] & \text{if $w=0$} \\
+  [b_0, \ldots, b_{w-1}] &  \text{if $w > 0$ and $N\leq w$, where }
       b_i = \begin{cases}
-                a_i & \text{if $i \leq N$} \\
-                0   & \text{if $i > N$}\\
+                a_i & \text{if $i \leq N-1$} \\
+                0   & \text{if $i \geq N$}\\
             \end{cases}\\
   \errorX & \text{otherwise}
 \end{cases}
@@ -105,17 +104,17 @@ $$
 \noindent
 \itobsBE (w,n) =
 \begin{cases}
-  [a_N, \ldots, a_0] & \text{if $w=0$} \\
-  [b_w, \ldots, b_0] &  \text{if $w > 0$ and $N\le w$, where }
+  [b_0, \ldots, b_{N-1}] & \text{if $w=0$, where $b_i = a_{N-1-i}$} \\
+  [b_0, \ldots, b_{w-1}] &  \text{if $w > 0$ and $N\leq w$, where }
       b_i = \begin{cases}
-                a_i & \text{if $i \leq N$} \\
-                0   & \text{if $i > N$}\\
+                a_{w-1-i} & \text{if $i \geq w-N$} \\
+                0   & \text{if $i \leq w-1-N$}\\
             \end{cases}\\
-  \errorX & \text{otherwise}
+  \errorX & \text{otherwise.}
 \end{cases}
 $$
 
-\noindent We have $\itobsLE(0,0) = \itobsBE(0,0) = 0$.
+\noindent In the vacuous case $N=0$ we have $\itobsLE(0,0) = \itobsBE(0,0) = []$, the empty bytestring.
 
 \note{Bytestring to integer conversion.}
 \label{note:bstoi}
