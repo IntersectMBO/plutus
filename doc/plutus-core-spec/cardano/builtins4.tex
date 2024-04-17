@@ -27,8 +27,8 @@ The fourth batch of builtins adds support for
 \subsubsection{Miscellaneous built-in functions}
 \label{sec:misc-builtins-4}
 
-\setlength{\LTleft}{-10mm} % Shift the table left a bit to centre it on the page
-\begin{longtable}[H]{|l|p{45mm}|p{60mm}|c|c|}
+\setlength{\LTleft}{-17mm} % Shift the table left a bit to centre it on the page
+\begin{longtable}[H]{|l|p{45mm}|p{65mm}|c|c|}
     \hline \text{Function} & \text{Signature} & \text{Denotation} & \text{Can}
     & \text{Note} \\ & & & fail?
     & \\ \hline \endfirsthead \hline \text{Function} & \text{Type}
@@ -43,10 +43,10 @@ The fourth batch of builtins adds support for
     \endlastfoot
 %% G1
     \hline
-    \TT{blake2b\_224} & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using}
-                                                                   \TT{Blake2b-224}~\cite{IETF-Blake2}. &  & \\
-    \TT{keccak\_256}  & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using}
-                                                                   \TT{Keccak-256}~\cite{KeccakRef3}. &  & \\
+    \TT{blake2b\_224} & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using
+                                                                   \TT{Blake2b-224}~\cite{IETF-Blake2}.} & & \\
+    \TT{keccak\_256}  & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using
+                                                                   \TT{Keccak-256}~\cite{KeccakRef3}.} & & \\
     \hline\strut
     \TT{integerToByteString} & $[\ty{bool}, \ty{integer}, \ty{integer}]$  \text{\: $\to \ty{bytestring}$}
                                         & $(e, w, n) $ \text{$\mapsto \begin{cases}
@@ -56,8 +56,8 @@ The fourth batch of builtins adds support for
                                         & Yes & \ref{note:itobs}\strut\\ \strut
     \TT{byteStringToInteger} & $[\ty{bool}, \ty{bytestring}] $ \text{\: $ \to \ty{bytestring}$}
                                         & $(e, [c_0, \ldots, c_{N-1}]) $ \text{\; $\mapsto \begin{cases}
-                                        \sum_{i=0}^{N-1}c_i256^i & \text{if $e=\mathtt{false}$}\\
-                                        \sum_{i=0}^{N-1}c_i256^{N-1-i} & \text{if $e=\mathtt{true}$}\\
+                                        \sum_{i=0}^{N-1}c_{i}256^i & \text{if $e=\mathtt{false}$}\\
+                                        \sum_{i=0}^{N-1}c_{i}256^{N-1-i} & \text{if $e=\mathtt{true}$}\\
                                         \end{cases}$}
                                         &  & \ref{note:bstoi}\\
     \hline
@@ -98,7 +98,7 @@ $$
 
 \noindent  Now assume that none of the conditions above hold, so $0 < n < 2^{65536}$ and
 $0 \leq w \leq 8192$.  Since $n>0$ we can write
-$n = \sum_{i=0}^{N-1}a_i256^i$ with $a_{N-1} \ne 0$ and $N \geq 1$.   We then  have
+$n = \sum_{i=0}^{N-1}a_{i}256^i$ with $N \geq 1$ and $a_{N-1} \ne 0$.   We then  have
 
 $$
 \itobsLE (w,n) =
