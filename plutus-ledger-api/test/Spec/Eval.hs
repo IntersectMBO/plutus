@@ -29,6 +29,7 @@ import Control.Monad.Writer
 import Data.Foldable (for_)
 import Data.Map qualified as Map
 import Data.Maybe (fromJust)
+import Data.Set qualified as Set
 import NoThunks.Class
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -105,7 +106,8 @@ evaluationContextCacheIsComplete =
     testGroup "EvaluationContext has machine parameters for all protocol versions" $
         enumerate <&> \lv -> testCase (show lv) $ do
             evalCtx <- mkEvaluationContextV lv
-            for_ knownPVs $ \pv -> evaluate $ toMachineParameters pv evalCtx
+            for_ (Set.insert futurePV knownPVs) $ \pv ->
+                evaluate $ toMachineParameters pv evalCtx
 
 failIfThunk :: Show a => Maybe a -> IO ()
 failIfThunk mbThunkInfo =

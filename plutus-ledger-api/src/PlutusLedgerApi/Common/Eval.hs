@@ -113,8 +113,20 @@ toMachineParameters pv (EvaluationContext lv toSemVar machParsList) =
         Just machPars -> machPars
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
-script.  This is so that they can be computed once and cached, rather than being recomputed on every
+script. This is so that they can be computed once and cached, rather than being recomputed on every
 evaluation.
+
+Different protocol versions may require different bundles of machine parameters, which allows us for
+example to tweak the shape of the costing function of a builtin, so that the builtin costs less.
+Currently this means that we have to create multiple 'DefaultMachineParameters' per language
+version, which we put into a cache (represented by an association list) in order to avoid costly
+recomputation of machine parameters.
+
+In order to get the appropriate 'DefaultMachineParameters' at validation time we look it up in the
+cache using a semantics variant as a key. We compute the semantics variant from the protocol
+version using the stored function. Note that the semantics variant depends on the language version
+too, but the latter is known statically (because each language version has its own evaluation
+context), hence there's no reason to require it to be provided at runtime.
 -}
 data EvaluationContext = EvaluationContext
     { _evalCtxLedgerLang    :: PlutusLedgerLanguage
@@ -128,7 +140,7 @@ data EvaluationContext = EvaluationContext
     deriving stock Generic
     deriving anyclass (NFData, NoThunks)
 
-{-|  Create an 'EvaluationContext' given all builtin semantics variant supported by the provided
+{-|  Create an 'EvaluationContext' given all builtin semantics variants supported by the provided
 language version.
 
 The input is a `Map` of `Text`s to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
