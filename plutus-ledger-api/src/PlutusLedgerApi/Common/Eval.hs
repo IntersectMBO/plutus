@@ -117,17 +117,26 @@ script.  This is so that they can be computed once and cached, rather than being
 evaluation.
 -}
 data EvaluationContext = EvaluationContext
-    { _evalCtxLedgerLang   :: PlutusLedgerLanguage
-    , _evalCtxToSemVar     :: MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun
-    , _evalCtxMachParsList :: [(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]
+    { _evalCtxLedgerLang    :: PlutusLedgerLanguage
+      -- ^ Specifies what language versions the 'EvaluationContext' is for.
+    , _evalCtxToSemVar      :: MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun
+      -- ^ Specifies how to get a semantics variant given a 'MajorProtocolVersion'.
+    , _evalCtxMachParsCache :: [(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]
+      -- ^ The cache of 'DefaultMachineParameters' for each semantics variant supported by the
+      -- current language version.
     }
     deriving stock Generic
     deriving anyclass (NFData, NoThunks)
 
-{-|  Create an 'EvaluationContext' for a given builtin semantics variant.
+{-|  Create an 'EvaluationContext' given all builtin semantics variant supported by the provided
+language version.
 
 The input is a `Map` of `Text`s to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
 See Note [Inlining meanings of builtins].
+
+IMPORTANT: the 'toSemVar' argument computes the semantics variant for each 'MajorProtocolVersion'
+and it must only return semantics variants from the 'semVars' list, as well as cover ANY
+'MajorProtocolVersion', including those that do not exist yet (i.e. 'toSemVar' must never fail).
 
 IMPORTANT: The evaluation context of every Plutus version must be recreated upon a protocol update
 with the updated cost model parameters.

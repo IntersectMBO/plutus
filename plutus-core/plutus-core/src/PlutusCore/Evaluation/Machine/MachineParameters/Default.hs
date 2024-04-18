@@ -44,8 +44,9 @@ as we did have cases where sticking 'inline' on something that already had @INLI
 inlining).
 -}
 
--- | Produce a 'DefaultMachineParameters' given the version of the default set of built-in functions
--- and a 'CostModelParams', which gets applied on top of 'defaultCekCostModel'.
+-- | Produce a 'DefaultMachineParameters' for each of the given semantics variants.
+-- The 'CostModelParams' argument is used to update the costing parameters returned by
+-- 'toCekCostModel' for each of the semantics variants.
 --
 -- Whenever you need to evaluate UPLC in a performance-sensitive manner (e.g. in the production,
 -- for benchmarking, for cost calibration etc), you MUST use this definition for creating a
@@ -56,8 +57,8 @@ inlining).
 -- Core; you change how it's exported (implicitly as a part of a whole-module export or explicitly
 -- as a single definition) -- you get the idea.
 --
--- This function is expensive, so its result needs to be cached if it's going to be used multiple
--- times.
+-- This function is very expensive, so its result needs to be cached if it's going to be used
+-- multiple times.
 mkMachineParametersFor
     :: MonadError CostModelApplyError m
     => [BuiltinSemanticsVariant DefaultFun]
@@ -65,9 +66,12 @@ mkMachineParametersFor
     -> m [(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]
 mkMachineParametersFor semVars newCMP = do
     res <- for semVars $ \semVar ->
+        -- See Note [Inlining meanings of builtins].
         (,) semVar . inline mkMachineParameters semVar <$>
             applyCostModelParams (toCekCostModel semVar) newCMP
-    pure $ force res
+    -- Force all thunks to pay the costs of creating machine parameters upfront. Doing it here saves
+    -- us from doing that in every single benchmark runner.
+    pure $! force res
 -- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
 -- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down
 -- the line.

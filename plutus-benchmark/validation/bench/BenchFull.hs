@@ -7,7 +7,6 @@ import PlutusLedgerApi.V1
 import UntypedPlutusCore qualified as UPLC
 
 import Common
-import Control.DeepSeq (force)
 import Control.Exception
 import Criterion
 import Data.ByteString as BS
@@ -23,7 +22,7 @@ the whole time taken from script deserialization to script execution result.
 -}
 main :: IO ()
 main = do
-    evalCtx <- evaluate $ force mkEvalCtx
+    evalCtx <- evaluate mkEvalCtx
     let mkFullBM :: FilePath -> BS.ByteString -> Benchmarkable
         mkFullBM file bsFlat =
             let UPLC.Program () ver body = unsafeUnflat file bsFlat
