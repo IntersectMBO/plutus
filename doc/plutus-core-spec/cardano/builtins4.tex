@@ -73,13 +73,18 @@ It takes three arguments:
 \item The integer $n$ to be converted: it is required that $0 \leq n < 256^{8192} = 2^{65536}$.
 \end{itemize}
 
-\noindent If $e$ is \texttt{True} then the conversion is big-endian, otherwise it is
-little-endian. If the width $w$ is zero then the output is a bytestring which is
-just large enough to hold the converted integer.  If $w>0$ then the output is
-exactly $w$ bytes long, and it is an error if $n$ does not fit into a bytestring
-of that size; if necessary, the output is padded with \texttt{0x00} bytes (on
-the right if $e = \mathtt{False}$ and on the left if $e = \mathtt{True}$ ) to
-make it the correct length.  In all cases it is an error if $n<0$.
+\noindent The conversion is little-endian if $e$ is \texttt{(con bool False)} and
+big-endian if $e$ is \texttt{(con bool True)}. If the width $w$ is zero then the
+output is a bytestring which is just large enough to hold the converted integer.
+If $w>0$ then the output is exactly $w$ bytes long, and it is an error if $n$
+does not fit into a bytestring of that size; if necessary, the output is padded
+with \texttt{0x00} bytes (on the right in the little-endian case and the left in
+the big-endian case) to make it the correct length.  For example, the five-byte
+little-endian representation of the integer \texttt{0x123456} is the
+bytestring \texttt{[0x56, 0x34, 0x12, 0x00, 0x00]} and the five-byte big-endian
+representation is \texttt{[0x00, 0x00, 0x12, 0x34, 0x56]}.  In all cases an
+error occurs error if $w$ or $n$ lies outside the expected range, and in
+particular if $n$ is negative.
 
 \newpage
 \noindent The precise semantics of \texttt{integerToByteString} are given
@@ -138,9 +143,10 @@ integers.  It takes two arguments:
 \item The bytestring $s$ to be converted.
 \end{itemize}
 \noindent  
-If $e$ is \texttt{True} then the conversion is big-endian, otherwise it is
-little-endian.  In both cases the empty bytestring is converted to the integer
-0. There is no limitation on the size of $s$.
+The conversion is little-endian if $e$ is \texttt{(con bool False)} and
+big-endian if $e$ is \texttt{(con bool True)}. In both cases the empty bytestring is
+converted to the integer 0. All bytestrings are legal inputs and there is no
+limitation on the size of $s$.
 
 \subsubsection{BLS12-381 built-in types}
 \label{sec:bls-types-4}
