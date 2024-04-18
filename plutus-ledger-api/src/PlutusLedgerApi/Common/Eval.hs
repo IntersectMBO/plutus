@@ -109,7 +109,7 @@ toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachi
 toMachineParameters pv (EvaluationContext lv toSemVar machParsList) =
     case lookup (toSemVar pv) machParsList of
         Nothing -> error $ Prelude.concat
-            ["Internal error: ", show lv, " does not support ", show pv]
+            ["Internal error: ", show lv, " does not support protocol version ", show pv]
         Just machPars -> machPars
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a

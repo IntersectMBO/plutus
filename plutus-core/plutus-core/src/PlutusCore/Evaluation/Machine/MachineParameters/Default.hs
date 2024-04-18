@@ -59,7 +59,7 @@ inlining).
 -- This function is expensive, so its result needs to be cached if it's going to be used multiple
 -- times.
 mkMachineParametersFor
-    :: forall m. MonadError CostModelApplyError m
+    :: MonadError CostModelApplyError m
     => [BuiltinSemanticsVariant DefaultFun]
     -> CostModelParams
     -> m [(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]
