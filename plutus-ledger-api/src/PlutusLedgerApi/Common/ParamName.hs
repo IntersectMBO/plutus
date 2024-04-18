@@ -17,6 +17,7 @@ import PlutusCore.Evaluation.Machine.CostModelInterface
 import Control.Monad.Except
 import Control.Monad.Writer.Strict
 import Data.Char (toLower)
+import Data.Int (Int64)
 import Data.List as List (lookup)
 import Data.Map qualified as Map
 import Data.Text qualified as Text
@@ -99,9 +100,11 @@ tagWithParamNames ledgerParams =
             tell [CMTooManyParamsWarn {cmTooManyExpected = lenExpected, cmTooManyActual = lenActual}]
             -- zip will truncate/ignore any extraneous parameter values
             pure $ zip paramNames ledgerParams
-        GT ->
+        GT -> do
+            -- Too few parameters - substitute a large number for the missing parameters
             -- See Note [Cost model parameters from the ledger's point of view]
-            throwError $ CMTooFewParamsError {cmTooFewExpected = lenExpected, cmTooFewActual = lenActual }
+            tell [CMTooFewParamsWarn {cmTooFewExpected = lenExpected, cmTooFewActual = lenActual}]
+            pure $ zip paramNames (ledgerParams ++ repeat (toInteger (maxBound :: Int64)))
 
 -- | Untags the plutus version from the typed cost model parameters and returns their raw textual form
 -- (internally used by CostModelInterface).
