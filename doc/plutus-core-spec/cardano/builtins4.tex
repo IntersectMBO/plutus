@@ -18,7 +18,7 @@
 The fourth batch of builtins adds support for
 \begin{itemize}
 \item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions.
-\item Conversions functions from integers to bytestrings and vice-versa.
+\item Conversion functions from integers to bytestrings and vice-versa.
 \item BLS12-381 elliptic curve pairing operations
 (see~\cite{CIP-0381}, \cite{BLS12-381}, \cite[4.2.1]{IETF-pairing-friendly-curves}, \cite{BLST-library}).
  For clarity these are described separately in Sections~\ref{sec:bls-types-4} and \ref{sec:bls-builtins-4}.
@@ -68,8 +68,8 @@ The fourth batch of builtins adds support for
 The \texttt{integerToByteString} function converts non-negative integers to bytestrings.
 It takes three arguments:
 \begin{itemize}
-\item An endianness flag $e$.
-\item A width argument $w$ with $0 \leq w < 8192$.
+\item A boolean endianness flag $e$.
+\item An integer width argument $w$ with $0 \leq w < 8192$.
 \item The integer $n$ to be converted: it is required that $0 \leq n < 256^{8192} = 2^{65536}$.
 \end{itemize}
 
@@ -78,13 +78,13 @@ little-endian. If the width $w$ is zero then the output is a bytestring which is
 just large enough to hold the converted integer.  If $w>0$ then the output is
 exactly $w$ bytes long, and it is an error if $n$ does not fit into a bytestring
 of that size; if necessary, the output is padded with \texttt{0x00} bytes (on
-the left if $e = \mathtt{True}$ and on the right if $e = \mathtt{False}$) to
+the right if $e = \mathtt{False}$ and on the left if $e = \mathtt{True}$ ) to
 make it the correct length.  In all cases it is an error if $n<0$.
 
 \newpage
 \noindent The precise semantics of \texttt{integerToByteString} are given
-by the functions $\itobsBE: \Z \times \Z \rightarrow \B^*$ and $\itobsLE
-: \Z \times \Z \rightarrow \B^*$.  Firstly we deal with out-of-range cases and
+by the functions $\itobsLE: \Z \times \Z \rightarrow \withError{\B^*}$ and $\itobsBE
+: \Z \times \Z \rightarrow \withError{\B^*}$.  Firstly we deal with out-of-range cases and
 the case $n=0$:
 
 $$
@@ -134,7 +134,7 @@ $$
 The \texttt{byteStringToInteger} function converts bytestrings to non-negative
 integers.  It takes two arguments:
 \begin{itemize}
-\item An endianness flag $e$.
+\item A boolean endianness flag $e$.
 \item The bytestring $s$ to be converted.
 \end{itemize}
 \noindent  
