@@ -127,6 +127,15 @@ cache using a semantics variant as a key. We compute the semantics variant from 
 version using the stored function. Note that the semantics variant depends on the language version
 too, but the latter is known statically (because each language version has its own evaluation
 context), hence there's no reason to require it to be provided at runtime.
+
+The reason why we associate a 'DefaultMachineParameters' with a semantics variant rather than a
+protocol version are
+
+1. generally there are far more protocol versions than semantics variants supported by a specific
+   language version, so we save on pointless duplication of bundles of machine parameters
+2. builtins don't know anything about protocol versions, only semantics variants. It is therefore
+   more semantically precise to associate bundles of machine parameters with semantics variants than
+   with protocol versions
 -}
 data EvaluationContext = EvaluationContext
     { _evalCtxLedgerLang    :: PlutusLedgerLanguage

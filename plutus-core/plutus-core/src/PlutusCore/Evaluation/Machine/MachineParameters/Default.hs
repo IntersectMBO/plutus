@@ -69,7 +69,7 @@ mkMachineParametersFor semVars newCMP = do
         -- See Note [Inlining meanings of builtins].
         (,) semVar . inline mkMachineParameters semVar <$>
             applyCostModelParams (toCekCostModel semVar) newCMP
-    -- Force all thunks to pay the costs of creating machine parameters upfront. Doing it here saves
+    -- Force all thunks to pay the cost of creating machine parameters upfront. Doing it here saves
     -- us from doing that in every single benchmark runner.
     pure $! force res
 -- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
