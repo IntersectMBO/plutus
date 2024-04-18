@@ -79,13 +79,16 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Map qualified as Map
+import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
 import Data.Type.Bool qualified as PlutusTx.Bool
 import GHC.Num.Integer qualified
+import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
 import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
+import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
 import System.IO (openTempFile)
 import System.IO.Unsafe (unsafePerformIO)
@@ -423,7 +426,7 @@ compileMarkedExpr locStr codeTy origE = do
             ccBuiltinsInfo = def,
             ccBuiltinCostModel = def,
             ccDebugTraceOn = _posDumpCompilationTrace opts,
-            ccRewriteRules = def
+            ccRewriteRules = makeRewriteRules opts
             }
         st = CompileState 0 mempty
     -- See Note [Occurrence analysis]
@@ -482,6 +485,9 @@ runCompiler moduleName opts expr = do
             PIR.DatatypeComponent PIR.Destructor _ -> True
             _                                      ->
                 AlwaysInline `elem` fmap annInline (toList ann)
+
+    rewriteRules <- asks ccRewriteRules
+
     -- Compilation configuration
     -- pir's tc-config is based on plc tcconfig
     let pirTcConfig = PIR.PirTCConfig plcTcConfig PIR.YesEscape
@@ -524,6 +530,7 @@ runCompiler moduleName opts expr = do
                  -- TODO: ensure the same as the one used in the plugin
                  & set PIR.ccBuiltinsInfo def
                  & set PIR.ccBuiltinCostModel def
+                 & set PIR.ccRewriteRules rewriteRules
         plcOpts = PLC.defaultCompilationOpts
             & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations)
                 (opts ^. posMaxSimplifierIterationsUPlc)
@@ -642,3 +649,10 @@ makePrimitiveNameInfo names = do
         thing <- lift . lift $ GHC.lookupThing ghcName
         pure (name, thing)
     pure $ Map.fromList infos
+
+makeRewriteRules :: PluginOptions -> RewriteRules DefaultUni DefaultFun
+makeRewriteRules options =
+  fold
+    [ mwhen (options ^. posRemoveTrace) rewriteRuleRemoveTrace
+    , defaultUniRewriteRules
+    ]

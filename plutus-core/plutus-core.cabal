@@ -490,6 +490,7 @@ executable uplc
 library plutus-ir
   import:          lang
   visibility:      public
+  hs-source-dirs:  plutus-ir/src
   exposed-modules:
     PlutusIR
     PlutusIR.Analysis.Builtins
@@ -537,6 +538,7 @@ library plutus-ir
     PlutusIR.Transform.Rename
     PlutusIR.Transform.RewriteRules
     PlutusIR.Transform.RewriteRules.CommuteFnWithConst
+    PlutusIR.Transform.RewriteRules.RemoveTrace
     PlutusIR.Transform.StrictifyBindings
     PlutusIR.Transform.Substitute
     PlutusIR.Transform.ThunkRecursions
@@ -544,7 +546,6 @@ library plutus-ir
     PlutusIR.TypeCheck
     PlutusIR.TypeCheck.Internal
 
-  hs-source-dirs:  plutus-ir/src
   other-modules:
     PlutusIR.Analysis.Definitions
     PlutusIR.Analysis.Size
@@ -554,7 +555,7 @@ library plutus-ir
     PlutusIR.Compiler.Recursion
     PlutusIR.Normalize
     PlutusIR.Transform.RewriteRules.Common
-    PlutusIR.Transform.RewriteRules.Rules
+    PlutusIR.Transform.RewriteRules.Internal
     PlutusIR.Transform.RewriteRules.UnConstrConstrData
 
   build-depends:
