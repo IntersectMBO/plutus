@@ -1,4 +1,17 @@
 
+<a id='changelog-1.26.0.0'></a>
+# 1.26.0.0 — 2024-04-19
+
+## Changed
+
+- Improvements to costing infrastructure.
+
+- Use `Vector` in the datastructure for `case` terms during evaluation. This speeds
+  up evaluation fairly significantly.
+
+- The `flat` encoding of the `Data` type has been modified slightly to make sure that
+  the result is always in the canonical format described in the Plutus Core specification.
+
 <a id='changelog-1.25.0.0'></a>
 # 1.25.0.0 — 2024-04-03
 
