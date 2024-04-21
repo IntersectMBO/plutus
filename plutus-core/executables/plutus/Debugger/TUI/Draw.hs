@@ -1,12 +1,10 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-
 -- | Renders the debugger in the terminal.
-module Draw where
+module Debugger.TUI.Draw where
 
+import Debugger.TUI.Types
 import PlutusPrelude (render)
-
-import Types
 
 import Brick.AttrMap qualified as B
 import Brick.Focus qualified as B

@@ -79,6 +79,7 @@ common lang
 library
   import:             lang
   exposed-modules:
+    Codec.CBOR.Extras
     Data.Aeson.THReader
     Data.Either.Extras
     Data.List.Extras
@@ -667,6 +668,74 @@ executable pir
     , text
     , transformers
 
+executable plutus
+  import:             lang
+  main-is:            Main.hs
+  hs-source-dirs:     executables/plutus
+
+  -- singletons-th does not support GHC<=8.10
+  if impl(ghc <9.0)
+    buildable: False
+
+  -- Hydra complains that this is not buildable on mingw32 because of brick.
+  -- Strange, because I thought vty added support for windows.
+  if os(windows)
+    buildable: False
+
+  other-modules:
+    AnyProgram.Apply
+    AnyProgram.Bench
+    AnyProgram.Compile
+    AnyProgram.Debug
+    AnyProgram.Example
+    AnyProgram.IO
+    AnyProgram.Parse
+    AnyProgram.Run
+    AnyProgram.With
+    Common
+    Debugger.TUI.Draw
+    Debugger.TUI.Event
+    Debugger.TUI.Main
+    Debugger.TUI.Types
+    GetOpt
+    Mode.Compile
+    Mode.HelpVersion
+    Mode.ListExamples
+    Mode.PrintBuiltins
+    Mode.PrintCostModel
+    Types
+
+  build-depends:
+    , aeson-pretty
+    , base                                  >=4.9   && <5
+    , brick
+    , bytestring
+    , containers
+    , exceptions
+    , filepath
+    , flat
+    , lens
+    , megaparsec
+    , microlens
+    , microlens-th                          ^>=0.4
+    , mono-traversable
+    , mtl
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.26
+    , prettyprinter
+    , primitive
+    , serialise
+    , singletons
+    , singletons-th
+    , text
+    , text-zipper
+    , vty                                   ^>=6
+    , vty-crossplatform                     ^>=0.2
+
+  ghc-options:        -O2 -threaded -rtsopts -with-rtsopts=-N
+  default-extensions:
+    GADTs
+    TypeApplications
+
 ----------------------------------------------
 -- support libs
 ----------------------------------------------
@@ -788,46 +857,6 @@ library plutus-ir-cert
   build-depends:
     , base
     , plutus-core:{plutus-core, plutus-ir}  ^>=1.26
-
-----------------------------------------------
--- debugger
-----------------------------------------------
-
-executable debugger
-  import:         lang
-  main-is:        Main.hs
-
-  -- brick does not work on windows
-  if os(windows)
-    buildable: False
-
-  hs-source-dirs: executables/debugger
-  other-modules:
-    Draw
-    Event
-    Types
-
-  ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-    , base                  >=4.9   && <5
-    , brick
-    , containers
-    , exceptions
-    , filepath
-    , megaparsec
-    , microlens
-    , microlens-th          ^>=0.4
-    , mono-traversable
-    , mtl
-    , optparse-applicative
-    , plutus-core           ^>=1.26
-    , plutus-core-execlib   ^>=1.26
-    , prettyprinter
-    , primitive
-    , text
-    , text-zipper
-    , vty                   ^>=6
-    , vty-crossplatform     ^>=0.2
 
 ----------------------------------------------
 -- profiling

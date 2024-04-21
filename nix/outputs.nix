@@ -59,7 +59,7 @@ in
       hydraJobs.musl64.ghc96.pir = ghc96-musl64.cabalProject.hsPkgs.plutus-core.components.exes.pir;
       hydraJobs.musl64.ghc96.plc = ghc96-musl64.cabalProject.hsPkgs.plutus-core.components.exes.plc;
       hydraJobs.musl64.ghc96.uplc = ghc96-musl64.cabalProject.hsPkgs.plutus-core.components.exes.uplc; # editorconfig-checker-disable-line
-      hydraJobs.musl64.ghc96.debugger = ghc96-musl64.cabalProject.hsPkgs.plutus-core.components.exes.debugger; # editorconfig-checker-disable-line
+      hydraJobs.musl64.ghc96.plutus = ghc96-musl64.cabalProject.hsPkgs.plutus-core.components.exes.plutus; # editorconfig-checker-disable-line
     })
 
   (lib.optionalAttrs (system == "aarch64-darwin")

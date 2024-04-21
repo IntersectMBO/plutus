@@ -90,7 +90,7 @@ import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
-import System.IO (openTempFile)
+import System.IO (openBinaryTempFile)
 import System.IO.Unsafe (unsafePerformIO)
 
 data PluginCtx = PluginCtx
@@ -546,17 +546,17 @@ runCompiler moduleName opts expr = do
     pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
     let pirP = PIR.Program noProvenance plcVersion pirT
     when (opts ^. posDumpPir) . liftIO $
-        dumpFlat (void pirP) "initial PIR program" (moduleName ++ ".pir-initial.flat")
+        dumpFlat (void pirP) "initial PIR program" (moduleName ++ "_initial.pir-flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirP <- flip runReaderT pirCtx $ PIR.compileToReadable pirP
     when (opts ^. posDumpPir) . liftIO $
-        dumpFlat (void spirP) "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
+        dumpFlat (void spirP) "simplified PIR program" (moduleName ++ "_simplified.pir-flat")
 
     -- (Simplified) Pir -> Plc translation.
     plcP <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirP
     when (opts ^. posDumpPlc) . liftIO $
-        dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".plc.flat")
+        dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".tplc-flat")
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (opts ^. posDoTypecheck) . void $
@@ -568,7 +568,7 @@ runCompiler moduleName opts expr = do
         dumpFlat
             (UPLC.UnrestrictedProgram $ void dbP)
             "untyped PLC program"
-            (moduleName ++ ".uplc.flat")
+            (moduleName ++ ".uplc-flat")
     -- Discard the Provenance information at this point, just keep the SrcSpans
     -- TODO: keep it and do something useful with it
     pure (fmap getSrcSpans spirP, fmap getSrcSpans dbP)
@@ -584,7 +584,7 @@ runCompiler moduleName opts expr = do
 
       dumpFlat :: Flat t => t -> String -> String -> IO ()
       dumpFlat t desc fileName = do
-        (tPath, tHandle) <- openTempFile "." fileName
+        (tPath, tHandle) <- openBinaryTempFile "." fileName
         putStrLn $ "!!! dumping " ++ desc ++ " to " ++ show tPath
         BS.hPut tHandle $ flat t
 

@@ -1,24 +1,28 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE KindSignatures       #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE TypeOperators        #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module UntypedPlutusCore.Core.Instance.Flat where
 
 import PlutusCore.Flat
+import PlutusCore.Pretty
 import PlutusCore.Version qualified as PLC
+import PlutusPrelude
+import UntypedPlutusCore.Core.Instance.Pretty ()
 import UntypedPlutusCore.Core.Type
 
+import Control.Lens
 import Control.Monad
 import Data.Vector qualified as V
-import Data.Word (Word8)
 import Flat
 import Flat.Decoder
 import Flat.Encoder
-import Prettyprinter
 import Universe
 
 {-
@@ -248,6 +252,23 @@ sizeProgram (Program ann v t) sz = size ann $ size v $ sizeTerm t sz
 -- safe to use this newtype for serializing, but it should only be used
 -- for deserializing in tests.
 newtype UnrestrictedProgram name uni fun ann = UnrestrictedProgram { unUnrestrictedProgram :: Program name uni fun ann }
+    deriving newtype (Functor)
+makeWrapped ''UnrestrictedProgram
+
+deriving newtype instance (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (UnrestrictedProgram name uni fun ann)
+
+deriving via PrettyAny (UnrestrictedProgram name uni fun ann)
+    instance DefaultPrettyPlcStrategy (UnrestrictedProgram name uni fun ann) =>
+        PrettyBy PrettyConfigPlc (UnrestrictedProgram name uni fun ann)
+
+deriving newtype instance
+    (PrettyClassic name, PrettyUni uni, Pretty fun, Pretty ann)
+    => PrettyBy (PrettyConfigClassic PrettyConfigName) (UnrestrictedProgram name uni fun ann)
+
+deriving newtype instance
+    (PrettyReadable name, PrettyUni uni, Pretty fun)
+    => PrettyBy (PrettyConfigReadable PrettyConfigName) (UnrestrictedProgram name uni fun ann)
 
 -- This instance does _not_ check for allowable builtins
 instance ( Closed uni
