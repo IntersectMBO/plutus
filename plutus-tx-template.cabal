@@ -1,0 +1,27 @@
+cabal-version:   3.0
+name:            plutus-tx-template
+version:         0.1.0.0
+license:
+build-type:      Simple
+extra-doc-files: README.md
+
+common warnings
+  ghc-options: -Wall
+
+executable plutus-tx-template
+  import:           warnings
+  hs-source-dirs:   app
+  default-language: Haskell2010
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , base16-bytestring
+    , bytestring
+    , plutus-core        ^>=1.24.0.0
+    , plutus-ledger-api  ^>=1.24.0.0
+    , plutus-tx          ^>=1.24.0.0
+    , plutus-tx-plugin   ^>=1.24.0.0
+    , text
+    , time
+
+  other-modules:    AuctionValidator
