@@ -191,9 +191,9 @@ data CostModelApplyError =
 
 -- | A non-fatal warning when trying to create a cost given some plain costmodel parameters.
 data CostModelApplyWarn =
-      CMTooManyParamsWarn { cmTooManyExpected :: !Int, cmTooManyActual :: !Int }
+      CMTooManyParamsWarn { cmExpected :: !Int, cmActual :: !Int }
       -- ^ See Note [Cost model parameters from the ledger's point of view]
-    | CMTooFewParamsWarn { cmTooFewExpected :: !Int, cmTooFewActual :: !Int }
+    | CMTooFewParamsWarn { cmExpected :: !Int, cmActual :: !Int }
       -- ^ See Note [Cost model parameters from the ledger's point of view]
 
 instance Pretty CostModelApplyError where
@@ -206,8 +206,8 @@ instance Pretty CostModelApplyError where
 
 instance Pretty CostModelApplyWarn where
     pretty = (preamble <+>) . \case
-        CMTooManyParamsWarn{..} -> "Too many cost model parameters passed, expected" <+> pretty cmTooManyExpected <+> "but got" <+> pretty cmTooManyActual
-        CMTooFewParamsWarn{..} -> "Too few cost model parameters passed, expected" <+> pretty cmTooFewExpected <+> "but got" <+> pretty cmTooFewActual
+        CMTooManyParamsWarn{..} -> "Too many cost model parameters passed, expected" <+> pretty cmExpected <+> "but got" <+> pretty cmActual
+        CMTooFewParamsWarn{..} -> "Too few cost model parameters passed, expected" <+> pretty cmExpected <+> "but got" <+> pretty cmActual
       where
           preamble = "applyParams warn:"
 
