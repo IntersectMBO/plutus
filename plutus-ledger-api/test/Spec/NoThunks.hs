@@ -15,6 +15,7 @@ import PlutusCore.Pretty
 import Control.Monad.Except
 import Control.Monad.Extra (whenJust)
 import Control.Monad.Writer.Strict
+import Data.Int (Int64)
 import Data.List.Extra (enumerate)
 import Data.Map qualified as Map
 import Data.Maybe (fromJust)
@@ -30,7 +31,7 @@ tests =
         , testCase "EvaluationContext V3" evaluationContextV3
         ]
 
-costParams :: [Integer]
+costParams :: [Int64]
 costParams = Map.elems (fromJust defaultCostModelParams)
 
 evaluationContextV1 :: Assertion
