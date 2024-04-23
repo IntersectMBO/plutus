@@ -60,7 +60,7 @@ tests =
   where
     hasWarnMoreParams :: Int -> Int -> Either a (b, [CostModelApplyWarn]) -> Bool
     hasWarnMoreParams testExpected testActual (Right (_,[CMTooManyParamsWarn{..}]))
-        | testExpected==cmTooManyExpected && testActual==cmTooManyActual  = True
+        | testExpected==cmExpected && testActual==cmActual  = True
     hasWarnMoreParams _ _ _ = False
 
     paramProperSubset pA pB =

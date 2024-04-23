@@ -97,12 +97,14 @@ tagWithParamNames ledgerParams =
             pure $ zip paramNames ledgerParams
         LT -> do
             -- See Note [Cost model parameters from the ledger's point of view]
-            tell [CMTooManyParamsWarn {cmTooManyExpected = lenExpected, cmTooManyActual = lenActual}]
+            tell [CMTooManyParamsWarn {cmExpected = lenExpected, cmActual = lenActual}]
             -- zip will truncate/ignore any extraneous parameter values
             pure $ zip paramNames ledgerParams
-        GT ->
+        GT -> do
+            -- Too few parameters - substitute a large number for the missing parameters
             -- See Note [Cost model parameters from the ledger's point of view]
-            throwError $ CMTooFewParamsError {cmTooFewExpected = lenExpected, cmTooFewActual = lenActual }
+            tell [CMTooFewParamsWarn {cmExpected = lenExpected, cmActual = lenActual}]
+            pure $ zip paramNames (ledgerParams ++ repeat maxBound)
 
 -- | Untags the plutus version from the typed cost model parameters and returns their raw textual form
 -- (internally used by CostModelInterface).
