@@ -42,6 +42,7 @@ import Control.Monad.Writer (runWriterT)
 import Data.Bifunctor (bimap, second)
 import Data.ByteString.Lazy qualified as LBS (readFile)
 import Data.Either.Extras (unsafeFromEither)
+import Data.Int (Int64)
 import Data.List (isSuffixOf)
 import PlutusBenchmark.Common (getDataDir)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics (MarloweData)
@@ -307,7 +308,7 @@ evaluationContext =
 
 
 -- | Cost model, hardwired for testing and fair benchmarking.
-testCostModel :: [(String, Integer)]
+testCostModel :: [(String, Int64)]
 testCostModel =
   [
     ("addInteger-cpu-arguments-intercept", 205665)

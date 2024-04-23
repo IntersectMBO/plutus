@@ -16,6 +16,7 @@ import PlutusCore.Default as Plutus (BuiltinSemanticsVariant (DefaultFunSemantic
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Writer.Strict
+import Data.Int (Int64)
 
 {-|  Build the 'EvaluationContext'.
 
@@ -30,7 +31,7 @@ IMPORTANT: The evaluation context of every Plutus version must be recreated upon
 a protocol update with the updated cost model parameters.
 -}
 mkEvaluationContext :: (MonadError CostModelApplyError m, MonadWriter [CostModelApplyWarn] m)
-                    => [Integer] -- ^ the (updated) cost model parameters of the protocol
+                    => [Int64] -- ^ the (updated) cost model parameters of the protocol
                     -> m EvaluationContext
 mkEvaluationContext = tagWithParamNames @V1.ParamName
                     >=> pure . toCostModelParams

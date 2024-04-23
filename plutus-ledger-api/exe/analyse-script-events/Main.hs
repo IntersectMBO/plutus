@@ -30,6 +30,7 @@ import UntypedPlutusCore as UPLC
 import Control.Lens hiding (List)
 import Control.Monad.Primitive (PrimState)
 import Control.Monad.Writer.Strict
+import Data.Int (Int64)
 import Data.List (find, intercalate)
 import Data.Primitive.PrimArray qualified as P
 import Data.SatInt (fromSatInt)
@@ -42,7 +43,7 @@ import Text.Printf (hPrintf, printf)
 -- | The type of a generic analysis function
 type EventAnalyser
     =  EvaluationContext
-    -> [Integer]  -- cost parameters
+    -> [Int64]  -- cost parameters
     -> ScriptEvaluationEvent
     -> IO ()
 
@@ -336,8 +337,8 @@ analyseOneFile analyse eventFile = do
         Just costParams -> Just . (,costParams) . fst <$> runWriterT (f costParams)
 
     runSingleEvent
-        :: Maybe (EvaluationContext, [Integer])
-        -> Maybe (EvaluationContext, [Integer])
+        :: Maybe (EvaluationContext, [Int64])
+        -> Maybe (EvaluationContext, [Int64])
         -> ScriptEvaluationEvent
         -> IO ()
     runSingleEvent ctxV1 ctxV2 event =
