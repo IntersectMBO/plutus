@@ -12,16 +12,15 @@ executable plutus-tx-template
   import:           warnings
   hs-source-dirs:   app
   default-language: Haskell2010
-  main-is:          Main.hs
+  main-is:          examples_in_tx.hs
   build-depends:
     , base
     , base16-bytestring
     , bytestring
-    , plutus-core        ^>=1.24.0.0
-    , plutus-ledger-api  ^>=1.24.0.0
-    , plutus-tx          ^>=1.24.0.0
-    , plutus-tx-plugin   ^>=1.24.0.0
+    , plutus-core        ^>=1.26.0.0
+    , plutus-ledger-api  ^>=1.26.0.0
+    , plutus-tx          ^>=1.26.0.0
+    , plutus-tx-plugin   ^>=1.26.0.0
     , text
     , time
-
-  other-modules:    AuctionValidator
+    , flat

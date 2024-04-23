@@ -1,0 +1,60 @@
+(program
+  1.1.0
+  [
+    [
+      [
+        {
+          (abs
+            Bool
+            (type)
+            (lam
+              True
+              Bool
+              (lam
+                False
+                Bool
+                (lam
+                  Bool_match
+                  (fun
+                    Bool
+                    (all out_Bool (type) (fun out_Bool (fun out_Bool out_Bool)))
+                  )
+                  (lam
+                    x
+                    Bool
+                    {
+                      [
+                        [
+                          { [ Bool_match x ] (all dead (type) Bool) }
+                          (abs dead (type) False)
+                        ]
+                        (abs dead (type) True)
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
+                )
+              )
+            )
+          )
+          (sop [] [])
+        }
+        (constr (sop [] []) 0)
+      ]
+      (constr (sop [] []) 1)
+    ]
+    (lam
+      x
+      (sop [] [])
+      (abs
+        out_Bool
+        (type)
+        (lam
+          case_True
+          out_Bool
+          (lam case_False out_Bool (case out_Bool x case_True case_False))
+        )
+      )
+    )
+  ]
+)
