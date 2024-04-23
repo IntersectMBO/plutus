@@ -146,14 +146,16 @@ import PlutusCore.Size
 import PlutusCore.Subst
 import PlutusCore.TypeCheck as TypeCheck
 
+import Control.Monad.Except
+
 -- | Applies one program to another. Fails if the versions do not match
 -- and tries to merge annotations.
 applyProgram
-    :: Semigroup a
+    :: (MonadError ApplyProgramError m, Semigroup a)
     => Program tyname name uni fun a
     -> Program tyname name uni fun a
-    -> Either ApplyProgramError (Program tyname name uni fun a)
+    -> m (Program tyname name uni fun a)
 applyProgram (Program a1 v1 t1) (Program a2 v2 t2) | v1 == v2
-  = Right $ Program (a1 <> a2) v1 (Apply (termAnn t1 <> termAnn t2) t1 t2)
+  = pure $ Program (a1 <> a2) v1 (Apply (termAnn t1 <> termAnn t2) t1 t2)
 applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
-    Left $ MkApplyProgramError v1 v2
+    throwError $ MkApplyProgramError v1 v2

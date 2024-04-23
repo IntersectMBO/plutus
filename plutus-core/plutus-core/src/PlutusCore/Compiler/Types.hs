@@ -15,5 +15,4 @@ type Compiling m uni fun name a =
   , Ord name
   , Typeable name
   , Hashable fun
-  , Hashable a
   )

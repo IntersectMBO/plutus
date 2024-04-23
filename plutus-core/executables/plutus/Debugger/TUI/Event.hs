@@ -2,14 +2,13 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-
 -- | Handler of debugger events.
-module Event where
+module Debugger.TUI.Event where
 
 import Data.Foldable (for_)
+import Debugger.TUI.Types
 import PlutusCore.Annotation
 import PlutusCore.Pretty qualified as PLC
-import Types
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
 
