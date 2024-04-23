@@ -26,6 +26,7 @@ import Data.Aeson
 import Data.Aeson.Flatten
 import Data.Data (Data)
 import Data.HashMap.Strict qualified as HM
+import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Map.Merge.Lazy qualified as Map
 import Data.Text qualified as Text
@@ -162,7 +163,7 @@ The associated keys/names to the parameter values are arbitrarily set by the plu
 
 See Note [Cost model parameters]
 -}
-type CostModelParams = Map.Map Text.Text Integer
+type CostModelParams = Map.Map Text.Text Int64
 
 -- See Note [Cost model parameters]
 -- | Extract the model parameters from a model.
