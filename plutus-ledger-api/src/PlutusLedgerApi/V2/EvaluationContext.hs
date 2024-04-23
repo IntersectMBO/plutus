@@ -13,7 +13,7 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.Common.Versions (conwayPV)
 import PlutusLedgerApi.V2.ParamName as V2
 
-import PlutusCore.Default as Plutus (BuiltinSemanticsVariant (DefaultFunSemanticsVariant0, DefaultFunSemanticsVariant1))
+import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariant0, DefaultFunSemanticsVariant1))
 
 import Control.Monad
 import Control.Monad.Except
@@ -41,5 +41,5 @@ mkEvaluationContext =
         PlutusV2
         [DefaultFunSemanticsVariant0, DefaultFunSemanticsVariant1]
         (\pv -> if pv < conwayPV
-            then Plutus.DefaultFunSemanticsVariant0
-            else Plutus.DefaultFunSemanticsVariant1)
+            then DefaultFunSemanticsVariant0
+            else DefaultFunSemanticsVariant1)

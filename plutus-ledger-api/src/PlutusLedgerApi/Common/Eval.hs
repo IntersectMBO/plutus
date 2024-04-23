@@ -106,10 +106,10 @@ mkTermToEvaluate ll pv script args = do
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
 toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachineParameters
-toMachineParameters pv (EvaluationContext lv toSemVar machParsList) =
+toMachineParameters pv (EvaluationContext ll toSemVar machParsList) =
     case lookup (toSemVar pv) machParsList of
         Nothing -> error $ Prelude.concat
-            ["Internal error: ", show lv, " does not support protocol version ", show pv]
+            ["Internal error: ", show ll, " does not support protocol version ", show pv]
         Just machPars -> machPars
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
@@ -128,6 +128,9 @@ version using the stored function. Note that the semantics variant depends on th
 too, but the latter is known statically (because each language version has its own evaluation
 context), hence there's no reason to require it to be provided at runtime.
 
+To say it differently, there's a matrix of semantics variants indexed by (LL, PV) pairs and we
+cache its particular row corresponding to the statically given LL in an 'EvaluationContext'.
+
 The reason why we associate a 'DefaultMachineParameters' with a semantics variant rather than a
 protocol version are
 
@@ -141,7 +144,8 @@ data EvaluationContext = EvaluationContext
     { _evalCtxLedgerLang    :: PlutusLedgerLanguage
       -- ^ Specifies what language versions the 'EvaluationContext' is for.
     , _evalCtxToSemVar      :: MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun
-      -- ^ Specifies how to get a semantics variant given a 'MajorProtocolVersion'.
+      -- ^ Specifies how to get a semantics variant for this ledger language given a
+      -- 'MajorProtocolVersion'.
     , _evalCtxMachParsCache :: [(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]
       -- ^ The cache of 'DefaultMachineParameters' for each semantics variant supported by the
       -- current language version.
@@ -169,8 +173,8 @@ mkDynEvaluationContext
     -> (MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun)
     -> Plutus.CostModelParams
     -> m EvaluationContext
-mkDynEvaluationContext lv semVars toSemVar newCMP =
-    EvaluationContext lv toSemVar <$> mkMachineParametersFor semVars newCMP
+mkDynEvaluationContext ll semVars toSemVar newCMP =
+    EvaluationContext ll toSemVar <$> mkMachineParametersFor semVars newCMP
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()

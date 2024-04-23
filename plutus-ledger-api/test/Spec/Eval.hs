@@ -93,9 +93,9 @@ lengthParamNamesV PlutusV2 = length $ enumerate @V2.ParamName
 lengthParamNamesV PlutusV3 = length $ enumerate @V3.ParamName
 
 mkEvaluationContextV :: PlutusLedgerLanguage -> IO EvaluationContext
-mkEvaluationContextV lv =
+mkEvaluationContextV ll =
     either (assertFailure . display) (pure . fst) . runWriterT $
-        take (lengthParamNamesV lv) costParams & case lv of
+        take (lengthParamNamesV ll) costParams & case ll of
             PlutusV1 -> V1.mkEvaluationContext
             PlutusV2 -> V2.mkEvaluationContext
             PlutusV3 -> V3.mkEvaluationContext
@@ -104,8 +104,8 @@ mkEvaluationContextV lv =
 evaluationContextCacheIsComplete :: TestTree
 evaluationContextCacheIsComplete =
     testGroup "EvaluationContext has machine parameters for all protocol versions" $
-        enumerate <&> \lv -> testCase (show lv) $ do
-            evalCtx <- mkEvaluationContextV lv
+        enumerate <&> \ll -> testCase (show ll) $ do
+            evalCtx <- mkEvaluationContextV ll
             for_ (Set.insert futurePV knownPVs) $ \pv ->
                 evaluate $ toMachineParameters pv evalCtx
 
@@ -118,8 +118,8 @@ failIfThunk mbThunkInfo =
 evaluationContextNoThunks :: TestTree
 evaluationContextNoThunks =
     testGroup "NoThunks in EvaluationContext" $
-        enumerate <&> \lv -> testCase (show lv) $ do
-            !evalCtx <- mkEvaluationContextV lv
+        enumerate <&> \ll -> testCase (show ll) $ do
+            !evalCtx <- mkEvaluationContextV ll
             failIfThunk =<< noThunks [] evalCtx
 
 tests :: TestTree

@@ -149,8 +149,8 @@ ledgerLanguagesAvailableIn searchPv =
   where
     -- OPTIMIZE: could be done faster using takeWhile
     ledgerVersionToSet :: PlutusLedgerLanguage -> Set.Set PlutusLedgerLanguage
-    ledgerVersionToSet lv
-        | ledgerLanguageIntroducedIn lv <= searchPv = Set.singleton lv
+    ledgerVersionToSet ll
+        | ledgerLanguageIntroducedIn ll <= searchPv = Set.singleton ll
         | otherwise = mempty
 
 {-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'

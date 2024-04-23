@@ -11,7 +11,7 @@ module PlutusLedgerApi.V3.EvaluationContext
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V3.ParamName as V3
 
-import PlutusCore.Default as Plutus (BuiltinSemanticsVariant (DefaultFunSemanticsVariant2))
+import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariant2))
 
 import Control.Monad
 import Control.Monad.Except
@@ -38,4 +38,4 @@ mkEvaluationContext =
     >=> mkDynEvaluationContext
         PlutusV3
         [DefaultFunSemanticsVariant2]
-        (const Plutus.DefaultFunSemanticsVariant2)
+        (const DefaultFunSemanticsVariant2)
