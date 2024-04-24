@@ -133,10 +133,12 @@ data SplitMatchContext tyname name uni fun a = SplitMatchContext
   }
 
 extractTyArgs :: AppContext tyname name uni fun a -> Maybe [Type tyname uni a]
-extractTyArgs = go []
-  where go acc (TypeAppContext ty _ ctx) = go (ty:acc) ctx
-        go _ (TermAppContext{})          = Nothing
-        go acc AppContextEnd             = Just acc
+extractTyArgs = go id
+  where
+    go acc = \case
+      TypeAppContext ty _ ctx -> go (acc . (ty :)) ctx
+      TermAppContext{}        -> Nothing
+      AppContextEnd           -> Just (acc [])
 
 -- | Split a normal datatype 'match'.
 splitNormalDatatypeMatch
