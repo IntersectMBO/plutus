@@ -30,7 +30,6 @@ import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Name.Unique
 
-import Control.DeepSeq
 import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
@@ -399,22 +398,15 @@ toBuiltinsRuntime
     -> cost
     -> BuiltinsRuntime fun val
 toBuiltinsRuntime semvar cost =
-    let runtime = BuiltinsRuntime $ toBuiltinRuntime cost . inline toBuiltinMeaning semvar
-        -- This pragma is very important, removing it destroys the carefully set up optimizations of
-        -- of costing functions (see Note [Optimizations of runCostingFun*]). The reason for that is
-        -- that if @runtime@ doesn't have a pragma, then GHC sees that it's only referenced once and
-        -- inlines it below, together with this entire function (since we tell GHC to), at which
-        -- point everything's inlined and we're completely at GHC's mercy to optimize things
-        -- properly. Unfortunately, GHC doesn't want to cooperate and push 'toBuiltinRuntime' to
-        -- the inside of the inlined to 'toBuiltinMeaning' call, creating lots of 'BuiltinMeaning's
-        -- instead of 'BuiltinRuntime's with the former hiding the costing optimizations behind a
-        -- lambda binding the @cost@ variable, which renders all the optimizations useless. By
-        -- using a @NOINLINE@ pragma we tell GHC to create a separate thunk, which it can properly
-        -- optimize, because the other bazillion things don't get in the way.
-        {-# NOINLINE runtime #-}
-    in
-        -- Force each 'BuiltinRuntime' to WHNF, so that the thunk is allocated and forced at
-        -- initialization time rather than at runtime. Not that we'd lose much by not forcing all
-        -- 'BuiltinRuntime's here, but why pay even very little if there's an easy way not to pay.
-        force runtime
+    -- A call to 'lazy' is to make sure that the returned 'BuiltinsRuntime' is properly cached in a
+    -- 'let'-binding. This makes it easier for GHC to optimize the internals of builtins, because
+    -- without a 'let'-binding GHC would sometimes refuse to cooperate and push 'toBuiltinRuntime'
+    -- to the inside of the inlined 'toBuiltinMeaning' call, creating lots of 'BuiltinMeaning's
+    -- instead of 'BuiltinRuntime's with the former hiding the costing optimizations behind a lambda
+    -- binding the @cost@ variable, which makes the optimizations useless.
+    -- By using 'lazy' we tell GHC to create a separate thunk, which it can properly optimize,
+    -- because the other bazillion things don't get in the way. We used to use an explicit
+    -- 'let'-binding marked with @NOINLINE@, but that turned out to be unreliable, because GHC
+    -- feels free to turn it into a join point instead of a proper thunk.
+    lazy . BuiltinsRuntime $ toBuiltinRuntime cost . inline toBuiltinMeaning semvar
 {-# INLINE toBuiltinsRuntime #-}

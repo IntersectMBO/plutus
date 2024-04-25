@@ -12,7 +12,6 @@ import PlutusBenchmark.Lists.Sum.Compiled qualified as Sum.Compiled
 import PlutusBenchmark.Lists.Sum.HandWritten qualified as Sum.HandWritten
 import PlutusLedgerApi.Common (EvaluationContext)
 
-import Control.DeepSeq
 import Control.Exception
 import Data.Functor
 
@@ -55,5 +54,5 @@ main :: IO ()
 main = do
   -- Run each benchmark for at least 15 seconds.  Change this with -L or --timeout.
   config <- getConfig 15.0
-  evalCtx <- evaluate $ force mkEvalCtx
+  evalCtx <- evaluate mkEvalCtx
   defaultMainWith config $ benchmarks evalCtx

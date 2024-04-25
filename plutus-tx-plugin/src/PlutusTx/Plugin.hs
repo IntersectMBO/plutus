@@ -20,6 +20,7 @@ module PlutusTx.Plugin (plugin, plc) where
 
 import Data.Bifunctor
 import PlutusPrelude
+import PlutusTx.Bool ((&&), (||))
 import PlutusTx.Code
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -78,14 +79,18 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Map qualified as Map
+import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
+import Data.Type.Bool qualified as PlutusTx.Bool
 import GHC.Num.Integer qualified
+import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
 import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
+import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
-import System.IO (openTempFile)
+import System.IO (openBinaryTempFile)
 import System.IO.Unsafe (unsafePerformIO)
 
 data PluginCtx = PluginCtx
@@ -392,7 +397,15 @@ compileMarkedExpr locStr codeTy origE = do
             GHC.showSDocForUser flags GHC.emptyUnitState GHC.alwaysQualify (GHC.ppr moduleName)
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo $
-        builtinNames ++ [''Bool, 'False, 'True, 'traceBool, 'GHC.Num.Integer.integerNegate]
+        builtinNames ++
+          [''Bool
+          , 'False
+          , 'True
+          , 'traceBool
+          , 'GHC.Num.Integer.integerNegate
+          , '(PlutusTx.Bool.&&)
+          , '(PlutusTx.Bool.||)
+          ]
     modBreaks <- asks pcModuleModBreaks
     let coverage = CoverageOpts . Set.fromList $
                    [ l | _posCoverageAll opts, l <- [minBound .. maxBound]]
@@ -413,7 +426,7 @@ compileMarkedExpr locStr codeTy origE = do
             ccBuiltinsInfo = def,
             ccBuiltinCostModel = def,
             ccDebugTraceOn = _posDumpCompilationTrace opts,
-            ccRewriteRules = def
+            ccRewriteRules = makeRewriteRules opts
             }
         st = CompileState 0 mempty
     -- See Note [Occurrence analysis]
@@ -472,6 +485,9 @@ runCompiler moduleName opts expr = do
             PIR.DatatypeComponent PIR.Destructor _ -> True
             _                                      ->
                 AlwaysInline `elem` fmap annInline (toList ann)
+
+    rewriteRules <- asks ccRewriteRules
+
     -- Compilation configuration
     -- pir's tc-config is based on plc tcconfig
     let pirTcConfig = PIR.PirTCConfig plcTcConfig PIR.YesEscape
@@ -495,6 +511,8 @@ runCompiler moduleName opts expr = do
                     (opts ^. posDoSimplifierEvaluateBuiltins)
                  & set (PIR.ccOpts . PIR.coDoSimplifierStrictifyBindings)
                     (opts ^. posDoSimplifierStrictifyBindings)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierRemoveDeadBindings)
+                    (opts ^. posDoSimplifierRemoveDeadBindings)
                  & set (PIR.ccOpts . PIR.coInlineConstants)
                     (opts ^. posInlineConstants)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
@@ -512,6 +530,7 @@ runCompiler moduleName opts expr = do
                  -- TODO: ensure the same as the one used in the plugin
                  & set PIR.ccBuiltinsInfo def
                  & set PIR.ccBuiltinCostModel def
+                 & set PIR.ccRewriteRules rewriteRules
         plcOpts = PLC.defaultCompilationOpts
             & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations)
                 (opts ^. posMaxSimplifierIterationsUPlc)
@@ -527,17 +546,17 @@ runCompiler moduleName opts expr = do
     pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
     let pirP = PIR.Program noProvenance plcVersion pirT
     when (opts ^. posDumpPir) . liftIO $
-        dumpFlat (void pirP) "initial PIR program" (moduleName ++ ".pir-initial.flat")
+        dumpFlat (void pirP) "initial PIR program" (moduleName ++ "_initial.pir-flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirP <- flip runReaderT pirCtx $ PIR.compileToReadable pirP
     when (opts ^. posDumpPir) . liftIO $
-        dumpFlat (void spirP) "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
+        dumpFlat (void spirP) "simplified PIR program" (moduleName ++ "_simplified.pir-flat")
 
     -- (Simplified) Pir -> Plc translation.
     plcP <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirP
     when (opts ^. posDumpPlc) . liftIO $
-        dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".plc.flat")
+        dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".tplc-flat")
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (opts ^. posDoTypecheck) . void $
@@ -549,7 +568,7 @@ runCompiler moduleName opts expr = do
         dumpFlat
             (UPLC.UnrestrictedProgram $ void dbP)
             "untyped PLC program"
-            (moduleName ++ ".uplc.flat")
+            (moduleName ++ ".uplc-flat")
     -- Discard the Provenance information at this point, just keep the SrcSpans
     -- TODO: keep it and do something useful with it
     pure (fmap getSrcSpans spirP, fmap getSrcSpans dbP)
@@ -565,7 +584,7 @@ runCompiler moduleName opts expr = do
 
       dumpFlat :: Flat t => t -> String -> String -> IO ()
       dumpFlat t desc fileName = do
-        (tPath, tHandle) <- openTempFile "." fileName
+        (tPath, tHandle) <- openBinaryTempFile "." fileName
         putStrLn $ "!!! dumping " ++ desc ++ " to " ++ show tPath
         BS.hPut tHandle $ flat t
 
@@ -630,3 +649,10 @@ makePrimitiveNameInfo names = do
         thing <- lift . lift $ GHC.lookupThing ghcName
         pure (name, thing)
     pure $ Map.fromList infos
+
+makeRewriteRules :: PluginOptions -> RewriteRules DefaultUni DefaultFun
+makeRewriteRules options =
+  fold
+    [ mwhen (options ^. posRemoveTrace) rewriteRuleRemoveTrace
+    , defaultUniRewriteRules
+    ]

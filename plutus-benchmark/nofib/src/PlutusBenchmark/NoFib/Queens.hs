@@ -32,6 +32,7 @@ import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx qualified as Tx
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude as TxPrelude hiding (abs, sortBy)
 
 -----------------------------

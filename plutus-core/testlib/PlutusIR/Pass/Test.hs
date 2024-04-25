@@ -4,14 +4,10 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusIR.Pass.Test where
 
-import Control.Exception (throw)
 import Control.Monad.Except
-import Data.Bifunctor (first)
-import Data.Functor (void)
 import Data.Typeable
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin
-import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Generators.QuickCheck (forAllDoc)
 import PlutusCore.Pretty qualified as PLC
 import PlutusIR.Core.Type
@@ -20,6 +16,7 @@ import PlutusIR.Generators.QuickCheck
 import PlutusIR.Pass
 import PlutusIR.TypeCheck
 import PlutusIR.TypeCheck qualified as TC
+import PlutusPrelude
 import Test.QuickCheck
 
 -- Convert Either Error () to Either String () to match with the Testable (Either String ())
@@ -31,7 +28,7 @@ convertToEitherString = \case
   Right () -> Right ()
 
 instance Arbitrary (BuiltinSemanticsVariant PLC.DefaultFun) where
-    arbitrary = elements [DefaultFunSemanticsVariant1, DefaultFunSemanticsVariant2]
+    arbitrary = elements enumerate
 
 -- | An appropriate number of tests for a compiler pass property, so that we get some decent
 -- exploration of the program space. If you also take other arguments, then consider multiplying

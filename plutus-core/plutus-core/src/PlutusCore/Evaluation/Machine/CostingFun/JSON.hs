@@ -69,10 +69,6 @@ deriving via ModelArgumentJSON "ModelSixArguments" ModelSixArguments
 deriving via ModelArgumentJSON "ModelSixArguments" ModelSixArguments
     instance ToJSON ModelSixArguments
 
-deriving via ModelJSON "modelAddedSizes" ModelAddedSizes
-    instance FromJSON ModelAddedSizes
-deriving via ModelJSON "modelAddedSizes" ModelAddedSizes
-    instance ToJSON ModelAddedSizes
 deriving via ModelJSON "modelSubtractedSizes" ModelSubtractedSizes
     instance FromJSON ModelSubtractedSizes
 deriving via ModelJSON "modelSubtractedSizes" ModelSubtractedSizes
@@ -89,22 +85,10 @@ deriving via ModelJSON "oneVariableQuadraticFunction" OneVariableQuadraticFuncti
     instance FromJSON OneVariableQuadraticFunction
 deriving via ModelJSON "oneVariableQuadraticFunction" OneVariableQuadraticFunction
     instance ToJSON OneVariableQuadraticFunction
-deriving via ModelJSON "modelMultipliedSizes" ModelMultipliedSizes
-    instance FromJSON ModelMultipliedSizes
-deriving via ModelJSON "modelMultipliedSizes" ModelMultipliedSizes
-    instance ToJSON ModelMultipliedSizes
-deriving via ModelJSON "modelMinSize" ModelMinSize
-    instance FromJSON ModelMinSize
-deriving via ModelJSON "modelMinSize" ModelMinSize
-    instance ToJSON ModelMinSize
-deriving via ModelJSON "modelMaxSize" ModelMaxSize
-    instance FromJSON ModelMaxSize
-deriving via ModelJSON "modelMaxSize" ModelMaxSize
-    instance ToJSON ModelMaxSize
-deriving via ModelJSON "modelConstantOrLinear" ModelConstantOrLinear
-    instance FromJSON ModelConstantOrLinear
-deriving via ModelJSON "modelConstantOrLinear" ModelConstantOrLinear
-    instance ToJSON ModelConstantOrLinear
+deriving via ModelJSON "modelConstantOrOneArgument" ModelConstantOrOneArgument
+    instance FromJSON ModelConstantOrOneArgument
+deriving via ModelJSON "modelConstantOrOneArgument" ModelConstantOrOneArgument
+    instance ToJSON ModelConstantOrOneArgument
 deriving via ModelJSON "modelConstantOrTwoArguments" ModelConstantOrTwoArguments
     instance FromJSON ModelConstantOrTwoArguments
 deriving via ModelJSON "modelConstantOrTwoArguments" ModelConstantOrTwoArguments

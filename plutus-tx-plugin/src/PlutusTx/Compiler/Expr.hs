@@ -33,6 +33,7 @@ import GHC.Types.TyThing qualified as GHC
 import GHC.Tc.Utils.TcType qualified as GHC
 #endif
 
+import PlutusTx.Bool qualified
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
@@ -136,8 +137,11 @@ compileLiteral = \case
 stringExprContent :: GHC.CoreExpr -> Maybe BS.ByteString
 stringExprContent = \case
   GHC.Lit (GHC.LitString bs) -> Just bs
-  -- unpackCString# is just a wrapper around a literal
-  GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> stringExprContent expr
+  -- unpackCString# / unpackCStringUtf8# are just wrappers around a literal
+  GHC.Var n `GHC.App` expr
+    | let name = GHC.getName n
+    , name == GHC.unpackCStringName || name == GHC.unpackCStringUtf8Name ->
+      stringExprContent expr
   -- See Note [unpackFoldrCString#]
   GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
     | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> stringExprContent expr
@@ -684,6 +688,8 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
     _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
+  boolOperatorOr <- GHC.getName <$> getThing '(PlutusTx.Bool.||)
+  boolOperatorAnd <- GHC.getName <$> getThing '(PlutusTx.Bool.&&)
   case e of
     {- Note [Lazy boolean operators]
       (||) and (&&) have a special treatment: we want them lazy in the second argument,
@@ -691,10 +697,10 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       Covered by this spec: plutus-tx-plugin/test/ShortCircuit/Spec.hs
     -}
     -- Lazy ||
-    GHC.App (GHC.App (GHC.Var fid) a) b | GHC.getOccString fid == "||" -> do
+    GHC.App (GHC.App (GHC.Var var) a) b | GHC.getName var == boolOperatorOr ->
       compileExpr $ GHC.mkIfThenElse a (GHC.Var GHC.trueDataConId) b
     -- Lazy &&
-    GHC.App (GHC.App (GHC.Var fid) a) b | GHC.getOccString fid == "&&" -> do
+    GHC.App (GHC.App (GHC.Var var) a) b | GHC.getName var == boolOperatorAnd ->
       compileExpr $ GHC.mkIfThenElse a b (GHC.Var GHC.falseDataConId)
 
     -- See Note [String literals]

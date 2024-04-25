@@ -9,6 +9,7 @@ import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 import PlutusTx qualified as Tx
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Plutus
 
 import Prelude (($!))

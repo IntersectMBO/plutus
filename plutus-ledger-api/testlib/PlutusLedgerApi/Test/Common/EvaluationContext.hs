@@ -19,6 +19,7 @@ import PlutusLedgerApi.Common as Common
 
 import Barbies
 import Data.Functor.Identity
+import Data.Int (Int64)
 import Data.Map qualified as Map
 
 -- A lifted cost model to `Maybe`, so we can easily clear some of its fields when extracting JSON.
@@ -46,7 +47,7 @@ Here, overconstrained to `MCostModel`, but it could also work with `CostModel mc
 -}
 extractCostModelParamsLedgerOrder :: (Common.IsParamName p, Ord p)
                                   => MCostModel
-                                  -> Maybe (Map.Map p Integer)
+                                  -> Maybe (Map.Map p Int64)
 extractCostModelParamsLedgerOrder =
     extractInAlphaOrder
      >=> toLedgerOrder
@@ -59,5 +60,3 @@ extractCostModelParamsLedgerOrder =
 
       viaListM op = fmap Map.fromList . op . Map.toList
       firstM f (k,v) = (,v) <$> f k
-
-

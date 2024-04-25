@@ -127,13 +127,13 @@ errorScript :: SerialisedScript
 errorScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Error ()
 
 v110script :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-v110script = UPLC.Program () PLC.plcVersion110 $ UPLC.Constr () 0 []
+v110script = UPLC.Program () PLC.plcVersion110 $ UPLC.Constr () 0 mempty
 
 badConstrScript :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-badConstrScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Constr () 0 []
+badConstrScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Constr () 0 mempty
 
 badCaseScript :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-badCaseScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Case () (UPLC.Error ()) []
+badCaseScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Case () (UPLC.Error ()) mempty
 
 -- Note that bls can work also with plcversion==1.0.0
 blsExScript :: SerialisedScript

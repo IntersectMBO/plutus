@@ -18,16 +18,16 @@ module PlutusBenchmark.Common
     , cekResultMatchesHaskellValue
     , mkEvalCtx
     , evaluateCekLikeInProd
-    , evaluateCekForBench
     , benchTermCek
-    , benchTermAgdaCek
-    , benchProgramAgdaCek
     , TestSize (..)
     , printHeader
     , printSizeStatistics
     , goldenVsTextualOutput
     , checkGoldenFileExists
     )
+-- ### CAUTION! ###.  Changing the number and/or order of the exports here may
+-- change the execution times of the validation benchmarks.  See
+-- https://github.com/IntersectMBO/plutus/issues/5906.
 where
 
 import Paths_plutus_benchmark as Export
@@ -46,8 +46,6 @@ import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
-
-import MAlonzo.Code.Evaluator.Term (runUAgda)
 
 import Control.DeepSeq (force)
 import Criterion.Main
@@ -115,11 +113,6 @@ haskellValueToTerm
     :: Tx.Lift DefaultUni a => a -> Term
 haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
 
-{- | Convert a de-Bruijn-named UPLC term to a CEK Benchmark -}
-benchProgramCek :: Program -> Benchmarkable
-benchProgramCek (UPLC.Program _ _ term) =
-    nf unsafeRunTermCek $! term -- Or whnf?
-
 {- | Just run a term to obtain an `EvaluationResult` (used for tests etc.) -}
 unsafeRunTermCek :: Term -> EvaluationResult Term
 unsafeRunTermCek =
@@ -169,7 +162,11 @@ mkEvalCtx =
         Just p ->
             let errOrCtx =
                     -- The validation benchmarks were all created from PlutusV1 scripts
-                    LedgerApi.mkDynEvaluationContext DefaultFunSemanticsVariant1 p
+                    LedgerApi.mkDynEvaluationContext
+                        LedgerApi.PlutusV1
+                        [DefaultFunSemanticsVariant1]
+                        (const DefaultFunSemanticsVariant1)
+                        p
             in case errOrCtx of
                 Right ec -> ec
                 Left err -> error $ show err
@@ -202,19 +199,9 @@ benchTermCek evalCtx term =
     let !term' = force term
     in whnf (evaluateCekForBench evalCtx) term'
 
----------------- Run a term or program using the plutus-metatheory CEK evaluator ----------------
-
-benchTermAgdaCek :: Term -> Benchmarkable
-benchTermAgdaCek term =
-    nf unsafeRunAgdaCek $! term
-
-benchProgramAgdaCek :: Program -> Benchmarkable
-benchProgramAgdaCek (UPLC.Program _ _ term) =
-    nf unsafeRunAgdaCek $! term
-
-unsafeRunAgdaCek :: Term -> EvaluationResult Term
-unsafeRunAgdaCek =
-    either (error . \e -> "Agda evaluation error: " ++ show e) EvaluationSuccess . runUAgda
+benchProgramCek :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
+benchProgramCek evalCtx (UPLC.Program _ _ term) =
+  benchTermCek evalCtx term
 
 ---------------- Printing tables of information about costs ----------------
 

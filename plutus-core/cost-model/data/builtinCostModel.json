@@ -63,7 +63,7 @@
                 "intercept": 117366,
                 "slope": 10475
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 4,
@@ -76,7 +76,7 @@
                 "intercept": 117366,
                 "slope": 10475
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 4,
@@ -344,14 +344,14 @@
                 "intercept": 497525,
                 "slope": 14068
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": {
                 "intercept": 4,
                 "slope": 2
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         }
     },
     "divideInteger": {
@@ -383,24 +383,29 @@
                 "intercept": 1000,
                 "slope": 28662
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": {
                 "intercept": 4,
                 "slope": 2
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         }
     },
     "equalsByteString": {
         "cpu": {
             "arguments": {
                 "constant": 245000,
-                "intercept": 216773,
-                "slope": 62
+                "model": {
+                    "arguments": {
+                        "intercept": 216773,
+                        "slope": 62
+                    },
+                    "type": "linear_in_x"
+                }
             },
-            "type": "linear_on_diagonal"
+            "type": "const_off_diagonal"
         },
         "memory": {
             "arguments": 1,
@@ -437,10 +442,15 @@
         "cpu": {
             "arguments": {
                 "constant": 187000,
-                "intercept": 1000,
-                "slope": 52998
+                "model": {
+                    "arguments": {
+                        "intercept": 1000,
+                        "slope": 52998
+                    },
+                    "type": "linear_in_x"
+                }
             },
-            "type": "linear_on_diagonal"
+            "type": "const_off_diagonal"
         },
         "memory": {
             "arguments": 1,
@@ -520,7 +530,7 @@
                 "intercept": 1927926,
                 "slope": 82523
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 4,
@@ -750,14 +760,14 @@
                 "intercept": 1159724,
                 "slope": 392670
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": {
                 "intercept": 0,
                 "slope": 2
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         }
     },
     "sha2_256": {
@@ -766,7 +776,7 @@
                 "intercept": 806990,
                 "slope": 30482
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 4,
@@ -779,7 +789,7 @@
                 "intercept": 1927926,
                 "slope": 82523
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 4,

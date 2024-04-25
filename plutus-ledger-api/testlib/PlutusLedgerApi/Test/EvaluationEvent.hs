@@ -25,6 +25,7 @@ import PlutusLedgerApi.V2 qualified as V2
 import Codec.Serialise (Serialise (..))
 import Data.ByteString.Base64 qualified as Base64
 import Data.ByteString.Short qualified as BS
+import Data.Int (Int64)
 import Data.List.NonEmpty (NonEmpty, toList)
 import Data.Text.Encoding qualified as Text
 import GHC.Generics (Generic)
@@ -93,9 +94,9 @@ instance Pretty ScriptEvaluationEvent where
  each `ScriptEvaluationEvent`.
 -}
 data ScriptEvaluationEvents = ScriptEvaluationEvents
-    { eventsCostParamsV1 :: Maybe [Integer]
+    { eventsCostParamsV1 :: Maybe [Int64]
     -- ^ Cost parameters shared by all PlutusV1 evaluation events in `eventsEvents`, if any.
-    , eventsCostParamsV2 :: Maybe [Integer]
+    , eventsCostParamsV2 :: Maybe [Int64]
     -- ^ Cost parameters shared by all PlutusV2 evaluation events in `eventsEvents`, if any.
     , eventsEvents       :: NonEmpty ScriptEvaluationEvent
     }
@@ -106,13 +107,13 @@ data ScriptEvaluationEvents = ScriptEvaluationEvents
 data UnexpectedEvaluationResult
     = UnexpectedEvaluationSuccess
         ScriptEvaluationEvent
-        [Integer]
+        [Int64]
         -- ^ Cost parameters
         ExBudget
         -- ^ Actual budget consumed
     | UnexpectedEvaluationFailure
         ScriptEvaluationEvent
-        [Integer]
+        [Int64]
         -- ^ Cost parameters
         EvaluationError
     | DecodeError ScriptDecodeError
@@ -166,7 +167,7 @@ renderTestFailures xs = [fmt|
 checkEvaluationEvent ::
     EvaluationContext ->
     -- | Cost parameters
-    [Integer] ->
+    [Int64] ->
     ScriptEvaluationEvent ->
     Maybe UnexpectedEvaluationResult
 checkEvaluationEvent ctx params ev = case ev of

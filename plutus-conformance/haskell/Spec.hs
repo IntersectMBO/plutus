@@ -12,9 +12,9 @@ import UntypedPlutusCore.Evaluation.Machine.Cek (CountingSt (..), counting, runC
 evalUplcProg :: UplcEvaluator
 evalUplcProg = UplcEvaluatorWithCosting $ \modelParams (UPLC.Program a v t) ->
     do
-        params <- case mkMachineParametersFor def modelParams of
-          Left _  -> Nothing
-          Right p -> Just p
+        params <- case mkMachineParametersFor [def] modelParams of
+          Left _               -> Nothing
+          Right machParamsList -> lookup def machParamsList
         -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with free variables,
         -- that is why we manually check first for any free vars
         case UPLC.deBruijnTerm t of

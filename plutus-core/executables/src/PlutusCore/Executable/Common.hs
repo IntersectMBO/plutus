@@ -544,8 +544,9 @@ runPrintBuiltinSignatures = do
       (\x -> putStr (printf "%-35s: %s\n" (show $ PP.pretty x) (show $ getSignature x)))
       builtins
   where
-    getSignature (PLC.toBuiltinMeaning @_ @_ @(PlcTerm ()) def -> PLC.BuiltinMeaning sch _ _) =
-        typeSchemeToSignature sch
+    getSignature b =
+      case PLC.toBuiltinMeaning @PLC.DefaultUni @PLC.DefaultFun @(PlcTerm ()) def b of
+        PLC.BuiltinMeaning sch _ _ -> typeSchemeToSignature sch
 
 ---------------- Parse and print a PLC/UPLC source file ----------------
 

@@ -50,7 +50,6 @@ renderModel =
      MultipliedSizes       f   -> [ renderLinearFunction f "(x*y)" ]
      MinSize               f   -> [ renderLinearFunction f "min(x,y)" ]
      MaxSize               f   -> [ renderLinearFunction f "max(x,y)" ]
-     LinearCost            f   -> [ renderLinearFunction f "x" ]
      LinearInX             f   -> [ renderLinearFunction f "x" ]
      LinearInY             f   -> [ renderLinearFunction f "y" ]
      LinearInZ             f   -> [ renderLinearFunction f "z" ]
@@ -74,8 +73,8 @@ renderModel =
                                   , printf "then %s" $ intercalate "\n" (renderModel m)
                                   , printf "else %d" c
                                   ]
-     LinearOnDiagonal      f c -> [ "if x==y"
-                                  , printf "then %s" $ renderLinearFunction f "x"
+     ConstOffDiagonal      c m -> [ "if x==y"
+                                  , printf "then %s" $ intercalate "\n" (renderModel m)
                                   , printf "else %d" c
                                   ]
      -- ^ We're not properly indenting submodels in the above/below diagonal
