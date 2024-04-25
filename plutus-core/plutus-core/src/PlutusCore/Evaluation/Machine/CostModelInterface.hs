@@ -26,6 +26,7 @@ import Data.Aeson
 import Data.Aeson.Flatten
 import Data.Data (Data)
 import Data.HashMap.Strict qualified as HM
+import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Map.Merge.Lazy qualified as Map
 import Data.Text qualified as Text
@@ -119,23 +120,36 @@ one plutus runtime a.k.a. `plutus-ledger-api.EvaluationContext` per plutus-versi
 4) The node software will always pass the array in its entirety to each plutus-runtime,
 and not partially just the updated-parameter values (in case of (b)) or just the new-parameter values (in case of (c)).
 
-There is one complication when (c) happens and some running nodes are not updated:
-these nodes are only aware of the old set of builtins, thus they expect a specific (fixed in software)
-number of cost model parameters.
-To guarantee smooth,continuous operation of the entire network (and not cause any splits)
-we allow the old nodes to continue operating when receiving more cost model parameters
-than they expected, and only issue a warning to them. When the nodes restart and update to the new node software
-these warnings will go away. The overall logic for the expected number of cost model paremeters is as follows:
+To make (c) work, we must allow a node to continue operating when receiving either more or
+fewer cost model parameters than it expects. As an example, suppose at the beginning of
+major protocol version 9 (PV9), PlutusV3 has 100 cost model parameters. During PV9, we add
+some more builtins to Plutus V3 (to be enabled after the hard fork, at PV10), requiring 20
+additional cost model parameters. Then, one submits a proposal updating the number of PlutusV3
+cost model parameters to 120.
+
+During PV9, both node-9.x and node-10.x must operate normally and agree on everything. This means
+node-9.x must allow receiving more cost model parameters than it expects (since it may receive
+120), and node-10.x must allow receiving fewer than it expects (since it may receive 100).
+Node-10.x should fill in the missing parameters with a large enough number to prevent the new
+builtins from being used, in case the hard fork to PV10 happens without first updating the number
+of PlutusV3 cost model parameters to 120 (which is unlikely to happen, but just in case).
+
+During PV10, node-9.x stops working.
+
+The overall logic for the expected number of cost model paremeters is as follows:
 
 (expected number in node software == received number by ledger) => NOWARNING & NOERROR
 (expected number in node software < received number by ledger)  => WARNING
-(expected number in node software > received number by ledger)  => ERROR
+(expected number in node software > received number by ledger)  => WARNING
 
-If the received number is EQ or GT the expected (WARNING), the plutus software
+If the received number is EQ or GT the expected (WARNING), we
 will take the first n from the received cost model parameters (n==expected number),
 and create the internal (nameful) representation of cost model parameters, by assigning a parameter name
 to its value: see `PlutusLedgerApi.Common.ParamName.tagWithParamNames` and the `ParamName` datatypes in
 plutus-ledger-api.
+
+If the received number is LT the expected (WARNING), we will fill in the missing parameters
+with maxBound :: Int64.
 
 See https://github.com/IntersectMBO/cardano-ledger/issues/2902 for a discussion
 of these issues and the rationale for adopting the system described above.
@@ -149,7 +163,7 @@ The associated keys/names to the parameter values are arbitrarily set by the plu
 
 See Note [Cost model parameters]
 -}
-type CostModelParams = Map.Map Text.Text Integer
+type CostModelParams = Map.Map Text.Text Int64
 
 -- See Note [Cost model parameters]
 -- | Extract the model parameters from a model.
@@ -173,31 +187,28 @@ data CostModelApplyError =
       -- ^ internal error when we are transforming the applyParams' input to json (should not happen)
     | CMInternalWriteError !String
       -- ^ internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
-    | CMTooFewParamsError { cmTooFewExpected :: !Int, cmTooFewActual :: !Int }
-      -- ^ See Note [Cost model parameters from the ledger's point of view]
     deriving stock (Eq, Show, Generic, Data)
     deriving anyclass (Exception, NFData, NoThunks)
 
 -- | A non-fatal warning when trying to create a cost given some plain costmodel parameters.
 data CostModelApplyWarn =
-    CMTooManyParamsWarn { cmTooManyExpected :: !Int, cmTooManyActual :: !Int }
-    {- ^ More costmodel parameters given, than expected
-
-    See Note [Cost model parameters from the ledger's point of view]
-    -}
+      CMTooManyParamsWarn { cmExpected :: !Int, cmActual :: !Int }
+      -- ^ See Note [Cost model parameters from the ledger's point of view]
+    | CMTooFewParamsWarn { cmExpected :: !Int, cmActual :: !Int }
+      -- ^ See Note [Cost model parameters from the ledger's point of view]
 
 instance Pretty CostModelApplyError where
     pretty = (preamble <+>) . \case
         CMUnknownParamError k -> "Unknown cost model parameter:" <+> pretty k
         CMInternalReadError      -> "Internal problem occurred upon reading the given cost model parameteres"
         CMInternalWriteError str     -> "Internal problem occurred upon generating the applied cost model parameters with JSON error:" <+> pretty str
-        CMTooFewParamsError{..}     -> "Too few cost model parameters passed, expected" <+> pretty cmTooFewExpected <+> "but got" <+> pretty cmTooFewActual
       where
           preamble = "applyParams error:"
 
 instance Pretty CostModelApplyWarn where
     pretty = (preamble <+>) . \case
-        CMTooManyParamsWarn{..} -> "Too many cost model parameters passed, expected" <+> pretty cmTooManyExpected <+> "but got" <+> pretty cmTooManyActual
+        CMTooManyParamsWarn{..} -> "Too many cost model parameters passed, expected" <+> pretty cmExpected <+> "but got" <+> pretty cmActual
+        CMTooFewParamsWarn{..} -> "Too few cost model parameters passed, expected" <+> pretty cmExpected <+> "but got" <+> pretty cmActual
       where
           preamble = "applyParams warn:"
 

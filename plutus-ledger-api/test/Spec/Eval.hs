@@ -27,6 +27,7 @@ import Control.Exception (evaluate)
 import Control.Monad.Extra (whenJust)
 import Control.Monad.Writer
 import Data.Foldable (for_)
+import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Maybe (fromJust)
 import Data.Set qualified as Set
@@ -84,7 +85,7 @@ testUnlifting = testCase "check unlifting behaviour changes in Vasil" $ do
     evalAPI alonzoPV illPartialBuiltin @?= True
     evalAPI vasilPV illPartialBuiltin @?= True
 
-costParams :: [Integer]
+costParams :: [Int64]
 costParams = Map.elems (fromJust defaultCostModelParams)
 
 lengthParamNamesV :: PlutusLedgerLanguage -> Int

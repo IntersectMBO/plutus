@@ -46,7 +46,7 @@ import GHC.Types.TyThing qualified as GHC
 
 import Language.Haskell.TH.Syntax qualified as TH
 
-import Control.Monad.Reader (ask, asks)
+import Control.Monad.Reader (asks)
 
 import Data.ByteString qualified as BS
 import Data.Foldable (for_)
@@ -301,8 +301,6 @@ defineBuiltinType name ty = do
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: CompilingDefault uni fun m ann => m ()
 defineBuiltinTerms = do
-    CompileContext {ccOpts=compileOpts} <- ask
-
     -- Error
     -- See Note [Delaying error]
     func <- delayedErrorFunc
@@ -380,28 +378,7 @@ defineBuiltinTerms = do
             PLC.EqualsInteger -> defineBuiltinInl 'Builtins.equalsInteger
 
             -- Tracing
-            -- When `remove-trace` is specified, we define `trace` as `\_ a -> a` instead of the
-            -- version.
-            PLC.Trace -> do
-                (traceTerm, ann) <-
-                    if coRemoveTrace compileOpts
-                        then liftQuote $ do
-                            ta <- freshTyName "a"
-                            t <- freshName "t"
-                            a <- freshName "a"
-                            pure
-                                ( PIR.tyAbs annMayInline ta (PLC.Type annMayInline) $
-                                    PIR.mkIterLamAbs
-                                        [ PIR.VarDecl annMayInline t $
-                                            PIR.mkTyBuiltin @_ @Text annMayInline
-                                        , PIR.VarDecl annMayInline a $
-                                            PLC.TyVar annMayInline ta
-                                        ]
-                                        $ PIR.Var annMayInline a
-                                , annMayInline
-                                )
-                        else pure (mkBuiltin PLC.Trace, annMayInline)
-                defineBuiltinTerm ann 'Builtins.trace traceTerm
+            PLC.Trace -> defineBuiltinInl 'Builtins.trace
 
             -- Pairs
             PLC.FstPair -> defineBuiltinInl 'Builtins.fst

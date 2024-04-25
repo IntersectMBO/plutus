@@ -8,6 +8,7 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.Test.EvaluationEvent
 
 import Codec.Serialise (Serialise, readFileDeserialise)
+import Data.Int (Int64)
 import Data.List.NonEmpty (NonEmpty, toList)
 import GHC.Generics (Generic)
 
@@ -48,9 +49,9 @@ data ScriptEvaluationEvent2
     deriving anyclass (Serialise)
 
 data ScriptEvaluationEvents2 = ScriptEvaluationEvents2
-    { eventsCostParamsV1' :: Maybe [Integer]
+    { eventsCostParamsV1' :: Maybe [Int64]
     -- ^ Cost parameters shared by all PlutusV1 evaluation events in `eventsEvents`, if any.
-    , eventsCostParamsV2' :: Maybe [Integer]
+    , eventsCostParamsV2' :: Maybe [Int64]
     -- ^ Cost parameters shared by all PlutusV2 evaluation events in `eventsEvents`, if any.
     , eventsEvents2       :: NonEmpty ScriptEvaluationEvent2
     }

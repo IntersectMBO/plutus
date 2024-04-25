@@ -1,15 +1,12 @@
 {-# LANGUAGE ApplicativeDo       #-}
 {-# LANGUAGE ImplicitParams      #-}
 {-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData          #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
-
 {- | A Plutus Core debugger TUI application.
 
  The application has two stages: browsing for files to debug, and debugging.
@@ -17,26 +14,27 @@
  If the argument is a file, it enters the debugging stage.
  If no argument is provided, it defaults to the current working directory.
 -}
-module Main (main) where
+module Debugger.TUI.Main (main) where
 
+import AnyProgram.Compile
+import AnyProgram.With
+import Debugger.TUI.Draw
+import Debugger.TUI.Event
+import Debugger.TUI.Types
+import GetOpt
 import PlutusCore qualified as PLC
 import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
-import PlutusCore.Executable.Common
-import PlutusCore.Executable.Parsers
 import PlutusCore.Pretty qualified as PLC
-import PlutusPrelude (tryError)
+import PlutusCore.Pretty qualified as PP
+import PlutusPrelude hiding ((^.))
+import Types
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Core.Zip
 import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
-import UntypedPlutusCore.Parser qualified as UPLC
-
-import Draw
-import Event
-import Types
 
 import Brick.AttrMap qualified as B
 import Brick.BChan qualified as B
@@ -45,23 +43,15 @@ import Brick.Main qualified as B
 import Brick.Util qualified as B
 import Brick.Widgets.Edit qualified as BE
 import Control.Concurrent
-import Control.Monad (void)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Primitive (unsafeIOToPrim)
 import Control.Monad.ST (RealWorld)
-import Data.Coerce
 import Data.Foldable
 import Data.Maybe
-import Data.Text (Text)
-import Data.Traversable
 import GHC.IO (stToIO)
 import Graphics.Vty qualified as Vty
 import Graphics.Vty.CrossPlatform qualified as Vty
 import Lens.Micro
-import Options.Applicative qualified as OA
-import Text.Megaparsec as MP
-import Text.Megaparsec.Char as MP
-import Text.Megaparsec.Char.Lexer as MP
 
 {- Note [Budgeting implementation for the debugger]
 To retrieve the budget(s) (spent and remaining), we cannot simply
@@ -88,46 +78,25 @@ debuggerAttrMap =
     darkGreen :: Vty.Color
     darkGreen = Vty.rgbColor @Int 0 100 0
 
-data Options = Options
-    { optUplcInput       :: Input -- ^ uplc file or stdin input
-    , optUplcInputFormat :: Format -- ^ textual or flat format of uplc input
-    , optHsDir           :: Maybe FilePath -- ^ directory to look under for Plutus Tx files
-    , optBudgetLim       :: Maybe ExBudget -- ^ budget limit
-    }
+main :: (?opts :: Opts)
+     => SNaming n -> SAnn a -> UPLC.Program (FromName n) DefaultUni DefaultFun (FromAnn a) -> IO ()
+main sn sa prog = do
 
-parseOptions :: OA.Parser Options
-parseOptions = do
-    optUplcInput <- input
-    optUplcInputFormat <- inputformat
-    optHsDir <- OA.optional $ OA.strOption $
-                   mconcat
-                      [ OA.metavar "HS_DIR"
-                      , OA.long "hs-dir"
-                      , OA.help $ "Directory to look under for Plutus Tx source files."
-                                <> "If not specified, it will not use source Plutus Tx highlighting"
-                      ]
-    -- Having cpu mem as separate options complicates budget modes (counting vs restricting);
-    -- instead opt for having both present (cpu,mem) or both missing.
-    optBudgetLim <- OA.optional $ OA.option budgetReader $
-                    mconcat
-                      [ OA.metavar "INT,INT"
-                      , OA.long "budget"
-                      , OA.help "Limit the execution budget, given in terms of CPU,MEMORY"
-                      ]
-    pure Options{optUplcInput, optUplcInputFormat, optHsDir, optBudgetLim}
-  where
-      budgetReader = OA.maybeReader $ MP.parseMaybe @() budgetParser
-      budgetParser = ExBudget <$> MP.decimal <* MP.char ',' <*> MP.decimal
+    -- turn it to ast with names
+    progN <- either (fail . show @FreeVariableError) pure $ uplcToOutName' sn SName prog
+    let progWithTxSpans = case sa of
+                              SUnit       -> mempty <$ progN -- empty srcspans
+                              STxSrcSpans -> progN
 
-main :: IO ()
-main = do
-    Options{..} <-
-        OA.execParser $
-            OA.info
-                (parseOptions OA.<**> OA.helper)
-                (OA.fullDesc <> OA.header "Plutus Core Debugger")
+    -- make sure to not display annotations
+    let progTextN = withA @PP.Pretty sa $ PP.displayPlcDef $ void progN
 
-    (uplcText, uplcDAnn) <- getProgramWithText optUplcInputFormat optUplcInput
+    -- the parsed prog with uplc.srcspan
+    progWithUplcSpan <- either (fail . show @(PLC.Error DefaultUni DefaultFun PLC.SrcSpan)) pure $
+                           runExcept $ PLC.runQuoteT $ UPLC.parseScoped progTextN
+
+    progWithDAnn <- either fail pure $ runExcept $
+                     pzipWith DAnn progWithUplcSpan progWithTxSpans
 
     -- The communication "channels" at debugger-driver and at brick
     driverMailbox <- newEmptyMVar @(D.Cmd Breakpoints)
@@ -139,7 +108,7 @@ main = do
             B.App
                 { B.appDraw = drawDebugger
                 , B.appChooseCursor = B.showFirstCursor
-                , B.appHandleEvent = handleDebuggerEvent driverMailbox optHsDir
+                , B.appHandleEvent = handleDebuggerEvent driverMailbox (Just $ _debugDir ?opts)
                 , B.appStartEvent = pure ()
                 , B.appAttrMap = const debuggerAttrMap
                 }
@@ -149,11 +118,11 @@ main = do
                 , _dsFocusRing =
                     B.focusRing $ catMaybes
                         [ Just EditorUplc
-                        , EditorSource <$ optHsDir
+                        , EditorSource <$ (Just $ _debugDir ?opts)
                         , Just EditorReturnValue
                         , Just EditorLogs
                         ]
-                , _dsUplcEditor = BE.editorText EditorUplc Nothing uplcText
+                , _dsUplcEditor = BE.editorText EditorUplc Nothing progTextN
                 , _dsUplcHighlight = Nothing
                 , _dsSourceEditor = Nothing
                 , _dsSourceHighlight = Nothing
@@ -172,7 +141,7 @@ main = do
                 , _dsBudgetData = BudgetData
                     { _budgetSpent = mempty
                       -- the initial remaining budget is based on the passed cli arguments
-                    , _budgetRemaining = optBudgetLim
+                    , _budgetRemaining = _budget ?opts
                     }
                 }
 
@@ -181,7 +150,7 @@ main = do
 
     -- TODO: find out if the driver-thread exits when brick exits
     -- or should we wait for driver-thread?
-    _dTid <- forkIO $ driverThread driverMailbox brickMailbox uplcDAnn optBudgetLim
+    _dTid <- forkIO $ driverThread driverMailbox brickMailbox progWithDAnn (_budget ?opts)
 
     void $ B.customMain initialVty builder (Just brickMailbox) app initialState
 
@@ -250,7 +219,7 @@ driverThread driverMailbox brickMailbox prog mbudget = do
             bd <- readBudgetData exBudgetInfo
             B.writeBChan brickMailbox $ CekErrorEvent bd e
             -- no kontinuation in case of error, the driver thread exits
-            -- FIXME: decide what should happen after the error occurs
+            -- TODO: decide what should happen after the error occurs
             -- e.g. a user dialog to (r)estart the thread with a button
 
         handleLog = B.writeBChan brickMailbox . DriverLogEvent
@@ -264,40 +233,3 @@ driverThread driverMailbox brickMailbox prog mbudget = do
             -- the simplest solution relies on unsafeIOToPrim (here, unsafeIOToST)
             let emitter logs = for_ logs (unsafeIOToPrim . B.writeBChan brickMailbox . CekEmitEvent)
             pure $ CekEmitterInfo emitter (pure mempty)
-
--- | Read uplc code in a given format
---
---  Adapted from `Common.getProgram`
-getProgramWithText :: Format -> Input -> IO (Text, UplcProg DAnn)
-getProgramWithText fmt inp =
-    case fmt of
-        Textual -> do
-            -- here we use the original raw uplc text, we do not attempt any prettyfying
-            (progTextRaw, progWithUplcSpan) <- parseInput inp
-            let -- IMPORTANT: we cannot have any Tx.SourceSpans available in Textual mode
-                -- We still show the SourceEditor but TX highlighting (or breakpointing) won't work.
-                -- TODO: disable setting TX.breakpoints from inside the brick gui interface
-                addEmptyTxSpans = fmap (`DAnn` mempty)
-                progWithDAnn = addEmptyTxSpans progWithUplcSpan
-            pure (progTextRaw, progWithDAnn)
-
-        Flat flatMode -> do
-            -- here comes the dance of flat-parsing->PRETTYfying->text-parsing
-            -- so we can have artificial SourceSpans in annotations
-            progWithTxSpans <- loadASTfromFlat @UplcProg @PLC.SrcSpans flatMode inp
-            -- annotations are not pprinted by default, no need to `void`
-            -- Here it is NECESSARY to use Debug pprint-mode to avoid any name-clashing
-            -- (after re-parsing and) upon using term zipping function (aka pzip).
-            -- Alternatively, use parseScoped in place of parseProgram.
-            let progTextPretty = PLC.displayPlcDebug progWithTxSpans
-
-            -- the parsed prog with uplc.srcspan
-            progWithUplcSpan <- either (fail . show @ParserErrorBundle) pure $ runExcept $
-                                   PLC.runQuoteT $ UPLC.parseProgram progTextPretty
-
-            -- zip back the two programs into one program with their annotations' combined
-            -- the zip may fail if the AST cannot parse-pretty roundtrip (should not happen).
-            progWithDAnn <- either fail pure $ runExcept $
-                               pzipWith DAnn progWithUplcSpan progWithTxSpans
-
-            pure (progTextPretty, progWithDAnn)

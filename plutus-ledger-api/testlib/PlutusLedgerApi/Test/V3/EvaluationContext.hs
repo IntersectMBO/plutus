@@ -13,12 +13,13 @@ import PlutusLedgerApi.Test.Common.EvaluationContext as Common
 import PlutusLedgerApi.V3 qualified as V3
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
+import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Maybe
 
 -- | Example values of costs for @PlutusV3@, in expected ledger order.
 -- Suitable to be used in testing.
-costModelParamsForTesting :: [(V3.ParamName, Integer)]
+costModelParamsForTesting :: [(V3.ParamName, Int64)]
 costModelParamsForTesting = Map.toList $ fromJust $
     Common.extractCostModelParamsLedgerOrder mCostModel
 
