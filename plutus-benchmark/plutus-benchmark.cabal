@@ -149,7 +149,6 @@ benchmark nofib
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
-    , deepseq
     , nofib-internal
     , plutus-benchmark-common
 
@@ -225,7 +224,6 @@ benchmark lists
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
-    , deepseq
     , lists-internal
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.26
@@ -262,7 +260,6 @@ benchmark validation
     , base                     >=4.9     && <5
     , bytestring
     , criterion                >=1.5.9.0
-    , deepseq
     , directory
     , filepath
     , flat                     ^>=0.6
@@ -323,7 +320,6 @@ benchmark cek-calibration
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
-    , deepseq
     , lens
     , mtl
     , plutus-benchmark-common
@@ -425,7 +421,6 @@ benchmark bls12-381-benchmarks
     , bls12-381lib-internal
     , bytestring
     , criterion                >=1.5.9.0
-    , deepseq
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.26
     , plutus-tx                ^>=1.26
@@ -518,7 +513,6 @@ benchmark marlowe
   build-depends:
     , base                     >=4.9   && <5
     , criterion
-    , deepseq
     , marlowe-internal
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.26

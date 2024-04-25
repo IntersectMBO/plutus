@@ -149,7 +149,6 @@ test-suite plutus-ledger-api-test
     Spec.CostModelParams
     Spec.Eval
     Spec.Interval
-    Spec.NoThunks
     Spec.ScriptDecodeError
     Spec.V1.Value
     Spec.Versions
