@@ -8,6 +8,7 @@
 module PlutusIR.Contexts where
 
 import Control.Lens
+import Data.DList qualified as DList
 import Data.Functor (void)
 import PlutusCore.Arity
 import PlutusCore.Name.Unique qualified as PLC
@@ -132,13 +133,16 @@ data SplitMatchContext tyname name uni fun a = SplitMatchContext
   , smBranches  :: AppContext tyname name uni fun a
   }
 
+-- | Extract the type application arguments from an 'AppContext'.
+-- Returns 'Nothing' if the context contains a TermAppContext.
+-- See 'test_extractTyArgs'
 extractTyArgs :: AppContext tyname name uni fun a -> Maybe [Type tyname uni a]
-extractTyArgs = go id
+extractTyArgs = go DList.empty
   where
     go acc = \case
-      TypeAppContext ty _ ctx -> go (acc . (ty :)) ctx
-      TermAppContext{}        -> Nothing
-      AppContextEnd           -> Just (acc [])
+      TypeAppContext ty _ann ctx -> go (DList.snoc acc ty) ctx
+      TermAppContext{}           -> Nothing
+      AppContextEnd              -> Just (DList.toList acc)
 
 -- | Split a normal datatype 'match'.
 splitNormalDatatypeMatch
