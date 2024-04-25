@@ -39,4 +39,5 @@ mkEvaluationContext =
     >=> mkDynEvaluationContext
         PlutusV3
         [DefaultFunSemanticsVariant2]
+        -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
         (const DefaultFunSemanticsVariant2)

@@ -86,6 +86,8 @@ defaultCekMachineCosts =
 defaultCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 
+-- | Return the 'CostModel' corresponding to the given semantics variant. The dependency on the
+-- semantics variant is what makes cost models configurable.
 toCekCostModel :: BuiltinSemanticsVariant DefaultFun -> CostModel CekMachineCosts BuiltinCostModel
 toCekCostModel _ = defaultCekCostModel
 

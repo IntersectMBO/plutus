@@ -83,3 +83,21 @@ knownPVs = Set.fromList [ shelleyPV, allegraPV, maryPV, alonzoPV, vasilPV, valen
 -- associate something with the wrong protocol version.
 futurePV :: MajorProtocolVersion
 futurePV = MajorProtocolVersion maxBound
+
+{- Note [Mapping of protocol versions and ledger languages to semantics variants]
+Semantics variants depend on both the protocol version and the ledger language.
+
+Here's a table specifying the mapping in full:
+
+  pv pre-Conway post-Conway
+ll
+1       0           1
+2       0           1
+3       2           2
+
+I.e. for example
+
+- post-Conway 'PlutusV1' corresponds to 'DefaultFunSemanticsVariant1'
+- pre-Conway  'PlutusV2' corresponds to 'DefaultFunSemanticsVariant0'
+- post-Conway 'PlutusV3' corresponds to 'DefaultFunSemanticsVariant2'
+-}

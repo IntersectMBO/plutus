@@ -41,6 +41,7 @@ mkEvaluationContext =
     >=> mkDynEvaluationContext
         PlutusV2
         [DefaultFunSemanticsVariant0, DefaultFunSemanticsVariant1]
+        -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
         (\pv -> if pv < conwayPV
             then DefaultFunSemanticsVariant0
             else DefaultFunSemanticsVariant1)
