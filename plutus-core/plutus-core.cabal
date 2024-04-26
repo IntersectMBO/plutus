@@ -608,6 +608,7 @@ test-suite plutus-ir-test
     PlutusIR.Compiler.Error.Tests
     PlutusIR.Compiler.Let.Tests
     PlutusIR.Compiler.Recursion.Tests
+    PlutusIR.Contexts.Tests
     PlutusIR.Core.Tests
     PlutusIR.Generators.QuickCheck.Tests
     PlutusIR.Parser.Tests
