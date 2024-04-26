@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE StrictData             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 
 module PlutusCore.Builtin.Result
@@ -40,7 +41,7 @@ newtype UnliftingError = MkUnliftingError
 
 -- | The type of errors that 'readKnown' and 'makeKnown' can return.
 data BuiltinError
-    = BuiltinUnliftingError !UnliftingError
+    = BuiltinUnliftingError UnliftingError
     | BuiltinEvaluationFailure
     deriving stock (Show, Eq)
 

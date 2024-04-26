@@ -1,9 +1,11 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -42,6 +44,7 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
+import GHC.Num.Integer (Integer (IS))
 import NoThunks.Class (NoThunks)
 import Prettyprinter (viaShow)
 
@@ -165,6 +168,7 @@ instance Pretty DefaultFun where
 
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = singletonRose 1
+    {-# INLINE memoryUsage #-}
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when
 -- its second argument is 0 or calls the original function otherwise and wraps
@@ -172,8 +176,11 @@ instance ExMemoryUsage DefaultFun where
 -- `mod`, etc.
 nonZeroSecondArg
     :: (Integer -> Integer -> Integer) -> Integer -> Integer -> BuiltinResult Integer
-nonZeroSecondArg _ _ 0 = fail "cannot divide by zero"
-nonZeroSecondArg f x y = pure $ f x y
+-- Somehow matching on the 'IS' constructor manually causes GHC to generate tidier Core. It probably
+-- doesn't matter performance-wise, but at least it's easier to read.
+nonZeroSecondArg _ !_ (IS 0#) = fail "cannot divide by zero"
+nonZeroSecondArg f x  y       = pure $ f x y
+{-# INLINE nonZeroSecondArg #-}
 
 -- | Turn a function returning 'Either' into another function that emits an
 -- error message and returns 'EvaluationFailure' in the 'Left' case and wraps
