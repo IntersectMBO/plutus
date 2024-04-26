@@ -23,7 +23,6 @@ import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, LiteralByteSize (..),
                                                     memoryUsage, singletonRose)
-import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Pretty (PrettyConfigPlc)
 
 import PlutusCore.Bitwise.Convert as Convert
@@ -38,7 +37,7 @@ import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Ix (Ix)
-import Data.Text (Text, pack)
+import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
@@ -172,16 +171,17 @@ instance ExMemoryUsage DefaultFun where
 -- the result in 'EvaluationSuccess'.  Useful for correctly handling `div`,
 -- `mod`, etc.
 nonZeroSecondArg
-    :: (Integer -> Integer -> Integer) -> Integer -> Integer -> EvaluationResult Integer
-nonZeroSecondArg _ _ 0 = EvaluationFailure
-nonZeroSecondArg f x y = EvaluationSuccess $ f x y
+    :: (Integer -> Integer -> Integer) -> Integer -> Integer -> BuiltinResult Integer
+nonZeroSecondArg _ _ 0 = fail "cannot divide by zero"
+nonZeroSecondArg f x y = pure $ f x y
 
 -- | Turn a function returning 'Either' into another function that emits an
 -- error message and returns 'EvaluationFailure' in the 'Left' case and wraps
 -- the result in 'EvaluationSuccess' in the 'Right' case.
-eitherToEmitter :: Show e => Either e r -> Emitter (EvaluationResult r)
-eitherToEmitter (Left e)  = (emit . pack . show $ e) >> pure EvaluationFailure
-eitherToEmitter (Right r) = pure . pure $ r
+eitherToBuiltinResult :: Show e => Either e r -> BuiltinResult r
+eitherToBuiltinResult (Left e)  = fail $ show e
+eitherToBuiltinResult (Right r) = pure r
+{-# INLINE eitherToBuiltinResult #-}
 
 {- Note [Constants vs built-in functions]
 A constant is any value of a built-in type. For example, 'Integer' is a built-in type, so anything
@@ -1115,7 +1115,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramMultiplyInteger)
 
     toBuiltinMeaning _semvar DivideInteger =
-        let divideIntegerDenotation :: Integer -> Integer -> EvaluationResult Integer
+        let divideIntegerDenotation :: Integer -> Integer -> BuiltinResult Integer
             divideIntegerDenotation = nonZeroSecondArg div
             {-# INLINE divideIntegerDenotation #-}
         in makeBuiltinMeaning
@@ -1123,7 +1123,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramDivideInteger)
 
     toBuiltinMeaning _semvar QuotientInteger =
-        let quotientIntegerDenotation :: Integer -> Integer -> EvaluationResult Integer
+        let quotientIntegerDenotation :: Integer -> Integer -> BuiltinResult Integer
             quotientIntegerDenotation = nonZeroSecondArg quot
             {-# INLINE quotientIntegerDenotation #-}
         in makeBuiltinMeaning
@@ -1131,7 +1131,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramQuotientInteger)
 
     toBuiltinMeaning _semvar RemainderInteger =
-        let remainderIntegerDenotation :: Integer -> Integer -> EvaluationResult Integer
+        let remainderIntegerDenotation :: Integer -> Integer -> BuiltinResult Integer
             remainderIntegerDenotation = nonZeroSecondArg rem
             {-# INLINE remainderIntegerDenotation #-}
         in makeBuiltinMeaning
@@ -1139,7 +1139,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramRemainderInteger)
 
     toBuiltinMeaning _semvar ModInteger =
-        let modIntegerDenotation :: Integer -> Integer -> EvaluationResult Integer
+        let modIntegerDenotation :: Integer -> Integer -> BuiltinResult Integer
             modIntegerDenotation = nonZeroSecondArg mod
             {-# INLINE modIntegerDenotation #-}
         in makeBuiltinMeaning
@@ -1227,11 +1227,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramLengthOfByteString)
 
     toBuiltinMeaning _semvar IndexByteString =
-        let indexByteStringDenotation :: BS.ByteString -> Int -> EvaluationResult Word8
+        let indexByteStringDenotation :: BS.ByteString -> Int -> BuiltinResult Word8
             indexByteStringDenotation xs n = do
                 -- TODO: fix this mess with @indexMaybe@ from @bytestring >= 0.11.0.0@.
                 guard $ n >= 0 && n < BS.length xs
-                EvaluationSuccess $ BS.index xs n
+                pure $ BS.index xs n
             {-# INLINE indexByteStringDenotation #-}
         in makeBuiltinMeaning
             indexByteStringDenotation
@@ -1362,8 +1362,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramEncodeUtf8)
 
     toBuiltinMeaning _semvar DecodeUtf8 =
-        let decodeUtf8Denotation :: BS.ByteString -> EvaluationResult Text
-            decodeUtf8Denotation = reoption . decodeUtf8'
+        let decodeUtf8Denotation :: BS.ByteString -> BuiltinResult Text
+            decodeUtf8Denotation = eitherToBuiltinResult . decodeUtf8'
             {-# INLINE decodeUtf8Denotation #-}
         in makeBuiltinMeaning
             decodeUtf8Denotation
@@ -1398,7 +1398,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     -- Pairs
     toBuiltinMeaning _semvar FstPair =
-        let fstPairDenotation :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val a)
+        let fstPairDenotation :: SomeConstant uni (a, b) -> BuiltinResult (Opaque val a)
             fstPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) = do
                 DefaultUniPair uniA _ <- pure uniPairAB
                 pure . fromValueOf uniA $ fst xy
@@ -1408,7 +1408,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramFstPair)
 
     toBuiltinMeaning _semvar SndPair =
-        let sndPairDenotation :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val b)
+        let sndPairDenotation :: SomeConstant uni (a, b) -> BuiltinResult (Opaque val b)
             sndPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) = do
                 DefaultUniPair _ uniB <- pure uniPairAB
                 pure . fromValueOf uniB $ snd xy
@@ -1419,7 +1419,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     -- Lists
     toBuiltinMeaning _semvar ChooseList =
-        let chooseListDenotation :: SomeConstant uni [a] -> b -> b -> EvaluationResult b
+        let chooseListDenotation :: SomeConstant uni [a] -> b -> b -> BuiltinResult b
             chooseListDenotation (SomeConstant (Some (ValueOf uniListA xs))) a b = do
               DefaultUniList _ <- pure uniListA
               pure $ case xs of
@@ -1432,7 +1432,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar MkCons =
         let mkConsDenotation
-                :: SomeConstant uni a -> SomeConstant uni [a] -> EvaluationResult (Opaque val [a])
+                :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             mkConsDenotation
               (SomeConstant (Some (ValueOf uniA x)))
               (SomeConstant (Some (ValueOf uniListA xs))) = do
@@ -1451,7 +1451,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramMkCons)
 
     toBuiltinMeaning _semvar HeadList =
-        let headListDenotation :: SomeConstant uni [a] -> EvaluationResult (Opaque val a)
+        let headListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val a)
             headListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
                 DefaultUniList uniA <- pure uniListA
                 x : _ <- pure xs
@@ -1462,7 +1462,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramHeadList)
 
     toBuiltinMeaning _semvar TailList =
-        let tailListDenotation :: SomeConstant uni [a] -> EvaluationResult (Opaque val [a])
+        let tailListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             tailListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
                 DefaultUniList _ <- pure uniListA
                 _ : xs' <- pure xs
@@ -1473,7 +1473,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramTailList)
 
     toBuiltinMeaning _semvar NullList =
-        let nullListDenotation :: SomeConstant uni [a] -> EvaluationResult Bool
+        let nullListDenotation :: SomeConstant uni [a] -> BuiltinResult Bool
             nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
                 DefaultUniList _ <- pure uniListA
                 pure $ null xs
@@ -1538,50 +1538,50 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramBData)
 
     toBuiltinMeaning _semvar UnConstrData =
-        let unConstrDataDenotation :: Data -> EvaluationResult (Integer, [Data])
+        let unConstrDataDenotation :: Data -> BuiltinResult (Integer, [Data])
             unConstrDataDenotation = \case
-                Constr i ds -> EvaluationSuccess (i, ds)
-                _           -> EvaluationFailure
+                Constr i ds -> pure (i, ds)
+                _           -> fail "not a 'Constr'"
             {-# INLINE unConstrDataDenotation #-}
         in makeBuiltinMeaning
             unConstrDataDenotation
             (runCostingFunOneArgument . paramUnConstrData)
 
     toBuiltinMeaning _semvar UnMapData =
-        let unMapDataDenotation :: Data -> EvaluationResult [(Data, Data)]
+        let unMapDataDenotation :: Data -> BuiltinResult [(Data, Data)]
             unMapDataDenotation = \case
-                Map es -> EvaluationSuccess es
-                _      -> EvaluationFailure
+                Map es -> pure es
+                _      -> fail "not a 'Map'"
             {-# INLINE unMapDataDenotation #-}
         in makeBuiltinMeaning
             unMapDataDenotation
             (runCostingFunOneArgument . paramUnMapData)
 
     toBuiltinMeaning _semvar UnListData =
-        let unListDataDenotation :: Data -> EvaluationResult [Data]
+        let unListDataDenotation :: Data -> BuiltinResult [Data]
             unListDataDenotation = \case
-                List ds -> EvaluationSuccess ds
-                _       -> EvaluationFailure
+                List ds -> pure ds
+                _       -> fail "not a 'List'"
             {-# INLINE unListDataDenotation #-}
         in makeBuiltinMeaning
             unListDataDenotation
             (runCostingFunOneArgument . paramUnListData)
 
     toBuiltinMeaning _semvar UnIData =
-        let unIDataDenotation :: Data -> EvaluationResult Integer
+        let unIDataDenotation :: Data -> BuiltinResult Integer
             unIDataDenotation = \case
-                I i -> EvaluationSuccess i
-                _   -> EvaluationFailure
+                I i -> pure i
+                _   -> fail "not an 'I'"
             {-# INLINE unIDataDenotation #-}
         in makeBuiltinMeaning
             unIDataDenotation
             (runCostingFunOneArgument . paramUnIData)
 
     toBuiltinMeaning _semvar UnBData =
-        let unBDataDenotation :: Data -> EvaluationResult BS.ByteString
+        let unBDataDenotation :: Data -> BuiltinResult BS.ByteString
             unBDataDenotation = \case
-                B b -> EvaluationSuccess b
-                _   -> EvaluationFailure
+                B b -> pure b
+                _   -> fail "not a 'B'"
             {-# INLINE unBDataDenotation #-}
         in makeBuiltinMeaning
             unBDataDenotation
@@ -1671,8 +1671,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar Bls12_381_G1_uncompress =
         let bls12_381_G1_uncompressDenotation
-                :: BS.ByteString -> Emitter (EvaluationResult BLS12_381.G1.Element)
-            bls12_381_G1_uncompressDenotation = eitherToEmitter . BLS12_381.G1.uncompress
+                :: BS.ByteString -> BuiltinResult BLS12_381.G1.Element
+            bls12_381_G1_uncompressDenotation = eitherToBuiltinResult . BLS12_381.G1.uncompress
             {-# INLINE bls12_381_G1_uncompressDenotation #-}
         in makeBuiltinMeaning
             bls12_381_G1_uncompressDenotation
@@ -1680,8 +1680,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar Bls12_381_G1_hashToGroup =
         let bls12_381_G1_hashToGroupDenotation
-                :: BS.ByteString -> BS.ByteString -> Emitter (EvaluationResult BLS12_381.G1.Element)
-            bls12_381_G1_hashToGroupDenotation = eitherToEmitter .* BLS12_381.G1.hashToGroup
+                :: BS.ByteString -> BS.ByteString -> BuiltinResult BLS12_381.G1.Element
+            bls12_381_G1_hashToGroupDenotation = eitherToBuiltinResult .* BLS12_381.G1.hashToGroup
             {-# INLINE bls12_381_G1_hashToGroupDenotation #-}
         in makeBuiltinMeaning
             bls12_381_G1_hashToGroupDenotation
@@ -1732,8 +1732,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar Bls12_381_G2_uncompress =
         let bls12_381_G2_uncompressDenotation
-                :: BS.ByteString -> Emitter (EvaluationResult BLS12_381.G2.Element)
-            bls12_381_G2_uncompressDenotation = eitherToEmitter . BLS12_381.G2.uncompress
+                :: BS.ByteString -> BuiltinResult BLS12_381.G2.Element
+            bls12_381_G2_uncompressDenotation = eitherToBuiltinResult . BLS12_381.G2.uncompress
             {-# INLINE bls12_381_G2_uncompressDenotation #-}
         in makeBuiltinMeaning
             bls12_381_G2_uncompressDenotation
@@ -1741,8 +1741,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar Bls12_381_G2_hashToGroup =
         let bls12_381_G2_hashToGroupDenotation
-                :: BS.ByteString -> BS.ByteString -> Emitter (EvaluationResult BLS12_381.G2.Element)
-            bls12_381_G2_hashToGroupDenotation = eitherToEmitter .* BLS12_381.G2.hashToGroup
+                :: BS.ByteString -> BS.ByteString -> BuiltinResult BLS12_381.G2.Element
+            bls12_381_G2_hashToGroupDenotation = eitherToBuiltinResult .* BLS12_381.G2.hashToGroup
             {-# INLINE bls12_381_G2_hashToGroupDenotation #-}
         in makeBuiltinMeaning
             bls12_381_G2_hashToGroupDenotation

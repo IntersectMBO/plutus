@@ -29,6 +29,7 @@ import Control.Monad.Except
 import Data.DList (DList)
 import Data.String (IsString)
 import Data.Text (Text)
+import Data.Text qualified as Text
 import Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
@@ -96,6 +97,10 @@ instance MonadEmitter BuiltinResult where
     emit txt = BuiltinSuccessWithLogs (pure txt) ()
     {-# INLINE emit #-}
 
+instance MonadFail BuiltinResult where
+    fail err = BuiltinFailure (pure $ Text.pack err) BuiltinEvaluationFailure
+    {-# INLINE fail #-}
+
 instance Pretty UnliftingError where
     pretty (MkUnliftingError err) = fold
         [ "Could not unlift a value:", hardline
@@ -154,3 +159,12 @@ instance Monad BuiltinResult where
 
     (>>) = (*>)
     {-# INLINE (>>) #-}
+
+instance Alternative BuiltinResult where
+    empty = evaluationFailure
+    {-# INLINE empty #-}
+
+    a@BuiltinSuccess{}         <|> _ = a
+    a@BuiltinSuccessWithLogs{} <|> _ = a
+    BuiltinFailure{}           <|> b = b
+    {-# INLINE (<|>) #-}
