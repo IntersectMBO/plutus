@@ -83,37 +83,57 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 > NOTE: Paragraph numbering is being used temporarily to help with organizing and editing content. 
 
 1. High-level overview of how Plutus Tx works
+
    1.1 Key technique for implementing Plutus tx: staged metaprogramming
 
 2. Basic syntax and structure of a Plutus Tx program
+
    2.1 Plutus-Tx-Template repo
+
    2.2 Template Haskell preliminaries
+
    2.3 Simple pattern
+
    2.4 Quotes
+
    2.5 Splicing quotes
 
 3. Writing Plutus Tx Programs
+
    3.1 Plutus Tx standard usage pattern (how all of our Plutus Tx programs are written)
+
    3.2 Functions and datatypes
+
    3.3 Typeclasses
+
    3.4 The Plutus Tx Prelude
+
    3.5 Plutus Tx Prelude has redefined versions of many standard typeclasses
+
    3.6 Lifting values for generating code dynamically
 
 4. Compiling Plutus Tx, describing the Plutus Tx compilation process
 
    4.1 GHC Extensions, Flags and Pragmas
+
       4.1.1 Extensions
+
       4.1.2 Flags
+
       4.1.3 Pragmas
+
    4.2 Reference: Plutus Tx Compiler Options
 
 5. Troubleshooting and Debugging
+
    5.1 Common errors and how to fix them
+
    5.2 Debugging techniques for Plutus Tx programs
 
 6. Real-world Examples and Use Cases
+
    6.1 Practical applications of Plutus Tx
+
    6.2 Case studies and code examples
 
 ## 6. [Working with scripts](060_working-with-scripts.md)
