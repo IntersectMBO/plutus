@@ -100,7 +100,6 @@ import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Vector qualified as V
 import Data.Word
-import GHC.Magic (noinline)
 import GHC.TypeLits
 import Prettyprinter
 import Universe
@@ -465,17 +464,6 @@ instance ThrowableBuiltins uni fun => MonadError (CekEvaluationException NamedDe
         unsafeRunCekM :: CekM uni fun s a -> IO a
         unsafeRunCekM = unsafeSTToIO . unCekM
 
--- It would be really nice to define this instance, so that we can use 'makeKnown' directly in
--- the 'CekM' monad without the 'WithEmitterT' nonsense. Unfortunately, GHC doesn't like
--- implicit params in instance contexts. As GHC's docs explain:
---
--- > Reason: exactly which implicit parameter you pick up depends on exactly where you invoke a
--- > function. But the "invocation" of instance declarations is done behind the scenes by the
--- > compiler, so it's hard to figure out exactly where it is done. The easiest thing is to outlaw
--- > the offending types.
--- instance GivenCekEmitter s => MonadEmitter (CekM uni fun s) where
---     emit = emitCek
-
 instance AsEvaluationFailure CekUserError where
     _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
 
@@ -750,11 +738,12 @@ enterComputeCek = computeCek
         case runtime of
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
-            BuiltinExpectForce runtime' ->
+            BuiltinExpectForce runtime' -> do
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
-                evalBuiltinApp fun term' runtime' $ returnCek ctx
+                res <- evalBuiltinApp fun term' runtime'
+                returnCek ctx res
             _ ->
                 throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
     forceEvaluate !_ val =
@@ -784,7 +773,9 @@ enterComputeCek = computeCek
         case runtime of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            BuiltinExpectArgument f -> evalBuiltinApp fun term' (f arg) $ returnCek ctx
+            BuiltinExpectArgument f -> do
+                res <- evalBuiltinApp fun term' $ f arg
+                returnCek ctx res
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
     applyEvaluate !_ val _ =
@@ -796,16 +787,16 @@ enterComputeCek = computeCek
         let ctr = ?cekStepCounter
         iforCounter_ ctr spend
         resetCounter ctr
+    {-# INLINE spendAccumulatedBudget #-}
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.
     -- Skip index 7, that's the total counter!
     -- See Note [Structure of the step counter]
-    {-# INLINE spend #-}
     spend !i !w = unless (i == (fromIntegral $ natVal $ Proxy @TotalCountIndex)) $
       let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
+    {-# INLINE spend #-}
 
-    {-# INLINE stepAndMaybeSpend #-}
     -- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
     stepAndMaybeSpend :: StepKind -> CekM uni fun s ()
     stepAndMaybeSpend !kind = do
@@ -820,6 +811,7 @@ enterComputeCek = computeCek
         -- There's no risk of overflow here, since we only ever increment the total
         -- steps by 1 and then check this condition.
         when (unbudgetedStepsTotal >= ?cekSlippage) spendAccumulatedBudget
+    {-# INLINE stepAndMaybeSpend #-}
 
     -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
     -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
@@ -828,18 +820,17 @@ enterComputeCek = computeCek
         :: fun
         -> NTerm uni fun ()
         -> BuiltinRuntime (CekValue uni fun ann)
-        -> (CekValue uni fun ann -> CekM uni fun s (NTerm uni fun ()))
-        -> CekM uni fun s (NTerm uni fun ())
-    evalBuiltinApp fun term runtime cont = case runtime of
+        -> CekM uni fun s (CekValue uni fun ann)
+    evalBuiltinApp fun term runtime = case runtime of
         BuiltinCostedResult budgets getX -> do
             spendBudgetStreamCek (BBuiltinApp fun) budgets
             case getX of
-                BuiltinSuccess x              -> cont x
-                BuiltinSuccessWithLogs logs x -> ?cekEmitter logs *> noinline ($) cont x
+                BuiltinSuccess x              -> pure x
+                BuiltinSuccessWithLogs logs x -> ?cekEmitter logs $> x
                 BuiltinFailure logs err       -> do
                     ?cekEmitter logs
                     throwBuiltinErrorWithCause term err
-        _ -> cont $ VBuiltin fun term runtime
+        _ -> pure $ VBuiltin fun term runtime
     {-# INLINE evalBuiltinApp #-}
 
     -- | Spend each budget from the given stream of budgets.
