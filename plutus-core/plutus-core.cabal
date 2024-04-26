@@ -538,6 +538,7 @@ library plutus-ir
     PlutusIR.Transform.RecSplit
     PlutusIR.Transform.Rename
     PlutusIR.Transform.RewriteRules
+    PlutusIR.Transform.RewriteRules.CancelIfThenTrueElseFalse
     PlutusIR.Transform.RewriteRules.CommuteFnWithConst
     PlutusIR.Transform.RewriteRules.RemoveTrace
     PlutusIR.Transform.StrictifyBindings

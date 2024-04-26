@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE RankNTypes        #-}
@@ -12,6 +13,7 @@ import PlutusCore.Name.Unique (Name)
 import PlutusCore.Quote (MonadQuote)
 import PlutusIR.Analysis.VarInfo (VarsInfo)
 import PlutusIR.Core.Type qualified as PIR
+import PlutusIR.Transform.RewriteRules.CancelIfThenTrueElseFalse (rewriteRuleCancelIfThenTrueElseFalse)
 import PlutusIR.Transform.RewriteRules.CommuteFnWithConst (commuteFnWithConst)
 import PlutusIR.Transform.RewriteRules.UnConstrConstrData (unConstrConstrData)
 import PlutusPrelude (Default (..), (>=>))
@@ -32,7 +34,9 @@ newtype RewriteRules uni fun where
 defaultUniRewriteRules :: RewriteRules DefaultUni DefaultFun
 defaultUniRewriteRules = RewriteRules $ \varsInfo ->
   -- The rules are composed from left to right.
-  pure . commuteFnWithConst >=> unConstrConstrData def varsInfo
+  (pure . rewriteRuleCancelIfThenTrueElseFalse)
+    >=> (pure . commuteFnWithConst)
+    >=> unConstrConstrData def varsInfo
 
 instance Default (RewriteRules DefaultUni DefaultFun) where
   def = defaultUniRewriteRules
