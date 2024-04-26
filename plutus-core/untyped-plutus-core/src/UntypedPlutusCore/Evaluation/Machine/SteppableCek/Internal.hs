@@ -39,15 +39,14 @@ module UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
     )
 where
 
-import Control.Monad.Primitive
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusPrelude
-import Universe
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
                                                                  CekMachineCostsBase (..))
@@ -57,6 +56,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens hiding (Context)
 import Control.Monad
+import Control.Monad.Primitive
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.Semigroup (stimes)
@@ -64,6 +64,7 @@ import Data.Text (Text)
 import Data.Vector qualified as V
 import Data.Word (Word64)
 import GHC.TypeNats
+import Universe
 
 {- Note [Debuggable vs Original versions of CEK]
 
@@ -454,7 +455,17 @@ evalBuiltinApp fun term runtime = case runtime of
 {-# INLINE evalBuiltinApp #-}
 
 spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
-spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
+spendBudgetCek = unCekBudgetSpender ?cekBudgetSpender
+
+-- | Spend each budget from the given stream of budgets.
+spendBudgetStreamCek
+    :: GivenCekReqs uni fun ann s
+    => ExBudgetCategory fun
+    -> ExBudgetStream
+    -> CekM uni fun s ()
+spendBudgetStreamCek exCat = go where
+    go (ExBudgetLast budget)         = spendBudgetCek exCat budget
+    go (ExBudgetCons budget budgets) = spendBudgetCek exCat budget *> go budgets
 
 -- | Spend the budget that has been accumulated for a number of machine steps.
 --

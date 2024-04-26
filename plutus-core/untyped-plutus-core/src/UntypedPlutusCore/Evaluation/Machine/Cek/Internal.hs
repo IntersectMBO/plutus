@@ -48,7 +48,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , StepKind(..)
     , ThrowableBuiltins
     , extractEvaluationResult
-    , spendBudgetStreamCek
     , runCekDeBruijn
     , dischargeCekValue
     , Context (..)
@@ -101,6 +100,7 @@ import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Vector qualified as V
 import Data.Word
+import GHC.Magic (noinline)
 import GHC.TypeLits
 import Prettyprinter
 import Universe
@@ -489,9 +489,6 @@ instance Pretty CekUserError where
           ]
     pretty CekEvaluationFailure = "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
-spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
-spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
-
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
@@ -618,50 +615,6 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
     logs <- _cekEmitterInfoGetFinal
     pure (errOrRes, st, logs)
 {-# INLINE runCekM #-}
-
--- | Look up a variable name in the environment.
-lookupVarName
-    :: forall uni fun ann s
-    . ThrowableBuiltins uni fun
-    => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
-lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
-    case varEnv `Env.indexOne` coerce varIx of
-        Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
-            var = Var () varName
-        Just val -> pure val
-
--- | Spend each budget from the given stream of budgets.
-spendBudgetStreamCek
-    :: GivenCekReqs uni fun ann s
-    => ExBudgetCategory fun
-    -> ExBudgetStream
-    -> CekM uni fun s ()
-spendBudgetStreamCek exCat = go where
-    go (ExBudgetLast budget)         = spendBudgetCek exCat budget
-    go (ExBudgetCons budget budgets) = spendBudgetCek exCat budget *> go budgets
-{-# INLINE spendBudgetStreamCek #-}
-
--- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
--- 'makeKnown' or a partial builtin application depending on whether the built-in function is
--- fully saturated or not.
-evalBuiltinApp
-    :: (GivenCekReqs uni fun ann s, ThrowableBuiltins uni fun)
-    => fun
-    -> NTerm uni fun ()
-    -> BuiltinRuntime (CekValue uni fun ann)
-    -> CekM uni fun s (CekValue uni fun ann)
-evalBuiltinApp fun term runtime = case runtime of
-    BuiltinCostedResult budgets getX -> do
-        spendBudgetStreamCek (BBuiltinApp fun) budgets
-        let go f = f $ \case
-                BuiltinSuccess x              -> go (\_ -> pure x)
-                BuiltinSuccessWithLogs logs x -> ?cekEmitter logs $> x
-                BuiltinFailure logs err       -> do
-                    ?cekEmitter logs
-                    throwBuiltinErrorWithCause term err
-        go ($ getX)
-    _ -> pure $ VBuiltin fun term runtime
-{-# INLINE evalBuiltinApp #-}
 
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
@@ -797,12 +750,11 @@ enterComputeCek = computeCek
         case runtime of
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
-            BuiltinExpectForce runtime' -> do
+            BuiltinExpectForce runtime' ->
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
-                res <- evalBuiltinApp fun term' runtime'
-                returnCek ctx res
+                evalBuiltinApp fun term' runtime' $ returnCek ctx
             _ ->
                 throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
     forceEvaluate !_ val =
@@ -832,9 +784,7 @@ enterComputeCek = computeCek
         case runtime of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            BuiltinExpectArgument f -> do
-                res <- evalBuiltinApp fun term' $ f arg
-                returnCek ctx res
+            BuiltinExpectArgument f -> evalBuiltinApp fun term' (f arg) $ returnCek ctx
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
     applyEvaluate !_ val _ =
@@ -871,6 +821,51 @@ enterComputeCek = computeCek
         -- steps by 1 and then check this condition.
         when (unbudgetedStepsTotal >= ?cekSlippage) spendAccumulatedBudget
 
+    -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
+    -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
+    -- fully saturated or not.
+    evalBuiltinApp
+        :: fun
+        -> NTerm uni fun ()
+        -> BuiltinRuntime (CekValue uni fun ann)
+        -> (CekValue uni fun ann -> CekM uni fun s (NTerm uni fun ()))
+        -> CekM uni fun s (NTerm uni fun ())
+    evalBuiltinApp fun term runtime cont = case runtime of
+        BuiltinCostedResult budgets getX -> do
+            spendBudgetStreamCek (BBuiltinApp fun) budgets
+            case getX of
+                BuiltinSuccess x              -> cont x
+                BuiltinSuccessWithLogs logs x -> ?cekEmitter logs *> noinline ($) cont x
+                BuiltinFailure logs err       -> do
+                    ?cekEmitter logs
+                    throwBuiltinErrorWithCause term err
+        _ -> cont $ VBuiltin fun term runtime
+    {-# INLINE evalBuiltinApp #-}
+
+    -- | Spend each budget from the given stream of budgets.
+    spendBudgetStreamCek
+        :: ExBudgetCategory fun
+        -> ExBudgetStream
+        -> CekM uni fun s ()
+    spendBudgetStreamCek exCat = go where
+        go (ExBudgetLast budget)         = spendBudgetCek exCat budget
+        go (ExBudgetCons budget budgets) = spendBudgetCek exCat budget *> go budgets
+    {-# INLINE spendBudgetStreamCek #-}
+
+    spendBudgetCek :: ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
+    spendBudgetCek = unCekBudgetSpender ?cekBudgetSpender
+    {-# INLINE spendBudgetCek #-}
+
+    -- | Look up a variable name in the environment.
+    lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
+    lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
+        case varEnv `Env.indexOne` coerce varIx of
+            Nothing  ->
+                throwingWithCause _MachineError OpenTermEvaluatedMachineError $
+                    Just $ Var () varName
+            Just val -> pure val
+    {-# INLINE lookupVarName #-}
+
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCekDeBruijn
@@ -882,7 +877,7 @@ runCekDeBruijn
     -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
-        spendBudgetCek BStartup $ runIdentity $ cekStartupCost ?cekCosts
+        unCekBudgetSpender ?cekBudgetSpender BStartup $ runIdentity $ cekStartupCost ?cekCosts
         enterComputeCek NoFrame Env.empty term
 
 {- Note [Accumulators for terms]
