@@ -79,20 +79,43 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 > 
 > - Ported over existing content as of March 29 into new org structure. 
 > - Code block includes are not yet functional. Working with web dev team to figure out how we will handle this if we discontinue using .rst files and migrate to Docusaurus and .md files. 
-> - Not ready for review -- more editing planned. 
+> - Proposed new organizational structure for this section is reflected below. The file [050.1_proposed-edits_using-plutus-tx.md](050.1_proposed-edits_using-plutus-tx.md) is a draft in progress as a basis for discussion and for gathering more information from the Plutus team.
 
-- Template Haskell preliminaries
-- Writing basic Plutus Tx programs
-- Functions and datatypes
-- Typeclasses
-- The Plutus Tx Prelude
-- Lifting values
-- Plutus Tx Compiler Options
-- GHC Extensions, Flags and Pragmas
-   - Extensions
-   - Flags
-   - Pragmas
-- Alternatives to Plutus Tx
+> NOTE: Paragraph numbering is being used temporarily to help with organizing and editing content. 
+
+1. High-level overview of how Plutus Tx works
+   1.1 Key technique for implementing Plutus tx: staged metaprogramming
+
+2. Basic syntax and structure of a Plutus Tx program
+   2.1 Plutus-Tx-Template repo
+   2.2 Template Haskell preliminaries
+   2.3 Simple pattern
+   2.4 Quotes
+   2.5 Splicing quotes
+
+3. Writing Plutus Tx Programs
+   3.1 Plutus Tx standard usage pattern (how all of our Plutus Tx programs are written)
+   3.2 Functions and datatypes
+   3.3 Typeclasses
+   3.4 The Plutus Tx Prelude
+   3.5 Plutus Tx Prelude has redefined versions of many standard typeclasses
+   3.6 Lifting values for generating code dynamically
+
+4. Compiling Plutus Tx, describing the Plutus Tx compilation process
+
+   4.1 GHC Extensions, Flags and Pragmas
+      4.1.1 Extensions
+      4.1.2 Flags
+      4.1.3 Pragmas
+   4.2 Reference: Plutus Tx Compiler Options
+
+5. Troubleshooting and Debugging
+   5.1 Common errors and how to fix them
+   5.2 Debugging techniques for Plutus Tx programs
+
+6. Real-world Examples and Use Cases
+   6.1 Practical applications of Plutus Tx
+   6.2 Case studies and code examples
 
 ## 6. [Working with scripts](060_working-with-scripts.md)
 > **Status**
