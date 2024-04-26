@@ -74,10 +74,9 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 - Further reading
    - The EUTXO model
 
-## 5. [Using Plutus Tx](050_using-plutus-tx.md)
+## 5. [Using Plutus Tx](050.1_proposed-edits_using-plutus-tx.md)
 > **Status**
 > 
-> - Ported over existing content as of March 29 into new org structure. 
 > - Code block includes are not yet functional. Working with web dev team to figure out how we will handle this if we discontinue using .rst files and migrate to Docusaurus and .md files. 
 > - Proposed new organizational structure for this section is reflected below. The file [050.1_proposed-edits_using-plutus-tx.md](050.1_proposed-edits_using-plutus-tx.md) is a draft in progress as a basis for discussion and for gathering more information from the Plutus team.
 
