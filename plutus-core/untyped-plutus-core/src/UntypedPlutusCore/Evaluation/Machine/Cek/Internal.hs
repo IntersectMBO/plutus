@@ -787,14 +787,14 @@ enterComputeCek = computeCek
         let ctr = ?cekStepCounter
         iforCounter_ ctr spend
         resetCounter ctr
-    {-# INLINE spendAccumulatedBudget #-}
+    {-# NOINLINE spendAccumulatedBudget #-}
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.
     -- Skip index 7, that's the total counter!
     -- See Note [Structure of the step counter]
     spend !i !w = unless (i == (fromIntegral $ natVal $ Proxy @TotalCountIndex)) $
-      let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
+      let kind = toEnum i in spendBudget (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
     {-# INLINE spend #-}
 
     -- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
@@ -822,8 +822,12 @@ enterComputeCek = computeCek
         -> BuiltinRuntime (CekValue uni fun ann)
         -> CekM uni fun s (CekValue uni fun ann)
     evalBuiltinApp fun term runtime = case runtime of
-        BuiltinCostedResult budgets getX -> do
-            spendBudgetStreamCek (BBuiltinApp fun) budgets
+        BuiltinCostedResult budgets0 getX -> do
+            let exCat = BBuiltinApp fun
+                spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
+                spendBudgets (ExBudgetCons budget budgets) =
+                    spendBudget exCat budget *> spendBudgets budgets
+            spendBudgets budgets0
             case getX of
                 BuiltinSuccess x              -> pure x
                 BuiltinSuccessWithLogs logs x -> ?cekEmitter logs $> x
@@ -833,19 +837,9 @@ enterComputeCek = computeCek
         _ -> pure $ VBuiltin fun term runtime
     {-# INLINE evalBuiltinApp #-}
 
-    -- | Spend each budget from the given stream of budgets.
-    spendBudgetStreamCek
-        :: ExBudgetCategory fun
-        -> ExBudgetStream
-        -> CekM uni fun s ()
-    spendBudgetStreamCek exCat = go where
-        go (ExBudgetLast budget)         = spendBudgetCek exCat budget
-        go (ExBudgetCons budget budgets) = spendBudgetCek exCat budget *> go budgets
-    {-# INLINE spendBudgetStreamCek #-}
-
-    spendBudgetCek :: ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
-    spendBudgetCek = unCekBudgetSpender ?cekBudgetSpender
-    {-# INLINE spendBudgetCek #-}
+    spendBudget :: ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
+    spendBudget = unCekBudgetSpender ?cekBudgetSpender
+    {-# INLINE spendBudget #-}
 
     -- | Look up a variable name in the environment.
     lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
