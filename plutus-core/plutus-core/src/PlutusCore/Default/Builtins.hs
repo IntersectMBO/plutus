@@ -5,7 +5,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -44,7 +43,6 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
-import GHC.Num.Integer (Integer (IS))
 import NoThunks.Class (NoThunks)
 import Prettyprinter (viaShow)
 
@@ -176,10 +174,20 @@ instance ExMemoryUsage DefaultFun where
 -- `mod`, etc.
 nonZeroSecondArg
     :: (Integer -> Integer -> Integer) -> Integer -> Integer -> BuiltinResult Integer
--- Somehow matching on the 'IS' constructor manually causes GHC to generate tidier Core. It probably
--- doesn't matter performance-wise, but at least it's easier to read.
-nonZeroSecondArg _ !_ (IS 0#) = fail "cannot divide by zero"
-nonZeroSecondArg f x  y       = pure $ f x y
+-- If we match against @IS 0#@ instead of @0@, GHC will generate tidier Core for some reason. It
+-- probably doesn't really matter performance-wise, but would be easier to read. We don't do it out
+-- of paranoia and because it requires importing the 'IS' constructor, which is in different
+-- packages depending on the GHC version, so requires a bunch of irritating CPP.
+--
+-- We could also replace 'div' with 'integerDiv' (and do the same for other division builtins) at
+-- the call site of this function in order to avoid double matching against @0@, but that also
+-- requires CPP. Perhaps we can afford one additional pattern match for division builtins for the
+-- time being, since those aren't particularly fast anyway.
+--
+-- The bang is to communicate to GHC that the function is strict in both the arguments just in case
+-- it'd want to allocate a thunk for the first argument otherwise.
+nonZeroSecondArg _ !_ 0 = fail "cannot divide by zero"
+nonZeroSecondArg f  x y = pure $ f x y
 {-# INLINE nonZeroSecondArg #-}
 
 -- | Turn a function returning 'Either' into another function that emits an
