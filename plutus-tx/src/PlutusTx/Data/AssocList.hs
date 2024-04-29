@@ -107,6 +107,11 @@ member' k = go
                   else go tl
         )
 
+{-# INLINEABLE insert #-}
+insert :: forall k a. (P.ToData k, P.ToData a) => k -> a -> AssocList k a -> AssocList k a
+insert (P.toBuiltinData -> k) (P.toBuiltinData -> a) m =
+  unsafeFromBuiltinList $ insert' k a (toBuiltinList m)
+
 {-# INLINEABLE insert' #-}
 insert'
   :: BuiltinData
@@ -128,11 +133,6 @@ insert' (P.toBuiltinData -> k) (P.toBuiltinData -> a) = go
                   then BI.mkCons (BI.mkPairData k a) tl
                   else BI.mkCons hd (go tl)
         )
-
-{-# INLINEABLE insert #-}
-insert :: forall k a. (P.ToData k, P.ToData a) => k -> a -> AssocList k a -> AssocList k a
-insert (P.toBuiltinData -> k) (P.toBuiltinData -> a) m =
-  unsafeFromBuiltinList (insert' k a (toBuiltinList m))
 
 {-# INLINEABLE delete #-}
 delete :: forall k a. (P.ToData k) => k -> AssocList k a -> AssocList k a

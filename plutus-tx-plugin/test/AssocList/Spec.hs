@@ -71,6 +71,7 @@ propertyTests =
     , testProperty "noDuplicateKeys" noDuplicateKeysSpec
     , testProperty "delete" deleteSpec
     , testProperty "union" unionSpec
+    , testProperty "unionWith" unionWithSpec
     ]
 
 map1 ::
@@ -229,6 +230,16 @@ unionS (AssocListS ls) (AssocListS rs) =
    in
     AssocListS (ls' ++ rs'')
 
+unionWithS
+  :: (Integer -> Integer -> Integer)
+  -> AssocListS Integer Integer
+  -> AssocListS Integer Integer
+  -> AssocListS Integer Integer
+unionWithS merge (AssocListS ls) (AssocListS rs) =
+  AssocListS
+  . Map.toList
+  $ Map.unionWith merge (Map.fromList ls) (Map.fromList rs)
+
 class Equivalence l where
   (~~) ::
     ( MonadTest m
@@ -366,3 +377,14 @@ unionSpec = property $ do
   unionS assocListS1 assocListS2 ~~ AssocMap.union assocMap1 assocMap2
   unionS assocListS1 assocListS2 ~~ Data.AssocList.union assocList1 assocList2
 
+unionWithSpec :: Property
+unionWithSpec = property $ do
+  assocListS1 <- forAll genAssocListS
+  assocListS2 <- forAll genAssocListS
+  let assocMap1 = semanticsToAssocMap assocListS1
+      assocMap2 = semanticsToAssocMap assocListS2
+      assocList1 = semanticsToAssocList assocListS1
+      assocList2 = semanticsToAssocList assocListS2
+      merge i1 _ = i1
+  unionWithS merge assocListS1 assocListS2 ~~ AssocMap.unionWith merge assocMap1 assocMap2
+  unionWithS merge assocListS1 assocListS2 ~~ Data.AssocList.unionWith merge assocList1 assocList2
