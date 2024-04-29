@@ -107,10 +107,13 @@ member' k = go
                   else go tl
         )
 
-{-# INLINEABLE insert #-}
-insert :: forall k a. (P.ToData k, P.ToData a) => k -> a -> AssocList k a -> AssocList k a
-insert (P.toBuiltinData -> k) (P.toBuiltinData -> a) m =
-  unsafeFromBuiltinList (go (toBuiltinList m))
+{-# INLINEABLE insert' #-}
+insert'
+  :: BuiltinData
+  -> BuiltinData
+  -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+  -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+insert' (P.toBuiltinData -> k) (P.toBuiltinData -> a) = go
   where
     go ::
       BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
@@ -125,6 +128,11 @@ insert (P.toBuiltinData -> k) (P.toBuiltinData -> a) m =
                   then BI.mkCons (BI.mkPairData k a) tl
                   else BI.mkCons hd (go tl)
         )
+
+{-# INLINEABLE insert #-}
+insert :: forall k a. (P.ToData k, P.ToData a) => k -> a -> AssocList k a -> AssocList k a
+insert (P.toBuiltinData -> k) (P.toBuiltinData -> a) m =
+  unsafeFromBuiltinList (insert' k a (toBuiltinList m))
 
 {-# INLINEABLE delete #-}
 delete :: forall k a. (P.ToData k) => k -> AssocList k a -> AssocList k a
@@ -263,51 +271,57 @@ union ::
   AssocList k (These a b)
 union (toBuiltinList -> ls) (toBuiltinList -> rs) = unsafeFromBuiltinList res
   where
-    ls' :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-    ls' = go ls
-      where
-        go xs =
-          P.matchList
-            xs
-            nil
-            ( \hd tl ->
-                let k' = BI.fst hd
-                    v' = BI.snd hd
-                    v'' = case lookup' k' rs of
-                      Just r ->
-                        P.toBuiltinData
-                          ( These
-                              (P.unsafeFromBuiltinData v')
-                              (P.unsafeFromBuiltinData r) ::
-                              These a b
-                          )
-                      Nothing -> P.toBuiltinData (This (P.unsafeFromBuiltinData v') :: These a b)
-                 in BI.mkCons (BI.mkPairData k' v'') (go tl)
-            )
+    goLeft xs =
+      P.matchList
+        xs
+        nil
+        ( \hd tl ->
+            let k = BI.fst hd
+                v = BI.snd hd
+                v' = case lookup' k rs of
+                  Just r ->
+                    P.toBuiltinData
+                      ( These
+                          (P.unsafeFromBuiltinData v)
+                          (P.unsafeFromBuiltinData r)
+                        :: These a b
+                      )
+                  Nothing ->
+                    P.toBuiltinData (This (P.unsafeFromBuiltinData v) :: These a b)
+             in BI.mkCons (BI.mkPairData k v') (goLeft tl)
+        )
 
-    rs' :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-    rs' = go rs
-      where
-        go xs =
-          P.matchList
-            xs
-            nil
-            ( \hd tl ->
-                let k' = BI.fst hd
-                    tl' = go tl
-                 in if member' k' ls
-                      then tl'
-                      else BI.mkCons hd tl'
-            )
+    goRight xs =
+      P.matchList
+        xs
+        nil
+        ( \hd tl ->
+            let k = BI.fst hd
+                v = BI.snd hd
+                v' = case lookup' k ls of
+                  Just r ->
+                    P.toBuiltinData
+                      ( These
+                          (P.unsafeFromBuiltinData v)
+                          (P.unsafeFromBuiltinData r)
+                        :: These a b
+                      )
+                  Nothing ->
+                    P.toBuiltinData (That (P.unsafeFromBuiltinData v) :: These a b)
+             in BI.mkCons (BI.mkPairData k v') (goRight tl)
+        )
 
-    res :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-    res = go rs' ls'
-      where
-        go acc xs =
-          P.matchList
-            xs
-            acc
-            (\hd -> go (BI.mkCons hd acc))
+    res = goLeft ls `safeAppend` goRight rs
+
+    safeAppend xs1 xs2 =
+      P.matchList
+        xs1
+        xs2
+        ( \hd tl ->
+            let k = BI.fst hd
+                v = BI.snd hd
+             in insert' k v (safeAppend tl xs2)
+        )
 
 -- | Combine two 'AssocList's with the given combination function.
 unionWith ::

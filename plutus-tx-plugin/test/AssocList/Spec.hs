@@ -362,7 +362,7 @@ unionSpec = property $ do
   let assocMap1 = semanticsToAssocMap assocListS1
       assocMap2 = semanticsToAssocMap assocListS2
       assocList1 = semanticsToAssocList assocListS1
-      assocList2 = semanticsToAssocList assocListS1
+      assocList2 = semanticsToAssocList assocListS2
   unionS assocListS1 assocListS2 ~~ AssocMap.union assocMap1 assocMap2
   unionS assocListS1 assocListS2 ~~ Data.AssocList.union assocList1 assocList2
 
