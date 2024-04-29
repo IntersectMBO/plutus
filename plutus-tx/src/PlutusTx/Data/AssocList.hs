@@ -227,8 +227,7 @@ uncons m = case P.uncons (toBuiltinList m) of
 
 {-# INLINEABLE unsafeUncons #-}
 -- | Decompose an 'AssocList' into its first key-value pair and the rest of the list.
--- This function is unsafe because it assumes that the elements of the list can be safely
--- decoded from their 'BuiltinData' representation.
+-- This function is unsafe because it assumes that the `AssocList` is not empty.
 unsafeUncons ::
   forall k a.
   (P.UnsafeFromData k, P.UnsafeFromData a) =>

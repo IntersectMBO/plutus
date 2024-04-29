@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -53,7 +52,7 @@ goldenTests =
 
 propertyTests :: TestTree
 propertyTests =
-  testGroup "TESTING Map property tests"
+  testGroup "Map property tests"
     [ testProperty "safeFromList" safeFromListSpec
     , testProperty "unsafeFromList" unsafeFromListSpec
     , testProperty "lookup" lookupSpec
@@ -87,7 +86,11 @@ map1 =
           let m :: AssocList Integer PlutusTx.BuiltinByteString
               m =
                 foldr
-                  (\i -> Data.AssocList.insert (n PlutusTx.+ i) (PlutusTx.encodeUtf8 (PlutusTx.show i)))
+                  (\i ->
+                    Data.AssocList.insert
+                      (n PlutusTx.+ i)
+                      (PlutusTx.encodeUtf8 (PlutusTx.show i))
+                  )
                   (Data.AssocList.singleton n "0")
                   (PlutusTx.enumFromTo 1 10)
               m' = Data.AssocList.delete (n PlutusTx.+ 5) m
@@ -125,24 +128,30 @@ map2 =
         ||]
     )
 
+-- | The semantics of association lists and their operations.
+-- The 'PlutusTx' implementations of association lists ('AssocList' and 'AssocMap')
+-- are checked against the semantics to ensure correctness.
 newtype AssocListS k v = AssocListS [(k, v)]
   deriving stock (Show, Eq)
-
-nullS :: AssocListS k v -> Bool
-nullS (AssocListS l) = null l
 
 semanticsToAssocMap :: AssocListS k v -> AssocMap.Map k v
 semanticsToAssocMap = AssocMap.unsafeFromList . toListS
 
-semanticsToAssocList :: (P.ToData k, P.ToData v) => AssocListS k v -> AssocList k v
+semanticsToAssocList
+  :: (P.ToData k, P.ToData v)
+  => AssocListS k v -> AssocList k v
 semanticsToAssocList = Data.AssocList.unsafeFromList . toListS
 
 assocMapToSemantics :: AssocMap.Map k v -> AssocListS k v
 assocMapToSemantics = unsafeFromListS . AssocMap.toList
 
 assocListToSemantics
-  :: (P.UnsafeFromData k, P.UnsafeFromData v) => AssocList k v -> AssocListS k v
+  :: (P.UnsafeFromData k, P.UnsafeFromData v)
+  => AssocList k v -> AssocListS k v
 assocListToSemantics = unsafeFromListS . Data.AssocList.toList
+
+nullS :: AssocListS k v -> Bool
+nullS (AssocListS l) = null l
 
 sortS :: (Ord k, Ord v) => AssocListS k v -> AssocListS k v
 sortS (AssocListS l) = AssocListS $ sort l
@@ -191,22 +200,8 @@ noDuplicateKeysS :: AssocListS Integer Integer -> Bool
 noDuplicateKeysS (AssocListS l) =
   length l == length (nubBy (\(k1, _) (k2, _) -> k1 == k2) l)
 
-genAssocListS :: Gen (AssocListS Integer Integer)
-genAssocListS =
-  AssocListS . Map.toList <$> Gen.map rangeLength genPair
-  where
-    genPair :: Gen (Integer, Integer)
-    genPair = do
-      (,) <$> Gen.integral rangeElem <*> Gen.integral rangeElem
-
-genUnsafeAssocListS :: Gen (AssocListS Integer Integer)
-genUnsafeAssocListS = do
-  AssocListS <$> Gen.list rangeLength genPair
-  where
-    genPair :: Gen (Integer, Integer)
-    genPair = do
-      (,) <$> Gen.integral rangeElem <*> Gen.integral rangeElem
-
+-- | The semantics of 'union' is based on the 'AssocMap' implementation.
+-- The code is duplicated here to avoid any issues if the 'AssocMap' implementation changes.
 unionS
   :: AssocListS Integer Integer
   -> AssocListS Integer Integer
@@ -236,6 +231,24 @@ unionWithS merge (AssocListS ls) (AssocListS rs) =
   . Map.toList
   $ Map.unionWith merge (Map.fromList ls) (Map.fromList rs)
 
+genAssocListS :: Gen (AssocListS Integer Integer)
+genAssocListS =
+  AssocListS . Map.toList <$> Gen.map rangeLength genPair
+  where
+    genPair :: Gen (Integer, Integer)
+    genPair = do
+      (,) <$> Gen.integral rangeElem <*> Gen.integral rangeElem
+
+genUnsafeAssocListS :: Gen (AssocListS Integer Integer)
+genUnsafeAssocListS = do
+  AssocListS <$> Gen.list rangeLength genPair
+  where
+    genPair :: Gen (Integer, Integer)
+    genPair = do
+      (,) <$> Gen.integral rangeElem <*> Gen.integral rangeElem
+
+-- | The 'Equivalence' class is used to define an equivalence relation
+-- between `AssocListS` and the 'PlutusTx' implementations.
 class Equivalence l where
   (~~) ::
     ( MonadTest m
@@ -247,10 +260,12 @@ class Equivalence l where
     , P.UnsafeFromData v
     ) => AssocListS k v -> l k v -> m ()
 
+-- | An `AssocMap.Map` is equivalent to an `AssocListS` if they have the same elements.
 instance Equivalence AssocMap.Map where
   assocListS ~~ assocMap =
     sortS assocListS === sortS (assocMapToSemantics assocMap)
 
+-- | An `AssocList` is equivalent to an `AssocListS` if they have the same elements.
 instance Equivalence AssocList where
   assocListS ~~ assocList =
     sortS assocListS === sortS (assocListToSemantics assocList)
