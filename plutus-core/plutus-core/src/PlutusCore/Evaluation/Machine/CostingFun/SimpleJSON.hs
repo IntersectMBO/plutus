@@ -93,15 +93,27 @@ instance FromJSON Model where
                "quadratic_in_y"              -> QuadraticInY          <$> parseJSON args
                "quadratic_in_z"              -> QuadraticInZ          <$> parseJSON args
                "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
-               "subtracted_sizes"            ->
+               "subtracted_sizes" ->
                   SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
-               "const_above_diagonal"        ->
-                  ConstAboveDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "const_below_diagonal"        ->
-                  ConstBelowDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "const_off_diagonal"      ->
-                  ConstOffDiagonal      <$> objOf args .: "constant" <*> objOf args .: "model"
-               _                             -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
+               "const_above_diagonal" ->
+                 let o = objOf args in ConstAboveDiagonal <$>  o .: "constant" <*> o .: "model"
+               "const_below_diagonal" ->
+                 let o = objOf args in ConstBelowDiagonal <$> o .: "constant" <*> o .: "model"
+               "const_off_diagonal" ->
+                 let o = objOf args in ConstOffDiagonal <$> o .: "constant" <*> o .: "model"
+               -- An adaptor to deal with the old "linear_on_diagonal" tag.  See Note [Backward
+               -- compatibility for costing functions].  We never want to convert back to JSON here,
+               -- so it's OK to forget that we originally got something tagged with
+               -- "linear_on_diagonal".
+               "linear_on_diagonal" ->
+                 let o = objOf args
+                 in do
+                   constant   <- o  .: "constant"
+                   intercept  <- o .: "intercept"
+                   slope      <- o .: "slope"
+                   pure $ ConstOffDiagonal constant (LinearInX $ LinearFunction intercept slope)
+
+               _ -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
 
                where objOf (Object o) = o
                      objOf _          =

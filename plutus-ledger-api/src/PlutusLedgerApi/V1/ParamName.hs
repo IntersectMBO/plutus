@@ -75,8 +75,8 @@ data ParamName =
   | EncodeUtf8'memory'arguments'intercept
   | EncodeUtf8'memory'arguments'slope
   | EqualsByteString'cpu'arguments'constant
-  | EqualsByteString'cpu'arguments'model'arguments'intercept
-  | EqualsByteString'cpu'arguments'model'arguments'slope
+  | EqualsByteString'cpu'arguments'intercept
+  | EqualsByteString'cpu'arguments'slope
   | EqualsByteString'memory'arguments
   | EqualsData'cpu'arguments'intercept
   | EqualsData'cpu'arguments'slope

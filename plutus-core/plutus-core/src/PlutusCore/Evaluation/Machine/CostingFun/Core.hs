@@ -21,6 +21,7 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
     , TwoVariableLinearFunction(..)
     , OneVariableQuadraticFunction(..)
     , ModelSubtractedSizes(..)
+    , ModelConstantOrLinear(..)  -- Deprecated: see below.
     , ModelConstantOrOneArgument(..)
     , ModelConstantOrTwoArguments(..)
     , ModelOneArgument(..)
@@ -308,7 +309,17 @@ data ModelSubtractedSizes = ModelSubtractedSizes
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
--- | if p then f(x) else c; p depends on usage
+-- | NB: this is subsumed by ModelConstantOrOneArgument, but we have to keep it
+-- for the time being.  See Note [Backward compatibility for costing functions].
+-- | if p then s*x else c; p depends on usage
+data ModelConstantOrLinear = ModelConstantOrLinear
+    { modelConstantOrLinearConstant  :: CostingInteger
+    , modelConstantOrLinearIntercept :: Intercept
+    , modelConstantOrLinearSlope     :: Slope
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
+
+  -- | if p then f(x) else c; p depends on usage
 data ModelConstantOrOneArgument = ModelConstantOrOneArgument
     { modelConstantOrOneArgumentConstant :: CostingInteger
     , modelConstantOrOneArgumentModel    :: ModelOneArgument
@@ -322,6 +333,21 @@ data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
+{- Note [Backward compatibility for costing functions].  The PR at
+   https://github.com/IntersectMBO/plutus/pull/5857 generalised the costing
+   function types and made them more composable: in particular,
+   ModelTwoArgumentsLinearOnDiagonal was replaced by
+   ModelTwoArgumentsConstOffDiagonal and ModelConstantOrLinear was removed.
+   However, this changes some of the tags (specifically, for `equalsByteString`)
+   in builtinCostModel.json, and these are used in the Alonzo genesis file and
+   so shouldn't be changed.  For the time being we've restored the
+   ModelTwoArgumentsLinearOnDiagonal constructor so that we can still deal with
+   the old tags.  New builtins should use ModelTwoArgumentsConstOffDiagonal
+   instead.  A better long-term solution might be to adapt the JSON conversion
+   code to translate linear_on_diagonal objects to ConstOffDiagonal objects (and
+   perhaps back, although configurable cost models may mean that we don't need
+   to do that).
+-}
 
 data ModelTwoArguments =
     ModelTwoArgumentsConstantCost        CostingInteger
@@ -333,6 +359,7 @@ data ModelTwoArguments =
   | ModelTwoArgumentsMultipliedSizes     OneVariableLinearFunction
   | ModelTwoArgumentsMinSize             OneVariableLinearFunction
   | ModelTwoArgumentsMaxSize             OneVariableLinearFunction
+  | ModelTwoArgumentsLinearOnDiagonal    ModelConstantOrLinear
   | ModelTwoArgumentsConstOffDiagonal    ModelConstantOrOneArgument
   | ModelTwoArgumentsConstAboveDiagonal  ModelConstantOrTwoArguments
   | ModelTwoArgumentsConstBelowDiagonal  ModelConstantOrTwoArguments
@@ -422,6 +449,16 @@ runTwoArgumentModel
     (ModelTwoArgumentsLinearInXAndY (TwoVariableLinearFunction intercept slope1 slope2)) =
         lazy $ \costs1 costs2 ->
             scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
+runTwoArgumentModel
+    -- See Note [Backward compatibility for costing functions]
+    -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
+    (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) =
+        lazy $ \costs1 costs2 -> do
+            let !size1 = sumCostStream costs1
+                !size2 = sumCostStream costs2
+            if size1 == size2
+                then scaleLinearly intercept slope $ CostLast size1
+                else CostLast c
 runTwoArgumentModel
     -- Off the diagonal, return the constant.  On the diagonal, run the other model.
     (ModelTwoArgumentsConstOffDiagonal (ModelConstantOrOneArgument c m)) =

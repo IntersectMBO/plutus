@@ -517,6 +517,9 @@ modelFun <- function(path) {
     lengthOfByteStringModel <- constantModel ("LengthOfByteString")  ## Just returns a field
     indexByteStringModel    <- constantModel ("IndexByteString")     ## Constant-time array access
 
+    ## NOTE: We could also use const_off_diagonal here, but we have to keep
+    ## linear _on_diagonal for backward compatibility for the time being.
+    ## See Note [Backward compatibility for costing functions].
     equalsByteStringModel <- {
         fname <- "EqualsByteString"
         filtered <- data %>%
@@ -527,9 +530,9 @@ modelFun <- function(path) {
 
         constant <- min(filtered$t)
         ## FIXME.  The `constant` value above is the above-diagonal cost, which we
-        ## don't collect benchmarking data for.  Collect some data and infer it
+        ## don't collect benchmarking data for.  Collect some data and infer it.
 
-        mk.result(m, "const_off_diagonal", constant=constant, subtype="linear_in_x")
+        mk.result(m, "linear_on_diagonal", constant=constant)
     }
 
     lessThanByteStringModel <- {
