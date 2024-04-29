@@ -47,6 +47,9 @@ Therefore this implementation is likely a better choice than @PlutusTx.AssocMap.
 if it is part of a data type defined using @asData@, and the key and value types
 have efficient `P.toBuiltinData` and `P.unsafeFromBuiltinData` operations (e.g., they
 are primitive types or types defined using @asData@).
+
+An `AssocList` is considered well-defined if it has no duplicate keys. Most operations
+preserve the definedness of the resulting `AssocList` unless otherwise noted.
 -}
 newtype AssocList k a = AssocList P.BuiltinData
   deriving stock (Haskell.Eq, Haskell.Show)
@@ -63,12 +66,16 @@ instance P.UnsafeFromData (AssocList k a) where
   unsafeFromBuiltinData = AssocList
 
 {-# INLINEABLE lookup #-}
+-- | Look up the value corresponding to the key.
+-- If the `AssocList` is not well-defined, the result is the value associated with
+-- the left-most occurrence of the key in the list.
 lookup :: forall k a. (P.ToData k, P.UnsafeFromData a) => k -> AssocList k a -> Maybe a
 lookup (P.toBuiltinData -> k) m = case lookup' k (toBuiltinList m) of
   Just a  -> Just (P.unsafeFromBuiltinData a)
   Nothing -> Nothing
 
 {-# INLINEABLE lookup' #-}
+-- | Similar to 'lookup', but operates on the underlying `BuiltinList` representation.
 lookup' ::
   BuiltinData ->
   BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
@@ -87,10 +94,12 @@ lookup' k = go
         )
 
 {-# INLINEABLE member #-}
+-- | Check if the key is in the `AssocList`.
 member :: forall k a. (P.ToData k) => k -> AssocList k a -> Bool
 member (P.toBuiltinData -> k) m = member' k (toBuiltinList m)
 
 {-# INLINEABLE member' #-}
+-- | Similar to 'member', but operates on the underlying `BuiltinList` representation.
 member' :: BuiltinData -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
 member' k = go
   where
@@ -107,11 +116,14 @@ member' k = go
         )
 
 {-# INLINEABLE insert #-}
+-- | Insert a key-value pair into the `AssocList`. If the key is already present,
+-- the value is updated.
 insert :: forall k a. (P.ToData k, P.ToData a) => k -> a -> AssocList k a -> AssocList k a
 insert (P.toBuiltinData -> k) (P.toBuiltinData -> a) m =
   unsafeFromBuiltinList $ insert' k a (toBuiltinList m)
 
 {-# INLINEABLE insert' #-}
+-- | Similar to 'insert', but operates on the underlying `BuiltinList` representation.
 insert'
   :: BuiltinData
   -> BuiltinData
@@ -134,6 +146,9 @@ insert' (P.toBuiltinData -> k) (P.toBuiltinData -> a) = go
         )
 
 {-# INLINEABLE delete #-}
+-- | Delete a key value pair from the `AssocList`.
+-- If the `AssocList` is not well-defined, it deletes the pair associated with the
+-- left-most occurrence of the key in the list.
 delete :: forall k a. (P.ToData k) => k -> AssocList k a -> AssocList k a
 delete (P.toBuiltinData -> k) m = unsafeFromBuiltinList (go (toBuiltinList m))
   where
@@ -152,20 +167,26 @@ delete (P.toBuiltinData -> k) m = unsafeFromBuiltinList (go (toBuiltinList m))
         )
 
 {-# INLINEABLE singleton #-}
+-- | Create an `AssocList` with a single key-value pair.
 singleton :: forall k a. (P.ToData k, P.ToData a) => k -> a -> AssocList k a
 singleton (P.toBuiltinData -> k) (P.toBuiltinData -> a) = unsafeFromBuiltinList xs
   where
     xs = BI.mkCons (BI.mkPairData k a) nil
 
 {-# INLINEABLE empty #-}
+-- | An empty `AssocList`.
 empty :: forall k a. AssocList k a
 empty = unsafeFromBuiltinList nil
 
 {-# INLINEABLE null #-}
+-- | Check if the `AssocList` is empty.
 null :: forall k a. AssocList k a -> Bool
 null = P.null . toBuiltinList
 
 {-# INLINEABLE safeFromList #-}
+-- | Create an `AssocList` from a list of key-value pairs.
+-- In case of duplicates, this function will keep only one entry (the one that precedes).
+-- In other words, this function de-duplicates the input list.
 safeFromList :: forall k a . (Eq k, P.ToData k, P.ToData a) => [(k, a)] -> AssocList k a
 safeFromList =
   unsafeFromBuiltinList
@@ -181,6 +202,10 @@ safeFromList =
         else (k', v') : go k v rest
 
 {-# INLINEABLE unsafeFromList #-}
+-- | Unsafely create an 'AssocList' from a list of pairs.
+-- This should _only_ be applied to lists which have been checked to not
+-- contain duplicate keys, otherwise the resulting 'AssocList' will contain
+-- conflicting entries (two entries sharing the same key), and therefore be ill-defined.
 unsafeFromList :: (P.ToData k, P.ToData a) => [(k, a)] -> AssocList k a
 unsafeFromList =
   unsafeFromBuiltinList
@@ -188,6 +213,7 @@ unsafeFromList =
     . PlutusTx.Prelude.map (\(k, a) -> (P.toBuiltinData k, P.toBuiltinData a))
 
 {-# INLINEABLE uncons #-}
+-- | Decompose an 'AssocList' into its first key-value pair and the rest of the list.
 uncons ::
   forall k a.
   (P.UnsafeFromData k, P.UnsafeFromData a) =>
@@ -200,6 +226,9 @@ uncons m = case P.uncons (toBuiltinList m) of
      in Just ((P.unsafeFromBuiltinData k, P.unsafeFromBuiltinData a), unsafeFromBuiltinList rest)
 
 {-# INLINEABLE unsafeUncons #-}
+-- | Decompose an 'AssocList' into its first key-value pair and the rest of the list.
+-- This function is unsafe because it assumes that the elements of the list can be safely
+-- decoded from their 'BuiltinData' representation.
 unsafeUncons ::
   forall k a.
   (P.UnsafeFromData k, P.UnsafeFromData a) =>
@@ -212,6 +241,7 @@ unsafeUncons m =
     (k, a) = P.pairToPair hd
 
 {-# INLINEABLE noDuplicateKeys #-}
+-- | Check if the `AssocList` is well-defined. Warning: this operation is O(n^2).
 noDuplicateKeys :: forall k a. AssocList k a -> Bool
 noDuplicateKeys m = go (toBuiltinList m)
   where
@@ -226,6 +256,7 @@ noDuplicateKeys m = go (toBuiltinList m)
         )
 
 {-# INLINEABLE all #-}
+--- | Check if all values in the `AssocList` satisfy the predicate.
 all :: forall k a. (P.UnsafeFromData a) => (a -> Bool) -> AssocList k a -> Bool
 all p m = go (toBuiltinList m)
   where
@@ -240,6 +271,7 @@ all p m = go (toBuiltinList m)
         )
 
 {-# INLINEABLE any #-}
+-- | Check if any value in the `AssocList` satisfies the predicate.
 any :: forall k a. (P.UnsafeFromData a) => (a -> Bool) -> AssocList k a -> Bool
 any p m = go (toBuiltinList m)
   where
@@ -255,13 +287,7 @@ any p m = go (toBuiltinList m)
 
 {-# INLINEABLE union #-}
 
--- TODO: This is broken!
--- The value should be a correct encoding of a `These` value, but it is not.
--- Example:
---  > union (safeFromList []) (safeFromList [(0, 0)]) :: AssocList Integer (These Integer Integer)
---  > AssocList Map [(I 0,I 0)]
--- The second element of the pair should be encoded as the appropriate `Constr`!
--- | Combine two 'AssocList's.
+-- | Combine two 'AssocList's into one. It saves both values if the key is present in both lists.
 union ::
   forall k a b.
   (P.UnsafeFromData a, P.UnsafeFromData b, P.ToData a, P.ToData b) =>
@@ -376,10 +402,8 @@ unionWith f (toBuiltinList -> ls) (toBuiltinList -> rs) =
             (\hd -> go (BI.mkCons hd acc))
 
 {-# INLINEABLE toList #-}
-
-{- | `toList` is expensive since it traverses the whole map.
-`toBuiltinList` is much faster.
--}
+-- | Convert the `AssocList` to a list of key-value pairs. This operation is O(n).
+-- See 'toBuiltinList' for a more efficient alternative.
 toList :: (P.UnsafeFromData k, P.UnsafeFromData a) => AssocList k a -> [(k, a)]
 toList d = go (toBuiltinList d)
   where
@@ -393,10 +417,14 @@ toList d = go (toBuiltinList d)
         )
 
 {-# INLINEABLE toBuiltinList #-}
+-- | Convert the `AssocList` to a `P.BuiltinList` of key-value pairs. This operation is O(1).
 toBuiltinList :: AssocList k a -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
 toBuiltinList (AssocList d) = BI.unsafeDataAsMap d
 
 {-# INLINEABLE unsafeFromBuiltinList #-}
+-- | Unsafely create an 'AssocList' from a `P.BuiltinList` of key-value pairs.
+-- This function is unsafe because it assumes that the elements of the list can be safely
+-- decoded from their 'BuiltinData' representation.
 unsafeFromBuiltinList ::
   forall k a.
   BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
@@ -404,5 +432,6 @@ unsafeFromBuiltinList ::
 unsafeFromBuiltinList = AssocList . BI.mkMap
 
 {-# INLINEABLE nil #-}
+-- | An empty `P.BuiltinList` of key-value pairs.
 nil :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
 nil = BI.mkNilPairData BI.unitval
