@@ -26,6 +26,7 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     , ModelSubtractedSizes(..)
     , ModelConstantOrOneArgument(..)
     , ModelConstantOrTwoArguments(..)
+    , ModelConstantOrLinear(..)  -- Deprecated: see Note [Backward compatibility for costing functions]
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)
