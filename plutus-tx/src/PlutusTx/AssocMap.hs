@@ -39,7 +39,7 @@ module PlutusTx.AssocMap (
 
 import Prelude qualified as Haskell
 
-import PlutusTx.Builtins qualified as P
+import PlutusTx.Builtins qualified as P hiding (null)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData
 import PlutusTx.Lift (makeLift)
@@ -235,6 +235,7 @@ delete key (Map ls) = Map (go ls)
 keys :: Map k v -> [k]
 keys (Map xs) = P.fmap (\(k, _ :: v) -> k) xs
 
+{-# INLINEABLE union #-}
 -- | Combine two 'Map's. Keeps both values on key collisions.
 -- Note that well-formedness is only preserved if the two input maps
 -- are also well-formed.

@@ -19,7 +19,7 @@ import Test.Tasty.Extras
 import Budget.WithGHCOptimisations qualified as WithGHCOptTest
 import Budget.WithoutGHCOptimisations qualified as WithoutGHCOptTest
 import PlutusTx.AsData qualified as AsData
-import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Builtins qualified as PlutusTx hiding (null)
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Lift (liftCodeDef, makeLift)
