@@ -17,6 +17,7 @@ import Test.Tasty.Extras
 
 import Data.List (nubBy, sort)
 import Data.Map.Strict qualified as Map
+import Data.Maybe (fromJust)
 import Hedgehog (Gen, MonadTest, Property, Range, forAll, property, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -67,6 +68,7 @@ propertyTests =
     , testProperty "delete" deleteSpec
     , testProperty "union" unionSpec
     , testProperty "unionWith" unionWithSpec
+    , testProperty "builtinDataEncoding" builtinDataEncodingSpec
     ]
 
 map1 ::
@@ -399,3 +401,24 @@ unionWithSpec = property $ do
       merge i1 _ = i1
   unionWithS merge assocListS1 assocListS2 ~~ AssocMap.unionWith merge assocMap1 assocMap2
   unionWithS merge assocListS1 assocListS2 ~~ Data.AssocList.unionWith merge assocList1 assocList2
+
+builtinDataEncodingSpec :: Property
+builtinDataEncodingSpec = property $ do
+  assocListS <- forAll genAssocListS
+  let assocMap = semanticsToAssocMap assocListS
+      assocList = semanticsToAssocList assocListS
+      encodedAssocList = P.toBuiltinData assocList
+      encodedAssocMap = P.toBuiltinData assocMap
+      mDecodedAssocList :: Maybe (AssocList Integer Integer)
+      mDecodedAssocList = P.fromBuiltinData encodedAssocList
+      mDecodedAssocMap :: Maybe (AssocMap.Map Integer Integer)
+      mDecodedAssocMap = P.fromBuiltinData encodedAssocMap
+      decodedAssocList :: AssocList Integer Integer
+      decodedAssocList = P.unsafeFromBuiltinData encodedAssocList
+      decodedAssocMap :: AssocMap.Map Integer Integer
+      decodedAssocMap = P.unsafeFromBuiltinData encodedAssocMap
+  encodedAssocList === encodedAssocMap
+  assocListS ~~ fromJust mDecodedAssocMap
+  assocListS ~~ fromJust mDecodedAssocList
+  assocListS ~~ decodedAssocMap
+  assocListS ~~ decodedAssocList
