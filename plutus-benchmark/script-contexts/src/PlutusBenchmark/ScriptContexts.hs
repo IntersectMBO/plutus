@@ -7,9 +7,9 @@ module PlutusBenchmark.ScriptContexts where
 
 import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Value
-import PlutusLedgerApi.V3 (OutputDatum (NoOutputDatum), PubKeyHash (..), ScriptContext (..),
-                           ScriptPurpose (Spending), TxId (..), TxInfo (..), TxOut (..),
-                           TxOutRef (..), always)
+import PlutusLedgerApi.V3 (OutputDatum (NoOutputDatum), PubKeyHash (..), Redeemer (..),
+                           ScriptContext (..), ScriptInfo (SpendingScript), TxId (..), TxInfo (..),
+                           TxOut (..), TxOutRef (..), always)
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as PlutusTx
@@ -19,7 +19,15 @@ import PlutusTx.Prelude qualified as PlutusTx
 -- | A very crude deterministic generator for 'ScriptContext's with size
 -- approximately proportional to the input integer.
 mkScriptContext :: Int -> ScriptContext
-mkScriptContext i = ScriptContext (mkTxInfo i) (Spending (TxOutRef (TxId "") 0))
+mkScriptContext i =
+  ScriptContext
+    (mkTxInfo i)
+    ( SpendingScript
+        (TxOutRef (TxId "") 0)
+        Nothing
+        (Redeemer (PlutusTx.toBuiltinData (1 :: Integer)))
+    )
+
 
 mkTxInfo :: Int -> TxInfo
 mkTxInfo i = TxInfo {

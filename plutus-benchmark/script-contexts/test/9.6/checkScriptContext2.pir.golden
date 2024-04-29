@@ -772,77 +772,6 @@
                  (unIData (headList {data} (tailList {data} args))))
             (/\dead -> traceError {TxOutRef} "PT1")
             {all dead. dead}
-    data ScriptPurpose | ScriptPurpose_match where
-      Certifying : integer -> TxCert -> ScriptPurpose
-      Minting : bytestring -> ScriptPurpose
-      Proposing : integer -> ProposalProcedure -> ScriptPurpose
-      Rewarding : Credential -> ScriptPurpose
-      Spending : TxOutRef -> ScriptPurpose
-      Voting : Voter -> ScriptPurpose
-    !`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` :
-       data -> ScriptPurpose
-      = \(d : data) ->
-          let
-            !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
-          in
-          ifThenElse
-            {all dead. ScriptPurpose}
-            (equalsInteger 0 index)
-            (/\dead -> Minting (unBData (headList {data} args)))
-            (/\dead ->
-               ifThenElse
-                 {all dead. ScriptPurpose}
-                 (equalsInteger 1 index)
-                 (/\dead ->
-                    Spending
-                      (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
-                         (headList {data} args)))
-                 (/\dead ->
-                    ifThenElse
-                      {all dead. ScriptPurpose}
-                      (equalsInteger 2 index)
-                      (/\dead ->
-                         Rewarding
-                           (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                              (headList {data} args)))
-                      (/\dead ->
-                         ifThenElse
-                           {all dead. ScriptPurpose}
-                           (equalsInteger 3 index)
-                           (/\dead ->
-                              Certifying
-                                (unIData (headList {data} args))
-                                (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                   (headList {data} (tailList {data} args))))
-                           (/\dead ->
-                              ifThenElse
-                                {all dead. ScriptPurpose}
-                                (equalsInteger 4 index)
-                                (/\dead ->
-                                   Voting
-                                     (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                        (headList {data} args)))
-                                (/\dead ->
-                                   ifThenElse
-                                     {all dead. ScriptPurpose}
-                                     (equalsInteger 5 index)
-                                     (/\dead ->
-                                        Proposing
-                                          (unIData (headList {data} args))
-                                          (`$fUnsafeFromDataProposalProcedure_$cunsafeFromBuiltinData`
-                                             (headList
-                                                {data}
-                                                (tailList {data} args))))
-                                     (/\dead ->
-                                        traceError {ScriptPurpose} "PT1")
-                                     {all dead. dead})
-                                {all dead. dead})
-                           {all dead. dead})
-                      {all dead. dead})
-                 {all dead. dead})
-            {all dead. dead}
     ~`$fUnsafeFromDataValue` :
        data -> (\k v -> List (Tuple2 k v)) bytestring integer
       = `$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
@@ -994,12 +923,26 @@
                     (headList {data} (tailList {data} args))))
             (/\dead -> traceError {TxInInfo} "PT1")
             {all dead. dead}
+    data ScriptInfo | ScriptInfo_match where
+      CertifyingScript : integer -> TxCert -> data -> ScriptInfo
+      MintingScript : bytestring -> data -> ScriptInfo
+      ProposingScript : integer -> ProposalProcedure -> data -> ScriptInfo
+      RewardingScript : Credential -> data -> ScriptInfo
+      SpendingScript : TxOutRef -> Maybe data -> data -> ScriptInfo
+      VotingScript : Voter -> data -> ScriptInfo
     data (LowerBound :: * -> *) a | LowerBound_match where
       LowerBound : Extended a -> Bool -> LowerBound a
     data (UpperBound :: * -> *) a | UpperBound_match where
       UpperBound : Extended a -> Bool -> UpperBound a
     data (Interval :: * -> *) a | Interval_match where
       Interval : LowerBound a -> UpperBound a -> Interval a
+    data ScriptPurpose | ScriptPurpose_match where
+      Certifying : integer -> TxCert -> ScriptPurpose
+      Minting : bytestring -> ScriptPurpose
+      Proposing : integer -> ProposalProcedure -> ScriptPurpose
+      Rewarding : Credential -> ScriptPurpose
+      Spending : TxOutRef -> ScriptPurpose
+      Voting : Voter -> ScriptPurpose
     data Vote | Vote_match where
       Abstain : Vote
       VoteNo : Vote
@@ -1028,7 +971,7 @@
         Maybe integer ->
         TxInfo
     data ScriptContext | ScriptContext_match where
-      ScriptContext : TxInfo -> ScriptPurpose -> ScriptContext
+      ScriptContext : TxInfo -> ScriptInfo -> ScriptContext
   in
   \(d : data) ->
     let
@@ -1170,7 +1113,85 @@
                       (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                          {ScriptPurpose}
                          {data}
-                         `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                         (\(d : data) ->
+                            let
+                              !tup : pair integer (list data) = unConstrData d
+                              !index : integer
+                                = fstPair {integer} {list data} tup
+                              !args : list data
+                                = sndPair {integer} {list data} tup
+                            in
+                            ifThenElse
+                              {all dead. ScriptPurpose}
+                              (equalsInteger 0 index)
+                              (/\dead ->
+                                 Minting (unBData (headList {data} args)))
+                              (/\dead ->
+                                 ifThenElse
+                                   {all dead. ScriptPurpose}
+                                   (equalsInteger 1 index)
+                                   (/\dead ->
+                                      Spending
+                                        (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                                           (headList {data} args)))
+                                   (/\dead ->
+                                      ifThenElse
+                                        {all dead. ScriptPurpose}
+                                        (equalsInteger 2 index)
+                                        (/\dead ->
+                                           Rewarding
+                                             (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                (headList {data} args)))
+                                        (/\dead ->
+                                           ifThenElse
+                                             {all dead. ScriptPurpose}
+                                             (equalsInteger 3 index)
+                                             (/\dead ->
+                                                Certifying
+                                                  (unIData
+                                                     (headList {data} args))
+                                                  (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                     (headList
+                                                        {data}
+                                                        (tailList
+                                                           {data}
+                                                           args))))
+                                             (/\dead ->
+                                                ifThenElse
+                                                  {all dead. ScriptPurpose}
+                                                  (equalsInteger 4 index)
+                                                  (/\dead ->
+                                                     Voting
+                                                       (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                          (headList
+                                                             {data}
+                                                             args)))
+                                                  (/\dead ->
+                                                     ifThenElse
+                                                       {all dead. ScriptPurpose}
+                                                       (equalsInteger 5 index)
+                                                       (/\dead ->
+                                                          Proposing
+                                                            (unIData
+                                                               (headList
+                                                                  {data}
+                                                                  args))
+                                                            (`$fUnsafeFromDataProposalProcedure_$cunsafeFromBuiltinData`
+                                                               (headList
+                                                                  {data}
+                                                                  (tailList
+                                                                     {data}
+                                                                     args))))
+                                                       (/\dead ->
+                                                          traceError
+                                                            {ScriptPurpose}
+                                                            "PT1")
+                                                       {all dead. dead})
+                                                  {all dead. dead})
+                                             {all dead. dead})
+                                        {all dead. dead})
+                                   {all dead. dead})
+                              {all dead. dead})
                          `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
                          (headList {data} l))
                       (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
@@ -1230,8 +1251,92 @@
                          (headList {data} (tailList {data} l))))
                  (/\dead -> traceError {TxInfo} "PT1")
                  {all dead. dead})
-               (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                  (headList {data} (tailList {data} args))))
+               (let
+                 !tup : pair integer (list data)
+                   = unConstrData (headList {data} (tailList {data} args))
+                 !index : integer = fstPair {integer} {list data} tup
+                 !args : list data = sndPair {integer} {list data} tup
+               in
+               ifThenElse
+                 {all dead. ScriptInfo}
+                 (equalsInteger 0 index)
+                 (/\dead ->
+                    MintingScript
+                      (unBData (headList {data} args))
+                      (headList {data} (tailList {data} args)))
+                 (/\dead ->
+                    ifThenElse
+                      {all dead. ScriptInfo}
+                      (equalsInteger 1 index)
+                      (/\dead ->
+                         let
+                           !l : list data = tailList {data} args
+                         in
+                         SpendingScript
+                           (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                              (headList {data} args))
+                           (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                              {data}
+                              `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                              (headList {data} l))
+                           (headList {data} (tailList {data} l)))
+                      (/\dead ->
+                         ifThenElse
+                           {all dead. ScriptInfo}
+                           (equalsInteger 2 index)
+                           (/\dead ->
+                              RewardingScript
+                                (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                   (headList {data} args))
+                                (headList {data} (tailList {data} args)))
+                           (/\dead ->
+                              ifThenElse
+                                {all dead. ScriptInfo}
+                                (equalsInteger 3 index)
+                                (/\dead ->
+                                   let
+                                     !l : list data = tailList {data} args
+                                   in
+                                   CertifyingScript
+                                     (unIData (headList {data} args))
+                                     (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                        (headList {data} l))
+                                     (headList {data} (tailList {data} l)))
+                                (/\dead ->
+                                   ifThenElse
+                                     {all dead. ScriptInfo}
+                                     (equalsInteger 4 index)
+                                     (/\dead ->
+                                        VotingScript
+                                          (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                             (headList {data} args))
+                                          (headList
+                                             {data}
+                                             (tailList {data} args)))
+                                     (/\dead ->
+                                        ifThenElse
+                                          {all dead. ScriptInfo}
+                                          (equalsInteger 5 index)
+                                          (/\dead ->
+                                             let
+                                               !l : list data
+                                                 = tailList {data} args
+                                             in
+                                             ProposingScript
+                                               (unIData (headList {data} args))
+                                               (`$fUnsafeFromDataProposalProcedure_$cunsafeFromBuiltinData`
+                                                  (headList {data} l))
+                                               (headList
+                                                  {data}
+                                                  (tailList {data} l)))
+                                          (/\dead ->
+                                             traceError {ScriptInfo} "PT1")
+                                          {all dead. dead})
+                                     {all dead. dead})
+                                {all dead. dead})
+                           {all dead. dead})
+                      {all dead. dead})
+                 {all dead. dead}))
           (/\dead -> traceError {ScriptContext} "PT1")
           {all dead. dead}
     in
@@ -1261,4 +1366,4 @@
          , List []
          , Constr 1 []
          , Constr 1 [] ]
-     , Constr 1 [Constr 0 [B #, I 0]] ])
+     , Constr 1 [Constr 0 [B #, I 0], Constr 1 [], I 1] ])
