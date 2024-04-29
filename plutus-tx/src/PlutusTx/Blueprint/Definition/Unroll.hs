@@ -30,7 +30,7 @@ import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinData, BuiltinList, 
                                    BuiltinUnit)
 
 ----------------------------------------------------------------------------------------------------
--- Functionality to "unroll" types. -- For more context see the note ["Unrolling" types] -----------
+-- Functionality to "unroll" types. -- For more context see Note ["Unrolling" types] -----------
 
 {- Note ["Unrolling" types]
 
