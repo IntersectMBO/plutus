@@ -437,15 +437,10 @@
         "cpu": {
             "arguments": {
                 "constant": 187000,
-                "model": {
-                    "arguments": {
-                        "intercept": 1000,
-                        "slope": 52998
-                    },
-                    "type": "linear_in_x"
-                }
+                "intercept": 1000,
+                "slope": 52998
             },
-            "type": "const_off_diagonal"
+            "type": "linear_on_diagonal"
         },
         "memory": {
             "arguments": 1,

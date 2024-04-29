@@ -583,6 +583,9 @@ modelFun <- function(path) {
         mk.result(m, "added_sizes")
     }
 
+    ## NOTE: We could also use const_off_diagonal here, but we have to keep
+    ## linear _on_diagonal for backward compatibility for the time being.
+    ## See Note [Backward compatibility for costing functions].
     equalsStringModel <- {
         fname <- "EqualsString"
         filtered <- data %>%
@@ -596,7 +599,7 @@ modelFun <- function(path) {
         ## we don't collect benchmarking data for.  We might want to collect
         ## some data and infer it.
 
-        mk.result(m, "const_off_diagonal", constant=constant, subtype="linear_in_x")
+        mk.result(m, "linear_on_diagonal", constant=constant)
     }
 
     decodeUtf8Model <- linearInX ("DecodeUtf8")

@@ -85,8 +85,8 @@ data ParamName =
   | EqualsInteger'cpu'arguments'slope
   | EqualsInteger'memory'arguments
   | EqualsString'cpu'arguments'constant
-  | EqualsString'cpu'arguments'model'arguments'intercept
-  | EqualsString'cpu'arguments'model'arguments'slope
+  | EqualsString'cpu'arguments'intercept
+  | EqualsString'cpu'arguments'slope
   | EqualsString'memory'arguments
   | FstPair'cpu'arguments
   | FstPair'memory'arguments
