@@ -845,6 +845,7 @@ enterComputeCek = computeCek
         let ctr = ?cekStepCounter
         iforCounter_ ctr spend
         resetCounter ctr
+    {-# INLINE spendAccumulatedBudget #-}
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.
