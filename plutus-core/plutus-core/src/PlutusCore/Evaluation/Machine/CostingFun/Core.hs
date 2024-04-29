@@ -338,15 +338,15 @@ data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
    function types and made them more composable: in particular,
    ModelTwoArgumentsLinearOnDiagonal was replaced by
    ModelTwoArgumentsConstOffDiagonal and ModelConstantOrLinear was removed.
-   However, this changes some of the tags (specifically, for `equalsByteString`)
-   in builtinCostModel.json, and these are used in the Alonzo genesis file and
-   so shouldn't be changed.  For the time being we've restored the
-   ModelTwoArgumentsLinearOnDiagonal constructor so that we can still deal with
-   the old tags.  New builtins should use ModelTwoArgumentsConstOffDiagonal
-   instead.  A better long-term solution might be to adapt the JSON conversion
-   code to translate linear_on_diagonal objects to ConstOffDiagonal objects (and
-   perhaps back, although configurable cost models may mean that we don't need
-   to do that).
+   However, this changes some of the tags (specifically, for `equalsByteString`
+   and `equalsString`) in builtinCostModel.json, and these are used in the
+   Alonzo genesis file and so shouldn't be changed.  For the time being we've
+   restored the ModelTwoArgumentsLinearOnDiagonal constructor so that we can
+   still deal with the old tags.  New builtins should use
+   ModelTwoArgumentsConstOffDiagonal instead.  A better long-term solution might
+   be to adapt the JSON conversion code to translate linear_on_diagonal objects
+   to ConstOffDiagonal objects (and perhaps back, although configurable cost
+   models may mean that we don't need to do that).
 -}
 
 data ModelTwoArguments =
