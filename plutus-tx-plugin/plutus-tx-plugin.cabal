@@ -128,6 +128,7 @@ test-suite plutus-tx-plugin-tests
   other-modules:
     AsData.Budget.Spec
     AsData.Budget.Types
+    AssocList.Spec
     Blueprint.Tests
     Blueprint.Tests.Lib
     Blueprint.Tests.Lib.AsData.Blueprint
