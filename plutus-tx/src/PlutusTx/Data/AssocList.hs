@@ -34,17 +34,16 @@ import PlutusTx.These
 
 import Prelude qualified as Haskell
 
--- TODO: fix docs
-{- | An associative map implementation backed by `P.BuiltinData`.
+{- | A list associating keys and values backed by `P.BuiltinData`.
 
-This map implementation has the following characteristics:
+This implementation has the following characteristics:
 
   * The `P.toBuiltinData` and `P.unsafeFromBuiltinData` operations are no-op.
   * Other operations are slower than @PlutusTx.AssocMap.Map@, although equality
     checks on keys can be faster due to `P.equalsData`.
   * Many operations involve converting the keys and/or values to/from `P.BuiltinData`.
 
-Therefore this map implementation is likely a better choice than @PlutusTx.AssocMap.Map@
+Therefore this implementation is likely a better choice than @PlutusTx.AssocMap.Map@
 if it is part of a data type defined using @asData@, and the key and value types
 have efficient `P.toBuiltinData` and `P.unsafeFromBuiltinData` operations (e.g., they
 are primitive types or types defined using @asData@).

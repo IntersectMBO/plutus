@@ -16,13 +16,9 @@ module AssocList.Spec where
 
 import Test.Tasty.Extras
 
-import Control.Monad (when)
 import Data.List (nubBy, sort)
-import Data.Map.Strict qualified as HMap
 import Data.Map.Strict qualified as Map
-import Debug.Trace (traceM)
-import Hedgehog (Gen, MonadTest, Property, Range, assert, forAll, property, (===))
-import Hedgehog.Gen (discard)
+import Hedgehog (Gen, MonadTest, Property, Range, forAll, property, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusTx.AssocMap qualified as AssocMap
@@ -130,7 +126,7 @@ map2 =
     )
 
 newtype AssocListS k v = AssocListS [(k, v)]
-  deriving (Show, Eq)
+  deriving stock (Show, Eq)
 
 nullS :: AssocListS k v -> Bool
 nullS (AssocListS l) = null l
