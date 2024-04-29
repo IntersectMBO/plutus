@@ -235,7 +235,6 @@ delete key (Map ls) = Map (go ls)
 keys :: Map k v -> [k]
 keys (Map xs) = P.fmap (\(k, _ :: v) -> k) xs
 
-{-# INLINEABLE union #-}
 -- | Combine two 'Map's. Keeps both values on key collisions.
 -- Note that well-formedness is only preserved if the two input maps
 -- are also well-formed.
