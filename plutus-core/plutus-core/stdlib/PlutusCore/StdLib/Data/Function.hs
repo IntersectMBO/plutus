@@ -107,7 +107,8 @@ unroll = runQuote $ do
 -- | 'fix' as a PLC term.
 --
 -- > /\(a b :: *) -> \(f : (a -> b) -> a -> b) ->
--- >    unroll {a -> b} (iwrap selfF (a -> b) \(s : self (a -> b)) \(x : a) -> f (unroll {a -> b} s) x)
+-- >     unroll {a -> b} (iwrap selfF (a -> b) \(s : self (a -> b)) ->
+-- >         f (\(x : a) -> unroll {a -> b} s x))
 --
 -- See @plutus/runQuote $ docs/fomega/z-combinator-benchmarks@ for details.
 fix :: TermLike term TyName Name uni fun => term ()
@@ -131,11 +132,12 @@ fixAndType = runQuote $ do
             . apply () unrollFunAB
             . wrapSelf [funAB]
             . lamAbs () s selfFunAB
+            . apply () (var () f)
             . lamAbs () x (TyVar () a)
-            $ mkIterAppNoAnn (var () f)
-            [ apply () unrollFunAB $ var () s
-            , var () x
-            ]
+            $ mkIterAppNoAnn unrollFunAB
+                [ var () s
+                , var () x
+                ]
     let fixType =
             TyForall () a (Type ())
             . TyForall () b (Type ())
