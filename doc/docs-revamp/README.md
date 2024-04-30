@@ -17,6 +17,7 @@ This outline shows the proposed reorganized structure for the Plutus Core Plutus
 > - Ported over existing content. 
 > - Planning further reorganization and editing. 
 > - Not ready for review. 
+> - Observation: The reference to the Plutus Application Framework is outdated. Many elements of it are no longer functioning or being supported. For example, the PAB is no longer supported. The Plutus Playground is no longer available and is not being supported. Plutus Apps are no longer supported. I suggest that it would be helpful to find a new way to talk about the Plutus development environment and ecosystem without referencing the “Plutus Application Framework.”
 
 - The Plutus Platform
    - Applications

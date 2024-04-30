@@ -22,6 +22,9 @@ date: 2024-04-11
 - Plutus Haskell SDK
 - Plutus language versions
 
+## Observation to consider
+- The reference to the Plutus Application Framework is outdated. Many elements of it are no longer functioning or being supported. For example, the PAB is no longer supported. The Plutus Playground is no longer available and is not being supported. Plutus Apps are no longer supported. I suggest that it would be helpful to find a new way to talk about the Plutus development environment and ecosystem without referencing the “Plutus Application Framework.”
+
 ## Understanding the Plutus platform
 - What is Plutus?
 	- The relationship between Plutus, Haskell, and Cardano
