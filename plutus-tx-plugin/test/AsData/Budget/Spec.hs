@@ -24,19 +24,19 @@ tests =
     ("AsData" </> "Budget")
     [ goldenPirReadable "onlyUseFirstField" onlyUseFirstField
     , goldenUPlcReadable "onlyUseFirstField" onlyUseFirstField
-    , goldenEvalCekCatch "onlyUseFirstField" $ [onlyUseFirstField `unsafeApplyCode` inp]
+    , goldenEvalCekCatch "onlyUseFirstField" [onlyUseFirstField `unsafeApplyCode` inp]
     , goldenBudget "onlyUseFirstField-budget" (onlyUseFirstField `unsafeApplyCode` inp)
     , goldenPirReadable "patternMatching" patternMatching
     , goldenUPlcReadable "patternMatching" patternMatching
-    , goldenEvalCekCatch "patternMatching" $ [patternMatching `unsafeApplyCode` inp]
+    , goldenEvalCekCatch "patternMatching" [patternMatching `unsafeApplyCode` inp]
     , goldenBudget "patternMatching-budget" (patternMatching `unsafeApplyCode` inp)
     , goldenPirReadable "recordFields" recordFields
     , goldenUPlcReadable "recordFields" recordFields
-    , goldenEvalCekCatch "recordFields" $ [recordFields `unsafeApplyCode` inp]
+    , goldenEvalCekCatch "recordFields" [recordFields `unsafeApplyCode` inp]
     , goldenBudget "recordFields-budget" (recordFields `unsafeApplyCode` inp)
     , goldenPirReadable "recordFields-manual" recordFieldsManual
     , goldenUPlcReadable "recordFields-manual" recordFieldsManual
-    , goldenEvalCekCatch "recordFields-manual" $ [recordFieldsManual `unsafeApplyCode` inp]
+    , goldenEvalCekCatch "recordFields-manual" [recordFieldsManual `unsafeApplyCode` inp]
     , goldenBudget "recordFields-budget-manual" (recordFieldsManual `unsafeApplyCode` inp)
     ]
 
