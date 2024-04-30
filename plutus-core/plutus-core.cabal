@@ -675,7 +675,7 @@ executable plutus
   hs-source-dirs:     executables/plutus
 
   -- singletons-th does not support GHC<=8.10
-  if impl(ghc <9.0)
+  if impl(ghc <9.6)
     buildable: False
 
   -- Hydra complains that this is not buildable on mingw32 because of brick.
