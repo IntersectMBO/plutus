@@ -69,18 +69,11 @@
                             (fun Nat_i5 Nat_i5)
                           ]
                           (lam
-                            x_i0
+                            n_i0
                             Nat_i6
                             [
-                              (lam
-                                stupidZero_i0
-                                (fun Nat_i7 Nat_i7)
-                                [
-                                  [ { [ match_Nat_i4 x_i2 ] Nat_i7 } Zero_i6 ]
-                                  (lam p_i0 Nat_i8 [ stupidZero_i2 p_i1 ])
-                                ]
-                              )
-                              [ (unwrap s_i2) s_i2 ]
+                              [ { [ match_Nat_i3 n_i1 ] Nat_i6 } Zero_i5 ]
+                              (lam p_i0 Nat_i7 [ [ (unwrap s_i3) s_i3 ] p_i1 ])
                             ]
                           )
                         )
