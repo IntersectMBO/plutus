@@ -60,9 +60,11 @@ instance P.ToData (AssocList k a) where
   toBuiltinData (AssocList d) = d
 
 instance P.FromData (AssocList k a) where
+  {-# INLINABLE fromBuiltinData #-}
   fromBuiltinData = Just . AssocList
 
 instance P.UnsafeFromData (AssocList k a) where
+  {-# INLINABLE unsafeFromBuiltinData #-}
   unsafeFromBuiltinData = AssocList
 
 {-# INLINEABLE lookup #-}
@@ -86,11 +88,11 @@ lookup' k = go
       P.matchList
         xs
         Nothing
-        ( \hd tl ->
+        ( \hd ->
             let k' = BI.fst hd
              in if P.equalsData k k'
-                  then Just (BI.snd hd)
-                  else go tl
+                  then \_ -> Just (BI.snd hd)
+                  else go
         )
 
 {-# INLINEABLE member #-}
@@ -108,11 +110,11 @@ member' k = go
       P.matchList
         xs
         False
-        ( \hd tl ->
+        ( \hd ->
             let k' = BI.fst hd
              in if P.equalsData k k'
-                  then True
-                  else go tl
+                  then \_ -> True
+                  else go
         )
 
 {-# INLINEABLE insert #-}
@@ -264,9 +266,9 @@ all p m = go (toBuiltinList m)
       P.matchList
         xs
         True
-        ( \hd tl ->
+        ( \hd ->
             let a = P.unsafeFromBuiltinData (BI.snd hd)
-             in if p a then go tl else False
+             in if p a then go else \_ -> False
         )
 
 {-# INLINEABLE any #-}
@@ -279,9 +281,9 @@ any p m = go (toBuiltinList m)
       P.matchList
         xs
         False
-        ( \hd tl ->
+        ( \hd ->
             let a = P.unsafeFromBuiltinData (BI.snd hd)
-             in if p a then True else go tl
+             in if p a then \_ -> True else go
         )
 
 {-# INLINEABLE union #-}

@@ -56,28 +56,30 @@ program
                                                             (\ds -> constr 1 [])
                                                             (\ds ->
                                                                (\hd ->
-                                                                  (\tl ->
-                                                                     force
-                                                                       (force
-                                                                          ifThenElse
-                                                                          (equalsData
-                                                                             k
+                                                                  force
+                                                                    (force
+                                                                       ifThenElse
+                                                                       (equalsData
+                                                                          k
+                                                                          (force
                                                                              (force
-                                                                                (force
-                                                                                   fstPair)
-                                                                                hd))
-                                                                          (delay
-                                                                             (constr 0
+                                                                                fstPair)
+                                                                             hd))
+                                                                       (delay
+                                                                          ((\ds ->
+                                                                              constr 0
                                                                                 [ (force
                                                                                      (force
                                                                                         sndPair)
-                                                                                     hd) ]))
-                                                                          (delay
-                                                                             (go
-                                                                                tl))))
-                                                                    (force
-                                                                       tailList
-                                                                       xs))
+                                                                                     hd) ])
+                                                                             (force
+                                                                                tailList
+                                                                                xs)))
+                                                                       (delay
+                                                                          (go
+                                                                             (force
+                                                                                tailList
+                                                                                xs)))))
                                                                  (force headList
                                                                     xs))
                                                             (constr 0 []))

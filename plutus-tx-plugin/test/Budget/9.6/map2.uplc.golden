@@ -60,29 +60,29 @@ program
                                                                           constr 1
                                                                             [])
                                                                        (\ds ->
-                                                                          (\hd ->
-                                                                             (\tl ->
-                                                                                force
-                                                                                  (force
-                                                                                     ifThenElse
-                                                                                     (equalsData
-                                                                                        k
-                                                                                        (force
-                                                                                           (force
-                                                                                              fstPair)
-                                                                                           hd))
-                                                                                     (delay
-                                                                                        (constr 0
-                                                                                           [  ]))
-                                                                                     (delay
-                                                                                        (go
-                                                                                           tl))))
-                                                                               (force
-                                                                                  tailList
-                                                                                  xs))
+                                                                          force
                                                                             (force
-                                                                               headList
-                                                                               xs))
+                                                                               ifThenElse
+                                                                               (equalsData
+                                                                                  k
+                                                                                  (force
+                                                                                     (force
+                                                                                        fstPair)
+                                                                                     (force
+                                                                                        headList
+                                                                                        xs)))
+                                                                               (delay
+                                                                                  ((\ds ->
+                                                                                      constr 0
+                                                                                        [  ])
+                                                                                     (force
+                                                                                        tailList
+                                                                                        xs)))
+                                                                               (delay
+                                                                                  (go
+                                                                                     (force
+                                                                                        tailList
+                                                                                        xs)))))
                                                                        (constr 0
                                                                           []))
                                                                   (unMapData
@@ -143,28 +143,30 @@ program
                                                                  constr 1 [])
                                                               (\ds ->
                                                                  (\hd ->
-                                                                    (\tl ->
-                                                                       force
-                                                                         (force
-                                                                            ifThenElse
-                                                                            (equalsData
-                                                                               k'
+                                                                    force
+                                                                      (force
+                                                                         ifThenElse
+                                                                         (equalsData
+                                                                            k'
+                                                                            (force
                                                                                (force
-                                                                                  (force
-                                                                                     fstPair)
-                                                                                  hd))
-                                                                            (delay
-                                                                               (constr 0
+                                                                                  fstPair)
+                                                                               hd))
+                                                                         (delay
+                                                                            ((\ds ->
+                                                                                constr 0
                                                                                   [ (force
                                                                                        (force
                                                                                           sndPair)
-                                                                                       hd) ]))
-                                                                            (delay
-                                                                               (go
-                                                                                  tl))))
-                                                                      (force
-                                                                         tailList
-                                                                         xs))
+                                                                                       hd) ])
+                                                                               (force
+                                                                                  tailList
+                                                                                  xs)))
+                                                                         (delay
+                                                                            (go
+                                                                               (force
+                                                                                  tailList
+                                                                                  xs)))))
                                                                    (force
                                                                       headList
                                                                       xs))
@@ -204,8 +206,8 @@ program
                                                        [ (addInteger 7 n)
                                                        , #534556454e ])
                                                   , (constr 0 []) ]) ]) ]) ])))
-                          (addInteger 4 n))
-                       (addInteger 3 n))
+                          (addInteger 3 n))
+                       (addInteger 4 n))
                     (\`$dToData` `$dToData` ->
                        (\go eta ->
                           mapData
