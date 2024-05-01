@@ -17,8 +17,8 @@ import Test.Tasty (TestName, TestTree)
 import Test.Tasty.Extras
 
 import Data.Bifunctor
+import Data.Foldable (for_)
 import Data.String
-import Data.Traversable (for)
 import PlutusLedgerApi.V1.Value
 import PlutusTx.AssocMap as Map
 import PlutusTx.Code
@@ -28,10 +28,10 @@ import PlutusTx.TH (compile)
 
 tests :: TestTree
 tests =
-  runTestNestedIn ["test-plugin", "Spec"] . testNestedGhcM "Budget" $ do
+  runTestNestedM ["test-plugin", "Spec", "Budget"] . testNestedGhcM $ do
     goldenPirReadable "gt" compiledGt
     goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
-    for testCases $  \(TestCase name code) -> do
+    for_ testCases $ \(TestCase name code) -> do
       goldenBudget name code
       goldenEvalCekCatch name [code]
 

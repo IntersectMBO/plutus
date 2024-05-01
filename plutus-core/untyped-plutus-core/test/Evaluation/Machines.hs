@@ -119,8 +119,7 @@ test_budget :: TestTree
 test_budget
     -- Error diffs are very big
     = localOption (SizeCutoff 1000000)
-    . runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
-    . testNested "Budget"
+    . runTestNested ["untyped-plutus-core", "test", "Evaluation", "Machines", "Budget"]
     $ concat
         [ folder Plc.defaultBuiltinsRuntime bunchOfFibs
         , folder (toBuiltinsRuntime def ()) bunchOfIdNats
@@ -130,7 +129,7 @@ test_budget
     folder runtime =
         foldPlcFolderContents
             testNested
-            (\name _ -> pure $ testGroup name [])
+            (\_ _ -> pure ())
             (\name -> testBudget runtime name . eraseTerm)
 
 testTallying :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
@@ -145,9 +144,9 @@ test_tallying :: TestTree
 test_tallying =
     -- Error diffs are very big
     localOption (SizeCutoff 1000000)
-        . runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
-        .  testNested "Tallying"
-        .  foldPlcFolderContents testNested
-                                 (\name _ -> pure $ testGroup name [])
-                                 (\name -> testTallying name . eraseTerm)
+        . runTestNested ["untyped-plutus-core", "test", "Evaluation", "Machines", "Tallying"]
+        . foldPlcFolderContents
+            testNested
+            (\_ _ -> pure ())
+            (\name -> testTallying name . eraseTerm)
         $ bunchOfFibs

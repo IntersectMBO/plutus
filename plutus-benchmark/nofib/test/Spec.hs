@@ -8,7 +8,7 @@ run to completion. -}
 module Main where
 
 import Test.Tasty
-import Test.Tasty.Extras (TestNested, runTestGroupNestedGhc)
+import Test.Tasty.Extras (TestNested, runTestNestedM, testNestedGhcM)
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 
@@ -24,10 +24,10 @@ import PlutusCore.Default
 import PlutusTx qualified as Tx
 import PlutusTx.Test qualified as Tx
 
--- Make a set of golden tests with results stored in subdirectories determined
--- by the GHC version.
-testGroupGhc :: [TestNested] -> TestTree
-testGroupGhc = runTestGroupNestedGhc ["nofib", "test"]
+-- Make a set of golden tests with results stored in a given subdirectory
+-- inside a subdirectory determined by the GHC version.
+runTestGhcInM :: TestNested -> TestTree
+runTestGhcInM = runTestNestedM ["nofib", "test"] . testNestedGhcM
 
 -- Unit tests comparing PLC and Haskell computations on given inputs
 
@@ -47,12 +47,11 @@ testClausify = testGroup "clausify"
                , testCase "formula3" $ mkClausifyTest Clausify.F3
                , testCase "formula4" $ mkClausifyTest Clausify.F4
                , testCase "formula5" $ mkClausifyTest Clausify.F5
-               , testGroupGhc
-                     [ Tx.goldenPirReadable "clausify-F5" formula5example
-                     , Tx.goldenSize "clausify-F5" formula5example
-                     , Tx.goldenBudget "clausify-F5" formula5example
-                     , Tx.goldenEvalCekCatch "clausify-F5" [formula5example]
-                     ]
+               , runTestGhcInM $ do
+                   Tx.goldenPirReadable "clausify-F5" formula5example
+                   Tx.goldenSize "clausify-F5" formula5example
+                   Tx.goldenBudget "clausify-F5" formula5example
+                   Tx.goldenEvalCekCatch "clausify-F5" [formula5example]
                ]
     where formula5example = Clausify.mkClausifyCode Clausify.F5
 
@@ -70,12 +69,11 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , testCase "depth 100, 4x4" $ mkKnightsTest 100 4
               , testCase "depth 100, 6x6" $ mkKnightsTest 100 6
               , testCase "depth 100, 8x8" $ mkKnightsTest 100 8
-              , testGroupGhc
-                    [ Tx.goldenPirReadable "knights10-4x4" knightsExample
-                    , Tx.goldenSize "knights10-4x4" knightsExample
-                    , Tx.goldenBudget "knights10-4x4" knightsExample
-                    , Tx.goldenEvalCekCatch "knights10-4x4" [knightsExample]
-                    ]
+              , runTestGhcInM $ do
+                  Tx.goldenPirReadable "knights10-4x4" knightsExample
+                  Tx.goldenSize "knights10-4x4" knightsExample
+                  Tx.goldenBudget "knights10-4x4" knightsExample
+                  Tx.goldenEvalCekCatch "knights10-4x4" [knightsExample]
               ]
     where knightsExample = Knights.mkKnightsCode 10 4
 
@@ -93,12 +91,12 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 4 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 4 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 4 Queens.Fc
-               , testGroupGhc
-                     [ Tx.goldenPirReadable "queens4-bt" queens4btExample
-                     , Tx.goldenSize "queens4-bt" queens4btExample
-                     , Tx.goldenBudget "queens4-bt" queens4btExample
-                     , Tx.goldenEvalCekCatch "queens4-bt" [queens4btExample]
-                     ]
+               , runTestGhcInM $ do
+                   Tx.goldenPirReadable "queens4-bt" queens4btExample
+                   Tx.goldenSize "queens4-bt" queens4btExample
+                   Tx.goldenBudget "queens4-bt" queens4btExample
+                   Tx.goldenEvalCekCatch "queens4-bt" [queens4btExample]
+
                ]
              , testGroup "5x5"
                [ testCase "Bt"    $ mkQueensTest 5 Queens.Bt
@@ -106,12 +104,11 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 5 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 5 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 5 Queens.Fc
-               , testGroupGhc
-                     [ Tx.goldenPirReadable "queens5-fc" queens5fcExample
-                     , Tx.goldenSize "queens5-fc" queens5fcExample
-                     , Tx.goldenBudget "queens5-fc" queens5fcExample
-                     , Tx.goldenEvalCekCatch "queens5-fc" [queens5fcExample]
-                     ]
+               , runTestGhcInM $ do
+                   Tx.goldenPirReadable "queens5-fc" queens5fcExample
+                   Tx.goldenSize "queens5-fc" queens5fcExample
+                   Tx.goldenBudget "queens5-fc" queens5fcExample
+                   Tx.goldenEvalCekCatch "queens5-fc" [queens5fcExample]
                ]
              ]
     where queens4btExample = Queens.mkQueensCode 4 Queens.Bt

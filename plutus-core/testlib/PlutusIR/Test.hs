@@ -125,7 +125,7 @@ withGoldenFileM name op = do
   dir <- currentDir
   let testFile = dir </> name
       goldenFile = dir </> name ++ ".golden"
-  return $ goldenVsTextM name goldenFile (op =<< T.readFile testFile)
+  plug $ goldenVsTextM name goldenFile (op =<< T.readFile testFile)
   where
     currentDir = joinPath <$> ask
 

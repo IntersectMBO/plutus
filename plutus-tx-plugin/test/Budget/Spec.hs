@@ -35,7 +35,7 @@ AsData.asData [d|
 makeLift ''MaybeD
 
 tests :: TestNested
-tests = testNested "Budget" . testNestedGhcM $ do
+tests = testNestedM "Budget" . testNestedGhcM $ do
   goldenBudget "sum" compiledSum
   goldenUPlcReadable "sum" compiledSum
   goldenPirReadable "sum" compiledSum

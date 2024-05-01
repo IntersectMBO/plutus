@@ -27,18 +27,17 @@ import PlutusTx.Test
 import Data.Proxy
 
 typeclasses :: TestNested
-typeclasses = testNestedGhc "Typeclasses" [
+typeclasses = testNestedM "Typeclasses" . testNestedGhcM $ do
     goldenPir "sizedBasic" sizedBasic
-    , goldenPir "sizedPair" sizedPair
-    , goldenPir "multiFunction" multiFunction
-    , goldenPir "defaultMethods" defaultMethods
-    , goldenPir "partialApplication" partialApplication
-    , goldenPir "sequenceTest" sequenceTest
-    , goldenPir "compareTest" compareTest
-    , goldenPir "concatTest" concatTest
-    , goldenPir "sumTest" sumTest
-    , goldenPir "fmapDefaultTest" fmapDefaultTest
-  ]
+    goldenPir "sizedPair" sizedPair
+    goldenPir "multiFunction" multiFunction
+    goldenPir "defaultMethods" defaultMethods
+    goldenPir "partialApplication" partialApplication
+    goldenPir "sequenceTest" sequenceTest
+    goldenPir "compareTest" compareTest
+    goldenPir "concatTest" concatTest
+    goldenPir "sumTest" sumTest
+    goldenPir "fmapDefaultTest" fmapDefaultTest
 
 class Sized a where
     size :: a -> Integer

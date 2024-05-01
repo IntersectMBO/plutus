@@ -8,7 +8,7 @@ import Test.Tasty.Extras
 
 test_datatypes :: TestTree
 test_datatypes =
-    runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Compiler"] . testNestedM "Datatype" $ do
+    runTestNestedM ["plutus-ir", "test", "PlutusIR", "Compiler", "Datatype"] $ do
         goldenPlcFromPir pTermAsProg "maybe"
         goldenPlcFromPir pTermAsProg "listMatch"
         goldenPlcFromPir pTermAsProg "idleAll"

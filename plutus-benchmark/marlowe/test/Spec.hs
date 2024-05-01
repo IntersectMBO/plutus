@@ -4,8 +4,9 @@
 module Main (main) where
 
 import Test.Tasty
-import Test.Tasty.Extras (TestNested, runTestGroupNestedGhc)
+import Test.Tasty.Extras (TestNested, runTestNestedM, testNestedGhcM)
 
+import Data.Foldable (fold)
 import PlutusBenchmark.Marlowe.BenchUtil (benchmarkToUPLC, rolePayoutBenchmarks,
                                           semanticsBenchmarks)
 import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator)
@@ -30,8 +31,8 @@ mkBudgetTest validator bm@M.Benchmark{..} =
 
 -- Make a set of golden tests with results stored in a given subdirectory
 -- inside a subdirectory determined by the GHC version.
-testGroupGhcIn :: [FilePath] -> [TestNested] -> TestTree
-testGroupGhcIn path = runTestGroupNestedGhc (["marlowe", "test"] ++ path)
+runTestGhcInM :: [FilePath] -> TestNested -> TestTree
+runTestGhcInM path = runTestNestedM (["marlowe", "test"] ++ path) . testNestedGhcM
 
 main :: IO ()
 main = do
@@ -45,15 +46,17 @@ main = do
   let allTests :: TestTree
       allTests =
         testGroup "plutus-benchmark Marlowe tests"
-            [ testGroupGhcIn ["semantics"] $
+            [ runTestGhcInM ["semantics"] $ do
                 goldenSize "semantics" marloweValidator
-                  : [ goldenUEvalBudget name [value]
+                fold
+                    [ goldenUEvalBudget name [value]
                     | bench <- semanticsMBench
                     , let (name, value) = mkBudgetTest marloweValidator bench
                     ]
-            , testGroupGhcIn ["role-payout"] $
+            , runTestGhcInM ["role-payout"] $ do
                 goldenSize "role-payout" rolePayoutValidator
-                  : [ goldenUEvalBudget name [value]
+                fold
+                    [ goldenUEvalBudget name [value]
                     | bench <- rolePayoutMBench
                     , let (name, value) = mkBudgetTest rolePayoutValidator bench
                     ]

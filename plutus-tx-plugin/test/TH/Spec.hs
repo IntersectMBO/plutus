@@ -36,18 +36,17 @@ someData :: (BuiltinData, BuiltinData, BuiltinData)
 someData = (toBuiltinData (One 1), toBuiltinData Two, toBuiltinData (Three ()))
 
 tests :: TestNested
-tests = testNestedGhc "TH"
-        [ goldenPir "simple" simple
-        , goldenPir "power" powerPlc
-        , goldenPir "and" andPlc
-        , goldenEvalCek "all" [allPlc]
-        , goldenEvalCek "convertString" [convertString]
-        , goldenEvalCekLog "traceDirect" [traceDirect]
-        , goldenEvalCekLog "tracePrelude" [tracePrelude]
-        , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
-        -- want to see the raw structure, so using Show
-        , nestedGoldenVsDoc "someData" "" (pretty $ Haskell.show someData)
-        ]
+tests = testNestedM "TH" . testNestedGhcM $ do
+  goldenPir "simple" simple
+  goldenPir "power" powerPlc
+  goldenPir "and" andPlc
+  goldenEvalCek "all" [allPlc]
+  goldenEvalCek "convertString" [convertString]
+  goldenEvalCekLog "traceDirect" [traceDirect]
+  goldenEvalCekLog "tracePrelude" [tracePrelude]
+  goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
+  -- want to see the raw structure, so using Show
+  nestedGoldenVsDoc "someData" "" (pretty $ Haskell.show someData)
 
 simple :: CompiledCode (Bool -> Integer)
 simple = $$(compile [|| \(x::Bool) -> if x then (1::Integer) else (2::Integer) ||])

@@ -49,14 +49,14 @@ boolQualifiedDisappears :: CompiledCode (() -> Bool)
 boolQualifiedDisappears = plc (Proxy @"boolQualifiedDisappears") (\ () -> Haskell.True)
 
 coverage :: TestNested
-coverage = testNested "Coverage" $ testNestedGhc
-  [ pure $ testGroup "Application heads and line coverage"
-         [ mkTests "noBool" noBool Set.empty [31]
-         , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [34]
-         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [37, 41, 42, 43]
-         , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [49]
-         ]
- , goldenPir "coverageCode" boolOtherFunction ]
+coverage = testNestedM "Coverage" . testNestedGhcM $ do
+  plug $ testGroup "Application heads and line coverage"
+    [ mkTests "noBool" noBool Set.empty [31]
+    , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [34]
+    , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [37, 41, 42, 43]
+    , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [49]
+    ]
+  goldenPir "coverageCode" boolOtherFunction
 
 mkTests :: String -> CompiledCode t -> Set String -> [Int] -> TestTree
 mkTests nm cc heads ls = testGroup nm [ applicationHeadsCorrect cc heads , linesInCoverageIndex cc ls ]

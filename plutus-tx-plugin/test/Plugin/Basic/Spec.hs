@@ -25,10 +25,10 @@ import PlutusTx.Prelude qualified as P
 import PlutusTx.Test (goldenPir, goldenUPlc)
 
 import Data.Proxy (Proxy (..))
-import Test.Tasty.Extras (TestNested, testNested, testNestedGhcM)
+import Test.Tasty.Extras (TestNested, testNestedGhcM, testNestedM)
 
 basic :: TestNested
-basic = testNested "Basic" . testNestedGhcM $ do
+basic = testNestedM "Basic" . testNestedGhcM $ do
     goldenPir "monoId" monoId
     goldenPir "monoK" monoK
     goldenPir "letFun" letFun

@@ -73,7 +73,7 @@ prop_OldVsNewIndex = testProperty "oldVsNew Index" $ property $ do
     Hedgehog.assert $ unflat @Index encoded `isCompatible` unflat @OldIndex encoded
 
 test_flatNatWord :: TestNested
-test_flatNatWord = testNested "FlatNatWord" $ fmap pure
+test_flatNatWord = testNested "FlatNatWord" $ fmap plug
     [ test_MinBound
     , test_MaxBound
     , prop_CompatInBounds

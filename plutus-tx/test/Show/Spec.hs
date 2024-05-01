@@ -9,7 +9,7 @@ import PlutusTx.Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Show
 
-import Control.Monad.Trans.Reader as Reader
+import Control.Monad.Reader as Reader
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as Char8
 import Data.Text qualified as Text
@@ -41,7 +41,7 @@ goldenShow :: forall a. Show a => TestName -> a -> TestNested
 goldenShow name x = do
     path <- ask
     let fp = foldr (</>) (name ++ ".show.golden") path
-    pure $ goldenVsText name fp . fromBuiltin $ show x
+    plug . goldenVsText name fp . fromBuiltin $ show x
 
 data ProductD = ProductC Integer [Bool]
 deriveShow ''ProductD
@@ -84,15 +84,13 @@ propertyTests =
 
 goldenTests :: TestNested
 goldenTests =
-    testNested
-        "Show"
-        [ goldenShow "product-type" (ProductC 3 [True, False])
-        , goldenShow "product-type-2" ((:-:) [-300] False)
-        , goldenShow "sum-type-1" SumC1
-        , goldenShow "sum-type-2" (SumC2 (1, "string", "bytestring"))
-        , goldenShow "record-type" (RecordC "string" ([0, 1, 2, 3], True))
-        , goldenShow "infix-type" ((42, True) :+: ["foo", "bar"])
-        , goldenShow "infix-type-2" ((-12345, True) `InfixC` "foo")
-        , goldenShow "gadt" (GadtC (-42) "string")
-        , goldenShow "poly" (PolyC (42 :: Integer, False) [])
-        ]
+    testNestedM "Show" $ do
+        goldenShow "product-type" (ProductC 3 [True, False])
+        goldenShow "product-type-2" ((:-:) [-300] False)
+        goldenShow "sum-type-1" SumC1
+        goldenShow "sum-type-2" (SumC2 (1, "string", "bytestring"))
+        goldenShow "record-type" (RecordC "string" ([0, 1, 2, 3], True))
+        goldenShow "infix-type" ((42, True) :+: ["foo", "bar"])
+        goldenShow "infix-type-2" ((-12345, True) `InfixC` "foo")
+        goldenShow "gadt" (GadtC (-42) "string")
+        goldenShow "poly" (PolyC (42 :: Integer, False) [])

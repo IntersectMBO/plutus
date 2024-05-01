@@ -30,23 +30,21 @@ import PlutusTx.Test
 import Data.Proxy
 
 functions :: TestNested
-functions = testNestedGhc "Functions" [
+functions = testNestedM "Functions" . testNestedGhcM $ do
     recursiveFunctions
-    , unfoldings
-  ]
+    unfoldings
 
 recursiveFunctions :: TestNested
-recursiveFunctions = testNested "recursive" [
+recursiveFunctions = testNestedM "recursive" $ do
     goldenPir "fib" fib
-    , goldenUEval "fib4" [ toUPlc fib, toUPlc $ plc (Proxy @"4") (4::Integer) ]
-    , goldenPir "sum" sumDirect
-    , goldenUEval "sumList" [ toUPlc sumDirect, toUPlc listConstruct3 ]
-    , goldenPir "even" evenMutual
-    , goldenUEval "even3" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3::Integer) ]
-    , goldenUEval "even4" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4::Integer) ]
-    , goldenPir "strictLength" strictLength
-    , goldenPir "lazyLength" lazyLength
-  ]
+    goldenUEval "fib4" [ toUPlc fib, toUPlc $ plc (Proxy @"4") (4::Integer) ]
+    goldenPir "sum" sumDirect
+    goldenUEval "sumList" [ toUPlc sumDirect, toUPlc listConstruct3 ]
+    goldenPir "even" evenMutual
+    goldenUEval "even3" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3::Integer) ]
+    goldenUEval "even4" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4::Integer) ]
+    goldenPir "strictLength" strictLength
+    goldenPir "lazyLength" lazyLength
 
 fib :: CompiledCode (Integer -> Integer)
 -- not using case to avoid literal cases
@@ -93,26 +91,25 @@ lazyLength :: CompiledCode ([Integer] -> Integer)
 lazyLength = plc (Proxy @"lazyLength") (lengthLazy @Integer)
 
 unfoldings :: TestNested
-unfoldings = testNested "unfoldings" [
+unfoldings = testNestedM "unfoldings" $ do
     goldenPir "nandDirect" nandPlcDirect
-    , goldenPir "andDirect" andPlcDirect
-    , goldenPir "andExternal" andPlcExternal
-    , goldenPir "allDirect" allPlcDirect
-    , goldenPir "mutualRecursionUnfoldings" mutualRecursionUnfoldings
-    , goldenPir "recordSelector" recordSelector
-    , goldenPir "recordSelectorExternal" recordSelectorExternal
+    goldenPir "andDirect" andPlcDirect
+    goldenPir "andExternal" andPlcExternal
+    goldenPir "allDirect" allPlcDirect
+    goldenPir "mutualRecursionUnfoldings" mutualRecursionUnfoldings
+    goldenPir "recordSelector" recordSelector
+    goldenPir "recordSelectorExternal" recordSelectorExternal
     -- We used to have problems with polymorphic let bindings where the generalization was
     -- on the outside of the let, which hit the value restriction. Now we hit the simplifier
     -- it seems to sometimes float these in, but we should keep an eye on these.
-    , goldenPir "polyMap" polyMap
-    , goldenPir "applicationFunction" applicationFunction
-    , goldenPir "unboxedTuples2" unboxedTuples2
-    , goldenPir "unboxedTuples3" unboxedTuples3
-    , goldenPir "unboxedTuples4" unboxedTuples4
-    , goldenPir "unboxedTuples5" unboxedTuples5
-    , goldenPir "unboxedTuples2Tuples" unboxedTuples2Tuples
-    , goldenPir "unboxedTuples3Tuples" unboxedTuples3Tuples
-  ]
+    goldenPir "polyMap" polyMap
+    goldenPir "applicationFunction" applicationFunction
+    goldenPir "unboxedTuples2" unboxedTuples2
+    goldenPir "unboxedTuples3" unboxedTuples3
+    goldenPir "unboxedTuples4" unboxedTuples4
+    goldenPir "unboxedTuples5" unboxedTuples5
+    goldenPir "unboxedTuples2Tuples" unboxedTuples2Tuples
+    goldenPir "unboxedTuples3Tuples" unboxedTuples3Tuples
 
 andDirect :: Bool -> Bool -> Bool
 andDirect = \(a :: Bool) -> \(b::Bool) -> nandDirect (nandDirect a b) (nandDirect a b)

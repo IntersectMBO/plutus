@@ -8,7 +8,7 @@ import Test.Tasty
 import Test.Tasty.Extras
 
 test_debruijn :: TestTree
-test_debruijn = runTestNestedIn ["untyped-plutus-core","test"] . testNestedM "DeBruijn" $ do
+test_debruijn = runTestNestedM ["untyped-plutus-core", "test", "DeBruijn"] $ do
   test_undebruijnify
   test_scope
   test_flatNatWord

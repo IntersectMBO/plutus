@@ -5,8 +5,6 @@
 
 module AsData.Budget.Spec where
 
-import System.FilePath
-
 import Test.Tasty.Extras
 
 import PlutusTx.Builtins qualified as PlutusTx
@@ -19,7 +17,7 @@ import PlutusTx.TH (compile)
 import AsData.Budget.Types
 
 tests :: TestNested
-tests = testNested "AsData" . testNested "Budget" . testNestedGhcM $ do
+tests = testNestedM "AsData" . testNestedM "Budget" . testNestedGhcM $ do
     goldenPirReadable "onlyUseFirstField" onlyUseFirstField
     goldenUPlcReadable "onlyUseFirstField" onlyUseFirstField
     goldenEvalCekCatch "onlyUseFirstField" [onlyUseFirstField `unsafeApplyCode` inp]

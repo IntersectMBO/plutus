@@ -14,8 +14,8 @@ import PlutusPrelude
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_evaluateBuiltins :: TestTree
-test_evaluateBuiltins = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "EvaluateBuiltins" $
+test_evaluateBuiltins =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "EvaluateBuiltins"] $
       conservative ++ nonConservative
     where
       conservative =

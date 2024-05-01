@@ -28,7 +28,7 @@ import Prelude hiding (Enum (..), Rational, negate, recip)
 import Rational.Laws (lawsTests)
 import Show.Spec qualified
 import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.Extras (runTestNestedIn)
+import Test.Tasty.Extras (runTestNestedM)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (Assertion, assertFailure, testCase, (@?=))
 
@@ -45,7 +45,7 @@ tests = testGroup "plutus-tx" [
     , listTests
     , lawsTests
     , Show.Spec.propertyTests
-    , runTestNestedIn ["test"] Show.Spec.goldenTests
+    , runTestNestedM ["test"] Show.Spec.goldenTests
     , Blueprint.Definition.Spec.tests
     ]
 

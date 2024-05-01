@@ -25,56 +25,55 @@ import PlutusTx.Test
 import Data.Proxy
 
 primitives :: TestNested
-primitives = testNestedGhc "Primitives" [
-    goldenPir "string" string
-  , goldenPir "int" int
-  , goldenPir "int2" int2
-  , goldenPir "bool" bool
-  , goldenPir "and" andPlc
-  , goldenUEval "andApply" [ toUPlc andPlc, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False ]
-  , goldenPir "tuple" tuple
-  , goldenPir "tupleMatch" tupleMatch
-  , goldenUEval "tupleConstDest" [ toUPlc tupleMatch, toUPlc tuple ]
-  , goldenPir "intCompare" intCompare
-  , goldenPir "intEq" intEq
-  , goldenUEval "intEqApply" [ toUPlc intEq, toUPlc int, toUPlc int ]
-  , goldenPir "void" void
-  , goldenPir "intPlus" intPlus
-  , goldenPir "intDiv" intDiv
-  , goldenUEval "intPlusApply" [ toUPlc intPlus, toUPlc int, toUPlc int2 ]
-  , goldenPir "error" errorPlc
-  , goldenPir "ifThenElse" ifThenElse
-  , goldenUEval "ifThenElseApply" [ toUPlc ifThenElse, toUPlc int, toUPlc int2 ]
-  , goldenPir "emptyByteString" emptyByteString
-  , goldenUEval "emptyByteStringApply" [ getPlcNoAnn emptyByteString, snd (liftProgramDef Builtins.emptyByteString) ]
-  , goldenPir "bytestring" bytestring
-  , goldenUEval "bytestringApply" [ getPlcNoAnn bytestring, snd (liftProgramDef ("hello" ::Builtins.BuiltinByteString)) ]
-  , goldenUEval "sha2_256" [ getPlcNoAnn sha2, snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString))]
-  , goldenUEval "equalsByteString" [ getPlcNoAnn bsEquals, snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString)), snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString))]
-  , goldenUEval "ltByteString" [ getPlcNoAnn bsLt, snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString)), snd (liftProgramDef ("world" :: Builtins.BuiltinByteString))]
-  , goldenUEval "decodeUtf8" [ getPlcNoAnn bsDecode, snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString))]
-  , goldenUEval "lengthOfByteString" [ getPlcNoAnn bsLength, snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString))]
-  , goldenUEval "indexByteString" [ getPlcNoAnn bsIndex, snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString)), snd (liftProgramDef (0 :: Integer))]
-  , goldenUEval "consByteString" [ getPlcNoAnn bsCons, snd (liftProgramDef (104 :: Integer)), snd (liftProgramDef ("ello" :: Builtins.BuiltinByteString))]
-  , goldenPir "verify" verify
-  , goldenPir "trace" trace
-  , goldenPir "traceComplex" traceComplex
-  , goldenPir "stringLiteral" stringLiteral
-  , goldenUEval "equalsString" [ getPlcNoAnn stringEquals, snd (liftProgramDef ("hello" :: Builtins.BuiltinString)), snd (liftProgramDef ("hello" :: Builtins.BuiltinString))]
-  , goldenPir "encodeUtf8" stringEncode
-  , goldenPir "serialiseData" dataEncode
-  , goldenUEval "serialiseDataApply" [ toUPlc dataEncode, toUPlc constructData1 ]
-  , goldenUEval "constructData1" [ constructData1 ]
+primitives = testNestedM "Primitives" . testNestedGhcM $ do
+  goldenPir "string" string
+  goldenPir "int" int
+  goldenPir "int2" int2
+  goldenPir "bool" bool
+  goldenPir "and" andPlc
+  goldenUEval "andApply" [ toUPlc andPlc, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False ]
+  goldenPir "tuple" tuple
+  goldenPir "tupleMatch" tupleMatch
+  goldenUEval "tupleConstDest" [ toUPlc tupleMatch, toUPlc tuple ]
+  goldenPir "intCompare" intCompare
+  goldenPir "intEq" intEq
+  goldenUEval "intEqApply" [ toUPlc intEq, toUPlc int, toUPlc int ]
+  goldenPir "void" void
+  goldenPir "intPlus" intPlus
+  goldenPir "intDiv" intDiv
+  goldenUEval "intPlusApply" [ toUPlc intPlus, toUPlc int, toUPlc int2 ]
+  goldenPir "error" errorPlc
+  goldenPir "ifThenElse" ifThenElse
+  goldenUEval "ifThenElseApply" [ toUPlc ifThenElse, toUPlc int, toUPlc int2 ]
+  goldenPir "emptyByteString" emptyByteString
+  goldenUEval "emptyByteStringApply" [ getPlcNoAnn emptyByteString, snd (liftProgramDef Builtins.emptyByteString) ]
+  goldenPir "bytestring" bytestring
+  goldenUEval "bytestringApply" [ getPlcNoAnn bytestring, snd (liftProgramDef ("hello" ::Builtins.BuiltinByteString)) ]
+  goldenUEval "sha2_256" [ getPlcNoAnn sha2, snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString))]
+  goldenUEval "equalsByteString" [ getPlcNoAnn bsEquals, snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString)), snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString))]
+  goldenUEval "ltByteString" [ getPlcNoAnn bsLt, snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString)), snd (liftProgramDef ("world" :: Builtins.BuiltinByteString))]
+  goldenUEval "decodeUtf8" [ getPlcNoAnn bsDecode, snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString))]
+  goldenUEval "lengthOfByteString" [ getPlcNoAnn bsLength, snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString))]
+  goldenUEval "indexByteString" [ getPlcNoAnn bsIndex, snd (liftProgramDef ("hello" :: Builtins.BuiltinByteString)), snd (liftProgramDef (0 :: Integer))]
+  goldenUEval "consByteString" [ getPlcNoAnn bsCons, snd (liftProgramDef (104 :: Integer)), snd (liftProgramDef ("ello" :: Builtins.BuiltinByteString))]
+  goldenPir "verify" verify
+  goldenPir "trace" trace
+  goldenPir "traceComplex" traceComplex
+  goldenPir "stringLiteral" stringLiteral
+  goldenUEval "equalsString" [ getPlcNoAnn stringEquals, snd (liftProgramDef ("hello" :: Builtins.BuiltinString)), snd (liftProgramDef ("hello" :: Builtins.BuiltinString))]
+  goldenPir "encodeUtf8" stringEncode
+  goldenPir "serialiseData" dataEncode
+  goldenUEval "serialiseDataApply" [ toUPlc dataEncode, toUPlc constructData1 ]
+  goldenUEval "constructData1" [ constructData1 ]
   -- It's interesting to look at one of these to make sure all the specialisation is working out nicely and for
   -- debugging when it isn't
-  , goldenPir "deconstructorData1" deconstructData1
+  goldenPir "deconstructorData1" deconstructData1
   -- Check that matchData works (and isn't too strict)
-  , goldenUEval "matchData1" [ toUPlc matchData1, toUPlc constructData1 ]
-  , goldenUEval "deconstructData1" [ toUPlc deconstructData1, toUPlc constructData1 ]
-  , goldenPir "deconstructorData2" deconstructData2
-  , goldenUEval "deconstructData2" [ toUPlc deconstructData2, toUPlc constructData2 ]
-  , goldenUEval "deconstructData3" [ toUPlc deconstructData3, toUPlc constructData3 ]
-  ]
+  goldenUEval "matchData1" [ toUPlc matchData1, toUPlc constructData1 ]
+  goldenUEval "deconstructData1" [ toUPlc deconstructData1, toUPlc constructData1 ]
+  goldenPir "deconstructorData2" deconstructData2
+  goldenUEval "deconstructData2" [ toUPlc deconstructData2, toUPlc constructData2 ]
+  goldenUEval "deconstructData3" [ toUPlc deconstructData3, toUPlc constructData3 ]
 
 string :: CompiledCode Builtins.BuiltinString
 string = plc (Proxy @"text") "text"

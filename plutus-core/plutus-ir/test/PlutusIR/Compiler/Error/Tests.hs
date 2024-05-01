@@ -7,6 +7,6 @@ import Test.Tasty.Extras
 
 test_error :: TestTree
 test_error =
-    runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Compiler"] . testNestedM "Error" $ do
+    runTestNestedM ["plutus-ir", "test", "PlutusIR", "Compiler", "Error"] $ do
         goldenPlcFromPir pTermAsProg "mutuallyRecursiveTypes"
         goldenPlcFromPir pTermAsProg "recursiveTypeBind"

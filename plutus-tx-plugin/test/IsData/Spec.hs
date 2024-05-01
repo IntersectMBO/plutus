@@ -112,7 +112,7 @@ fieldAccessor :: CompiledCode (RecordConstructor Integer -> Integer)
 fieldAccessor = plc (Proxy @"fieldAccessor") (\r -> x r)
 
 tests :: TestNested
-tests = testNested "IsData" . testNestedGhcM $ do
+tests = testNestedM "IsData" . testNestedGhcM $ do
   goldenUEval "int" [plc (Proxy @"int") (isDataRoundtrip (1::Integer))]
   goldenUEval "tuple" [plc (Proxy @"tuple") (isDataRoundtrip (1::Integer, 2::Integer))]
   goldenUEval "tupleInterop" [

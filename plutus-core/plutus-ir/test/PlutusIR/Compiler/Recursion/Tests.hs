@@ -7,7 +7,7 @@ import Test.Tasty.Extras
 
 test_recursion :: TestTree
 test_recursion =
-    runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Compiler"] . testNestedM "Recursion" $ do
+    runTestNestedM ["plutus-ir", "test", "PlutusIR", "Compiler", "Recursion"] $ do
         goldenNamedUPlcFromPir pTermAsProg "factorial"
         goldenPlcFromPir pTermAsProg "even3"
         goldenEvalPir pTermAsProg "even3Eval"

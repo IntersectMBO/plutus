@@ -13,11 +13,11 @@ import Plugin.NoTrace.Lib qualified as Lib
 import Plugin.NoTrace.WithoutTraces qualified as WithoutTraces
 import Plugin.NoTrace.WithTraces qualified as WithTraces
 import Test.Tasty (testGroup)
-import Test.Tasty.Extras (TestNested)
+import Test.Tasty.Extras (TestNested, plug)
 import Test.Tasty.HUnit (assertBool, testCase, (@=?))
 
 noTrace :: TestNested
-noTrace = pure do
+noTrace = plug $ do
   testGroup
     "remove-trace"
     [ testGroup

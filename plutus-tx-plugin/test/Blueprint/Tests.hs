@@ -20,10 +20,10 @@ import PlutusTx.Blueprint.Purpose qualified as Purpose
 import PlutusTx.Blueprint.TH (deriveArgumentBlueprint, deriveParameterBlueprint)
 import PlutusTx.Blueprint.Validator (ValidatorBlueprint (..))
 import PlutusTx.Blueprint.Write (writeBlueprint)
-import Test.Tasty.Extras (TestNested, testNested)
+import Test.Tasty.Extras (TestNested, testNestedM)
 
 goldenTests :: TestNested
-goldenTests = testNested "Blueprint" [goldenJson "Acme" (`writeBlueprint` contractBlueprint)]
+goldenTests = testNestedM "Blueprint" $ goldenJson "Acme" (`writeBlueprint` contractBlueprint)
 
 contractBlueprint :: ContractBlueprint
 contractBlueprint =

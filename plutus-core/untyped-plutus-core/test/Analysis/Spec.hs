@@ -50,8 +50,8 @@ letImpure = runQuote $ do
 
 evalOrder :: TestTree
 evalOrder =
-  runTestNestedIn ["untyped-plutus-core", "test", "Analysis"] . testNestedM "evalOrder" $ do
+  runTestNestedM ["untyped-plutus-core", "test", "Analysis", "evalOrder"] $ do
     goldenEvalOrder "letFun" letFun
     goldenEvalOrder "letImpure" letImpure
-    pure $ testCase "evalOrderLazy" $
+    plug . testCase "evalOrderLazy" $
       4 @=? length (unEvalOrder $ termEvaluationOrder def dangerTerm)

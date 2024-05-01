@@ -24,11 +24,9 @@ import Data.Proxy
 
 debug :: TestNested
 debug =
-    testNestedGhc
-        "Debug"
-        [ goldenPirBy config "letFun" letFun
-        , goldenPirBy config "fib" fib
-        ]
+    testNestedM "Debug" . testNestedGhcM $ do
+        goldenPirBy config "letFun" letFun
+        goldenPirBy config "fib" fib
   where
     config = PrettyConfigClassic defPrettyConfigName True
 

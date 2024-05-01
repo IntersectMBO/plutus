@@ -18,19 +18,18 @@ import Plugin.Strict.Spec
 import Plugin.Typeclasses.Spec
 
 tests :: TestNested
-tests = testNested "Plugin" [
-    basic
-  , primitives
-  , datat
-  , debug
-  , functions
-  , laziness
-  , noTrace
-  , optimization
-  , errors
-  , typeclasses
-  , strict
-  , profiling
-  , coverage
-  , patterns
-  ]
+tests = testNestedM "Plugin" $ do
+  basic
+  primitives
+  datat
+  debug
+  functions
+  laziness
+  noTrace
+  optimization
+  errors
+  typeclasses
+  strict
+  profiling
+  coverage
+  patterns

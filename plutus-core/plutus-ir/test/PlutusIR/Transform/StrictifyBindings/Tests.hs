@@ -14,8 +14,8 @@ import PlutusPrelude
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_strictifyBindings :: TestTree
-test_strictifyBindings = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "StrictifyBindings" $
+test_strictifyBindings =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "StrictifyBindings"] $
         map
             (goldenPir (runIdentity . runTestPass (\tc -> strictifyBindingsPass tc def)) pTerm)
             [ "pure1"

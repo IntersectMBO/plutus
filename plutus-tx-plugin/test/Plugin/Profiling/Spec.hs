@@ -29,22 +29,21 @@ import Data.Proxy (Proxy (Proxy))
 import Prelude
 
 profiling :: TestNested
-profiling = testNestedGhc "Profiling" [
+profiling = testNestedM "Profiling" . testNestedGhcM $ do
   goldenPir "fib" fibTest
-  , goldenUEvalLogs "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
-  , goldenUEvalLogs "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
-  , goldenPir "addInt" addIntTest
-  , goldenUEvalLogs "addInt3" [toUPlc addIntTest, toUPlc $ plc (Proxy @"3") (3::Integer)]
-  , goldenUEvalLogs "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
-  , goldenUEvalLogs "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
-  , goldenUEvalLogs "letRecInFun" [toUPlc letRecInFunTest, toUPlc $ plc (Proxy @"3") (3::Integer)]
-  , goldenPir "idCode" idTest
-  , goldenUEvalLogs "id" [toUPlc idTest]
-  , goldenUEvalLogs "swap" [toUPlc swapTest]
-  , goldenUEvalLogs "typeclass" [toUPlc typeclassTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
-  , goldenUEvalLogs "argMismatch1" [toUPlc argMismatch1]
-  , goldenUEvalLogs "argMismatch2" [toUPlc argMismatch2]
-  ]
+  goldenUEvalLogs "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
+  goldenUEvalLogs "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
+  goldenPir "addInt" addIntTest
+  goldenUEvalLogs "addInt3" [toUPlc addIntTest, toUPlc $ plc (Proxy @"3") (3::Integer)]
+  goldenUEvalLogs "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
+  goldenUEvalLogs "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
+  goldenUEvalLogs "letRecInFun" [toUPlc letRecInFunTest, toUPlc $ plc (Proxy @"3") (3::Integer)]
+  goldenPir "idCode" idTest
+  goldenUEvalLogs "id" [toUPlc idTest]
+  goldenUEvalLogs "swap" [toUPlc swapTest]
+  goldenUEvalLogs "typeclass" [toUPlc typeclassTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
+  goldenUEvalLogs "argMismatch1" [toUPlc argMismatch1]
+  goldenUEvalLogs "argMismatch2" [toUPlc argMismatch2]
 
 fact :: Integer -> Integer
 fact n =
