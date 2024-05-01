@@ -109,7 +109,7 @@ module PlutusTx.Builtins (
                          ) where
 
 import Data.Maybe
-import PlutusTx.Base (const, uncurry)
+import PlutusTx.Base (uncurry)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Class
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
@@ -117,6 +117,7 @@ import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
                                    BuiltinByteString (..), BuiltinData, BuiltinString)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Integer (Integer)
+import PlutusTx.Utils
 
 import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
 
@@ -385,7 +386,7 @@ encodeUtf8 = BI.encodeUtf8
 
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
+matchList l nilCase consCase = force (BI.chooseList l (Delay nilCase) (Delay (consCase (BI.head l) (BI.tail l))))
 
 {-# INLINE headMaybe #-}
 headMaybe :: BI.BuiltinList a -> Maybe a
@@ -484,14 +485,15 @@ matchData
     -> (BuiltinByteString -> r)
     -> r
 matchData d constrCase mapCase listCase iCase bCase =
+  force (
    chooseData
    d
-   (\_ -> uncurry constrCase (unsafeDataAsConstr d))
-   (\_ -> mapCase (unsafeDataAsMap d))
-   (\_ -> listCase (unsafeDataAsList d))
-   (\_ -> iCase (unsafeDataAsI d))
-   (\_ -> bCase (unsafeDataAsB d))
-   ()
+   (Delay (uncurry constrCase (unsafeDataAsConstr d)))
+   (Delay (mapCase (unsafeDataAsMap d)))
+   (Delay (listCase (unsafeDataAsList d)))
+   (Delay (iCase (unsafeDataAsI d)))
+   (Delay (bCase (unsafeDataAsB d)))
+  )
 
 {-# INLINABLE matchData' #-}
 -- | Given a 'BuiltinData' value and matching functions for the five constructors,
@@ -505,14 +507,15 @@ matchData'
     -> (BuiltinByteString -> r)
     -> r
 matchData' d constrCase mapCase listCase iCase bCase =
+  force (
    chooseData
    d
-   (\_ -> let tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
-   (\_ -> mapCase (BI.unsafeDataAsMap d))
-   (\_ -> listCase (BI.unsafeDataAsList d))
-   (\_ -> iCase (unsafeDataAsI d))
-   (\_ -> bCase (unsafeDataAsB d))
-   ()
+   (Delay (let tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup)))
+   (Delay (mapCase (BI.unsafeDataAsMap d)))
+   (Delay (listCase (BI.unsafeDataAsList d)))
+   (Delay (iCase (unsafeDataAsI d)))
+   (Delay (bCase (unsafeDataAsB d)))
+  )
 
 -- G1 --
 {-# INLINABLE bls12_381_G1_equals #-}

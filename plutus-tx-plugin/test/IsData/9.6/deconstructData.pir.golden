@@ -11,8 +11,6 @@ let
     Nothing : Maybe a
   !head : all a. list a -> a = headList
   !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
-  data Unit | Unit_match where
-    Unit : Unit
   !chooseData : all a. data -> a -> a -> a -> a -> a -> a = chooseData
   !fst : all a b. pair a b -> a = fstPair
   !snd : all a b. pair a b -> b = sndPair
@@ -54,23 +52,24 @@ let
                   \(bCase : bytestring -> r) ->
                     let
                       !bCase : bytestring -> r = bCase
+                      !a : all b. r
+                        = chooseData
+                            {(\a -> all b. a) r}
+                            d
+                            (/\b ->
+                               let
+                                 !tup : pair integer (list data)
+                                   = unsafeDataAsConstr d
+                               in
+                               constrCase
+                                 (fst {integer} {list data} tup)
+                                 (snd {integer} {list data} tup))
+                            (/\b -> mapCase (unsafeDataAsMap d))
+                            (/\b -> listCase (unsafeDataAsList d))
+                            (/\b -> iCase (unsafeDataAsI d))
+                            (/\b -> bCase (unsafeDataAsB d))
                     in
-                    chooseData
-                      {Unit -> r}
-                      d
-                      (\(ds : Unit) ->
-                         let
-                           !tup : pair integer (list data)
-                             = unsafeDataAsConstr d
-                         in
-                         constrCase
-                           (fst {integer} {list data} tup)
-                           (snd {integer} {list data} tup))
-                      (\(ds : Unit) -> mapCase (unsafeDataAsMap d))
-                      (\(ds : Unit) -> listCase (unsafeDataAsList d))
-                      (\(ds : Unit) -> iCase (unsafeDataAsI d))
-                      (\(ds : Unit) -> bCase (unsafeDataAsB d))
-                      Unit
+                    a {unit}
   !tail : all a. list a -> list a = tailList
   ~`$fFromDataTuple2_$cfromBuiltinData` :
      all a b.
@@ -101,22 +100,26 @@ let
                    (ifThenElse {Bool} b True False)
                    {all dead. Maybe (Tuple2 a b)}
                    (/\dead ->
+                      let
+                        !a : all b. Maybe (Tuple2 data (list data))
+                          = chooseList
+                              {data}
+                              {(\a -> all b. a)
+                                 (Maybe (Tuple2 data (list data)))}
+                              args
+                              (/\b -> Nothing {Tuple2 data (list data)})
+                              (/\b ->
+                                 let
+                                   !h : data = head {data} args
+                                   !t : list data = tail {data} args
+                                 in
+                                 Just
+                                   {Tuple2 data (list data)}
+                                   (Tuple2 {data} {list data} h t))
+                      in
                       Maybe_match
                         {Tuple2 data (list data)}
-                        (chooseList
-                           {data}
-                           {Unit -> Maybe (Tuple2 data (list data))}
-                           args
-                           (\(ds : Unit) -> Nothing {Tuple2 data (list data)})
-                           (\(ds : Unit) ->
-                              let
-                                !h : data = head {data} args
-                                !t : list data = tail {data} args
-                              in
-                              Just
-                                {Tuple2 data (list data)}
-                                (Tuple2 {data} {list data} h t))
-                           Unit)
+                        (a {unit})
                         {all dead. Maybe (Tuple2 a b)}
                         (\(ds : Tuple2 data (list data)) ->
                            /\dead ->
@@ -135,21 +138,24 @@ let
                                     {all dead. Maybe (Tuple2 a b)}
                                     (\(arg : a) ->
                                        /\dead ->
+                                         let
+                                           !a : all b. Maybe data
+                                             = chooseList
+                                                 {data}
+                                                 {(\a -> all b. a) (Maybe data)}
+                                                 l
+                                                 (/\b -> Nothing {data})
+                                                 (/\b ->
+                                                    let
+                                                      !h : data = head {data} l
+                                                      !ds : list data
+                                                        = tail {data} l
+                                                    in
+                                                    Just {data} h)
+                                         in
                                          Maybe_match
                                            {data}
-                                           (chooseList
-                                              {data}
-                                              {Unit -> Maybe data}
-                                              l
-                                              (\(ds : Unit) -> Nothing {data})
-                                              (\(ds : Unit) ->
-                                                 let
-                                                   !h : data = head {data} l
-                                                   !ds : list data
-                                                     = tail {data} l
-                                                 in
-                                                 Just {data} h)
-                                              Unit)
+                                           (a {unit})
                                            {all dead. Maybe (Tuple2 a b)}
                                            (\(ds : data) ->
                                               /\dead ->
