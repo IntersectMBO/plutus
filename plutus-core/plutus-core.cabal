@@ -261,6 +261,7 @@ library
     UntypedPlutusCore.Simplify.Opts
     UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
+    UntypedPlutusCore.TempUntyped
     UntypedPlutusCore.Transform.CaseOfCase
     UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.Cse
