@@ -223,8 +223,6 @@ test_EqCurrencyList name currencyLists =
 
 test_EqValue :: TestTree
 test_EqValue =
-    runTestNestedIn ["test-plugin", "Spec"] $
-        testNestedGhc "Value"
-            [ test_EqCurrencyList "Short" currencyListOptions
-            , test_EqCurrencyList "Long" currencyLongListOptions
-            ]
+    runTestNestedIn ["test-plugin", "Spec"] . testNestedGhcM "Value" $ do
+        test_EqCurrencyList "Short" currencyListOptions
+        test_EqCurrencyList "Long" currencyLongListOptions

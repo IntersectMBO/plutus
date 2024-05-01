@@ -19,26 +19,23 @@ import PlutusTx.TH (compile)
 import AsData.Budget.Types
 
 tests :: TestNested
-tests =
-  testNestedGhc
-    ("AsData" </> "Budget")
-    [ goldenPirReadable "onlyUseFirstField" onlyUseFirstField
-    , goldenUPlcReadable "onlyUseFirstField" onlyUseFirstField
-    , goldenEvalCekCatch "onlyUseFirstField" [onlyUseFirstField `unsafeApplyCode` inp]
-    , goldenBudget "onlyUseFirstField-budget" (onlyUseFirstField `unsafeApplyCode` inp)
-    , goldenPirReadable "patternMatching" patternMatching
-    , goldenUPlcReadable "patternMatching" patternMatching
-    , goldenEvalCekCatch "patternMatching" [patternMatching `unsafeApplyCode` inp]
-    , goldenBudget "patternMatching-budget" (patternMatching `unsafeApplyCode` inp)
-    , goldenPirReadable "recordFields" recordFields
-    , goldenUPlcReadable "recordFields" recordFields
-    , goldenEvalCekCatch "recordFields" [recordFields `unsafeApplyCode` inp]
-    , goldenBudget "recordFields-budget" (recordFields `unsafeApplyCode` inp)
-    , goldenPirReadable "recordFields-manual" recordFieldsManual
-    , goldenUPlcReadable "recordFields-manual" recordFieldsManual
-    , goldenEvalCekCatch "recordFields-manual" [recordFieldsManual `unsafeApplyCode` inp]
-    , goldenBudget "recordFields-budget-manual" (recordFieldsManual `unsafeApplyCode` inp)
-    ]
+tests = testNested "AsData" . testNested "Budget" . testNestedGhcM $ do
+    goldenPirReadable "onlyUseFirstField" onlyUseFirstField
+    goldenUPlcReadable "onlyUseFirstField" onlyUseFirstField
+    goldenEvalCekCatch "onlyUseFirstField" [onlyUseFirstField `unsafeApplyCode` inp]
+    goldenBudget "onlyUseFirstField-budget" (onlyUseFirstField `unsafeApplyCode` inp)
+    goldenPirReadable "patternMatching" patternMatching
+    goldenUPlcReadable "patternMatching" patternMatching
+    goldenEvalCekCatch "patternMatching" [patternMatching `unsafeApplyCode` inp]
+    goldenBudget "patternMatching-budget" (patternMatching `unsafeApplyCode` inp)
+    goldenPirReadable "recordFields" recordFields
+    goldenUPlcReadable "recordFields" recordFields
+    goldenEvalCekCatch "recordFields" [recordFields `unsafeApplyCode` inp]
+    goldenBudget "recordFields-budget" (recordFields `unsafeApplyCode` inp)
+    goldenPirReadable "recordFields-manual" recordFieldsManual
+    goldenUPlcReadable "recordFields-manual" recordFieldsManual
+    goldenEvalCekCatch "recordFields-manual" [recordFieldsManual `unsafeApplyCode` inp]
+    goldenBudget "recordFields-budget-manual" (recordFieldsManual `unsafeApplyCode` inp)
 
 -- A function that only accesses the first field of `Ints`.
 -- TODO: the compiled code currently accesses all fields.

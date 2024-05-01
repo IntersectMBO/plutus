@@ -30,13 +30,12 @@ import PlutusTx.Test
 import Data.Proxy
 
 datat :: TestNested
-datat = testNestedGhc "Data" [
-    monoData
-  , polyData
-  , newtypes
-  , recursiveTypes
-  , typeFamilies
-  ]
+datat = testNested "Data" . testNestedGhc $ do
+  monoData
+  polyData
+  newtypes
+  recursiveTypes
+  typeFamilies
 
 monoData :: TestNested
 monoData = testNested "monomorphic" [

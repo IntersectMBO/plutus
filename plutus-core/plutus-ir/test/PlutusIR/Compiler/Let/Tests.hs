@@ -22,10 +22,9 @@ import Test.Tasty.Extras
 import Test.Tasty.QuickCheck
 
 test_lets :: TestTree
-test_lets = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Compiler"] $ testNested "Let"
-    [ goldenPlcFromPir pTermAsProg "letInLet"
-    , goldenPlcFromPir pTermAsProg "letDep"
-    ]
+test_lets = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Compiler"] . testNestedM "Let" $ do
+    goldenPlcFromPir pTermAsProg "letInLet"
+    goldenPlcFromPir pTermAsProg "letDep"
 
 -- FIXME: this fails because some of the let passes expect certain things to be
 -- gone, e.g. non-strict bindings. We should a) add pre-/post-conditions for these,

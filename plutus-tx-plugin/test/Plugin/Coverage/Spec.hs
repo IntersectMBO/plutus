@@ -49,7 +49,7 @@ boolQualifiedDisappears :: CompiledCode (() -> Bool)
 boolQualifiedDisappears = plc (Proxy @"boolQualifiedDisappears") (\ () -> Haskell.True)
 
 coverage :: TestNested
-coverage = testNestedGhc "Coverage"
+coverage = testNested "Coverage" $ testNestedGhc
   [ pure $ testGroup "Application heads and line coverage"
          [ mkTests "noBool" noBool Set.empty [31]
          , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [34]

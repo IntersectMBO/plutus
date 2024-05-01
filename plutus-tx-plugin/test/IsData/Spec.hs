@@ -112,31 +112,30 @@ fieldAccessor :: CompiledCode (RecordConstructor Integer -> Integer)
 fieldAccessor = plc (Proxy @"fieldAccessor") (\r -> x r)
 
 tests :: TestNested
-tests = testNestedGhc "IsData" [
-    goldenUEval "int" [plc (Proxy @"int") (isDataRoundtrip (1::Integer))]
-    , goldenUEval "tuple" [plc (Proxy @"tuple") (isDataRoundtrip (1::Integer, 2::Integer))]
-    , goldenUEval "tupleInterop" [
-            getPlcNoAnn (plc (Proxy @"tupleInterop") (\(d :: P.BuiltinData) -> case IsData.fromBuiltinData d of { Just t -> t P.== (1::Integer, 2::Integer); Nothing -> False}))
-            , UPLC.Program () (PLC.latestVersion) (PLC.mkConstant () (IsData.toData (1::Integer, 2::Integer)))]
-    , goldenUEval "unsafeTupleInterop" [
-            getPlcNoAnn (plc (Proxy @"unsafeTupleInterop") (\(d :: P.BuiltinData) -> IsData.unsafeFromBuiltinData d P.== (1::Integer, 2::Integer)))
-            , UPLC.Program () (PLC.latestVersion) (PLC.mkConstant () (IsData.toData (1::Integer, 2::Integer)))]
-    , goldenUEval "unit" [plc (Proxy @"unit") (isDataRoundtrip ())]
-    , goldenUEval "unitInterop" [
-            getPlcNoAnn (plc (Proxy @"unitInterop") (\(d :: P.BuiltinData) -> case IsData.fromBuiltinData d of { Just t -> t P.== (); Nothing -> False}))
-            , UPLC.Program () (PLC.latestVersion) (PLC.mkConstant () (IsData.toData ()))]
-    , goldenUEval "mono" [plc (Proxy @"mono") (isDataRoundtrip (Mono2 2))]
-    , goldenUEval "poly" [plc (Proxy @"poly") (isDataRoundtrip (Poly1 (1::Integer) (2::Integer)))]
-    , goldenUEval "record" [plc (Proxy @"record") (isDataRoundtrip (MyMonoRecord 1 2))]
-    , goldenUEval "list" [plc (Proxy @"list") (isDataRoundtrip ([1]::[Integer]))]
-    , goldenUEval "nested" [plc (Proxy @"nested") (isDataRoundtrip (NestedRecord (Just (1, 2))))]
-    , goldenUEval "bytestring" [plc (Proxy @"bytestring") (isDataRoundtrip (WrappedBS Builtins.emptyByteString))]
-    , goldenPirReadable "deconstructData" deconstructData
-    , goldenPirReadable "unsafeDeconstructData" unsafeDeconstructData
-    , goldenPirReadable "matchAsData" matchAsData
-    , goldenUEval "matchAsDataE" [toUPlc $ matchAsData, toUPlc $ plc (Proxy @"test") (SecondC 3)]
-    , goldenPirReadable "recordAsData" recordAsData
-    , goldenPirReadable "dataToData" dataToData
-    , goldenPirReadable "equalityAsData" equalityAsData
-    , goldenPirReadable "fieldAccessor" fieldAccessor
-  ]
+tests = testNested "IsData" . testNestedGhcM $ do
+  goldenUEval "int" [plc (Proxy @"int") (isDataRoundtrip (1::Integer))]
+  goldenUEval "tuple" [plc (Proxy @"tuple") (isDataRoundtrip (1::Integer, 2::Integer))]
+  goldenUEval "tupleInterop" [
+        getPlcNoAnn (plc (Proxy @"tupleInterop") (\(d :: P.BuiltinData) -> case IsData.fromBuiltinData d of { Just t -> t P.== (1::Integer, 2::Integer); Nothing -> False}))
+        , UPLC.Program () (PLC.latestVersion) (PLC.mkConstant () (IsData.toData (1::Integer, 2::Integer)))]
+  goldenUEval "unsafeTupleInterop" [
+        getPlcNoAnn (plc (Proxy @"unsafeTupleInterop") (\(d :: P.BuiltinData) -> IsData.unsafeFromBuiltinData d P.== (1::Integer, 2::Integer)))
+        , UPLC.Program () (PLC.latestVersion) (PLC.mkConstant () (IsData.toData (1::Integer, 2::Integer)))]
+  goldenUEval "unit" [plc (Proxy @"unit") (isDataRoundtrip ())]
+  goldenUEval "unitInterop" [
+        getPlcNoAnn (plc (Proxy @"unitInterop") (\(d :: P.BuiltinData) -> case IsData.fromBuiltinData d of { Just t -> t P.== (); Nothing -> False}))
+        , UPLC.Program () (PLC.latestVersion) (PLC.mkConstant () (IsData.toData ()))]
+  goldenUEval "mono" [plc (Proxy @"mono") (isDataRoundtrip (Mono2 2))]
+  goldenUEval "poly" [plc (Proxy @"poly") (isDataRoundtrip (Poly1 (1::Integer) (2::Integer)))]
+  goldenUEval "record" [plc (Proxy @"record") (isDataRoundtrip (MyMonoRecord 1 2))]
+  goldenUEval "list" [plc (Proxy @"list") (isDataRoundtrip ([1]::[Integer]))]
+  goldenUEval "nested" [plc (Proxy @"nested") (isDataRoundtrip (NestedRecord (Just (1, 2))))]
+  goldenUEval "bytestring" [plc (Proxy @"bytestring") (isDataRoundtrip (WrappedBS Builtins.emptyByteString))]
+  goldenPirReadable "deconstructData" deconstructData
+  goldenPirReadable "unsafeDeconstructData" unsafeDeconstructData
+  goldenPirReadable "matchAsData" matchAsData
+  goldenUEval "matchAsDataE" [toUPlc $ matchAsData, toUPlc $ plc (Proxy @"test") (SecondC 3)]
+  goldenPirReadable "recordAsData" recordAsData
+  goldenPirReadable "dataToData" dataToData
+  goldenPirReadable "equalityAsData" equalityAsData
+  goldenPirReadable "fieldAccessor" fieldAccessor

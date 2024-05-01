@@ -8,15 +8,13 @@ import Test.Tasty.Extras
 
 test_datatypes :: TestTree
 test_datatypes =
-    runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Compiler"] $ testNested "Datatype"
-    [ goldenPlcFromPir pTermAsProg "maybe"
-    , goldenPlcFromPir pTermAsProg "listMatch"
-    , goldenPlcFromPir pTermAsProg "idleAll"
-    , goldenPlcFromPir pTermAsProg "some"
-    , goldenEvalPir pTermAsProg "listMatchEval"
-    , goldenTypeFromPir topSrcSpan pTerm "dataEscape"
-    , testNested "scott"
-        [ goldenPlcFromPirScott pTermAsProg "maybe"
-        , goldenPlcFromPirScott pTermAsProg "listMatch"
-        ]
-    ]
+    runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Compiler"] . testNestedM "Datatype" $ do
+        goldenPlcFromPir pTermAsProg "maybe"
+        goldenPlcFromPir pTermAsProg "listMatch"
+        goldenPlcFromPir pTermAsProg "idleAll"
+        goldenPlcFromPir pTermAsProg "some"
+        goldenEvalPir pTermAsProg "listMatchEval"
+        goldenTypeFromPir topSrcSpan pTerm "dataEscape"
+        testNestedM "scott" $ do
+            goldenPlcFromPirScott pTermAsProg "maybe"
+            goldenPlcFromPirScott pTermAsProg "listMatch"

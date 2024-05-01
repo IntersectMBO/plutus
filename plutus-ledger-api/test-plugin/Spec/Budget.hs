@@ -18,6 +18,7 @@ import Test.Tasty.Extras
 
 import Data.Bifunctor
 import Data.String
+import Data.Traversable (for)
 import PlutusLedgerApi.V1.Value
 import PlutusTx.AssocMap as Map
 import PlutusTx.Code
@@ -27,18 +28,12 @@ import PlutusTx.TH (compile)
 
 tests :: TestTree
 tests =
-  runTestNestedIn ["test-plugin", "Spec"] $
-    testNestedGhc "Budget" $
-      [ goldenPirReadable "gt" compiledGt
-      , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
-      ]
-        ++ concatMap
-          ( \(TestCase name code) ->
-              [ goldenBudget name code
-              , goldenEvalCekCatch name [code]
-              ]
-          )
-          testCases
+  runTestNestedIn ["test-plugin", "Spec"] . testNestedGhcM "Budget" $ do
+    goldenPirReadable "gt" compiledGt
+    goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
+    for testCases $  \(TestCase name code) -> do
+      goldenBudget name code
+      goldenEvalCekCatch name [code]
 
 compiledGt :: CompiledCode (Value -> Value -> Bool)
 compiledGt = $$(compile [||gt||])

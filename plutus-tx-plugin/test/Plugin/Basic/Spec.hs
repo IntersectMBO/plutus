@@ -25,29 +25,26 @@ import PlutusTx.Prelude qualified as P
 import PlutusTx.Test (goldenPir, goldenUPlc)
 
 import Data.Proxy (Proxy (..))
-import Test.Tasty.Extras (TestNested, testNestedGhc)
+import Test.Tasty.Extras (TestNested, testNested, testNestedGhcM)
 
 basic :: TestNested
-basic =
-  testNestedGhc
-    "Basic"
-    [ goldenPir "monoId" monoId
-    , goldenPir "monoK" monoK
-    , goldenPir "letFun" letFun
-    , goldenPir "nonstrictLet" nonstrictLet
-    , goldenPir "strictLet" strictLet
-    , goldenPir "strictMultiLet" strictMultiLet
-    , goldenPir "strictLetRec" strictLetRec
-    , -- must keep the scrutinee as it evaluates to error
-      goldenPir "ifOpt" ifOpt
-    , -- should fail
-      goldenUEval "ifOptEval" [ifOpt]
-    , goldenPir "monadicDo" monadicDo
-    , goldenPir "patternMatchDo" patternMatchDo
-    , goldenUPlc "patternMatchFailure" patternMatchFailure
-    , goldenPir "defaultCaseDuplication" defaultCaseDuplication
-    , goldenPir "defaultCaseDuplicationNested" defaultCaseDuplicationNested
-    ]
+basic = testNested "Basic" . testNestedGhcM $ do
+    goldenPir "monoId" monoId
+    goldenPir "monoK" monoK
+    goldenPir "letFun" letFun
+    goldenPir "nonstrictLet" nonstrictLet
+    goldenPir "strictLet" strictLet
+    goldenPir "strictMultiLet" strictMultiLet
+    goldenPir "strictLetRec" strictLetRec
+    -- must keep the scrutinee as it evaluates to error
+    goldenPir "ifOpt" ifOpt
+    -- should fail
+    goldenUEval "ifOptEval" [ifOpt]
+    goldenPir "monadicDo" monadicDo
+    goldenPir "patternMatchDo" patternMatchDo
+    goldenUPlc "patternMatchFailure" patternMatchFailure
+    goldenPir "defaultCaseDuplication" defaultCaseDuplication
+    goldenPir "defaultCaseDuplicationNested" defaultCaseDuplicationNested
 
 monoId :: CompiledCode (Integer -> Integer)
 monoId = plc (Proxy @"monoId") \(x :: Integer) -> x

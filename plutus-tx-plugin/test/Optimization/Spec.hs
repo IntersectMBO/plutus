@@ -34,11 +34,10 @@ AsData.asData [d|
 -- This can be interesting to make sure that important optimizations fire, including
 -- ones that run on UPLC.
 tests :: TestNested
-tests = testNestedGhc "Optimization" [
+tests = testNested "Optimization" . testNestedGhcM $ do
    goldenUPlc "maybeFun" maybeFun
-   , goldenPirReadable "matchAsData" matchAsData
-   , goldenPirReadable "unsafeDeconstructData" unsafeDeconstructData
-   ]
+   goldenPirReadable "matchAsData" matchAsData
+   goldenPirReadable "unsafeDeconstructData" unsafeDeconstructData
 
 -- The point of this test is to check that matchers get eliminated unconditionally
 -- even if they're used more than once.

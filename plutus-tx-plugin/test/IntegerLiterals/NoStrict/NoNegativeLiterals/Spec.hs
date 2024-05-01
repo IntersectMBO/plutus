@@ -19,9 +19,8 @@ import PlutusTx.TH (compile)
 import Test.Tasty.Extras
 
 tests :: TestNested
-tests = testNestedGhc "IntegerLiterals"
-  [ goldenPir "integerLiterals-NoStrict-NoNegativeLiterals" integerLiterals
-  ]
+tests = testNested "IntegerLiterals" . testNestedGhcM $ do
+  goldenPir "integerLiterals-NoStrict-NoNegativeLiterals" integerLiterals
 
 integerLiterals :: CompiledCode (Integer -> Integer)
 integerLiterals =
