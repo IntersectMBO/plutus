@@ -1,1 +1,1 @@
-(force ifThenElse b_0 1 2)
+(\b_1 -> force ifThenElse b_1 1 2)

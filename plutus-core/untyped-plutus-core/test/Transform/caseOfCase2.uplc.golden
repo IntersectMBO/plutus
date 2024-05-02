@@ -1,1 +1,1 @@
-(case (force ifThenElse b_0 t_1 (constr 1 [])) [1, 2])
+(\b_2 t_3 -> case (force ifThenElse b_2 t_3 (constr 1 [])) [1, 2])

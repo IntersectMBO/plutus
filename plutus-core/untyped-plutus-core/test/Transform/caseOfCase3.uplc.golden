@@ -1,1 +1,1 @@
-(force ifThenElse b_0 (f_3 x_1 xs_2) 2)
+(\b_4 x_5 xs_6 f_7 -> force ifThenElse b_4 (f_7 x_5 xs_6) 2)
