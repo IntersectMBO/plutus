@@ -170,6 +170,16 @@ scopeCheckUList g (x ∷ xs) = do
 
 scopeCheckU0 : Untyped → Either ScopeError (⊥ ⊢)
 scopeCheckU0 t = scopeCheckU (λ _ → inj₁ deBError) t
+
+f : {X : Set} → ℕ → Either ScopeError (Maybe X)
+f x = extG' (λ _ → inj₁ deBError) x
+
+toWellScoped : {X : Set} → Untyped → Either ScopeError (Maybe X ⊢)
+toWellScoped = scopeCheckU f
+
+example1 : Untyped 
+example1 = ULambda (UCase (UApp (UApp (UApp (UForce (UBuiltin ifThenElse)) (UVar 0)) (UConstr 0 [])) (UConstr 1 [])) ((UCon (RawU.tagCon RawU.integer (ℤ.pos 1))) List.∷ (UCon (RawU.tagCon RawU.integer (ℤ.pos 2))) List.∷ List.[]))
+
 ```
 
 ## Equality checking for raw terms
