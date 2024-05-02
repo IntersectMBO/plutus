@@ -38,7 +38,9 @@ data _⊢̂_⊳̂_ (X : Set) : (X ⊢) → (X ⊢) → Set where
                 → X ⊢̂ tt ⊳̂ tt' -- recursive translation for the true branch
                 → X ⊢̂ ft ⊳̂ ft' -- recursive translation for the false branch
                 ----------------------
-                → X ⊢̂ (case ((((force (builtin ifThenElse)) · b) · tt) · ft) alts) ⊳̂ ((((force (builtin ifThenElse)) · b) · (case tt' alts')) · (case ft' alts'))
+                → X ⊢̂
+                       (case ((((force (builtin ifThenElse)) · b) · tt) · ft) alts)
+                       ⊳̂ ((((force (builtin ifThenElse)) · b) · (case tt' alts')) · (case ft' alts'))
    var : ∀ {x : X} → X ⊢̂ (` x) ⊳̂ (` x) 
    ƛ   : ∀ {x x' : Maybe X ⊢}
            → Maybe X ⊢̂ x ⊳̂ x'
@@ -71,7 +73,9 @@ expect anything else to be unaltered.
 This can just traverse the ASTs applying the constructors from the transition relation.
 
 ```
---_⊢̂_⊳̂?_ : {X : Set} → (X ⊢) → (X ⊢) → Dec (_⊢̂_⊳̂_)
+--_⊢̂_⊳̂?_ : {X : Set} (ast ast' : X ⊢) → Dec (X ⊢̂ ast ⊳̂ ast')
+--_⊢̂_⊳̂?_ ast ast' = ?
+
 ```
 
 ## Semantic Equivalence
@@ -90,5 +94,8 @@ large gas budget and begin in an empty context (which assumes the term is closed
 ```
 --semantic_equivalence : ∀ {X set} {ast ast' : ⊥ ⊢}
  --                    → ⊥ ⊢ ast ⊳ ast'
+ -- <Some stuff about whether one runs out of gas -- as long as neither runs out of gas, _then_ they are equivilent> 
  --                    → (stepper maxsteps  (Stack.ϵ ; [] ▻ ast)) ≡ (stepper maxsteps (Stack.ε ; [] ▻ ast'))
+
+-- ∀ {s : ℕ} → stepper s ast ≡ <valid terminate state> ⇔ ∃ { s' : ℕ } [ stepper s' ast' ≡ <same valid terminate state> ] 
 ```
