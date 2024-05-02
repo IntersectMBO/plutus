@@ -12,8 +12,8 @@ import PlutusIR.Transform.Rename ()
 import Test.QuickCheck
 
 test_nonStrict :: TestTree
-test_nonStrict = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "NonStrict" $
+test_nonStrict =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "NonStrict"] $
         map
             (goldenPir (runQuote . runTestPass
                         (\tc -> NonStrict.compileNonStrictBindingsPassSC tc False)) pTerm)

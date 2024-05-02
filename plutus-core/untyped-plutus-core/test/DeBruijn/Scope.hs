@@ -43,7 +43,7 @@ testsFail =
     ]
 
 test_scope :: TestNested
-test_scope = testNested "Scope" $ pure . uncurry testCase <$>
+test_scope = testNested "Scope" $ embed . uncurry testCase <$>
                  (second testPasses <$> testsOk)
                <> (second testThrows <$> testsFail)
     where

@@ -49,9 +49,10 @@ letImpure = runQuote $ do
     (Apply () (Var () m) intConst)
 
 evalOrder :: TestTree
-evalOrder = runTestNestedIn ["untyped-plutus-core", "test", "Analysis"] $ testNested "evalOrder"
-  [ goldenEvalOrder "letFun" letFun
-  , goldenEvalOrder "letImpure" letImpure
-  , pure $ testCase "evalOrderLazy" $
-    4 @=? length (unEvalOrder $ termEvaluationOrder def dangerTerm)
-  ]
+evalOrder =
+    runTestNested ["untyped-plutus-core", "test", "Analysis", "evalOrder"]
+        [ goldenEvalOrder "letFun" letFun
+        , goldenEvalOrder "letImpure" letImpure
+        , embed . testCase "evalOrderLazy" $
+            4 @=? length (unEvalOrder $ termEvaluationOrder def dangerTerm)
+        ]

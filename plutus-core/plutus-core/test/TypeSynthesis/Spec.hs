@@ -67,8 +67,7 @@ foldAssertWell
     -> PlcFolderContents DefaultUni fun
     -> TestTree
 foldAssertWell semvar
-    = runTestNestedIn ["plutus-core", "test", "TypeSynthesis"]
-    . testNested "Golden"
+    = runTestNested ["plutus-core", "test", "TypeSynthesis", "Golden"]
     . foldPlcFolderContents testNested
         (\name -> nestedGoldenVsErrorOrThing name . kindcheck)
         (\name -> nestedGoldenVsErrorOrThing name . typecheck semvar)
@@ -126,29 +125,28 @@ test_typecheckIllTyped =
                 TypeErrorE (NameMismatch {}) -> True
                 _                            -> False
             ]
-
 test_typecheckAllFun
-    :: forall fun. (ToBuiltinMeaning DefaultUni fun, Show fun)
+    :: forall fun. (ToBuiltinMeaning DefaultUni fun, Show fun, Show (BuiltinSemanticsVariant fun))
     => String
     -> BuiltinSemanticsVariant fun
-    -> TestTree
-test_typecheckAllFun name semvar
-    = runTestNestedIn ["plutus-core", "test", "TypeSynthesis", "Golden"]
-    . testNested name
+    -> TestNested
+test_typecheckAllFun name semVar
+    = testNestedNamed name (show semVar)
     . map testFun
     $ enumerate @fun
   where
     testFun fun =
-        nestedGoldenVsErrorOrThing (show fun) . kindcheck $ typeOfBuiltinFunction semvar fun
+        nestedGoldenVsErrorOrThing (show fun) . kindcheck $ typeOfBuiltinFunction semVar fun
 
 test_typecheckDefaultFuns :: TestTree
 test_typecheckDefaultFuns =
     -- This checks that for each set of builtins the Plutus type of every builtin is the same
     -- regardless of versioning.
-    testGroup "builtins" $ concat
-        [ map (test_typecheckAllFun @DefaultFun "DefaultFun") enumerate
-        , map (test_typecheckAllFun @ExtensionFun "ExtensionFun") enumerate
-        ]
+    testGroup "builtins" . pure $
+        runTestNested ["plutus-core", "test", "TypeSynthesis", "Golden"] $ concat
+            [ map (test_typecheckAllFun @DefaultFun "DefaultFun") enumerate
+            , map (test_typecheckAllFun @ExtensionFun "ExtensionFun") enumerate
+            ]
 
 test_typecheck :: TestTree
 test_typecheck =

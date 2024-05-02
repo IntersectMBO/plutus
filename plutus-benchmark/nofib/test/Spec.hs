@@ -8,7 +8,7 @@ run to completion. -}
 module Main where
 
 import Test.Tasty
-import Test.Tasty.Extras (TestNested, runTestGroupNestedGhc)
+import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 
@@ -26,8 +26,8 @@ import PlutusTx.Test qualified as Tx
 
 -- Make a set of golden tests with results stored in subdirectories determined
 -- by the GHC version.
-testGroupGhc :: [TestNested] -> TestTree
-testGroupGhc = runTestGroupNestedGhc ["nofib", "test"]
+runTestGhc :: [TestNested] -> TestTree
+runTestGhc = runTestNested ["nofib", "test"] . pure . testNestedGhc
 
 -- Unit tests comparing PLC and Haskell computations on given inputs
 
@@ -47,7 +47,7 @@ testClausify = testGroup "clausify"
                , testCase "formula3" $ mkClausifyTest Clausify.F3
                , testCase "formula4" $ mkClausifyTest Clausify.F4
                , testCase "formula5" $ mkClausifyTest Clausify.F5
-               , testGroupGhc
+               , runTestGhc
                      [ Tx.goldenPirReadable "clausify-F5" formula5example
                      , Tx.goldenSize "clausify-F5" formula5example
                      , Tx.goldenBudget "clausify-F5" formula5example
@@ -70,7 +70,7 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , testCase "depth 100, 4x4" $ mkKnightsTest 100 4
               , testCase "depth 100, 6x6" $ mkKnightsTest 100 6
               , testCase "depth 100, 8x8" $ mkKnightsTest 100 8
-              , testGroupGhc
+              , runTestGhc
                     [ Tx.goldenPirReadable "knights10-4x4" knightsExample
                     , Tx.goldenSize "knights10-4x4" knightsExample
                     , Tx.goldenBudget "knights10-4x4" knightsExample
@@ -93,7 +93,7 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 4 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 4 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 4 Queens.Fc
-               , testGroupGhc
+               , runTestGhc
                      [ Tx.goldenPirReadable "queens4-bt" queens4btExample
                      , Tx.goldenSize "queens4-bt" queens4btExample
                      , Tx.goldenBudget "queens4-bt" queens4btExample
@@ -106,7 +106,7 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 5 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 5 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 5 Queens.Fc
-               , testGroupGhc
+               , runTestGhc
                      [ Tx.goldenPirReadable "queens5-fc" queens5fcExample
                      , Tx.goldenSize "queens5-fc" queens5fcExample
                      , Tx.goldenBudget "queens5-fc" queens5fcExample

@@ -20,8 +20,7 @@ import AsData.Budget.Types
 
 tests :: TestNested
 tests =
-  testNestedGhc
-    ("AsData" </> "Budget")
+  testNested ("AsData" </> "Budget") . pure $ testNestedGhc
     [ goldenPirReadable "onlyUseFirstField" onlyUseFirstField
     , goldenUPlcReadable "onlyUseFirstField" onlyUseFirstField
     , goldenEvalCekCatch "onlyUseFirstField" [onlyUseFirstField `unsafeApplyCode` inp]

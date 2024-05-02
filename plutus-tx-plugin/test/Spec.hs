@@ -14,32 +14,31 @@ import Plugin.Spec qualified as Plugin
 import ShortCircuit.Spec qualified as ShortCircuit
 import StdLib.Spec qualified as Lib
 import Strictness.Spec qualified as Strictness
-import Test.Tasty (defaultMain, testGroup)
-import Test.Tasty.Extras (TestNested, runTestNestedIn)
+import Test.Tasty (TestTree, defaultMain)
+import Test.Tasty.Extras (embed, runTestNested)
 import TH.Spec qualified as TH
 import Unicode.Spec qualified as Unicode
 
 main :: IO ()
-main = defaultMain $ runTestNestedIn ["test"] tests
+main = defaultMain tests
 
-tests :: TestNested
+tests :: TestTree
 tests =
-  testGroup "tests"
-    <$> sequence
-      [ Plugin.tests
-      , IntegerLiterals.NoStrict.NegativeLiterals.Spec.tests
-      , IntegerLiterals.NoStrict.NoNegativeLiterals.Spec.tests
-      , IntegerLiterals.Strict.NegativeLiterals.Spec.tests
-      , IntegerLiterals.Strict.NoNegativeLiterals.Spec.tests
-      , IsData.tests
-      , Lift.tests
-      , TH.tests
-      , Lib.tests
-      , Budget.tests
-      , AsData.Budget.tests
-      , Optimization.tests
-      , pure ShortCircuit.tests
-      , Strictness.tests
-      , Blueprint.Tests.goldenTests
-      , pure Unicode.tests
-      ]
+  runTestNested ["test"]
+    [ Plugin.tests
+    , IntegerLiterals.NoStrict.NegativeLiterals.Spec.tests
+    , IntegerLiterals.NoStrict.NoNegativeLiterals.Spec.tests
+    , IntegerLiterals.Strict.NegativeLiterals.Spec.tests
+    , IntegerLiterals.Strict.NoNegativeLiterals.Spec.tests
+    , IsData.tests
+    , Lift.tests
+    , TH.tests
+    , Lib.tests
+    , Budget.tests
+    , AsData.Budget.tests
+    , Optimization.tests
+    , embed ShortCircuit.tests
+    , Strictness.tests
+    , Blueprint.Tests.goldenTests
+    , embed Unicode.tests
+    ]

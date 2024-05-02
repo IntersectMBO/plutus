@@ -1,10 +1,24 @@
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+
 module Test.Tasty.Extras
-    ( TestNested
-    , runTestNestedIn
+    ( Layer (..)
+    , embed
+    , nestWith
+    , TestNestedM (..)
+    , TestNested
+    , runTestNestedM
+    , testNestedNamedM
+    , testNestedM
+    , testNestedGhcM
     , runTestNested
+    , testNestedNamed
     , testNested
     , testNestedGhc
-    , runTestGroupNestedGhc
     , goldenVsText
     , goldenVsTextM
     , goldenVsDoc
@@ -16,18 +30,19 @@ module Test.Tasty.Extras
     , makeVersionedFilePath
     ) where
 
-import PlutusPrelude
+import PlutusPrelude hiding (toList)
 
+import Control.Monad.Free.Church (F (runF), MonadFree, liftF)
 import Control.Monad.Reader
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Version
+import GHC.Exts
 import System.FilePath (joinPath, (</>))
 import System.Info
 import Test.Tasty
 import Test.Tasty.Golden
-
 
 -- | We use the GHC version number to create directories with names like `9.2`
 -- and `9.6` containing golden files whose contents depend on the GHC version.
@@ -50,31 +65,75 @@ ghcVersion = showVersion compilerVersion
 makeVersionedFilePath :: [FilePath] -> FilePath -> FilePath
 makeVersionedFilePath path file = joinPath path </> ghcVersion </> file
 
+newtype Layer a r = Layer
+    { unLayer :: F ((,) a) r
+    } deriving newtype (Functor, Applicative, Monad, MonadFree ((,) a))
+
+instance r ~ () => Semigroup (Layer a r) where
+    (<>) = (*>)
+
+instance r ~ () => Monoid (Layer a r) where
+    mempty = pure ()
+
+instance r ~ () => IsList (Layer a r) where
+    type Item (Layer a r) = a
+    fromList = traverse_ embed
+    toList layer = runF (unLayer layer) mempty $ uncurry (:)
+
+-- | A.k.a. @Streaming.yield@.
+embed :: MonadFree ((,) a) m => a -> m ()
+embed x = liftF (x, ())
+
+nestWith :: ([a] -> a) -> Layer a () -> Layer a ()
+nestWith f = embed . f . toList
+
+newtype TestNestedM r = TestNestedM
+    { unTestNestedM :: ReaderT [FilePath] (Layer TestTree) r
+    } deriving newtype
+        (Functor, Applicative, Monad, MonadReader [FilePath], MonadFree ((,) TestTree))
+
 -- | A 'TestTree' of tests under some name prefix.
-type TestNested = Reader [FilePath] TestTree
+type TestNested = TestNestedM ()
 
--- | Run a 'TestTree' of tests with a given name prefix.  This doesn't actually
--- run the tests: instead it runs a computation in the Reader monad.
-runTestNestedIn :: [FilePath] -> TestNested -> TestTree
-runTestNestedIn path test = runReader test path
+instance r ~ () => Semigroup (TestNestedM r) where
+    (<>) = (*>)
 
--- | Run a 'TestTree' of tests with an empty prefix.  This doesn't actually run
--- the tests: instead it runs a computation in the Reader monad.
-runTestNested :: TestNested -> TestTree
-runTestNested = runTestNestedIn []
+instance r ~ () => Monoid (TestNestedM r) where
+    mempty = pure ()
 
--- | Descend into a name prefix.
+-- | Run a 'TestTree' of tests with a given name prefix. This doesn't actually run the tests:
+-- instead it runs a computation in the Reader monad.
+runTestNestedM :: [String] -> TestNested -> TestTree
+runTestNestedM []   _    = error "Path cannot be empty"
+runTestNestedM path test = testGroup (last path) . toList $ runReaderT (unTestNestedM test) path
+
+-- | Descend into a folder.
+testNestedNamedM :: FilePath -> String -> TestNested -> TestNested
+testNestedNamedM folderName testName
+    = TestNestedM
+    . local (++ [folderName])
+    . mapReaderT (nestWith $ testGroup testName)
+    . unTestNestedM
+
+-- | Descend into a folder.
+testNestedM :: FilePath -> TestNested -> TestNested
+testNestedM folderName = testNestedNamedM folderName folderName
+
+-- | Like 'testNestedM' but adds a subdirectory corresponding to the GHC version being used.
+testNestedGhcM :: TestNested -> TestNested
+testNestedGhcM = testNestedM ghcVersion
+
+runTestNested :: [String] -> [TestNested] -> TestTree
+runTestNested path = runTestNestedM path . fold
+
+testNestedNamed :: FilePath -> String -> [TestNested] -> TestNested
+testNestedNamed folderName testName = testNestedNamedM folderName testName . fold
+
 testNested :: FilePath -> [TestNested] -> TestNested
-testNested folderName =
-    local (++ [folderName]) . fmap (testGroup folderName) . sequence
+testNested folderName = testNestedM folderName . fold
 
--- | Like `testNested` but adds a subdirectory corresponding to the GHC version being used.
-testNestedGhc :: FilePath -> [TestNested] -> TestNested
-testNestedGhc folderName = testNested (folderName </> ghcVersion)
-
--- Create a TestTree which runs in the directory 'path/<ghc-version>
-runTestGroupNestedGhc :: [FilePath] -> [TestNested] -> TestTree
-runTestGroupNestedGhc path = runTestNested . testNestedGhc (joinPath path)
+testNestedGhc :: [TestNested] -> TestNested
+testNestedGhc = testNestedGhcM . fold
 
 -- | Check the contents of a file against a 'Text'.
 goldenVsText :: TestName -> FilePath -> Text -> TestTree
@@ -84,7 +143,7 @@ goldenVsText name ref = goldenVsTextM name ref . pure
 goldenVsTextM :: TestName -> FilePath -> IO Text -> TestTree
 goldenVsTextM name ref val =
     goldenVsStringDiff name (\expected actual -> ["diff", "-u", expected, actual]) ref $
-    BSL.fromStrict . encodeUtf8 <$> val
+        BSL.fromStrict . encodeUtf8 <$> val
 
 -- | Check the contents of a file against a 'Doc'.
 goldenVsDoc :: TestName -> FilePath -> Doc ann -> TestTree
@@ -102,8 +161,7 @@ nestedGoldenVsText name ext = nestedGoldenVsTextM name ext . pure
 nestedGoldenVsTextM :: TestName -> FilePath -> IO Text -> TestNested
 nestedGoldenVsTextM name ext text = do
     path <- ask
-    -- TODO: make more generic
-    return $ goldenVsTextM name (foldr (</>) (name ++ ext ++ ".golden") path) text
+    embed $ goldenVsTextM name (foldr (</>) (name ++ ext ++ ".golden") path) text
 
 -- | Check the contents of a file under a name prefix against a 'Text'.
 nestedGoldenVsDoc :: TestName -> FilePath -> Doc ann -> TestNested
