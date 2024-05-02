@@ -13,9 +13,11 @@ open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; 
 open import Untyped.CEK using (BApp; fullyAppliedBuiltin; BUILTIN; stepper; State; Stack)
 open import Evaluator.Base using (maxsteps)
 open import Builtin using (Builtin; ifThenElse)
-open import Data.List using (List)
+open import Data.List using (List; zip; [_])
 open import Utils as U using (Maybe;nothing;just;Either)
 open import RawU using (TmCon)
+open import Data.List.Relation.Unary.All using (All; []; _∷_)
+open import Data.Product using (_×_; proj₁; proj₂)
 ```
 
 ## Translation Relation
@@ -29,12 +31,14 @@ to traverse the ASTs.
 ```
 
 data _⊢̂_⊳̂_ : (X : Set) → (X ⊢) → (X ⊢) → Set₁ where
- caseofcase : ∀ {X : Set} {b tt ft tt' ft' alts' : X ⊢} {alts : List (X ⊢)}
-                → X ⊢̂ alts ⊳̂ alts' -- recursive translation for the other case patterns -- FIXME this needs a decision on how to handle lists
+--   refl : ∀ {X : Set} {x : X ⊢} → X ⊢̂ x ⊳̂ x
+   caseofcase : ∀ {X : Set} {b tt ft tt' ft' : X ⊢} {alts alts' : List (X ⊢)} -- FIXME requires b to be constr
+                → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip alts alts') -- recursive translation for the other case patterns 
                 → X ⊢̂ tt ⊳̂ tt' -- recursive translation for the true branch
                 → X ⊢̂ ft ⊳̂ ft' -- recursive translation for the false branch
+                ----------------------
                 → X ⊢̂ (case ((((force (builtin ifThenElse)) · b) · tt) · ft) alts) ⊳̂ ((((force (builtin ifThenElse)) · b) · (case tt' alts')) · (case ft' alts'))
-   var : ∀ {X : Set} {x : X} → X ⊢̂ ` x ⊳̂ ` x 
+   var : ∀ {X : Set} {x : X} → X ⊢̂ (` x) ⊳̂ (` x) 
    ƛ   : ∀ {X : Set} {x x' : Maybe X ⊢}
            → Maybe X ⊢̂ x ⊳̂ x'
            ----------------------
@@ -43,10 +47,18 @@ data _⊢̂_⊳̂_ : (X : Set) → (X ⊢) → (X ⊢) → Set₁ where
    force : ∀{X : Set} {t t' : X ⊢} → X ⊢̂ t ⊳̂ t' → X ⊢̂ force t ⊳̂ force t'  
    delay : ∀{X : Set} {t t' : X ⊢} → X ⊢̂ t ⊳̂ t' → X ⊢̂ delay t ⊳̂ delay t'  
    con : ∀{X : Set} {tc : TmCon} → X ⊢̂ con tc ⊳̂ con tc
- --  constr : ∀{X : Set} → X ⊢̂  ⊳̂ --(i : ℕ) → (xs : L.List (X ⊢)) → X ⊢ 
- --  case :  ∀{X : S et} → X ⊢̂  ⊳̂ --(t : X ⊢) → (ts : L.List (X ⊢)) → X ⊢ -- FIXME Some kind of all zip madness?
+   constr : ∀{X : Set} {xs xs' : List (X ⊢)} { n : ℕ }
+                → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip xs xs')
+                ------------------------
+                → X ⊢̂ constr n xs ⊳̂ constr n xs' 
+   case :  ∀ {X : Set} {p p' : X ⊢} {alts alts' : List (X ⊢)}
+                → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip alts alts') -- recursive translation for the other case patterns
+                → X ⊢̂ p ⊳̂ p'
+                ------------------------
+                → X ⊢̂ case p alts ⊳̂ case p alts' 
    builtin : ∀{X : Set} {b : Builtin} → X ⊢̂ builtin b ⊳̂ builtin b
-   error : ∀{X : Set} → X ⊢̂ error ⊳̂ error 
+   error : ∀{X : Set} → X ⊢̂ error ⊳̂ error
+
 ```
 
 ## Decision Procedure
