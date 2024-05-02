@@ -171,14 +171,32 @@ scopeCheckUList g (x ∷ xs) = do
 scopeCheckU0 : Untyped → Either ScopeError (⊥ ⊢)
 scopeCheckU0 t = scopeCheckU (λ _ → inj₁ deBError) t
 
-f : {X : Set} → ℕ → Either ScopeError (Maybe X)
-f x = extG' (λ _ → inj₁ deBError) x
+buildDebruijnEncoding : {X : Set} → ℕ → Either ScopeError (Maybe X)
+buildDebruijnEncoding x = extG' (λ _ → inj₁ deBError) x
 
 toWellScoped : {X : Set} → Untyped → Either ScopeError (Maybe X ⊢)
-toWellScoped = scopeCheckU f
+toWellScoped = scopeCheckU buildDebruijnEncoding
 
-example1 : Untyped 
-example1 = ULambda (UCase (UApp (UApp (UApp (UForce (UBuiltin ifThenElse)) (UVar 0)) (UConstr 0 [])) (UConstr 1 [])) ((UCon (RawU.tagCon RawU.integer (ℤ.pos 1))) List.∷ (UCon (RawU.tagCon RawU.integer (ℤ.pos 2))) List.∷ List.[]))
+-- `caseOfCase1Before` and `caseOfCase1After` are two Agda terms built from the ASTs provided by the compiler
+-- Original compiler output:
+--   `ULambda (UCase (UApp (UApp (UApp (UForce (UBuiltin IfThenElse)) (UVar 0)) (UConstr 0 [])) (UConstr 1 [])) [UCon (Some (ValueOf DefaultUniInteger 1)),UCon (Some (ValueOf DefaultUniInteger 2))])`
+--   `ULambda (UApp (UApp (UApp (UForce (UBuiltin IfThenElse)) (UVar 0)) (UCase (UConstr 0 []) [UCon (Some (ValueOf DefaultUniInteger 1)),UCon (Some (ValueOf DefaultUniInteger 2))])) (UCase (UConstr 1 []) [UCon (Some (ValueOf DefaultUniInteger 1)),UCon (Some (ValueOf DefaultUniInteger 2))]))`
+-- To get them to compile as Agda terms, I needed to manually replace the `Some (ValueOf DefaultUniInteger x)` with `RawU.tagCon RawU.integer (ℤ.pos x)`
+-- TODO: look into automating the above process
+
+caseOfCase1Before : Untyped 
+caseOfCase1Before = ULambda (UCase (UApp (UApp (UApp (UForce (UBuiltin ifThenElse)) (UVar 0)) (UConstr 0 [])) (UConstr 1 [])) ((UCon (RawU.tagCon RawU.integer (ℤ.pos 1))) List.∷ (UCon (RawU.tagCon RawU.integer (ℤ.pos 2))) List.∷ List.[]))
+
+caseOfCase1After : Untyped
+caseOfCase1After = ULambda (UApp (UApp (UApp (UForce (UBuiltin ifThenElse)) (UVar 0)) (UCase (UConstr 0 []) (UCon (RawU.tagCon RawU.integer (ℤ.pos 1)) List.∷ (UCon (RawU.tagCon RawU.integer (ℤ.pos 2))) List.∷ []))) (UCase (UConstr 1 []) ((UCon (RawU.tagCon RawU.integer (ℤ.pos 1))) List.∷ (UCon (RawU.tagCon RawU.integer (ℤ.pos 2))) List.∷ List.[])))
+
+agdaCoC1Before : {X : Set} → Either ScopeError (Maybe X ⊢)
+agdaCoC1Before = toWellScoped caseOfCase1Before
+
+agdaCoC1After : {X : Set} → Either ScopeError (Maybe X ⊢)
+agdaCoC1After = toWellScoped caseOfCase1After
+
+-- `agdaCoC1Before` should be in relation with `agdaCoC1After`
 
 ```
 
