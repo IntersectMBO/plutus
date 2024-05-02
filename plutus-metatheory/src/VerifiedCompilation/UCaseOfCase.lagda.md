@@ -30,17 +30,16 @@ This translation relation has a constructor for the specific case, and then indu
 to traverse the ASTs.
 
 ```
-
 data _⊢̂_⊳̂_ (X : Set) : (X ⊢) → (X ⊢) → Set where
 --   refl : ∀ {X : Set} {x : X ⊢} → X ⊢̂ x ⊳̂ x
-   caseofcase : ∀ {b tt ft tt' ft' : X ⊢} {alts alts' : List (X ⊢)} -- FIXME requires b to be constr
+   caseofcase : ∀ {b : X ⊢} {tn tn' fn fn' : ℕ} {alts alts' tt ft tt' ft' : List (X ⊢)} 
                 → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip alts alts') -- recursive translation for the other case patterns 
-                → X ⊢̂ tt ⊳̂ tt' -- recursive translation for the true branch
-                → X ⊢̂ ft ⊳̂ ft' -- recursive translation for the false branch
+                → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip tt tt') -- recursive translation for the true branch
+                → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip ft ft') -- recursive translation for the false branch
                 ----------------------
                 → X ⊢̂
-                       (case ((((force (builtin ifThenElse)) · b) · tt) · ft) alts)
-                       ⊳̂ ((((force (builtin ifThenElse)) · b) · (case tt' alts')) · (case ft' alts'))
+                       (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
+                       ⊳̂ ((((force (builtin ifThenElse)) · b) · (case (constr tn' tt') alts')) · (case (constr tn' tt') alts'))
    var : ∀ {x : X} → X ⊢̂ (` x) ⊳̂ (` x) 
    ƛ   : ∀ {x x' : Maybe X ⊢}
            → Maybe X ⊢̂ x ⊳̂ x'
