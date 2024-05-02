@@ -67,17 +67,25 @@ simplifyTerm opts builtinSemanticsVariant =
         >=> inline (_soInlineConstants opts) (_soInlineHints opts) builtinSemanticsVariant
 
     caseOfCase' :: Term name uni fun a -> Term name uni fun a
-    caseOfCase' t = case eqT @fun @DefaultFun of
+    caseOfCase' t =
+      case eqT @fun @DefaultFun of
+        Just Refl ->
+          let result = caseOfCase (printAgdaAST t)
+           in printAgdaAST result
+        Nothing   -> t
+
+    printAgdaAST :: Term name uni fun a -> Term name uni fun a
+    printAgdaAST t = case eqT @fun @DefaultFun of
       Just Refl ->
         case eqT @uni @PLC.DefaultUni of
           Just Refl ->
             case eqT @name @Name of
               Just Refl ->
                 case deBruijnTerm t of
-                  Right res                       -> trace (show . conv $ res) $ caseOfCase t
+                  Right res                       -> trace (show . conv $ res) t
                   Left (err :: FreeVariableError) -> error $ show err
-              Nothing -> caseOfCase t
-          Nothing -> caseOfCase t
+              Nothing -> t
+          Nothing -> t
       Nothing   -> t
 
     cseStep :: Int -> Term name uni fun a -> m (Term name uni fun a)
