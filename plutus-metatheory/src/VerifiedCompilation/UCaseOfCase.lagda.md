@@ -18,6 +18,7 @@ open import Utils as U using (Maybe;nothing;just;Either)
 open import RawU using (TmCon)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.Product using (_×_; proj₁; proj₂)
+open import Relation.Nullary using (Dec; yes; no)
 ```
 
 ## Translation Relation
@@ -30,34 +31,34 @@ to traverse the ASTs.
 
 ```
 
-data _⊢̂_⊳̂_ : (X : Set) → (X ⊢) → (X ⊢) → Set₁ where
+data _⊢̂_⊳̂_ (X : Set) : (X ⊢) → (X ⊢) → Set where
 --   refl : ∀ {X : Set} {x : X ⊢} → X ⊢̂ x ⊳̂ x
-   caseofcase : ∀ {X : Set} {b tt ft tt' ft' : X ⊢} {alts alts' : List (X ⊢)} -- FIXME requires b to be constr
+   caseofcase : ∀ {b tt ft tt' ft' : X ⊢} {alts alts' : List (X ⊢)} -- FIXME requires b to be constr
                 → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip alts alts') -- recursive translation for the other case patterns 
                 → X ⊢̂ tt ⊳̂ tt' -- recursive translation for the true branch
                 → X ⊢̂ ft ⊳̂ ft' -- recursive translation for the false branch
                 ----------------------
                 → X ⊢̂ (case ((((force (builtin ifThenElse)) · b) · tt) · ft) alts) ⊳̂ ((((force (builtin ifThenElse)) · b) · (case tt' alts')) · (case ft' alts'))
-   var : ∀ {X : Set} {x : X} → X ⊢̂ (` x) ⊳̂ (` x) 
-   ƛ   : ∀ {X : Set} {x x' : Maybe X ⊢}
+   var : ∀ {x : X} → X ⊢̂ (` x) ⊳̂ (` x) 
+   ƛ   : ∀ {x x' : Maybe X ⊢}
            → Maybe X ⊢̂ x ⊳̂ x'
            ----------------------
            →  X ⊢̂ ƛ x ⊳̂ ƛ x' 
-   _·_ : ∀{X : Set} {f t f' t' : X ⊢} → (X ⊢̂ f ⊳̂ f') → (X ⊢̂ t ⊳̂ t') → (X ⊢̂ (f · t) ⊳̂ (f' · t'))
-   force : ∀{X : Set} {t t' : X ⊢} → X ⊢̂ t ⊳̂ t' → X ⊢̂ force t ⊳̂ force t'  
-   delay : ∀{X : Set} {t t' : X ⊢} → X ⊢̂ t ⊳̂ t' → X ⊢̂ delay t ⊳̂ delay t'  
-   con : ∀{X : Set} {tc : TmCon} → X ⊢̂ con tc ⊳̂ con tc
-   constr : ∀{X : Set} {xs xs' : List (X ⊢)} { n : ℕ }
+   _·_ : ∀ {f t f' t' : X ⊢} → (X ⊢̂ f ⊳̂ f') → (X ⊢̂ t ⊳̂ t') → (X ⊢̂ (f · t) ⊳̂ (f' · t'))
+   force : ∀ {t t' : X ⊢} → X ⊢̂ t ⊳̂ t' → X ⊢̂ force t ⊳̂ force t'  
+   delay : ∀ {t t' : X ⊢} → X ⊢̂ t ⊳̂ t' → X ⊢̂ delay t ⊳̂ delay t'  
+   con : ∀ {tc : TmCon} → X ⊢̂ con tc ⊳̂ con tc
+   constr : ∀ {xs xs' : List (X ⊢)} { n : ℕ }
                 → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip xs xs')
                 ------------------------
                 → X ⊢̂ constr n xs ⊳̂ constr n xs' 
-   case :  ∀ {X : Set} {p p' : X ⊢} {alts alts' : List (X ⊢)}
+   case :  ∀ {p p' : X ⊢} {alts alts' : List (X ⊢)}
                 → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip alts alts') -- recursive translation for the other case patterns
                 → X ⊢̂ p ⊳̂ p'
                 ------------------------
                 → X ⊢̂ case p alts ⊳̂ case p alts' 
-   builtin : ∀{X : Set} {b : Builtin} → X ⊢̂ builtin b ⊳̂ builtin b
-   error : ∀{X : Set} → X ⊢̂ error ⊳̂ error
+   builtin : ∀ {b : Builtin} → X ⊢̂ builtin b ⊳̂ builtin b
+   error : X ⊢̂ error ⊳̂ error
 
 ```
 
@@ -70,7 +71,7 @@ expect anything else to be unaltered.
 This can just traverse the ASTs applying the constructors from the transition relation.
 
 ```
-
+--_⊢̂_⊳̂?_ : {X : Set} → (X ⊢) → (X ⊢) → Dec (_⊢̂_⊳̂_)
 ```
 
 ## Semantic Equivalence
