@@ -13,11 +13,11 @@ jobs:
         uses: actions/checkout@master
         with: 
           repository: IntersectMBO/plutus-tx-template
+          path: plutus-tx-template 
 
+      # plutus repo will be nested inside the plutus-tx-template repo
       - name: Checkout plutus
         uses: actions/checkout@master
-        with: 
-          path: plutus-tx-template
   
       - name: Write cabal.project.local
         uses: DamianReeves/write-file-action@master
