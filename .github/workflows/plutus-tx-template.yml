@@ -9,14 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Checkout plutus
-        uses: actions/checkout@master
-
       - name: Checkout plutus-tx-template
         uses: actions/checkout@master
         with: 
           repository: IntersectMBO/plutus-tx-template
-      
+
+      - name: Checkout plutus
+        uses: actions/checkout@master
+        with: 
+          path: plutus-tx-template
+  
       - name: Write cabal.project.local
         uses: DamianReeves/write-file-action@master
         with:
@@ -39,10 +41,10 @@ jobs:
           
       - name: Build Project With Docker
         run: |
+          pwd
           ls -la . 
           ls -la ..
-          
-          mv ../plutus .
+
           docker run \
             -v ./.:/workspaces/plutus-tx-template \
             -w /workspaces/plutus-tx-template \
