@@ -5,14 +5,19 @@ module PlutusIR.Transform.StrictLetRec.Tests where
 
 import PlutusPrelude
 
+import Control.Monad.Except (runExcept)
+import Control.Monad.Reader (runReaderT)
 import PlutusCore.Default (someValue)
-import PlutusIR.Compiler (Provenance (Original))
+import PlutusCore.MkPlc (constant)
+import PlutusCore.Quote (runQuoteT)
 import PlutusIR.Compiler.Let (LetKind (RecTerms), compileLetsPassSC)
-import PlutusIR.MkPir (constant)
+import PlutusIR.Compiler.Provenance (noProvenance)
 import PlutusIR.Parser (pTerm)
 import PlutusIR.Pass.Test (runTestPass)
-import PlutusIR.Test (goldenPir)
-import PlutusIR.Transform.StrictLetRec.Tests.Lib (evaluatePirFromFile, runCompilationM)
+import PlutusIR.Test (goldenPirM)
+import PlutusIR.Transform.StrictLetRec.Tests.Lib (defaultCompilationCtx,
+                                                  evalPirProgramWithTracesOrFail, pirTermAsProgram,
+                                                  pirTermFromFile)
 import System.FilePath.Posix (joinPath, (</>))
 import Test.Tasty (TestTree)
 import Test.Tasty.Extras (runTestNestedIn, testNested)
@@ -26,13 +31,19 @@ test_letRec :: TestTree
 test_letRec = runTestNestedIn path do
   testNested
     "StrictLetRec"
-    [ goldenPir
-        (runCompilationM . runTestPass (\tcConfig -> compileLetsPassSC tcConfig RecTerms))
-        (const (Original ()) <<$>> pTerm)
-        "strictLetRec"
+    [ let
+        runCompilationM m = either (fail . show) pure do
+          ctx <- defaultCompilationCtx
+          runExcept . runQuoteT $ runReaderT m ctx
+       in
+        goldenPirM
+          (runCompilationM . runTestPass (`compileLetsPassSC` RecTerms))
+          (const noProvenance <<$>> pTerm)
+          "strictLetRec"
     , pure $ testCase "traces" do
-        (result, traces) <-
-          evaluatePirFromFile $ joinPath path </> "StrictLetRec" </> "strictLetRec"
+        (result, traces) <- do
+          pirTerm <- pirTermFromFile (joinPath path </> "StrictLetRec" </> "strictLetRec")
+          evalPirProgramWithTracesOrFail (pirTermAsProgram (void pirTerm))
         case result of
           EvaluationFailure ->
             fail $ "Evaluation failed, available traces: " <> show traces

@@ -1,117 +1,106 @@
 {-# LANGUAGE BlockArguments   #-}
 {-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE TypeApplications #-}
 
-module PlutusIR.Transform.StrictLetRec.Tests.Lib
-  ( makeCompilationCtx
-  , runCompilationM
-  , parsePirProgram
-  , evaluatePirFromFile
-  ) where
+module PlutusIR.Transform.StrictLetRec.Tests.Lib where
 
 import PlutusPrelude
 
-import Control.Monad.Except (ExceptT, runExcept, runExceptT)
-import Control.Monad.Identity (Identity)
-import Control.Monad.IO.Class (MonadIO, liftIO)
-import Control.Monad.Reader (ReaderT, runReaderT)
+import Control.Monad.Except (runExceptT)
+import Control.Monad.IO.Class (MonadIO (liftIO))
+import Control.Monad.Reader (runReaderT)
 import Data.Text (Text)
 import Data.Text.IO qualified as Text
-import PlutusCore (Name)
-import PlutusCore.Builtin (ToBuiltinMeaning (..))
+import PlutusCore (Name, SrcSpan, latestVersion)
 import PlutusCore.Compiler qualified as TPLC
+import PlutusCore.Core qualified as TPLC
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusCore.Error qualified as PCE
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel,
                                                           defaultCekMachineCosts)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters (..),
                                                         mkMachineParameters)
 import PlutusCore.Parser qualified as PC
-import PlutusCore.Quote (QuoteT, runQuoteT)
+import PlutusCore.Quote (runQuoteT)
 import PlutusCore.TypeCheck qualified as PLC
-import PlutusIR.Analysis.Builtins (BuiltinsInfo)
-import PlutusIR.Compiler (Provenance (Original), ccOpts, coPreserveLogging, noProvenance,
+import PlutusIR.Compiler (Provenance (..), ccOpts, coPreserveLogging, noProvenance,
                           toDefaultCompilationCtx)
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Core qualified as PIR
-import PlutusIR.Test (pTermAsProg)
-import PlutusIR.Transform.RewriteRules (RewriteRules)
-import UntypedPlutusCore.Core.Type (_progTerm)
-import UntypedPlutusCore.Core.Type qualified as UPLC
+import PlutusIR.Parser (pTerm)
+import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (CekValue, EvaluationResult (..), logEmitter,
                                                  unsafeEvaluateCek)
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts)
 
-makeCompilationCtx
-  :: ( Default (CostingPart uni fun)
-     , Default (BuiltinsInfo uni fun)
-     , Default (RewriteRules uni fun)
-     )
-  => PLC.TypeCheckConfig uni fun
-  -> PIR.CompilationCtx uni fun a
-makeCompilationCtx pirTcConfig =
-  toDefaultCompilationCtx pirTcConfig
-    & set (ccOpts . coPreserveLogging) True
-
-runCompilationM
-  :: ReaderT
-      (PIR.CompilationCtx DefaultUni DefaultFun ())
-      (QuoteT (ExceptT (PIR.Error DefaultUni DefaultFun (Provenance ())) Identity))
-      a
-  -> a
-runCompilationM m =
-  unsafeFromRight @(PIR.Error DefaultUni DefaultFun (Provenance ())) . runExcept $
-    runQuoteT do
-      pirTcConfig <- PLC.getDefTypeCheckConfig noProvenance
-      runReaderT m $ makeCompilationCtx pirTcConfig
-
-parsePirProgram
-  :: FilePath
-  -> IO (PIR.Program PIR.TyName PIR.Name DefaultUni DefaultFun (Provenance ()))
-parsePirProgram file = do
-  res <- runExceptT @(PCE.Error DefaultUni DefaultFun ()) $ runQuoteT do
-    contents <- liftIO $ Text.readFile file
-    PC.parseGen pTermAsProg contents
-  case res of
-    Left err -> fail $ show err
-    Right x  -> pure $ Original () <$ x
-
-evaluatePirFromFile
+pirTermFromFile
   :: (MonadIO m, MonadFail m)
   => FilePath
+  -> m (PIR.Term PIR.TyName PIR.Name DefaultUni DefaultFun SrcSpan)
+pirTermFromFile file = do
+  contents <- liftIO $ Text.readFile file
+  PC.parseGen pTerm contents
+    & runQuoteT
+    & handlePirErrorByFailing @SrcSpan
+
+pirTermAsProgram :: PIR.Term tyname name uni fun () -> PIR.Program tyname name uni fun ()
+pirTermAsProgram = PIR.Program () latestVersion
+
+evalPirProgramWithTracesOrFail
+  :: (MonadFail m)
+  => PIR.Program PIR.TyName PIR.Name DefaultUni DefaultFun ()
   -> m (EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ()), [Text])
-evaluatePirFromFile fp = do
-  program <- liftIO $ parsePirProgram fp
+evalPirProgramWithTracesOrFail pirProgram = do
+  plcProgram <- compilePirProgramOrFail pirProgram
+  evaluateUplcProgramWithTraces <$> compileTplcProgramOrFail plcProgram
 
-  pirTcConfig <-
-    PLC.getDefTypeCheckConfig noProvenance
-      & either (fail . show @(PCE.Error DefaultUni DefaultFun (Provenance ()))) pure
+compilePirProgramOrFail
+  :: (MonadFail m)
+  => PIR.Program PIR.TyName Name DefaultUni DefaultFun ()
+  -> m (TPLC.Program PIR.TyName Name DefaultUni DefaultFun ())
+compilePirProgramOrFail pirProgram = do
+  ctx <- defaultCompilationCtx & handlePirErrorByFailing
+  PIR.compileReadableToPlc (noProvenance <$ pirProgram)
+    & flip runReaderT (set (ccOpts . coPreserveLogging) True ctx)
+    & runQuoteT
+    & runExceptT
+    >>= \case
+      Left (er :: PIR.Error DefaultUni DefaultFun (Provenance ())) -> fail $ show er
+      Right p -> pure (void p)
 
-  plcProgram <-
-    PIR.compileReadableToPlc program
-      & flip runReaderT (makeCompilationCtx pirTcConfig)
-      & runQuoteT
-      & runExceptT
-      >>= \case
-        Left (er :: PIR.Error DefaultUni DefaultFun (Provenance ())) -> fail $ show er
-        Right p -> pure p
-
-  uplcTerm <- do
+compileTplcProgramOrFail
+  :: (MonadFail m)
+  => TPLC.Program PIR.TyName PIR.Name DefaultUni DefaultFun ()
+  -> m (UPLC.Program Name DefaultUni DefaultFun ())
+compileTplcProgramOrFail plcProgram =
+  handlePirErrorByFailing @SrcSpan =<< do
     TPLC.compileProgram plcProgram
       & flip runReaderT TPLC.defaultCompilationOpts
       & runQuoteT
       & runExceptT
-      >>= \case
-        Left (er :: PCE.Error DefaultUni DefaultFun (Provenance ())) -> fail $ show er
-        Right UPLC.Program{_progTerm} -> pure _progTerm
 
-  let costModel :: CostModel CekMachineCosts BuiltinCostModel =
-        CostModel defaultCekMachineCosts defaultBuiltinCostModel
+evaluateUplcProgramWithTraces
+  :: UPLC.Program Name DefaultUni DefaultFun ()
+  -> (EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ()), [Text])
+evaluateUplcProgramWithTraces uplcProg =
+  unsafeEvaluateCek logEmitter machineParameters (uplcProg ^. UPLC.progTerm)
+ where
+  costModel :: CostModel CekMachineCosts BuiltinCostModel =
+    CostModel defaultCekMachineCosts defaultBuiltinCostModel
+  machineParameters
+    :: MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ()) =
+      mkMachineParameters def costModel
 
-  let machineParameters
-        :: MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ()) =
-          mkMachineParameters def costModel
+defaultCompilationCtx
+  :: Either
+      (PIR.Error DefaultUni DefaultFun (Provenance ()))
+      (PIR.CompilationCtx DefaultUni DefaultFun a)
+defaultCompilationCtx = do
+  pirTcConfig <- PLC.getDefTypeCheckConfig noProvenance
+  pure $ toDefaultCompilationCtx pirTcConfig
 
-  pure $ unsafeEvaluateCek logEmitter machineParameters (void uplcTerm)
+handlePirErrorByFailing
+  :: (Pretty ann, MonadFail m) => Either (PIR.Error DefaultUni DefaultFun ann) a -> m a
+handlePirErrorByFailing = \case
+  Left e -> fail $ show e
+  Right x -> pure x
