@@ -1,3 +1,10 @@
+# This workflows ensures that the plutus-tx-template repository stays working 
+# even if there are changes in plutus. It checks out both the current commit of 
+# plutus and the master branch of plutus-tx-template. Then, it creates a 
+# cabal.project.local for plutus-tx-template that adjusts the plutus version. 
+# Finally, it double-checks that everything still builds correctly using cabal
+# inside the devx shell.
+
 name: Plutus Tx Template
 
 on:
