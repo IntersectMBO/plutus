@@ -10,19 +10,20 @@ jobs:
     steps:
 
       - name: Checkout plutus-tx-template
-        uses: actions/checkout@master
+        uses: actions/checkout@v4.1.4
         with: 
           repository: IntersectMBO/plutus-tx-template
           path: plutus-tx-template 
 
-      # plutus repo will be nested inside the plutus-tx-template repo
       - name: Checkout plutus
-        uses: actions/checkout@master
+        uses: actions/checkout@v4.1.4
+        with: 
+          path: plutus
   
       - name: Write cabal.project.local
-        uses: DamianReeves/write-file-action@master
+        uses: DamianReeves/write-file-action@v1.3
         with:
-          path: cabal.project.local
+          path: plutus-tx-template/cabal.project.local
           write-mode: overwrite
           contents: |
             packages: 
