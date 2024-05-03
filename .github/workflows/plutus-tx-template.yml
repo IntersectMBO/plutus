@@ -18,7 +18,7 @@ jobs:
       - name: Checkout plutus
         uses: actions/checkout@v4.1.4
         with: 
-          path: plutus
+          path: plutus-tx-template/plutus
   
       - name: Write cabal.project.local
         uses: DamianReeves/write-file-action@v1.3
@@ -42,10 +42,8 @@ jobs:
           
       - name: Build Project With Docker
         run: |
-          pwd
-          ls -la . 
-          ls -la ..
-
+          cd plutus-tx-template 
+          ls -la 
           docker run \
             -v ./.:/workspaces/plutus-tx-template \
             -w /workspaces/plutus-tx-template \
