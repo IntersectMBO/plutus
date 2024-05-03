@@ -18,7 +18,7 @@ jobs:
           nix_conf: |
             experimental-features = nix-command flakes
             accept-flake-config = true
-      - name: Build haddock site
+      - name: Build Haddock Site
         run: |
           nix build .#combined-haddock
           mkdir dist

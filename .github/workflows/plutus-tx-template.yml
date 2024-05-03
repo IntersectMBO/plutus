@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  test-plutus-tx-template:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+
+      - name: Build Project With Docker
+        run: |
+          # Note: the -i flag in "bash -ic" is necessary and causes bash to
+          # "source ~/.bashrc" which correctly populates the env.
+          docker run \
+            -v ./.:/workspaces/plutus-tx-template \
+            -w /workspaces/plutus-tx-template \
+            -i ghcr.io/input-output-hk/devx-devcontainer:x86_64-linux.ghc96-iog \
+            bash -ic "cabal update && cabal run plutus-tx-template && test -e validator.uplc"
