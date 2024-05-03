@@ -20,7 +20,7 @@ jobs:
       - name: Write cabal.project.local
         uses: DamianReeves/write-file-action@master
         with:
-          path: plutus-tx-template/cabal.project.local
+          path: cabal.project.local
           write-mode: overwrite
           contents: |
             packages: 
@@ -39,9 +39,12 @@ jobs:
           
       - name: Build Project With Docker
         run: |
-          ls -la 
+          ls -la . 
+          ls -la ..
+          
+          mv ../plutus .
           docker run \
-            -v plutus-tx-template:/workspaces/plutus-tx-template \
+            -v ./.:/workspaces/plutus-tx-template \
             -w /workspaces/plutus-tx-template \
             -i ghcr.io/input-output-hk/devx-devcontainer:x86_64-linux.ghc96-iog \
             bash -ic "cabal update && cabal run plutus-tx-template && test -e validator.uplc"
