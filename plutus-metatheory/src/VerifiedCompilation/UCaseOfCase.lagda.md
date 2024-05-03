@@ -57,7 +57,7 @@ data _⊢̂_⊳̂_ (X : Set) : (X ⊢) → (X ⊢) → Set where
                 → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip alts alts') -- recursive translation for the other case patterns
                 → X ⊢̂ p ⊳̂ p'
                 ------------------------
-                → X ⊢̂ case p alts ⊳̂ case p alts' 
+                → X ⊢̂ case p alts ⊳̂ case p' alts' 
    builtin : ∀ {b : Builtin} → X ⊢̂ builtin b ⊳̂ builtin b
    error : X ⊢̂ error ⊳̂ error
 
