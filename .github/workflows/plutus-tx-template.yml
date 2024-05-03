@@ -1,4 +1,4 @@
-name: plutus-tx Template
+name: Plutus Tx Template
 
 on:
   pull_request:
@@ -21,7 +21,7 @@ jobs:
         uses: DamianReeves/write-file-action@master
         with:
           path: plutus-tx-template/cabal.project.local
-          write-mode: write
+          write-mode: overwrite
           contents: |
             packages: 
               plutus/plutus-tx
