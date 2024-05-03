@@ -78,7 +78,7 @@ instance FromJSON Model where
              {- We always have an "arguments" field which is a Value.  Usually it's
                 actually an Object (ie, a map) representing a linear function, but
                 sometimes it contains other data, and in those cases we need to
-                coerce it to an Object (with objOf) to extract the relevant date.
+                coerce it to an Object (with objOf) to extract the relevant data.
                 We could do that once here and rely on laziness to save us in the
                 cases when we don't have an Object, but that looks a bit misleading. -}
              case ty of
@@ -93,19 +93,30 @@ instance FromJSON Model where
                "quadratic_in_y"              -> QuadraticInY          <$> parseJSON args
                "quadratic_in_z"              -> QuadraticInZ          <$> parseJSON args
                "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
-               "subtracted_sizes"            ->
-                  SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
-               "const_above_diagonal"        ->
-                  ConstAboveDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "const_below_diagonal"        ->
-                  ConstBelowDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "const_off_diagonal"      ->
-                  ConstOffDiagonal      <$> objOf args .: "constant" <*> objOf args .: "model"
-               _                             -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
+               "subtracted_sizes"            -> SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
+               "const_above_diagonal"        -> modelWithConstant ConstAboveDiagonal args
+               "const_below_diagonal"        -> modelWithConstant ConstBelowDiagonal args
+               "const_off_diagonal"          -> modelWithConstant ConstOffDiagonal   args
+               {- An adaptor to deal with the old "linear_on_diagonal" tag.  See Note [Backward
+                  compatibility for costing functions].  We never want to convert back to JSON
+                  here, so it's OK to forget that we originally got something tagged with
+                 "linear_on_diagonal". -}
+               "linear_on_diagonal" ->
+                 let o = objOf args
+                 in do
+                   constant   <- o  .: "constant"
+                   intercept  <- o .: "intercept"
+                   slope      <- o .: "slope"
+                   pure $ ConstOffDiagonal constant (LinearInX $ LinearFunction intercept slope)
+
+               _ -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
 
                where objOf (Object o) = o
                      objOf _          =
                       errorWithoutStackTrace "Failed to get Object while parsing \"arguments\""
+
+                     modelWithConstant constr x = constr <$>  o .: "constant" <*> o .: "model"
+                       where o = objOf x
 
 {- | A CPU usage modelling function and a memory usage modelling function bundled
    together -}
