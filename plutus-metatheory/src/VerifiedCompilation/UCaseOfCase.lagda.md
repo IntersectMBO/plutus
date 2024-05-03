@@ -82,7 +82,7 @@ This can just traverse the ASTs applying the constructors from the transition re
 We can show that this translation never alters the semantics of the statement. This is shown
 in terms of the CEK machine evaluation. Since it is a simple re-arrangement of the syntax, it
 isn't a refinement argument - the state before and after the operation is the same type, and is
-unaltered buy the syntax re-arrangement.
+unaltered by the syntax re-arrangement.
 
 This does rely on the encoding of the semantics of `IfThenElse` in the CEK module, since we
 need to show that the effective list of cases is the same as it would have been without the re-arrangement.
