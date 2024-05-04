@@ -93,11 +93,13 @@ criterionMainWith phase defCfg bs =
             runAndAnalyse shouldRun bsgroup
       where bsgroup = BenchGroup "" bs
 
+-- Select the benchmarks to be run.  If a pattern is specified on the command
+-- line then only the matching benchmarks will be run.  If there are no matching
+-- benchmarks then the command will stil succeed (with no error or warning), but
+-- nothing will be benchmarked.
 selectBenches :: MatchType -> [String] -> Benchmark -> IO (String -> Bool)
 selectBenches matchType benches bsgroup = do
   toRun <- either parseError return . makeMatcher matchType $ benches
-  unless (null benches || any toRun (benchNames bsgroup)) $
-    parseError "none of the specified names matches a benchmark"
   return toRun
 
 parseError :: String -> IO a
