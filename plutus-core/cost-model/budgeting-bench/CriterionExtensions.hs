@@ -2,7 +2,6 @@
 
 module CriterionExtensions (criterionMainWith, BenchmarkingPhase(..)) where
 
-import Control.Monad (unless)
 import Control.Monad.Trans (liftIO)
 import Criterion.Internal (runAndAnalyse, runFixedIters)
 import Criterion.IO.Printf (printError, writeCsv)
@@ -83,12 +82,12 @@ criterionMainWith phase defCfg bs =
       RunIters cfg iters matchType benches ->
           withConfig cfg $ do
             () <- initCsvFile phase cfg
-            shouldRun <- liftIO $ selectBenches matchType benches bsgroup
+            shouldRun <- liftIO $ selectBenches matchType benches
             runFixedIters iters shouldRun bsgroup
       Run cfg matchType benches ->
           withConfig cfg $ do
             () <- initCsvFile phase cfg
-            shouldRun <- liftIO $ selectBenches matchType benches bsgroup
+            shouldRun <- liftIO $ selectBenches matchType benches
             liftIO initializeTime
             runAndAnalyse shouldRun bsgroup
       where bsgroup = BenchGroup "" bs
@@ -97,8 +96,8 @@ criterionMainWith phase defCfg bs =
 -- line then only the matching benchmarks will be run.  If there are no matching
 -- benchmarks then the command will stil succeed (with no error or warning), but
 -- nothing will be benchmarked.
-selectBenches :: MatchType -> [String] -> Benchmark -> IO (String -> Bool)
-selectBenches matchType benches bsgroup = do
+selectBenches :: MatchType -> [String] -> IO (String -> Bool)
+selectBenches matchType benches = do
   toRun <- either parseError return . makeMatcher matchType $ benches
   return toRun
 
