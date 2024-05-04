@@ -61,11 +61,6 @@ main = do
 
   {- Run the nop benchmarks with a large time limit (30 seconds) in an attempt to
      get accurate results. -}
-  -- FIXME: this doesn't quite work.  If you specify a benchmark name on the
-  -- command line and it's in the first group then it'll run but you'll get an
-  -- error when the argument gets passed to the nop benchmarks below (but the
-  -- data will still be generated and saved in benching.csv).
-
   criterionMainWith
        Continue
        (defaultConfig { C.timeLimit = 30 }) $
