@@ -100,6 +100,12 @@ Another example is if a security audit is done on `rc1`, and the changes in `rc2
 - Update the CHaP index state in `cabal.project`.
 - Update the CHaP flake input with `nix flake update CHaP`.  If you get "error: cannot find flake 'flake:CHaP' in the flake registries" your nix installation probably needs to be updated.
 
+9. Make a PR to update the version used in `plutus-tx-template`
+- Navigate to the https://github.com/IntersectMBO/plutus-tx-template/actions/workflows/bump-plutus-version.yml[Bump Plutus Version Action] on GitHub
+- Click the `Run workflow` button on the right, enter the new release version and confirm
+- This will automatically open a PR in `plutus-tx-template` with auto-merge enabled
+- Ensure that CI is green and the PR gets merged
+
 === Patch Releases
 
 Suppose we are releasing version `x.y.z.w`.

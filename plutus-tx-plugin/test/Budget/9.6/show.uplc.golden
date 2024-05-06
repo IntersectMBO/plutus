@@ -423,4 +423,4 @@ program
                       (delay (constr 1 [(remainderInteger n 10), acc]))
                       (delay (go (constr 1 [(remainderInteger n 10), acc]) x))))
                 (quotientInteger n 10))))
-     (\f -> (\s -> s s) (\s x -> f (s s) x)))
+     (\f -> (\s -> s s) (\s -> f (\x -> s s x))))

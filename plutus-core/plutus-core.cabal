@@ -628,6 +628,8 @@ test-suite plutus-ir-test
     PlutusIR.Transform.Rename.Tests
     PlutusIR.Transform.RewriteRules.Tests
     PlutusIR.Transform.StrictifyBindings.Tests
+    PlutusIR.Transform.StrictLetRec.Tests
+    PlutusIR.Transform.StrictLetRec.Tests.Lib
     PlutusIR.Transform.ThunkRecursions.Tests
     PlutusIR.Transform.Unwrap.Tests
     PlutusIR.TypeCheck.Tests
@@ -636,6 +638,7 @@ test-suite plutus-ir-test
   build-depends:
     , base                                                       >=4.9   && <5
     , containers
+    , filepath
     , flat                                                       ^>=0.6
     , hashable
     , hedgehog
