@@ -3,222 +3,23 @@
   (termbind
     (strict)
     (vardecl
-      fixBy
-      (all
-        F
-        (fun (type) (type))
-        (fun
-          (fun (all Q (type) (fun [ F Q ] Q)) (all Q (type) (fun [ F Q ] Q)))
-          (fun
-            (all Q (type) (fun [ F Q ] [ F Q ])) (all Q (type) (fun [ F Q ] Q))
-          )
-        )
-      )
+      fix1
+      (all a (type) (all b (type) (fun (fun (fun a b) (fun a b)) (fun a b))))
     )
     (abs
-      F
-      (fun (type) (type))
-      (lam
-        by
-        (fun (all Q (type) (fun [ F Q ] Q)) (all Q (type) (fun [ F Q ] Q)))
-        [
-          {
+      a
+      (type)
+      (abs
+        b
+        (type)
+        (lam
+          f
+          (fun (fun a b) (fun a b))
+          [
             {
               (abs
                 a
                 (type)
-                (abs
-                  b
-                  (type)
-                  (lam
-                    f
-                    (fun (fun a b) (fun a b))
-                    [
-                      {
-                        (abs
-                          a
-                          (type)
-                          (lam
-                            s
-                            [
-                              (lam
-                                a
-                                (type)
-                                (ifix
-                                  (lam
-                                    self
-                                    (fun (type) (type))
-                                    (lam a (type) (fun [ self a ] a))
-                                  )
-                                  a
-                                )
-                              )
-                              a
-                            ]
-                            [ (unwrap s) s ]
-                          )
-                        )
-                        (fun a b)
-                      }
-                      (iwrap
-                        (lam
-                          self
-                          (fun (type) (type))
-                          (lam a (type) (fun [ self a ] a))
-                        )
-                        (fun a b)
-                        (lam
-                          s
-                          [
-                            (lam
-                              a
-                              (type)
-                              (ifix
-                                (lam
-                                  self
-                                  (fun (type) (type))
-                                  (lam a (type) (fun [ self a ] a))
-                                )
-                                a
-                              )
-                            )
-                            (fun a b)
-                          ]
-                          [
-                            f
-                            (lam
-                              x
-                              a
-                              [
-                                [
-                                  {
-                                    (abs
-                                      a
-                                      (type)
-                                      (lam
-                                        s
-                                        [
-                                          (lam
-                                            a
-                                            (type)
-                                            (ifix
-                                              (lam
-                                                self
-                                                (fun (type) (type))
-                                                (lam
-                                                  a (type) (fun [ self a ] a)
-                                                )
-                                              )
-                                              a
-                                            )
-                                          )
-                                          a
-                                        ]
-                                        [ (unwrap s) s ]
-                                      )
-                                    )
-                                    (fun a b)
-                                  }
-                                  s
-                                ]
-                                x
-                              ]
-                            )
-                          ]
-                        )
-                      )
-                    ]
-                  )
-                )
-              )
-              (all Q (type) (fun [ F Q ] [ F Q ]))
-            }
-            (all Q (type) (fun [ F Q ] Q))
-          }
-          (lam
-            rec
-            (fun
-              (all Q (type) (fun [ F Q ] [ F Q ]))
-              (all Q (type) (fun [ F Q ] Q))
-            )
-            (lam
-              h
-              (all Q (type) (fun [ F Q ] [ F Q ]))
-              (abs
-                R
-                (type)
-                (lam
-                  fr
-                  [ F R ]
-                  [
-                    {
-                      [
-                        by
-                        (abs
-                          Q
-                          (type)
-                          (lam fq [ F Q ] [ { [ rec h ] Q } [ { h Q } fq ] ])
-                        )
-                      ]
-                      R
-                    }
-                    fr
-                  ]
-                )
-              )
-            )
-          )
-        ]
-      )
-    )
-  )
-  (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl
-        fix1
-        (all a (type) (all b (type) (fun (fun (fun a b) (fun a b)) (fun a b))))
-      )
-      (abs
-        a
-        (type)
-        (abs
-          b
-          (type)
-          (lam
-            f
-            (fun (fun a b) (fun a b))
-            [
-              {
-                (abs
-                  a
-                  (type)
-                  (lam
-                    s
-                    [
-                      (lam
-                        a
-                        (type)
-                        (ifix
-                          (lam
-                            self
-                            (fun (type) (type))
-                            (lam a (type) (fun [ self a ] a))
-                          )
-                          a
-                        )
-                      )
-                      a
-                    ]
-                    [ (unwrap s) s ]
-                  )
-                )
-                (fun a b)
-              }
-              (iwrap
-                (lam self (fun (type) (type)) (lam a (type) (fun [ self a ] a)))
-                (fun a b)
                 (lam
                   s
                   [
@@ -234,96 +35,120 @@
                         a
                       )
                     )
-                    (fun a b)
+                    a
                   ]
-                  [
-                    f
-                    (lam
-                      x
-                      a
-                      [
-                        [
-                          {
-                            (abs
-                              a
-                              (type)
-                              (lam
-                                s
-                                [
-                                  (lam
-                                    a
-                                    (type)
-                                    (ifix
-                                      (lam
-                                        self
-                                        (fun (type) (type))
-                                        (lam a (type) (fun [ self a ] a))
-                                      )
-                                      a
-                                    )
-                                  )
-                                  a
-                                ]
-                                [ (unwrap s) s ]
-                              )
-                            )
-                            (fun a b)
-                          }
-                          s
-                        ]
-                        x
-                      ]
-                    )
-                  ]
+                  [ (unwrap s) s ]
                 )
               )
-            ]
-          )
-        )
-      )
-    )
-    [
-      (lam
-        tup
-        (all r (type) (fun (fun (fun (con integer) (con integer)) r) r))
-        (let
-          (nonrec)
-          (termbind
-            (strict)
-            (vardecl xxx (fun (con integer) (con integer)))
-            [
-              { tup (fun (con integer) (con integer)) }
-              (lam arg_0 (fun (con integer) (con integer)) arg_0)
-            ]
-          )
-          (con integer 1)
-        )
-      )
-      (abs
-        r
-        (type)
-        (lam
-          f
-          (fun (fun (con integer) (con integer)) r)
-          [
-            f
-            [
-              { { fix1 (con integer) } (con integer) }
+              (fun a b)
+            }
+            (iwrap
+              (lam self (fun (type) (type)) (lam a (type) (fun [ self a ] a)))
+              (fun a b)
               (lam
-                xxx
-                (fun (con integer) (con integer))
+                s
                 [
-                  [
-                    { (builtin trace) (fun (con integer) (con integer)) }
-                    (con string "hello")
-                  ]
-                  (lam z (con integer) [ xxx z ])
+                  (lam
+                    a
+                    (type)
+                    (ifix
+                      (lam
+                        self
+                        (fun (type) (type))
+                        (lam a (type) (fun [ self a ] a))
+                      )
+                      a
+                    )
+                  )
+                  (fun a b)
+                ]
+                [
+                  f
+                  (lam
+                    x
+                    a
+                    [
+                      [
+                        {
+                          (abs
+                            a
+                            (type)
+                            (lam
+                              s
+                              [
+                                (lam
+                                  a
+                                  (type)
+                                  (ifix
+                                    (lam
+                                      self
+                                      (fun (type) (type))
+                                      (lam a (type) (fun [ self a ] a))
+                                    )
+                                    a
+                                  )
+                                )
+                                a
+                              ]
+                              [ (unwrap s) s ]
+                            )
+                          )
+                          (fun a b)
+                        }
+                        s
+                      ]
+                      x
+                    ]
+                  )
                 ]
               )
-            ]
+            )
           ]
         )
       )
-    ]
+    )
   )
+  [
+    (lam
+      tup
+      (all r (type) (fun (fun (fun (con integer) (con integer)) r) r))
+      (let
+        (nonrec)
+        (termbind
+          (strict)
+          (vardecl xxx (fun (con integer) (con integer)))
+          [
+            { tup (fun (con integer) (con integer)) }
+            (lam arg_0 (fun (con integer) (con integer)) arg_0)
+          ]
+        )
+        (con integer 1)
+      )
+    )
+    (abs
+      r
+      (type)
+      (lam
+        f
+        (fun (fun (con integer) (con integer)) r)
+        [
+          f
+          [
+            { { fix1 (con integer) } (con integer) }
+            (lam
+              xxx
+              (fun (con integer) (con integer))
+              [
+                [
+                  { (builtin trace) (fun (con integer) (con integer)) }
+                  (con string "hello")
+                ]
+                (lam z (con integer) [ xxx z ])
+              ]
+            )
+          ]
+        ]
+      )
+    )
+  ]
 )
