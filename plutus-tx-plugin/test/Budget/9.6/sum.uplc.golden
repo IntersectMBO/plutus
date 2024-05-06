@@ -5,11 +5,9 @@ program
          (\z ->
             (\go eta -> go eta)
               ((\s -> s s)
-                 (\s x ->
-                    (\go ->
-                       force
-                         (case x [(delay z), (\x xs -> delay (f x (go xs)))]))
-                      (s s))))
+                 (\s ds ->
+                    force
+                      (case ds [(delay z), (\x xs -> delay (f x (s s xs)))]))))
            (case `$dAdditiveMonoid` [(\v v -> v)]))
         (case `$dAdditiveMonoid` [(\v v -> v)])
         (constr 1
