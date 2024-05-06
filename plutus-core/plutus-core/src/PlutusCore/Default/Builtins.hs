@@ -27,6 +27,7 @@ import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Pretty (PrettyConfigPlc)
 
 import PlutusCore.Bitwise.Convert as Convert
+import PlutusCore.Bitwise.Logical as Logical
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -152,6 +153,14 @@ data DefaultFun
     -- Conversions
     | IntegerToByteString
     | ByteStringToInteger
+    -- Logical
+    | BitwiseLogicalAnd
+    | BitwiseLogicalOr
+    | BitwiseLogicalXor
+    | BitwiseLogicalComplement
+    | ReadBit
+    | WriteBits
+    | ByteStringReplicate
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1820,6 +1829,57 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
             (runCostingFunTwoArguments . paramByteStringToInteger)
+    -- Logical
+    toBuiltinMeaning _semvar BitwiseLogicalAnd =
+      let bitwiseLogicalAndDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+          bitwiseLogicalAndDenotation = Logical.bitwiseLogicalAnd
+          {-# INLINE bitwiseLogicalAndDenotation #-}
+        in makeBuiltinMeaning
+            bitwiseLogicalAndDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+    toBuiltinMeaning _semvar BitwiseLogicalOr =
+      let bitwiseLogicalOrDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+          bitwiseLogicalOrDenotation = Logical.bitwiseLogicalOr
+          {-# INLINE bitwiseLogicalOrDenotation #-}
+        in makeBuiltinMeaning
+          bitwiseLogicalOrDenotation
+          (runCostingFunThreeArguments . unimplementedCostingFun)
+    toBuiltinMeaning _semvar BitwiseLogicalXor =
+      let bitwiseLogicalXorDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+          bitwiseLogicalXorDenotation = Logical.bitwiseLogicalXor
+          {-# INLINE bitwiseLogicalXorDenotation #-}
+        in makeBuiltinMeaning
+          bitwiseLogicalXorDenotation
+          (runCostingFunThreeArguments . unimplementedCostingFun)
+    toBuiltinMeaning _semvar BitwiseLogicalComplement =
+      let bitwiseLogicalComplementDenotation :: BS.ByteString -> BS.ByteString
+          bitwiseLogicalComplementDenotation = Logical.bitwiseLogicalComplement
+          {-# INLINE bitwiseLogicalComplementDenotation #-}
+        in makeBuiltinMeaning
+          bitwiseLogicalComplementDenotation
+          (runCostingFunOneArgument . unimplementedCostingFun)
+    toBuiltinMeaning _semvar ReadBit =
+      let readBitDenotation :: BS.ByteString -> Int -> BuiltinResult Bool
+          readBitDenotation = Logical.readBit
+          {-# INLINE readBitDenotation #-}
+        in makeBuiltinMeaning
+          readBitDenotation
+          (runCostingFunTwoArguments . unimplementedCostingFun)
+    toBuiltinMeaning _semvar WriteBits =
+      let writeBitsDenotation :: BS.ByteString -> [(Integer, Bool)] -> BuiltinResult BS.ByteString
+          writeBitsDenotation = Logical.writeBits
+          {-# INLINE writeBitsDenotation #-}
+        in makeBuiltinMeaning
+            writeBitsDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+    toBuiltinMeaning _semvar ByteStringReplicate =
+      let byteStringReplicateDenotation :: Int -> Word8 -> BuiltinResult BS.ByteString
+          byteStringReplicateDenotation = Logical.byteStringReplicate
+          {-# INLINE byteStringReplicateDenotation #-}
+        in makeBuiltinMeaning
+            byteStringReplicateDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1947,6 +2007,14 @@ instance Flat DefaultFun where
               IntegerToByteString             -> 73
               ByteStringToInteger             -> 74
 
+              BitwiseLogicalAnd               -> 75
+              BitwiseLogicalOr                -> 76
+              BitwiseLogicalXor               -> 77
+              BitwiseLogicalComplement        -> 78
+              ReadBit                         -> 79
+              WriteBits                       -> 80
+              ByteStringReplicate             -> 81
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -2023,6 +2091,13 @@ instance Flat DefaultFun where
               go 72 = pure Blake2b_224
               go 73 = pure IntegerToByteString
               go 74 = pure ByteStringToInteger
+              go 75 = pure BitwiseLogicalAnd
+              go 76 = pure BitwiseLogicalOr
+              go 77 = pure BitwiseLogicalXor
+              go 78 = pure BitwiseLogicalComplement
+              go 79 = pure ReadBit
+              go 80 = pure WriteBits
+              go 81 = pure ByteStringReplicate
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
