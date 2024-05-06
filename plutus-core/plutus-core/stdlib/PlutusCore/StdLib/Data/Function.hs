@@ -79,6 +79,51 @@ applyFun = runQuote $ do
         . lamAbs () x (TyVar () a)
         $ apply () (var () f) (var () x)
 
+{- Note [Recursion combinators]
+We create singly recursive and mutually recursive functions using different combinators.
+
+For singly recursive functions we use the Z combinator (a strict cousin of the Y combinator) that in
+UPLC looks like this:
+
+    \f -> (\s -> s s) (\s -> f (\x -> s s x))
+
+We have benchmarked its Haskell version at
+  https://github.com/IntersectMBO/plutus/tree/9538fc9829426b2ecb0628d352e2d7af96ec8204/doc/notes/fomega/z-combinator-benchmarks
+and observed that in Haskell there's no detectable difference in performance of functions defined
+using explicit recursion versus the Z combinator. However Haskell is a compiled language and Plutus
+is interpreted, so it's very likely that natively supporting recursion in Plutus instead of
+compiling recursive functions to combinators would significantly boost performance.
+
+We've tried using
+
+   \f -> (\s -> s s) (\s x -> f (s s) x)
+
+instead of
+
+   \f -> (\s -> s s) (\s -> f (\x -> s s x))
+
+and while it worked OK at the PLC level, it wasn't a suitable primitive for compilation of recursive
+functions, because it would add laziness in unexpected places, see
+  https://github.com/IntersectMBO/plutus/issues/5961
+so we had to change it.
+
+We use
+
+   \f -> (\s -> s s) (\s x -> f (s s) x)
+
+instead of the more standard
+
+   \f -> (\s x -> f (s s) x) (\s x -> f (s s) x)
+
+because in practice @f@ gets inlined and we wouldn't be able to do so if it occurred twice in the
+term. Plus the former also allows us to save on the size of the term.
+
+For mutually recursive functions we use the 'fixBy' combinator, which is, to the best of our
+knowledge, our own invention. It was first described at
+  https://github.com/IntersectMBO/plutus/blob/067e74f0606fddc5e183dd45209b461e293a6224/doc/notes/fomega/mutual-term-level-recursion/FixN.agda
+and fully specified in our "Unraveling recursion: compiling an IR with recursion to System F" paper.
+-}
+
 -- | @Self@ as a PLC type.
 --
 -- > fix \(self :: * -> *) (a :: *) -> self a -> a
@@ -141,7 +186,6 @@ fixAndType = runQuote $ do
             . TyForall () b (Type ())
             $ TyFun () (TyFun () funAB funAB) funAB
     pure (fixTerm, fixType)
-
 
 -- | A type that looks like a transformation.
 --
@@ -335,6 +379,7 @@ fixNAndType n fixByTerm = runQuote $ do
               ]
     pure (fixNTerm, fixNType)
 
+-- See Note [Recursion combinators].
 -- | Get the fixed-point of a single recursive function.
 getSingleFixOf
     :: (TermLike term TyName Name uni fun)
@@ -344,6 +389,7 @@ getSingleFixOf ann fix1 fun@FunctionDef{_functionDefType=(FunctionType _ dom cod
         abstractedBody = mkIterLamAbs [functionDefVarDecl fun] $ _functionDefTerm fun
     in apply ann instantiatedFix abstractedBody
 
+-- See Note [Recursion combinators].
 -- | Get the fixed-point of a list of mutually recursive functions.
 --
 -- > MutualFixOf _ fixN [ FunctionDef _ fN1 (FunctionType _ a1 b1) f1
