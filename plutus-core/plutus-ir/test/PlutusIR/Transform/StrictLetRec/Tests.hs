@@ -5,24 +5,30 @@ module PlutusIR.Transform.StrictLetRec.Tests where
 
 import PlutusPrelude
 
-import Control.Monad.Except (runExcept)
-import Control.Monad.Reader (runReaderT)
 import PlutusCore.Default (someValue)
 import PlutusCore.MkPlc (constant)
+import PlutusCore.Pretty (AsReadable (..))
 import PlutusCore.Quote (runQuoteT)
+import PlutusCore.Version (latestVersion)
 import PlutusIR.Compiler.Let (LetKind (RecTerms), compileLetsPassSC)
 import PlutusIR.Compiler.Provenance (noProvenance)
+import PlutusIR.Core qualified as PIR
 import PlutusIR.Parser (pTerm)
 import PlutusIR.Pass.Test (runTestPass)
 import PlutusIR.Test (goldenPirM)
-import PlutusIR.Transform.StrictLetRec.Tests.Lib (defaultCompilationCtx,
+import PlutusIR.Transform.StrictLetRec.Tests.Lib (compilePirProgramOrFail, compileTplcProgramOrFail,
+                                                  defaultCompilationCtx,
                                                   evalPirProgramWithTracesOrFail, pirTermAsProgram,
                                                   pirTermFromFile)
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek (EvaluationResult (..))
+
+import Control.Monad.Except (runExcept)
+import Control.Monad.Reader (runReaderT)
 import System.FilePath.Posix (joinPath, (</>))
 import Test.Tasty (TestTree)
 import Test.Tasty.Extras (runTestNestedIn, testNested)
 import Test.Tasty.HUnit (testCase, (@?=))
-import UntypedPlutusCore.Evaluation.Machine.Cek (EvaluationResult (..))
 
 path :: [FilePath]
 path = ["plutus-ir", "test", "PlutusIR", "Transform"]
@@ -32,14 +38,17 @@ test_letRec = runTestNestedIn path do
   testNested
     "StrictLetRec"
     [ let
-        runCompilationM m = either (fail . show) pure do
-          ctx <- defaultCompilationCtx
-          runExcept . runQuoteT $ runReaderT m ctx
+        op pirTermBefore = do
+          pirTermAfter <- either (fail . show) pure do
+              ctx <- defaultCompilationCtx
+              let action = fmap void . runTestPass (`compileLetsPassSC` RecTerms) $
+                    noProvenance <$ pirTermBefore
+              runExcept . runQuoteT $ runReaderT action ctx
+          tplcProg <- compilePirProgramOrFail $ PIR.Program () latestVersion pirTermAfter
+          uplcProg <- compileTplcProgramOrFail tplcProg
+          pure . AsReadable $ UPLC._progTerm uplcProg
        in
-        goldenPirM
-          (runCompilationM . runTestPass (`compileLetsPassSC` RecTerms))
-          (const noProvenance <<$>> pTerm)
-          "strictLetRec"
+        goldenPirM op pTerm "strictLetRec"
     , pure $ testCase "traces" do
         (result, traces) <- do
           pirTerm <- pirTermFromFile (joinPath path </> "StrictLetRec" </> "strictLetRec")
