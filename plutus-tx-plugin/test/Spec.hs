@@ -1,7 +1,7 @@
 module Main (main) where
 
 import AsData.Budget.Spec qualified as AsData.Budget
-import AssocList.Spec qualified as AssocList
+import AssocMap.Spec qualified as AssocMap
 import Blueprint.Tests qualified
 import Budget.Spec qualified as Budget
 import IntegerLiterals.NoStrict.NegativeLiterals.Spec qualified
@@ -21,7 +21,7 @@ import TH.Spec qualified as TH
 import Unicode.Spec qualified as Unicode
 
 main :: IO ()
-main = defaultMain $ testGroup "" [runTestNestedIn ["test"] tests, AssocList.propertyTests]
+main = defaultMain $ testGroup "" [runTestNestedIn ["test"] tests, AssocMap.propertyTests]
 
 tests :: TestNested
 tests =
@@ -43,5 +43,5 @@ tests =
       , Strictness.tests
       , Blueprint.Tests.goldenTests
       , pure Unicode.tests
-      , AssocList.goldenTests
+      , AssocMap.goldenTests
       ]
