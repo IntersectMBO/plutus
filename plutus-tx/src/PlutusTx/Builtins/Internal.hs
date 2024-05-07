@@ -33,6 +33,7 @@ import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import GHC.Generics (Generic)
 import PlutusCore.Bitwise.Convert qualified as Convert
+import PlutusCore.Bitwise.Logical qualified as Logical
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -706,3 +707,78 @@ byteStringToInteger
     -> BuiltinInteger
 byteStringToInteger (BuiltinBool statedEndianness) (BuiltinByteString input) =
   Convert.byteStringToIntegerWrapper statedEndianness input
+
+{-
+LOGICAL
+-}
+
+{-# NOINLINE bitwiseLogicalAnd #-}
+bitwiseLogicalAnd ::
+  BuiltinBool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+bitwiseLogicalAnd (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
+  BuiltinByteString . Logical.bitwiseLogicalAnd isPaddingSemantics data1 $ data2
+
+{-# NOINLINE bitwiseLogicalOr #-}
+bitwiseLogicalOr ::
+  BuiltinBool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+bitwiseLogicalOr (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
+  BuiltinByteString . Logical.bitwiseLogicalOr isPaddingSemantics data1 $ data2
+
+{-# NOINLINE bitwiseLogicalXor #-}
+bitwiseLogicalXor ::
+  BuiltinBool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+bitwiseLogicalXor (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
+  BuiltinByteString . Logical.bitwiseLogicalXor isPaddingSemantics data1 $ data2
+
+{-# NOINLINE bitwiseLogicalComplement #-}
+bitwiseLogicalComplement ::
+  BuiltinByteString ->
+  BuiltinByteString
+bitwiseLogicalComplement (BuiltinByteString bs) =
+  BuiltinByteString . Logical.bitwiseLogicalComplement $ bs
+
+{-# NOINLINE readBit #-}
+readBit ::
+  BuiltinByteString ->
+  BuiltinInteger ->
+  BuiltinBool
+readBit (BuiltinByteString bs) i =
+  case Logical.readBit bs (fromIntegral i) of
+    BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
+      Haskell.error "readBit errored."
+    BuiltinSuccess b -> BuiltinBool b
+    BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
+
+{-# NOINLINE writeBits #-}
+writeBits ::
+  BuiltinByteString ->
+  BuiltinList (BuiltinPair BuiltinInteger BuiltinBool) ->
+  BuiltinByteString
+writeBits (BuiltinByteString bs) (BuiltinList xs) =
+  let unwrapped = fmap (\(BuiltinPair (i, BuiltinBool b)) -> (i, b)) xs in
+    case Logical.writeBits bs unwrapped of
+      BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
+        Haskell.error "writeBits errored."
+      BuiltinSuccess bs' -> BuiltinByteString bs'
+      BuiltinSuccessWithLogs logs bs' -> traceAll logs $ BuiltinByteString bs'
+
+{-# NOINLINE byteStringReplicate #-}
+byteStringReplicate ::
+  BuiltinInteger ->
+  BuiltinInteger ->
+  BuiltinByteString
+byteStringReplicate n w8 =
+  case Logical.byteStringReplicate (fromIntegral n) (fromIntegral w8) of
+    BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
+      Haskell.error "byteStringReplicate errored."
+    BuiltinSuccess bs -> BuiltinByteString bs
+    BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs

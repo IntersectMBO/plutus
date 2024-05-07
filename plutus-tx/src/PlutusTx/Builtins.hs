@@ -106,8 +106,17 @@ module PlutusTx.Builtins (
                          , toBuiltin
                          , integerToByteString
                          , byteStringToInteger
+                         -- * Logical
+                         , bitwiseLogicalAnd
+                         , bitwiseLogicalOr
+                         , bitwiseLogicalXor
+                         , bitwiseLogicalComplement
+                         , readBit
+                         , writeBits
+                         , byteStringReplicate
                          ) where
 
+import Data.Functor (fmap)
 import Data.Maybe
 import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
@@ -637,3 +646,131 @@ integerToByteString endianness = BI.integerToByteString (toBuiltin (byteOrderToB
 byteStringToInteger :: ByteOrder -> BuiltinByteString -> Integer
 byteStringToInteger endianness =
   BI.byteStringToInteger (toBuiltin (byteOrderToBool endianness))
+
+-- Logical operations
+
+-- | Perform logical AND on two 'BuiltinByteString' arguments, as described
+-- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinlogicaland).
+--
+-- The first argument indicates whether padding semantics should be used or not;
+-- if 'False', truncation semantics will be used instead.
+--
+-- = See also
+--
+-- * [Padding and truncation
+-- semantics](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#padding-versus-truncation-semantics)
+-- * [Bit indexing
+-- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#bit-indexing-scheme)
+{-# INLINEABLE bitwiseLogicalAnd #-}
+bitwiseLogicalAnd ::
+  Bool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+bitwiseLogicalAnd b = BI.bitwiseLogicalAnd (toBuiltin b)
+
+-- | Perform logical OR on two 'BuiltinByteString' arguments, as described
+-- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinlogicalor).
+--
+-- The first argument indicates whether padding semantics should be used or not;
+-- if 'False', truncation semantics will be used instead.
+--
+-- = See also
+--
+-- * [Padding and truncation
+-- semantics](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#padding-versus-truncation-semantics)
+-- * [Bit indexing
+-- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#bit-indexing-scheme)
+{-# INLINEABLE bitwiseLogicalOr #-}
+bitwiseLogicalOr ::
+  Bool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+bitwiseLogicalOr b = BI.bitwiseLogicalOr (toBuiltin b)
+
+-- | Perform logical XOR on two 'BuiltinByteString' arguments, as described
+-- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinlogicalxor).
+--
+-- The first argument indicates whether padding semantics should be used or not;
+-- if 'False', truncation semantics will be used instead.
+--
+-- = See also
+--
+-- * [Padding and truncation
+-- semantics](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#padding-versus-truncation-semantics)
+-- * [Bit indexing
+-- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#bit-indexing-scheme)
+{-# INLINEABLE bitwiseLogicalXor #-}
+bitwiseLogicalXor ::
+  Bool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+bitwiseLogicalXor b = BI.bitwiseLogicalXor (toBuiltin b)
+
+-- | Perform logical complement on a 'BuiltinByteString', as described
+-- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinlogicalcomplement).
+--
+-- = See also
+--
+-- * [Bit indexing
+-- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#bit-indexing-scheme)
+{-# INLINEABLE bitwiseLogicalComplement #-}
+bitwiseLogicalComplement ::
+  BuiltinByteString ->
+  BuiltinByteString
+bitwiseLogicalComplement = BI.bitwiseLogicalComplement
+
+-- | Read a bit at the _bit_ index given by the 'Integer' argument in the
+-- 'BuiltinByteString' argument. The result will be 'True' if the corresponding bit is set, and
+-- 'False' if it is clear. Will error if given an out-of-bounds index argument; that is, if the
+-- index is either negative, or equal to or greater than the total number of bits in the
+-- 'BuiltinByteString' argument.
+--
+-- = See also
+--
+-- * [Bit indexing
+-- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#bit-indexing-scheme)
+-- * [Operation
+-- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinreadbit)
+{-# INLINEABLE readBit #-}
+readBit ::
+  BuiltinByteString ->
+  Integer ->
+  Bool
+readBit bs i = fromBuiltin (BI.readBit bs i)
+
+-- | Given a 'BuiltinByteString' and a changelist of index-value pairs, set the _bit_ at each index
+-- where the corresponding value is 'True', and clear the bit at each index where the corresponding
+-- value is 'False'. Will error if any of the indexes are out-of-bounds: that is, if the index is
+-- either negative, or equal to or greater than the total number of bits in the 'BuiltinByteString'
+-- argument.
+--
+-- = See also
+--
+-- * [Bit indexing
+-- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#bit-indexing-scheme)
+-- * [Operation
+-- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinsetbits)
+{-# INLINEABLE writeBits #-}
+writeBits ::
+  BuiltinByteString ->
+  BI.BuiltinList (BI.BuiltinPair BI.BuiltinInteger BI.BuiltinBool) ->
+  BuiltinByteString
+writeBits = BI.writeBits
+
+-- | Given a length (first argument) and a byte (second argument), produce a 'BuiltinByteString' of
+-- that length, with that byte in every position. Will error if given a negative length, or a second
+-- argument that isn't a byte (less than 0, greater than 255).
+--
+-- = See also
+--
+-- * [Operation
+-- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinreplicate)
+{-# INLINEABLE byteStringReplicate #-}
+byteStringReplicate ::
+  Integer ->
+  Integer ->
+  BuiltinByteString
+byteStringReplicate = BI.byteStringReplicate
