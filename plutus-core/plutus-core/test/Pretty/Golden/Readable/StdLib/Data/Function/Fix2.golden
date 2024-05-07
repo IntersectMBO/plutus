@@ -13,18 +13,20 @@
                    (a -> b)
                    (\(s :
                         (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
-                          (a -> b))
-                     (x : a) ->
+                          (a -> b)) ->
                       f
-                        ((/\a ->
-                            \(s :
-                                (\a ->
-                                   ifix (\(self :: * -> *) a -> self a -> a) a)
-                                  a) ->
-                              unwrap s s)
-                           {a -> b}
-                           s)
-                        x)))
+                        (\(x : a) ->
+                           (/\a ->
+                              \(s :
+                                  (\a ->
+                                     ifix
+                                       (\(self :: * -> *) a -> self a -> a)
+                                       a)
+                                    a) ->
+                                unwrap s s)
+                             {a -> b}
+                             s
+                             x))))
            {all Q. F Q -> F Q}
            {all Q. F Q -> Q}
            (\(rec : (all Q. F Q -> F Q) -> (all Q. F Q -> Q))
