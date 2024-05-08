@@ -72,18 +72,7 @@ instance P.UnsafeFromData (Map k a) where
 -- the left-most occurrence of the key in the list.
 -- This operation is O(n).
 lookup :: forall k a. (P.ToData k, P.UnsafeFromData a) => k -> Map k a -> Maybe a
-lookup (P.toBuiltinData -> k) (Map m) = P.unsafeFromBuiltinData <$> go m
-  where
-    go xs =
-      P.matchList
-        xs
-        Nothing
-        ( \hd ->
-            let k' = BI.fst hd
-             in if P.equalsData k k'
-                  then \_ -> Just (BI.snd hd)
-                  else go
-        )
+lookup (P.toBuiltinData -> k) (Map m) = P.unsafeFromBuiltinData <$> lookup' k m
 
 lookup'
   :: BuiltinData
@@ -105,19 +94,7 @@ lookup' k m = go m
 {-# INLINEABLE member #-}
 -- | Check if the key is in the `Map`.
 member :: forall k a. (P.ToData k) => k -> Map k a -> Bool
-member (P.toBuiltinData -> k) (Map m) = go m
-  where
-    go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
-    go xs =
-      P.matchList
-        xs
-        False
-        ( \hd ->
-            let k' = BI.fst hd
-             in if P.equalsData k k'
-                  then \_ -> True
-                  else go
-        )
+member (P.toBuiltinData -> k) (Map m) = member' k m
 
 member' :: BuiltinData -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
 member' k m = go m
@@ -138,21 +115,7 @@ member' k m = go m
 -- | Insert a key-value pair into the `Map`. If the key is already present,
 -- the value is updated.
 insert :: forall k a. (P.ToData k, P.ToData a) => k -> a -> Map k a -> Map k a
-insert (P.toBuiltinData -> k) (P.toBuiltinData -> a) (Map m) = Map $ go m
-  where
-    go ::
-      BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
-      BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-    go xs =
-      P.matchList
-        xs
-        (BI.mkCons (BI.mkPairData k a) nil)
-        ( \hd tl ->
-            let k' = BI.fst hd
-             in if P.equalsData k k'
-                  then BI.mkCons (BI.mkPairData k a) tl
-                  else BI.mkCons hd (go tl)
-        )
+insert (P.toBuiltinData -> k) (P.toBuiltinData -> a) (Map m) = Map $ insert' k a m
 
 insert'
   :: BuiltinData

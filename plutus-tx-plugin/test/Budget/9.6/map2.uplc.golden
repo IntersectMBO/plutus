@@ -45,10 +45,10 @@ program
                                                  (\hd
                                                    tl ->
                                                     (\tl' ->
-                                                       (\k' ->
-                                                          force
-                                                            (case
-                                                               (fix1
+                                                       force
+                                                         (case
+                                                            ((\k ->
+                                                                fix1
                                                                   (\go
                                                                     xs ->
                                                                      force
@@ -63,7 +63,7 @@ program
                                                                             (force
                                                                                ifThenElse
                                                                                (equalsData
-                                                                                  k'
+                                                                                  k
                                                                                   (force
                                                                                      (force
                                                                                         fstPair)
@@ -85,14 +85,15 @@ program
                                                                        (constr 0
                                                                           []))
                                                                   nt)
-                                                               [ (delay tl')
-                                                               , (delay
-                                                                    (force
-                                                                       mkCons
-                                                                       hd
-                                                                       tl')) ]))
-                                                         (force (force fstPair)
-                                                            hd))
+                                                               (force
+                                                                  (force
+                                                                     fstPair)
+                                                                  hd))
+                                                            [ (delay tl')
+                                                            , (delay
+                                                                 (force mkCons
+                                                                    hd
+                                                                    tl')) ]))
                                                       (go tl)))
                                             nt)))
                                    (unsafeFromList

@@ -47,9 +47,6 @@ letrec
           Unit
 in
 let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
@@ -63,6 +60,9 @@ let
             (\(ds : Unit) -> nilCase)
             (\(ds : Unit) -> consCase (headList {a} l) (tailList {a} l))
             Unit
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
 in
 letrec
   !`$fToBuiltinListBuiltinList_$ctoBuiltin` :
@@ -265,37 +265,39 @@ in
             (\(hd : pair data data) (tl : list (pair data data)) ->
                let
                  !tl' : list (pair data data) = go tl
-                 !k' : data = fstPair {data} {data} hd
-               in
-               letrec
-                 !go : list (pair data data) -> Bool
-                   = \(xs : list (pair data data)) ->
-                       chooseList
-                         {pair data data}
-                         {Unit -> Bool}
-                         xs
-                         (\(ds : Unit) -> False)
-                         (\(ds : Unit) ->
-                            ifThenElse
-                              {all dead. Bool}
-                              (equalsData
-                                 k'
-                                 (fstPair
-                                    {data}
-                                    {data}
-                                    (headList {pair data data} xs)))
-                              (/\dead ->
-                                 let
-                                   !ds : list (pair data data)
-                                     = tailList {pair data data} xs
-                                 in
-                                 True)
-                              (/\dead -> go (tailList {pair data data} xs))
-                              {all dead. dead})
-                         Unit
                in
                Bool_match
-                 (go nt)
+                 (let
+                   !k : data = fstPair {data} {data} hd
+                 in
+                 letrec
+                   !go : list (pair data data) -> Bool
+                     = \(xs : list (pair data data)) ->
+                         chooseList
+                           {pair data data}
+                           {Unit -> Bool}
+                           xs
+                           (\(ds : Unit) -> False)
+                           (\(ds : Unit) ->
+                              ifThenElse
+                                {all dead. Bool}
+                                (equalsData
+                                   k
+                                   (fstPair
+                                      {data}
+                                      {data}
+                                      (headList {pair data data} xs)))
+                                (/\dead ->
+                                   let
+                                     !ds : list (pair data data)
+                                       = tailList {pair data data} xs
+                                   in
+                                   True)
+                                (/\dead -> go (tailList {pair data data} xs))
+                                {all dead. dead})
+                           Unit
+                 in
+                 go nt)
                  {all dead. list (pair data data)}
                  (/\dead -> tl')
                  (/\dead -> mkCons {pair data data} hd tl')
