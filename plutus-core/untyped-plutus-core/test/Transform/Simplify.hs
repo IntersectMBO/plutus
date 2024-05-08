@@ -414,13 +414,13 @@ cse1 = runQuote $ do
 -- | This is the second example in Note [CSE].
 cse2 :: Term Name DefaultUni DefaultFun ()
 cse2 = Force () (Force () body)
- where
-  plus a b = mkIterApp (Builtin () PLC.AddInteger) [((), a), ((), b)]
-  con = mkConstant @Integer ()
-  body = mkIterApp (Builtin () PLC.IfThenElse) [((), cond), ((), true), ((), false)]
-  cond = Apply () (Apply () (Builtin () PLC.LessThanInteger) (con 0)) (con 0)
-  true = Delay () (plus (plus (con 1) (con 2)) (plus (con 1) (con 2)))
-  false = Delay () (plus (con 1) (con 2))
+  where
+    plus a b = mkIterApp (Builtin () PLC.AddInteger) [((), a), ((), b)]
+    con = mkConstant @Integer ()
+    body = mkIterApp (Builtin () PLC.IfThenElse) [((), cond), ((), true), ((), false)]
+    cond = Apply () (Apply () (Builtin () PLC.LessThanInteger) (con 0)) (con 0)
+    true = Delay () (plus (plus (con 1) (con 2)) (plus (con 1) (con 2)))
+    false = Delay () (plus (con 1) (con 2))
 
 -- | This is the third example in Note [CSE].
 cse3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -446,12 +446,12 @@ cse3 = runQuote $ do
 --  ((1+2) + (3+4) + ...)
 cseExpensive :: Term Name DefaultUni DefaultFun ()
 cseExpensive = plus arg arg'
- where
-  plus a b = mkIterApp (Builtin () PLC.AddInteger) [((), a), ((), b)]
-  con = mkConstant @Integer ()
-  mkArg = foldl1 plus . fmap (\i -> plus (con (2 * i)) (con (2 * i + 1)))
-  arg = mkArg [0 .. 200]
-  arg' = mkArg [0 .. 200]
+  where
+    plus a b = mkIterApp (Builtin () PLC.AddInteger) [((), a), ((), b)]
+    con = mkConstant @Integer ()
+    mkArg = foldl1 plus . fmap (\i -> plus (con (2 * i)) (con (2 * i + 1)))
+    arg = mkArg [0 .. 200]
+    arg' = mkArg [0 .. 200]
 
 test_simplify :: TestTree
 test_simplify =
