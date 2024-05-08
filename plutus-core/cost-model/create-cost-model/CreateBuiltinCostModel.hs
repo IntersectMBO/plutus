@@ -297,6 +297,13 @@ readOneVariableQuadraticFunction var e = do
   coeff2 <- Coefficient2 <$> getCoeff (printf "I(%s^2)" var) e
   pure $ OneVariableQuadraticFunction coeff0 coeff1 coeff2
 
+readTwoVariableFunLinearOnDiagonal :: MonadR m => String -> SomeSEXP (Region m) -> m ModelConstantOrLinear
+readTwoVariableFunLinearOnDiagonal var e = do
+  constantPart <- getExtraParam "constant" e
+  intercept <- Intercept <$> getCoeff "(Intercept)" e
+  slope <- Slope <$> getCoeff var e
+  pure $ ModelConstantOrLinear constantPart intercept slope
+
 -- | A costing function of the form a+sx+ty
 readTwoVariableLinearFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableLinearFunction
 readTwoVariableLinearFunction var1 var2 e = do
@@ -348,6 +355,8 @@ readCF2AtType ty e = do
     "multiplied_sizes"     -> ModelTwoArgumentsMultipliedSizes    <$> readOneVariableLinearFunction "I(x_mem * y_mem)" e
     "min_size"             -> ModelTwoArgumentsMinSize            <$> readOneVariableLinearFunction "pmin(x_mem, y_mem)" e
     "max_size"             -> ModelTwoArgumentsMaxSize            <$> readOneVariableLinearFunction "pmax(x_mem, y_mem)" e
+    -- See Note [Backward compatibility for costing functions] for linear_on_diagonal
+    "linear_on_diagonal"   -> ModelTwoArgumentsLinearOnDiagonal   <$> readTwoVariableFunLinearOnDiagonal "x_mem" e
     "const_below_diagonal" -> ModelTwoArgumentsConstBelowDiagonal <$> readTwoVariableFunConstOr e
     "const_above_diagonal" -> ModelTwoArgumentsConstAboveDiagonal <$> readTwoVariableFunConstOr e
     "const_off_diagonal"   -> ModelTwoArgumentsConstOffDiagonal   <$> readOneVariableFunConstOr e

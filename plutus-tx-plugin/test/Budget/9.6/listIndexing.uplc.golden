@@ -2,17 +2,18 @@ program
   1.1.0
   ((\go xs -> go 5 xs)
      ((\s -> s s)
-        (\s x ->
-           (\go ds ->
-              force
-                (case
-                   ds
-                   [ (delay error)
-                   , (\x xs ->
-                        delay
-                          (force
-                             (force ifThenElse
-                                (equalsInteger 0 x)
-                                (delay x)
-                                (delay (go (subtractInteger x 1) xs))))) ]))
-             (s s))))
+        (\s ds ds ->
+           force
+             (case
+                ds
+                [ (delay error)
+                , (\x xs ->
+                     delay
+                       (force
+                          (force ifThenElse
+                             (equalsInteger 0 ds)
+                             (delay x)
+                             (delay
+                                ((\x -> s s x)
+                                   (subtractInteger ds 1)
+                                   xs))))) ]))))

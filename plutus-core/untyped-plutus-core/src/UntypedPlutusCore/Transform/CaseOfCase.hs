@@ -27,11 +27,15 @@ import Control.Lens
 caseOfCase :: (fun ~ PLC.DefaultFun) => Term name uni fun a -> Term name uni fun a
 caseOfCase = transformOf termSubterms $ \case
   Case ann scrut alts
-    | ( ite@(Force _ (Builtin _ PLC.IfThenElse))
+    | ( ite@(Force a (Builtin _ PLC.IfThenElse))
         , [cond, (trueAnn, true@Constr{}), (falseAnn, false@Constr{})]
         ) <-
         splitApplication scrut ->
-        mkIterApp
-          ite
-          [cond, (trueAnn, Case ann true alts), (falseAnn, Case ann false alts)]
+        Force a $
+          mkIterApp
+            ite
+            [ cond
+            , (trueAnn, Delay trueAnn (Case ann true alts))
+            , (falseAnn, Delay falseAnn (Case ann false alts))
+            ]
   other -> other

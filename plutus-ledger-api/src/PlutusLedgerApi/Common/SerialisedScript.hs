@@ -195,9 +195,9 @@ scriptCBORDecoder ::
   PlutusLedgerLanguage ->
   MajorProtocolVersion ->
   CBOR.Decoder s ScriptNamedDeBruijn
-scriptCBORDecoder lv pv =
+scriptCBORDecoder ll pv =
   -- See Note [New builtins/language versions and protocol versions]
-  let availableBuiltins = builtinsAvailableIn lv pv
+  let availableBuiltins = builtinsAvailableIn ll pv
       flatDecoder = UPLC.decodeProgram checkBuiltin
       -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
       checkBuiltin f | f `Set.member` availableBuiltins = Nothing
@@ -206,7 +206,7 @@ scriptCBORDecoder lv pv =
           "Builtin function "
             ++ show f
             ++ " is not available in language "
-            ++ show (pretty lv)
+            ++ show (pretty ll)
             ++ " at and protocol version "
             ++ show (pretty pv)
    in do

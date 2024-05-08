@@ -7,6 +7,7 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     ( defaultBuiltinsRuntimeForSemanticsVariant
     , defaultBuiltinsRuntime
     , defaultCekCostModel
+    , toCekCostModel
     , defaultCekMachineCosts
     , defaultCekParameters
     , defaultCostModelParams
@@ -84,6 +85,11 @@ defaultCekMachineCosts =
 -}
 defaultCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
+
+-- | Return the 'CostModel' corresponding to the given semantics variant. The dependency on the
+-- semantics variant is what makes cost models configurable.
+toCekCostModel :: BuiltinSemanticsVariant DefaultFun -> CostModel CekMachineCosts BuiltinCostModel
+toCekCostModel _ = defaultCekCostModel
 
 -- | The default cost model data.  This is exposed to the ledger, so let's not
 -- confuse anybody by mentioning the CEK machine

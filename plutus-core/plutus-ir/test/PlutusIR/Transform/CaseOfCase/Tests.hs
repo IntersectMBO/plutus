@@ -21,6 +21,7 @@ test_caseOfCase = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"]
             , "builtinBool"
             , "largeExpr"
             , "exponential"
+            , "twoTyArgs"
             ]
 
 prop_caseOfCase :: Property

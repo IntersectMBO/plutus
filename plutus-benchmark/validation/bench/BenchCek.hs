@@ -2,7 +2,6 @@
 module Main where
 
 import Common (benchTermCek, benchWith, mkEvalCtx, unsafeUnflat)
-import Control.DeepSeq (force)
 import Control.Exception (evaluate)
 import PlutusBenchmark.Common (toNamedDeBruijnTerm)
 import UntypedPlutusCore as UPLC
@@ -17,7 +16,7 @@ import UntypedPlutusCore as UPLC
 -}
 main :: IO ()
 main = do
-  evalCtx <- evaluate $ force mkEvalCtx
+  evalCtx <- evaluate mkEvalCtx
   let mkCekBM file program =
           benchTermCek evalCtx . toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file program
   benchWith mkCekBM

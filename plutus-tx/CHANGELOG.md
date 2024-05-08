@@ -1,4 +1,15 @@
 
+<a id='changelog-1.26.0.0'></a>
+# 1.26.0.0 — 2024-04-19
+
+## Added
+
+- CIP-0057 Blueprint generation is supported.
+
+- An error code "PT20" for the `recip` function in the `PlutusTx.Ratio` module.
+
+- `PlutusTx.List.indexBuiltinList`: index operator for builtin lists.
+
 <a id='changelog-1.24.0.0'></a>
 # 1.24.0.0 — 2024-03-26
 
