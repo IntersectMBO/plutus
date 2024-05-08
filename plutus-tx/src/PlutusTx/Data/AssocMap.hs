@@ -143,7 +143,13 @@ insert' k a m = go m
 -- If the `Map` is not well-defined, it deletes the pair associated with the
 -- left-most occurrence of the key in the list.
 delete :: forall k a. (P.ToData k) => k -> Map k a -> Map k a
-delete (P.toBuiltinData -> k) (Map m) = Map $ go m
+delete (P.toBuiltinData -> k) (Map m) = Map $ delete' k m
+
+delete' ::
+  BuiltinData ->
+  BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
+  BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+delete' k m = go m
   where
     go ::
       BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
@@ -156,7 +162,7 @@ delete (P.toBuiltinData -> k) (Map m) = Map $ go m
             let k' = BI.fst hd
              in if P.equalsData k k'
                   then tl
-                  else BI.mkCons hd (go tl)
+                  else BI.mkCons hd (delete' k tl)
         )
 
 {-# INLINEABLE singleton #-}

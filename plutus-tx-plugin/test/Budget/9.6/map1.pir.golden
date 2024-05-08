@@ -220,11 +220,39 @@ letrec
                {all dead. dead})
 in
 let
+  data Unit | Unit_match where
+    Unit : Unit
+  !matchList : all a r. list a -> r -> (a -> list a -> r) -> r
+    = /\a r ->
+        \(l : list a) (nilCase : r) (consCase : a -> list a -> r) ->
+          chooseList
+            {a}
+            {Unit -> r}
+            l
+            (\(ds : Unit) -> nilCase)
+            (\(ds : Unit) -> consCase (headList {a} l) (tailList {a} l))
+            Unit
+in
+letrec
+  !delete' : data -> list (pair data data) -> list (pair data data)
+    = \(k : data) (m : list (pair data data)) ->
+        matchList
+          {pair data data}
+          {list (pair data data)}
+          m
+          []
+          (\(hd : pair data data) (tl : list (pair data data)) ->
+             ifThenElse
+               {all dead. list (pair data data)}
+               (equalsData k (fstPair {data} {data} hd))
+               (/\dead -> tl)
+               (/\dead -> mkCons {pair data data} hd (delete' k tl))
+               {all dead. dead})
+in
+let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  data Unit | Unit_match where
-    Unit : Unit
   !lookup :
      all k a.
        (\a -> a -> data) k ->
@@ -272,16 +300,6 @@ let
             (\(a : data) -> /\dead -> Just {a} (`$dUnsafeFromData` a))
             (/\dead -> Nothing {a})
             {all dead. dead}
-  !matchList : all a r. list a -> r -> (a -> list a -> r) -> r
-    = /\a r ->
-        \(l : list a) (nilCase : r) (consCase : a -> list a -> r) ->
-          chooseList
-            {a}
-            {Unit -> r}
-            l
-            (\(ds : Unit) -> nilCase)
-            (\(ds : Unit) -> consCase (headList {a} l) (tailList {a} l))
-            Unit
   data Bool | Bool_match where
     True : Bool
     False : Bool
@@ -342,30 +360,7 @@ in
                go ds)
           (mkCons {pair data data} (mkPairData (iData n) (B #30)) [])
           (`$fEnumBool_$cenumFromTo` 1 10)
-    !nt : list (pair data data)
-      = let
-        !ds : integer = addInteger 5 n
-      in
-      letrec
-        !go : list (pair data data) -> list (pair data data)
-          = \(xs : list (pair data data)) ->
-              matchList
-                {pair data data}
-                {list (pair data data)}
-                xs
-                []
-                (\(hd : pair data data) (tl : list (pair data data)) ->
-                   let
-                     !k' : data = fstPair {data} {data} hd
-                   in
-                   ifThenElse
-                     {all dead. list (pair data data)}
-                     (equalsData (iData ds) k')
-                     (/\dead -> tl)
-                     (/\dead -> mkCons {pair data data} hd (go tl))
-                     {all dead. dead})
-      in
-      go nt
+    !nt : list (pair data data) = delete' (iData (addInteger 5 n)) nt
   in
   Tuple5
     {Maybe bytestring}
