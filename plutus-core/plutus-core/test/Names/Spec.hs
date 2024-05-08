@@ -1,27 +1,28 @@
 {-# LANGUAGE BlockArguments    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Names.Spec where
 
-import PlutusCore.Test
-
-import PlutusCore
-import PlutusCore.Mark
-import PlutusCore.Pretty
-import PlutusCore.Rename.Internal
-
-import PlutusCore.Generators.Hedgehog
-import PlutusCore.Generators.Hedgehog.AST as AST
-import PlutusCore.Generators.Hedgehog.Interesting
-
-import GHC.Exts (fromString)
-import Hedgehog hiding (Var)
+import Data.String (IsString (fromString))
+import Hedgehog (Gen, Property, assert, forAll, property, tripping)
 import Hedgehog.Gen qualified as Gen
-import Test.Tasty
-import Test.Tasty.Hedgehog
-import Test.Tasty.HUnit
+import PlutusCore (DefaultFun, DefaultUni, FreeVariableError, Kind (Type), Name (..), NamedDeBruijn,
+                   NamedTyDeBruijn, Program, Quote, Rename (rename), Term (..), TyName (..),
+                   Type (..), Unique (..), deBruijnTerm, runQuote, runQuoteT, unDeBruijnTerm)
+import PlutusCore.Generators.Hedgehog (TermOf (..), forAllNoShowT, forAllPretty, generalizeT)
+import PlutusCore.Generators.Hedgehog.AST as AST (genProgram, genTerm, mangleNames, runAstGen)
+import PlutusCore.Generators.Hedgehog.Interesting (fromInterestingTermGens)
+import PlutusCore.Mark (markNonFreshProgram)
+import PlutusCore.Pretty (displayPlcDebug)
+import PlutusCore.Rename.Internal (renameProgramM)
+import PlutusCore.Test (BindingRemoval (BindingRemovalNotOk), Prerename (PrerenameNo), brokenRename,
+                        checkFails, noMarkRename, test_scopingGood, test_scopingSpoilRenamer)
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.Hedgehog (testPropertyNamed)
+import Test.Tasty.HUnit (assertBool, testCase, (@?=))
 
 prop_DeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
 prop_DeBruijn gen = property $ generalizeT do
@@ -32,7 +33,7 @@ prop_DeBruijn gen = property $ generalizeT do
       :: Either FreeVariableError (Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a)
       -> Either FreeVariableError (Term TyName Name DefaultUni DefaultFun a)
     backward e = e >>= runQuoteT . unDeBruijnTerm
-  Hedgehog.tripping body forward backward
+  tripping body forward backward
 
 test_DeBruijnInteresting :: TestTree
 test_DeBruijnInteresting =
@@ -49,7 +50,7 @@ test_mangle =
       pure $ do
         termMang <- mayTermMang
         Just (term, termMang)
-    Hedgehog.assert $ term /= termMangled && termMangled /= term
+    assert $ term /= termMangled && termMangled /= term
 
 -- | Test equality of a program and its renamed version, given a renamer.
 prop_equalityFor
@@ -59,7 +60,7 @@ prop_equalityFor
 prop_equalityFor ren = property do
   prog <- forAllPretty $ runAstGen genProgram
   let progRen = runQuote $ ren prog
-  Hedgehog.assert $ progRen == prog && prog == progRen
+  assert $ progRen == prog && prog == progRen
 
 test_equalityRename :: TestTree
 test_equalityRename =
