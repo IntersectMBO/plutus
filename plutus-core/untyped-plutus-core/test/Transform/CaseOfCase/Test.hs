@@ -4,6 +4,8 @@
 
 module Transform.CaseOfCase.Test where
 
+import Data.ByteString.Lazy qualified as BSL
+import Data.Text.Encoding (encodeUtf8)
 import Data.Vector qualified as V
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
@@ -12,25 +14,27 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostMode
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters,
                                                         mkMachineParameters)
 import PlutusCore.MkPlc (mkConstant, mkIterApp)
-import PlutusCore.Quote (freshName, runQuote, runQuoteT)
+import PlutusCore.Pretty
+import PlutusCore.Quote (freshName, runQuote)
 import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.Golden (goldenVsString)
 import Test.Tasty.HUnit (testCase, (@?=))
-import Transform.Simplify.Lib (goldenVsSimplified)
-import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..), defaultSimplifyOpts,
-                          simplifyTerm)
+import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (CekMachineCosts, CekValue, EvaluationResult (..),
                                                  noEmitter, unsafeEvaluateCek)
+import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
 
 test_caseOfCase :: TestTree
 test_caseOfCase =
   testGroup
     "CaseOfCase"
-    [ goldenVsSimplified "CaseOfCase/1" caseOfCase1
-    , goldenVsSimplified "CaseOfCase/2" caseOfCase2
-    , goldenVsSimplified "CaseOfCase/3" caseOfCase3
-    , caseOfCaseWithError
+    [ goldenVsSimplified "1" caseOfCase1
+    , goldenVsSimplified "2" caseOfCase2
+    , goldenVsSimplified "3" caseOfCase3
+    , goldenVsSimplified "withError" caseOfCaseWithError
+    , testCaseOfCaseWithError
     ]
 
 caseOfCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -73,23 +77,44 @@ caseOfCase3 = runQuote do
       alts = V.fromList [altTrue, altFalse]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
-caseOfCaseWithError :: TestTree
+{- |
+
+@
+  case (force ifThenElse) True True False of
+    True -> ()
+    False -> _|_
+@
+
+Evaluates to `()` because the first case alternative is selected.
+(The _|_ is not evaluated because case alternatives are evaluated lazily).
+
+After the `CaseOfCase` transformation the program should evaluate to `()` as well.
+
+@
+  force ((force ifThenElse) True (delay ()) (delay _|_))
+@
+-}
+caseOfCaseWithError :: Term Name DefaultUni DefaultFun ()
 caseOfCaseWithError =
+  Case
+    ()
+    ( mkIterApp
+        (Force () (Builtin () PLC.IfThenElse))
+        [ ((), mkConstant @Bool () True)
+        , ((), Constr () 0 []) -- True
+        , ((), Constr () 1 []) -- False
+        ]
+    )
+    (V.fromList [mkConstant @() () (), Error ()])
+
+testCaseOfCaseWithError :: TestTree
+testCaseOfCaseWithError =
   testCase "Transformation doesn't evaluate error eagerly" do
-    let
-      originalTerm =
-        Case
-          ()
-          ( mkIterApp
-              (Force () (Builtin () PLC.IfThenElse))
-              [ ((), mkConstant @Bool () True)
-              , ((), Constr () 0 []) -- True
-              , ((), Constr () 1 []) -- False
-              ]
-          )
-          (V.fromList [mkConstant @() () (), Error ()])
-    simplifiedTerm <- runQuoteT $ simplifyTerm defaultSimplifyOpts def originalTerm
-    evaluateUplc simplifiedTerm @?= evaluateUplc originalTerm
+    let simplifiedTerm = caseOfCase caseOfCaseWithError
+    evaluateUplc simplifiedTerm @?= evaluateUplc caseOfCaseWithError
+
+----------------------------------------------------------------------------------------------------
+-- Helper functions --------------------------------------------------------------------------------
 
 evaluateUplc
   :: UPLC.Term Name DefaultUni DefaultFun ()
@@ -101,3 +126,13 @@ evaluateUplc = fst <$> unsafeEvaluateCek noEmitter machineParameters
   machineParameters
     :: MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ()) =
       mkMachineParameters def costModel
+
+goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
+goldenVsSimplified name =
+  goldenVsString name ("untyped-plutus-core/test/Transform/CaseOfCase/" ++ name ++ ".uplc.golden")
+    . pure
+    . BSL.fromStrict
+    . encodeUtf8
+    . render
+    . prettyClassicDebug
+    . caseOfCase
