@@ -32,7 +32,7 @@ import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.Test
 import PlutusTx.TH (compile)
-import PlutusTx.These (These (..))
+import PlutusTx.These (These (..), these)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testProperty)
 
@@ -48,6 +48,10 @@ goldenTests =
     , goldenUPlcReadable "map2" map2
     , goldenEvalCekCatch "map2" $ [map2 `unsafeApplyCode` (liftCodeDef 100)]
     , goldenBudget "map2-budget" $ map2 `unsafeApplyCode` (liftCodeDef 100)
+    , goldenPirReadable "map3" map2
+    , goldenUPlcReadable "map3" map2
+    , goldenEvalCekCatch "map3" $ [map2 `unsafeApplyCode` (liftCodeDef 100)]
+    , goldenBudget "map3-budget" $ map2 `unsafeApplyCode` (liftCodeDef 100)
     ]
 
 propertyTests :: TestTree
@@ -124,6 +128,32 @@ map2 =
                   ]
               m = Data.AssocMap.unionWith PlutusTx.appendByteString m1 m2
            in PlutusTx.fmap (\(k, v) -> (k, PlutusTx.decodeUtf8 v)) (Data.AssocMap.toList m)
+        ||]
+    )
+
+map3 :: CompiledCode (Integer -> [(Integer, PlutusTx.BuiltinString)])
+map3 =
+  $$( compile
+        [||
+        \n ->
+          let m1 =
+                Data.AssocMap.unsafeFromList
+                  [ (n PlutusTx.+ 1, "one")
+                  , (n PlutusTx.+ 2, "two")
+                  , (n PlutusTx.+ 3, "three")
+                  , (n PlutusTx.+ 4, "four")
+                  , (n PlutusTx.+ 5, "five")
+                  ]
+              m2 =
+                Data.AssocMap.unsafeFromList
+                  [ (n PlutusTx.+ 3, "THREE")
+                  , (n PlutusTx.+ 4, "FOUR")
+                  , (n PlutusTx.+ 6, "SIX")
+                  , (n PlutusTx.+ 7, "SEVEN")
+                  ]
+              m = Data.AssocMap.union m1 m2
+              f = these id id PlutusTx.appendByteString
+           in PlutusTx.fmap (\(k, v) -> (k, PlutusTx.decodeUtf8 (f v))) (Data.AssocMap.toList m)
         ||]
     )
 
