@@ -72,6 +72,7 @@ propertyTests =
     , testProperty "builtinDataEncoding" builtinDataEncodingSpec
     ]
 
+-- | Test the performance and interaction between 'insert', 'delete' and 'lookup'.
 map1 ::
   CompiledCode
     ( Integer ->
@@ -106,6 +107,9 @@ map1 =
         ||]
     )
 
+-- | Test that 'unionWith' is implemented correctly. Due to the nature of 'Map k v',
+-- some type errors are only caught when running the PlutusTx compiler on code which uses
+-- 'unionWith'.
 map2 :: CompiledCode (Integer -> [(Integer, PlutusTx.BuiltinString)])
 map2 =
   $$( compile
@@ -131,6 +135,8 @@ map2 =
         ||]
     )
 
+-- | Similar to map2, but uses 'union' instead of 'unionWith'. Evaluating 'map3' and 'map2'
+-- should yield the same result.
 map3 :: CompiledCode (Integer -> [(Integer, PlutusTx.BuiltinString)])
 map3 =
   $$( compile
