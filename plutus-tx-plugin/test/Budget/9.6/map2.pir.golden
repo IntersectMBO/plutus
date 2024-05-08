@@ -47,6 +47,9 @@ letrec
           Unit
 in
 let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
@@ -60,9 +63,6 @@ let
             (\(ds : Unit) -> nilCase)
             (\(ds : Unit) -> consCase (headList {a} l) (tailList {a} l))
             Unit
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
 in
 letrec
   !`$fToBuiltinListBuiltinList_$ctoBuiltin` :
@@ -92,7 +92,7 @@ let
        (\a -> a -> data) k ->
        (\a -> a -> data) a ->
        List (Tuple2 k a) ->
-       (\k a -> data) k a
+       (\k a -> list (pair data data)) k a
     = /\k a ->
         \(`$dToData` : (\a -> a -> data) k)
          (`$dToData` : (\a -> a -> data) a) ->
@@ -123,11 +123,11 @@ let
                     {all dead. dead}
           in
           \(eta : List (Tuple2 k a)) ->
-            mapData (`$fToBuiltinListBuiltinList_$ctoBuiltin` (go eta))
+            `$fToBuiltinListBuiltinList_$ctoBuiltin` (go eta)
 in
 \(n : integer) ->
   let
-    !nt : data
+    !nt : list (pair data data)
       = unsafeFromList
           {integer}
           {bytestring}
@@ -161,7 +161,6 @@ in
                                 (addInteger 7 n)
                                 #534556454e)
                              n)))))
-    ~rs : list (pair data data) = unMapData nt
   in
   letrec
     !go : list (pair data data) -> list (pair data data)
@@ -204,10 +203,7 @@ in
                in
                Maybe_match
                  {data}
-                 (let
-                   !eta : list (pair data data) = rs
-                 in
-                 go eta)
+                 (go nt)
                  {all dead. list (pair data data)}
                  (\(r : data) ->
                     /\dead ->
@@ -221,7 +217,7 @@ in
                  {all dead. dead})
   in
   let
-    !nt : data
+    !nt : list (pair data data)
       = unsafeFromList
           {integer}
           {bytestring}
@@ -257,7 +253,6 @@ in
                                    (addInteger 5 n)
                                    #66697665)
                                 n))))))
-    ~ls : list (pair data data) = unMapData nt
   in
   letrec
     !go : list (pair data data) -> list (pair data data)
@@ -270,54 +265,49 @@ in
             (\(hd : pair data data) (tl : list (pair data data)) ->
                let
                  !tl' : list (pair data data) = go tl
+                 !k' : data = fstPair {data} {data} hd
+               in
+               letrec
+                 !go : list (pair data data) -> Bool
+                   = \(xs : list (pair data data)) ->
+                       chooseList
+                         {pair data data}
+                         {Unit -> Bool}
+                         xs
+                         (\(ds : Unit) -> False)
+                         (\(ds : Unit) ->
+                            ifThenElse
+                              {all dead. Bool}
+                              (equalsData
+                                 k'
+                                 (fstPair
+                                    {data}
+                                    {data}
+                                    (headList {pair data data} xs)))
+                              (/\dead ->
+                                 let
+                                   !ds : list (pair data data)
+                                     = tailList {pair data data} xs
+                                 in
+                                 True)
+                              (/\dead -> go (tailList {pair data data} xs))
+                              {all dead. dead})
+                         Unit
                in
                Bool_match
-                 (let
-                   !k : data = fstPair {data} {data} hd
-                 in
-                 letrec
-                   !go : list (pair data data) -> Bool
-                     = \(xs : list (pair data data)) ->
-                         chooseList
-                           {pair data data}
-                           {Unit -> Bool}
-                           xs
-                           (\(ds : Unit) -> False)
-                           (\(ds : Unit) ->
-                              ifThenElse
-                                {all dead. Bool}
-                                (equalsData
-                                   k
-                                   (fstPair
-                                      {data}
-                                      {data}
-                                      (headList {pair data data} xs)))
-                                (/\dead ->
-                                   let
-                                     !ds : list (pair data data)
-                                       = tailList {pair data data} xs
-                                   in
-                                   True)
-                                (/\dead -> go (tailList {pair data data} xs))
-                                {all dead. dead})
-                           Unit
-                 in
-                 let
-                   !eta : list (pair data data) = ls
-                 in
-                 go eta)
+                 (go nt)
                  {all dead. list (pair data data)}
                  (/\dead -> tl')
                  (/\dead -> mkCons {pair data data} hd tl')
                  {all dead. dead})
   in
   let
-    !nt : data
+    !nt : list (pair data data)
       = let
-        !rs' : list (pair data data) = go rs
-        !ls' : list (pair data data) = go ls
+        !rs' : list (pair data data) = go nt
+        !ls' : list (pair data data) = go nt
       in
-      mapData (go rs' ls')
+      go rs' ls'
   in
   (let
       a = Tuple2 integer bytestring
@@ -345,4 +335,4 @@ in
          {Tuple2 integer string}
          (\(k : integer) (v : bytestring) ->
             Tuple2 {integer} {string} k (decodeUtf8 v)))
-    (go (unMapData nt))
+    (go nt)

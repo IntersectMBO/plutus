@@ -33,10 +33,9 @@ program
                                                                        , (decodeUtf8
                                                                             v) ]) ])
                                                            , (go xs) ])) ]))
-                                         (go (unMapData nt)))
+                                         (go nt))
                                       ((\rs' ->
-                                          (\ls' -> mapData (go rs' ls'))
-                                            (go (unMapData nt)))
+                                          (\ls' -> go rs' ls') (go nt))
                                          (fix1
                                             (\go
                                               xs ->
@@ -46,10 +45,10 @@ program
                                                  (\hd
                                                    tl ->
                                                     (\tl' ->
-                                                       force
-                                                         (case
-                                                            ((\k ->
-                                                                fix1
+                                                       (\k' ->
+                                                          force
+                                                            (case
+                                                               (fix1
                                                                   (\go
                                                                     xs ->
                                                                      force
@@ -64,7 +63,7 @@ program
                                                                             (force
                                                                                ifThenElse
                                                                                (equalsData
-                                                                                  k
+                                                                                  k'
                                                                                   (force
                                                                                      (force
                                                                                         fstPair)
@@ -85,19 +84,17 @@ program
                                                                                         xs)))))
                                                                        (constr 0
                                                                           []))
-                                                                  (unMapData
-                                                                     nt))
-                                                               (force
-                                                                  (force
-                                                                     fstPair)
-                                                                  hd))
-                                                            [ (delay tl')
-                                                            , (delay
-                                                                 (force mkCons
-                                                                    hd
-                                                                    tl')) ]))
+                                                                  nt)
+                                                               [ (delay tl')
+                                                               , (delay
+                                                                    (force
+                                                                       mkCons
+                                                                       hd
+                                                                       tl')) ]))
+                                                         (force (force fstPair)
+                                                            hd))
                                                       (go tl)))
-                                            (unMapData nt))))
+                                            nt)))
                                    (unsafeFromList
                                       (\i -> iData i)
                                       bData
@@ -171,7 +168,7 @@ program
                                                                       headList
                                                                       xs))
                                                               (constr 0 []))
-                                                         (unMapData nt))
+                                                         nt)
                                                       [ (\r ->
                                                            delay
                                                              (force
@@ -206,12 +203,11 @@ program
                                                        [ (addInteger 7 n)
                                                        , #534556454e ])
                                                   , (constr 0 []) ]) ]) ]) ])))
-                          (addInteger 3 n))
-                       (addInteger 4 n))
+                          (addInteger 4 n))
+                       (addInteger 3 n))
                     (\`$dToData` `$dToData` ->
                        (\go eta ->
-                          mapData
-                            (`$fToBuiltinListBuiltinList_$ctoBuiltin` (go eta)))
+                          `$fToBuiltinListBuiltinList_$ctoBuiltin` (go eta))
                          (fix1
                             (\go ds ->
                                force

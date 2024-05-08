@@ -85,10 +85,42 @@ lookup (P.toBuiltinData -> k) (Map m) = P.unsafeFromBuiltinData <$> go m
                   else go
         )
 
+lookup'
+  :: BuiltinData
+  -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+  -> Maybe BuiltinData
+lookup' k m = go m
+  where
+    go xs =
+      P.matchList
+        xs
+        Nothing
+        ( \hd ->
+            let k' = BI.fst hd
+             in if P.equalsData k k'
+                  then \_ -> Just (BI.snd hd)
+                  else go
+        )
+
 {-# INLINEABLE member #-}
 -- | Check if the key is in the `Map`.
 member :: forall k a. (P.ToData k) => k -> Map k a -> Bool
 member (P.toBuiltinData -> k) (Map m) = go m
+  where
+    go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
+    go xs =
+      P.matchList
+        xs
+        False
+        ( \hd ->
+            let k' = BI.fst hd
+             in if P.equalsData k k'
+                  then \_ -> True
+                  else go
+        )
+
+member' :: BuiltinData -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
+member' k m = go m
   where
     go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
     go xs =
@@ -107,6 +139,27 @@ member (P.toBuiltinData -> k) (Map m) = go m
 -- the value is updated.
 insert :: forall k a. (P.ToData k, P.ToData a) => k -> a -> Map k a -> Map k a
 insert (P.toBuiltinData -> k) (P.toBuiltinData -> a) (Map m) = Map $ go m
+  where
+    go ::
+      BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
+      BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+    go xs =
+      P.matchList
+        xs
+        (BI.mkCons (BI.mkPairData k a) nil)
+        ( \hd tl ->
+            let k' = BI.fst hd
+             in if P.equalsData k k'
+                  then BI.mkCons (BI.mkPairData k a) tl
+                  else BI.mkCons hd (go tl)
+        )
+
+insert'
+  :: BuiltinData
+  -> BuiltinData
+  -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+  -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+insert' k a m = go m
   where
     go ::
       BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
@@ -251,7 +304,7 @@ union (Map ls) (Map rs) = Map res
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
-                v' = case lookup k (Map rs) of
+                v' = case lookup' k rs of
                   Just r ->
                     P.toBuiltinData
                       ( These
@@ -271,7 +324,7 @@ union (Map ls) (Map rs) = Map res
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
-                v' = case lookup k (Map ls) of
+                v' = case lookup' k ls of
                   Just r ->
                     P.toBuiltinData
                       ( These
@@ -293,8 +346,7 @@ union (Map ls) (Map rs) = Map res
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
-                Map res' = insert k v (Map $ safeAppend tl xs2)
-             in res'
+             in insert' k v (safeAppend tl xs2)
         )
 
 -- | Combine two 'Map's with the given combination function.
@@ -305,8 +357,8 @@ unionWith ::
   Map k a ->
   Map k a ->
   Map k a
-unionWith f (toBuiltinList -> ls) (toBuiltinList -> rs) =
-  unsafeFromBuiltinList res
+unionWith f (Map ls) (Map rs) =
+  Map res
   where
     ls' :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
     ls' = go ls
@@ -318,7 +370,7 @@ unionWith f (toBuiltinList -> ls) (toBuiltinList -> rs) =
             ( \hd tl ->
                 let k' = BI.fst hd
                     v' = BI.snd hd
-                    v'' = case lookup k' (Map rs) of
+                    v'' = case lookup' k' rs of
                       Just r ->
                         P.toBuiltinData
                           (f (P.unsafeFromBuiltinData v') (P.unsafeFromBuiltinData r))
@@ -336,7 +388,7 @@ unionWith f (toBuiltinList -> ls) (toBuiltinList -> rs) =
             ( \hd tl ->
                 let k' = BI.fst hd
                     tl' = go tl
-                 in if member k' (Map ls)
+                 in if member' k' ls
                       then tl'
                       else BI.mkCons hd tl'
             )
