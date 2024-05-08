@@ -27,6 +27,7 @@ import PlutusCore.Pretty
 import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
+import PlutusCore qualified as PLC
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
 import PlutusCore.StdLib.Data.Bool
@@ -42,6 +43,7 @@ import PlutusCore.StdLib.Data.Unit
 import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.Conversion qualified as Conversion
+import Evaluation.Builtins.Laws qualified as Laws
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_Variant0Prop,
                                                   ed25519_Variant1Prop, ed25519_Variant2Prop,
                                                   schnorrSecp256k1Prop)
@@ -874,6 +876,46 @@ test_Conversion =
         ]
       ]
 
+-- Tests that the logical builtins are behaving correctly
+test_Logical :: TestTree
+test_Logical =
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
+  testGroup "Logical" $ [
+    testGroup "bitwiseLogicalAnd" [
+      Laws.abelianSemigroupLaws "truncation" PLC.BitwiseLogicalAnd False,
+      Laws.idempotenceLaw "truncation" PLC.BitwiseLogicalAnd False,
+      Laws.absorbtionLaw "truncation" PLC.BitwiseLogicalAnd False "",
+      Laws.leftDistributiveLaw "truncation" "itself" PLC.BitwiseLogicalAnd PLC.BitwiseLogicalAnd False,
+      Laws.leftDistributiveLaw "truncation" "OR" PLC.BitwiseLogicalAnd PLC.BitwiseLogicalOr False,
+      Laws.leftDistributiveLaw "truncation" "XOR" PLC.BitwiseLogicalAnd PLC.BitwiseLogicalXor False,
+      Laws.abelianMonoidLaws "padding" PLC.BitwiseLogicalAnd True "",
+      Laws.distributiveLaws "padding" PLC.BitwiseLogicalAnd True
+      ],
+    testGroup "bitwiseLogicalOr" [
+      Laws.abelianSemigroupLaws "truncation" PLC.BitwiseLogicalOr False,
+      Laws.idempotenceLaw "truncation" PLC.BitwiseLogicalOr False,
+      Laws.absorbtionLaw "truncation" PLC.BitwiseLogicalOr False "",
+      Laws.leftDistributiveLaw "truncation" "itself" PLC.BitwiseLogicalOr PLC.BitwiseLogicalOr False,
+      Laws.leftDistributiveLaw "truncation" "AND" PLC.BitwiseLogicalOr PLC.BitwiseLogicalAnd False,
+      Laws.abelianMonoidLaws "padding" PLC.BitwiseLogicalOr True "",
+      Laws.distributiveLaws "padding" PLC.BitwiseLogicalOr True
+      ],
+    testGroup "bitwiseLogicalXor" [
+      Laws.abelianSemigroupLaws "truncation" PLC.BitwiseLogicalXor False,
+      Laws.absorbtionLaw "truncation" PLC.BitwiseLogicalXor False "",
+      Laws.xorInvoluteLaw,
+      Laws.abelianMonoidLaws "padding" PLC.BitwiseLogicalXor True ""
+      ]
+      {-
+    testGroup "bitwiseLogicalComplement" [
+      Laws.complementSelfInverse,
+      Laws.deMorgan
+      ],
+    testGroup "bit reading and modification" _,
+    testGroup "byteStringReplicate" _
+      -}
+    ]
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -909,4 +951,5 @@ test_definition =
         , test_Version
         , test_ConsByteString
         , test_Conversion
+        , test_Logical
         ]
