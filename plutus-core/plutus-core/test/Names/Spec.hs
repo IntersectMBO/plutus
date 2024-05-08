@@ -177,6 +177,10 @@ test_rebindCapturedVariable = testCase "rebindCapturedVariable" do
 
   [typeL1, typeL2] @?= [typeR1, typeR2]
 
+prop_printing_parsing_roundtrip :: TestTree
+prop_printing_parsing_roundtrip = testCase "Print-parse roundtrip" do
+  tripping
+
 test_names :: TestTree
 test_names =
   testGroup
@@ -191,4 +195,5 @@ test_names =
     , test_alphaEquality
     , test_rebindShadowedVariable
     , test_rebindCapturedVariable
+    , prop_printing_parsing_roundtrip
     ]
