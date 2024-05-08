@@ -38,17 +38,19 @@ test_letRec = runTestNestedIn path do
   testNested
     "StrictLetRec"
     [ let
-        op pirTermBefore = do
-          pirTermAfter <- either (fail . show) pure do
-              ctx <- defaultCompilationCtx
-              let action = fmap void . runTestPass (`compileLetsPassSC` RecTerms) $
-                    noProvenance <$ pirTermBefore
-              runExcept . runQuoteT $ runReaderT action ctx
+        runCompilationM m = either (fail . show) pure do
+          ctx <- defaultCompilationCtx
+          runExcept . runQuoteT $ runReaderT m ctx
+
+        dumpUplc pirTermBefore = do
+          pirTermAfter <- runCompilationM $
+              fmap void . runTestPass (`compileLetsPassSC` RecTerms) $ noProvenance <$ pirTermBefore
           tplcProg <- compilePirProgramOrFail $ PIR.Program () latestVersion pirTermAfter
           uplcProg <- compileTplcProgramOrFail tplcProg
           pure . AsReadable $ UPLC._progTerm uplcProg
-       in
-        goldenPirM op pTerm "strictLetRec"
+       in do
+          -- goldenPirM op pTerm "strictLetRec.pir"
+          goldenPirM dumpUplc pTerm "strictLetRec"
     , pure $ testCase "traces" do
         (result, traces) <- do
           pirTerm <- pirTermFromFile (joinPath path </> "StrictLetRec" </> "strictLetRec")
