@@ -37,6 +37,8 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import UntypedPlutusCore qualified as UPLC
 
+-- | Any call to 'replicateByteString' must produce the same byte at
+-- every valid index, namely the byte specified.
 replicateIndex :: TestTree
 replicateIndex = testPropertyNamed "every byte is the same" "replicate_all_match" . property $ do
   n <- forAll . Gen.integral . Range.linear 1 $ 1024
@@ -56,6 +58,8 @@ replicateIndex = testPropertyNamed "every byte is the same" "replicate_all_match
         ]
   evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | If you retrieve a bit value at an index, then write that same value to
+-- the same index, nothing should happen.
 getSet :: TestTree
 getSet =
   testPropertyNamed "get-set" "get_set" . property $ do
@@ -79,6 +83,8 @@ getSet =
               ]
         evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | If you write a bit value to an index, then retrieve the bit value at the
+-- same index, you should get back what you wrote.
 setGet :: TestTree
 setGet =
   testPropertyNamed "set-get" "set_get" . property $ do
@@ -95,6 +101,7 @@ setGet =
           ]
     evaluateAndVerify (mkConstant @Bool () b) lhs
 
+-- | If you write twice to the same bit index, the second write should win.
 setSet :: TestTree
 setSet =
   testPropertyNamed "set-set" "set_set" . property $ do
@@ -116,6 +123,11 @@ setSet =
           ]
     evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | Checks that:
+--
+-- * Writing with an empty changelist does nothing; and
+-- * If you write with one changelist, then a second, it is the same as
+--   writing with their concatenation.
 writeBitsHomomorphismLaws :: TestTree
 writeBitsHomomorphismLaws =
   testGroup "homomorphism to lists" [
@@ -158,6 +170,12 @@ writeBitsHomomorphismLaws =
               ]
         evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | Checks that:
+--
+-- * Replicating any byte 0 times produces the empty 'ByteString'; and
+-- * Replicating a byte @n@ times, then replicating a byte @m@ times and
+--   concatenating the results, is the same as replicating that byte @n + m@
+--   times.
 replicateHomomorphismLaws :: TestTree
 replicateHomomorphismLaws =
   testGroup "homomorphism" [
@@ -204,6 +222,7 @@ replicateHomomorphismLaws =
             ]
       evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | If you complement a 'ByteString' twice, nothing should change.
 complementSelfInverse :: TestTree
 complementSelfInverse =
   testPropertyNamed "self-inverse" "self_inverse" . property $ do
@@ -220,6 +239,10 @@ complementSelfInverse =
           ]
     evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | Checks that:
+--
+-- * The complement of an AND is an OR of complements; and
+-- * The complement of an OR is an AND of complements.
 deMorgan :: TestTree
 deMorgan = testGroup "De Morgan's laws" [
   testPropertyNamed "NOT AND -> OR" "demorgan_and" . go PLC.BitwiseLogicalAnd $ PLC.BitwiseLogicalOr,
@@ -256,6 +279,7 @@ deMorgan = testGroup "De Morgan's laws" [
             ]
       evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | If you XOR any 'ByteString' with itself twice, nothing should change.
 xorInvoluteLaw :: TestTree
 xorInvoluteLaw = testPropertyNamed "involute (both)" "involute_both" . property $ do
   bs <- forAllByteString
@@ -276,12 +300,16 @@ xorInvoluteLaw = testPropertyNamed "involute (both)" "involute_both" . property 
         ]
   evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | Checks that the first 'DefaultFun' distributes over the second from the
+-- left, given the specified semantics (as a 'Bool'). More precisely, for
+-- 'DefaultFun's @f@ and @g@, checks that @f x (g y z) = g (f x y) (f x z)@.
 leftDistributiveLaw :: String -> String -> UPLC.DefaultFun -> UPLC.DefaultFun -> Bool -> TestTree
 leftDistributiveLaw name distOpName f distOp isPadding =
   testPropertyNamed ("left distribution (" <> name <> ") over " <> distOpName)
                     ("left_distribution_" <> fromString name <> "_" <> fromString distOpName)
                     (leftDistProp f distOp isPadding)
 
+-- | Checks that the given function self-distributes both left and right.
 distributiveLaws :: String -> UPLC.DefaultFun -> Bool -> TestTree
 distributiveLaws name f isPadding =
   testGroup ("distributivity over itself (" <> name <> ")") [
@@ -289,6 +317,8 @@ distributiveLaws name f isPadding =
     testPropertyNamed "right distribution" "right_distribution" (rightDistProp f isPadding)
     ]
 
+-- | Checks that the given 'DefaultFun', under the given semantics, forms an
+-- abelian semigroup: that is, the operation both commutes and associates.
 abelianSemigroupLaws :: String -> UPLC.DefaultFun -> Bool -> TestTree
 abelianSemigroupLaws name f isPadding =
   testGroup ("abelian semigroup (" <> name <> ")") [
@@ -296,6 +326,8 @@ abelianSemigroupLaws name f isPadding =
     testPropertyNamed "associativity" "associativity" (assocProp f isPadding)
     ]
 
+-- | As 'abelianSemigroupLaws', but also checks that the provided 'ByteString'
+-- is both a left and right identity.
 abelianMonoidLaws :: String -> UPLC.DefaultFun -> Bool -> ByteString -> TestTree
 abelianMonoidLaws name f isPadding unit =
   testGroup ("abelian monoid (" <> name <> ")") [
@@ -304,6 +336,8 @@ abelianMonoidLaws name f isPadding unit =
     testPropertyNamed "unit" "unit" (unitProp f isPadding unit)
     ]
 
+-- | Checks that the provided 'DefaultFun', under the given semantics, is
+-- idempotent; namely, that @f x x = x@ for any @x@.
 idempotenceLaw :: String -> UPLC.DefaultFun -> Bool -> TestTree
 idempotenceLaw name f isPadding =
   testPropertyNamed ("idempotence (" <> name <> ")")
@@ -324,6 +358,10 @@ idempotenceLaw name f isPadding =
             ]
       evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | Checks that the provided 'ByteString' is an absorbing element for the
+-- given 'DefaultFun', under the given semantics. Specifically, given @f@
+-- as the operation and @0@ as the absorbing element, for any @x@,
+-- @f x 0 = f 0 x = 0@.
 absorbtionLaw :: String -> UPLC.DefaultFun -> Bool -> ByteString -> TestTree
 absorbtionLaw name f isPadding absorber =
   testPropertyNamed ("absorbing element (" <> name <> ")")
