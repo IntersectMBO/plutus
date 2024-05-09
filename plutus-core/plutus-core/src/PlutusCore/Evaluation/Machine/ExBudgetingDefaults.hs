@@ -39,7 +39,6 @@ defaultBuiltinCostModel :: BuiltinCostModel
 defaultBuiltinCostModel =
     $$(readJSONFromFile DFP.builtinCostModelFile)
 -- This is a huge record, inlining it is wasteful.
-{-# NOINLINE defaultBuiltinCostModel #-}
 
 {- Note [Modifying the cost model]
    When the Haskell representation of the cost model is changed, for example by
@@ -72,7 +71,6 @@ defaultCekMachineCosts =
 -- We don't want this to get inlined, as otherwise the default 'CekMachineCosts' appears faster
 -- than 'CekMachineCosts' that we get in production after applying the costing parameters provided
 -- by the ledger.
-{-# NOINLINE defaultCekMachineCosts #-}
 
 {-| The default cost model, including both builtin costs and machine step costs.
     Note that this is not necessarily the cost model in use on the chain at any
