@@ -1,3 +1,7 @@
+---
+title: Algorithmic.Properties
+layout: page
+---
 ```
 module Algorithmic.Properties where
 ```

@@ -1,4 +1,7 @@
-
+---
+title: Base
+layout: page
+---
 ```
 module Evaluator.Base where 
 
