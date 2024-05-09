@@ -41,6 +41,7 @@ import PlutusCore.Crypto.Ed25519 qualified
 import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
+import PlutusCore.Default qualified as PLC
 import PlutusCore.Pretty (Pretty (..), display)
 import Prettyprinter (viaShow)
 
@@ -365,6 +366,15 @@ fst (BuiltinPair (a, _)) = a
 snd :: BuiltinPair a b -> b
 snd (BuiltinPair (_, b)) = b
 
+{-# NOINLINE mkPair #-}
+mkPair
+    :: PLC.DefaultUni (PLC.Esc a)
+    -> PLC.DefaultUni (PLC.Esc b)
+    -> aAsBuiltin
+    -> bAsBuiltin
+    -> BuiltinPair aAsBuiltin bAsBuiltin
+mkPair _ _ x y = BuiltinPair (x, y)
+
 {-# NOINLINE mkPairData #-}
 mkPairData :: BuiltinData -> BuiltinData -> BuiltinPair BuiltinData BuiltinData
 mkPairData d1 d2 = BuiltinPair (d1, d2)
@@ -402,6 +412,10 @@ tail (BuiltinList [])     = Haskell.error "empty list"
 chooseList :: BuiltinList a -> b -> b -> b
 chooseList (BuiltinList [])    b1 _ = b1
 chooseList (BuiltinList (_:_)) _ b2 = b2
+
+{-# NOINLINE mkNil #-}
+mkNil :: PLC.DefaultUni (PLC.Esc a) -> BuiltinList aAsBuiltin
+mkNil _ = BuiltinList []
 
 {-# NOINLINE mkNilData #-}
 mkNilData :: BuiltinUnit -> BuiltinList BuiltinData

@@ -72,6 +72,8 @@ library
     PlutusTx.Builtins
     PlutusTx.Builtins.Class
     PlutusTx.Builtins.Internal
+    PlutusTx.Builtins.IsBuiltin
+    PlutusTx.Builtins.IsOpaque
     PlutusTx.Code
     PlutusTx.Coverage
     PlutusTx.Either

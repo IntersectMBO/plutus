@@ -162,7 +162,7 @@ instance FromData Builtins.BuiltinBLS12_381_G1_Element where
           Just (BI.BuiltinByteString bs) ->
               case BLS12_381.G1.uncompress bs of
                 Haskell.Left _  -> Nothing
-                Haskell.Right g -> Just $ toBuiltin g
+                Haskell.Right g -> Just $ toOpaque g
 instance UnsafeFromData Builtins.BuiltinBLS12_381_G1_Element where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData = Builtins.bls12_381_G1_uncompress . unsafeFromBuiltinData
@@ -178,7 +178,7 @@ instance FromData Builtins.BuiltinBLS12_381_G2_Element where
           Just (BI.BuiltinByteString bs) ->
               case BLS12_381.G2.uncompress bs of
                 Haskell.Left _  -> Nothing
-                Haskell.Right g -> Just $ toBuiltin g
+                Haskell.Right g -> Just $ toOpaque g
 instance UnsafeFromData Builtins.BuiltinBLS12_381_G2_Element where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData = Builtins.bls12_381_G2_uncompress . unsafeFromBuiltinData
