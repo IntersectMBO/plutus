@@ -1814,68 +1814,76 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Conversions
     {- See Note [Input length limitation for IntegerToByteString] -}
     toBuiltinMeaning _semvar IntegerToByteString =
-      let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> BuiltinResult BS.ByteString
-          {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
-             costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
-          integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
-          {-# INLINE integerToByteStringDenotation #-}
+        let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> BuiltinResult BS.ByteString
+            {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
+               costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
+            integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
+            {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
-          integerToByteStringDenotation
-          (runCostingFunThreeArguments . paramIntegerToByteString)
+            integerToByteStringDenotation
+            (runCostingFunThreeArguments . paramIntegerToByteString)
+
     toBuiltinMeaning _semvar ByteStringToInteger =
-      let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
-          byteStringToIntegerDenotation = byteStringToIntegerWrapper
-          {-# INLINE byteStringToIntegerDenotation #-}
+        let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
+            byteStringToIntegerDenotation = byteStringToIntegerWrapper
+            {-# INLINE byteStringToIntegerDenotation #-}
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
             (runCostingFunTwoArguments . paramByteStringToInteger)
+
     -- Logical
     toBuiltinMeaning _semvar BitwiseLogicalAnd =
-      let bitwiseLogicalAndDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
-          bitwiseLogicalAndDenotation = Logical.bitwiseLogicalAnd
-          {-# INLINE bitwiseLogicalAndDenotation #-}
+        let bitwiseLogicalAndDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+            bitwiseLogicalAndDenotation = Logical.bitwiseLogicalAnd
+            {-# INLINE bitwiseLogicalAndDenotation #-}
         in makeBuiltinMeaning
             bitwiseLogicalAndDenotation
             (runCostingFunThreeArguments . unimplementedCostingFun)
+
     toBuiltinMeaning _semvar BitwiseLogicalOr =
-      let bitwiseLogicalOrDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
-          bitwiseLogicalOrDenotation = Logical.bitwiseLogicalOr
-          {-# INLINE bitwiseLogicalOrDenotation #-}
+        let bitwiseLogicalOrDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+            bitwiseLogicalOrDenotation = Logical.bitwiseLogicalOr
+            {-# INLINE bitwiseLogicalOrDenotation #-}
         in makeBuiltinMeaning
-          bitwiseLogicalOrDenotation
-          (runCostingFunThreeArguments . unimplementedCostingFun)
+            bitwiseLogicalOrDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
     toBuiltinMeaning _semvar BitwiseLogicalXor =
-      let bitwiseLogicalXorDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
-          bitwiseLogicalXorDenotation = Logical.bitwiseLogicalXor
-          {-# INLINE bitwiseLogicalXorDenotation #-}
+        let bitwiseLogicalXorDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+            bitwiseLogicalXorDenotation = Logical.bitwiseLogicalXor
+            {-# INLINE bitwiseLogicalXorDenotation #-}
         in makeBuiltinMeaning
-          bitwiseLogicalXorDenotation
-          (runCostingFunThreeArguments . unimplementedCostingFun)
+            bitwiseLogicalXorDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
     toBuiltinMeaning _semvar BitwiseLogicalComplement =
-      let bitwiseLogicalComplementDenotation :: BS.ByteString -> BS.ByteString
-          bitwiseLogicalComplementDenotation = Logical.bitwiseLogicalComplement
-          {-# INLINE bitwiseLogicalComplementDenotation #-}
+        let bitwiseLogicalComplementDenotation :: BS.ByteString -> BS.ByteString
+            bitwiseLogicalComplementDenotation = Logical.bitwiseLogicalComplement
+            {-# INLINE bitwiseLogicalComplementDenotation #-}
         in makeBuiltinMeaning
-          bitwiseLogicalComplementDenotation
-          (runCostingFunOneArgument . unimplementedCostingFun)
+            bitwiseLogicalComplementDenotation
+            (runCostingFunOneArgument . unimplementedCostingFun)
+
     toBuiltinMeaning _semvar ReadBit =
-      let readBitDenotation :: BS.ByteString -> Int -> BuiltinResult Bool
-          readBitDenotation = Logical.readBit
-          {-# INLINE readBitDenotation #-}
+        let readBitDenotation :: BS.ByteString -> Int -> BuiltinResult Bool
+            readBitDenotation = Logical.readBit
+            {-# INLINE readBitDenotation #-}
         in makeBuiltinMeaning
-          readBitDenotation
-          (runCostingFunTwoArguments . unimplementedCostingFun)
+            readBitDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
     toBuiltinMeaning _semvar WriteBits =
-      let writeBitsDenotation :: BS.ByteString -> [(Integer, Bool)] -> BuiltinResult BS.ByteString
-          writeBitsDenotation = Logical.writeBits
-          {-# INLINE writeBitsDenotation #-}
+        let writeBitsDenotation :: BS.ByteString -> [(Integer, Bool)] -> BuiltinResult BS.ByteString
+            writeBitsDenotation = Logical.writeBits
+            {-# INLINE writeBitsDenotation #-}
         in makeBuiltinMeaning
             writeBitsDenotation
             (runCostingFunTwoArguments . unimplementedCostingFun)
+
     toBuiltinMeaning _semvar ByteStringReplicate =
-      let byteStringReplicateDenotation :: Int -> Word8 -> BuiltinResult BS.ByteString
-          byteStringReplicateDenotation = Logical.byteStringReplicate
-          {-# INLINE byteStringReplicateDenotation #-}
+        let byteStringReplicateDenotation :: Int -> Word8 -> BuiltinResult BS.ByteString
+            byteStringReplicateDenotation = Logical.byteStringReplicate
+            {-# INLINE byteStringReplicateDenotation #-}
         in makeBuiltinMeaning
             byteStringReplicateDenotation
             (runCostingFunTwoArguments . unimplementedCostingFun)
