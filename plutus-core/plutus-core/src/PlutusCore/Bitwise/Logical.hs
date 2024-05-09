@@ -218,7 +218,7 @@ readBit bs ix
       emit "readBit: index out of bounds"
       emit $ "Index: " <> (pack . show $ ix)
       evaluationFailure
-  | ix >= (len * 8) - 1 = do
+  | ix >= len * 8 = do
       emit "readBit: index out of bounds"
       emit $ "Index: " <> (pack . show $ ix)
       evaluationFailure
@@ -255,7 +255,7 @@ writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
     setAtIx :: Ptr Word8 -> (Integer, Bool) -> IO ()
     setAtIx ptr (i, b)
       | i < 0 = throw $ WriteBitsException i
-      | i >= bitLen - 1 = throw $ WriteBitsException i
+      | i >= bitLen = throw $ WriteBitsException i
       | otherwise = do
           let (bigIx, littleIx) = i `quotRem` 8
           let flipIx = len - fromIntegral bigIx - 1

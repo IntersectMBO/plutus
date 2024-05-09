@@ -905,15 +905,21 @@ test_Logical =
       Laws.absorbtionLaw "truncation" PLC.BitwiseLogicalXor False "",
       Laws.xorInvoluteLaw,
       Laws.abelianMonoidLaws "padding" PLC.BitwiseLogicalXor True ""
-      ]
-      {-
+      ],
     testGroup "bitwiseLogicalComplement" [
       Laws.complementSelfInverse,
       Laws.deMorgan
       ],
-    testGroup "bit reading and modification" _,
-    testGroup "byteStringReplicate" _
-      -}
+    testGroup "bit reading and modification" [
+      Laws.getSet,
+      Laws.setGet,
+      Laws.setSet,
+      Laws.writeBitsHomomorphismLaws
+      ],
+    testGroup "byteStringReplicate" [
+      Laws.replicateHomomorphismLaws,
+      Laws.replicateIndex
+      ]
     ]
 
 test_definition :: TestTree

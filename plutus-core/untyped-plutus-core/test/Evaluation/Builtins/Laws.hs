@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -8,14 +9,23 @@ module Evaluation.Builtins.Laws (
   absorbtionLaw,
   leftDistributiveLaw,
   distributiveLaws,
-  xorInvoluteLaw
+  xorInvoluteLaw,
+  complementSelfInverse,
+  deMorgan,
+  getSet,
+  setGet,
+  setSet,
+  writeBitsHomomorphismLaws,
+  replicateHomomorphismLaws,
+  replicateIndex
   ) where
 
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
-import Evaluation.Builtins.Common (typecheckEvaluateCek)
+import Evaluation.Builtins.Common (typecheckEvaluateCek, typecheckReadKnownCek)
 import GHC.Exts (fromString)
-import Hedgehog (Property, PropertyT, annotateShow, failure, forAllWith, property, (===))
+import Hedgehog (Gen, Property, PropertyT, annotateShow, failure, forAll, forAllWith, property,
+                 (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Numeric (showHex)
@@ -26,6 +36,225 @@ import PlutusPrelude (Word8, def)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import UntypedPlutusCore qualified as UPLC
+
+replicateIndex :: TestTree
+replicateIndex = testPropertyNamed "every byte is the same" "replicate_all_match" . property $ do
+  n <- forAll . Gen.integral . Range.linear 1 $ 1024
+  b <- forAll . Gen.integral . Range.constant 0 $ 255
+  i <- forAll . Gen.integral . Range.linear 0 $ n - 1
+  let lhsInner = mkIterAppNoAnn (builtin () PLC.ByteStringReplicate) [
+        mkConstant @Integer () n,
+        mkConstant @Integer () b
+        ]
+  let lhs = mkIterAppNoAnn (builtin () PLC.IndexByteString) [
+        lhsInner,
+        mkConstant @Integer () i
+        ]
+  let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsInteger) [
+        lhs,
+        mkConstant @Integer () b
+        ]
+  evaluateAndVerify (mkConstant @Bool () True) compareExp
+
+getSet :: TestTree
+getSet =
+  testPropertyNamed "get-set" "get_set" . property $ do
+    bs <- forAllByteString1
+    i <- forAllIndexOf bs
+    let lookupExp = mkIterAppNoAnn (builtin () PLC.ReadBit) [
+          mkConstant @ByteString () bs,
+          mkConstant @Integer () i
+          ]
+    case typecheckReadKnownCek def defaultBuiltinCostModel lookupExp of
+      Left err -> annotateShow err >> failure
+      Right (Left err) -> annotateShow err >> failure
+      Right (Right b) -> do
+        let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
+              mkConstant @ByteString () bs,
+              mkConstant @[(Integer, Bool)] () [(i, b)]
+              ]
+        let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
+              lhs,
+              mkConstant @ByteString () bs
+              ]
+        evaluateAndVerify (mkConstant @Bool () True) compareExp
+
+setGet :: TestTree
+setGet =
+  testPropertyNamed "set-get" "set_get" . property $ do
+    bs <- forAllByteString1
+    i <- forAllIndexOf bs
+    b <- forAll Gen.bool
+    let lhsInner = mkIterAppNoAnn (builtin () PLC.WriteBits) [
+          mkConstant @ByteString () bs,
+          mkConstant @[(Integer, Bool)] () [(i, b)]
+          ]
+    let lhs = mkIterAppNoAnn (builtin () PLC.ReadBit) [
+          lhsInner,
+          mkConstant @Integer () i
+          ]
+    evaluateAndVerify (mkConstant @Bool () b) lhs
+
+setSet :: TestTree
+setSet =
+  testPropertyNamed "set-set" "set_set" . property $ do
+    bs <- forAllByteString1
+    i <- forAllIndexOf bs
+    b1 <- forAll Gen.bool
+    b2 <- forAll Gen.bool
+    let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
+          mkConstant @ByteString () bs,
+          mkConstant @[(Integer, Bool)] () [(i, b1), (i, b2)]
+          ]
+    let rhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
+          mkConstant @ByteString () bs,
+          mkConstant @[(Integer, Bool)] () [(i, b2)]
+          ]
+    let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
+          lhs,
+          rhs
+          ]
+    evaluateAndVerify (mkConstant @Bool () True) compareExp
+
+writeBitsHomomorphismLaws :: TestTree
+writeBitsHomomorphismLaws =
+  testGroup "homomorphism to lists" [
+    testPropertyNamed "identity -> []" "write_bits_h_1" identityProp,
+    testPropertyNamed "composition -> concatenation" "write_bits_h_2" compositionProp
+    ]
+    where
+      identityProp :: Property
+      identityProp = property $ do
+        bs <- forAllByteString1
+        let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
+              mkConstant @ByteString () bs,
+              mkConstant @[(Integer, Bool)] () []
+              ]
+        let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
+              lhs,
+              mkConstant @ByteString () bs
+              ]
+        evaluateAndVerify (mkConstant @Bool () True) compareExp
+      compositionProp :: Property
+      compositionProp = property $ do
+        bs <- forAllByteString1
+        changelist1 <- forAllChangelistOf bs
+        changelist2 <- forAllChangelistOf bs
+        let lhsInner = mkIterAppNoAnn (builtin () PLC.WriteBits) [
+              mkConstant @ByteString () bs,
+              mkConstant @[(Integer, Bool)] () changelist1
+              ]
+        let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
+              lhsInner,
+              mkConstant @[(Integer, Bool)] () changelist2
+              ]
+        let rhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
+              mkConstant @ByteString () bs,
+              mkConstant @[(Integer, Bool)] () (changelist1 <> changelist2)
+              ]
+        let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
+              lhs,
+              rhs
+              ]
+        evaluateAndVerify (mkConstant @Bool () True) compareExp
+
+replicateHomomorphismLaws :: TestTree
+replicateHomomorphismLaws =
+  testGroup "homomorphism" [
+    testPropertyNamed "0 -> empty" "replicate_h_1" identityProp,
+    testPropertyNamed "+ -> concat" "replicate_h_2" compositionProp
+    ]
+  where
+    identityProp :: Property
+    identityProp = property $ do
+      b <- forAll . Gen.integral . Range.constant 0 $ 255
+      let lhs = mkIterAppNoAnn (builtin () PLC.ByteStringReplicate) [
+            mkConstant @Integer () 0,
+            mkConstant @Integer () b
+            ]
+      let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
+            lhs,
+            mkConstant @ByteString () ""
+            ]
+      evaluateAndVerify (mkConstant @Bool () True) compareExp
+    compositionProp :: Property
+    compositionProp = property $ do
+      b <- forAll . Gen.integral . Range.constant 0 $ 255
+      n1 <- forAll . Gen.integral . Range.linear 0 $ 512
+      n2 <- forAll . Gen.integral . Range.linear 0 $ 512
+      let lhsInner1 = mkIterAppNoAnn (builtin () PLC.ByteStringReplicate) [
+            mkConstant @Integer () n1,
+            mkConstant @Integer () b
+            ]
+      let lhsInner2 = mkIterAppNoAnn (builtin () PLC.ByteStringReplicate) [
+            mkConstant @Integer () n2,
+            mkConstant @Integer () b
+            ]
+      let lhs = mkIterAppNoAnn (builtin () PLC.AppendByteString) [
+            lhsInner1,
+            lhsInner2
+            ]
+      let rhs = mkIterAppNoAnn (builtin () PLC.ByteStringReplicate) [
+            mkConstant @Integer () (n1 + n2),
+            mkConstant @Integer () b
+            ]
+      let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
+            lhs,
+            rhs
+            ]
+      evaluateAndVerify (mkConstant @Bool () True) compareExp
+
+complementSelfInverse :: TestTree
+complementSelfInverse =
+  testPropertyNamed "self-inverse" "self_inverse" . property $ do
+    bs <- forAllByteString
+    let lhsInner = mkIterAppNoAnn (builtin () PLC.BitwiseLogicalComplement) [
+          mkConstant @ByteString () bs
+          ]
+    let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseLogicalComplement) [
+          lhsInner
+          ]
+    let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
+          lhs,
+          mkConstant @ByteString () bs
+          ]
+    evaluateAndVerify (mkConstant @Bool () True) compareExp
+
+deMorgan :: TestTree
+deMorgan = testGroup "De Morgan's laws" [
+  testPropertyNamed "NOT AND -> OR" "demorgan_and" . go PLC.BitwiseLogicalAnd $ PLC.BitwiseLogicalOr,
+  testPropertyNamed "NOT OR -> AND" "demorgan_or" . go PLC.BitwiseLogicalOr $ PLC.BitwiseLogicalAnd
+  ]
+  where
+    go :: UPLC.DefaultFun -> UPLC.DefaultFun -> Property
+    go f g = property $ do
+      semantics <- forAllWith showSemantics Gen.bool
+      bs1 <- forAllByteString
+      bs2 <- forAllByteString
+      let lhsInner = mkIterAppNoAnn (builtin () f) [
+            mkConstant @Bool () semantics,
+            mkConstant @ByteString () bs1,
+            mkConstant @ByteString () bs2
+            ]
+      let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseLogicalComplement) [
+            lhsInner
+            ]
+      let rhsInner1 = mkIterAppNoAnn (builtin () PLC.BitwiseLogicalComplement) [
+            mkConstant @ByteString () bs1
+            ]
+      let rhsInner2 = mkIterAppNoAnn (builtin () PLC.BitwiseLogicalComplement) [
+            mkConstant @ByteString () bs2
+            ]
+      let rhs = mkIterAppNoAnn (builtin () g) [
+            mkConstant @Bool () semantics,
+            rhsInner1,
+            rhsInner2
+            ]
+      let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
+            lhs,
+            rhs
+            ]
+      evaluateAndVerify (mkConstant @Bool () True) compareExp
 
 xorInvoluteLaw :: TestTree
 xorInvoluteLaw = testPropertyNamed "involute (both)" "involute_both" . property $ do
@@ -46,11 +275,6 @@ xorInvoluteLaw = testPropertyNamed "involute (both)" "involute_both" . property 
         mkConstant @ByteString () bs
         ]
   evaluateAndVerify (mkConstant @Bool () True) compareExp
-  where
-    showSemantics :: Bool -> String
-    showSemantics b = if b
-                      then "padding semantics"
-                      else "truncation semantics"
 
 leftDistributiveLaw :: String -> String -> UPLC.DefaultFun -> UPLC.DefaultFun -> Bool -> TestTree
 leftDistributiveLaw name distOpName f distOp isPadding =
@@ -121,6 +345,11 @@ absorbtionLaw name f isPadding absorber =
       evaluateAndVerify (mkConstant @Bool () True) compareExp
 
 -- Helpers
+
+showSemantics :: Bool -> String
+showSemantics b = if b
+                      then "padding semantics"
+                      else "truncation semantics"
 
 leftDistProp :: UPLC.DefaultFun -> UPLC.DefaultFun -> Bool -> Property
 leftDistProp f distOp isPadding = property $ do
@@ -261,6 +490,21 @@ unitProp f isPadding unit = property $ do
 
 forAllByteString :: PropertyT IO ByteString
 forAllByteString = forAllWith hexShow . Gen.bytes . Range.linear 0 $ 1024
+
+forAllByteString1 :: PropertyT IO ByteString
+forAllByteString1 = forAllWith hexShow . Gen.bytes . Range.linear 1 $ 1024
+
+forAllIndexOf :: ByteString -> PropertyT IO Integer
+forAllIndexOf bs = forAll . Gen.integral . Range.linear 0 . fromIntegral $ BS.length bs * 8 - 1
+
+forAllChangelistOf :: ByteString -> PropertyT IO [(Integer, Bool)]
+forAllChangelistOf bs =
+  forAll . Gen.list (Range.linear 0 (8 * len - 1)) $ (,) <$> genIndex <*> Gen.bool
+  where
+    len :: Int
+    len = BS.length bs
+    genIndex :: Gen Integer
+    genIndex = Gen.integral . Range.linear 0 . fromIntegral $ len * 8 - 1
 
 hexShow :: ByteString -> String
 hexShow = ("0x" <>) . BS.foldl' (\acc w8 -> acc <> byteToHex w8) ""
