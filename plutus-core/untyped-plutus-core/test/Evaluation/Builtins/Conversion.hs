@@ -36,11 +36,10 @@ import Test.Tasty (TestTree)
 import Test.Tasty.HUnit (assertEqual, assertFailure, testCase)
 import Text.Show.Pretty (ppShow)
 
--- Properties and examples directly from CIP-0087:
+-- Properties and examples directly from CIP-121:
 --
--- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX#builtinintegertobytestring
--- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX#builtinbytestringtointeger
-
+-- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-0121#builtinintegertobytestring
+-- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-0121#builtinbytestringtointeger
 
 -- lengthOfByteString (integerToByteString e d 0) = d
 i2bProperty1 :: PropertyT IO ()

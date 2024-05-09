@@ -117,7 +117,6 @@ module PlutusTx.Builtins (
                          , byteStringReplicate
                          ) where
 
-import Data.Functor (fmap)
 import Data.Maybe
 import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
@@ -624,9 +623,8 @@ byteOrderToBool :: ByteOrder -> Bool
 byteOrderToBool BigEndian    = True
 byteOrderToBool LittleEndian = False
 
-
 -- | Convert a 'BuiltinInteger' into a 'BuiltinByteString', as described in
--- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
+-- [CIP-121](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-0121).
 -- The first argument indicates the endianness of the conversion and the third
 -- argument is the integer to be converted, which must be non-negative.  The
 -- second argument must also be non-negative and it indicates the required width
@@ -644,7 +642,7 @@ integerToByteString :: ByteOrder -> Integer -> Integer -> BuiltinByteString
 integerToByteString endianness = BI.integerToByteString (toBuiltin (byteOrderToBool endianness))
 
 -- | Convert a 'BuiltinByteString' to a 'BuiltinInteger', as described in
--- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
+-- [CIP-121](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-0121).
 -- The first argument indicates the endianness of the conversion and the second
 -- is the bytestring to be converted.  There is no limitation on the size of
 -- the bytestring.  The empty bytestring is converted to the integer 0.
