@@ -10,7 +10,7 @@ module PlutusCore.Bitwise.Logical (
   bitwiseLogicalComplement,
   readBit,
   writeBits,
-  byteStringReplicate,
+  replicateByteString
   ) where
 
 import Control.Exception (Exception, throw, try)
@@ -267,8 +267,8 @@ writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
 
 -- | Byte replication, as per [the relevant
 -- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md)
-byteStringReplicate :: Int -> Word8 -> BuiltinResult ByteString
-byteStringReplicate len w8
+replicateByteString :: Int -> Word8 -> BuiltinResult ByteString
+replicateByteString len w8
   | len < 0 = do
       emit "byteStringReplicate: negative length requested"
       evaluationFailure

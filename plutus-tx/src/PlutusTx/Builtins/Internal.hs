@@ -777,7 +777,7 @@ byteStringReplicate ::
   BuiltinInteger ->
   BuiltinByteString
 byteStringReplicate n w8 =
-  case Logical.byteStringReplicate (fromIntegral n) (fromIntegral w8) of
+  case Logical.replicateByteString (fromIntegral n) (fromIntegral w8) of
     BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
       Haskell.error "byteStringReplicate errored."
     BuiltinSuccess bs -> BuiltinByteString bs

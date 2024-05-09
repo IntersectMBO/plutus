@@ -160,7 +160,7 @@ data DefaultFun
     | BitwiseLogicalComplement
     | ReadBit
     | WriteBits
-    | ByteStringReplicate
+    | ReplicateByteString
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1880,9 +1880,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             writeBitsDenotation
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
-    toBuiltinMeaning _semvar ByteStringReplicate =
+    toBuiltinMeaning _semvar ReplicateByteString =
         let byteStringReplicateDenotation :: Int -> Word8 -> BuiltinResult BS.ByteString
-            byteStringReplicateDenotation = Logical.byteStringReplicate
+            byteStringReplicateDenotation = Logical.replicateByteString
             {-# INLINE byteStringReplicateDenotation #-}
         in makeBuiltinMeaning
             byteStringReplicateDenotation
@@ -2021,7 +2021,7 @@ instance Flat DefaultFun where
               BitwiseLogicalComplement        -> 78
               ReadBit                         -> 79
               WriteBits                       -> 80
-              ByteStringReplicate             -> 81
+              ReplicateByteString             -> 81
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -2105,7 +2105,7 @@ instance Flat DefaultFun where
               go 78 = pure BitwiseLogicalComplement
               go 79 = pure ReadBit
               go 80 = pure WriteBits
-              go 81 = pure ByteStringReplicate
+              go 81 = pure ReplicateByteString
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

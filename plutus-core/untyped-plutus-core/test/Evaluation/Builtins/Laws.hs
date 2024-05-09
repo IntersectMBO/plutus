@@ -42,7 +42,7 @@ replicateIndex = testPropertyNamed "every byte is the same" "replicate_all_match
   n <- forAll . Gen.integral . Range.linear 1 $ 1024
   b <- forAll . Gen.integral . Range.constant 0 $ 255
   i <- forAll . Gen.integral . Range.linear 0 $ n - 1
-  let lhsInner = mkIterAppNoAnn (builtin () PLC.ByteStringReplicate) [
+  let lhsInner = mkIterAppNoAnn (builtin () PLC.ReplicateByteString) [
         mkConstant @Integer () n,
         mkConstant @Integer () b
         ]
@@ -168,7 +168,7 @@ replicateHomomorphismLaws =
     identityProp :: Property
     identityProp = property $ do
       b <- forAll . Gen.integral . Range.constant 0 $ 255
-      let lhs = mkIterAppNoAnn (builtin () PLC.ByteStringReplicate) [
+      let lhs = mkIterAppNoAnn (builtin () PLC.ReplicateByteString) [
             mkConstant @Integer () 0,
             mkConstant @Integer () b
             ]
@@ -182,11 +182,11 @@ replicateHomomorphismLaws =
       b <- forAll . Gen.integral . Range.constant 0 $ 255
       n1 <- forAll . Gen.integral . Range.linear 0 $ 512
       n2 <- forAll . Gen.integral . Range.linear 0 $ 512
-      let lhsInner1 = mkIterAppNoAnn (builtin () PLC.ByteStringReplicate) [
+      let lhsInner1 = mkIterAppNoAnn (builtin () PLC.ReplicateByteString) [
             mkConstant @Integer () n1,
             mkConstant @Integer () b
             ]
-      let lhsInner2 = mkIterAppNoAnn (builtin () PLC.ByteStringReplicate) [
+      let lhsInner2 = mkIterAppNoAnn (builtin () PLC.ReplicateByteString) [
             mkConstant @Integer () n2,
             mkConstant @Integer () b
             ]
@@ -194,7 +194,7 @@ replicateHomomorphismLaws =
             lhsInner1,
             lhsInner2
             ]
-      let rhs = mkIterAppNoAnn (builtin () PLC.ByteStringReplicate) [
+      let rhs = mkIterAppNoAnn (builtin () PLC.ReplicateByteString) [
             mkConstant @Integer () (n1 + n2),
             mkConstant @Integer () b
             ]

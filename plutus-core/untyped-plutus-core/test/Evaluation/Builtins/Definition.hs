@@ -916,7 +916,7 @@ test_Logical =
       Laws.setSet,
       Laws.writeBitsHomomorphismLaws
       ],
-    testGroup "byteStringReplicate" [
+    testGroup "replicateByteString" [
       Laws.replicateHomomorphismLaws,
       Laws.replicateIndex
       ]
