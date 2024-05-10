@@ -157,7 +157,7 @@ showBuiltinSemanticsVariant =
 builtinSemanticsVariant :: Parser (BuiltinSemanticsVariant DefaultFun)
 builtinSemanticsVariant = option (maybeReader builtinSemanticsVariantReader)
   (  long "builtin-semantics-variant"
-  <> short 'B'
+  <> short 'S'
   <> metavar "VARIANT"
   <> value DefaultFunSemanticsVariantC
   <> showDefaultWith showBuiltinSemanticsVariant

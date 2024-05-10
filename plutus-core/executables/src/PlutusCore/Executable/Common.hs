@@ -485,10 +485,9 @@ runPrintExample getFn (ExampleOptions (ExampleSingle name)) = do
 
 ---------------- Print the cost model parameters ----------------
 
-runDumpModel :: IO ()
-runDumpModel = do
-    -- TODO: get proper semantic variant.
-    let params = fromJust PLC.defaultCostModelParamsForTesting
+runDumpModel :: PLC.BuiltinSemanticsVariant PLC.DefaultFun -> IO ()
+runDumpModel semvar = do
+    let params = fromJust $ PLC.defaultCostModelParamsForVariant semvar
     BSL.putStr $ Aeson.encode params
 
 ---------------- Print the type signatures of the default builtins ----------------

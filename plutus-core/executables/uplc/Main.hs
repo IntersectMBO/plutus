@@ -98,7 +98,7 @@ data Command = Apply       ApplyOptions
              | Example     ExampleOptions
              | Eval        EvalOptions
              | Dbg         DbgOptions
-             | DumpModel
+             | DumpModel   (BuiltinSemanticsVariant PLC.DefaultFun)
              | PrintBuiltinSignatures
 
 ---------------- Option parsers ----------------
@@ -242,8 +242,8 @@ plutusOpts = hsubparser $
     <> command "debug"
            (info (Dbg <$> dbgOpts)
             (progDesc "Debug an untyped Plutus Core program using the CEK machine."))
-    <> command "dump-model"
-           (info (pure DumpModel)
+    <> command "dump-cost-model"
+           (info (DumpModel <$> builtinSemanticsVariant)
             (progDesc "Dump the cost model parameters."))
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
@@ -440,5 +440,5 @@ main = do
         Optimise    opts       -> runOptimisations     opts
         Print       opts       -> runPrint   @UplcProg opts
         Convert     opts       -> runConvert @UplcProg opts
-        DumpModel              -> runDumpModel
+        DumpModel   opts       -> runDumpModel         opts
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

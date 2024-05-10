@@ -12,17 +12,17 @@ costModelDataDir = "cost-model" </> "data"
 builtinCostModelFileA :: FilePath
 builtinCostModelFileA = costModelDataDir </> "builtinCostModelA" <.> "json"
 
-cekMachineCostsFileA :: FilePath
-cekMachineCostsFileA = costModelDataDir </> "cekMachineCostsA" <.> "json"
-
 builtinCostModelFileB :: FilePath
 builtinCostModelFileB = costModelDataDir </> "builtinCostModelB" <.> "json"
 
-cekMachineCostsFileB :: FilePath
-cekMachineCostsFileB = costModelDataDir </> "cekMachineCostsB" <.> "json"
-
 builtinCostModelFileC :: FilePath
 builtinCostModelFileC = costModelDataDir </> "builtinCostModelC" <.> "json"
+
+cekMachineCostsFileA :: FilePath
+cekMachineCostsFileA = costModelDataDir </> "cekMachineCostsA" <.> "json"
+
+cekMachineCostsFileB :: FilePath
+cekMachineCostsFileB = costModelDataDir </> "cekMachineCostsB" <.> "json"
 
 cekMachineCostsFileC :: FilePath
 cekMachineCostsFileC = costModelDataDir </> "cekMachineCostsC" <.> "json"

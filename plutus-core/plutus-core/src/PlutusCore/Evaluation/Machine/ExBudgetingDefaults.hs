@@ -31,6 +31,7 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     , defaultBuiltinCostModelForTesting
     , defaultCekCostModelForTesting
     , defaultCekParametersForVariant
+    , defaultCostModelParamsForVariant
     )
 
 where
@@ -144,32 +145,30 @@ toCekCostModel DefaultFunSemanticsVariantC = cekCostModelVariantC
 defaultCostModelParamsA :: Maybe CostModelParams
 defaultCostModelParamsA = extractCostModelParams cekCostModelVariantA
 
+defaultCostModelParamsB :: Maybe CostModelParams
+defaultCostModelParamsB = extractCostModelParams cekCostModelVariantB
+
+defaultCostModelParamsC :: Maybe CostModelParams
+defaultCostModelParamsC = extractCostModelParams cekCostModelVariantC
+
+defaultCostModelParamsForVariant :: BuiltinSemanticsVariant DefaultFun -> Maybe CostModelParams
+defaultCostModelParamsForVariant = \case
+  DefaultFunSemanticsVariantA -> defaultCostModelParamsA
+  DefaultFunSemanticsVariantB -> defaultCostModelParamsB
+  DefaultFunSemanticsVariantC -> defaultCostModelParamsC
+
 defaultCekParametersA :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersA =
     -- We don't want this to get inlined in order for this definition not to appear faster than the
     -- one used in production. Also see Note [noinline for saving on ticks].
     noinline mkMachineParameters DefaultFunSemanticsVariantA cekCostModelVariantA
 
--- | The default cost model data.  This is exposed to the ledger, so let's not
--- confuse anybody by mentioning the CEK machine
-defaultCostModelParamsB :: Maybe CostModelParams
-defaultCostModelParamsB = extractCostModelParams cekCostModelVariantB
-
 defaultCekParametersB :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersB =
-    -- We don't want this to get inlined in order for this definition not to appear faster than the
-    -- one used in production. Also see Note [noinline for saving on ticks].
     noinline mkMachineParameters DefaultFunSemanticsVariantB cekCostModelVariantB
-
--- | The default cost model data.  This is exposed to the ledger, so let's not
--- confuse anybody by mentioning the CEK machine
-defaultCostModelParamsC :: Maybe CostModelParams
-defaultCostModelParamsC = extractCostModelParams cekCostModelVariantC
 
 defaultCekParametersC :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersC =
-    -- We don't want this to get inlined in order for this definition not to appear faster than the
-    -- one used in production. Also see Note [noinline for saving on ticks].
     noinline mkMachineParameters def cekCostModelVariantC
 
 {- Note [noinline for saving on ticks]
@@ -189,12 +188,13 @@ defaultBuiltinsRuntimeForSemanticsVariant
     => BuiltinSemanticsVariant DefaultFun
     -> BuiltinsRuntime DefaultFun term
 -- See Note [noinline for saving on ticks].
-defaultBuiltinsRuntimeForSemanticsVariant DefaultFunSemanticsVariantA =
-  noinline toBuiltinsRuntime DefaultFunSemanticsVariantA builtinCostModelVariantA
-defaultBuiltinsRuntimeForSemanticsVariant DefaultFunSemanticsVariantB =
-  noinline toBuiltinsRuntime DefaultFunSemanticsVariantB builtinCostModelVariantB
-defaultBuiltinsRuntimeForSemanticsVariant DefaultFunSemanticsVariantC =
-  noinline toBuiltinsRuntime DefaultFunSemanticsVariantC builtinCostModelVariantC
+defaultBuiltinsRuntimeForSemanticsVariant = \case
+  DefaultFunSemanticsVariantA ->
+    noinline toBuiltinsRuntime DefaultFunSemanticsVariantA builtinCostModelVariantA
+  DefaultFunSemanticsVariantB ->
+    noinline toBuiltinsRuntime DefaultFunSemanticsVariantB builtinCostModelVariantB
+  DefaultFunSemanticsVariantC ->
+    noinline toBuiltinsRuntime DefaultFunSemanticsVariantC builtinCostModelVariantC
 
 defaultCekParametersForVariant
   :: Typeable ann
@@ -228,7 +228,6 @@ defaultBuiltinCostModelForTesting = builtinCostModelVariantC
 -- *** THIS SHOULD ONLY BE USED FOR TESTING ***
 defaultCostModelParamsForTesting :: Maybe CostModelParams
 defaultCostModelParamsForTesting = defaultCostModelParamsC
-
 
 -- *** THIS SHOULD ONLY BE USED FOR TESTING ***
 defaultCekCostModelForTesting :: CostModel CekMachineCosts BuiltinCostModel
