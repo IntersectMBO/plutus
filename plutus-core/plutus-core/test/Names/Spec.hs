@@ -7,16 +7,20 @@
 module Names.Spec where
 
 import Data.String (IsString (fromString))
+import Data.Text qualified as Text
 import Hedgehog (Gen, Property, assert, forAll, property, tripping)
 import Hedgehog.Gen qualified as Gen
 import PlutusCore (DefaultFun, DefaultUni, FreeVariableError, Kind (Type), Name (..), NamedDeBruijn,
                    NamedTyDeBruijn, Program, Quote, Rename (rename), Term (..), TyName (..),
                    Type (..), Unique (..), deBruijnTerm, runQuote, runQuoteT, unDeBruijnTerm)
+import PlutusCore qualified
 import PlutusCore.Generators.Hedgehog (TermOf (..), forAllNoShowT, forAllPretty, generalizeT)
-import PlutusCore.Generators.Hedgehog.AST as AST (genProgram, genTerm, mangleNames, runAstGen)
+import PlutusCore.Generators.Hedgehog.AST as AST (genName, genProgram, genTerm, mangleNames,
+                                                  runAstGen)
 import PlutusCore.Generators.Hedgehog.Interesting (fromInterestingTermGens)
 import PlutusCore.Mark (markNonFreshProgram)
-import PlutusCore.Pretty (displayPlcDebug)
+import PlutusCore.Parser qualified as Parser
+import PlutusCore.Pretty (displayPlcDebug, pretty, render)
 import PlutusCore.Rename.Internal (renameProgramM)
 import PlutusCore.Test (BindingRemoval (BindingRemovalNotOk), Prerename (PrerenameNo), brokenRename,
                         checkFails, noMarkRename, test_scopingGood, test_scopingSpoilRenamer)
@@ -177,9 +181,24 @@ test_rebindCapturedVariable = testCase "rebindCapturedVariable" do
 
   [typeL1, typeL2] @?= [typeR1, typeR2]
 
-prop_printing_parsing_roundtrip :: TestTree
-prop_printing_parsing_roundtrip = testCase "Print-parse roundtrip" do
-  tripping
+test_printing_parsing_roundtrip :: TestTree
+test_printing_parsing_roundtrip =
+  testPropertyNamed
+    "Printing/parsing roundtrip"
+    "name_print_parse_roundtrip"
+    prop_printing_parsing_roundtrip
+
+prop_printing_parsing_roundtrip :: Property
+prop_printing_parsing_roundtrip = property $ generalizeT do
+  name <- forAllPretty $ runAstGen genName
+  tripping name printName parseName
+  where
+    printName :: Name -> String
+    printName = render . pretty
+
+    parseName :: String -> Either (PlutusCore.Error DefaultUni DefaultFun ()) Name
+    parseName str = runQuoteT do
+      Parser.parse Parser.name "test_printing_parsing_roundtrip" (Text.pack str)
 
 test_names :: TestTree
 test_names =
@@ -195,5 +214,5 @@ test_names =
     , test_alphaEquality
     , test_rebindShadowedVariable
     , test_rebindCapturedVariable
-    , prop_printing_parsing_roundtrip
+    , test_printing_parsing_roundtrip
     ]
