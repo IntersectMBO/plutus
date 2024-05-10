@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
 
@@ -29,6 +30,7 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     , defaultCostModelParamsForTesting
     , defaultBuiltinCostModelForTesting
     , defaultCekCostModelForTesting
+    , defaultCekParametersForVariant
     )
 
 where
@@ -194,6 +196,14 @@ defaultBuiltinsRuntimeForSemanticsVariant DefaultFunSemanticsVariantB =
 defaultBuiltinsRuntimeForSemanticsVariant DefaultFunSemanticsVariantC =
   noinline toBuiltinsRuntime DefaultFunSemanticsVariantC builtinCostModelVariantC
 
+defaultCekParametersForVariant
+  :: Typeable ann
+  => BuiltinSemanticsVariant DefaultFun
+  -> MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+defaultCekParametersForVariant = \case
+  DefaultFunSemanticsVariantA -> defaultCekParametersA
+  DefaultFunSemanticsVariantB -> defaultCekParametersB
+  DefaultFunSemanticsVariantC -> defaultCekParametersC
 
 -- *** THIS SHOULD ONLY BE USED FOR TESTING ***
 -- TODO: In fact we may want tests for each variant

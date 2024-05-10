@@ -163,7 +163,7 @@ builtinSemanticsVariant = option (maybeReader builtinSemanticsVariantReader)
   <> showDefaultWith showBuiltinSemanticsVariant
   <> help
     ("Builtin semantics variant: A -> DefaultFunSemanticsVariantA, "
-     <> "B -> DefaultFunSemanticsVariantB"
+     <> "B -> DefaultFunSemanticsVariantB, "
      <> "C -> DefaultFunSemanticsVariantC"
     )
   )

@@ -22,7 +22,6 @@ import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
 
-import PlutusCore.Evaluation.Machine.MachineParameters
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
@@ -82,7 +81,11 @@ data BenchmarkOptions =
       Double
 
 data DbgOptions =
-    DbgOptions Input Format CekModel
+    DbgOptions
+      Input Format
+      CekModel
+      (BuiltinSemanticsVariant PLC.DefaultFun)
+
 
 ---------------- Main commands -----------------
 
@@ -137,7 +140,7 @@ evalOpts =
 dbgOpts :: Parser DbgOptions
 dbgOpts =
   DbgOptions <$>
-    input <*> inputformat <*> cekmodel
+    input <*> inputformat <*> cekmodel <*> builtinSemanticsVariant
 
 -- Reader for budget.  The --restricting option requires two integer arguments
 -- and the easiest way to do this is to supply a colon-separated pair of
@@ -300,7 +303,7 @@ runBenchmark :: BenchmarkOptions -> IO ()
 runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
   prog <- readProgram ifmt inp
   let criterionConfig = defaultConfig {reportFile = Nothing, timeLimit = timeLim}
-      cekparams = mkMachineParameters semvar PLC.defaultCekCostModelForTesting -- FIXME: semantic variant
+      cekparams = PLC.defaultCekParametersForVariant semvar
       getResult (x,_,_) = either (error . show) (const ()) x  -- Extract an evaluation result
       evaluate = getResult . Cek.runCekDeBruijn cekparams Cek.restrictingEnormous Cek.noEmitter
       -- readProgam throws away De Bruijn indices and returns an AST with Names;
@@ -322,7 +325,7 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode
     let term = void $ prog ^. UPLC.progTerm
         cekparams = case cekModel of
                     -- AST nodes are charged according to the default cost model
-                    Default -> mkMachineParameters semvar PLC.defaultCekCostModelForTesting -- FIXME: semantic variant
+                    Default -> PLC.defaultCekParametersForVariant semvar
                     -- AST nodes are charged one unit each, so we can see how many times each node
                     -- type is encountered.  This is useful for calibrating the budgeting code
                     Unit    -> PLC.unitCekParameters
@@ -355,14 +358,14 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode
 ---------------- Debugging ----------------
 
 runDbg :: DbgOptions -> IO ()
-runDbg (DbgOptions inp ifmt cekModel) = do
+runDbg (DbgOptions inp ifmt cekModel semvar) = do
     prog <- readProgram ifmt inp
     let term = prog ^. UPLC.progTerm
         nterm = fromRight (error "Term to debug must be closed.") $
                    runExcept @FreeVariableError $ UPLC.deBruijnTerm term
     let cekparams = case cekModel of
-                    -- AST nodes are charged according to the default cost model
-                    Default -> PLC.defaultCekParametersForTesting -- FIXME: semantic variant
+                    -- AST nodes are charged according to the appropriate cost model
+                    Default -> PLC.defaultCekParametersForVariant semvar
                     -- AST nodes are charged one unit each, so we can see how many times each node
                     -- type is encountered.  This is useful for calibrating the budgeting code
                     Unit    -> PLC.unitCekParameters
