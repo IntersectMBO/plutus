@@ -50,7 +50,7 @@ test_builtinsDon'tThrow =
     testGroup "Builtins don't throw" $
         enumerate @(BuiltinSemanticsVariant DefaultFun) <&> \semvar ->
             testGroup (fromString . render $ "Version: " <> pretty semvar) $
-                let runtimes = toBuiltinsRuntime semvar defaultBuiltinCostModel
+                let runtimes = toBuiltinsRuntime semvar defaultBuiltinCostModelForTesting
                 in enumerate @DefaultFun <&> \fun ->
                     -- Perhaps using @maxBound@ (with @Enum@, @Bounded@) is indeed better than
                     -- @Default@ for BuiltinSemanticsVariants

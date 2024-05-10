@@ -87,7 +87,7 @@ benchWith params name term = bench name $ whnf (unsafeEvaluateCekNoEmit params) 
 -}
 
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
-benchDefault = benchWith defaultCekParameters
+benchDefault = benchWith defaultCekParametersC
 
 
 ---------------- Constructing Polymorphic PLC terms for benchmarking ----------------

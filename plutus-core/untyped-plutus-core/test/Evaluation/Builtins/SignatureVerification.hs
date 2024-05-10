@@ -101,7 +101,7 @@ runTestDataWith semvar testData f op = do
         mkConstant @ByteString () msg,
         mkConstant @ByteString () sig
         ]
-  let result = typecheckEvaluateCek semvar defaultBuiltinCostModel actualExp
+  let result = typecheckEvaluateCek semvar defaultBuiltinCostModelForTesting actualExp  -- FIXME: semantic variant?
   case result of
     Left x -> annotateShow x >> failure
     Right (res, logs) -> do

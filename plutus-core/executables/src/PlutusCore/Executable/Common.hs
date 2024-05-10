@@ -487,7 +487,8 @@ runPrintExample getFn (ExampleOptions (ExampleSingle name)) = do
 
 runDumpModel :: IO ()
 runDumpModel = do
-    let params = fromJust PLC.defaultCostModelParams
+    -- TODO: get proper semantic variant.
+    let params = fromJust PLC.defaultCostModelParamsForTesting
     BSL.putStr $ Aeson.encode params
 
 ---------------- Print the type signatures of the default builtins ----------------

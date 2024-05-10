@@ -33,8 +33,10 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (ExBudget))
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel,
-                                                          defaultCekMachineCosts)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekMachineCostsVariantA,
+                                                          cekMachineCostsVariantB,
+                                                          cekMachineCostsVariantC,
+                                                          defaultBuiltinCostModelForTesting)
 import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (LiteralByteSize)
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
@@ -195,14 +197,18 @@ testCosts semvar runtimes bn =
 testBuiltinCostModel :: BuiltinSemanticsVariant DefaultFun -> TestTree
 testBuiltinCostModel semvar =
   let builtins = enumerate @DefaultFun
-      runtimes = toBuiltinsRuntime semvar defaultBuiltinCostModel
+      runtimes = toBuiltinsRuntime semvar defaultBuiltinCostModelForTesting
   in testCase ("Built-in cost model for " ++ show semvar) $
       mapM_ (testCosts semvar runtimes) builtins
 
 test_costModelSafety :: TestTree
 test_costModelSafety =
-  testGroup "Default cost model safety test"
+  testGroup "Cost model safety test"
   (
-  (testCase "Machine costs" $ testMachineCostModel defaultCekMachineCosts) :
+  (testCase "Machine costs A" $ testMachineCostModel cekMachineCostsVariantA) :
+    (fmap testBuiltinCostModel $ enumerate @(BuiltinSemanticsVariant DefaultFun))
+  ++ (testCase "Machine costs B" $ testMachineCostModel cekMachineCostsVariantB) :
+    (fmap testBuiltinCostModel $ enumerate @(BuiltinSemanticsVariant DefaultFun))
+  ++ (testCase "Machine costs A" $ testMachineCostModel cekMachineCostsVariantC) :
     (fmap testBuiltinCostModel $ enumerate @(BuiltinSemanticsVariant DefaultFun))
   )

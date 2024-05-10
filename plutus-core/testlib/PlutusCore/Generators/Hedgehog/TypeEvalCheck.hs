@@ -127,7 +127,7 @@ unsafeTypeEvalCheck
     => TermOf (Term TyName Name uni fun ()) a
     -> TermOf (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ()))
 unsafeTypeEvalCheck termOfTbv = do
-    let errOrRes = typeEvalCheckBy (evaluateCkNoEmit defaultBuiltinsRuntime) termOfTbv
+    let errOrRes = typeEvalCheckBy (evaluateCkNoEmit defaultBuiltinsRuntimeForTesting) termOfTbv
     case errOrRes of
         Left err         -> error $ concat
             [ prettyPlcErrorString err

@@ -16,7 +16,7 @@ import PlutusCore.Executable.Parsers
 import System.Exit (exitFailure)
 import System.IO (stderr)
 
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCosts)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCostsForTesting)
 import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts)
 
@@ -87,7 +87,7 @@ commands = hsubparser (
 type CostModel = (CekMachineCosts , BuiltinCostMap)
 
 addJSONParameters :: Command a -> Command CostModel
-addJSONParameters = fmap (const (defaultCekMachineCosts, defaultSimpleBuiltinCostModel))
+addJSONParameters = fmap (const (defaultCekMachineCostsForTesting, defaultSimpleBuiltinCostModel))
 
 execP :: IO (Command CostModel)
 execP = addJSONParameters <$> execParser (info (commands <**> helper)

@@ -46,7 +46,8 @@ typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do
     return . action runtime $ TPLC.eraseTerm term
     where
       runtime = mkMachineParameters semvar $
-                   CostModel defaultCekMachineCosts costingPart
+                -- FIXME!: is this the correct cost model?
+                   CostModel defaultCekMachineCostsForTesting costingPart
 
 -- | Type check and evaluate a term, logging enabled.
 typecheckEvaluateCek

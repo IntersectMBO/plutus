@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeApplications #-}
 module Spec.CostModelParams where
 
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParams)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParamsForTesting)
 
 import PlutusLedgerApi.Common
 
@@ -42,7 +42,7 @@ tests =
             for_ v3_ParamNames $ \ p ->
                 assertBool "tripping v3 cm params failed" $ Just p == readParamName (showParamName p)
     , testCase "default values costmodelparamsfortesting" $ do
-            defaultCostModelParams @=? Just (toCostModelParams V3.costModelParamsForTesting)
+            defaultCostModelParamsForTesting @=? Just (toCostModelParams V3.costModelParamsForTesting)
     , testCase "context length" $ do
             let costValuesForTesting = fmap snd V3.costModelParamsForTesting
             -- the `costModelParamsForTesting` reflects only the latest version (V3), so this should succeed because the lengths match

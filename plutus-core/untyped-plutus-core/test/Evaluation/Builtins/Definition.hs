@@ -63,7 +63,7 @@ import Test.Tasty.HUnit
 type DefaultFunExt = Either DefaultFun ExtensionFun
 
 defaultBuiltinCostModelExt :: CostingPart DefaultUni DefaultFunExt
-defaultBuiltinCostModelExt = (defaultBuiltinCostModel, ())
+defaultBuiltinCostModelExt = (defaultBuiltinCostModelForTesting, ())
 
 -- | Check that the 'Factorial' builtin computes to the same thing as factorial defined in PLC
 -- itself.
@@ -204,7 +204,7 @@ test_ScottToMetaUnit =
             applyTerm = apply () (builtin () ScottToMetaUnit)
         -- @scottToMetaUnit Scott.unitval@ is well-typed and runs successfully.
         typecheckEvaluateCekNoEmit def () (applyTerm Scott.unitval) @?= Right res
-        let runtime = mkMachineParameters def $ CostModel defaultCekMachineCosts ()
+        let runtime = mkMachineParameters def $ CostModel defaultCekMachineCostsForTesting () -- FIXME: def?
         -- @scottToMetaUnit Scott.map@ is ill-typed, but still runs successfully, since the builtin
         -- doesn't look at the argument.
         unsafeEvaluateCekNoEmit runtime (eraseTerm $ applyTerm Scott.map) @?= res
@@ -277,7 +277,8 @@ test_BuiltinList =
                     , mkConstant @Integer () 0
                     , mkConstant @[Integer] () xs
                     ]
-        typecheckEvaluateCekNoEmit def defaultBuiltinCostModel term @?= Right (EvaluationSuccess res)
+        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?= Right (EvaluationSuccess res)
+        -- FIXME: def?
 
 -- | Test that right-folding a built-in list with built-in 'Cons' recreates that list.
 test_IdBuiltinList :: TestTree
@@ -343,7 +344,8 @@ test_SwapEls =
                     , mkConstant @Integer () 0
                     , mkConstant () xs
                     ]
-        typecheckEvaluateCekNoEmit def defaultBuiltinCostModel term @?= Right (EvaluationSuccess res)
+        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?= Right (EvaluationSuccess res)
+        -- FIXME: def?
 
 -- | Test that right-folding a built-in 'Data' with the constructors of 'Data' recreates the
 -- original value.
@@ -426,8 +428,8 @@ test_SerialiseDataImpossible =
                 loop = List [loop]
             budgetMode = restricting . ExRestrictingBudget $ ExBudget 10000000000 10000000
             evalRestricting params = fst . unsafeRunCekNoEmit params budgetMode
-        typecheckAnd def evalRestricting defaultBuiltinCostModel dataLoop @?=
-            Right EvaluationFailure
+        typecheckAnd def evalRestricting defaultBuiltinCostModelForTesting dataLoop @?=
+            Right EvaluationFailure  -- FIXME: def?
 
 -- | Test all integer related builtins
 test_Integer :: TestTree
@@ -511,24 +513,24 @@ test_List = testCase "List" $ do
     evalsL @[Integer] [1] MkCons integer [cons @Integer 1, cons @[Integer] []]
     evalsL @[Integer] [1,2] MkCons integer [cons @Integer 1, cons @[Integer] [2]]
 
-    Right (EvaluationSuccess true)  @=?  typecheckEvaluateCekNoEmit def defaultBuiltinCostModel (nullViaChooseList [])
-    Right (EvaluationSuccess false)  @=?  typecheckEvaluateCekNoEmit def defaultBuiltinCostModel (nullViaChooseList [1])
-    Right (EvaluationSuccess false)  @=?  typecheckEvaluateCekNoEmit def defaultBuiltinCostModel (nullViaChooseList [1..10])
-
+    Right (EvaluationSuccess true)  @=?  typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting (nullViaChooseList [])
+    Right (EvaluationSuccess false)  @=?  typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting (nullViaChooseList [1])
+    Right (EvaluationSuccess false)  @=?  typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting (nullViaChooseList [1..10])
+    -- FIXME: def?
  where
    evalsL :: DefaultUni `HasTermLevel` a => a -> DefaultFun -> Type TyName DefaultUni () -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
    evalsL expectedVal b tyArg args =
     let actualExp = mkIterAppNoAnn (tyInst () (builtin () b) tyArg) args
     in  Right (EvaluationSuccess $ cons expectedVal)
         @=?
-        typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
+        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting actualExp -- FIXME: def?
 
    failsL :: DefaultFun -> Type TyName DefaultUni () -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
    failsL b tyArg args =
     let actualExp = mkIterAppNoAnn (tyInst () (builtin () b) tyArg) args
     in  Right EvaluationFailure
         @=?
-        typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
+        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting actualExp -- FIXME: def?
 
    -- the null function that utilizes the ChooseList builtin (through the caseList helper function)
    nullViaChooseList :: [Integer] -> Term TyName Name DefaultUni DefaultFun ()
@@ -609,7 +611,7 @@ test_Data = testCase "Data" $ do
                               pure $ lamAbs () a1 (mkTyBuiltin @_ @ByteString ()) false
                       ]
 
-    Right (EvaluationSuccess true)  @=?  typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
+    Right (EvaluationSuccess true)  @=?  typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting actualExp -- FIXME: def?
 
 -- | Test all cryptography-related builtins
 test_Crypto :: TestTree
@@ -725,7 +727,8 @@ test_HashSize hashFun expectedNumBits =
                     , mkIterAppNoAnn (builtin () LengthOfByteString)
                           [mkIterAppNoAnn (builtin () hashFun) [cons @ByteString bs]]
                     ]
-         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel term === Right (EvaluationSuccess (cons @Integer expectedNumBits))
+         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term === Right (EvaluationSuccess (cons @Integer expectedNumBits))
+         -- FIXME: def?
 
 -- | Check that all hash functions return hashes with the correct number of bits
 test_HashSizes :: TestTree
@@ -742,13 +745,13 @@ test_HashSizes =
 test_Other :: TestTree
 test_Other = testCase "Other" $ do
     let expr1 = mkIterAppNoAnn (tyInst () (builtin () ChooseUnit) bool) [unitval, true]
-    Right (EvaluationSuccess true) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModel expr1
+    Right (EvaluationSuccess true) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting expr1  -- FIXME: def?
 
     let expr2 = mkIterAppNoAnn (tyInst () (builtin () IfThenElse) integer) [true, cons @Integer 1, cons @Integer 0]
-    Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModel expr2
+    Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting expr2  -- FIXME: def?
 
     let expr3 = mkIterAppNoAnn (tyInst () (builtin () Trace) integer) [cons @Text "hello world", cons @Integer 1]
-    Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModel expr3
+    Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting expr3  -- FIXME:def?x
 
 -- | Check that 'ExtensionVersion' evaluates correctly.
 -- See Note [Builtin semantics variants]
@@ -790,7 +793,7 @@ evals expectedVal b args =
     let actualExp = mkIterAppNoAnn (builtin () b) args
     in  Right (EvaluationSuccess $ cons expectedVal)
         @=?
-        typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
+        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting actualExp  -- FIXME: def?
 
 -- shorthand
 fails :: DefaultFun -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
@@ -798,7 +801,7 @@ fails b args =
     let actualExp = mkIterAppNoAnn (builtin () b) args
     in  Right EvaluationFailure
         @=?
-        typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
+        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting actualExp -- FIXME: def?
 
 -- Test that the SECP256k1 builtins are behaving correctly
 test_SignatureVerification :: TestTree

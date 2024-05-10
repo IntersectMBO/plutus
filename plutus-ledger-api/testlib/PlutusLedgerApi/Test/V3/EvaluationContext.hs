@@ -27,7 +27,7 @@ costModelParamsForTesting = Map.toList $ fromJust $
 mCostModel :: MCostModel
 mCostModel =
     -- nothing to clear because v4 does not exist (yet).
-    toMCostModel defaultCekCostModel
+    toMCostModel defaultCekCostModelForTesting  -- FIXME! Is this correct?
 
 {- | Assign to `mempty` those CEK constructs that @PlutusV3@ introduces (indirectly by introducing
 a ledger language version with those CEK constructs).

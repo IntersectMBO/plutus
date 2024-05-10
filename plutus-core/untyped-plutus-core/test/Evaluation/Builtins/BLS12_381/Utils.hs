@@ -7,7 +7,7 @@ where
 import Evaluation.Builtins.Common
 
 import PlutusCore qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusPrelude (def)
 import UntypedPlutusCore qualified as UPLC
@@ -32,7 +32,7 @@ data CekResult =
 
 evalTerm :: PlcTerm -> CekResult
 evalTerm term =
-    case typecheckEvaluateCekNoEmit def defaultBuiltinCostModel term
+    case typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term -- FIXME: def?
     of Left e -> TypeCheckError e
        Right x  ->
            case x of

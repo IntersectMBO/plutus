@@ -41,12 +41,13 @@ runRun = \case
     SData{} -> const $ failE "Cannot run data as a program."
 
 
+-- TODO: add a semantic variant here to get the right machine parameters
 runPlc :: (?opts :: Opts)
        => PLC.Program TyName Name DefaultUni DefaultFun a ->  IO ()
 runPlc (PLC.Program _ _ t)
     | Nothing <- _budget ?opts =
       -- CK machine currently only works with ann==() , so we void before
-      case PLC.runCk defaultBuiltinsRuntime False (void t) of
+      case PLC.runCk defaultBuiltinsRuntimeForTesting False (void t) of
         (Left errorWithCause, logs) -> do
             for_ logs (printE . Text.unpack)
             failE $ show errorWithCause
@@ -58,10 +59,11 @@ runPlc (PLC.Program _ _ t)
             printE $ show $ prettyWithStyle (_prettyStyle ?opts) finalTerm
     | otherwise = failE "Budget limiting/accounting is not possible for TPLC."
 
+-- TODO: add a semantic variant here to get the right machine parameters
 runUplc :: (?opts :: Opts, Typeable a)
         => UPLC.UnrestrictedProgram NamedDeBruijn DefaultUni DefaultFun a -> IO ()
 runUplc (UPLC.UnrestrictedProgram (UPLC.Program _ _ t)) =
-    case UPLC.runCekDeBruijn defaultCekParameters exBudgetMode logEmitter t of
+    case UPLC.runCekDeBruijn defaultCekParametersForTesting exBudgetMode logEmitter t of
         (Left errorWithCause, _, logs) -> do
             for_ logs (printE . Text.unpack)
             failE $ show errorWithCause

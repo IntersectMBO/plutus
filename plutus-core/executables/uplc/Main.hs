@@ -300,7 +300,7 @@ runBenchmark :: BenchmarkOptions -> IO ()
 runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
   prog <- readProgram ifmt inp
   let criterionConfig = defaultConfig {reportFile = Nothing, timeLimit = timeLim}
-      cekparams = mkMachineParameters semvar PLC.defaultCekCostModel
+      cekparams = mkMachineParameters semvar PLC.defaultCekCostModelForTesting -- FIXME: semantic variant
       getResult (x,_,_) = either (error . show) (const ()) x  -- Extract an evaluation result
       evaluate = getResult . Cek.runCekDeBruijn cekparams Cek.restrictingEnormous Cek.noEmitter
       -- readProgam throws away De Bruijn indices and returns an AST with Names;
@@ -322,7 +322,7 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode
     let term = void $ prog ^. UPLC.progTerm
         cekparams = case cekModel of
                     -- AST nodes are charged according to the default cost model
-                    Default -> mkMachineParameters semvar PLC.defaultCekCostModel
+                    Default -> mkMachineParameters semvar PLC.defaultCekCostModelForTesting -- FIXME: semantic variant
                     -- AST nodes are charged one unit each, so we can see how many times each node
                     -- type is encountered.  This is useful for calibrating the budgeting code
                     Unit    -> PLC.unitCekParameters
@@ -362,7 +362,7 @@ runDbg (DbgOptions inp ifmt cekModel) = do
                    runExcept @FreeVariableError $ UPLC.deBruijnTerm term
     let cekparams = case cekModel of
                     -- AST nodes are charged according to the default cost model
-                    Default -> PLC.defaultCekParameters
+                    Default -> PLC.defaultCekParametersForTesting -- FIXME: semantic variant
                     -- AST nodes are charged one unit each, so we can see how many times each node
                     -- type is encountered.  This is useful for calibrating the budgeting code
                     Unit    -> PLC.unitCekParameters
