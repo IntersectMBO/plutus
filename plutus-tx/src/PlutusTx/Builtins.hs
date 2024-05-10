@@ -114,7 +114,7 @@ module PlutusTx.Builtins (
                          , bitwiseLogicalComplement
                          , readBit
                          , writeBits
-                         , byteStringReplicate
+                         , replicateByteString
                          ) where
 
 import Data.Maybe
@@ -772,9 +772,9 @@ writeBits = BI.writeBits
 --
 -- * [Operation
 -- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinreplicate)
-{-# INLINEABLE byteStringReplicate #-}
-byteStringReplicate ::
+{-# INLINEABLE replicateByteString #-}
+replicateByteString ::
   Integer ->
   Integer ->
   BuiltinByteString
-byteStringReplicate = BI.byteStringReplicate
+replicateByteString = BI.replicateByteString

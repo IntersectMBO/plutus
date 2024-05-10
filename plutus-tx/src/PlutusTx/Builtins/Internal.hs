@@ -771,12 +771,12 @@ writeBits (BuiltinByteString bs) (BuiltinList xs) =
       BuiltinSuccess bs' -> BuiltinByteString bs'
       BuiltinSuccessWithLogs logs bs' -> traceAll logs $ BuiltinByteString bs'
 
-{-# NOINLINE byteStringReplicate #-}
-byteStringReplicate ::
+{-# NOINLINE replicateByteString #-}
+replicateByteString ::
   BuiltinInteger ->
   BuiltinInteger ->
   BuiltinByteString
-byteStringReplicate n w8 =
+replicateByteString n w8 =
   case Logical.replicateByteString (fromIntegral n) (fromIntegral w8) of
     BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
       Haskell.error "byteStringReplicate errored."

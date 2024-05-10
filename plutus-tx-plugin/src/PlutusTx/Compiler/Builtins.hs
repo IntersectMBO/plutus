@@ -277,6 +277,14 @@ builtinNames = [
 
     , 'Builtins.integerToByteString
     , 'Builtins.byteStringToInteger
+
+    , 'Builtins.bitwiseLogicalAnd
+    , 'Builtins.bitwiseLogicalOr
+    , 'Builtins.bitwiseLogicalXor
+    , 'Builtins.bitwiseLogicalComplement
+    , 'Builtins.readBit
+    , 'Builtins.writeBits
+    , 'Builtins.replicateByteString
     ]
 
 defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -433,6 +441,15 @@ defineBuiltinTerms = do
             -- Bitwise operations
             PLC.IntegerToByteString -> defineBuiltinInl 'Builtins.integerToByteString
             PLC.ByteStringToInteger -> defineBuiltinInl 'Builtins.byteStringToInteger
+
+            -- Logical operations
+            PLC.BitwiseLogicalAnd -> defineBuiltinInl 'Builtins.bitwiseLogicalAnd
+            PLC.BitwiseLogicalOr -> defineBuiltinInl 'Builtins.bitwiseLogicalOr
+            PLC.BitwiseLogicalXor -> defineBuiltinInl 'Builtins.bitwiseLogicalXor
+            PLC.BitwiseLogicalComplement -> defineBuiltinInl 'Builtins.bitwiseLogicalComplement
+            PLC.ReadBit -> defineBuiltinInl 'Builtins.readBit
+            PLC.WriteBits -> defineBuiltinInl 'Builtins.writeBits
+            PLC.ReplicateByteString -> defineBuiltinInl 'Builtins.replicateByteString
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m ann
