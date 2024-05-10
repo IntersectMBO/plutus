@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts         #-}
+{-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
@@ -11,7 +12,6 @@
 
 module PlutusTx.Builtins.IsBuiltin where
 
-import PlutusCore qualified as PLC
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1 (Element)
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2 (Element)
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing (MlResult)
@@ -59,48 +59,56 @@ instance IsString BuiltinString where
     -- See Note [noinline hack]
     fromString = Magic.noinline stringToBuiltinString
 
-type IsBuiltin :: GHC.Type -> GHC.Constraint
-class PLC.DefaultUni `PLC.Contains` (FromBuiltin a) => IsBuiltin a where
+type HasFromBuiltin :: GHC.Type -> GHC.Constraint
+class HasFromBuiltin a where
     type FromBuiltin a
     fromBuiltin :: a -> FromBuiltin a
+
+type HasToBuiltin :: GHC.Type -> GHC.Constraint
+class HasToBuiltin a where
     toBuiltin :: FromBuiltin a -> a
 
-instance IsBuiltin BuiltinInteger where
+instance HasFromBuiltin BuiltinInteger where
     type FromBuiltin BuiltinInteger = Integer
     {-# INLINABLE fromBuiltin #-}
     fromBuiltin = id
+instance HasToBuiltin BuiltinInteger where
     {-# INLINABLE toBuiltin #-}
     toBuiltin = id
 
-instance IsBuiltin BuiltinByteString where
+instance HasFromBuiltin BuiltinByteString where
     type FromBuiltin BuiltinByteString = ByteString
     {-# INLINABLE fromBuiltin #-}
     fromBuiltin (BuiltinByteString b) = b
+instance HasToBuiltin BuiltinByteString where
     {-# INLINABLE toBuiltin #-}
     toBuiltin = BuiltinByteString
 
-instance IsBuiltin BuiltinString where
+instance HasFromBuiltin BuiltinString where
     type FromBuiltin BuiltinString = Text
     {-# INLINABLE fromBuiltin #-}
     fromBuiltin (BuiltinString t) = t
+instance HasToBuiltin BuiltinString where
     {-# INLINABLE toBuiltin #-}
     toBuiltin = BuiltinString
 
-instance IsBuiltin BuiltinUnit where
+instance HasFromBuiltin BuiltinUnit where
     type FromBuiltin BuiltinUnit = ()
     {-# INLINABLE fromBuiltin #-}
     fromBuiltin u = chooseUnit u ()
+instance HasToBuiltin BuiltinUnit where
     {-# INLINABLE toBuiltin #-}
     toBuiltin x = case x of () -> unitval
 
-instance IsBuiltin BuiltinBool where
+instance HasFromBuiltin BuiltinBool where
     type FromBuiltin BuiltinBool = Bool
     {-# INLINABLE fromBuiltin #-}
     fromBuiltin b = ifThenElse b True False
+instance HasToBuiltin BuiltinBool where
     {-# INLINABLE toBuiltin #-}
     toBuiltin b = if b then true else false
 
-instance IsBuiltin a => IsBuiltin (BuiltinList a) where
+instance HasFromBuiltin a => HasFromBuiltin (BuiltinList a) where
     type FromBuiltin (BuiltinList a) = [FromBuiltin a]
 
     {-# INLINABLE fromBuiltin #-}
@@ -115,50 +123,56 @@ instance IsBuiltin a => IsBuiltin (BuiltinList a) where
           -- need to do the manual laziness ourselves.
           go l = chooseList l (\_ -> []) (\_ -> fromBuiltin (head l) : go (tail l)) unitval
 
+instance HasToBuiltin (BuiltinList BuiltinData) where
     {-# INLINE toBuiltin #-}
     toBuiltin = goList where
-        goList :: [FromBuiltin a] -> BuiltinList a
-        goList []     = mkNil @(FromBuiltin a) (Magic.inline PLC.knownUni)
+        goList :: [Data] -> BuiltinList BuiltinData
+        goList []     = mkNilData unitval
         goList (d:ds) = mkCons (toBuiltin d) (goList ds)
 
-instance (IsBuiltin a, IsBuiltin b) => IsBuiltin (BuiltinPair a b) where
+instance HasToBuiltin (BuiltinList (BuiltinPair BuiltinData BuiltinData)) where
+    {-# INLINE toBuiltin #-}
+    toBuiltin = goList where
+        goList :: [(Data, Data)] -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
+        goList []     = mkNilPairData unitval
+        goList (d:ds) = mkCons (toBuiltin d) (goList ds)
+
+instance (HasFromBuiltin a, HasFromBuiltin b) => HasFromBuiltin (BuiltinPair a b) where
     type FromBuiltin (BuiltinPair a b) = (FromBuiltin a, FromBuiltin b)
     {-# INLINABLE fromBuiltin #-}
     fromBuiltin p = (fromBuiltin $ fst p, fromBuiltin $ snd p)
+instance HasToBuiltin (BuiltinPair BuiltinData BuiltinData) where
     {-# INLINABLE toBuiltin #-}
-    toBuiltin (d1, d2) =
-        mkPair
-            @(FromBuiltin a)
-            @(FromBuiltin b)
-            (Magic.inline PLC.knownUni)
-            (Magic.inline PLC.knownUni)
-            (toBuiltin d1)
-            (toBuiltin d2)
+    toBuiltin (d1, d2) = mkPairData (toBuiltin d1) (toBuiltin d2)
 
-instance IsBuiltin BuiltinData where
+instance HasFromBuiltin BuiltinData where
     type FromBuiltin BuiltinData = Data
     {-# INLINABLE fromBuiltin #-}
     fromBuiltin (BuiltinData t) = t
+instance HasToBuiltin BuiltinData where
     {-# INLINABLE toBuiltin #-}
     toBuiltin = BuiltinData
 
-instance IsBuiltin BuiltinBLS12_381_G1_Element where
+instance HasFromBuiltin BuiltinBLS12_381_G1_Element where
     type FromBuiltin BuiltinBLS12_381_G1_Element = BLS12_381.G1.Element
     {-# INLINABLE fromBuiltin #-}
     fromBuiltin (BuiltinBLS12_381_G1_Element a) = a
+instance HasToBuiltin BuiltinBLS12_381_G1_Element where
     {-# INLINABLE toBuiltin #-}
     toBuiltin = BuiltinBLS12_381_G1_Element
 
-instance IsBuiltin BuiltinBLS12_381_G2_Element where
+instance HasFromBuiltin BuiltinBLS12_381_G2_Element where
     type FromBuiltin BuiltinBLS12_381_G2_Element = BLS12_381.G2.Element
     {-# INLINABLE fromBuiltin #-}
     fromBuiltin (BuiltinBLS12_381_G2_Element a) = a
+instance HasToBuiltin BuiltinBLS12_381_G2_Element where
     {-# INLINABLE toBuiltin #-}
     toBuiltin = BuiltinBLS12_381_G2_Element
 
-instance IsBuiltin BuiltinBLS12_381_MlResult where
+instance HasFromBuiltin BuiltinBLS12_381_MlResult where
     type FromBuiltin BuiltinBLS12_381_MlResult = BLS12_381.Pairing.MlResult
     {-# INLINABLE fromBuiltin #-}
     fromBuiltin (BuiltinBLS12_381_MlResult a) = a
+instance HasToBuiltin BuiltinBLS12_381_MlResult where
     {-# INLINABLE toBuiltin #-}
     toBuiltin = BuiltinBLS12_381_MlResult

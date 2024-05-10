@@ -31,7 +31,7 @@ import PlutusCore.Quote
 import PlutusIR.MkPir
 import PlutusTx.Builtins
 import PlutusTx.Builtins.Internal (BuiltinBool, BuiltinList, BuiltinPair, BuiltinUnit)
-import PlutusTx.Builtins.IsBuiltin (FromBuiltin, IsBuiltin)
+import PlutusTx.Builtins.IsBuiltin (FromBuiltin, HasFromBuiltin)
 
 import Language.Haskell.TH qualified as TH hiding (newName)
 
@@ -188,14 +188,17 @@ instance uni `PLC.HasTypeLevel` [] => Typeable uni BuiltinList where
     typeRep _proxyBuiltinList = typeRepBuiltin (Proxy @[])
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (IsBuiltin a, uni `PLC.HasTermLevel` [FromBuiltin a]) => Lift uni (BuiltinList a) where
+instance (HasFromBuiltin a, uni `PLC.HasTermLevel` [FromBuiltin a]) =>
+        Lift uni (BuiltinList a) where
     lift = liftBuiltin . fromBuiltin
 
 instance uni `PLC.HasTypeLevel` (,) => Typeable uni BuiltinPair where
     typeRep _proxyBuiltinPair = typeRepBuiltin (Proxy @(,))
 
-instance (IsBuiltin a, IsBuiltin b, uni `PLC.HasTermLevel` (FromBuiltin a, FromBuiltin b)) =>
-        Lift uni (BuiltinPair a b) where
+instance
+        ( HasFromBuiltin a, HasFromBuiltin b
+        , uni `PLC.HasTermLevel` (FromBuiltin a, FromBuiltin b)
+        ) => Lift uni (BuiltinPair a b) where
     lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
