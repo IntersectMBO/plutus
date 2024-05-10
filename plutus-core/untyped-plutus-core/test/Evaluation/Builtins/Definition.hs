@@ -42,8 +42,8 @@ import PlutusCore.StdLib.Data.Unit
 import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.Conversion qualified as Conversion
-import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_Variant0Prop,
-                                                  ed25519_Variant1Prop, ed25519_Variant2Prop,
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
+                                                  ed25519_VariantBProp, ed25519_VariantCProp,
                                                   schnorrSecp256k1Prop)
 
 
@@ -757,7 +757,7 @@ test_Version =
     testCase "Version" $ do
         let expr1 = apply () (builtin () $ Right ExtensionVersion) unitval
         Right (EvaluationSuccess $ cons @Integer 0) @=?
-              typecheckEvaluateCekNoEmit (PairV @DefaultFun def ExtensionFunSemanticsVariant0) defaultBuiltinCostModelExt expr1
+              typecheckEvaluateCekNoEmit (PairV @DefaultFun def ExtensionFunSemanticsVariantX) defaultBuiltinCostModelExt expr1
         Right (EvaluationSuccess $ cons @Integer 1) @=?
               typecheckEvaluateCekNoEmit (PairV @DefaultFun def def) defaultBuiltinCostModelExt expr1
 
@@ -772,11 +772,11 @@ test_ConsByteString =
             expr1 = mkIterAppNoAnn (builtin () (Left ConsByteString :: DefaultFunExt))
                     [cons @Integer asciiBangWrapped, cons @ByteString "hello world"]
         Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=?
-              typecheckEvaluateCekNoEmit (PairV DefaultFunSemanticsVariant0 def) defaultBuiltinCostModelExt expr1
+              typecheckEvaluateCekNoEmit (PairV DefaultFunSemanticsVariantA def) defaultBuiltinCostModelExt expr1
         Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=?
-              typecheckEvaluateCekNoEmit (PairV DefaultFunSemanticsVariant1 def) defaultBuiltinCostModelExt expr1
+              typecheckEvaluateCekNoEmit (PairV DefaultFunSemanticsVariantB def) defaultBuiltinCostModelExt expr1
         Right EvaluationFailure @=? typecheckEvaluateCekNoEmit
-                  (PairV DefaultFunSemanticsVariant2 def) defaultBuiltinCostModelExt expr1
+                  (PairV DefaultFunSemanticsVariantC def) defaultBuiltinCostModelExt expr1
         Right EvaluationFailure @=?
               typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt expr1
 
@@ -805,23 +805,23 @@ test_SignatureVerification :: TestTree
 test_SignatureVerification =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
   testGroup "Signature verification" $ [
-        testGroup "Ed25519 signatures (Variant0)"
+        testGroup "Ed25519 signatures (VariantA)"
                       [ testPropertyNamed
-                        "Ed25519_Variant0 verification behaves correctly on all inputs"
-                        "ed25519_Variant0_correct"
-                        . property $ ed25519_Variant0Prop
+                        "Ed25519_VariantA verification behaves correctly on all inputs"
+                        "ed25519_VariantA_correct"
+                        . property $ ed25519_VariantAProp
                       ],
-        testGroup "Ed25519 signatures (Variant1)"
+        testGroup "Ed25519 signatures (VariantB)"
                       [ testPropertyNamed
-                        "Ed25519_Variant1 verification behaves correctly on all inputs"
-                        "ed25519_Variant1_correct"
-                        . property $ ed25519_Variant1Prop
+                        "Ed25519_VariantB verification behaves correctly on all inputs"
+                        "ed25519_VariantB_correct"
+                        . property $ ed25519_VariantBProp
                       ],
-        testGroup "Ed25519 signatures (Variant2)"
+        testGroup "Ed25519 signatures (VariantC)"
                       [ testPropertyNamed
-                        "Ed25519_Variant2 verification behaves correctly on all inputs"
-                        "ed25519_Variant2_correct"
-                        . property $ ed25519_Variant2Prop
+                        "Ed25519_VariantC verification behaves correctly on all inputs"
+                        "ed25519_VariantC_correct"
+                        . property $ ed25519_VariantCProp
                       ],
         testGroup "Signatures on the SECP256k1 curve"
                       [ testPropertyNamed

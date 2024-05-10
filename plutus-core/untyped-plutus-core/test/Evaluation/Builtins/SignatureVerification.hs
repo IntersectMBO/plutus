@@ -10,9 +10,9 @@
 
 module Evaluation.Builtins.SignatureVerification (
   ecdsaSecp256k1Prop,
-  ed25519_Variant0Prop,
-  ed25519_Variant1Prop,
-  ed25519_Variant2Prop,
+  ed25519_VariantAProp,
+  ed25519_VariantBProp,
+  ed25519_VariantCProp,
   schnorrSecp256k1Prop,
   ) where
 
@@ -76,14 +76,14 @@ ed25519Prop semvar = do
   cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
   runTestDataWith semvar testCase id VerifyEd25519Signature
 
-ed25519_Variant0Prop :: PropertyT IO ()
-ed25519_Variant0Prop = ed25519Prop DefaultFunSemanticsVariant0
+ed25519_VariantAProp :: PropertyT IO ()
+ed25519_VariantAProp = ed25519Prop DefaultFunSemanticsVariantA
 
-ed25519_Variant1Prop :: PropertyT IO ()
-ed25519_Variant1Prop = ed25519Prop DefaultFunSemanticsVariant1
+ed25519_VariantBProp :: PropertyT IO ()
+ed25519_VariantBProp = ed25519Prop DefaultFunSemanticsVariantB
 
-ed25519_Variant2Prop :: PropertyT IO ()
-ed25519_Variant2Prop = ed25519Prop DefaultFunSemanticsVariant2
+ed25519_VariantCProp :: PropertyT IO ()
+ed25519_VariantCProp = ed25519Prop DefaultFunSemanticsVariantC
 
 -- Helpers
 

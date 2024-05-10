@@ -141,30 +141,30 @@ exampleOpts = ExampleOptions <$> exampleMode
 builtinSemanticsVariantReader :: String -> Maybe (BuiltinSemanticsVariant DefaultFun)
 builtinSemanticsVariantReader =
     \case
-     "0" -> Just DefaultFunSemanticsVariant0
-     "1" -> Just DefaultFunSemanticsVariant1
-     "2" -> Just DefaultFunSemanticsVariant2
+     "A" -> Just DefaultFunSemanticsVariantA
+     "B" -> Just DefaultFunSemanticsVariantB
+     "C" -> Just DefaultFunSemanticsVariantC
      _   -> Nothing
 
 -- This is used to make the help message show you what you actually need to type.
 showBuiltinSemanticsVariant :: BuiltinSemanticsVariant DefaultFun -> String
 showBuiltinSemanticsVariant =
     \case
-     DefaultFunSemanticsVariant0 -> "0"
-     DefaultFunSemanticsVariant1 -> "1"
-     DefaultFunSemanticsVariant2 -> "2"
+     DefaultFunSemanticsVariantA -> "A"
+     DefaultFunSemanticsVariantB -> "B"
+     DefaultFunSemanticsVariantC -> "C"
 
 builtinSemanticsVariant :: Parser (BuiltinSemanticsVariant DefaultFun)
 builtinSemanticsVariant = option (maybeReader builtinSemanticsVariantReader)
   (  long "builtin-semantics-variant"
   <> short 'B'
   <> metavar "VARIANT"
-  <> value DefaultFunSemanticsVariant2
+  <> value DefaultFunSemanticsVariantC
   <> showDefaultWith showBuiltinSemanticsVariant
   <> help
-    ("Builtin semantics variant: 0 -> DefaultFunSemanticsVariant0, "
-     <> "1 -> DefaultFunSemanticsVariant1"
-     <> "2 -> DefaultFunSemanticsVariant2"
+    ("Builtin semantics variant: A -> DefaultFunSemanticsVariantA, "
+     <> "B -> DefaultFunSemanticsVariantB"
+     <> "C -> DefaultFunSemanticsVariantC"
     )
   )
 
