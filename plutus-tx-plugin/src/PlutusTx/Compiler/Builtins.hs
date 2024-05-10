@@ -18,8 +18,8 @@ module PlutusTx.Compiler.Builtins (
     , lookupBuiltinType
     , errorFunc) where
 
-import PlutusTx.Builtins.Class qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as Builtins
+import PlutusTx.Builtins.IsBuiltin qualified as Builtins
 
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Names

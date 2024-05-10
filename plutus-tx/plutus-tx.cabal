@@ -70,7 +70,6 @@ library
     PlutusTx.Blueprint.Write
     PlutusTx.Bool
     PlutusTx.Builtins
-    PlutusTx.Builtins.Class
     PlutusTx.Builtins.Internal
     PlutusTx.Builtins.IsBuiltin
     PlutusTx.Builtins.IsOpaque

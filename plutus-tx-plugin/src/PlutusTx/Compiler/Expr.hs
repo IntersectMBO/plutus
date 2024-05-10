@@ -49,7 +49,7 @@ import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
 
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
-import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Builtins.IsBuiltin qualified as Builtins
 import PlutusTx.Trace
 
 import PlutusIR qualified as PIR
