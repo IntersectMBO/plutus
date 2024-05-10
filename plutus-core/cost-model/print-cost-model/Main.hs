@@ -116,7 +116,7 @@ semvars :: [String]
 semvars = ["A", "B", "C"]
 
 semvarOptions :: [String]
-semvarOptions = fmap ("-" ++) semvars
+semvarOptions = fmap ('-':) semvars
 
 usage :: [String] -> IO a
 usage paths = do
