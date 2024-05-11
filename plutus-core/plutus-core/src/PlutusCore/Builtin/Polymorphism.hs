@@ -8,6 +8,7 @@
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE UndecidableSuperClasses  #-}
 
 module PlutusCore.Builtin.Polymorphism
     ( Opaque (..)
@@ -214,7 +215,8 @@ type family AllElaboratedArgs constr x where
 -- built-in type.
 type AllBuiltinArgs
         :: forall a. (GHC.Type -> GHC.Type) -> (GHC.Type -> GHC.Constraint) -> a -> GHC.Constraint
-type AllBuiltinArgs uni constr x = AllElaboratedArgs constr (ElaborateBuiltin uni x)
+class    AllElaboratedArgs constr (ElaborateBuiltin uni x) => AllBuiltinArgs uni constr x
+instance AllElaboratedArgs constr (ElaborateBuiltin uni x) => AllBuiltinArgs uni constr x
 
 -- Custom type errors to guide the programmer adding a new built-in function.
 

@@ -109,6 +109,7 @@ library
     PlutusTx.IsData.Instances
     PlutusTx.IsData.TH
     PlutusTx.Lift.Instances
+    PlutusTx.Lift.TestInstances
     PlutusTx.Lift.TH
     PlutusTx.Lift.THUtils
 
