@@ -9,6 +9,7 @@
 
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module PlutusTx.Builtins.IsOpaque where
 
@@ -17,6 +18,41 @@ import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Internal
 
 import Data.Kind qualified as GHC
+import Data.String (IsString (..))
+import Data.Text qualified as Text
+import GHC.Magic qualified as Magic
+import Prelude qualified as Haskell (String)
+
+obfuscatedId :: a -> a
+obfuscatedId a = a
+{-# NOINLINE obfuscatedId #-}
+
+stringToBuiltinByteString :: Haskell.String -> BuiltinByteString
+stringToBuiltinByteString str = encodeUtf8 $ stringToBuiltinString str
+{-# INLINABLE stringToBuiltinByteString #-}
+
+stringToBuiltinString :: Haskell.String -> BuiltinString
+-- To explain why the obfuscatedId is here
+-- See Note [noinline hack]
+stringToBuiltinString str = obfuscatedId (BuiltinString $ Text.pack str)
+{-# INLINABLE stringToBuiltinString #-}
+
+{- Same noinline hack as with `String` type. -}
+instance IsString BuiltinByteString where
+    -- Try and make sure the dictionary selector goes away, it's simpler to match on
+    -- the application of 'stringToBuiltinByteString'
+    -- See Note [noinline hack]
+    fromString = Magic.noinline stringToBuiltinByteString
+    {-# INLINE fromString #-}
+
+-- We can't put this in `Builtins.hs`, since that force `O0` deliberately, which prevents
+-- the unfoldings from going in. So we just stick it here. Fiddly.
+instance IsString BuiltinString where
+    -- Try and make sure the dictionary selector goes away, it's simpler to match on
+    -- the application of 'stringToBuiltinString'
+    -- See Note [noinline hack]
+    fromString = Magic.noinline stringToBuiltinString
+    {-# INLINE fromString #-}
 
 type HasFromOpaque :: GHC.Type -> GHC.Type -> GHC.Constraint
 class HasFromOpaque arep a | arep -> a where

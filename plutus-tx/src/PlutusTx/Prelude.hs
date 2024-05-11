@@ -110,7 +110,9 @@ module PlutusTx.Prelude (
     integerToByteString,
     -- * Conversions
     fromBuiltin,
-    toBuiltin
+    toBuiltin,
+    fromOpaque,
+    toOpaque
     ) where
 
 import Data.String (IsString (..))
@@ -131,9 +133,9 @@ import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Eleme
                           bls12_381_G2_uncompress, bls12_381_finalVerify, bls12_381_millerLoop,
                           bls12_381_mulMlResult, byteStringToInteger, consByteString, decodeUtf8,
                           emptyByteString, emptyString, encodeUtf8, equalsByteString, equalsString,
-                          error, fromBuiltin, greaterThanByteString, indexByteString,
+                          error, fromBuiltin, fromOpaque, greaterThanByteString, indexByteString,
                           integerToByteString, keccak_256, lengthOfByteString, lessThanByteString,
-                          sha2_256, sha3_256, sliceByteString, toBuiltin, trace,
+                          sha2_256, sha3_256, sliceByteString, toBuiltin, toOpaque, trace,
                           verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
                           verifySchnorrSecp256k1Signature)
 

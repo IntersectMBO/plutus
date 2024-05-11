@@ -1,175 +1,110 @@
+{-# LANGUAGE FlexibleContexts         #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeFamilies             #-}
-
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE TypeOperators            #-}
 
 module PlutusTx.Builtins.IsBuiltin where
+
+import Prelude
 
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1 (Element)
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2 (Element)
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing (MlResult)
 import PlutusCore.Data (Data)
-import PlutusTx.Base (id, ($))
-import PlutusTx.Bool (Bool (..))
+import PlutusCore.Default qualified as PLC
 import PlutusTx.Builtins.Internal
-import PlutusTx.Integer (Integer)
 
 import Data.ByteString (ByteString)
 import Data.Kind qualified as GHC
-import Data.String (IsString (..))
-import Data.Text (Text, pack)
-import GHC.Magic qualified as Magic
-import Prelude qualified as Haskell (String)
-
-obfuscatedId :: a -> a
-obfuscatedId a = a
-{-# NOINLINE obfuscatedId #-}
-
-stringToBuiltinByteString :: Haskell.String -> BuiltinByteString
-stringToBuiltinByteString str = encodeUtf8 $ stringToBuiltinString str
-{-# INLINABLE stringToBuiltinByteString #-}
-
-stringToBuiltinString :: Haskell.String -> BuiltinString
--- To explain why the obfuscatedId is here
--- See Note [noinline hack]
-stringToBuiltinString str = obfuscatedId (BuiltinString $ pack str)
-{-# INLINABLE stringToBuiltinString #-}
-
-{- Same noinline hack as with `String` type. -}
-instance IsString BuiltinByteString where
-    -- Try and make sure the dictionary selector goes away, it's simpler to match on
-    -- the application of 'stringToBuiltinByteString'
-    -- See Note [noinline hack]
-    {-# INLINE fromString #-}
-    fromString = Magic.noinline stringToBuiltinByteString
-
--- We can't put this in `Builtins.hs`, since that force `O0` deliberately, which prevents
--- the unfoldings from going in. So we just stick it here. Fiddly.
-instance IsString BuiltinString where
-    -- Try and make sure the dictionary selector goes away, it's simpler to match on
-    -- the application of 'stringToBuiltinString'
-    -- See Note [noinline hack]
-    {-# INLINE fromString #-}
-    fromString = Magic.noinline stringToBuiltinString
-
-type HasFromBuiltin :: GHC.Type -> GHC.Constraint
-class HasFromBuiltin a where
-    type FromBuiltin a
-    fromBuiltin :: a -> FromBuiltin a
+import Data.Text (Text)
 
 type HasToBuiltin :: GHC.Type -> GHC.Constraint
-class HasToBuiltin a where
-    toBuiltin :: FromBuiltin a -> a
+class PLC.DefaultUni `PLC.Contains` a => HasToBuiltin a where
+    type ToBuiltin a
+    toBuiltin :: a -> ToBuiltin a
 
+type HasFromBuiltin :: GHC.Type -> GHC.Constraint
+class HasToBuiltin (FromBuiltin arep) => HasFromBuiltin arep where
+    type FromBuiltin arep
+    fromBuiltin :: arep -> FromBuiltin arep
+
+instance HasToBuiltin Integer where
+    type ToBuiltin Integer = BuiltinInteger
+    toBuiltin = id
 instance HasFromBuiltin BuiltinInteger where
     type FromBuiltin BuiltinInteger = Integer
     fromBuiltin = id
-    {-# INLINABLE fromBuiltin #-}
-instance HasToBuiltin BuiltinInteger where
-    toBuiltin = id
-    {-# INLINABLE toBuiltin #-}
 
+instance HasToBuiltin ByteString where
+    type ToBuiltin ByteString = BuiltinByteString
+    toBuiltin = BuiltinByteString
 instance HasFromBuiltin BuiltinByteString where
     type FromBuiltin BuiltinByteString = ByteString
     fromBuiltin (BuiltinByteString b) = b
-    {-# INLINABLE fromBuiltin #-}
-instance HasToBuiltin BuiltinByteString where
-    toBuiltin = BuiltinByteString
-    {-# INLINABLE toBuiltin #-}
 
+instance HasToBuiltin Text where
+    type ToBuiltin Text = BuiltinString
+    toBuiltin = BuiltinString
 instance HasFromBuiltin BuiltinString where
     type FromBuiltin BuiltinString = Text
     fromBuiltin (BuiltinString t) = t
-    {-# INLINABLE fromBuiltin #-}
-instance HasToBuiltin BuiltinString where
-    toBuiltin = BuiltinString
-    {-# INLINABLE toBuiltin #-}
 
+instance HasToBuiltin () where
+    type ToBuiltin () = BuiltinUnit
+    toBuiltin = BuiltinUnit
 instance HasFromBuiltin BuiltinUnit where
     type FromBuiltin BuiltinUnit = ()
-    fromBuiltin u = chooseUnit u ()
-    {-# INLINABLE fromBuiltin #-}
-instance HasToBuiltin BuiltinUnit where
-    toBuiltin x = case x of () -> unitval
-    {-# INLINABLE toBuiltin #-}
+    fromBuiltin (BuiltinUnit u) = u
 
+instance HasToBuiltin Bool where
+    type ToBuiltin Bool = BuiltinBool
+    toBuiltin = BuiltinBool
 instance HasFromBuiltin BuiltinBool where
     type FromBuiltin BuiltinBool = Bool
-    fromBuiltin b = ifThenElse b True False
-    {-# INLINABLE fromBuiltin #-}
-instance HasToBuiltin BuiltinBool where
-    toBuiltin b = if b then true else false
-    {-# INLINABLE toBuiltin #-}
+    fromBuiltin (BuiltinBool b) = b
 
+instance HasToBuiltin a => HasToBuiltin [a] where
+    type ToBuiltin [a] = BuiltinList (ToBuiltin a)
+    toBuiltin = BuiltinList . map toBuiltin
 instance HasFromBuiltin a => HasFromBuiltin (BuiltinList a) where
     type FromBuiltin (BuiltinList a) = [FromBuiltin a]
+    fromBuiltin (BuiltinList xs) = map fromBuiltin xs
 
-    fromBuiltin = go
-      where
-          -- The combination of both INLINABLE and a type signature seems to stop this getting
-          -- lifted to the top level, which means it gets a proper unfolding, which means that
-          -- specialization can work, which can actually help quite a bit here.
-          go :: BuiltinList a -> [FromBuiltin a]
-          -- Note that we are using builtin chooseList here so this is *strict* application! So we
-          -- need to do the manual laziness ourselves.
-          go l = chooseList l (\_ -> []) (\_ -> fromBuiltin (head l) : go (tail l)) unitval
-          {-# INLINABLE go #-}
-    {-# INLINABLE fromBuiltin #-}
-
-instance HasToBuiltin (BuiltinList BuiltinData) where
-    toBuiltin = goList where
-        goList :: [Data] -> BuiltinList BuiltinData
-        goList []     = mkNilData unitval
-        goList (d:ds) = mkCons (toBuiltin d) (goList ds)
-    {-# INLINE toBuiltin #-}
-
-instance HasToBuiltin (BuiltinList (BuiltinPair BuiltinData BuiltinData)) where
-    toBuiltin = goList where
-        goList :: [(Data, Data)] -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
-        goList []     = mkNilPairData unitval
-        goList (d:ds) = mkCons (toBuiltin d) (goList ds)
-    {-# INLINE toBuiltin #-}
-
+instance (HasToBuiltin a, HasToBuiltin b) => HasToBuiltin (a, b) where
+    type ToBuiltin (a, b) = BuiltinPair (ToBuiltin a) (ToBuiltin b)
+    toBuiltin (x, y) = BuiltinPair (toBuiltin x, toBuiltin y)
 instance (HasFromBuiltin a, HasFromBuiltin b) => HasFromBuiltin (BuiltinPair a b) where
     type FromBuiltin (BuiltinPair a b) = (FromBuiltin a, FromBuiltin b)
-    fromBuiltin p = (fromBuiltin $ fst p, fromBuiltin $ snd p)
-    {-# INLINABLE fromBuiltin #-}
-instance HasToBuiltin (BuiltinPair BuiltinData BuiltinData) where
-    toBuiltin (d1, d2) = mkPairData (toBuiltin d1) (toBuiltin d2)
-    {-# INLINABLE toBuiltin #-}
+    fromBuiltin (BuiltinPair (x, y)) = (fromBuiltin x, fromBuiltin y)
 
+instance HasToBuiltin Data where
+    type ToBuiltin Data = BuiltinData
+    toBuiltin = BuiltinData
 instance HasFromBuiltin BuiltinData where
     type FromBuiltin BuiltinData = Data
     fromBuiltin (BuiltinData t) = t
-    {-# INLINABLE fromBuiltin #-}
-instance HasToBuiltin BuiltinData where
-    toBuiltin = BuiltinData
-    {-# INLINABLE toBuiltin #-}
 
+instance HasToBuiltin BLS12_381.G1.Element where
+    type ToBuiltin BLS12_381.G1.Element = BuiltinBLS12_381_G1_Element
+    toBuiltin = BuiltinBLS12_381_G1_Element
 instance HasFromBuiltin BuiltinBLS12_381_G1_Element where
     type FromBuiltin BuiltinBLS12_381_G1_Element = BLS12_381.G1.Element
     fromBuiltin (BuiltinBLS12_381_G1_Element a) = a
-    {-# INLINABLE fromBuiltin #-}
-instance HasToBuiltin BuiltinBLS12_381_G1_Element where
-    toBuiltin = BuiltinBLS12_381_G1_Element
-    {-# INLINABLE toBuiltin #-}
 
+instance HasToBuiltin BLS12_381.G2.Element where
+    type ToBuiltin BLS12_381.G2.Element = BuiltinBLS12_381_G2_Element
+    toBuiltin = BuiltinBLS12_381_G2_Element
 instance HasFromBuiltin BuiltinBLS12_381_G2_Element where
     type FromBuiltin BuiltinBLS12_381_G2_Element = BLS12_381.G2.Element
     fromBuiltin (BuiltinBLS12_381_G2_Element a) = a
-    {-# INLINABLE fromBuiltin #-}
-instance HasToBuiltin BuiltinBLS12_381_G2_Element where
-    toBuiltin = BuiltinBLS12_381_G2_Element
-    {-# INLINABLE toBuiltin #-}
 
+instance HasToBuiltin BLS12_381.Pairing.MlResult where
+    type ToBuiltin BLS12_381.Pairing.MlResult = BuiltinBLS12_381_MlResult
+    toBuiltin = BuiltinBLS12_381_MlResult
 instance HasFromBuiltin BuiltinBLS12_381_MlResult where
     type FromBuiltin BuiltinBLS12_381_MlResult = BLS12_381.Pairing.MlResult
     fromBuiltin (BuiltinBLS12_381_MlResult a) = a
-    {-# INLINABLE fromBuiltin #-}
-instance HasToBuiltin BuiltinBLS12_381_MlResult where
-    toBuiltin = BuiltinBLS12_381_MlResult
-    {-# INLINABLE toBuiltin #-}
 
 {- Note [noinline hack]
 For some functions we have two conflicting desires:

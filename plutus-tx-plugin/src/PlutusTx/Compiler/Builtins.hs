@@ -19,7 +19,7 @@ module PlutusTx.Compiler.Builtins (
     , errorFunc) where
 
 import PlutusTx.Builtins.Internal qualified as Builtins
-import PlutusTx.Builtins.IsBuiltin qualified as Builtins
+import PlutusTx.Builtins.IsOpaque qualified as Builtins
 
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Names
