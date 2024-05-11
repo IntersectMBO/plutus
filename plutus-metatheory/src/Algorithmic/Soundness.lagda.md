@@ -1,3 +1,7 @@
+---
+title: Algorithmic.Soundness
+layout: page
+---
 ```
 module Algorithmic.Soundness where
 

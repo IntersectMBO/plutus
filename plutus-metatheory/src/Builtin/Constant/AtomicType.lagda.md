@@ -1,3 +1,7 @@
+---
+title: Builtin.Constant.AtomicType
+layout: page
+---
 
 ```
 module Builtin.Constant.AtomicType where
