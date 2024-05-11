@@ -1,9 +1,9 @@
-{-# LANGUAGE AllowAmbiguousTypes      #-}
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE QuantifiedConstraints    #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
 {-# LANGUAGE UndecidableSuperClasses  #-}
@@ -17,13 +17,17 @@ import PlutusTx.Lift.Class
 
 import Data.Kind qualified as GHC
 
+type OnBuiltin :: (GHC.Type -> GHC.Constraint) -> GHC.Type -> GHC.Constraint
+class    constr (ToBuiltin a) => OnBuiltin constr a
+instance constr (ToBuiltin a) => OnBuiltin constr a
+
 type BuiltinSatisfies
     :: (GHC.Type -> GHC.Constraint)
     -> (GHC.Type -> GHC.Constraint)
     -> GHC.Type
     -> GHC.Constraint
-class    (pre (ToBuiltin a) => post (ToBuiltin a)) => BuiltinSatisfies pre post a
-instance (pre (ToBuiltin a) => post (ToBuiltin a)) => BuiltinSatisfies pre post a
+class    (OnBuiltin pre a => OnBuiltin post a) => BuiltinSatisfies pre post a
+instance (OnBuiltin pre a => OnBuiltin post a) => BuiltinSatisfies pre post a
 
 type AllBuiltinsSatisfy
     :: (GHC.Type -> GHC.Constraint)
