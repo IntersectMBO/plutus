@@ -25,20 +25,20 @@ check that the cost is strictly positive. -}
 module CostModelSafety.Spec (test_costModelSafety)
 where
 
-import PlutusCore (DefaultFun, DefaultUni)
+import PlutusCore (DefaultUni)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
+import PlutusCore.Default.Builtins
+import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (ExBudget))
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekMachineCostsVariantA,
-                                                          cekMachineCostsVariantB,
-                                                          cekMachineCostsVariantC,
-                                                          defaultBuiltinCostModelForTesting)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (toCekCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (LiteralByteSize)
+import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
                                                                  CekMachineCostsBase (..))
 
@@ -49,18 +49,18 @@ import Data.List.Extra (enumerate)
 import Data.Text (Text)
 import Data.Word (Word8)
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (assertBool, testCase)
+import Test.Tasty.HUnit (Assertion, assertBool, testCase)
 import Type.Reflection (TypeRep, eqTypeRep, pattern App, typeRep, (:~~:) (..))
 
 -- Machine costs
-checkBudget :: Identity ExBudget  -> IO ()
+checkBudget :: Identity ExBudget  -> Assertion
 checkBudget (Identity (ExBudget cpu mem)) = do
   assertBool "exBudgetCPU  <= 0 in CEK machine costs" $ cpu > 0
   assertBool "exBudgetMemory <= 0 in CEK machine costs" $ mem > 0
 
 -- Check that the machine costs are all strictly positive.  All of the fields are matched explicitly
 -- to make sure that we don't forget any new ones that get added.
-testMachineCostModel :: CekMachineCosts -> IO ()
+testMachineCostModel :: CekMachineCosts -> Assertion
 testMachineCostModel (
   CekMachineCostsBase
     cekStartupBudget
@@ -167,11 +167,15 @@ genArgs semvar bn = case meaning of
     meaning :: BuiltinMeaning Term (CostingPart DefaultUni DefaultFun)
     meaning = toBuiltinMeaning semvar bn
 
+-- FIXME: this doesn't work in some cases: for example if we have a costing
+-- function 10-2*size we'll only test it on for a small value of size (0 or 1)
+-- so we won't spot that it can give you a negative result.  We do want to check
+-- small sizes, but we should also check larger ones.
 testCosts
   :: BuiltinSemanticsVariant DefaultFun
   -> BuiltinsRuntime DefaultFun Term
   -> DefaultFun
-  -> IO ()
+  -> Assertion
 testCosts semvar runtimes bn =
   let args0 = genArgs semvar bn
       runtime0 = lookupBuiltin bn runtimes
@@ -194,21 +198,20 @@ testCosts semvar runtimes bn =
     -- should be OK since there should never be any inputs of size zero.
     assertBool ("Memory usage <= 0 in " ++ show bn) $ memUsage > 0
 
-testBuiltinCostModel :: BuiltinSemanticsVariant DefaultFun -> TestTree
-testBuiltinCostModel semvar =
-  let builtins = enumerate @DefaultFun
-      runtimes = toBuiltinsRuntime semvar defaultBuiltinCostModelForTesting
-  in testCase ("Built-in cost model for " ++ show semvar) $
-      mapM_ (testCosts semvar runtimes) builtins
+testBuiltinCostModel :: BuiltinSemanticsVariant DefaultFun -> BuiltinCostModel -> Assertion
+testBuiltinCostModel semvar model =
+  {- The next line is where toBuiltinsRuntime might ignore what's in the model and
+     supply its own costing function (see the comment at the top of the file). -}
+  let runtimes = toBuiltinsRuntime semvar model
+  in mapM_ (testCosts semvar runtimes) (enumerate @DefaultFun)
 
 test_costModelSafety :: TestTree
 test_costModelSafety =
-  testGroup "Cost model safety test"
-  (
-  (testCase "Machine costs A" $ testMachineCostModel cekMachineCostsVariantA) :
-    (fmap testBuiltinCostModel $ enumerate @(BuiltinSemanticsVariant DefaultFun))
-  ++ (testCase "Machine costs B" $ testMachineCostModel cekMachineCostsVariantB) :
-    (fmap testBuiltinCostModel $ enumerate @(BuiltinSemanticsVariant DefaultFun))
-  ++ (testCase "Machine costs A" $ testMachineCostModel cekMachineCostsVariantC) :
-    (fmap testBuiltinCostModel $ enumerate @(BuiltinSemanticsVariant DefaultFun))
-  )
+  let mkTest semvar =
+        let CostModel machineCosts builtinCosts = toCekCostModel semvar
+        in testGroup ("Cost model for " ++ show semvar) $
+           [ testCase "Machine costs" $ testMachineCostModel machineCosts
+           , testCase "Builtin costs" $ testBuiltinCostModel semvar builtinCosts]
+  in testGroup "Cost model safety test" $
+     map mkTest $ enumerate @(BuiltinSemanticsVariant DefaultFun)
+

@@ -6,32 +6,17 @@
 
 module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     ( defaultBuiltinsRuntimeForSemanticsVariant
-    , cekCostModelVariantA
-    , cekCostModelVariantB
-    , cekCostModelVariantC
+    , defaultCekParametersForVariant
+    , defaultCostModelParamsForVariant
     , toCekCostModel
-    , cekMachineCostsVariantA
-    , cekMachineCostsVariantB
-    , cekMachineCostsVariantC
-    , defaultCekParametersA
-    , defaultCekParametersB
-    , defaultCekParametersC
-    , defaultCostModelParamsA
-    , defaultCostModelParamsB
-    , defaultCostModelParamsC
-    , builtinCostModelVariantA
-    , builtinCostModelVariantB
-    , builtinCostModelVariantC
-    , unitCekMachineCosts
-    , unitCekParameters
     , defaultBuiltinsRuntimeForTesting
     , defaultCekParametersForTesting
     , defaultCekMachineCostsForTesting
     , defaultCostModelParamsForTesting
     , defaultBuiltinCostModelForTesting
     , defaultCekCostModelForTesting
-    , defaultCekParametersForVariant
-    , defaultCostModelParamsForVariant
+    , unitCekMachineCosts
+    , unitCekParameters
     )
 
 where

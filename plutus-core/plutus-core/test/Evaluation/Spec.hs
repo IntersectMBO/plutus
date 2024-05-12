@@ -79,7 +79,7 @@ instance Pretty AlwaysThrows where
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
     type CostingPart uni AlwaysThrows = ()
-    data BuiltinSemanticsVariant AlwaysThrows = AlwaysThrowsSemanticsVariant1
+    data BuiltinSemanticsVariant AlwaysThrows = AlwaysThrowsSemanticsVariantX
 
     toBuiltinMeaning _semvar AlwaysThrows = makeBuiltinMeaning f $ \_ _ -> ExBudgetLast mempty
       where
@@ -87,7 +87,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
         f _ = error "This builtin function always throws an exception."
 
 instance Default (BuiltinSemanticsVariant AlwaysThrows) where
-    def = AlwaysThrowsSemanticsVariant1
+    def = AlwaysThrowsSemanticsVariantX
 
 {- | This test verifies that if evaluating a builtin function actually throws an exception,
  we'd get a `Left` value, which would cause `test_builtinsDon'tThrow` to fail.
@@ -100,7 +100,7 @@ test_alwaysThrows =
             prop_builtinEvaluation @_ @AlwaysThrows runtimes AlwaysThrows (genArgsWellTyped semvar) f
         ]
   where
-    semvar = AlwaysThrowsSemanticsVariant1
+    semvar = AlwaysThrowsSemanticsVariantX
     runtimes = toBuiltinsRuntime semvar ()
     f bn args = \case
         Left _ -> success
