@@ -113,12 +113,12 @@ module PlutusTx.Builtins (
 import Data.Maybe
 import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
+import PlutusTx.Builtins.HasBuiltin
+import PlutusTx.Builtins.HasOpaque
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
                                    BuiltinBLS12_381_G2_Element (..), BuiltinBLS12_381_MlResult (..),
                                    BuiltinByteString (..), BuiltinData, BuiltinString)
 import PlutusTx.Builtins.Internal qualified as BI
-import PlutusTx.Builtins.IsBuiltin
-import PlutusTx.Builtins.IsOpaque
 import PlutusTx.Integer (Integer)
 
 import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))

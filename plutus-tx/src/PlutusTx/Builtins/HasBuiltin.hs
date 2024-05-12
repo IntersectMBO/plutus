@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
 
-module PlutusTx.Builtins.IsBuiltin where
+module PlutusTx.Builtins.HasBuiltin where
 
 import Prelude
 

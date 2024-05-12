@@ -11,7 +11,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module PlutusTx.Builtins.IsOpaque where
+module PlutusTx.Builtins.HasOpaque where
 
 import PlutusTx.Base (id, ($))
 import PlutusTx.Bool (Bool (..))

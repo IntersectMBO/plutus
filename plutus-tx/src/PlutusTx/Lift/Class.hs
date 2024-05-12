@@ -30,9 +30,9 @@ import PlutusCore.Data
 import PlutusCore.Quote
 import PlutusIR.MkPir
 import PlutusTx.Builtins
+import PlutusTx.Builtins.HasBuiltin (FromBuiltin, HasFromBuiltin)
 import PlutusTx.Builtins.Internal (BuiltinBool, BuiltinInteger, BuiltinList, BuiltinPair,
                                    BuiltinUnit)
-import PlutusTx.Builtins.IsBuiltin (FromBuiltin, HasFromBuiltin)
 
 import Language.Haskell.TH qualified as TH hiding (newName)
 
