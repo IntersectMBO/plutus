@@ -1,10 +1,11 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE RecordWildCards  #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TupleSections    #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TupleSections      #-}
+{-# LANGUAGE TypeApplications   #-}
 
 -- | Various analyses of events in mainnet script dumps.
 -- This only deals with PlutusV1 and PlutusV2 script events because
@@ -352,6 +353,27 @@ analyseOneFile analyse eventFile = do
                 Just (ctx, params) -> analyse ctx params event
                 Nothing            -> putStrLn "*** ctxV2 missing ***"
 
+
+max_tx_ex_steps :: Double
+max_tx_ex_steps = 10_000_000_000
+
+max_tx_ex_mem :: Double
+max_tx_ex_mem = 14_000_000
+
+getBudgets :: EventAnalyser
+getBudgets _ctx _params ev =
+  let printFractions d =
+        let ExBudget (V2.ExCPU cpu) (V2.ExMemory mem) = dataBudget d
+        in printf "%15d   %10.8f   %15d   %10.8f\n"
+           (fromSatInt cpu :: Int)
+           ((fromSatInt cpu) / max_tx_ex_steps)
+           (fromSatInt mem :: Int)
+           ((fromSatInt mem) / max_tx_ex_mem)
+
+  in case ev of
+       PlutusV1Event evdata _expected -> printFractions evdata
+       PlutusV2Event evdata _expected -> printFractions evdata
+
 main :: IO ()
 main =
     let analyses =
@@ -374,6 +396,11 @@ main =
             , ( "count-builtins"
               , "count the total number of occurrences of each builtin in validator scripts"
               , countBuiltins
+              )
+            , ( "budgets"
+              , "print (claimed) budgets of scripts"
+              , putStrLn "         cpu     cpuFraction             mem    memFraction"
+                `thenDoAnalysis` getBudgets
               )
             ]
 
