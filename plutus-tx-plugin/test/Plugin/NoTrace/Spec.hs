@@ -36,7 +36,7 @@ noTrace = pure do
             3 @=? countTraces WithTraces.traceRepeatedly
         , testCase "trace-impure" $
             1 @=? countTraces WithTraces.traceImpure
-        , testCase "trace-impure with effect" $ -- See note [Impure trace messages]
+        , testCase "trace-impure with effect" $ -- See Note [Impure trace messages]
             assertBool "Effect is missing" (Lib.evaluatesToError WithTraces.traceImpure)
         ]
     , testGroup
@@ -55,7 +55,7 @@ noTrace = pure do
             0 @=? countTraces WithoutTraces.traceRepeatedly
         , testCase "trace-impure" $
             0 @=? countTraces WithoutTraces.traceImpure
-        , testCase "trace-impure without effect" $ -- See note [Impure trace messages]
+        , testCase "trace-impure without effect" $ -- See Note [Impure trace messages]
             assertBool "Effect wasn't erased" (Lib.evaluatesWithoutError WithoutTraces.traceImpure)
         ]
     ]

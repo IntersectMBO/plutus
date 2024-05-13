@@ -1,3 +1,7 @@
+---
+title: Cost.Raw
+layout: page
+---
 # Raw Cost structures to inferface with Haskell
 
 ```

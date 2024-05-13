@@ -12,17 +12,19 @@
          (iwrap
             (\(self :: * -> *) a -> self a -> a)
             (a -> b)
-            (\(s : (\a -> ifix (\(self :: * -> *) a -> self a -> a) a) (a -> b))
-              (x : a) ->
+            (\(s :
+                 (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+                   (a -> b)) ->
                f
-                 ((/\a ->
-                     \(s :
-                         (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
-                           a) ->
-                       unwrap s s)
-                    {a -> b}
-                    s)
-                 x)))
+                 (\(x : a) ->
+                    (/\a ->
+                       \(s :
+                           (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+                             a) ->
+                         unwrap s s)
+                      {a -> b}
+                      s
+                      x))))
     {data}
     {data}
     (\(rec : data -> data) (d : data) ->
@@ -74,21 +76,21 @@
                                       ifix
                                         (\(self :: * -> *) a -> self a -> a)
                                         a)
-                                     (a -> b))
-                                (x : a) ->
+                                     (a -> b)) ->
                                  f
-                                   ((/\a ->
-                                       \(s :
-                                           (\a ->
-                                              ifix
-                                                (\(self :: * -> *) a ->
-                                                   self a -> a)
-                                                a)
-                                             a) ->
-                                         unwrap s s)
-                                      {a -> b}
-                                      s)
-                                   x)))
+                                   (\(x : a) ->
+                                      (/\a ->
+                                         \(s :
+                                             (\a ->
+                                                ifix
+                                                  (\(self :: * -> *) a ->
+                                                     self a -> a)
+                                                  a)
+                                               a) ->
+                                           unwrap s s)
+                                        {a -> b}
+                                        s
+                                        x))))
                       {list a}
                       {list a}
                       (\(rec : list a -> list a) (xs : list a) ->
@@ -136,21 +138,21 @@
                                       ifix
                                         (\(self :: * -> *) a -> self a -> a)
                                         a)
-                                     (a -> b))
-                                (x : a) ->
+                                     (a -> b)) ->
                                  f
-                                   ((/\a ->
-                                       \(s :
-                                           (\a ->
-                                              ifix
-                                                (\(self :: * -> *) a ->
-                                                   self a -> a)
-                                                a)
-                                             a) ->
-                                         unwrap s s)
-                                      {a -> b}
-                                      s)
-                                   x)))
+                                   (\(x : a) ->
+                                      (/\a ->
+                                         \(s :
+                                             (\a ->
+                                                ifix
+                                                  (\(self :: * -> *) a ->
+                                                     self a -> a)
+                                                  a)
+                                               a) ->
+                                           unwrap s s)
+                                        {a -> b}
+                                        s
+                                        x))))
                       {list a}
                       {list a}
                       (\(rec : list a -> list a) (xs : list a) ->
@@ -206,21 +208,21 @@
                                       ifix
                                         (\(self :: * -> *) a -> self a -> a)
                                         a)
-                                     (a -> b))
-                                (x : a) ->
+                                     (a -> b)) ->
                                  f
-                                   ((/\a ->
-                                       \(s :
-                                           (\a ->
-                                              ifix
-                                                (\(self :: * -> *) a ->
-                                                   self a -> a)
-                                                a)
-                                             a) ->
-                                         unwrap s s)
-                                      {a -> b}
-                                      s)
-                                   x)))
+                                   (\(x : a) ->
+                                      (/\a ->
+                                         \(s :
+                                             (\a ->
+                                                ifix
+                                                  (\(self :: * -> *) a ->
+                                                     self a -> a)
+                                                  a)
+                                               a) ->
+                                           unwrap s s)
+                                        {a -> b}
+                                        s
+                                        x))))
                       {list a}
                       {list a}
                       (\(rec : list a -> list a) (xs : list a) ->
