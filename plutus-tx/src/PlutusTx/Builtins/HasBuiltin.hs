@@ -19,11 +19,15 @@ import Data.ByteString (ByteString)
 import Data.Kind qualified as GHC
 import Data.Text (Text)
 
+-- | A class for converting values of Haskell-defined built-in types to their Plutus Tx
+-- counterparts.
 type HasToBuiltin :: GHC.Type -> GHC.Constraint
 class PLC.DefaultUni `PLC.Contains` a => HasToBuiltin a where
     type ToBuiltin a
     toBuiltin :: a -> ToBuiltin a
 
+-- | A class for converting values of Plutus Tx built-in types to their Haskell-defined
+-- counterparts.
 type HasFromBuiltin :: GHC.Type -> GHC.Constraint
 class HasToBuiltin (FromBuiltin arep) => HasFromBuiltin arep where
     type FromBuiltin arep
@@ -105,24 +109,3 @@ instance HasToBuiltin BLS12_381.Pairing.MlResult where
 instance HasFromBuiltin BuiltinBLS12_381_MlResult where
     type FromBuiltin BuiltinBLS12_381_MlResult = BLS12_381.Pairing.MlResult
     fromBuiltin (BuiltinBLS12_381_MlResult a) = a
-
-{- Note [noinline hack]
-For some functions we have two conflicting desires:
-- We want to have the unfolding available for the plugin.
-- We don't want the function to *actually* get inlined before the plugin runs, since we rely
-on being able to see the original function for some reason.
-
-'INLINABLE' achieves the first, but may cause the function to be inlined too soon.
-
-We can solve this at specific call sites by using the 'noinline' magic function from
-GHC. This stops GHC from inlining it. As a bonus, it also won't be inlined if
-that function is compiled later into the body of another function.
-
-We do therefore need to handle 'noinline' in the plugin, as it itself does not have
-an unfolding.
-
-Another annoying quirk: even if you have 'noinline'd a function call, if the body is
-a single variable, it will still inline! This is the case for the obvious definition
-of 'stringToBuiltinString' (since the newtype constructor vanishes), so we have to add
-some obfuscation to the body to prevent it inlining.
--}
