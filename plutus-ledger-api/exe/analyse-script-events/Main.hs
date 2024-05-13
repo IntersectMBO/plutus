@@ -360,6 +360,8 @@ max_tx_ex_steps = 10_000_000_000
 max_tx_ex_mem :: Double
 max_tx_ex_mem = 14_000_000
 
+-- Print out the CPU and memory budgets of each script event.  These are the costs
+-- paid for by the submitters, not the actual costs consumed during execution.
 getBudgets :: EventAnalyser
 getBudgets _ctx _params ev =
   let printFractions d =
