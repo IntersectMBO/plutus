@@ -196,7 +196,7 @@ instance uni `PLC.HasTypeLevel` Data => Typeable uni BuiltinData where
 
 -- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTermLevel` Data => Lift uni BuiltinData where
-    lift = liftBuiltin . builtinDataToData
+    lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.G1.Element =>

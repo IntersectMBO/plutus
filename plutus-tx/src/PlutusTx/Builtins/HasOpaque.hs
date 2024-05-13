@@ -199,7 +199,7 @@ instance HasToOpaque [BuiltinData] (BuiltinList BuiltinData) where
         goList :: [BuiltinData] -> BuiltinList BuiltinData
         goList []     = mkNilData unitval
         goList (d:ds) = mkCons (toOpaque d) (goList ds)
-    {-# INLINE toOpaque #-}
+    {-# INLINABLE toOpaque #-}
 instance
         HasToOpaque
             [(BuiltinData, BuiltinData)]
@@ -208,7 +208,7 @@ instance
         goList :: [(BuiltinData, BuiltinData)] -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
         goList []     = mkNilPairData unitval
         goList (d:ds) = mkCons (toOpaque d) (goList ds)
-    {-# INLINE toOpaque #-}
+    {-# INLINABLE toOpaque #-}
 instance HasFromOpaque arep a => HasFromOpaque (BuiltinList arep) [a] where
     fromOpaque = go
       where
