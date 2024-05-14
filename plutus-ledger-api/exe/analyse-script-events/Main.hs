@@ -362,6 +362,7 @@ max_tx_ex_mem = 14_000_000
 
 -- Print out the CPU and memory budgets of each script event.  These are the costs
 -- paid for by the submitters, not the actual costs consumed during execution.
+-- TODO: add a version that tells us the actual execution costs.
 getBudgets :: EventAnalyser
 getBudgets _ctx _params ev =
   let printFractions d =
