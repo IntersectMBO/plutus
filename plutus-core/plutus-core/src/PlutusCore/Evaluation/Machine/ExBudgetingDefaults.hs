@@ -162,12 +162,6 @@ matter. Otherwise compilation for this module is slower and GHC may end up exhau
 ticks leading to a compilation error.
 -}
 
-unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
-unitCekParameters =
-    -- See Note [noinline for saving on ticks].
-    noinline mkMachineParameters def $
-        CostModel unitCekMachineCosts unitCostBuiltinCostModel
-
 defaultBuiltinsRuntimeForSemanticsVariant
     :: HasMeaningIn DefaultUni term
     => BuiltinSemanticsVariant DefaultFun
@@ -326,4 +320,10 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramIntegerToByteString             = unitCostThreeArguments
     , paramByteStringToInteger             = unitCostTwoArguments
     }
+
+unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+unitCekParameters =
+    -- See Note [noinline for saving on ticks].
+    noinline mkMachineParameters def $
+        CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
