@@ -6,21 +6,43 @@ module VerifiedCompilation.UCaseOfCase where
 ## Imports
 
 ```
-open import Data.Nat using (ℕ;zero;suc)
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl; isEquivalence)
+open import Data.Nat using (ℕ)
 open import Data.Empty using (⊥)
-open import Scoped using (ScopedTm; Weirdℕ)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
 open import Untyped.CEK using (BApp; fullyAppliedBuiltin; BUILTIN; stepper; State; Stack)
 open import Evaluator.Base using (maxsteps)
 open import Builtin using (Builtin; ifThenElse)
 open import Data.List using (List; zip; [_])
-open import Utils as U using (Maybe;nothing;just;Either)
+open import Utils as U using (Maybe; nothing; just; Either)
 open import RawU using (TmCon)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
-open import Data.Product using (_×_; proj₁; proj₂)
-open import Relation.Nullary using (Dec; yes; no)
+open import Data.Product using (_×_; proj₁; proj₂; _,_)
+open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Relation.Binary.Definitions using (DecidableEquality)
 ```
+## Decidable Equivalence
 
+We need to determine if two terms refer to the same variable, so we need decidable
+equivalence on variables, which are really de Brujin numbers encoded using Maybe.
+
+```
+open import Relation.Binary using (IsDecEquivalence)
+open IsDecEquivalence {{...}} using (_≟_)
+open import Data.Maybe.Properties using (≡-dec)
+
+DecEq : ∀ {A} → Set A -> Set A
+DecEq A = IsDecEquivalence {A = A} _≡_
+
+instance
+  DecEqMaybe : ∀ {X} {{_ : DecEq X}} → DecEq (Maybe X)
+  DeqEqMaybe = record {
+                      isEquivalence = isEquivalence;
+                      _≟_ = ≡-dec
+               }
+  
+```
 ## Translation Relation
 
 This compiler stage only applies to the very specific case where an `IfThenElse` builtin exists in a `case` expression.
@@ -30,22 +52,22 @@ This translation relation has a constructor for the specific case, and then indu
 to traverse the ASTs.
 
 ```
+
 data _⊢̂_⊳̂_ (X : Set) : (X ⊢) → (X ⊢) → Set where
---   refl : ∀ {X : Set} {x : X ⊢} → X ⊢̂ x ⊳̂ x
    caseofcase : ∀ {b : X ⊢} {tn tn' fn fn' : ℕ} {alts alts' tt ft tt' ft' : List (X ⊢)} 
-                → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip alts alts') -- recursive translation for the other case patterns 
+                → All (λ ( a , a' ) → X ⊢̂ a ⊳̂ a') (zip alts alts') -- recursive translation for the other case patterns 
                 → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip tt tt') -- recursive translation for the true branch
                 → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip ft ft') -- recursive translation for the false branch
                 ----------------------
                 → X ⊢̂
                        (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
                        ⊳̂ ((((force (builtin ifThenElse)) · b) · (case (constr tn' tt') alts')) · (case (constr tn' tt') alts'))
-   var : ∀ {x : X} → X ⊢̂ (` x) ⊳̂ (` x) 
+   var : ∀ {x : X} → X ⊢̂ (` x) ⊳̂ (` x)
    ƛ   : ∀ {x x' : Maybe X ⊢}
            → Maybe X ⊢̂ x ⊳̂ x'
            ----------------------
            →  X ⊢̂ ƛ x ⊳̂ ƛ x' 
-   _·_ : ∀ {f t f' t' : X ⊢} → (X ⊢̂ f ⊳̂ f') → (X ⊢̂ t ⊳̂ t') → (X ⊢̂ (f · t) ⊳̂ (f' · t'))
+   app : ∀ {f t f' t' : X ⊢} → (X ⊢̂ f ⊳̂ f') → (X ⊢̂ t ⊳̂ t') → (X ⊢̂ (f · t) ⊳̂ (f' · t'))
    force : ∀ {t t' : X ⊢} → X ⊢̂ t ⊳̂ t' → X ⊢̂ force t ⊳̂ force t'  
    delay : ∀ {t t' : X ⊢} → X ⊢̂ t ⊳̂ t' → X ⊢̂ delay t ⊳̂ delay t'  
    con : ∀ {tc : TmCon} → X ⊢̂ con tc ⊳̂ con tc
@@ -69,11 +91,36 @@ Since this compiler phase is just a syntax re-arrangement in a very particular s
 match on that situation in the before and after ASTs and apply the translation rule for this, or
 expect anything else to be unaltered.
 
-This can just traverse the ASTs applying the constructors from the transition relation.
+This can just traverse the ASTs applying the constructors from the transition relation, but the negations
+need some helper functions.
 
 ```
---_⊢̂_⊳̂?_ : {X : Set} (ast ast' : X ⊢) → Dec (X ⊢̂ ast ⊳̂ ast')
---_⊢̂_⊳̂?_ ast ast' = ?
+_⊢̂_⊳̂?_ : {X : Set} (ast ast' : X ⊢) {{ _ : DecEq X }} → Dec (X ⊢̂ ast ⊳̂ ast')
+_⊢̂_⊳̂?_ (` x) (` y) with x ≟ y
+...                         | yes p = yes {!!}
+...                         | no ¬p = no {!!}
+_⊢̂_⊳̂?_ (ƛ ast) (ƛ ast') with _⊢̂_⊳̂?_ ast ast'
+...                                  | yes p = yes (ƛ p)
+...                                  | no ¬p = no (λ { (ƛ x) → ¬p x })
+_⊢̂_⊳̂?_ (ast · ast₁) (ast' · ast'₁) with _⊢̂_⊳̂?_ ast ast' | _⊢̂_⊳̂?_ ast₁ ast'₁
+...                                              | yes p1                 | yes p2 = yes (app p1 p2)
+...                                              | yes p1                 | no ¬p2 = no λ { (app a a₁) → ¬p2 a₁ }
+...                                              | no ¬p1                 | _         = no λ { (app a a₁) → ¬p1 a }
+_⊢̂_⊳̂?_ (force ast) (force ast') with _⊢̂_⊳̂?_ ast ast' 
+...                                  | yes p = yes (force p)
+...                                  | no ¬p = no λ { (force a) → ¬p a }
+_⊢̂_⊳̂?_ (delay ast) (delay ast') with _⊢̂_⊳̂?_ ast ast'
+...                                  | yes p = yes (delay p)
+...                                  | no ¬p = no λ { (delay a) → ¬p a}
+_⊢̂_⊳̂?_ (con tm) (con tm') with tm ≟ tm'
+...                                  | yes p = yes (con p)
+...                                  | no ¬p = no λ { (con a) → ¬p a}
+_⊢̂_⊳̂?_ (constr i ast) (constr i' ast') = {!!}
+_⊢̂_⊳̂?_ (case s ast) (case s' ast') = {!!}
+--_⊢̂_⊳̂?_ (builtin b) (builtin b') with b ≟ b'
+--...                                         | yes p = yes {!(builtin p)!}
+_⊢̂_⊳̂?_ error error = yes error
+_⊢̂_⊳̂?_ _ _ = no {!!} 
 
 ```
 
@@ -92,7 +139,7 @@ large gas budget and begin in an empty context (which assumes the term is closed
 
 ```
 --semantic_equivalence : ∀ {X set} {ast ast' : ⊥ ⊢}
- --                    → ⊥ ⊢ ast ⊳ ast'
+ --                    → ⊥ ⊢̂ ast ⊳̂ ast'
  -- <Some stuff about whether one runs out of gas -- as long as neither runs out of gas, _then_ they are equivilent> 
  --                    → (stepper maxsteps  (Stack.ϵ ; [] ▻ ast)) ≡ (stepper maxsteps (Stack.ε ; [] ▻ ast'))
 
