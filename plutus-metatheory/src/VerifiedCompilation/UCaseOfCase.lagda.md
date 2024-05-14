@@ -16,7 +16,7 @@ open import Evaluator.Base using (maxsteps)
 open import Builtin using (Builtin; ifThenElse)
 open import Data.List using (List; zip; [_])
 open import Utils as U using (Maybe; nothing; just; Either)
-open import RawU using (TmCon)
+open import RawU using (TmCon; tmCon; decTag)
 open import Data.List.Relation.Unary.All using (All; []; _∷_)
 open import Data.Product using (_×_; proj₁; proj₂; _,_)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
@@ -28,19 +28,18 @@ We need to determine if two terms refer to the same variable, so we need decidab
 equivalence on variables, which are really de Brujin numbers encoded using Maybe.
 
 ```
-open import Relation.Binary using (IsDecEquivalence)
-open IsDecEquivalence {{...}} using (_≟_)
-open import Data.Maybe.Properties using (≡-dec)
 
-DecEq : ∀ {A} → Set A -> Set A
-DecEq A = IsDecEquivalence {A = A} _≡_
+record DecEq (A : Set) : Set where
+  field _≟_ : DecidableEquality A
+open DecEq {{...}} public
 
 instance
-  DecEqMaybe : ∀ {X} {{_ : DecEq X}} → DecEq (Maybe X)
-  DeqEqMaybe = record {
-                      isEquivalence = isEquivalence;
-                      _≟_ = ≡-dec
-               }
+  DecEq-Maybe : ∀{A} {{_ : DecEq A}} → DecEq (Maybe A)
+  DecEq-Maybe ._≟_ = M.≡-dec _≟_
+    where import Data.Maybe.Properties as M
+
+  DecEq-TmCon : DecEq TmCon
+  DecEq-TmCon ._≟_ (tmCon t1 _) (tmCon t2 _) = decTag t1 t2 
   
 ```
 ## Translation Relation
@@ -79,7 +78,7 @@ data _⊢̂_⊳̂_ (X : Set) : (X ⊢) → (X ⊢) → Set where
                 → All (λ altpair → X ⊢̂ (proj₁ altpair) ⊳̂ (proj₂ altpair)) (zip alts alts') -- recursive translation for the other case patterns
                 → X ⊢̂ p ⊳̂ p'
                 ------------------------
-                → X ⊢̂ case p alts ⊳̂ case p' alts' 
+                → X ⊢̂ case p alts ⊳̂ case p alts' 
    builtin : ∀ {b : Builtin} → X ⊢̂ builtin b ⊳̂ builtin b
    error : X ⊢̂ error ⊳̂ error
 
@@ -113,8 +112,8 @@ _⊢̂_⊳̂?_ (delay ast) (delay ast') with _⊢̂_⊳̂?_ ast ast'
 ...                                  | yes p = yes (delay p)
 ...                                  | no ¬p = no λ { (delay a) → ¬p a}
 _⊢̂_⊳̂?_ (con tm) (con tm') with tm ≟ tm'
-...                                  | yes p = yes (con p)
-...                                  | no ¬p = no λ { (con a) → ¬p a}
+...                                  | yes p = yes {!!}
+...                                  | no ¬p = no {!!}
 _⊢̂_⊳̂?_ (constr i ast) (constr i' ast') = {!!}
 _⊢̂_⊳̂?_ (case s ast) (case s' ast') = {!!}
 --_⊢̂_⊳̂?_ (builtin b) (builtin b') with b ≟ b'
@@ -129,7 +128,7 @@ _⊢̂_⊳̂?_ _ _ = no {!!}
 We can show that this translation never alters the semantics of the statement. This is shown
 in terms of the CEK machine evaluation. Since it is a simple re-arrangement of the syntax, it
 isn't a refinement argument - the state before and after the operation is the same type, and is
-unaltered by the syntax re-arrangement.
+unaltered buy the syntax re-arrangement.
 
 This does rely on the encoding of the semantics of `IfThenElse` in the CEK module, since we
 need to show that the effective list of cases is the same as it would have been without the re-arrangement.
