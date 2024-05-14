@@ -110,7 +110,9 @@ module PlutusTx.Prelude (
     integerToByteString,
     -- * Conversions
     fromBuiltin,
-    toBuiltin
+    toBuiltin,
+    fromOpaque,
+    toOpaque
     ) where
 
 import Data.String (IsString (..))
@@ -131,9 +133,9 @@ import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Eleme
                           bls12_381_G2_uncompress, bls12_381_finalVerify, bls12_381_millerLoop,
                           bls12_381_mulMlResult, byteStringToInteger, consByteString, decodeUtf8,
                           emptyByteString, emptyString, encodeUtf8, equalsByteString, equalsString,
-                          error, fromBuiltin, greaterThanByteString, indexByteString,
+                          error, fromBuiltin, fromOpaque, greaterThanByteString, indexByteString,
                           integerToByteString, keccak_256, lengthOfByteString, lessThanByteString,
-                          sha2_256, sha3_256, sliceByteString, toBuiltin, trace,
+                          sha2_256, sha3_256, sliceByteString, toBuiltin, toOpaque, trace,
                           verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
                           verifySchnorrSecp256k1Signature)
 
@@ -227,12 +229,12 @@ odd n = if even n then False else True
 {-# INLINABLE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.
 takeByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-takeByteString n bs = Builtins.sliceByteString 0 (toBuiltin n) bs
+takeByteString n bs = Builtins.sliceByteString 0 (toOpaque n) bs
 
 {-# INLINABLE dropByteString #-}
 -- | Returns the suffix of a 'ByteString' after n elements.
 dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-dropByteString n bs = Builtins.sliceByteString (toBuiltin n) (Builtins.lengthOfByteString bs - n) bs
+dropByteString n bs = Builtins.sliceByteString (toOpaque n) (Builtins.lengthOfByteString bs - n) bs
 
 {- Note [-fno-full-laziness in Plutus Tx]
 GHC's full-laziness optimization moves computations inside a lambda that don't depend on
