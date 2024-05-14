@@ -39,7 +39,9 @@ instance
     where import Data.Maybe.Properties as M
 
   DecEq-TmCon : DecEq TmCon
-  DecEq-TmCon ._≟_ (tmCon t1 _) (tmCon t2 _) = decTag t1 t2 
+  DecEq-TmCon ._≟_ (tmCon t1 ts1) (tmCon t2 ts2) with decTag t1 t2 
+  ...                                                                            | yes p = {!!}
+  ...                                                                            | no ¬p = {!!}
   
 ```
 ## Translation Relation
