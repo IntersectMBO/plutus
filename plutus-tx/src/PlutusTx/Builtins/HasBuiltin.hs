@@ -19,6 +19,7 @@ import Data.ByteString (ByteString)
 import Data.Kind qualified as GHC
 import Data.Text (Text)
 
+-- Also see Note [Built-in types and their Haskell versions].
 -- | A class for converting values of Haskell-defined built-in types to their Plutus Tx
 -- counterparts.
 type HasToBuiltin :: GHC.Type -> GHC.Constraint
@@ -26,6 +27,7 @@ class PLC.DefaultUni `PLC.Contains` a => HasToBuiltin a where
     type ToBuiltin a
     toBuiltin :: a -> ToBuiltin a
 
+-- Also see Note [Built-in types and their Haskell versions].
 -- | A class for converting values of Plutus Tx built-in types to their Haskell-defined
 -- counterparts.
 type HasFromBuiltin :: GHC.Type -> GHC.Constraint

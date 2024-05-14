@@ -84,8 +84,8 @@ take the Haskell version and make it the Plutus Tx one.
 in the Plutus Tx realm. I.e. we cannot convert a 'ByteString', since 'ByteString's don't exist in
 Plutus Tx, only 'BuiltinByteString's do.
 
-But consider, say, the built-in pair type. In Plutus Tx, we have an (opaque) type for this. It's
-opaque because you can't actually pattern match on it, instead you can only in fact use the specific
+Consider, say, the built-in pair type. In Plutus Tx, we have an (opaque) type for this. It's opaque
+because you can't actually pattern match on it, instead you can only in fact use the specific
 functions that are available as builtins.
 
 We _also_ have the normal Haskell pair type. This is very different: you can
@@ -96,7 +96,7 @@ to _wrap_ our built-in functions with little adapters that convert between the
 "opaque builtin" "version" of a type and the "normal Haskell" "version" of a type.
 
 This is what the 'HasToOpaque' and 'HasFromOpaque' classes do. They let us write wrappers for
-builtins relatively consistently by just calling 'toBuiltin' on their arguments and 'fromOpaque' on
+builtins relatively consistently by just calling 'toOpaque' on their arguments and 'fromOpaque' on
 the result. They shouldn't really be used otherwise.
 
 Ideally, we would not have instances for types which don't have a different Haskell representation
