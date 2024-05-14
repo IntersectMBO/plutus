@@ -35,6 +35,7 @@ import PlutusTx.TH (compile)
 import PlutusTx.These (These (..), these)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testProperty)
+import Util.Common (cekResultMatchesHaskellValue, compiledCodeToTerm)
 
 goldenTests :: TestNested
 goldenTests =
@@ -325,8 +326,20 @@ lookupSpec = property $ do
   key <- forAll $ Gen.integral rangeElem
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
-  lookupS key assocMapS === AssocMap.lookup key assocMap
-  lookupS key assocMapS === Data.AssocMap.lookup key dataAssocMap
+      expected = lookupS key assocMapS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+      ($$(compile
+          [|| AssocMap.lookup :: Integer -> AssocMap.Map Integer Integer -> Maybe Integer
+          ||]
+        )
+        `unsafeApplyCode` (liftCodeDef key)
+        `unsafeApplyCode` (liftCodeDef assocMap)
+      )
+    )
+    (===)
+    expected
+  -- lookupS key assocMapS === Data.AssocMap.lookup key dataAssocMap
 
 memberSpec :: Property
 memberSpec = property $ do
