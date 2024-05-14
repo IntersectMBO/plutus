@@ -172,6 +172,7 @@ test-suite plutus-tx-plugin-tests
     TH.Spec
     TH.TestTH
     Unicode.Spec
+    Util.Common
 
   build-depends:
     , base                                            >=4.9   && <5
