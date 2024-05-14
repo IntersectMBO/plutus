@@ -83,7 +83,7 @@ lookup' k m = go m
     go xs =
       P.matchList
         xs
-        Nothing
+        (\() -> Nothing)
         ( \hd ->
             let k' = BI.fst hd
              in if P.equalsData k k'
@@ -103,7 +103,7 @@ member' k m = go m
     go xs =
       P.matchList
         xs
-        False
+        (\() -> False)
         ( \hd ->
             let k' = BI.fst hd
              in if P.equalsData k k'
@@ -130,7 +130,7 @@ insert' k a m = go m
     go xs =
       P.matchList
         xs
-        (BI.mkCons (BI.mkPairData k a) nil)
+        (\() -> BI.mkCons (BI.mkPairData k a) nil)
         ( \hd tl ->
             let k' = BI.fst hd
              in if P.equalsData k k'
@@ -157,7 +157,7 @@ delete' k m = go m
     go xs =
       P.matchList
         xs
-        nil
+        (\() -> nil)
         ( \hd tl ->
             let k' = BI.fst hd
              in if P.equalsData k k'
@@ -219,7 +219,7 @@ noDuplicateKeys (Map m) = go m
     go xs =
       P.matchList
         xs
-        True
+        (\() -> True)
         ( \hd tl ->
             let k = BI.fst hd
              in if member k (Map tl) then False else go tl
@@ -234,7 +234,7 @@ all p (Map m) = go m
     go xs =
       P.matchList
         xs
-        True
+        (\() -> True)
         ( \hd ->
             let a = P.unsafeFromBuiltinData (BI.snd hd)
              in if p a then go else \_ -> False
@@ -249,7 +249,7 @@ any p (Map m) = go m
     go xs =
       P.matchList
         xs
-        False
+        (\() -> False)
         ( \hd ->
             let a = P.unsafeFromBuiltinData (BI.snd hd)
              in if p a then \_ -> True else go
@@ -269,7 +269,7 @@ union (Map ls) (Map rs) = Map res
     goLeft xs =
       P.matchList
         xs
-        nil
+        (\() -> nil)
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
@@ -289,7 +289,7 @@ union (Map ls) (Map rs) = Map res
     goRight xs =
       P.matchList
         xs
-        nil
+        (\() -> nil)
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
@@ -311,7 +311,7 @@ union (Map ls) (Map rs) = Map res
     safeAppend xs1 xs2 =
       P.matchList
         xs1
-        xs2
+        (\() -> xs2)
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
@@ -335,7 +335,7 @@ unionWith f (Map ls) (Map rs) =
         go xs =
           P.matchList
             xs
-            nil
+            (\() -> nil)
             ( \hd tl ->
                 let k' = BI.fst hd
                     v' = BI.snd hd
@@ -353,7 +353,7 @@ unionWith f (Map ls) (Map rs) =
         go xs =
           P.matchList
             xs
-            nil
+            (\() -> nil)
             ( \hd tl ->
                 let k' = BI.fst hd
                     tl' = go tl
@@ -368,7 +368,7 @@ unionWith f (Map ls) (Map rs) =
         go acc xs =
           P.matchList
             xs
-            acc
+            (\() -> acc)
             (\hd -> go (BI.mkCons hd acc))
 
 {-# INLINEABLE toList #-}
@@ -380,7 +380,7 @@ toList d = go (toBuiltinList d)
     go xs =
       P.matchList
         xs
-        []
+        (\() -> [])
         ( \hd tl ->
             (P.unsafeFromBuiltinData (BI.fst hd), P.unsafeFromBuiltinData (BI.snd hd))
               : go tl
