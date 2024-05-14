@@ -192,7 +192,7 @@ null (Map m) = P.null m
 safeFromList :: forall k a . (Eq k, P.ToData k, P.ToData a) => [(k, a)] -> Map k a
 safeFromList =
   Map
-    . toBuiltin
+    . toOpaque
     . PlutusTx.Prelude.map (\(k, a) -> (P.toBuiltinData k, P.toBuiltinData a))
     . foldr (uncurry go) []
   where
@@ -211,7 +211,7 @@ safeFromList =
 unsafeFromList :: (P.ToData k, P.ToData a) => [(k, a)] -> Map k a
 unsafeFromList =
   Map
-    . toBuiltin
+    . toOpaque
     . PlutusTx.Prelude.map (\(k, a) -> (P.toBuiltinData k, P.toBuiltinData a))
 
 {-# INLINEABLE noDuplicateKeys #-}
