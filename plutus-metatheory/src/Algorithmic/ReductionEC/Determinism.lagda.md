@@ -1,3 +1,7 @@
+---
+title: Algorithmic.ReductionEC.Determinism
+layout: page
+---
 ```
 module Algorithmic.ReductionEC.Determinism where
 ```

@@ -1,3 +1,7 @@
+---
+title: Algorithmic
+layout: page
+---
 ```
 module Algorithmic where
 ```

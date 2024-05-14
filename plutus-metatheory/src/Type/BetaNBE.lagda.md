@@ -1,3 +1,7 @@
+---
+title: Type.BetaNBE
+layout: page
+---
 ```
 module Type.BetaNBE where
 ```

@@ -1,3 +1,7 @@
+---
+title: Cost
+layout: page
+---
 # Costs
 
 

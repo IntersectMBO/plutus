@@ -1,3 +1,7 @@
+---
+title: ChurchNat
+layout: page
+---
 ```
 module Declarative.Examples.StdLib.ChurchNat where
 ```

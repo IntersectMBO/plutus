@@ -229,22 +229,22 @@
                                                                     a_i4 b_i3
                                                                   )
                                                                 ]
-                                                                (lam
-                                                                  x_i0
-                                                                  a_i5
-                                                                  [
+                                                                [
+                                                                  f_i2
+                                                                  (lam
+                                                                    x_i0
+                                                                    a_i5
                                                                     [
-                                                                      f_i3
                                                                       [
                                                                         (unwrap
                                                                           s_i2
                                                                         )
                                                                         s_i2
                                                                       ]
+                                                                      x_i1
                                                                     ]
-                                                                    x_i1
-                                                                  ]
-                                                                )
+                                                                  )
+                                                                ]
                                                               )
                                                             )
                                                           ]

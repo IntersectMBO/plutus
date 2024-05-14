@@ -21,7 +21,6 @@ import PlutusLedgerApi.V3 qualified as V3
 import Data.ByteString qualified as BS
 import Data.ByteString.Short qualified as BSS
 import Data.Either
-import Data.Foldable (for_)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 import Test.Tasty

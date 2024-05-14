@@ -65,25 +65,62 @@ ghcVersion = showVersion compilerVersion
 makeVersionedFilePath :: [FilePath] -> FilePath -> FilePath
 makeVersionedFilePath path file = joinPath path </> ghcVersion </> file
 
+{- | A monad allowing one to emit elements of type @a@. Semantically equivalent to
+@Writer (DList a) r@, but:
+
+1. is faster, being based on the Church-encoded free monad
+2. implements 'Monoid', so that all the "Data.Foldable" convenience is supported
+3. has better ergonomics as it doesn't require the user to wrap @a@ values into 'DList's
+
+This type is also semantically equivalent to @Stream (Of a) Identity r@.
+
+Useful for monadically creating tree-like structures, for example the following
+
+> import Data.Tree
+> yield = embed . pure
+> main = putStrLn . drawTree . Node "a" . toList $ do
+>     yield "b"
+>     nestWith (Node "c") $ do
+>         yield "d"
+>         yield "e"
+>     yield "f"
+
+will produce
+
+> -a
+> |
+> +- b
+> |
+> +- c
+> |  |
+> |  +- d
+> |  |
+> |  `- e
+> |
+> `- f
+-}
 newtype Layer a r = Layer
     { unLayer :: F ((,) a) r
     } deriving newtype (Functor, Applicative, Monad, MonadFree ((,) a))
 
-instance r ~ () => Semigroup (Layer a r) where
+instance unit ~ () => Semigroup (Layer a unit) where
     (<>) = (*>)
 
-instance r ~ () => Monoid (Layer a r) where
+instance unit ~ () => Monoid (Layer a unit) where
     mempty = pure ()
 
-instance r ~ () => IsList (Layer a r) where
-    type Item (Layer a r) = a
+instance unit ~ () => IsList (Layer a unit) where
+    type Item (Layer a unit) = a
     fromList = traverse_ embed
     toList layer = runF (unLayer layer) mempty $ uncurry (:)
 
--- | A.k.a. @Streaming.yield@.
+-- | Embed the given value into a 'Layer'-like type (either 'Layer' itself or a monad transformer
+-- stack with 'Layer' at the bottom).
 embed :: MonadFree ((,) a) m => a -> m ()
 embed x = liftF (x, ())
 
+-- | Collapse the given 'Layer' into a single element by converting it into a list, applying the
+-- given function to the result and 'embed'ding it back.
 nestWith :: ([a] -> a) -> Layer a () -> Layer a ()
 nestWith f = embed . f . toList
 
@@ -95,10 +132,10 @@ newtype TestNestedM r = TestNestedM
 -- | A 'TestTree' of tests under some name prefix.
 type TestNested = TestNestedM ()
 
-instance r ~ () => Semigroup (TestNestedM r) where
+instance unit ~ () => Semigroup (TestNestedM unit) where
     (<>) = (*>)
 
-instance r ~ () => Monoid (TestNestedM r) where
+instance unit ~ () => Monoid (TestNestedM unit) where
     mempty = pure ()
 
 -- | Run a 'TestTree' of tests with a given name prefix. This doesn't actually run the tests:
@@ -108,7 +145,11 @@ runTestNestedM []   _    = error "Path cannot be empty"
 runTestNestedM path test = testGroup (last path) . toList $ runReaderT (unTestNestedM test) path
 
 -- | Descend into a folder.
-testNestedNamedM :: FilePath -> String -> TestNested -> TestNested
+testNestedNamedM
+    :: FilePath    -- ^ The folder.
+    -> String      -- ^ The name of the test to render in CLI.
+    -> TestNested
+    -> TestNested
 testNestedNamedM folderName testName
     = TestNestedM
     . local (++ [folderName])

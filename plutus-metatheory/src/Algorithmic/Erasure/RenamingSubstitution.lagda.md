@@ -1,3 +1,7 @@
+---
+title: Algorithmic.Erasure.RenamingSubstitution
+layout: page
+---
 ```
 module Algorithmic.Erasure.RenamingSubstitution where
 ```

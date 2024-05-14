@@ -1,3 +1,7 @@
+---
+title: Algorithmic.Evaluation
+layout: page
+---
 ```
 module Algorithmic.Evaluation where
 ```

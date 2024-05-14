@@ -202,6 +202,7 @@ library
     UntypedPlutusCore.Parser
     UntypedPlutusCore.Purity
     UntypedPlutusCore.Rename
+    UntypedPlutusCore.Transform.CaseOfCase
 
   other-modules:
     Data.Aeson.Flatten
@@ -261,7 +262,6 @@ library
     UntypedPlutusCore.Simplify.Opts
     UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
-    UntypedPlutusCore.Transform.CaseOfCase
     UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.Cse
     UntypedPlutusCore.Transform.FloatDelay
@@ -427,7 +427,9 @@ test-suite untyped-plutus-core-test
     Evaluation.Regressions
     Flat.Spec
     Generators
+    Transform.CaseOfCase.Test
     Transform.Simplify
+    Transform.Simplify.Lib
 
   build-depends:
     , base                                            >=4.9   && <5
@@ -628,6 +630,8 @@ test-suite plutus-ir-test
     PlutusIR.Transform.Rename.Tests
     PlutusIR.Transform.RewriteRules.Tests
     PlutusIR.Transform.StrictifyBindings.Tests
+    PlutusIR.Transform.StrictLetRec.Tests
+    PlutusIR.Transform.StrictLetRec.Tests.Lib
     PlutusIR.Transform.ThunkRecursions.Tests
     PlutusIR.Transform.Unwrap.Tests
     PlutusIR.TypeCheck.Tests
@@ -636,6 +640,7 @@ test-suite plutus-ir-test
   build-depends:
     , base                                                       >=4.9   && <5
     , containers
+    , filepath
     , flat                                                       ^>=0.6
     , hashable
     , hedgehog
