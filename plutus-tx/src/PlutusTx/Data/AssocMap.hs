@@ -1,7 +1,9 @@
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE ViewPatterns       #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module PlutusTx.Data.AssocMap (
   Map,
@@ -27,8 +29,10 @@ module PlutusTx.Data.AssocMap (
 import PlutusTx.Builtins qualified as P
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData qualified as P
+import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude hiding (all, any, null, toList, uncons)
 import PlutusTx.These
+
 
 import Prelude qualified as Haskell
 
@@ -405,3 +409,5 @@ unsafeFromBuiltinList = Map
 -- | An empty `P.BuiltinList` of key-value pairs.
 nil :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
 nil = BI.mkNilPairData BI.unitval
+
+makeLift ''Map

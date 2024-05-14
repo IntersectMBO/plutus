@@ -164,6 +164,12 @@ map3 =
         ||]
     )
 
+lookupProgram :: CompiledCode (Integer -> AssocMap.Map Integer Integer -> Maybe Integer)
+lookupProgram = $$(compile [|| AssocMap.lookup ||])
+
+dataLookupProgram :: CompiledCode (Integer -> Data.AssocMap.Map Integer Integer -> Maybe Integer)
+dataLookupProgram = $$(compile [|| Data.AssocMap.lookup ||])
+
 -- | The semantics of PlutusTx maps and their operations.
 -- The 'PlutusTx' implementations maps ('Data.AssocMap.Map' and 'AssocMap.Map')
 -- are checked against the semantics to ensure correctness.
@@ -329,17 +335,20 @@ lookupSpec = property $ do
       expected = lookupS key assocMapS
   cekResultMatchesHaskellValue
     ( compiledCodeToTerm
-      ($$(compile
-          [|| AssocMap.lookup :: Integer -> AssocMap.Map Integer Integer -> Maybe Integer
-          ||]
-        )
+        $ lookupProgram
         `unsafeApplyCode` (liftCodeDef key)
         `unsafeApplyCode` (liftCodeDef assocMap)
-      )
     )
     (===)
     expected
-  -- lookupS key assocMapS === Data.AssocMap.lookup key dataAssocMap
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataLookupProgram
+        `unsafeApplyCode` (liftCodeDef key)
+        `unsafeApplyCode` (liftCodeDef dataAssocMap)
+    )
+    (===)
+    expected
 
 memberSpec :: Property
 memberSpec = property $ do
