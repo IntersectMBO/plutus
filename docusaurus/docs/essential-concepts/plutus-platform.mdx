@@ -6,28 +6,63 @@ sidebar_position: 5
 
 The Plutus platform is a platform for writing *applications* that interact with a *distributed ledger* featuring *scripting* capabilities, in particular the [Cardano](../reference/glossary.md#cardano) blockchain.
 
-## Applications
+## Example application
 
 What sort of "applications" are we talking about here? 
-As an example, let's think about a pair of users, Alice and Bob, who want to engage in an atomic swap of some assets stored on Cardano.
+As an example, let's think about an application that provides the function of helping a pair of users, Alice and Bob, who want to engage in an atomic swap of some assets stored on Cardano.
+
+### Alice initiates the swap
 
 ```mermaid
 graph TD;
-    Alice-->Application; 
-    Bob-->Application; 
-    Application-->Cardano;
+    A[Alice] -->|requests swap| App[Application];
+    App -->|requests token lock| L[Ledger];
+    L -->|confirms lock| App;
 
-    Alice --> Application["I want to do an escrowed swap with Bob, 50 Ada for my Special Token"]; 
-    Application --> Ledger["I want to lock up Alice's Special Token so that it can only be unlocked if Bob completes the swap"];
-    Ledger --> Application["Ok, that change has settled"]; 
-    Application --> Bob["Hey, Alice wants to do a swap with you"]; 
-    Bob --> Application["I want to take up Alice's swap"]; 
-    Application --> Cardano["I want to spend that locked output with Alice's Special Token while sending 50 of Bob's Ada to Alice"]; 
-    Ledger --> Ledger["Does this transaction satisfy the conditions that were asked for? Yes it does!"]; 
-    Ledger --> Application["Ok, that change has settled"]; 
-    Application --> Alice["The swap is completed!"]; 
-    Application --> Bob["The swap is completed!"];
+    classDef default fill:#33B6FF,stroke:#333,stroke-width:2px;
 ```
+
+- **Alice:** tells the Application, "I want to do an escrowed swap with Bob, 50 Ada for my Special Token." 
+- **Application:** tells the Ledger, "I want to lock up Alice's Special Token so that it can only be unlocked if Bob completes the swap."
+- **Ledger:** responds to the Application, "Ok, that change has settled." 
+
+### Application interacts with Bob, Cardano and the ledger to execute the swap 
+
+```mermaid
+graph TD;
+    App[Application] -->|notifies Bob| B[Bob];
+    B -->|agrees to swap| App;
+    App -->|executes swap on| C((Cardano));
+    C -->|transaction processed| L[Ledger];
+    L -->|checks conditions| D{Decision};
+    D -- Yes --> L1[Ledger];
+    L1 -->|confirms transaction| App;
+
+    classDef default fill:#33B6FF,stroke:#333,stroke-width:2px;
+    class C database;
+
+    style C fill:#33B6FF,stroke:#333,stroke-width:2px;
+```
+
+
+- **Application:** tells Bob, "Hey, Alice wants to do a swap with you." 
+- **Bob:** tells the Application, "I want to take up Alice's swap." 
+- **Application:** communicates to Cardano, "I want to spend that locked output with Alice's Special Token while sending 50 of Bob's Ada to Alice." 
+- **Ledger:** checks with itself: "Does this transaction satisfy the conditions that were asked for? Yes it does!" 
+- **Ledger:** tells the Application, "Ok, that change has settled."
+
+### Application communicates that the swap completed 
+
+```mermaid
+graph TD;
+    App[Application] -->|notifies Alice: swap completed| A[Alice];
+    App -->|notifies Bob: swap completed| B[Bob];
+
+    classDef default fill:#33B6FF,stroke:#333,stroke-width:2px;
+```
+
+- **Application:** tells Alice, "The swap is completed!" 
+- **Application:** tells Bob, "The swap is completed!"
 
 Alice and Bob don't interact directly, nor do they directly interact with the ledger. 
 Very few "smart" blockchain systems encourage their users to interact directly with the chain themselves, since this is usually complex and error-prone. 
