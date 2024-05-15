@@ -113,7 +113,7 @@ The design of the platform is discussed in :cite[plutus-report]{.title-ref}.
 
 # Ledgers
 
-The `Plutus Platform<what_is_the_plutus_platform>`{.interpreted-text role="ref"} is designed to work with distributed ledgers (henceforth simply "ledgers"). 
+The Plutus Platform is designed to work with distributed ledgers (henceforth simply "ledgers"). 
 Ledgers are typically *implemented* with a blockchain, such as Cardano. 
 However, much of the time when we are talking about ledgers we don't care about the underlying
 implementation, and so we will just talk about the ledger itself.
@@ -160,15 +160,15 @@ So a transaction that sends 5 USD from Alice to Bob would do so by spending some
 
 UTXO-based ledgers are more complicated, but avoid some of the issues of account-based ledgers, since any transaction deals only with the inputs that it spends. 
 Cardano is a UTXO-based ledger, and we heavily rely on this. 
-For example, `Hydra`{.interpreted-text role="term"}, Cardano's scalability solution, uses the fact that independent parts of the transaction graph can be processed in parallel to improve throughput.
+For example, Hydra, Cardano's scalability solution, uses the fact that independent parts of the transaction graph can be processed in parallel to improve throughput.
 
-## Scripts and the Extended UTXO Model {#scripts_and_the_eutxo_model}
+## Scripts and the Extended UTXO Model
 
 UTXO-based ledgers typically start out with a very simple model of "ownership" of UTXOs. 
 An output will have a public key (strictly, the hash of a public key) attached to it, and in order to spend this output the spending transaction must be signed by the corresponding private key. 
 We call this a "pay-to-pubkey" output.
 
-Cardano uses an extended model called the `Extended UTXO Model`{.interpreted-text role="term"} (EUTXO). 
+Cardano uses an extended model called the `Extended UTXO Model` (EUTXO). 
 In the EUTXO model, an output can be locked by (the hash of) a *script*. 
 We call this a "pay-to-script" output. 
 A script is a *program* that decides whether or not the transaction which spends the output is
@@ -198,7 +198,7 @@ If so, then they may spend this output and send it where they want (or we could 
 The Cardano ledger currently has a few different kinds of validator scripts:
 
 - The "simple" script language (introduced in the Allegra hard fork), which allows basic checks such as time locks
-- Various Plutus language versions (see `What are Plutus language versions? <what_are_plutus_language_versions>`{.interpreted-text role="ref"})
+- Various Plutus language versions (see `What are Plutus language versions?`)
 
 ## Further reading
 
@@ -211,7 +211,7 @@ For more help on how to actually implement interesting logic using the EUTXO mod
 
 # Plutus Foundation
 
-In order for an application to run its `trusted kernel<what_is_the_plutus_platform>`{.interpreted-text role="ref"} of logic as a script on a `ledger<what_is_a_ledger>`{.interpreted-text role="ref"}, the ledger needs a way of specifying and executing scripts. 
+In order for an application to run its `trusted kernel` of logic as a script on a `ledger`, the ledger needs a way of specifying and executing scripts. 
 Scripts are simply programs, so this means we need a *programming language*.
 
 ## Plutus Core
@@ -256,7 +256,7 @@ Plutus scripts are programs written in the Plutus Core programming language that
 > 2. the redeemer, and
 > 3. the context.
 
-The *context* contains all the information about the transaction which is currently being validated. (See `Scripts and the Extended UTXO model <scripts_and_the_eutxo_model>`{.interpreted-text role="ref"} for more details).
+The *context* contains all the information about the transaction which is currently being validated. (See `Scripts and the Extended UTXO model` for more details).
 
 Languages must continue to behave the same forever; otherwise, we could change the behaviour of existing scripts, potentially making outputs un-spendable and breaking users' assumptions. 
 That means that many kinds of changes to the behaviour of the language instead require a "new" language. 
@@ -285,5 +285,5 @@ built-in functions may be available.
 
 *See also:*
 
-- `Plutus language changes <plutus_language_changes>`{.interpreted-text role="ref"} for a description of what has changed between versions.
-- `Upgrading to Vasil and Plutus script addresses </reference/cardano/upgr-vasil-plutus-script-addresses>`{.interpreted-text role="doc"}.
+- `Plutus language changes` for a description of what has changed between versions.
+- `Upgrading to Vasil and Plutus script addresses`.
