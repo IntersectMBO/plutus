@@ -70,7 +70,8 @@ library
     PlutusTx.Blueprint.Write
     PlutusTx.Bool
     PlutusTx.Builtins
-    PlutusTx.Builtins.Class
+    PlutusTx.Builtins.HasBuiltin
+    PlutusTx.Builtins.HasOpaque
     PlutusTx.Builtins.Internal
     PlutusTx.Code
     PlutusTx.Coverage
@@ -108,6 +109,7 @@ library
     PlutusTx.IsData.Instances
     PlutusTx.IsData.TH
     PlutusTx.Lift.Instances
+    PlutusTx.Lift.TestInstances
     PlutusTx.Lift.TH
     PlutusTx.Lift.THUtils
 
