@@ -229,12 +229,12 @@ odd n = if even n then False else True
 {-# INLINABLE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.
 takeByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-takeByteString n bs = Builtins.sliceByteString 0 (toOpaque n) bs
+takeByteString n bs = Builtins.sliceByteString 0 n bs
 
 {-# INLINABLE dropByteString #-}
 -- | Returns the suffix of a 'ByteString' after n elements.
 dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-dropByteString n bs = Builtins.sliceByteString (toOpaque n) (Builtins.lengthOfByteString bs - n) bs
+dropByteString n bs = Builtins.sliceByteString n (Builtins.lengthOfByteString bs - n) bs
 
 {- Note [-fno-full-laziness in Plutus Tx]
 GHC's full-laziness optimization moves computations inside a lambda that don't depend on

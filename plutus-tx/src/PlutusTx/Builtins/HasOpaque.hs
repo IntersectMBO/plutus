@@ -75,29 +75,29 @@ instance IsString BuiltinString where
     fromString = Magic.noinline stringToBuiltinString
     {-# INLINE fromString #-}
 
-{- Note [Built-in types and their Haskell versions]
+{- Note [Built-in types and their Haskell counterparts]
 'HasToBuiltin' allows us to convert a value of a built-in type such as 'ByteString' to its Plutus
 Tx counterpart, 'BuiltinByteString' in this case. The idea is the same for all built-in types: just
 take the Haskell version and make it the Plutus Tx one.
 
 'HasToOpaque' is different, we use it for converting values of only those built-in types that exist
-in the Plutus Tx realm. I.e. we cannot convert a 'ByteString', since 'ByteString's don't exist in
-Plutus Tx, only 'BuiltinByteString's do.
+in the Plutus Tx realm, within the Plutus Tx realm. I.e. we cannot convert a 'ByteString', since
+'ByteString's don't exist in Plutus Tx, only 'BuiltinByteString's do.
 
 Consider, say, the built-in pair type. In Plutus Tx, we have an (opaque) type for this. It's opaque
 because you can't actually pattern match on it, instead you can only in fact use the specific
 functions that are available as builtins.
 
-We _also_ have the normal Haskell pair type. This is very different: you can
-pattern match on it, and you can use whatever user-defined functions you like on it.
+We _also_ have the normal Haskell pair type. This is very different: you can pattern match on it,
+and you can use whatever user-defined functions you like on it.
 
-Users would really like to use the latter, and not the former. So we often want
-to _wrap_ our built-in functions with little adapters that convert between the
-"opaque builtin" "version" of a type and the "normal Haskell" "version" of a type.
+Users would really like to use the latter, and not the former. So we often want to _wrap_ our
+built-in functions with little adapters that convert between the opaque "version" of a
+type and the "normal Haskell" "version" of a type.
 
 This is what the 'HasToOpaque' and 'HasFromOpaque' classes do. They let us write wrappers for
 builtins relatively consistently by just calling 'toOpaque' on their arguments and 'fromOpaque' on
-the result. They shouldn't really be used otherwise.
+the result. They shouldn't probably be used otherwise.
 
 Ideally, we would not have instances for types which don't have a different Haskell representation
 type, such as 'Integer'. 'Integer' in Plutus Tx user code _is_ the opaque built-in type, we don't
@@ -108,6 +108,11 @@ into a Haskell list, and then traverse it again to conver the contents). Then we
 for all built-in types, so we provide a @default@ implementation for both 'toOpaque' and
 'fromOpaque' that simply returns the argument back and use it for those types that don't require any
 conversions.
+
+Summarizing, 'toBuiltin'/'fromBuiltin' should be used to cross the boundary between Plutus Tx and
+Haskell, while 'toOpaque'/'fromOpaque' should be used within Plutus Tx to convert values to/from
+their @Builtin*@ representation, which we need because neither pattern matching nor standard library
+functions are available for values of @Builtin*@ types that we get from built-in functions.
 -}
 
 {- Note [HasFromOpaque/HasToOpaque instances for polymorphic builtin types]
@@ -133,7 +138,7 @@ representation type that needs to be instantiated later, but it's *not* okay to 
 type application on a type variable. So fundeps are much nicer here.
 -}
 
--- See Note [Built-in types and their Haskell versions].
+-- See Note [Built-in types and their Haskell counterparts].
 -- See Note [HasFromOpaque/HasToOpaque instances for polymorphic builtin types].
 -- See Note [Fundeps versus type families in HasFromOpaque/HasToOpaque].
 -- | A class for converting values of transparent Haskell-defined built-in types (such as '()',
@@ -146,12 +151,12 @@ class HasToOpaque a arep | a -> arep where
     toOpaque = id
     {-# INLINABLE toOpaque #-}
 
--- See Note [Built-in types and their Haskell versions].
+-- See Note [Built-in types and their Haskell counterparts].
 -- See Note [HasFromOpaque/HasToOpaque instances for polymorphic builtin types].
 -- See Note [Fundeps versus type families in HasFromOpaque/HasToOpaque].
--- | A class for converting values of transparent Haskell-defined built-in types (such as '()',
--- 'Bool', '[]' etc) to their opaque Plutus Tx counterparts. Instances for built-in types that are
--- not transparent are provided as well, simply as identities, since such types are already opaque.
+-- | A class for converting values of opaque Plutus Tx types to their transparent Haskell-defined
+-- counterparts (a.k.a. pattern-matchable) built-in types (such as '()', 'Bool', '[]' etc). If no
+-- transparent counterpart exists, then the implementation is identity.
 type HasFromOpaque :: GHC.Type -> GHC.Type -> GHC.Constraint
 class HasFromOpaque arep a | arep -> a where
     fromOpaque :: arep -> a

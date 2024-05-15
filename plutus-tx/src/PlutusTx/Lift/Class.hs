@@ -235,7 +235,7 @@ trying to pattern match on them. So the types don't quite match up with what we 
 to put inside the constant.
 
 Fortunately, we have To/FromBuiltin, which happen to do what we want.
-See Note [Built-in types and their Haskell versions].
+See Note [Built-in types and their Haskell counterparts].
 This is arguably slightly an abuse: the versions of the types that we want in
 Plutus Tx source code and the versions that we use as the implementations of
 the builtin types in the universe could be different. But in practice they
