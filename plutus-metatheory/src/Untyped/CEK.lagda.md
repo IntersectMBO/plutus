@@ -1,3 +1,7 @@
+---
+title: Untyped.CEK
+layout: page
+---
 ```
 {-# OPTIONS --type-in-type #-}
 

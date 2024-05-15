@@ -1,3 +1,7 @@
+---
+title: Algorithmic.RenamingSubstitution
+layout: page
+---
 ```
 module Algorithmic.RenamingSubstitution where
 ```

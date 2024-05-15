@@ -1,3 +1,7 @@
+---
+title: Scoped.Extrication.RenamingSubstitution
+layout: page
+---
 ```
 module Scoped.Extrication.RenamingSubstitution where
 ```

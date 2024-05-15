@@ -1,3 +1,7 @@
+---
+title: Algorithmic.Erasure
+layout: page
+---
 ```
 {-# OPTIONS --injective-type-constructors #-}
 

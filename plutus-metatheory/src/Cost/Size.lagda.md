@@ -1,3 +1,7 @@
+---
+title: Cost.Size
+layout: page
+---
 # Size of Constants
 
 ```

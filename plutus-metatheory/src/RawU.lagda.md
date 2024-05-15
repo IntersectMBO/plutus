@@ -1,3 +1,7 @@
+---
+title: Raw - Interface to Haskell
+layout: page
+---
 
 This module provides the interface between the Haskell code and the Agda code.
 It replicates the Haskell representation of Raw. In particular, for term constants,
