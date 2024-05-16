@@ -10,12 +10,9 @@ module PlutusTx.These(
   , theseWithDefault
   ) where
 
-import Prelude
-
 -- | A 'These' @a@ @b@ is either an @a@, or a @b@ or an @a@ and a @b@.
 -- Plutus version of 'Data.These'.
 data These a b = This a | That b | These a b
-  deriving stock (Show, Eq, Ord)
 
 {-# INLINABLE theseWithDefault #-}
 -- | Consume a 'These a b' value.
