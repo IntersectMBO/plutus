@@ -228,3 +228,11 @@ html[data-theme="dark"] {
   --ifm-pre-background: var(--color-marlowe-grey-20);
   --ifm-code-background: var(--color-marlowe-grey-20);
 }
+
+.markdown a {
+  font-weight: bold;
+}
+
+.markdown a:hover {
+  text-decoration: underline;
+}
