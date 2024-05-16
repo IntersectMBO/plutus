@@ -529,7 +529,7 @@ modelFun <- function(path) {
         m <- lm(t ~ x_mem, filtered)
 
         constant <- min(filtered$t)
-        ## FIXME.  The `constant` value above is the above-diagonal cost, which we
+        ## FIXME.  The `constant` value above is the off-diagonal cost, which we
         ## don't collect benchmarking data for.  Collect some data and infer it.
 
         mk.result(m, "linear_on_diagonal", constant=constant)
@@ -595,7 +595,7 @@ modelFun <- function(path) {
         m <- lm(t ~ x_mem, filtered)
 
         constant <- min(filtered$t)
-        ## FIXME.  The `constant` value above is the above-diagonal cost, which
+        ## FIXME.  The `constant` value above is the off-diagonal cost, which
         ## we don't collect benchmarking data for.  We might want to collect
         ## some data and infer it.
 
