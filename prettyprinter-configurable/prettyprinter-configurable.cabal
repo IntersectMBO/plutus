@@ -1,10 +1,10 @@
 cabal-version:      2.4
 name:               prettyprinter-configurable
-version:            1.27.0.0
+version:            1.28.0.0
+synopsis:           Configurable pretty-printing
+homepage:
+  https://github.com/input-output-hk/plutus/tree/master/prettyprinter-configurable/
 
--- synopsis:
--- description:
--- homepage:            https://github.com/githubuser/prettyprinter-configurable#readme
 license-files:
   LICENSE
   NOTICE
@@ -12,7 +12,7 @@ license-files:
 author:             David Luposchainsky, effectfully
 maintainer:         plutus@iohk.io
 category:           User Interfaces, Text
-build-type:         Custom
+build-type:         Simple
 extra-source-files: README.md
 
 common lang
@@ -36,13 +36,6 @@ common lang
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies
-
-custom-setup
-  setup-depends:
-    , base           >=4.9 && <5
-    , Cabal
-    , cabal-doctest
-    , doctest
 
 library
   import:          lang
@@ -83,27 +76,12 @@ test-suite prettyprinter-configurable-test
     , base                        >=4.9   && <5
     , megaparsec
     , parser-combinators
-    , prettyprinter-configurable  ^>=1.27
+    , prettyprinter-configurable  ^>=1.28
     , QuickCheck
     , quickcheck-text
     , tasty
     , tasty-hunit
     , tasty-quickcheck
     , text
-
-  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
-
-test-suite prettyprinter-configurable-doctest
-  import:         lang
-  type:           exitcode-stdio-1.0
-  main-is:        Main.hs
-  hs-source-dirs: doctest
-  build-depends:
-    , base     >=4.9 && <5
-    , doctest
-
-  -- one test fails on 9.2, don't know why
-  if impl(ghc >=9.0)
-    buildable: False
 
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N

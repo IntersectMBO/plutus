@@ -74,22 +74,21 @@ inline all the definitions so that the overall expression can have the right con
 
 type RTCompile uni fun = DefT TH.Name uni fun () Quote
 
--- TODO: try and make this work with type applications
--- | Class for types which have a corresponding Plutus IR type. Instances should always be derived, do not write
--- your own instance!
+-- | Class for types which have a corresponding Plutus IR type. Instances should always be derived,
+-- do not write your own instance!
 class Typeable uni (a :: k) where
     -- | Get the Plutus IR type corresponding to this type.
     typeRep :: Proxy a -> RTCompile uni fun (Type TyName uni ())
 
-
--- | Class for types which can be lifted into Plutus IR. Instances should be derived, do not write your
--- own instance!
+-- | Class for types which can be lifted into Plutus IR. Instances should be derived, do not write
+-- your own instance!
 class Lift uni a where
     -- | Get a Plutus IR term corresponding to the given value.
     lift :: a -> RTCompile uni fun (Term TyName Name uni fun ())
 
--- This instance ensures that we can apply typeable type constructors to typeable arguments and get a typeable
--- type. We need the kind variable, so that partial application of type constructors works.
+-- This instance ensures that we can apply typeable type constructors to typeable arguments and get
+-- a typeable type. We need the kind variable, so that partial application of type constructors
+-- works.
 instance (Typeable uni (f :: GHC.Type -> k), Typeable uni (a :: GHC.Type)) => Typeable uni (f a) where
     typeRep _ = TyApp () <$> typeRep (Proxy :: Proxy f) <*> typeRep (Proxy :: Proxy a)
 
@@ -235,7 +234,7 @@ trying to pattern match on them. So the types don't quite match up with what we 
 to put inside the constant.
 
 Fortunately, we have To/FromBuiltin, which happen to do what we want.
-See Note [Built-in types and their Haskell versions].
+See Note [Built-in types and their Haskell counterparts].
 This is arguably slightly an abuse: the versions of the types that we want in
 Plutus Tx source code and the versions that we use as the implementations of
 the builtin types in the universe could be different. But in practice they
