@@ -1,11 +1,13 @@
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NegativeLiterals      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
@@ -27,7 +29,8 @@ import PlutusTx.Code
 import PlutusTx.Data.AssocMap qualified as Data.AssocMap
 import PlutusTx.IsData ()
 import PlutusTx.IsData qualified as P
-import PlutusTx.Lift (liftCodeDef)
+import PlutusTx.Lift (liftCodeDef, makeLift)
+import PlutusTx.List qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.Test
@@ -37,41 +40,6 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testProperty)
 import Util.Common (cekResultMatchesHaskellValue, compiledCodeToTerm)
 
-goldenTests :: TestNested
-goldenTests =
-  testNestedGhc
-    "Budget"
-    [ goldenPirReadable "map1" map1
-    , goldenUPlcReadable "map1" map1
-    , goldenEvalCekCatch "map1" $ [map1 `unsafeApplyCode` (liftCodeDef 100)]
-    , goldenBudget "map1-budget" $ map1 `unsafeApplyCode` (liftCodeDef 100)
-    , goldenPirReadable "map2" map2
-    , goldenUPlcReadable "map2" map2
-    , goldenEvalCekCatch "map2" $ [map2 `unsafeApplyCode` (liftCodeDef 100)]
-    , goldenBudget "map2-budget" $ map2 `unsafeApplyCode` (liftCodeDef 100)
-    , goldenPirReadable "map3" map2
-    , goldenUPlcReadable "map3" map2
-    , goldenEvalCekCatch "map3" $ [map2 `unsafeApplyCode` (liftCodeDef 100)]
-    , goldenBudget "map3-budget" $ map2 `unsafeApplyCode` (liftCodeDef 100)
-    ]
-
-propertyTests :: TestTree
-propertyTests =
-  testGroup "Map property tests"
-    [ testProperty "safeFromList" safeFromListSpec
-    , testProperty "unsafeFromList" unsafeFromListSpec
-    , testProperty "lookup" lookupSpec
-    , testProperty "member" memberSpec
-    , testProperty "insert" insertSpec
-    , testProperty "all" allSpec
-    , testProperty "any" anySpec
-    , testProperty "keys" keysSpec
-    , testProperty "noDuplicateKeys" noDuplicateKeysSpec
-    , testProperty "delete" deleteSpec
-    , testProperty "union" unionSpec
-    , testProperty "unionWith" unionWithSpec
-    , testProperty "builtinDataEncoding" builtinDataEncodingSpec
-    ]
 
 -- | Test the performance and interaction between 'insert', 'delete' and 'lookup'.
 map1 ::
@@ -170,6 +138,32 @@ lookupProgram = $$(compile [|| AssocMap.lookup ||])
 dataLookupProgram :: CompiledCode (Integer -> Data.AssocMap.Map Integer Integer -> Maybe Integer)
 dataLookupProgram = $$(compile [|| Data.AssocMap.lookup ||])
 
+memberProgram :: CompiledCode (Integer -> AssocMap.Map Integer Integer -> Bool)
+memberProgram = $$(compile [|| AssocMap.member ||])
+
+dataMemberProgram :: CompiledCode (Integer -> Data.AssocMap.Map Integer Integer -> Bool)
+dataMemberProgram = $$(compile [|| Data.AssocMap.member ||])
+
+insertProgram
+  :: CompiledCode
+    ( Integer
+    -> Integer
+    -> AssocMap.Map Integer Integer
+    -> [(Integer, Integer)]
+    )
+insertProgram =
+  $$(compile [|| \k v m -> PlutusTx.sort $ AssocMap.toList $ AssocMap.insert k v m ||])
+
+dataInsertProgram
+  :: CompiledCode
+    ( Integer
+    -> Integer
+    -> Data.AssocMap.Map Integer Integer
+    -> [(Integer, Integer)]
+    )
+dataInsertProgram =
+  $$(compile [|| \k v m -> PlutusTx.sort $ Data.AssocMap.toList $ Data.AssocMap.insert k v m ||])
+
 -- | The semantics of PlutusTx maps and their operations.
 -- The 'PlutusTx' implementations maps ('Data.AssocMap.Map' and 'AssocMap.Map')
 -- are checked against the semantics to ensure correctness.
@@ -233,6 +227,8 @@ keysS (AssocMapS l) = map fst l
 noDuplicateKeysS :: AssocMapS Integer Integer -> Bool
 noDuplicateKeysS (AssocMapS l) =
   length l == length (nubBy (\(k1, _) (k2, _) -> k1 == k2) l)
+
+makeLift ''AssocMapS
 
 -- | The semantics of 'union' is based on the 'AssocMap' implementation.
 -- The code is duplicated here to avoid any issues if the 'AssocMap' implementation changes.
@@ -356,8 +352,23 @@ memberSpec = property $ do
   key <- forAll $ Gen.integral rangeElem
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
-  memberS key assocMapS === AssocMap.member key assocMap
-  memberS key assocMapS === Data.AssocMap.member key dataAssocMap
+      expected = memberS key assocMapS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ memberProgram
+        `unsafeApplyCode` (liftCodeDef key)
+        `unsafeApplyCode` (liftCodeDef assocMap)
+    )
+    (===)
+    expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataMemberProgram
+        `unsafeApplyCode` (liftCodeDef key)
+        `unsafeApplyCode` (liftCodeDef dataAssocMap)
+    )
+    (===)
+    expected
 
 insertSpec :: Property
 insertSpec = property $ do
@@ -366,8 +377,25 @@ insertSpec = property $ do
   value <- forAll $ Gen.integral rangeElem
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
-  insertS key value assocMapS ~~ AssocMap.insert key value assocMap
-  insertS key value assocMapS ~~ Data.AssocMap.insert key value dataAssocMap
+      expected = sortS $ insertS key value assocMapS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ insertProgram
+        `unsafeApplyCode` (liftCodeDef key)
+        `unsafeApplyCode` (liftCodeDef value)
+        `unsafeApplyCode` (liftCodeDef assocMap)
+    )
+    (===)
+    expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataInsertProgram
+        `unsafeApplyCode` (liftCodeDef key)
+        `unsafeApplyCode` (liftCodeDef value)
+        `unsafeApplyCode` (liftCodeDef dataAssocMap)
+    )
+    (===)
+    expected
 
 deleteSpec :: Property
 deleteSpec = property $ do
@@ -452,3 +480,39 @@ builtinDataEncodingSpec = property $ do
   assocMapS ~~ fromJust mDecodedDataAssocMap
   assocMapS ~~ decodedAssocMap
   assocMapS ~~ decodedDataAssocMap
+
+goldenTests :: TestNested
+goldenTests =
+  testNestedGhc
+    "Budget"
+    [ goldenPirReadable "map1" map1
+    , goldenUPlcReadable "map1" map1
+    , goldenEvalCekCatch "map1" $ [map1 `unsafeApplyCode` (liftCodeDef 100)]
+    , goldenBudget "map1-budget" $ map1 `unsafeApplyCode` (liftCodeDef 100)
+    , goldenPirReadable "map2" map2
+    , goldenUPlcReadable "map2" map2
+    , goldenEvalCekCatch "map2" $ [map2 `unsafeApplyCode` (liftCodeDef 100)]
+    , goldenBudget "map2-budget" $ map2 `unsafeApplyCode` (liftCodeDef 100)
+    , goldenPirReadable "map3" map2
+    , goldenUPlcReadable "map3" map2
+    , goldenEvalCekCatch "map3" $ [map2 `unsafeApplyCode` (liftCodeDef 100)]
+    , goldenBudget "map3-budget" $ map2 `unsafeApplyCode` (liftCodeDef 100)
+    ]
+
+propertyTests :: TestTree
+propertyTests =
+  testGroup "TESTING Map property tests"
+    [ testProperty "safeFromList" safeFromListSpec
+    , testProperty "unsafeFromList" unsafeFromListSpec
+    , testProperty "lookup" lookupSpec
+    , testProperty "member" memberSpec
+    , testProperty "insert" insertSpec
+    , testProperty "all" allSpec
+    , testProperty "any" anySpec
+    , testProperty "keys" keysSpec
+    , testProperty "noDuplicateKeys" noDuplicateKeysSpec
+    , testProperty "delete" deleteSpec
+    , testProperty "union" unionSpec
+    , testProperty "unionWith" unionWithSpec
+    , testProperty "builtinDataEncoding" builtinDataEncodingSpec
+    ]
