@@ -539,7 +539,7 @@ evaluateAndVerify ::
   PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
   PropertyT IO ()
 evaluateAndVerify expected actual =
-  case typecheckEvaluateCek def defaultBuiltinCostModelForTesting actual of  -- FIXME: def?
+  case typecheckEvaluateCek def defaultBuiltinCostModelForTesting actual of
     Left x -> annotateShow x >> failure
     Right (res, logs) -> case res of
       PLC.EvaluationFailure   -> annotateShow logs >> failure
@@ -550,8 +550,8 @@ evaluateAndVerify2 ::
   PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
   PropertyT IO ()
 evaluateAndVerify2 expected actual =
-  let expectedResult = typecheckEvaluateCek def defaultBuiltinCostModelForTesting expected  -- FIXME: def?
-      actualResult = typecheckEvaluateCek def defaultBuiltinCostModelForTesting actual -- FIXME: def?
+  let expectedResult = typecheckEvaluateCek def defaultBuiltinCostModelForTesting expected
+      actualResult = typecheckEvaluateCek def defaultBuiltinCostModelForTesting actual
     in case (expectedResult, actualResult) of
       (Left err, _) -> annotateShow err >> failure
       (_, Left err) -> annotateShow err >> failure
@@ -563,7 +563,7 @@ evaluateAndVerify2 expected actual =
 evaluateShouldFail ::
   PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
   IO ()
-evaluateShouldFail expr = case typecheckEvaluateCek def defaultBuiltinCostModelForTesting expr of -- FIXME: def?
+evaluateShouldFail expr = case typecheckEvaluateCek def defaultBuiltinCostModelForTesting expr of
   Left _ -> assertFailure "unexpectedly failed to typecheck"
   Right (result, _) -> case result of
     PLC.EvaluationFailure   -> pure ()
@@ -574,7 +574,7 @@ evaluateAssertEqual ::
   PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
   IO ()
 evaluateAssertEqual expected actual =
-  case typecheckEvaluateCek def defaultBuiltinCostModelForTesting actual of  -- FIXME: def?
+  case typecheckEvaluateCek def defaultBuiltinCostModelForTesting actual of
     Left _ -> assertFailure "unexpectedly failed to typecheck"
     Right (result, _) -> case result of
       PLC.EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"

@@ -18,6 +18,9 @@ builtinCostModelFileB = costModelDataDir </> "builtinCostModelB" <.> "json"
 builtinCostModelFileC :: FilePath
 builtinCostModelFileC = costModelDataDir </> "builtinCostModelC" <.> "json"
 
+latestBuiltinCostModelFile :: FilePath
+latestBuiltinCostModelFile = builtinCostModelFileC
+
 cekMachineCostsFileA :: FilePath
 cekMachineCostsFileA = costModelDataDir </> "cekMachineCostsA" <.> "json"
 
@@ -26,6 +29,9 @@ cekMachineCostsFileB = costModelDataDir </> "cekMachineCostsB" <.> "json"
 
 cekMachineCostsFileC :: FilePath
 cekMachineCostsFileC = costModelDataDir </> "cekMachineCostsC" <.> "json"
+
+latestMachineCostsFile :: FilePath
+latestMachineCostsFile = cekMachineCostsFileC
 
 -- | The file containing the R models: only needed for cost-model-test.
 rModelFile :: FilePath

@@ -8,7 +8,7 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     ( defaultBuiltinsRuntimeForSemanticsVariant
     , defaultCekParametersForVariant
     , defaultCostModelParamsForVariant
-    , toCekCostModel
+    , cekCostModelForVariant
     , defaultBuiltinsRuntimeForTesting
     , defaultCekParametersForTesting
     , defaultCekMachineCostsForTesting
@@ -61,14 +61,14 @@ import PlutusPrelude
 -- defaultBuiltinCostModel :: BuiltinCostModel
 -- defaultBuiltinCostModel = def
 
--- | The default cost model for built-in functions.
+-- | The default cost model for built-in functions (variant A)
 builtinCostModelVariantA :: BuiltinCostModel
 builtinCostModelVariantA =
     $$(readJSONFromFile DFP.builtinCostModelFileA)
 -- This is a huge record, inlining it is wasteful.
 {-# NOINLINE builtinCostModelVariantA #-}
 
--- | Default costs for CEK machine instructions.
+-- | Default costs for CEK machine instructions (variant A)
 cekMachineCostsVariantA :: CekMachineCosts
 cekMachineCostsVariantA =
   $$(readJSONFromFile DFP.cekMachineCostsFileA)
@@ -89,13 +89,11 @@ cekMachineCostsVariantA =
 cekCostModelVariantA :: CostModel CekMachineCosts BuiltinCostModel
 cekCostModelVariantA = CostModel cekMachineCostsVariantA builtinCostModelVariantA
 
-
 builtinCostModelVariantB :: BuiltinCostModel
 builtinCostModelVariantB =
     $$(readJSONFromFile DFP.builtinCostModelFileB)
 {-# NOINLINE builtinCostModelVariantB #-}
 
--- | Default costs for CEK machine instructions.
 cekMachineCostsVariantB :: CekMachineCosts
 cekMachineCostsVariantB =
   $$(readJSONFromFile DFP.cekMachineCostsFileB)
@@ -109,7 +107,6 @@ builtinCostModelVariantC =
     $$(readJSONFromFile DFP.builtinCostModelFileC)
 {-# NOINLINE builtinCostModelVariantC #-}
 
--- | Default costs for CEK machine instructions.
 cekMachineCostsVariantC :: CekMachineCosts
 cekMachineCostsVariantC =
   $$(readJSONFromFile DFP.cekMachineCostsFileC)
@@ -120,10 +117,10 @@ cekCostModelVariantC = CostModel cekMachineCostsVariantC builtinCostModelVariant
 
 -- | Return the 'CostModel' corresponding to the given semantics variant. The dependency on the
 -- semantics variant is what makes cost models configurable.
-toCekCostModel :: BuiltinSemanticsVariant DefaultFun -> CostModel CekMachineCosts BuiltinCostModel
-toCekCostModel DefaultFunSemanticsVariantA = cekCostModelVariantA
-toCekCostModel DefaultFunSemanticsVariantB = cekCostModelVariantB
-toCekCostModel DefaultFunSemanticsVariantC = cekCostModelVariantC
+cekCostModelForVariant :: BuiltinSemanticsVariant DefaultFun -> CostModel CekMachineCosts BuiltinCostModel
+cekCostModelForVariant DefaultFunSemanticsVariantA = cekCostModelVariantA
+cekCostModelForVariant DefaultFunSemanticsVariantB = cekCostModelVariantB
+cekCostModelForVariant DefaultFunSemanticsVariantC = cekCostModelVariantC
 
 -- | The default cost model data.  This is exposed to the ledger, so let's not
 -- confuse anybody by mentioning the CEK machine
@@ -154,14 +151,13 @@ defaultCekParametersB =
 
 defaultCekParametersC :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersC =
-    noinline mkMachineParameters def cekCostModelVariantC
+    noinline mkMachineParameters DefaultFunSemanticsVariantC cekCostModelVariantC
 
 {- Note [noinline for saving on ticks]
 We use 'noinline' purely for saving on simplifier ticks for definitions, whose performance doesn't
 matter. Otherwise compilation for this module is slower and GHC may end up exhausting simplifier
 ticks leading to a compilation error.
 -}
-
 defaultBuiltinsRuntimeForSemanticsVariant
     :: HasMeaningIn DefaultUni term
     => BuiltinSemanticsVariant DefaultFun
@@ -184,37 +180,42 @@ defaultCekParametersForVariant = \case
   DefaultFunSemanticsVariantB -> defaultCekParametersB
   DefaultFunSemanticsVariantC -> defaultCekParametersC
 
--- *** THIS SHOULD ONLY BE USED FOR TESTING ***
--- TODO: In fact we may want tests for each variant
+
+-- *** THE FOLLOWING SHOULD ONLY BE USED FOR TESTING ***
+{- We export a number of objects which are used in tests in a number of places in
+   the codebase. For the time being we'll just use the most recent cost model
+   for all of these.  In fact we may want tests for each variant in some cases
+   TODO:
+      * Maybe export fewer things and extract the required component at the use site.
+      * Make the names more sensible: does "default" refer to the variant
+        or the set of builtins?
+      * Perhaps export functions like `defaultBuiltinCostModelForVariant
+        and then apply those to `def` where they're used.
+-}
 defaultBuiltinsRuntimeForTesting
     :: HasMeaningIn DefaultUni term
     => BuiltinsRuntime DefaultFun term
 -- See Note [noinline for saving on ticks].
 defaultBuiltinsRuntimeForTesting = defaultBuiltinsRuntimeForSemanticsVariant DefaultFunSemanticsVariantC
 
--- *** THIS SHOULD ONLY BE USED FOR TESTING ***
 defaultCekParametersForTesting :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersForTesting = defaultCekParametersC
 
--- *** THIS SHOULD ONLY BE USED FOR TESTING ***
 defaultCekMachineCostsForTesting :: CekMachineCosts
 defaultCekMachineCostsForTesting = cekMachineCostsVariantC
 
--- *** THIS SHOULD ONLY BE USED FOR TESTING ***
 defaultBuiltinCostModelForTesting :: BuiltinCostModel
 defaultBuiltinCostModelForTesting = builtinCostModelVariantC
 
--- *** THIS SHOULD ONLY BE USED FOR TESTING ***
 defaultCostModelParamsForTesting :: Maybe CostModelParams
 defaultCostModelParamsForTesting = defaultCostModelParamsC
 
--- *** THIS SHOULD ONLY BE USED FOR TESTING ***
 defaultCekCostModelForTesting :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModelForTesting = cekCostModelVariantC
 
--- A cost model with unit costs, so we can count how often each builtin is
--- called This currently works for all semantics variants because we've
--- never removed any builtins.
+{- A cost model with unit costs, so we can count how often each builtin is called.
+  This currently works for all semantics variants because to date we have only
+  ever added new builtins and never removed any. -}
 unitCostOneArgument :: CostingFun ModelOneArgument
 unitCostOneArgument =  CostingFun (ModelOneArgumentConstantCost 1) (ModelOneArgumentConstantCost 0)
 

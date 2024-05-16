@@ -24,9 +24,10 @@ type BuiltinCostMap = [(Text, CpuAndMemoryModel)]
 type BuiltinCostKeyMap = KeyMap.KeyMap CpuAndMemoryModel
 
 -- | The default builtin cost map.
+ -- TODO: maybe we should take account of the semantic variant here.
 defaultBuiltinCostKeyMap :: BuiltinCostKeyMap
 defaultBuiltinCostKeyMap =
-    $$(readJSONFromFile DFP.builtinCostModelFileC)  -- FIXME!
+    $$(readJSONFromFile DFP.latestBuiltinCostModelFile)
 
 -- replace underscores _ by dashes -
 builtinName :: Text -> Text

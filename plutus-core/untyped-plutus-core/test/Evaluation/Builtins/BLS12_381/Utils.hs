@@ -32,7 +32,7 @@ data CekResult =
 
 evalTerm :: PlcTerm -> CekResult
 evalTerm term =
-    case typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term -- FIXME: def?
+    case typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
     of Left e -> TypeCheckError e
        Right x  ->
            case x of

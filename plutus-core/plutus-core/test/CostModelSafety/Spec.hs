@@ -35,7 +35,7 @@ import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Builtins
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (ExBudget))
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (toCekCostModel)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekCostModelForVariant)
 import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (LiteralByteSize)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
@@ -208,7 +208,7 @@ testBuiltinCostModel semvar model =
 test_costModelSafety :: TestTree
 test_costModelSafety =
   let mkTest semvar =
-        let CostModel machineCosts builtinCosts = toCekCostModel semvar
+        let CostModel machineCosts builtinCosts = cekCostModelForVariant semvar
         in testGroup ("Cost model for " ++ show semvar) $
            [ testCase "Machine costs" $ testMachineCostModel machineCosts
            , testCase "Builtin costs" $ testBuiltinCostModel semvar builtinCosts]
