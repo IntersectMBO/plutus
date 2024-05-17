@@ -75,19 +75,11 @@ This updates versions and version bounds, and assembles the changelogs.open a PR
 - Choose as git tag `x.y.z.0`
 - Choose as target the git commit hash which points to the release commit
 - Click `Generate release notes` to automatically fill in the details of what's changed
-- Create and attach pir&uplc executables to the release by running the following commands inside the repository where its HEAD is at the release commit:
-- 
-+
-[source,bash]
--------------
-nix build .#hydraJobs.x86_64-linux.musl64.ghc96.pir 
-cp ./result/bin/pir ./pir-x86_64-linux-ghc96
-
-nix build .#hydraJobs.x86_64-linux.musl64.ghc96.uplc
-cp ./result/bin/uplc ./uplc-x86_64-linux-ghc96
--------------
+- Create and attach pir&uplc executables to the release by running the following script inside the repository where its HEAD is at the release commit: `./scripts/prepare-bins.sh`. This will create `pir-x86_64-linux-ghc96` and `uplc-x86_64-linux-ghc96` executables, compress them and put in the project's root folder. Upload them to the release draft.
 - Click `Publish release`.
-7. Open a PR in the https://github.com/IntersectMBO/cardano-haskell-packages[CHaP repository] for publishing the new version. Run `./scripts/add-from-github.sh "https://github.com/IntersectMBO/plutus" COMMIT-SHA LIST-OF-UPDATED-PACKAGES` (see https://github.com/IntersectMBO/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/IntersectMBO/cardano-haskell-packages/pull/394.
+7. Open a PR in the https://github.com/IntersectMBO/cardano-haskell-packages[CHaP repository] for publishing the new version. +
+If you are making PR from your own fork then don't forget to sync your fork with the upstream first. +
+Run `./scripts/add-from-github.sh "https://github.com/IntersectMBO/plutus" COMMIT-SHA LIST-OF-UPDATED-PACKAGES` (see https://github.com/IntersectMBO/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/IntersectMBO/cardano-haskell-packages/pull/764. 
 - If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
 - Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
 It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.
