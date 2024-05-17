@@ -52,6 +52,7 @@ benchmarkFile = namedBenchmarkFile <|> pure defaultBenchmarkFile
 namedBenchmarkFile :: Parser BenchmarkFile
 namedBenchmarkFile = BenchmarkFile <$> strOption
   (  long "csv"
+  <> short 'i'
   <> metavar "FILENAME"
   <> help "CSV file containing built-in function benchmark results")
 
