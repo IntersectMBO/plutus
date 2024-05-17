@@ -421,8 +421,8 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname)  %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead ()
-        m <- lm(t ~ I(x_mem + y_mem), filtered)
-        mk.result(m,"added_sizes")
+        m <- lm(t ~ I(x_mem * y_mem), filtered)
+        mk.result(m,"multiplied_sizes")
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
 
