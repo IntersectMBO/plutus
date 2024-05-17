@@ -3,8 +3,7 @@
 {-# LANGUAGE TypeOperators    #-}
 
 module Evaluation.Builtins.Common
-    ( toEvaluationResult
-    , firstToEvaluationResult
+    ( unsafeToEvaluationResult
     , evaluateCek
     , evaluateCekNoEmit
     , readKnownCek
@@ -29,6 +28,7 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.Monad.Except
+import Data.Bifunctor
 import Data.Text (Text)
 
 -- | Type check and evaluate a term.
@@ -45,10 +45,8 @@ typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do
     -- builtins can change their type according to their BuiltinSemanticsVariant
     tcConfig <- TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes semvar ()
     _ <- TPLC.inferType tcConfig term
+    let runtime = mkMachineParameters semvar $ CostModel defaultCekMachineCosts costingPart
     return . action runtime $ TPLC.eraseTerm term
-    where
-      runtime = mkMachineParameters semvar $
-                   CostModel defaultCekMachineCosts costingPart
 
 -- | Type check and evaluate a term, logging enabled.
 typecheckEvaluateCek
@@ -61,7 +59,7 @@ typecheckEvaluateCek
     -> m (EvaluationResult (UPLC.Term Name uni fun ()), [Text])
 typecheckEvaluateCek semvar =
     typecheckAnd semvar $ \params ->
-        firstToEvaluationResult . evaluateCek logEmitter params
+        first unsafeToEvaluationResult . evaluateCek logEmitter params
 
 -- | Type check and evaluate a term, logging disabled.
 typecheckEvaluateCekNoEmit
@@ -74,7 +72,7 @@ typecheckEvaluateCekNoEmit
     -> m (EvaluationResult (UPLC.Term Name uni fun ()))
 typecheckEvaluateCekNoEmit semvar =
     typecheckAnd semvar $ \params ->
-        toEvaluationResult . evaluateCekNoEmit params
+        unsafeToEvaluationResult . evaluateCekNoEmit params
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCek

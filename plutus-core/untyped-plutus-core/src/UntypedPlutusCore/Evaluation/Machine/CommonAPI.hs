@@ -14,8 +14,8 @@ module UntypedPlutusCore.Evaluation.Machine.CommonAPI
     , evaluateCek
     , evaluateCekNoEmit
     , EvaluationResult(..)
-    , toEvaluationResult
-    , firstToEvaluationResult
+    , extractEvaluationResult
+    , unsafeToEvaluationResult
     -- * Errors
     , CekUserError(..)
     , ErrorWithCause(..)

@@ -38,9 +38,10 @@ readMakeHetero
     => a -> EvaluationResult b
 readMakeHetero x = do
     xTerm <- makeKnownOrFail @_ @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
-    case toEvaluationResult <$> typecheckReadKnownCek def TPLC.defaultBuiltinCostModel xTerm of
-        Left err  -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
-        Right res -> res
+    case extractEvaluationResult <$> typecheckReadKnownCek def TPLC.defaultBuiltinCostModel xTerm of
+        Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
+        Right (Left err)  -> error $ "Evaluation error: " ++ show err
+        Right (Right res) -> res
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of the same type.

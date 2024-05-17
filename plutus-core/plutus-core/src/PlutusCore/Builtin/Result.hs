@@ -98,7 +98,7 @@ instance MonadEmitter BuiltinResult where
 
 instance Pretty UnliftingError where
     pretty (MkUnliftingError err) = fold
-        [ "Could not unlift a value:", line
+        [ "Could not unlift a value:", hardline
         , pretty err
         ]
 

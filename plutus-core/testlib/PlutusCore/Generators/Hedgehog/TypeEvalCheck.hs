@@ -35,6 +35,7 @@ import PlutusCore.Pretty
 import Control.Lens.TH
 import Control.Monad.Except
 import Data.Proxy
+import Data.String
 import Prettyprinter
 
 {- Note [Type-eval checking]
@@ -49,6 +50,7 @@ data TypeEvalCheckError uni fun
     | TypeEvalCheckErrorIllTyped
           !(Normalized (Type TyName uni ()))
           !(Normalized (Type TyName uni ()))
+    | TypeEvalCheckErrorException !String
     | TypeEvalCheckErrorIllEvaled
           !(EvaluationResult (Term TyName Name uni fun ()))
           !(EvaluationResult (Term TyName Name uni fun ()))
@@ -76,10 +78,12 @@ instance ( PrettyBy config (Type TyName uni ())
     prettyBy config (TypeEvalCheckErrorIllFormed err)             =
         "The term is ill-formed:" <+> prettyBy config err
     prettyBy config (TypeEvalCheckErrorIllTyped expected actual) =
-        "The expected type:" <+> prettyBy config expected <> line <>
+        "The expected type:" <+> prettyBy config expected <> hardline <>
         "doesn't match with the actual type:" <+> prettyBy config actual
+    prettyBy _      (TypeEvalCheckErrorException err)             =
+        "An exception occurred:" <+> fromString err
     prettyBy config (TypeEvalCheckErrorIllEvaled expected actual) =
-        "The expected value:" <+> prettyBy config expected <> line <>
+        "The expected value:" <+> prettyBy config expected <> hardline <>
         "doesn't match with the actual value:" <+> prettyBy config actual
 
 -- | The monad type-eval checking runs in.
@@ -90,6 +94,7 @@ type TypeEvalCheckM uni fun = Either (TypeEvalCheckError uni fun)
 typeEvalCheckBy
     :: ( uni ~ DefaultUni, fun ~ DefaultFun
        , KnownTypeAst TyName uni a, MakeKnown (Term TyName Name uni fun ()) a
+       , PrettyPlc structural
        )
     => (Term TyName Name uni fun () ->
            Either
@@ -105,11 +110,12 @@ typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
         config <- getDefTypeCheckConfig ()
         inferType config term
     if tyExpected == tyActual
-        then
-          let valActual = toEvaluationResult $ eval term
-          in if valExpected == valActual
-              then return $ TypeEvalCheckResult tyExpected valActual
-              else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
+        then case extractEvaluationResult $ eval term of
+                Right valActual ->
+                    if valExpected == valActual
+                        then return $ TypeEvalCheckResult tyExpected valActual
+                        else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
+                Left exc        -> throwError $ TypeEvalCheckErrorException $ show exc
         else throwError $ TypeEvalCheckErrorIllTyped tyExpected tyActual
 
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.

@@ -17,9 +17,9 @@ module PlutusCore.Evaluation.Machine.Ck
     , CkEvaluationException
     , CkM
     , CkValue
-    , toEvaluationResult
-    , firstToEvaluationResult
     , runCk
+    , extractEvaluationResult
+    , unsafeToEvaluationResult
     , evaluateCk
     , evaluateCkNoEmit
     , readKnownCk
@@ -194,7 +194,7 @@ stack |> Constr _ ty i es               = case es of
     t : ts -> FrameConstr ty i ts [] : stack |> t
 stack |> Case _ _ arg cs         = FrameCase cs : stack |> arg
 _     |> Error{}                 =
-    throwingWithCause _EvaluationError (CustomEvaluationError CkEvaluationFailure) Nothing
+    throwingWithCause _EvaluationError (OperationalEvaluationError CkEvaluationFailure) Nothing
 _     |> var@Var{}               =
     throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var
 

@@ -28,8 +28,8 @@ module PlutusCore.Evaluation.Machine.Exception
     , throwing
     , throwing_
     , throwingWithCause
-    , toEvaluationResult
-    , firstToEvaluationResult
+    , extractEvaluationResult
+    , unsafeToEvaluationResult
     ) where
 
 import PlutusPrelude
@@ -37,8 +37,10 @@ import PlutusPrelude
 import PlutusCore.Builtin.Result
 import PlutusCore.Evaluation.ErrorWithCause
 import PlutusCore.Evaluation.Result
+import PlutusCore.Pretty
 
 import Control.Lens
+import Data.Either.Extras
 import Data.Word (Word64)
 import Prettyprinter
 
@@ -107,15 +109,19 @@ and so on are genuine errors and we report their context if available.
  -}
 
 -- | Turn any 'OperationalEvaluationError' into an 'EvaluationFailure'.
-toEvaluationResult
+extractEvaluationResult
     :: Either (EvaluationException operational structural term) a
-    -> EvaluationResult a
-toEvaluationResult = reoption
+    -> Either (ErrorWithCause structural term) (EvaluationResult a)
+extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
+extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
+    StructuralEvaluationError err -> Left  $ ErrorWithCause err cause
+    OperationalEvaluationError _  -> Right $ EvaluationFailure
 
-firstToEvaluationResult
-    :: (Either (EvaluationException operational structural term) a, b)
-    -> (EvaluationResult a, b)
-firstToEvaluationResult (err, y) = (toEvaluationResult err, y)
+unsafeToEvaluationResult
+    :: (PrettyPlc internal, PrettyPlc term, Typeable internal, Typeable term)
+    => Either (EvaluationException user internal term) a
+    -> EvaluationResult a
+unsafeToEvaluationResult = unsafeFromEither . extractEvaluationResult
 
 instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
             PrettyBy config (MachineError fun) where

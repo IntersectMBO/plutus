@@ -10,8 +10,8 @@ module UntypedPlutusCore.Evaluation.Machine.SteppableCek
     , evaluateCek
     , evaluateCekNoEmit
     , EvaluationResult(..)
-    , toEvaluationResult
-    , firstToEvaluationResult
+    , extractEvaluationResult
+    , unsafeToEvaluationResult
     -- * Errors
     , CekUserError(..)
     , ErrorWithCause(..)

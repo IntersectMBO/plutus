@@ -95,6 +95,7 @@ sampleProgramValueGolden folder name genTerm = do
 propEvaluate
     :: ( uni ~ DefaultUni, fun ~ DefaultFun
        , KnownTypeAst TyName uni a, MakeKnown (Term TyName Name uni fun ()) a
+       , PrettyPlc structural
        )
     => (Term TyName Name uni fun () ->
            Either
@@ -111,6 +112,7 @@ propEvaluate eval genTermOfTbv = withTests 200 . property $ do
             -- We know that these two are distinct, but there is no nice way we
             -- can report this via 'hedgehog' except by comparing them here again.
             ShowPretty expected === ShowPretty actual
+        Left (TypeEvalCheckErrorException err)             -> fail err
         Left (TypeEvalCheckErrorIllEvaled expected actual) ->
             -- Ditto.
             ShowPretty expected === ShowPretty actual
