@@ -16,7 +16,7 @@ body:
       label: Describe the feature you'd like
       description: A clear and detailed description of what you are suggesting.
     validations:
-      required: true
+      required: false
   - type: textarea
     id: alternatives
     attributes:
