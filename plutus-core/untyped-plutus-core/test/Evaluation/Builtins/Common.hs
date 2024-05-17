@@ -41,8 +41,8 @@ typecheckAnd
             UPLC.Term Name uni fun () -> a)
     -> CostingPart uni fun -> TPLC.Term TyName Name uni fun () -> m a
 typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do
-    -- Here we don't use `getDefTypeCheckConfig`, to cover the absurd case where
-    -- builtins can change their type according to their BuiltinSemanticsVariant
+    -- Here we don't use 'getDefTypeCheckConfig', to cover the absurd case where
+    -- builtins can change their type according to their 'BuiltinSemanticsVariant'.
     tcConfig <- TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes semvar ()
     _ <- TPLC.inferType tcConfig term
     let runtime = mkMachineParameters semvar $ CostModel defaultCekMachineCosts costingPart
@@ -84,4 +84,5 @@ typecheckReadKnownCek
     -> CostingPart uni fun
     -> TPLC.Term TyName Name uni fun ()
     -> m (Either (CekEvaluationException Name uni fun) a)
-typecheckReadKnownCek semvar = typecheckAnd semvar readKnownCek
+typecheckReadKnownCek semvar =
+    typecheckAnd semvar readKnownCek
