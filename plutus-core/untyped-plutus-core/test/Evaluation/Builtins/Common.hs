@@ -3,8 +3,10 @@
 {-# LANGUAGE TypeOperators    #-}
 
 module Evaluation.Builtins.Common
-    ( unsafeEvaluateCek
-    , unsafeEvaluateCekNoEmit
+    ( toEvaluationResult
+    , firstToEvaluationResult
+    , evaluateCek
+    , evaluateCekNoEmit
     , readKnownCek
     , typecheckAnd
     , typecheckEvaluateCek
@@ -57,7 +59,9 @@ typecheckEvaluateCek
     -> CostingPart uni fun
     -> TPLC.Term TyName Name uni fun ()
     -> m (EvaluationResult (UPLC.Term Name uni fun ()), [Text])
-typecheckEvaluateCek semvar = typecheckAnd semvar $ unsafeEvaluateCek logEmitter
+typecheckEvaluateCek semvar =
+    typecheckAnd semvar $ \params ->
+        firstToEvaluationResult . evaluateCek logEmitter params
 
 -- | Type check and evaluate a term, logging disabled.
 typecheckEvaluateCekNoEmit
@@ -68,7 +72,9 @@ typecheckEvaluateCekNoEmit
     -> CostingPart uni fun
     -> TPLC.Term TyName Name uni fun ()
     -> m (EvaluationResult (UPLC.Term Name uni fun ()))
-typecheckEvaluateCekNoEmit semvar = typecheckAnd semvar unsafeEvaluateCekNoEmit
+typecheckEvaluateCekNoEmit semvar =
+    typecheckAnd semvar $ \params ->
+        toEvaluationResult . evaluateCekNoEmit params
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCek

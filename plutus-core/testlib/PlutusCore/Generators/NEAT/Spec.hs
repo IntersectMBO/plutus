@@ -111,21 +111,21 @@ not exploited.
 
 -- handle a user error and turn it back into an error term
 handleError :: Type TyName DefaultUni ()
-       -> U.ErrorWithCause (U.EvaluationError user internal) term
-       -> Either (U.ErrorWithCause (U.EvaluationError user internal) term)
+       -> U.ErrorWithCause (U.EvaluationError operational structural) term
+       -> Either (U.ErrorWithCause (U.EvaluationError operational structural) term)
                  (Term TyName Name DefaultUni DefaultFun ())
 handleError ty e = case U._ewcError e of
-  U.UserEvaluationError     _ -> return (Error () ty)
-  U.InternalEvaluationError _ -> throwError e
+  U.CustomEvaluationError     _ -> return (Error () ty)
+  U.CommonEvaluationError _     -> throwError e
 
 -- untyped version of `handleError`
 handleUError ::
-          U.ErrorWithCause (U.EvaluationError user internal) term
-       -> Either (U.ErrorWithCause (U.EvaluationError user internal) term)
+          U.ErrorWithCause (U.EvaluationError operational structural) term
+       -> Either (U.ErrorWithCause (U.EvaluationError operational structural) term)
                  (U.Term Name DefaultUni DefaultFun ())
 handleUError e = case U._ewcError e of
-  U.UserEvaluationError     _ -> return (U.Error ())
-  U.InternalEvaluationError _ -> throwError e
+  U.CustomEvaluationError     _ -> return (U.Error ())
+  U.CommonEvaluationError _     -> throwError e
 
 -- |Property: check if the type is preserved by evaluation.
 --

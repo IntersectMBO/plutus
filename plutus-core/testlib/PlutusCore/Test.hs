@@ -192,7 +192,7 @@ runTPlc values = do
         foldl1
           (unsafeFromRight .* TPLC.applyProgram)
           ps
-  liftEither . first toException . TPLC.extractEvaluationResult $
+  pure . TPLC.toEvaluationResult $
     TPLC.evaluateCkNoEmit TPLC.defaultBuiltinsRuntime t
 
 -- | An evaluation failure plus the final budget and logs.

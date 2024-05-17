@@ -23,7 +23,7 @@ import Test.Tasty.HUnit (testCase, (@?=))
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (CekMachineCosts, CekValue, EvaluationResult (..),
-                                                 noEmitter, unsafeEvaluateCek)
+                                                 evaluateCek, noEmitter, toEvaluationResult)
 import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
 
 test_caseOfCase :: TestTree
@@ -119,7 +119,7 @@ testCaseOfCaseWithError =
 evaluateUplc
   :: UPLC.Term Name DefaultUni DefaultFun ()
   -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
-evaluateUplc = fst <$> unsafeEvaluateCek noEmitter machineParameters
+evaluateUplc = toEvaluationResult . fst <$> evaluateCek noEmitter machineParameters
  where
   costModel :: CostModel CekMachineCosts BuiltinCostModel =
     CostModel defaultCekMachineCosts defaultBuiltinCostModel

@@ -23,7 +23,9 @@ testMachine
     :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc internal)
     => String
     -> (Term TyName Name uni fun () ->
-           Either (EvaluationException user internal (Term TyName Name uni fun ())) (Term TyName Name uni fun ()))
+           Either
+               (EvaluationException operational structural (Term TyName Name uni fun ()))
+               (Term TyName Name uni fun ()))
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name ->

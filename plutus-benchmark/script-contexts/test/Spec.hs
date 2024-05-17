@@ -8,7 +8,7 @@ import Test.Tasty
 import Test.Tasty.Extras (TestNested, runTestGroupNestedGhc)
 import Test.Tasty.HUnit
 
-import PlutusBenchmark.Common (Term, compiledCodeToTerm, runTermCek, unsafeRunTermCek)
+import PlutusBenchmark.Common (Term, compiledCodeToTerm, runTermCek)
 import PlutusBenchmark.ScriptContexts
 
 import PlutusCore.Evaluation.Result
