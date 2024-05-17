@@ -66,7 +66,27 @@ data MachineError fun
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
--- | The type of errors (all of them) which can occur during evaluation. TODO: explain
+{- | The type of errors that can occur during evaluation. There are two kinds of errors:
+
+1. Operational ones -- these are errors that are indicative of the _logic_ of the program being
+   wrong. For example, 'Error' was executed or 'tailList' was applied to an empty list.
+2. Structural ones -- these are errors that are indicative of the _structure_ of the program being
+   wrong. For example, a free variable was encountered during evaluation, or a non-function was
+   applied to an argument
+
+On the chain both of these are just regular failures and we don't distinguish between them there:
+if a script fails, it fails, it doesn't matter what the reason was. However in the tests it does
+matter why the failure occurred: a structural error may indicate that the test was written
+incorrectly while an operational error may be entirely expected.
+
+In other words, operational errors are regular runtime errors and structural errors are \"runtime
+type errors\". Which means that evaluating an (erased) well-typed program should never produce a
+structural error, only an operational one. This creates a sort of \"runtime type system\" for UPLC
+and it would be great to stick to it and enforce in tests etc, but we currently don't. For example,
+a built-in function expecting an 'Integer' but getting a 'Bool' should throw a structural error,
+but currently builtins can only throw operational errors. This is something that we plan to improve
+upon in future.
+-}
 data EvaluationError operational structural
     = OperationalEvaluationError !operational
     | StructuralEvaluationError !structural
