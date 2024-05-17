@@ -83,7 +83,8 @@ evaluateUplcProgramWithTraces
   :: UPLC.Program Name DefaultUni DefaultFun ()
   -> (EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ()), [Text])
 evaluateUplcProgramWithTraces uplcProg =
-  unsafeToEvaluationResult $ evaluateCek logEmitter machineParameters (uplcProg ^. UPLC.progTerm)
+  first unsafeToEvaluationResult $
+    evaluateCek logEmitter machineParameters (uplcProg ^. UPLC.progTerm)
  where
   costModel :: CostModel CekMachineCosts BuiltinCostModel =
     CostModel defaultCekMachineCosts defaultBuiltinCostModel
