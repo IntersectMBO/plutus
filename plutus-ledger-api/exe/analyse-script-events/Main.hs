@@ -325,6 +325,10 @@ analyseOneFile
     -> IO ()
 analyseOneFile analyse eventFile = do
   events <- loadEvents eventFile
+  printf "# %s\n" eventFile
+  -- Print the file in the output so we can narrow down the location of
+  -- interesting/anomalous data.  This may not be helpful for some of the
+  -- analyses.
   case ( mkContext V1.mkEvaluationContext (eventsCostParamsV1 events)
        , mkContext V2.mkEvaluationContext (eventsCostParamsV2 events)
        ) of
@@ -353,29 +357,55 @@ analyseOneFile analyse eventFile = do
                 Just (ctx, params) -> analyse ctx params event
                 Nothing            -> putStrLn "*** ctxV2 missing ***"
 
-
-max_tx_ex_steps :: Double
-max_tx_ex_steps = 10_000_000_000
-
-max_tx_ex_mem :: Double
-max_tx_ex_mem = 14_000_000
-
--- Print out the CPU and memory budgets of each script event.  These are the costs
--- paid for by the submitters, not the actual costs consumed during execution.
--- TODO: add a version that tells us the actual execution costs.
-getBudgets :: EventAnalyser
-getBudgets _ctx _params ev =
-  let printFractions d =
-        let ExBudget (V2.ExCPU cpu) (V2.ExMemory mem) = dataBudget d
-        in printf "%15d   %10.8f   %15d   %10.8f\n"
-           (fromSatInt cpu :: Int)
-           ((fromSatInt cpu) / max_tx_ex_steps)
-           (fromSatInt mem :: Int)
-           ((fromSatInt mem) / max_tx_ex_mem)
-
-  in case ev of
-       PlutusV1Event evdata _expected -> printFractions evdata
-       PlutusV2Event evdata _expected -> printFractions evdata
+analyseCosts :: EventAnalyser
+analyseCosts ctx _ ev =
+  case ev of
+    PlutusV1Event ScriptEvaluationData{..} _ ->
+      --
+      let actualCost =
+            case deserialiseScript PlutusV1 dataProtocolVersion dataScript of
+              Left _ -> Nothing
+              Right script ->
+                case
+                  V1.evaluateScriptRestricting
+                  dataProtocolVersion
+                  V1.Quiet
+                  ctx
+                  dataBudget
+                  script
+                  dataInputs
+                of
+                  (_, Left _)     -> Nothing
+                  (_, Right cost) -> Just cost
+      in printCost actualCost dataBudget
+    PlutusV2Event ScriptEvaluationData{..} _ ->
+      let actualCost =
+            case deserialiseScript PlutusV2 dataProtocolVersion dataScript of
+              Left _ -> Nothing
+              Right script ->
+                case
+                  V2.evaluateScriptRestricting
+                  dataProtocolVersion
+                  V2.Quiet
+                  ctx
+                  dataBudget
+                  script
+                  dataInputs
+                of
+                  (_, Left _)     -> Nothing
+                  (_, Right cost) -> Just cost
+      in printCost actualCost dataBudget
+  where printCost :: Maybe ExBudget -> ExBudget -> IO ()
+        printCost actualCost claimedCost =
+          let (claimedCPU, claimedMem) = costAsInts claimedCost
+          in case actualCost of
+               Nothing -> -- something went wrong; print the cost as "NA" so that R can still process it
+                 printf "%15s   %15d   %15s   %15d\n" "NA" claimedCPU "NA" claimedMem
+               Just cost ->
+                 let (actualCPU, actualMem) = costAsInts cost
+                 in printf "%15d   %15d   %15d   %15d\n" actualCPU claimedCPU actualMem claimedMem
+        costAsInts :: ExBudget -> (Int, Int)
+        costAsInts (ExBudget (V2.ExCPU cpu) (V2.ExMemory mem)) = (fromSatInt cpu, fromSatInt mem)
 
 main :: IO ()
 main =
@@ -400,10 +430,10 @@ main =
               , "count the total number of occurrences of each builtin in validator scripts"
               , countBuiltins
               )
-            , ( "budgets"
-              , "print (claimed) budgets of scripts"
-              , putStrLn "         cpu     cpuFraction             mem    memFraction"
-                `thenDoAnalysis` getBudgets
+            , ( "costs"
+              , "print actual and claimed costs of scripts"
+              , putStrLn "      cpuActual        cpuClaimed         memActual         memClaimed"
+                `thenDoAnalysis` analyseCosts
               )
             ]
 
