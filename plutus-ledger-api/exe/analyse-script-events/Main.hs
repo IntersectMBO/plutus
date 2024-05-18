@@ -37,7 +37,7 @@ import Data.Primitive.PrimArray qualified as P
 import Data.SatInt (fromSatInt)
 import System.Directory.Extra (listFiles)
 import System.Environment (getArgs, getProgName)
-import System.FilePath (isExtensionOf)
+import System.FilePath (isExtensionOf, takeFileName)
 import System.IO (stderr)
 import Text.Printf (hPrintf, printf)
 
@@ -325,7 +325,7 @@ analyseOneFile
     -> IO ()
 analyseOneFile analyse eventFile = do
   events <- loadEvents eventFile
-  printf "# %s\n" eventFile
+  printf "# %s\n" $ takeFileName eventFile
   -- Print the file in the output so we can narrow down the location of
   -- interesting/anomalous data.  This may not be helpful for some of the
   -- analyses.
@@ -357,6 +357,8 @@ analyseOneFile analyse eventFile = do
                 Just (ctx, params) -> analyse ctx params event
                 Nothing            -> putStrLn "*** ctxV2 missing ***"
 
+
+-- Print out the actual and claimed CPU and memory cost of every script.
 analyseCosts :: EventAnalyser
 analyseCosts ctx _ ev =
   case ev of
@@ -378,6 +380,7 @@ analyseCosts ctx _ ev =
                   (_, Left _)     -> Nothing
                   (_, Right cost) -> Just cost
       in printCost actualCost dataBudget
+
     PlutusV2Event ScriptEvaluationData{..} _ ->
       let actualCost =
             case deserialiseScript PlutusV2 dataProtocolVersion dataScript of
@@ -395,11 +398,12 @@ analyseCosts ctx _ ev =
                   (_, Left _)     -> Nothing
                   (_, Right cost) -> Just cost
       in printCost actualCost dataBudget
+
   where printCost :: Maybe ExBudget -> ExBudget -> IO ()
         printCost actualCost claimedCost =
           let (claimedCPU, claimedMem) = costAsInts claimedCost
           in case actualCost of
-               Nothing -> -- something went wrong; print the cost as "NA" so that R can still process it
+               Nothing -> -- Something went wrong; print the cost as "NA" so that R can still process it.
                  printf "%15s   %15d   %15s   %15d\n" "NA" claimedCPU "NA" claimedMem
                Just cost ->
                  let (actualCPU, actualMem) = costAsInts cost
@@ -441,17 +445,21 @@ main =
         (prelude `thenDoAnalysis` analyser) files = prelude >> doAnalysis analyser files
 
         usage = do
-          getProgName >>= hPrintf stderr "Usage: %s <dir> <analysis>\n"
+          getProgName >>= hPrintf stderr "Usage: %s <analysis> [<dir>]\n"
+          hPrintf stderr "Analyse the .event files in <dir> (default = current directory)\n"
           hPrintf stderr "Avaliable analyses:\n"
           mapM_ printDescription analyses
               where printDescription (n,h,_) = hPrintf stderr "   %-16s: %s\n" n h
 
+        go name dir =
+          case find (\(n,_,_) -> n == name) analyses of
+            Nothing       -> printf "Unknown analysis: %s\n" name >> usage
+            Just (_,_,analysis) ->
+              filter ("event" `isExtensionOf`) <$> listFiles dir >>= \case
+              []         -> printf "No event files in %s\n" dir
+              eventFiles -> analysis eventFiles
+
     in getArgs >>= \case
-           [dir, name] ->
-               case find (\(n,_,_) -> n == name) analyses of
-                    Nothing       -> printf "Unknown analysis: %s\n" name >> usage
-                    Just (_,_,analysis) ->
-                        filter ("event" `isExtensionOf`) <$> listFiles dir >>= \case
-                                   []         -> printf "No event files in %s\n" dir
-                                   eventFiles -> analysis eventFiles
-           _ -> usage
+      [name] -> go name "."
+      [name, dir] -> go name dir
+      _ -> usage
