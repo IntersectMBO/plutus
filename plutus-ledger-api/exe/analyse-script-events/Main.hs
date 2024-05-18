@@ -455,7 +455,7 @@ main =
             Nothing       -> printf "Unknown analysis: %s\n" name >> usage
             Just (_,_,analysis) ->
               filter ("event" `isExtensionOf`) <$> listFiles dir >>= \case
-              []         -> printf "No event files in %s\n" dir
+              []         -> printf "No .event files in %s\n" dir
               eventFiles -> analysis eventFiles
 
     in getArgs >>= \case
