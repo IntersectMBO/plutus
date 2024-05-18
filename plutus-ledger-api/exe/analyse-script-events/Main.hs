@@ -363,7 +363,6 @@ analyseCosts :: EventAnalyser
 analyseCosts ctx _ ev =
   case ev of
     PlutusV1Event ScriptEvaluationData{..} _ ->
-      --
       let actualCost =
             case deserialiseScript PlutusV1 dataProtocolVersion dataScript of
               Left _ -> Nothing
