@@ -83,9 +83,9 @@ In other words, operational errors are regular runtime errors and structural err
 type errors\". Which means that evaluating an (erased) well-typed program should never produce a
 structural error, only an operational one. This creates a sort of \"runtime type system\" for UPLC
 and it would be great to stick to it and enforce in tests etc, but we currently don't. For example,
-a built-in function expecting an 'Integer' but getting a 'Bool' should throw a structural error,
-but currently builtins can only throw operational errors. This is something that we plan to improve
-upon in future.
+a built-in function expecting a list but getting something else should throw a structural error,
+but currently it'll throw an operational one. This is something that we plan to improve upon in
+future.
 -}
 data EvaluationError operational structural
     = OperationalEvaluationError !operational
@@ -128,7 +128,8 @@ error; in contrast, machine errors, typechecking failures,
 and so on are genuine errors and we report their context if available.
  -}
 
--- | Turn any 'OperationalEvaluationError' into an 'EvaluationFailure'.
+-- | Preserve the contents of an 'StructuralEvaluationError' as a 'Left' and turn an
+-- 'OperationalEvaluationError' into a @Right EvaluationFailure@.
 extractEvaluationResult
     :: Either (EvaluationException operational structural term) a
     -> Either (ErrorWithCause structural term) (EvaluationResult a)
@@ -137,6 +138,8 @@ extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
     StructuralEvaluationError err -> Left  $ ErrorWithCause err cause
     OperationalEvaluationError _  -> Right $ EvaluationFailure
 
+-- | Throw on a 'StructuralEvaluationError' and turn an 'OperationalEvaluationError' into an
+-- 'EvaluationFailure'.
 unsafeToEvaluationResult
     :: (PrettyPlc internal, PrettyPlc term, Typeable internal, Typeable term)
     => Either (EvaluationException user internal term) a
