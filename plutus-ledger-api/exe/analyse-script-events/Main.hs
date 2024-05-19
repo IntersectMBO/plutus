@@ -358,11 +358,11 @@ analyseCosts ctx _ ev =
           in case result of
                OK cost ->
                  let (actualCPU, actualMem) = costAsInts cost
-                 in printf "%15d   %15d   %15d   %15d       T\n" actualCPU claimedCPU actualMem claimedMem
+                 in printf "%15d   %15d   %15d   %15d      %2s\n" actualCPU claimedCPU actualMem claimedMem (toRString result)
                -- Something went wrong; print the cost as "NA" ("Not Available" in R) so that R can
                -- still process it.
                _ ->
-                 printf "%15s   %15d   %15s   %15d   F\n" "NA       %s\n" claimedCPU "NA" claimedMem (toRString result)
+                 printf "%15s   %15d   %15s   %15d      %2s\n" "NA" claimedCPU "NA" claimedMem (toRString result)
         costAsInts :: ExBudget -> (Int, Int)
         costAsInts (ExBudget (V2.ExCPU cpu) (V2.ExMemory mem)) = (fromSatInt cpu, fromSatInt mem)
 
