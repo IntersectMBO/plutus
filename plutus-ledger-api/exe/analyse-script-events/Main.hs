@@ -302,6 +302,70 @@ countBuiltins eventFiles = do
   P.itraversePrimArray_ printEntry finalCounts
     where printEntry i c = printf "%-35s %12d\n" (show (toEnum i :: DefaultFun)) c
 
+
+data EvaluationResult =  OK ExBudget | Failed | DeserialisationError
+
+-- Convert to a string for use in an R frame
+toRString :: EvaluationResult -> String
+toRString = \case
+  OK _ -> "T"
+  Failed -> "F"
+  DeserialisationError -> "NA"
+
+-- Print out the actual and claimed CPU and memory cost of every script.
+analyseCosts :: EventAnalyser
+analyseCosts ctx _ ev =
+  case ev of
+    PlutusV1Event ScriptEvaluationData{..} _ ->
+      let result =
+            case deserialiseScript PlutusV1 dataProtocolVersion dataScript of
+              Left _ -> DeserialisationError
+              Right script ->
+                case
+                  V1.evaluateScriptRestricting
+                  dataProtocolVersion
+                  V1.Quiet
+                  ctx
+                  dataBudget
+                  script
+                  dataInputs
+                of
+                  (_, Left _)     -> Failed
+                  (_, Right cost) -> OK cost
+      in printCost result dataBudget
+
+    PlutusV2Event ScriptEvaluationData{..} _ ->
+      let result =
+            case deserialiseScript PlutusV2 dataProtocolVersion dataScript of
+              Left _ -> DeserialisationError
+              Right script ->
+                case
+                  V2.evaluateScriptRestricting
+                  dataProtocolVersion
+                  V2.Quiet
+                  ctx
+                  dataBudget
+                  script
+                  dataInputs
+                of
+                  (_, Left _)     -> Failed
+                  (_, Right cost) -> OK cost
+      in printCost result dataBudget
+
+  where printCost :: EvaluationResult -> ExBudget -> IO ()
+        printCost result claimedCost =
+          let (claimedCPU, claimedMem) = costAsInts claimedCost
+          in case result of
+               OK cost ->
+                 let (actualCPU, actualMem) = costAsInts cost
+                 in printf "%15d   %15d   %15d   %15d       T\n" actualCPU claimedCPU actualMem claimedMem
+               -- Something went wrong; print the cost as "NA" ("Not Available" in R) so that R can
+               -- still process it.
+               _ ->
+                 printf "%15s   %15d   %15s   %15d   F\n" "NA       %s\n" claimedCPU "NA" claimedMem (toRString result)
+        costAsInts :: ExBudget -> (Int, Int)
+        costAsInts (ExBudget (V2.ExCPU cpu) (V2.ExMemory mem)) = (fromSatInt cpu, fromSatInt mem)
+
 -- Extract the script from an evaluation event and apply some analysis function
 analyseUnappliedScript
     :: (Term NamedDeBruijn DefaultUni DefaultFun () -> IO ())
@@ -358,58 +422,6 @@ analyseOneFile analyse eventFile = do
                 Nothing            -> putStrLn "*** ctxV2 missing ***"
 
 
--- Print out the actual and claimed CPU and memory cost of every script.
-analyseCosts :: EventAnalyser
-analyseCosts ctx _ ev =
-  case ev of
-    PlutusV1Event ScriptEvaluationData{..} _ ->
-      let actualCost =
-            case deserialiseScript PlutusV1 dataProtocolVersion dataScript of
-              Left _ -> Nothing
-              Right script ->
-                case
-                  V1.evaluateScriptRestricting
-                  dataProtocolVersion
-                  V1.Quiet
-                  ctx
-                  dataBudget
-                  script
-                  dataInputs
-                of
-                  (_, Left _)     -> Nothing
-                  (_, Right cost) -> Just cost
-      in printCost actualCost dataBudget
-
-    PlutusV2Event ScriptEvaluationData{..} _ ->
-      let actualCost =
-            case deserialiseScript PlutusV2 dataProtocolVersion dataScript of
-              Left _ -> Nothing
-              Right script ->
-                case
-                  V2.evaluateScriptRestricting
-                  dataProtocolVersion
-                  V2.Quiet
-                  ctx
-                  dataBudget
-                  script
-                  dataInputs
-                of
-                  (_, Left _)     -> Nothing
-                  (_, Right cost) -> Just cost
-      in printCost actualCost dataBudget
-
-  where printCost :: Maybe ExBudget -> ExBudget -> IO ()
-        printCost actualCost claimedCost =
-          let (claimedCPU, claimedMem) = costAsInts claimedCost
-          in case actualCost of
-               Nothing -> -- Something went wrong; print the cost as "NA" so that R can still process it.
-                 printf "%15s   %15d   %15s   %15d\n" "NA" claimedCPU "NA" claimedMem
-               Just cost ->
-                 let (actualCPU, actualMem) = costAsInts cost
-                 in printf "%15d   %15d   %15d   %15d\n" actualCPU claimedCPU actualMem claimedMem
-        costAsInts :: ExBudget -> (Int, Int)
-        costAsInts (ExBudget (V2.ExCPU cpu) (V2.ExMemory mem)) = (fromSatInt cpu, fromSatInt mem)
-
 main :: IO ()
 main =
     let analyses =
@@ -435,7 +447,7 @@ main =
               )
             , ( "costs"
               , "print actual and claimed costs of scripts"
-              , putStrLn "      cpuActual        cpuClaimed         memActual         memClaimed"
+              , putStrLn "      cpuActual        cpuClaimed         memActual         memClaimed   status"
                 `thenDoAnalysis` analyseCosts
               )
             ]
