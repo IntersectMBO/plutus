@@ -218,6 +218,7 @@ test_costModelInterface =
              ]
        , testGroup "default ledger params"
              [ testCase "default ledger params deserialize" testDeserialise
+             -- TODO: do something here for each version of the cost model?
              , testCase "default ledger params can be applied to default cost model" testApply
              , testCase "mispelled param in ledger params " testMispelled
              ]
