@@ -658,7 +658,7 @@ byteStringToInteger endianness =
 -- Logical operations
 
 -- | Perform logical AND on two 'BuiltinByteString' arguments, as described
--- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinlogicaland).
+-- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bitwiselogicaland).
 --
 -- The first argument indicates whether padding semantics should be used or not;
 -- if 'False', truncation semantics will be used instead.
@@ -666,19 +666,19 @@ byteStringToInteger endianness =
 -- = See also
 --
 -- * [Padding and truncation
--- semantics](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#padding-versus-truncation-semantics)
+-- semantics](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#padding-versus-truncation-semantics)
 -- * [Bit indexing
--- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#bit-indexing-scheme)
+-- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bit-indexing-scheme)
 {-# INLINEABLE bitwiseLogicalAnd #-}
 bitwiseLogicalAnd ::
   Bool ->
   BuiltinByteString ->
   BuiltinByteString ->
   BuiltinByteString
-bitwiseLogicalAnd b = BI.bitwiseLogicalAnd (toBuiltin b)
+bitwiseLogicalAnd b = BI.bitwiseLogicalAnd (toOpaque b)
 
 -- | Perform logical OR on two 'BuiltinByteString' arguments, as described
--- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinlogicalor).
+-- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bitwiselogicalor).
 --
 -- The first argument indicates whether padding semantics should be used or not;
 -- if 'False', truncation semantics will be used instead.
@@ -686,19 +686,19 @@ bitwiseLogicalAnd b = BI.bitwiseLogicalAnd (toBuiltin b)
 -- = See also
 --
 -- * [Padding and truncation
--- semantics](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#padding-versus-truncation-semantics)
+-- semantics](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#padding-versus-truncation-semantics)
 -- * [Bit indexing
--- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#bit-indexing-scheme)
+-- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bit-indexing-scheme)
 {-# INLINEABLE bitwiseLogicalOr #-}
 bitwiseLogicalOr ::
   Bool ->
   BuiltinByteString ->
   BuiltinByteString ->
   BuiltinByteString
-bitwiseLogicalOr b = BI.bitwiseLogicalOr (toBuiltin b)
+bitwiseLogicalOr b = BI.bitwiseLogicalOr (toOpaque b)
 
 -- | Perform logical XOR on two 'BuiltinByteString' arguments, as described
--- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinlogicalxor).
+-- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bitwiselogicalxor).
 --
 -- The first argument indicates whether padding semantics should be used or not;
 -- if 'False', truncation semantics will be used instead.
@@ -706,24 +706,24 @@ bitwiseLogicalOr b = BI.bitwiseLogicalOr (toBuiltin b)
 -- = See also
 --
 -- * [Padding and truncation
--- semantics](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#padding-versus-truncation-semantics)
+-- semantics](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#padding-versus-truncation-semantics)
 -- * [Bit indexing
--- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#bit-indexing-scheme)
+-- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bit-indexing-scheme)
 {-# INLINEABLE bitwiseLogicalXor #-}
 bitwiseLogicalXor ::
   Bool ->
   BuiltinByteString ->
   BuiltinByteString ->
   BuiltinByteString
-bitwiseLogicalXor b = BI.bitwiseLogicalXor (toBuiltin b)
+bitwiseLogicalXor b = BI.bitwiseLogicalXor (toOpaque b)
 
 -- | Perform logical complement on a 'BuiltinByteString', as described
--- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinlogicalcomplement).
+-- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bitwiselogicalcomplement).
 --
 -- = See also
 --
 -- * [Bit indexing
--- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#bit-indexing-scheme)
+-- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bit-indexing-scheme)
 {-# INLINEABLE bitwiseLogicalComplement #-}
 bitwiseLogicalComplement ::
   BuiltinByteString ->
@@ -739,15 +739,15 @@ bitwiseLogicalComplement = BI.bitwiseLogicalComplement
 -- = See also
 --
 -- * [Bit indexing
--- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#bit-indexing-scheme)
+-- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bit-indexing-scheme)
 -- * [Operation
--- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinreadbit)
+-- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#readbit)
 {-# INLINEABLE readBit #-}
 readBit ::
   BuiltinByteString ->
   Integer ->
   Bool
-readBit bs i = fromBuiltin (BI.readBit bs i)
+readBit bs i = fromOpaque (BI.readBit bs i)
 
 -- | Given a 'BuiltinByteString' and a changelist of index-value pairs, set the _bit_ at each index
 -- where the corresponding value is 'True', and clear the bit at each index where the corresponding
@@ -758,9 +758,9 @@ readBit bs i = fromBuiltin (BI.readBit bs i)
 -- = See also
 --
 -- * [Bit indexing
--- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#bit-indexing-scheme)
+-- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bit-indexing-scheme)
 -- * [Operation
--- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinsetbits)
+-- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#writebits)
 {-# INLINEABLE writeBits #-}
 writeBits ::
   BuiltinByteString ->
@@ -775,7 +775,7 @@ writeBits = BI.writeBits
 -- = See also
 --
 -- * [Operation
--- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md#builtinreplicate)
+-- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#replicateByteString)
 {-# INLINEABLE replicateByteString #-}
 replicateByteString ::
   Integer ->
