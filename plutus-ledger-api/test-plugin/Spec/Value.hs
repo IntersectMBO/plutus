@@ -157,7 +157,7 @@ valueToLists = ListTx.map (fmap AssocMap.toList) . AssocMap.toList . getValue
 eqValueCode :: CompiledCode Value -> CompiledCode Value -> (Bool, PLC.CountingSt)
 eqValueCode valueCode1 valueCode2 = (res, cost) where
     prog =
-        $$(compile [|| \value1 value2 -> toBuiltin ((value1 :: Value) == value2) ||])
+        $$(compile [|| \value1 value2 -> toOpaque ((value1 :: Value) == value2) ||])
             `unsafeApplyCode` valueCode1 `unsafeApplyCode` valueCode2
     (errOrRes, cost)
         = PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
