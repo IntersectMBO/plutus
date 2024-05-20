@@ -876,7 +876,7 @@ test_Conversion =
         ]
       ]
 
--- Tests for the logical operations, as per https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md
+-- Tests for the logical operations, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md)
 test_Logical :: TestTree
 test_Logical =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .

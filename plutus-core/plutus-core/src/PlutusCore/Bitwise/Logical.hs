@@ -102,8 +102,7 @@ import System.IO.Unsafe (unsafeDupablePerformIO)
   figure this out, even with `INLINE` is placed on `helper1`.
   -}
 
--- | Bitwise logical AND, as per [the relevant
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md).
+-- | Bitwise logical AND, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md).
 bitwiseLogicalAnd :: Bool -> ByteString -> ByteString -> ByteString
 bitwiseLogicalAnd shouldPad bs1 bs2 =
   let (shorter, longer) = if BS.length bs1 < BS.length bs2 then (bs1, bs2) else (bs2, bs1)
@@ -131,8 +130,7 @@ bitwiseLogicalAnd shouldPad bs1 bs2 =
               w8_2 <- peekElemOff smallTraversePtr i
               pokeElemOff smallDstPtr i $ w8_1 Bits..&. w8_2
 
--- | Bitwise logical OR, as per [the relevant
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md).
+-- | Bitwise logical OR, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md).
 bitwiseLogicalOr :: Bool -> ByteString -> ByteString -> ByteString
 bitwiseLogicalOr shouldPad bs1 bs2 =
   let (shorter, longer) = if BS.length bs1 < BS.length bs2 then (bs1, bs2) else (bs2, bs1)
@@ -160,8 +158,7 @@ bitwiseLogicalOr shouldPad bs1 bs2 =
               w8_2 <- peekElemOff smallTraversePtr i
               pokeElemOff smallDstPtr i $ w8_1 Bits..|. w8_2
 
--- | Bitwise logical XOR, as per [the relevant
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md).
+-- | Bitwise logical XOR, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md).
 bitwiseLogicalXor :: Bool -> ByteString -> ByteString -> ByteString
 bitwiseLogicalXor shouldPad bs1 bs2 =
   let (shorter, longer) = if BS.length bs1 < BS.length bs2 then (bs1, bs2) else (bs2, bs1)
@@ -189,8 +186,7 @@ bitwiseLogicalXor shouldPad bs1 bs2 =
               w8_2 <- peekElemOff smallTraversePtr i
               pokeElemOff smallDstPtr i $ Bits.xor w8_1 w8_2
 
--- | Bitwise logical complement, as per [the relevant
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md).
+-- | Bitwise logical complement, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md).
 {-# INLINEABLE bitwiseLogicalComplement #-}
 bitwiseLogicalComplement :: ByteString -> ByteString
 bitwiseLogicalComplement bs = unsafeDupablePerformIO . BS.useAsCStringLen bs $ \(srcPtr, len) -> do
@@ -209,8 +205,7 @@ bitwiseLogicalComplement bs = unsafeDupablePerformIO . BS.useAsCStringLen bs $ \
       w8 <- peekElemOff smallSrcPtr i
       pokeElemOff smallDstPtr i . Bits.complement $ w8
 
--- | Bit read at index, as per [the relevant
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md)
+-- | Bit read at index, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md)
 {-# INLINEABLE readBit #-}
 readBit :: ByteString -> Int -> BuiltinResult Bool
 readBit bs ix
@@ -230,8 +225,7 @@ readBit bs ix
     len :: Int
     len = BS.length bs
 
--- | Bulk bit write, as per [the relevant
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md)
+-- | Bulk bit write, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md)
 {-# INLINEABLE writeBits #-}
 writeBits :: ByteString -> [(Integer, Bool)] -> BuiltinResult ByteString
 writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
@@ -265,8 +259,7 @@ writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
                         else Bits.clearBit w8 . fromIntegral $ littleIx
           pokeByteOff ptr flipIx toWrite
 
--- | Byte replication, as per [the relevant
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-XXX/CIP-XXX.md)
+-- | Byte replication, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md)
 replicateByteString :: Int -> Word8 -> BuiltinResult ByteString
 replicateByteString len w8
   | len < 0 = do
