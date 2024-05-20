@@ -4,6 +4,7 @@ on:
   schedule:
     - cron: 0 0 * * * # daily at midnight
 
+
   workflow_dispatch: # or manually dispatch the job
     inputs:
       hedgehog-tests:
@@ -13,9 +14,11 @@ on:
 
 env: 
   HEDGEHOG_TESTS: ${{ github.event.inputs.hedgehog-tests || 10000 }}
-          
+
+  
 jobs:
   nightly-test-suite:
+    timeout-minutes: 14400
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
