@@ -43,9 +43,15 @@ jobs:
               });
             }
 
-            if (!await issueHasInternalLabels()) {
-              async addNeedsTriageLabelToIssue();
-            }
+            try {
+              if (!await issueHasInternalLabels()) {
+                await addNeedsTriageLabelToIssue();
+              }
+            } catch (error) {
+              core.setFailed(`Error: ${error}`);
+            } 
+
+
 
 
             
