@@ -55,11 +55,11 @@ data MachineError fun
     | OpenTermEvaluatedMachineError
       -- ^ An attempt to evaluate an open term.
     | UnliftingMachineError UnliftingError
-      -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
+      -- ^ An attempt to compute a constant application resulted in 'UnliftingError'.
     | BuiltinTermArgumentExpectedMachineError
-      -- ^ A builtin expected a term argument, but something else was received
+      -- ^ A builtin expected a term argument, but something else was received.
     | UnexpectedBuiltinTermArgumentMachineError
-      -- ^ A builtin received a term argument when something else was expected
+      -- ^ A builtin received a term argument when something else was expected.
     | UnknownBuiltin fun
     | NonConstrScrutinized
     | MissingCaseBranch Word64
@@ -69,10 +69,11 @@ data MachineError fun
 {- | The type of errors that can occur during evaluation. There are two kinds of errors:
 
 1. Operational ones -- these are errors that are indicative of the _logic_ of the program being
-   wrong. For example, 'Error' was executed or 'tailList' was applied to an empty list.
+   wrong. For example, 'Error' was executed, 'tailList' was applied to an empty list or evaluation
+   ran out of gas.
 2. Structural ones -- these are errors that are indicative of the _structure_ of the program being
    wrong. For example, a free variable was encountered during evaluation, or a non-function was
-   applied to an argument
+   applied to an argument.
 
 On the chain both of these are just regular failures and we don't distinguish between them there:
 if a script fails, it fails, it doesn't matter what the reason was. However in the tests it does
@@ -114,20 +115,17 @@ type EvaluationException operational structural =
     ErrorWithCause (EvaluationError operational structural)
 
 {- Note [Ignoring context in OperationalEvaluationError]
-The OperationalEvaluationError error has a term argument, but
-extractEvaluationResult just discards this and returns
-EvaluationFailure.  This means that, for example, if we use the `plc`
-command to execute a program containing a division by zero, plc exits
-silently without reporting that anything has gone wrong (but returning
-a non-zero exit code to the shell via `exitFailure`).  This is because
-OperationalEvaluationError is used in cases when a PLC program itself goes
-wrong (for example, a failure due to `(error)`, a failure during
-builtin evaluation, or exceeding the gas limit).  This is used to
-signal unsuccessful in validation and so is not regarded as a real
-error; in contrast, machine errors, typechecking failures,
-and so on are genuine errors and we report their context if available.
- -}
+The 'OperationalEvaluationError' error has a term argument, but 'extractEvaluationResult' just
+discards this and returns 'EvaluationFailure'. This means that, for example, if we use the @plc@
+command to execute a program containing a division by zero, @plc@ exits silently without reporting
+that anything has gone wrong (but returning a non-zero exit code to the shell via 'exitFailure').
+This is because 'OperationalEvaluationError' is used in cases when a PLC program itself goes wrong
+(see the Haddocks of 'EvaluationError'). This is used to signal unsuccessful validation and so is
+not regarded as a real error; in contrast structural errors are genuine errors and we report their
+context if available.
+-}
 
+-- See Note [Ignoring context in OperationalEvaluationError].
 -- | Preserve the contents of an 'StructuralEvaluationError' as a 'Left' and turn an
 -- 'OperationalEvaluationError' into a @Right EvaluationFailure@.
 extractEvaluationResult
