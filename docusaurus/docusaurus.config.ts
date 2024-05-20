@@ -28,6 +28,13 @@ const config: Config = {
         indexDocs: true,
       },
     ],
+    [
+      "@docusaurus/plugin-google-gtag",
+      {
+        trackingID: "G-X6364ZT8L2",
+        anonymizeIP: true,
+      },
+    ],
   ],
 
   // Even if you don't use internationalization, you can use this field to set

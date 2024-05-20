@@ -159,74 +159,78 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --color-marlowe-white: #ffffff;
-  --color-marlowe-black: #1c1c1c;
-  --color-marlowe-green: #c2f71c;
-  --color-marlowe-red: #f93a36;
-  --color-marlowe-orange: #ff7347;
-  --color-marlowe-yellow: #ffbe3c;
+  --color-plutus-white: #ffffff;
+  --color-plutus-black: #1c1c1c;
+  --color-plutus-green: #c2f71c;
+  --color-plutus-red: #f93a36;
+  --color-plutus-orange: #ff7347;
+  --color-plutus-yellow: #ffbe3c;
 
-  --color-marlowe-purple-0: #e0d1fe;
-  --color-marlowe-purple-4: #c0a4fe;
-  --color-marlowe-purple-8: #9d76fc;
-  --color-marlowe-purple-12: #8053fa;
-  --color-marlowe-purple: #511cf7;
-  --color-marlowe-purple-16: #3e14d4;
-  --color-marlowe-purple-20: #2d0eb1;
-  --color-marlowe-purple-24: #1f088f;
-  --color-marlowe-purple-28: #150576;
+  --color-plutus-blue-bg: #eef9fd;
+  --color-plutus-blue: #4bb4d5;
+  --color-plutus-blue-2: #4b6fd5;
 
-  --color-marlowe-grey-0: #fafafa;
-  --color-marlowe-grey-4: #f5f5f5;
-  --color-marlowe-grey-8: #efefef;
-  --color-marlowe-grey-12: #eaeaea;
-  --color-marlowe-grey: #e5e5e5;
-  --color-marlowe-grey-16: #acacac;
-  --color-marlowe-grey-20: #737373;
-  --color-marlowe-grey-24: #393939;
-  --color-marlowe-grey-28: #1c1c1c;
+  --color-plutus-grey-0: #fafafa;
+  --color-plutus-grey-4: #f5f5f5;
+  --color-plutus-grey-8: #efefef;
+  --color-plutus-grey-12: #eaeaea;
+  --color-plutus-grey: #e5e5e5;
+  --color-plutus-grey-16: #acacac;
+  --color-plutus-grey-20: #737373;
+  --color-plutus-grey-24: #393939;
+  --color-plutus-grey-28: #1c1c1c;
 
   --ifm-font-family-base: "Inter";
   --ifm-font-family-monospace: "Source Code Pro";
 
-  --ifm-color-primary: var(--color-marlowe-purple-16);
-  --ifm-color-primary-dark: var(--color-marlowe-purple-20);
-  --ifm-color-primary-darker: var(--color-marlowe-purple-24);
-  --ifm-color-primary-darkest: var(--color-marlowe-purple-28);
+  --ifm-color-primary: var(--color-plutus-blue);
+  --ifm-color-primary-dark: var(--color-plutus-blue);
+  --ifm-color-primary-darker: var(--color-plutus-blue);
+  --ifm-color-primary-darkest: var(--color-plutus-blue);
 
-  --ifm-link-color: var(--color-marlowe-purple-20);
-  --ifm-link-hover-color: var(--color-marlowe-purple-20);
-  --ifm-link-hover-decoration: var(--color-marlowe-purple-20);
-  --ifm-menu-color-active: var(--color-marlowe-purple-20);
-  --ifm-navbar-link-hover-color: var(--color-marlowe-purple-20);
-  --ifm-breadcrumb-color-active: var(--color-marlowe-purple-20);
+  --ifm-link-color: var(--color-plutus-blue);
+  --ifm-link-hover-color: var(--color-plutus-blue-2);
+  --ifm-link-hover-decoration: var(--color-plutus-blue-2);
+  --ifm-menu-color-active: var(--color-plutus-grey-28);
+  --ifm-navbar-link-hover-color: var(--color-plutus-grey-28);
+  --ifm-breadcrumb-color-active: var(--color-plutus-grey-28);
 
-  --ifm-navbar-search-input-placeholder-color: var(--color-marlowe-grey-24);
+  --ifm-navbar-search-input-placeholder-color: var(--color-plutus-grey-24);
 
-  --ifm-color-secondary: var(--color-marlowe-grey);
-  --ifm-color-secondary-light: var(--color-marlowe-grey-12);
-  --ifm-color-secondary-dark: var(--color-marlowe-grey-16);
-  --ifm-color-secondary-lighter: var(--color-marlowe-grey-8);
-  --ifm-color-secondary-darker: var(--color-marlowe-grey-20);
-  --ifm-color-secondary-lightest: var(--color-marlowe-grey-4);
-  --ifm-color-secondary-darkest: var(--color-marlowe-grey-24);
+  --ifm-color-secondary: var(--color-plutus-grey);
+  --ifm-color-secondary-light: var(--color-plutus-grey-12);
+  --ifm-color-secondary-dark: var(--color-plutus-grey-16);
+  --ifm-color-secondary-lighter: var(--color-plutus-grey-8);
+  --ifm-color-secondary-darker: var(--color-plutus-grey-20);
+  --ifm-color-secondary-lightest: var(--color-plutus-grey-4);
+  --ifm-color-secondary-darkest: var(--color-plutus-grey-24);
+}
+
+:root:root {
+  --aa-primary-color-rgb: 75, 180, 213;
 }
 
 html[data-theme="dark"] {
-  --ifm-color-primary: var(--color-marlowe-purple-8);
-  --ifm-link-color: var(--color-marlowe-purple-8);
-  --ifm-link-hover-color: var(--color-marlowe-purple-8);
-  --ifm-link-hover-decoration: var(--color-marlowe-purple-8);
-  --ifm-menu-color-active: var(--color-marlowe-purple-8);
-  --ifm-navbar-link-hover-color: var(--color-marlowe-purple-8);
-  --ifm-breadcrumb-color-active: var(--color-marlowe-purple-8);
+  --ifm-color-primary: var(--color-plutus-blue);
+  --ifm-link-color: var(--color-plutus-blue);
+  --ifm-link-hover-color: var(--color-plutus-blue);
+  --ifm-link-hover-decoration: var(--color-plutus-blue);
+  --ifm-menu-color-active: var(--color-plutus-blue);
+  --ifm-navbar-link-hover-color: var(--color-plutus-blue);
+  --ifm-breadcrumb-color-active: var(--color-plutus-blue);
 
-  --ifm-navbar-search-input-placeholder-color: var(--color-marlowe-grey-8);
+  --ifm-navbar-search-input-placeholder-color: var(--color-plutus-grey-8);
 
-  --ifm-heading-color: var(--color-marlowe-grey-8);
-  --ifm-pre-color: var(--color-marlowe-grey-4);
-  --ifm-pre-background: var(--color-marlowe-grey-20);
-  --ifm-code-background: var(--color-marlowe-grey-20);
+  --ifm-heading-color: var(--color-plutus-grey-8);
+  --ifm-pre-color: var(--color-plutus-grey-4);
+  --ifm-pre-background: var(--color-plutus-grey-20);
+  --ifm-code-background: var(--color-plutus-grey-20);
+}
+
+html[data-theme="dark"] body {
+  --aa-primary-color-rgb: 75, 180, 213;
+  --aa-muted-color-rgb: 75, 180, 213;
+  --aa-background-color-rgb: 0, 0, 0;
 }
 
 .markdown a {
@@ -235,4 +239,25 @@ html[data-theme="dark"] {
 
 .markdown a:hover {
   text-decoration: underline;
+}
+
+/* Header */
+
+.navbar__logo {
+  height: 20px;
+  max-width: 35vw;
+}
+
+.navbar__title {
+  display: none;
+}
+
+/* Cards */
+
+.padding--lg {
+  padding: 1rem !important;
+}
+
+.card h2 {
+  margin-bottom: 0.25em;
 }
