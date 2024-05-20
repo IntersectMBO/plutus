@@ -4,18 +4,16 @@ on:
   schedule:
     - cron: 0 0 * * * # daily at midnight
 
-
   workflow_dispatch: # or manually dispatch the job
     inputs:
       hedgehog-tests:
         description: Numer of tests to run (--hedgehog-tests XXXXX)
         required: false
-        default: "10000"
+        default: "100000"
 
 env: 
-  HEDGEHOG_TESTS: ${{ github.event.inputs.hedgehog-tests || 10000 }}
+  HEDGEHOG_TESTS: ${{ github.event.inputs.hedgehog-tests || 100000 }}
 
-  
 jobs:
   nightly-test-suite:
     timeout-minutes: 14400
