@@ -81,7 +81,6 @@ instance Pretty PlutusLedgerLanguage where
     pretty = viaShow
 
 {-| A map indicating which builtin functions were introduced in which 'MajorProtocolVersion'.
-Each builtin function should appear at most once.
 
 This __must__ be updated when new builtins are added.
 See Note [New builtins/language versions and protocol versions]
@@ -106,6 +105,9 @@ builtinsIntroducedIn = Map.fromList [
           ]),
   ((PlutusV2, valentinePV), Set.fromList [
           VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
+          ]),
+  ((PlutusV2, conwayPlus1PV), Set.fromList [
+          IntegerToByteString, ByteStringToInteger
           ]),
   ((PlutusV3, conwayPV), Set.fromList [
           Bls12_381_G1_add, Bls12_381_G1_neg, Bls12_381_G1_scalarMul,
@@ -175,10 +177,10 @@ and 'MajorProtocolVersion'?
 See Note [New builtins/language versions and protocol versions]
 -}
 builtinsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
-builtinsAvailableIn thisLv thisPv = fold $ Map.elems $
-    Map.takeWhileAntitone builtinAvailableIn builtinsIntroducedIn
+builtinsAvailableIn thisLv thisPv = fold $
+    Map.filterWithKey (const . alreadyIntroduced) builtinsIntroducedIn
     where
-      builtinAvailableIn :: (PlutusLedgerLanguage, MajorProtocolVersion) -> Bool
-      builtinAvailableIn (introducedInLv,introducedInPv) =
+      alreadyIntroduced :: (PlutusLedgerLanguage, MajorProtocolVersion) -> Bool
+      alreadyIntroduced (introducedInLv,introducedInPv) =
           -- both should be satisfied
           introducedInLv <= thisLv && introducedInPv <= thisPv

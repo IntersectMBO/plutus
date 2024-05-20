@@ -18,7 +18,7 @@ module PlutusTx.Compiler.Builtins (
     , lookupBuiltinType
     , errorFunc) where
 
-import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Builtins.HasOpaque qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as Builtins
 
 import PlutusTx.Compiler.Error

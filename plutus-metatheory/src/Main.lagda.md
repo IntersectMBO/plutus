@@ -1,3 +1,7 @@
+---
+title: Main
+layout: page
+---
 ```
 module Main where
 

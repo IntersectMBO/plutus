@@ -1,3 +1,7 @@
+---
+title: Algorithmic.Completeness
+layout: page
+---
 ```
 module Algorithmic.Completeness where
 

@@ -1,3 +1,7 @@
+---
+title: Utils
+layout: page
+---
 ```
 module Utils where
 ```

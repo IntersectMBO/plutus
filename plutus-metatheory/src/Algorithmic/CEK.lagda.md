@@ -1,3 +1,7 @@
+---
+title: Algorithmic.CEK
+layout: page
+---
 # CEK machine that discharges builtin args
 
 ```
