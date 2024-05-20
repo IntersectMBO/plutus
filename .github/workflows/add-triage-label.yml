@@ -18,7 +18,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: | 
-            const INTERNAL_LABELS = ["Internal"];
+            const INTERNAL_LABELS = ["Internal", "status: triaged"];
 
             async function getIssueLabels() {
               const { data: labels } = await github.issues.listLabelsOnIssue({
