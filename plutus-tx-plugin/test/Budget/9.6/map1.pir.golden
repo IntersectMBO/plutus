@@ -222,29 +222,6 @@ in
 let
   data Unit | Unit_match where
     Unit : Unit
-in
-letrec
-  !delete' : data -> list (pair data data) -> list (pair data data)
-    = \(k : data) (m : list (pair data data)) ->
-        chooseList
-          {pair data data}
-          {Unit -> list (pair data data)}
-          m
-          (\(ds : Unit) -> [])
-          (\(ds : Unit) ->
-             let
-               !hd : pair data data = headList {pair data data} m
-               !tl : list (pair data data) = tailList {pair data data} m
-             in
-             ifThenElse
-               {all dead. list (pair data data)}
-               (equalsData k (fstPair {data} {data} hd))
-               (/\dead -> tl)
-               (/\dead -> mkCons {pair data data} hd (delete' k tl))
-               {all dead. dead})
-          Unit
-in
-let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
@@ -363,7 +340,32 @@ in
                go ds)
           (mkCons {pair data data} (mkPairData (iData n) (B #30)) [])
           (`$fEnumBool_$cenumFromTo` 1 10)
-    !nt : list (pair data data) = delete' (iData (addInteger 5 n)) nt
+    !nt : list (pair data data)
+      = let
+        !k : data = iData (addInteger 5 n)
+      in
+      letrec
+        !go : list (pair data data) -> list (pair data data)
+          = \(xs : list (pair data data)) ->
+              chooseList
+                {pair data data}
+                {Unit -> list (pair data data)}
+                xs
+                (\(ds : Unit) -> [])
+                (\(ds : Unit) ->
+                   let
+                     !hd : pair data data = headList {pair data data} xs
+                     !tl : list (pair data data) = tailList {pair data data} xs
+                   in
+                   ifThenElse
+                     {all dead. list (pair data data)}
+                     (equalsData k (fstPair {data} {data} hd))
+                     (/\dead -> tl)
+                     (/\dead -> mkCons {pair data data} hd (go tl))
+                     {all dead. dead})
+                Unit
+      in
+      go nt
   in
   Tuple5
     {Maybe bytestring}

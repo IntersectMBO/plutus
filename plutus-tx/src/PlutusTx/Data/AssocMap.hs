@@ -166,7 +166,7 @@ delete' k m = go m
             let k' = BI.fst hd
              in if P.equalsData k k'
                   then tl
-                  else BI.mkCons hd (delete' k tl)
+                  else BI.mkCons hd (go tl)
         )
 
 {-# INLINEABLE singleton #-}
@@ -193,15 +193,13 @@ safeFromList :: forall k a . (Eq k, P.ToData k, P.ToData a) => [(k, a)] -> Map k
 safeFromList =
   Map
     . toOpaque
-    . PlutusTx.Prelude.map (\(k, a) -> (P.toBuiltinData k, P.toBuiltinData a))
     . foldr (uncurry go) []
   where
-    go :: k -> a -> [(k, a)] -> [(k, a)]
-    go k v [] = [(k,  v)]
+    go k v [] = [(P.toBuiltinData k, P.toBuiltinData v)]
     go k v ((k', v') : rest) =
-      if k == k'
-        then (k, v) : rest
-        else (k', v') : go k v rest
+      if P.toBuiltinData k == k'
+        then (P.toBuiltinData k, P.toBuiltinData v) : go k v rest
+        else (P.toBuiltinData k', P.toBuiltinData v') : go k v rest
 
 {-# INLINEABLE unsafeFromList #-}
 -- | Unsafely create an 'Map' from a list of pairs.
