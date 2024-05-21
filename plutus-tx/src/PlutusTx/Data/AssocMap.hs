@@ -189,7 +189,7 @@ null (Map m) = P.null m
 -- | Create an `Map` from a list of key-value pairs.
 -- In case of duplicates, this function will keep only one entry (the one that precedes).
 -- In other words, this function de-duplicates the input list.
-safeFromList :: forall k a . (Eq k, P.ToData k, P.ToData a) => [(k, a)] -> Map k a
+safeFromList :: forall k a . (P.ToData k, P.ToData a) =>[(k, a)] -> Map k a
 safeFromList =
   Map
     . toOpaque
