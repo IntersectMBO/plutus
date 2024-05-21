@@ -11,6 +11,7 @@ module PlutusLedgerApi.Common.ProtocolVersions
     , vasilPV
     , valentinePV
     , conwayPV
+    , conwayPlus1PV
     , knownPVs
     , futurePV
     ) where
@@ -68,10 +69,25 @@ valentinePV = MajorProtocolVersion 8
 conwayPV :: MajorProtocolVersion
 conwayPV = MajorProtocolVersion 9
 
+-- | The next HF after Conway. It doesn't yet have a name, and it's not
+-- yet known whether it will be an intra-era HF or introduce a new era.
+conwayPlus1PV :: MajorProtocolVersion
+conwayPlus1PV = MajorProtocolVersion 10
+
 -- | The set of protocol versions that are "known", i.e. that have been released
 -- and have actual differences associated with them.
 knownPVs :: Set.Set MajorProtocolVersion
-knownPVs = Set.fromList [ shelleyPV, allegraPV, maryPV, alonzoPV, vasilPV, valentinePV, conwayPV ]
+knownPVs =
+  Set.fromList
+    [ shelleyPV
+    , allegraPV
+    , maryPV
+    , alonzoPV
+    , vasilPV
+    , valentinePV
+    , conwayPV
+    , conwayPlus1PV
+    ]
 
 -- | This is a placeholder for when we don't yet know what protocol version will
 -- be used for something. It's a very high protocol version that should never

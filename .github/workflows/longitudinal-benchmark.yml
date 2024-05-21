@@ -41,7 +41,7 @@ jobs:
         run: git config core.hooksPath no-hooks
 
       - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1.19.3
+        uses: benchmark-action/github-action-benchmark@v1.20.3
         with:
           name: Plutus Benchmarks
           tool: 'customSmallerIsBetter'
