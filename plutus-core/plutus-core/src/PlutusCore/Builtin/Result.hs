@@ -58,9 +58,9 @@ data BuiltinError
 -- logging, since there's no logging on the chain and builtins don't emit much anyway. Otherwise
 -- we'd have to use @text-builder@ or @text-builder-linear@ or something of this sort.
 data BuiltinResult a
-    = BuiltinSuccess a
+    = BuiltinFailure (DList Text) BuiltinError
+    | BuiltinSuccess a
     | BuiltinSuccessWithLogs (DList Text) a
-    | BuiltinFailure (DList Text) BuiltinError
     deriving stock (Show, Foldable)
 
 mtraverse makeClassyPrisms
