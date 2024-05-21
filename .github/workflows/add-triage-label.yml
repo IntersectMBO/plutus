@@ -21,7 +21,7 @@ jobs:
             const INTERNAL_LABELS = ["Internal", "status: triaged"];
 
             async function getIssueLabels() {
-              const { data: labels } = await github.issues.listLabelsOnIssue({
+              const { data: labels } = await github.rest.issues.listLabelsOnIssue({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number
