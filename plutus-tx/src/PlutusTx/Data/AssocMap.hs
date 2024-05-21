@@ -43,9 +43,9 @@ This implementation has the following characteristics:
   * The `P.toBuiltinData` and `P.unsafeFromBuiltinData` operations are no-op.
   * Other operations are slower than @PlutusTx.AssocMap.Map@, although equality
     checks on keys can be faster due to `P.equalsData`.
-  * Many operations involve converting the keys and/or values to/from `P.BuiltinData`.
+  * Many operations involve converting the keys and\/or values to\/from `P.BuiltinData`.
 
-Therefore this implementation is likely a better choice than @PlutusTx.AssocMap.Map@
+Therefore this implementation is likely a better choice than "PlutusTx.AssocMap.Map"
 if it is part of a data type defined using @asData@, and the key and value types
 have efficient `P.toBuiltinData` and `P.unsafeFromBuiltinData` operations (e.g., they
 are primitive types or types defined using @asData@).
@@ -53,7 +53,8 @@ are primitive types or types defined using @asData@).
 A `Map` is considered well-defined if it has no duplicate keys. Most operations
 preserve the definedness of the resulting `Map` unless otherwise noted.
 It is important to observe that, in comparison to standard map implementations,
-this implementation provides slow lookup and update operations.
+this implementation provides slow lookup and update operations because it is based
+on a list representation.
 -}
 newtype Map k a = Map (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData))
   deriving stock (Haskell.Eq, Haskell.Show)
@@ -101,7 +102,7 @@ member :: forall k a. (P.ToData k) => k -> Map k a -> Bool
 member (P.toBuiltinData -> k) (Map m) = member' k m
 
 member' :: BuiltinData -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
-member' k m = go m
+member' k = go
   where
     go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
     go xs =
@@ -126,7 +127,7 @@ insert'
   -> BuiltinData
   -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
   -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-insert' k a m = go m
+insert' k a = go
   where
     go ::
       BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
@@ -153,7 +154,7 @@ delete' ::
   BuiltinData ->
   BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
   BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-delete' k m = go m
+delete' k = go
   where
     go ::
       BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->

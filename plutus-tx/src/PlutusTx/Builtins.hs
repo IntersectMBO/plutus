@@ -391,7 +391,7 @@ encodeUtf8 = BI.encodeUtf8
 
 {-# INLINABLE null #-}
 null :: forall a. BI.BuiltinList a -> Bool
-null l = fromBuiltin (BI.null l)
+null l = fromOpaque (BI.null l)
 
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> (() -> r) -> (a -> BI.BuiltinList a -> r) -> r
