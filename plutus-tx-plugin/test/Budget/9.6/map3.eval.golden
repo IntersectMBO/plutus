@@ -1,0 +1,27 @@
+(constr
+  1
+  (constr 0 (con integer 105) (con string "five"))
+  (constr
+    1
+    (constr 0 (con integer 104) (con string "fourFOUR"))
+    (constr
+      1
+      (constr 0 (con integer 103) (con string "threeTHREE"))
+      (constr
+        1
+        (constr 0 (con integer 102) (con string "two"))
+        (constr
+          1
+          (constr 0 (con integer 101) (con string "one"))
+          (constr
+            1
+            (constr 0 (con integer 106) (con string "SIX"))
+            (constr
+              1 (constr 0 (con integer 107) (con string "SEVEN")) (constr 0)
+            )
+          )
+        )
+      )
+    )
+  )
+)

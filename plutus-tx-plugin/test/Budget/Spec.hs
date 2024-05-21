@@ -19,7 +19,8 @@ import Test.Tasty.Extras
 import Budget.WithGHCOptimisations qualified as WithGHCOptTest
 import Budget.WithoutGHCOptimisations qualified as WithoutGHCOptTest
 import PlutusTx.AsData qualified as AsData
-import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Builtins qualified as PlutusTx hiding (null)
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Lift (liftCodeDef, makeLift)
@@ -200,6 +201,24 @@ tests = testNestedGhc "Budget" [
   , goldenUPlcReadable "null" compiledNull
   , goldenPirReadable "null" compiledNull
   , goldenEvalCekCatch "null" [compiledNull]
+
+  , goldenUPlcReadable "listIndexing" compiledListIndexing
+  , goldenPirReadable "listIndexing" compiledListIndexing
+  , goldenEvalCekCatch
+      "listIndexing"
+      [compiledListIndexing `unsafeApplyCode` liftCodeDef listIndexingInput]
+  , goldenBudget
+      "listIndexing"
+      (compiledListIndexing `unsafeApplyCode` liftCodeDef listIndexingInput)
+
+  , goldenUPlcReadable "builtinListIndexing" compiledBuiltinListIndexing
+  , goldenPirReadable "builtinListIndexing" compiledBuiltinListIndexing
+  , goldenEvalCekCatch
+      "builtinListIndexing"
+      [compiledBuiltinListIndexing `unsafeApplyCode` liftCodeDef builtinListIndexingInput]
+  , goldenBudget
+      "builtinListIndexing"
+      (compiledBuiltinListIndexing `unsafeApplyCode` liftCodeDef builtinListIndexingInput)
 
   , goldenBudget "toFromData" compiledToFromData
   , goldenUPlcReadable "toFromData" compiledToFromData
@@ -460,6 +479,20 @@ compiledNull :: CompiledCode Bool
 compiledNull = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.null ls ||])
+
+compiledListIndexing :: CompiledCode ([PlutusTx.BuiltinData] -> PlutusTx.BuiltinData)
+compiledListIndexing = $$(compile [||
+      \xs -> xs List.!! 5 ||])
+
+compiledBuiltinListIndexing :: CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData)
+compiledBuiltinListIndexing = $$(compile [||
+      \d -> BI.unsafeDataAsList d `List.indexBuiltinList` 5 ||])
+
+listIndexingInput :: [PlutusTx.BuiltinData]
+listIndexingInput = IsData.toBuiltinData <$> [1 :: Integer .. 10]
+
+builtinListIndexingInput :: PlutusTx.BuiltinData
+builtinListIndexingInput = IsData.toBuiltinData listIndexingInput
 
 compiledToFromData :: CompiledCode (Either Integer (Maybe (Bool, Integer, Bool)))
 compiledToFromData = $$(compile [||

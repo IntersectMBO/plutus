@@ -1,3 +1,7 @@
+---
+title: Type.BetaNBE.Completeness
+layout: page
+---
 ```
 module Type.BetaNBE.Completeness where
 ```

@@ -1,3 +1,7 @@
+---
+title: Type.BetaNormal
+layout: page
+---
 ```
 module Type.BetaNormal where
 ```

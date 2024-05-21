@@ -1,6 +1,9 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE LambdaCase         #-}
+
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 module PlutusTx.These(
     These(..)
   , these

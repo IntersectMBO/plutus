@@ -1,4 +1,5 @@
 ---
+title: Type Checker
 layout: page
 ---
 ## Type checker

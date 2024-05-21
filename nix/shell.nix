@@ -46,6 +46,7 @@ in
     pkgs.bzip2
     pkgs.gawk
     pkgs.scriv
+    pkgs.fswatch
 
     # Needed to make building things work, not for commands
     pkgs.zlib
@@ -78,6 +79,7 @@ in
     exec = repoRoot.scripts."update-version.sh";
     group = "changelog";
   };
+
 
   shellHook = ''
     ${builtins.readFile certEnv}

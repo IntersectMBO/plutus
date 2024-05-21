@@ -120,41 +120,41 @@ maybeSplitReference && /^[- \t-]*\[/ {
 # Check for plural references
 /(NOTES|Notes|notes) *\[/ {
     printf ("Invalid note format (no plurals allowed) at %s:%d\n ", FILENAME, FNR)
-    printf ("> %s\n", $0)
+    printf ("> %s\n\n", $0)
     exitCode = 1
 }
 
 # Check that we have at least one space after "Note"
 /Note\[/ {
     printf ("Invalid note format (space expected after \"Note\") at %s:%d\n", FILENAME, FNR)
-    printf ("> %s\n", $0)
+    printf ("> %s\n\n", $0)
     exitCode = 1
 }
 # Check for invalid characters
 /Note *[^ ] *\[/ { # There is a non-space (eg ":") between "Note" and "["
     printf ("Invalid note format at %s:%d\n", FILENAME, FNR)
-    printf ("> %s\n", $0)
+    printf ("> %s\n\n", $0)
     exitCode = 1
 }
 
 # Check for Haddock
 /(--|{-) *\| *Note *\[/  {
     printf ("Invalid note format (no Haddock allowed) at %s:%d ", FILENAME, FNR)
-    printf ("> %s\n", $0)
+    printf ("> %s\n\n", $0)
     exitCode = 1
 }
 
 # Check for improper capitalisation
 /(NOTE|note) *\[/ {  # We require all references to be of the form `Note [...]`
     printf ("Invalid note format (must say \"Note [...]\") at %s:%d\n", FILENAME, FNR)
-    printf ("> %s\n", $0)
+    printf ("> %s\n\n", $0)
     exitCode = 1
 }
 
 # Make sure there's at least one space before "Note" in a definition
 /(--|{-)Note *\[/ {
     printf ("Invalid note format (space expected before \"Note\") at %s:%d\n", FILENAME, FNR)
-    printf ("> %s\n", $0)
+    printf ("> %s\n\n", $0)
     exitCode = 1
 }
 
@@ -164,7 +164,7 @@ maybeSplitReference && /^[- \t-]*\[/ {
     if (defined[noteName]) {
         if (longOutput) {
             printf ("Duplicate Note [%s] at %s:%d and %s", noteName, FILENAME, FNR, defined[noteName])
-            printf ("> %s\n", $0)
+            printf ("> %s\n\n", $0)
         }
         else printf ("Duplicate Note [%s]\n", noteName)
     }
@@ -198,13 +198,13 @@ END {  # Report references which refer to missing Notes.
                 w = max(w,length(x))
         for (x in referenced)
             if (!(x in defined)) {
-                printf ("Missing Note %-*s%s\n", w+3, "["x"]", referenced[x])
+                printf ("Missing Note %-*s%s\n\n", w+3, "["x"]", referenced[x])
                 exitCode = 1
             }
     }
     else for (x in referenced)
              if (!(x in defined)) {
-                 printf ("Missing Note [%s]\n", x)
+                 printf ("Missing Note [%s]\n\n", x)
                  exitCode = 1
              }
     exit exitCode

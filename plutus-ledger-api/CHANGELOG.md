@@ -1,4 +1,29 @@
 
+<a id='changelog-1.27.0.0'></a>
+# 1.27.0.0 — 2024-04-30
+
+## Removed
+
+- `Codec.CBOR.Extras` module is migrated from here to `plutus-core`.
+
+## Changed
+
+- `mkEvaluationContext` now takes `[Int64]` (instead of `[Integer]`).
+
+`EvaluationContext` now contains:
+
+- `PlutusLedgerLanguage` -- a ledger language
+- `MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun` -- a function returning a semantics variant for every protocol version
+- `[(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]` -- a cache of machine parameters for each semantics variant supported by the ledger language
+
+Similarly, `mkDynEvaluationContext` now takes additional arguments:
+
+- `PlutusLedgerLanguage` -- same as above
+- `[BuiltinSemanticsVariant DefaultFun]` -- a list of semantics variants supported by the ledger language
+- `MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun` -- same as above
+
+All this allows us to improve the accuracy of costing in future protocol versions without introducing new ledger languages.
+
 <a id='changelog-1.22.0.0'></a>
 # 1.22.0.0 — 2024-02-21
 

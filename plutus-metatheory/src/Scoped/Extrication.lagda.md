@@ -1,3 +1,7 @@
+---
+title: Scoped.Extrication
+layout: page
+---
 ```
 module Scoped.Extrication where
 ```

@@ -93,3 +93,8 @@ deriving via ModelJSON "modelConstantOrTwoArguments" ModelConstantOrTwoArguments
     instance FromJSON ModelConstantOrTwoArguments
 deriving via ModelJSON "modelConstantOrTwoArguments" ModelConstantOrTwoArguments
     instance ToJSON ModelConstantOrTwoArguments
+-- See Note [Backward compatibility for costing functions] for ModelConstantOrLinear
+deriving via ModelJSON "modelConstantOrLinear" ModelConstantOrLinear
+    instance FromJSON ModelConstantOrLinear
+deriving via ModelJSON "modelConstantOrLinear" ModelConstantOrLinear
+    instance ToJSON ModelConstantOrLinear

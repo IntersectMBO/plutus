@@ -1,3 +1,7 @@
+---
+title: Raw
+layout: page
+---
 ```
 module Raw where
 ```
