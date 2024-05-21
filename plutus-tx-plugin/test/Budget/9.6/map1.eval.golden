@@ -1,0 +1,8 @@
+(constr
+  0
+  (constr 0 (con bytestring #30))
+  (constr 0 (con bytestring #35))
+  (constr 0 (con bytestring #3130))
+  (constr 1)
+  (constr 1)
+)
