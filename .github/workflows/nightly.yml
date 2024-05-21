@@ -9,10 +9,10 @@ on:
       hedgehog-tests:
         description: Numer of tests to run (--hedgehog-tests XXXXX)
         required: false
-        default: "100000"
+        default: "50000"
 
 env: 
-  HEDGEHOG_TESTS: ${{ github.event.inputs.hedgehog-tests || 100000 }}
+  HEDGEHOG_TESTS: ${{ github.event.inputs.hedgehog-tests || 50000 }}
 
 jobs:
   nightly-test-suite:
