@@ -125,6 +125,7 @@ test_typecheckIllTyped =
                 TypeErrorE (NameMismatch {}) -> True
                 _                            -> False
             ]
+
 test_typecheckAllFun
     :: forall fun. (ToBuiltinMeaning DefaultUni fun, Show fun, Show (BuiltinSemanticsVariant fun))
     => String

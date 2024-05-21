@@ -138,16 +138,15 @@ instance unit ~ () => Semigroup (TestNestedM unit) where
 instance unit ~ () => Monoid (TestNestedM unit) where
     mempty = pure ()
 
--- | Run a 'TestTree' of tests with a given name prefix. This doesn't actually run the tests:
--- instead it runs a computation in the Reader monad.
+-- | Run a 'TestNested' computation to produce a 'TestTree' (without actually executing the tests).
 runTestNestedM :: [String] -> TestNested -> TestTree
 runTestNestedM []   _    = error "Path cannot be empty"
 runTestNestedM path test = testGroup (last path) . toList $ runReaderT (unTestNestedM test) path
 
 -- | Descend into a folder.
 testNestedNamedM
-    :: FilePath    -- ^ The folder.
-    -> String      -- ^ The name of the test to render in CLI.
+    :: FilePath  -- ^ The name of the folder.
+    -> String    -- ^ The name of the test group to render in CLI.
     -> TestNested
     -> TestNested
 testNestedNamedM folderName testName
@@ -156,7 +155,7 @@ testNestedNamedM folderName testName
     . mapReaderT (nestWith $ testGroup testName)
     . unTestNestedM
 
--- | Descend into a folder.
+-- | Descend into a folder for a 'TestNested' computation.
 testNestedM :: FilePath -> TestNested -> TestNested
 testNestedM folderName = testNestedNamedM folderName folderName
 
@@ -164,15 +163,24 @@ testNestedM folderName = testNestedNamedM folderName folderName
 testNestedGhcM :: TestNested -> TestNested
 testNestedGhcM = testNestedM ghcVersion
 
+-- | Run a list of 'TestNested' computation to produce a 'TestTree' (without actually executing the
+-- tests).
 runTestNested :: [String] -> [TestNested] -> TestTree
 runTestNested path = runTestNestedM path . fold
 
-testNestedNamed :: FilePath -> String -> [TestNested] -> TestNested
+-- | Descend into a folder for a list of tests.
+testNestedNamed
+    :: FilePath  -- ^ The name of the folder.
+    -> String    -- ^ The name of the test group to render in CLI.
+    -> [TestNested]
+    -> TestNested
 testNestedNamed folderName testName = testNestedNamedM folderName testName . fold
 
+-- | Descend into a folder for a list of 'TestNested' computations.
 testNested :: FilePath -> [TestNested] -> TestNested
 testNested folderName = testNestedM folderName . fold
 
+-- | Like 'testNested' but adds a subdirectory corresponding to the GHC version being used.
 testNestedGhc :: [TestNested] -> TestNested
 testNestedGhc = testNestedGhcM . fold
 
