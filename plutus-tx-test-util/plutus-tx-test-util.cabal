@@ -6,8 +6,8 @@ homepage:        https://github.com/IntersectMBO/plutus
 bug-reports:     https://github.com/IntersectMBO/plutus/issues
 license:         Apache-2.0
 license-file:    LICENSE
-author:          Ana Pantilie
-maintainer:      ana.pantilie95@gmail.com
+author:          Plutus Core Team
+maintainer:      ana.pantilie@iohk.io
 build-type:      Simple
 extra-doc-files: CHANGELOG.md
 
