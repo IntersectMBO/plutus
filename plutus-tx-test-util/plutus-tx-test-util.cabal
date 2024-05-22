@@ -1,0 +1,73 @@
+cabal-version:   3.0
+name:            plutus-tx-test-util
+version:         0.1.0.0
+description:     Test utilities for Plutus Tx
+homepage:        https://github.com/IntersectMBO/plutus
+bug-reports:     https://github.com/IntersectMBO/plutus/issues
+license:         Apache-2.0
+license-file:    LICENSE
+author:          Ana Pantilie
+maintainer:      ana.pantilie95@gmail.com
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
+
+source-repository head
+  type:     git
+  location: https://github.com/IntersectMBO/plutus
+
+-- Any files that use a `$$(...)` splice from the plugin should mention
+-- `PlutusTx.Plugin()` somewhere, even if it's just `import PlutusTx.Plugin()`.
+-- If none of your files mention the plugin explicitly then the code will still
+-- compile (assuming that there's a dependence on `plutus-tx-plugin`) but you'll
+-- get a warning that `plutus-tx-plugin` was not needed for compilation, and
+-- that will cause a CI failure.
+
+
+-- This should be used for anything that depends on plutus-tx-plugin, even
+-- transitively.  If you miss it out somewhere then nix will probably produce an
+-- error message saying "the component is not buildable in the current
+-- environment" if e.g. the nix shell supplies an unsupported GCH version.  See
+-- the section on GHC versions in `CONTRIBUTING.md`.
+common ghc-version-support
+  if (impl(ghc <9.6) || impl(ghc >=9.7))
+    buildable: False
+
+common lang
+  default-language:   Haskell2010
+  default-extensions:
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    DerivingStrategies
+    DerivingVia
+    ExplicitForAll
+    FlexibleContexts
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    ScopedTypeVariables
+    StandaloneDeriving
+    Strict
+
+  -- See Note [-fno-full-laziness in Plutus Tx]
+  ghc-options:
+    -fno-specialise -fno-spec-constr -fno-strictness
+    -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    -fno-unbox-strict-fields -fno-unbox-small-strict-fields
+    -fno-full-laziness
+
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    -Wunused-packages -Wmissing-deriving-strategies
+
+library
+  import:           lang
+  exposed-modules:  Test.Util.PlutusTx
+
+  -- other-modules:
+  -- other-extensions:
+  build-depends:    base ^>=4.18.2.0
+  hs-source-dirs:   testlib
+  default-language: Haskell2010
