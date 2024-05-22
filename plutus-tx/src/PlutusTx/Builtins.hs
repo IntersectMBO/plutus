@@ -110,6 +110,11 @@ module PlutusTx.Builtins (
                          , toBuiltin
                          , integerToByteString
                          , byteStringToInteger
+                         -- * Bitwise
+                         , bitwiseShift
+                         , bitwiseRotate
+                         , countSetBits
+                         , findFirstSetBit
                          ) where
 
 import Data.Maybe
@@ -652,3 +657,33 @@ integerToByteString endianness = BI.integerToByteString (toOpaque (byteOrderToBo
 byteStringToInteger :: ByteOrder -> BuiltinByteString -> Integer
 byteStringToInteger endianness =
   BI.byteStringToInteger (toOpaque (byteOrderToBool endianness))
+
+-- Bitwise operations
+
+-- | Shift a 'BuiltinByteString', as per [this
+-- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
+{-# INLINEABLE bitwiseShift #-}
+bitwiseShift :: BuiltinByteString -> Integer -> BuiltinByteString
+bitwiseShift = BI.bitwiseShift
+
+-- | Rotate a 'BuiltinByteString', as per [this
+-- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
+{-# INLINEABLE bitwiseRotate #-}
+bitwiseRotate :: BuiltinByteString -> Integer -> BuiltinByteString
+bitwiseRotate = BI.bitwiseRotate
+
+-- | Count the set bits in a 'BuiltinByteString', as per [this
+-- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
+{-# INLINEABLE countSetBits #-}
+countSetBits :: BuiltinByteString -> Integer
+countSetBits = BI.countSetBits
+
+-- | Find the lowest index of a set bit in a 'BuiltinByteString', as per [this
+-- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
+--
+-- If given a 'BuiltinByteString' which consists only of zero bytes (including the empty
+-- 'BuiltinByteString', this returns @-1@.
+{-# INLINEABLE findFirstSetBit #-}
+findFirstSetBit :: BuiltinByteString -> Integer
+findFirstSetBit = BI.findFirstSetBit
+

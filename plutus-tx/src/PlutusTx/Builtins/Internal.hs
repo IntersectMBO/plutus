@@ -33,6 +33,7 @@ import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import GHC.Generics (Generic)
 import PlutusCore.Bitwise.Convert qualified as Convert
+import PlutusCore.Bitwise.Other qualified as Other
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -706,3 +707,36 @@ byteStringToInteger
     -> BuiltinInteger
 byteStringToInteger (BuiltinBool statedEndianness) (BuiltinByteString input) =
   Convert.byteStringToIntegerWrapper statedEndianness input
+
+{-
+BITWISE
+-}
+
+{-# NOINLINE bitwiseShift #-}
+bitwiseShift ::
+  BuiltinByteString ->
+  BuiltinInteger ->
+  BuiltinByteString
+bitwiseShift (BuiltinByteString bs) =
+  BuiltinByteString . Other.bitwiseShift bs . fromIntegral
+
+{-# NOINLINE bitwiseRotate #-}
+bitwiseRotate ::
+  BuiltinByteString ->
+  BuiltinInteger ->
+  BuiltinByteString
+bitwiseRotate (BuiltinByteString bs) =
+  BuiltinByteString . Other.bitwiseRotate bs . fromIntegral
+
+{-# NOINLINE countSetBits #-}
+countSetBits ::
+  BuiltinByteString ->
+  BuiltinInteger
+countSetBits (BuiltinByteString bs) = fromIntegral . Other.countSetBits $ bs
+
+{-# NOINLINE findFirstSetBit #-}
+findFirstSetBit ::
+  BuiltinByteString ->
+  BuiltinInteger
+findFirstSetBit (BuiltinByteString bs) =
+  fromIntegral . Other.findFirstSetBit $ bs

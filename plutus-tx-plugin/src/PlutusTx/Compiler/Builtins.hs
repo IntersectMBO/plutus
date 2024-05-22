@@ -277,6 +277,11 @@ builtinNames = [
 
     , 'Builtins.integerToByteString
     , 'Builtins.byteStringToInteger
+
+    , 'Builtins.bitwiseShift
+    , 'Builtins.bitwiseRotate
+    , 'Builtins.countSetBits
+    , 'Builtins.findFirstSetBit
     ]
 
 defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -433,6 +438,12 @@ defineBuiltinTerms = do
             -- Bitwise operations
             PLC.IntegerToByteString -> defineBuiltinInl 'Builtins.integerToByteString
             PLC.ByteStringToInteger -> defineBuiltinInl 'Builtins.byteStringToInteger
+
+            -- Other bitwise ops
+            PLC.BitwiseShift -> defineBuiltinInl 'Builtins.bitwiseShift
+            PLC.BitwiseRotate -> defineBuiltinInl 'Builtins.bitwiseRotate
+            PLC.CountSetBits -> defineBuiltinInl 'Builtins.countSetBits
+            PLC.FindFirstSetBit -> defineBuiltinInl 'Builtins.findFirstSetBit
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m ann
