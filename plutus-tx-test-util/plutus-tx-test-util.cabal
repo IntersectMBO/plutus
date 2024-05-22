@@ -5,7 +5,10 @@ description:     Test utilities for Plutus Tx
 homepage:        https://github.com/IntersectMBO/plutus
 bug-reports:     https://github.com/IntersectMBO/plutus/issues
 license:         Apache-2.0
-license-file:    LICENSE
+license-files:
+  LICENSE
+  NOTICE
+
 author:          Plutus Core Team
 maintainer:      ana.pantilie@iohk.io
 build-type:      Simple
@@ -64,10 +67,15 @@ common lang
 
 library
   import:           lang
-  exposed-modules:  Test.Util.PlutusTx
+  exposed-modules:  PlutusTx.Test.Util.Compiled
 
   -- other-modules:
   -- other-extensions:
-  build-depends:    base ^>=4.18.2.0
+  build-depends:
+    , base         ^>=4.18.2.0
+    , plutus-core  ^>=1.28
+    , plutus-tx    ^>=1.28
+    , text
+
   hs-source-dirs:   testlib
   default-language: Haskell2010
