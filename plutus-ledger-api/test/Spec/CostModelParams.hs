@@ -28,8 +28,7 @@ tests =
     [ testCase "length" $ do
             166 @=? length v1_ParamNames
             185 @=? length v2_ParamNames
-            233 @=? length v3_ParamNames
->>>>>>> master
+            231 @=? length v3_ParamNames
     , testCase "tripping paramname" $ do
             for_ v1_ParamNames $ \ p ->
                 assertBool "tripping v1 cm params failed" $ Just p == readParamName (showParamName p)
