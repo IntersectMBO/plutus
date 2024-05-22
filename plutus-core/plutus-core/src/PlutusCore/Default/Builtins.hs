@@ -27,6 +27,7 @@ import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Pretty (PrettyConfigPlc)
 
 import PlutusCore.Bitwise.Convert as Convert
+import PlutusCore.Bitwise.Other as Other
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -152,6 +153,11 @@ data DefaultFun
     -- Conversions
     | IntegerToByteString
     | ByteStringToInteger
+    -- Bitwise
+    | BitwiseShift
+    | BitwiseRotate
+    | CountSetBits
+    | FindFirstSetBit
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1820,6 +1826,38 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
             (runCostingFunTwoArguments . paramByteStringToInteger)
+
+    toBuiltinMeaning _semvar BitwiseShift =
+        let bitwiseShiftDenotation :: BS.ByteString -> Int -> BS.ByteString
+            bitwiseShiftDenotation = Other.bitwiseShift
+            {-# INLINE bitwiseShiftDenotation #-}
+        in makeBuiltinMeaning
+            bitwiseShiftDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar BitwiseRotate =
+        let bitwiseRotateDenotation :: BS.ByteString -> Int -> BS.ByteString
+            bitwiseRotateDenotation = Other.bitwiseRotate
+            {-# INLINE bitwiseRotateDenotation #-}
+        in makeBuiltinMeaning
+            bitwiseRotateDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar CountSetBits =
+        let countSetBitsDenotation :: BS.ByteString -> Int
+            countSetBitsDenotation = Other.countSetBits
+            {-# INLINE countSetBitsDenotation #-}
+        in makeBuiltinMeaning
+            countSetBitsDenotation
+            (runCostingFunOneArgument . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar FindFirstSetBit =
+        let findFirstSetBitDenotation :: BS.ByteString -> Int
+            findFirstSetBitDenotation = Other.findFirstSetBit
+            {-# INLINE findFirstSetBitDenotation #-}
+        in makeBuiltinMeaning
+            findFirstSetBitDenotation
+            (runCostingFunOneArgument . unimplementedCostingFun)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1947,6 +1985,11 @@ instance Flat DefaultFun where
               IntegerToByteString             -> 73
               ByteStringToInteger             -> 74
 
+              BitwiseShift                    -> 82
+              BitwiseRotate                   -> 83
+              CountSetBits                    -> 84
+              FindFirstSetBit                 -> 85
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -2023,6 +2066,10 @@ instance Flat DefaultFun where
               go 72 = pure Blake2b_224
               go 73 = pure IntegerToByteString
               go 74 = pure ByteStringToInteger
+              go 82 = pure BitwiseShift
+              go 83 = pure BitwiseRotate
+              go 84 = pure CountSetBits
+              go 85 = pure FindFirstSetBit
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

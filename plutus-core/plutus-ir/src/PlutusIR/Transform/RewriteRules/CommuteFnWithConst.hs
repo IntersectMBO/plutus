@@ -129,3 +129,7 @@ isCommutative = \case
   MkNilPairData                   -> False
   IntegerToByteString             -> False
   ByteStringToInteger             -> False
+  BitwiseShift                    -> False
+  BitwiseRotate                   -> False
+  CountSetBits                    -> False
+  FindFirstSetBit                 -> False

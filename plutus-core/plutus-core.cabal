@@ -89,6 +89,7 @@ library
     PlutusCore.Annotation
     PlutusCore.Arity
     PlutusCore.Bitwise.Convert
+    PlutusCore.Bitwise.Other
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
