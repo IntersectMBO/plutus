@@ -252,12 +252,19 @@
     },
     "byteStringToInteger": {
         "cpu": {
-            "arguments": 9223372036854775807,
-            "type": "constant_cost"
+            "arguments": {
+                "c0": 9223372036854775807,
+                "c1": 9223372036854775807,
+                "c2": 9223372036854775807
+            },
+            "type": "quadratic_in_y"
         },
         "memory": {
-            "arguments": 9223372036854775807,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 9223372036854775807,
+                "slope": 9223372036854775807
+            },
+            "type": "linear_in_y"
         }
     },
     "chooseData": {
