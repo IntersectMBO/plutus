@@ -46,13 +46,13 @@ main = do
       allTests =
         testGroup "plutus-benchmark Marlowe tests"
             [ runTestGhc ["semantics"] $
-                goldenSize "semantics" marloweValidator
+                goldenASTSize "semantics" marloweValidator
                   : [ goldenUEvalBudget name [value]
                     | bench <- semanticsMBench
                     , let (name, value) = mkBudgetTest marloweValidator bench
                     ]
             , runTestGhc ["role-payout"] $
-                goldenSize "role-payout" rolePayoutValidator
+                goldenASTSize "role-payout" rolePayoutValidator
                   : [ goldenUEvalBudget name [value]
                     | bench <- rolePayoutMBench
                     , let (name, value) = mkBudgetTest rolePayoutValidator bench

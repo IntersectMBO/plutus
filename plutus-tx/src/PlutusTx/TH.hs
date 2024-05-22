@@ -29,7 +29,7 @@ loadFromFile fp = TH.liftSplice $ do
     -- We don't have a 'Lift' instance for 'CompiledCode' (we could but it would be tedious),
     -- so we lift the bytestring and construct the value in the quote.
     bs <- liftIO $ BS.readFile fp
-    TH.examineSplice [|| SerializedCode bs Nothing mempty ||]
+    TH.examineSplice [|| SerializedCode bs Nothing Nothing ||]
 
 {- Note [Typed TH]
 It's nice to use typed TH! However, we sadly can't *quite* use it thoroughly, because we

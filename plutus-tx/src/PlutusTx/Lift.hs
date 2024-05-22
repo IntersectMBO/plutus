@@ -267,4 +267,4 @@ typeCode p prog = do
     _ <- typeCheckAgainst p prog
     compiled <- flip runReaderT PLC.defaultCompilationOpts $ PLC.compileProgram prog
     db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm compiled
-    pure $ DeserializedCode (mempty <$ db) Nothing mempty
+    pure $ DeserializedCode (mempty <$ db) Nothing Nothing

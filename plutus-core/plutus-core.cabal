@@ -91,6 +91,7 @@ library
     PlutusCore.Analysis.Definitions
     PlutusCore.Annotation
     PlutusCore.Arity
+    PlutusCore.ASTSize
     PlutusCore.Bitwise.Convert
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
@@ -163,7 +164,6 @@ library
     PlutusCore.Rename
     PlutusCore.Rename.Internal
     PlutusCore.Rename.Monad
-    PlutusCore.Size
     PlutusCore.StdLib.Data.Bool
     PlutusCore.StdLib.Data.ChurchNat
     PlutusCore.StdLib.Data.Data
@@ -248,6 +248,7 @@ library
     Universe.Core
     UntypedPlutusCore.Analysis.Definitions
     UntypedPlutusCore.Analysis.Usages
+    UntypedPlutusCore.ASTSize
     UntypedPlutusCore.Core.Instance
     UntypedPlutusCore.Core.Instance.Eq
     UntypedPlutusCore.Core.Instance.Flat
@@ -264,7 +265,6 @@ library
     UntypedPlutusCore.Rename.Internal
     UntypedPlutusCore.Simplify
     UntypedPlutusCore.Simplify.Opts
-    UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
     UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.Cse
@@ -555,8 +555,8 @@ library plutus-ir
 
   other-modules:
     PlutusIR.Analysis.Definitions
-    PlutusIR.Analysis.Size
     PlutusIR.Analysis.Usages
+    PlutusIR.ASTSize
     PlutusIR.Compiler.Error
     PlutusIR.Compiler.Lower
     PlutusIR.Compiler.Recursion

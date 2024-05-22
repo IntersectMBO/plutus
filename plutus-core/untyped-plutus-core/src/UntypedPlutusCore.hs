@@ -8,12 +8,12 @@ module UntypedPlutusCore (
     , PLC.DefaultFun
     ) where
 
+import UntypedPlutusCore.ASTSize as Export
 import UntypedPlutusCore.Check.Scope as Export
 import UntypedPlutusCore.Core as Export
 import UntypedPlutusCore.DeBruijn as Export
 import UntypedPlutusCore.Parser as Parser (parseScoped)
 import UntypedPlutusCore.Simplify as Export
-import UntypedPlutusCore.Size as Export
 import UntypedPlutusCore.Subst as Export
 
 import PlutusCore.Default qualified as PLC

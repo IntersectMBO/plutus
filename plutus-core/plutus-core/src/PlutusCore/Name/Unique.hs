@@ -122,7 +122,12 @@ instance Ord Name where
 instance Hashable Name where
   hashWithSalt s = hashWithSalt s . _nameUnique
 
--- | A unique identifier
+{-| A unique identifier
+
+We only make use of positive integral numbers. Using `Word` does not buy us much,
+because under- & over-flow could still happen. Using `Natural`s would be nice, but
+then we cannot use the faster `IntMap` implementation for the `UniqueMap`.
+-}
 newtype Unique = Unique {unUnique :: Int}
   deriving stock (Eq, Show, Ord, Lift)
   deriving newtype (Enum, NFData, Pretty, Hashable)

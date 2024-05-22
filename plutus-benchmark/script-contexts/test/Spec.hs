@@ -43,7 +43,7 @@ testCheckSc1 = testGroup "checkScriptContext1"
         compiledCodeToTerm $ mkCheckScriptContext1Code (mkScriptContext 4)
     , testCase "fails on 5" . assertFailed $
         compiledCodeToTerm $ mkCheckScriptContext1Code (mkScriptContext 5)
-    , runTestGhc [ Tx.goldenSize "checkScriptContext1" $
+    , runTestGhc [ Tx.goldenASTSize "checkScriptContext1" $
                         mkCheckScriptContext1Code (mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext1" $
                         mkCheckScriptContext1Code (mkScriptContext 1)
@@ -64,7 +64,7 @@ testCheckSc2 = testGroup "checkScriptContext2"
           compiledCodeToTerm $ mkCheckScriptContext2Code (mkScriptContext 4)
     , testCase "succeed on 5" . assertSucceeded $
           compiledCodeToTerm $ mkCheckScriptContext2Code (mkScriptContext 5)
-    , runTestGhc [ Tx.goldenSize "checkScriptContext2" $
+    , runTestGhc [ Tx.goldenASTSize "checkScriptContext2" $
                         mkCheckScriptContext2Code (mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext2" $
                         mkCheckScriptContext2Code (mkScriptContext 1)

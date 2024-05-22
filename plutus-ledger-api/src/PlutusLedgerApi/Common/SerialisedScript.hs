@@ -236,7 +236,7 @@ deserialiseScript ll pv sScript = do
     throwing _ScriptDecodeError $
       LedgerLanguageNotAvailableError ll llIntroPv pv
 
-  (remderBS, dScript@(ScriptNamedDeBruijn (UPLC.Program{}))) <- deserialiseSScript sScript
+  (remderBS, dScript) <- deserialiseSScript sScript
   when (ll /= PlutusV1 && ll /= PlutusV2 && remderBS /= mempty) $
     throwing _ScriptDecodeError $
       RemainderError remderBS
@@ -249,8 +249,8 @@ deserialiseScript ll pv sScript = do
         >>> BSL.fromStrict
         >>> CBOR.deserialiseFromBytes (scriptCBORDecoder ll pv)
         -- lift the underlying cbor error to our custom error
-        >>> either (throwing _ScriptDecodeError . toScripDecodeError) pure
+        >>> either (throwing _ScriptDecodeError . toScriptDecodeError) pure
 
     -- turn a cborg failure to our own error type
-    toScripDecodeError :: CBOR.DeserialiseFailure -> ScriptDecodeError
-    toScripDecodeError = CBORDeserialiseError . CBOR.Extras.readDeserialiseFailureInfo
+    toScriptDecodeError :: CBOR.DeserialiseFailure -> ScriptDecodeError
+    toScriptDecodeError = CBORDeserialiseError . CBOR.Extras.readDeserialiseFailureInfo

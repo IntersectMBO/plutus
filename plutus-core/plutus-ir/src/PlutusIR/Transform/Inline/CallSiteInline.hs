@@ -13,7 +13,7 @@ module PlutusIR.Transform.Inline.CallSiteInline where
 import PlutusCore qualified as PLC
 import PlutusCore.Rename (rename)
 import PlutusCore.Rename.Internal (Dupable (Dupable))
-import PlutusIR.Analysis.Size (Size, termSize)
+import PlutusIR.ASTSize (ASTSize, termASTSize)
 import PlutusIR.Contexts
 import PlutusIR.Core
 import PlutusIR.Transform.Inline.Utils
@@ -115,7 +115,7 @@ callSiteInline ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
   -- | The term size if it were not inlined.
-  Size ->
+  ASTSize ->
   -- | The `Utils.VarInfo` of the variable (the head of the term).
   InlineVarInfo tyname name uni fun ann ->
   -- | The application context of the term, already processed.
@@ -150,7 +150,7 @@ callSiteInline processedTSize = go
           applyAndBetaReduce renamedRhs args >>= \case
             Just inlined -> do
               let -- Inline only if the size is no bigger than not inlining.
-                  sizeIsOk = termSize inlined <= processedTSize
+                  sizeIsOk = termASTSize inlined <= processedTSize
               pure $ if sizeIsOk then Just inlined else Nothing
             Nothing -> pure Nothing
         else pure Nothing

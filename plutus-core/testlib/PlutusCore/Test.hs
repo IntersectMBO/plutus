@@ -31,7 +31,7 @@ module PlutusCore.Test (
   goldenUEvalProfile,
   goldenUEvalProfile',
   goldenUEvalBudget,
-  goldenSize,
+  goldenASTSize,
   initialSrcSpan,
   topSrcSpan,
   NoMarkRenameT (..),
@@ -411,14 +411,14 @@ goldenUEvalBudget ::
 goldenUEvalBudget name values =
   nestedGoldenVsDocM name ".budget" $ ppCatch $ runUPlcBudget values
 
-goldenSize ::
+goldenASTSize ::
   (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
   String ->
   a ->
   TestNested
-goldenSize name value =
+goldenASTSize name value =
   nestedGoldenVsDocM name ".size" $
-    pure . pretty . UPLC.programSize =<< rethrow (toUPlc value)
+    pure . pretty . UPLC.programASTSize =<< rethrow (toUPlc value)
 
 -- | This is mostly useful for profiling a test that is normally
 -- tested with one of the other functions, as it's a drop-in

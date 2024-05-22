@@ -68,7 +68,7 @@ applicationHeadsCorrect cc heads = testCase "correct application heads" (assertE
     headSymbols =
       -- TODO: This should really use a prism instead of going to and from lists I guess
       Set.fromList $ [ s
-                     | covMeta <- cc ^. to getCovIdx . coverageMetadata . to Map.elems
+                     | covMeta <- cc ^?! to getCovIdx . _Just . coverageMetadata . to Map.elems
                      , ApplicationHeadSymbol s <- Set.toList $ covMeta ^. metadataSet ]
 
 linesInCoverageIndex :: CompiledCode t -> [Int] -> TestTree
@@ -76,4 +76,4 @@ linesInCoverageIndex cc ls = testCase "correct line coverage" (assertBool ("Line
   where
     covered = all (\l -> any (\(s, e) -> s <= l && l <= e) covLineSpans) ls
     covLineSpans = [ (covLoc ^. covLocStartLine, covLoc ^. covLocEndLine)
-                   | CoverLocation covLoc <- cc ^. to getCovIdx . coverageMetadata . to Map.keys ]
+                   | CoverLocation covLoc <- cc ^?! to getCovIdx . _Just . coverageMetadata . to Map.keys ]
