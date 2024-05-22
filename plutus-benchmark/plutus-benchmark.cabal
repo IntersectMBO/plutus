@@ -92,12 +92,10 @@ library plutus-benchmark-common
     , flat                 ^>=0.6
     , plutus-core          ^>=1.28
     , plutus-ledger-api    ^>=1.28
-    , plutus-tx            ^>=1.28
     , plutus-tx-test-util
     , tasty
     , tasty-golden
     , temporary
-    , text
 
 ---------------- nofib ----------------
 
