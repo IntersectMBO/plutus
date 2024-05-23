@@ -261,3 +261,41 @@ html[data-theme="dark"] body {
 .card h2 {
   margin-bottom: 0.25em;
 }
+
+/* Tables */
+
+.csv-table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 0.75em;
+}
+
+.csv-table th {
+  font-weight: bold;
+}
+
+.csv-table th,
+.csv-table td {
+  padding: 2px 5px;
+}
+
+.csv-table-overflow {
+  overflow-x: auto;
+  width: 100%;
+  padding-right: 25px;
+}
+
+.csv-table-overflow-marker {
+  position: relative;
+}
+
+.csv-table-overflow-marker::after {
+  content: "";
+  display: block;
+  width: 25px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), #ffffff);
+}
