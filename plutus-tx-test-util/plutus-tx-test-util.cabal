@@ -72,7 +72,7 @@ library
   -- other-modules:
   -- other-extensions:
   build-depends:
-    , base         ^>=4.18.2.0
+    , base         >=4.9   && <5
     , plutus-core  ^>=1.28
     , plutus-tx    ^>=1.28
     , text
