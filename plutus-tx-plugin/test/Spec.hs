@@ -1,6 +1,7 @@
 module Main (main) where
 
 import AsData.Budget.Spec qualified as AsData.Budget
+import AssocMap.Spec qualified as AssocMap
 import Blueprint.Tests qualified
 import Budget.Spec qualified as Budget
 import IntegerLiterals.NoStrict.NegativeLiterals.Spec qualified
@@ -37,8 +38,10 @@ tests =
     , Budget.tests
     , AsData.Budget.tests
     , Optimization.tests
-    , embed ShortCircuit.tests
     , Strictness.tests
     , Blueprint.Tests.goldenTests
+    , AssocMap.goldenTests
+    , embed ShortCircuit.tests
     , embed Unicode.tests
+    , embed AssocMap.propertyTests
     ]

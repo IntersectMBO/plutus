@@ -75,6 +75,7 @@ library
     PlutusTx.Builtins.Internal
     PlutusTx.Code
     PlutusTx.Coverage
+    PlutusTx.Data.AssocMap
     PlutusTx.Either
     PlutusTx.Enum
     PlutusTx.Eq

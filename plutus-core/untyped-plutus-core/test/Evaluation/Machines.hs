@@ -5,7 +5,6 @@
 
 module Evaluation.Machines
     ( test_machines
-    --, test_memory
     , test_budget
     , test_tallying
     ) where
@@ -41,16 +40,20 @@ import Test.Tasty.Golden
 import Test.Tasty.Hedgehog
 
 testMachine
-    :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc internal)
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc structural)
     => String
     -> (Term Name uni fun () ->
-           Either (EvaluationException user internal (Term Name uni fun ())) (Term Name uni fun ()))
+           Either
+               (EvaluationException operational structural (Term Name uni fun ()))
+               (Term Name uni fun ()))
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
         testPropertyNamed name (fromString name) . withTests 200 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
-            let resExp = eraseTerm <$> makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
+            let resExp =
+                    eraseTerm <$>
+                        makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
             case extractEvaluationResult . eval $ eraseTerm term of
                 Left err     -> fail $ show err
                 Right resAct -> resAct === resExp
