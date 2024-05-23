@@ -28,6 +28,7 @@ jobs:
           whoami 
           nix profile install nixpkgs#diffutils 
           nix profile install nixpkgs#which
+          which which
           echo Installed 
 
       - name: plutus-core-nightly
