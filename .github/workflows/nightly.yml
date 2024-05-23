@@ -24,12 +24,18 @@ jobs:
 
       - name: plutus-core-nightly
         run: |
+          env 
+          which which
+          which diff 
           pushd plutus-core
           nix run --no-warn-dirty --accept-flake-config .#plutus-core-test -- --hedgehog-tests $HEDGEHOG_TESTS
           popd
 
       - name: plutus-ir-nightly
         run: |
+          env 
+          which which
+          which diff 
           pushd plutus-core
           nix run --no-warn-dirty --accept-flake-config .#plutus-ir-test -- --hedgehog-tests $HEDGEHOG_TESTS
           popd
