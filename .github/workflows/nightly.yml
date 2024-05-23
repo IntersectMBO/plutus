@@ -9,15 +9,15 @@ on:
       hedgehog-tests:
         description: Numer of tests to run (--hedgehog-tests XXXXX)
         required: false
-        default: "50000"
+        default: "100000"
 
 env: 
-  HEDGEHOG_TESTS: ${{ github.event.inputs.hedgehog-tests || 50000 }}
+  HEDGEHOG_TESTS: ${{ github.event.inputs.hedgehog-tests || 100000 }}
 
 jobs:
   nightly-test-suite:
     timeout-minutes: 14400
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, plutus-benchmark]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
