@@ -23,14 +23,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: plutus-core-nightly
-        if: always()
         run: |
           pushd plutus-core
           nix run --no-warn-dirty --accept-flake-config .#plutus-core-test -- --hedgehog-tests $HEDGEHOG_TESTS
           popd
 
       - name: plutus-ir-nightly
-        if: always()
         run: |
           pushd plutus-core
           nix run --no-warn-dirty --accept-flake-config .#plutus-ir-test -- --hedgehog-tests $HEDGEHOG_TESTS
