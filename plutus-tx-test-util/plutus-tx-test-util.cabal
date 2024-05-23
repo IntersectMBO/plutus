@@ -50,7 +50,6 @@ common lang
     ImportQualifiedPost
     ScopedTypeVariables
     StandaloneDeriving
-    Strict
 
   -- See Note [-fno-full-laziness in Plutus Tx]
   ghc-options:
