@@ -299,3 +299,11 @@ html[data-theme="dark"] body {
   right: 0;
   background: linear-gradient(to right, rgba(255, 255, 255, 0), #ffffff);
 }
+
+html[data-theme="dark"] .csv-table-overflow-marker::after {
+  background: linear-gradient(
+    to right,
+    rgba(27, 27, 29, 0),
+    rgba(27, 27, 29, 255)
+  );
+}
