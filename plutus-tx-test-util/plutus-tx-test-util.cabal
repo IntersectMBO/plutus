@@ -1,18 +1,17 @@
-cabal-version:   3.0
-name:            plutus-tx-test-util
-version:         0.1.0.0
-description:     Test utilities for Plutus Tx
-homepage:        https://github.com/IntersectMBO/plutus
-bug-reports:     https://github.com/IntersectMBO/plutus/issues
-license:         Apache-2.0
+cabal-version: 3.0
+name:          plutus-tx-test-util
+version:       0.1.0.0
+description:   Test utilities for Plutus Tx
+homepage:      https://github.com/IntersectMBO/plutus
+bug-reports:   https://github.com/IntersectMBO/plutus/issues
+license:       Apache-2.0
 license-files:
   LICENSE
   NOTICE
 
-author:          Plutus Core Team
-maintainer:      ana.pantilie@iohk.io
-build-type:      Simple
-extra-doc-files: CHANGELOG.md
+author:        Plutus Core Team
+maintainer:    ana.pantilie@iohk.io
+build-type:    Simple
 
 source-repository head
   type:     git
