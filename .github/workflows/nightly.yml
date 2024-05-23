@@ -22,21 +22,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # This is a runtime dependency of the tests
-      - name: Install diffutils in Nix Profile 
-        run: | 
-          whoami 
-          nix profile install nixpkgs#diffutils 
-          nix profile install nixpkgs#which
-          which which
-          echo Installed 
-
       - name: plutus-core-nightly
         run: | 
-          echo ******************************* Running which diff 
-          which diff
           pushd plutus-core
-          nix run --no-warn-dirty --accept-flake-config .#plutus-core-test -- --hedgehog-tests $HEDGEHOG_TESTS
+          nix develop --no-warn-dirty --accept-flake-config --command \
+            cabal run plutus-core-test -- --hedgehog-tests $HEDGEHOG_TESTS
+          # nix run --no-warn-dirty --accept-flake-config .#plutus-core-test -- --hedgehog-tests $HEDGEHOG_TESTS
           popd
 
       - name: plutus-ir-nightly
