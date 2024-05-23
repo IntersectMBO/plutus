@@ -8,8 +8,8 @@ license-files:
 
 maintainer:    michael.peyton-jones@iohk.io
 author:        Plutus Core Team
-homepage:      https://github.com/iohk/plutus#readme
-bug-reports:   https://github.com/iohk/plutus/issues
+homepage:      https://github.com/IntersectMBO/plutus
+bug-reports:   https://github.com/IntersectMBO/plutus/issues
 description:
   Please see the README on GitHub at <https://github.com/IntersectMBO/plutus#readme>
 
@@ -22,7 +22,7 @@ data-files:
 
 source-repository head
   type:     git
-  location: https://github.com/iohk/plutus
+  location: https://github.com/IntersectMBO/plutus
 
 -- Any files that use a `$$(...)` splice from the plugin should mention
 -- `PlutusTx.Plugin()` somewhere, even if it's just `import PlutusTx.Plugin()`.
@@ -83,20 +83,19 @@ library plutus-benchmark-common
 
   other-modules:   Paths_plutus_benchmark
   build-depends:
-    , base               >=4.9   && <5
+    , base                 >=4.9   && <5
     , bytestring
     , criterion
     , deepseq
     , directory
     , filepath
-    , flat               ^>=0.6
-    , plutus-core        ^>=1.28
-    , plutus-ledger-api  ^>=1.28
-    , plutus-tx          ^>=1.28
+    , flat                 ^>=0.6
+    , plutus-core          ^>=1.28
+    , plutus-ledger-api    ^>=1.28
+    , plutus-tx-test-util
     , tasty
     , tasty-golden
     , temporary
-    , text
 
 ---------------- nofib ----------------
 
