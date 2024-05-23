@@ -35,11 +35,12 @@ import PlutusTx.List qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.Test
+import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm,
+                                    unsafeRunTermCek)
 import PlutusTx.TH (compile)
 import PlutusTx.These (These (..), these)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testProperty)
-import Util.Common (cekResultMatchesHaskellValue, compiledCodeToTerm, unsafeRunTermCek)
 
 
 -- | Test the performance and interaction between 'insert', 'delete' and 'lookup'.
