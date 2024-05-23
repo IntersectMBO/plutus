@@ -39,7 +39,7 @@ module PlutusTx.AssocMap (
 
 import Prelude qualified as Haskell
 
-import PlutusTx.Builtins qualified as P
+import PlutusTx.Builtins qualified as P hiding (null)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData
 import PlutusTx.Lift (makeLift)

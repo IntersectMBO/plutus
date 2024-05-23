@@ -30,8 +30,8 @@ tests =
     [ testCase "length" $ do
             166 @=? length v1_ParamNames
             166 @=? length V1.costModelParamsForTesting
-            175 @=? length v2_ParamNames
-            175 @=? length V2.costModelParamsForTesting
+            185 @=? length v2_ParamNames
+            185 @=? length V2.costModelParamsForTesting
             233 @=? length v3_ParamNames
             233 @=? length V3.costModelParamsForTesting
     , testCase "tripping paramname" $ do

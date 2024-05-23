@@ -59,8 +59,7 @@ data MachineError fun
     | BuiltinTermArgumentExpectedMachineError
       -- ^ A builtin expected a term argument, but something else was received.
     | UnexpectedBuiltinTermArgumentMachineError
-      -- ^ A builtin received a term argument when something else was expected.
-    | UnknownBuiltin fun
+      -- ^ A builtin received a term argument when something else was expected
     | NonConstrScrutinized
     | MissingCaseBranch Word64
     deriving stock (Show, Eq, Functor, Generic)
@@ -160,8 +159,6 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         "A builtin received a term argument when something else was expected"
     prettyBy _      (UnliftingMachineError unliftingError)  =
         pretty unliftingError
-    prettyBy _      (UnknownBuiltin fun)                  =
-        "Encountered an unknown built-in function:" <+> pretty fun
     prettyBy _      NonConstrScrutinized =
         "A non-constructor value was scrutinized in a case expression"
     prettyBy _      (MissingCaseBranch i) =
