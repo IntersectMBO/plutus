@@ -20,7 +20,7 @@ import Hedgehog (MonadGen, Property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore.Test (TestNested, goldenUEval, testNestedGhc)
+import PlutusCore.Test (TestNested, embed, goldenUEval, testNested, testNestedGhc)
 import PlutusTx.Test (goldenPir)
 import Test.Tasty (TestName)
 import Test.Tasty.Hedgehog (testPropertyNamed)
@@ -45,15 +45,15 @@ roundPlc = plc (Proxy @"roundPlc") Ratio.round
 
 tests :: TestNested
 tests =
-  testNestedGhc "StdLib"
+  testNested "StdLib" . pure $ testNestedGhc
     [ goldenUEval "ratioInterop" [ getPlcNoAnn roundPlc, snd (Lift.liftProgramDef (Ratio.fromGHC 3.75)) ]
     , testRatioProperty "round" Ratio.round round
     , testRatioProperty "truncate" Ratio.truncate truncate
     , testRatioProperty "abs" (fmap Ratio.toGHC Ratio.abs) abs
-    , pure $ testPropertyNamed "ord" "testOrd" testOrd
-    , pure $ testPropertyNamed "divMod" "testDivMod" testDivMod
-    , pure $ testPropertyNamed "quotRem" "testQuotRem" testQuotRem
-    , pure $ testPropertyNamed "Eq @Data" "eqData" eqData
+    , embed $ testPropertyNamed "ord" "testOrd" testOrd
+    , embed $ testPropertyNamed "divMod" "testDivMod" testDivMod
+    , embed $ testPropertyNamed "quotRem" "testQuotRem" testQuotRem
+    , embed $ testPropertyNamed "Eq @Data" "eqData" eqData
     , goldenPir "errorTrace" errorTrace
     ]
 
@@ -67,7 +67,7 @@ tryHard :: (MonadIO m, NFData a) => a -> m (Maybe a)
 tryHard ~a = reoption <$> (liftIO $ try @SomeException $ evaluate $ force a)
 
 testRatioProperty :: (Show a, Eq a) => TestName -> (Ratio.Rational -> a) -> (Rational -> a) -> TestNested
-testRatioProperty nm plutusFunc ghcFunc = pure $ testPropertyNamed nm (fromString nm) $ Hedgehog.property $ do
+testRatioProperty nm plutusFunc ghcFunc = embed $ testPropertyNamed nm (fromString nm) $ Hedgehog.property $ do
     rat <- Hedgehog.forAll $ Gen.realFrac_ (Range.linearFrac (-10000) 100000)
     let ghcResult = ghcFunc rat
         plutusResult = plutusFunc $ Ratio.fromGHC rat

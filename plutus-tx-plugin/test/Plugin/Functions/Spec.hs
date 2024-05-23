@@ -30,9 +30,9 @@ import PlutusTx.Test
 import Data.Proxy
 
 functions :: TestNested
-functions = testNestedGhc "Functions" [
-    recursiveFunctions
-    , unfoldings
+functions = testNested "Functions" . pure $ testNestedGhc
+  [ recursiveFunctions
+  , unfoldings
   ]
 
 recursiveFunctions :: TestNested

@@ -433,8 +433,8 @@ unionS (AssocMapS ls) (AssocMapS rs) =
 
 haskellToPlutusThese :: Haskell.These a b -> These a b
 haskellToPlutusThese = \case
-  Haskell.This a -> This a
-  Haskell.That b -> That b
+  Haskell.This a    -> This a
+  Haskell.That b    -> That b
   Haskell.These a b -> These a b
 
 unionWithS
@@ -772,8 +772,7 @@ builtinDataEncodingSpec = property $ do
 
 goldenTests :: TestNested
 goldenTests =
-  testNestedGhc
-    "Budget"
+  testNested "Budget" . pure $ testNestedGhc
     [ goldenPirReadable "map1" map1
     , goldenUPlcReadable "map1" map1
     , goldenEvalCekCatch "map1" $ [map1 `unsafeApplyCode` (liftCodeDef 100)]

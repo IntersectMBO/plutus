@@ -131,7 +131,7 @@ compileProgram = curry $ \case
     (SUplc _ _, SPir SName _) -> throwingPIR "Cannot compile uplc to pir"
 
 embedProgram :: PLC.Program tyname name uni fun ann -> PIR.Program tyname name uni fun ann
-embedProgram (PLC.Program a v t) = PIR.Program a v $ embed t
+embedProgram (PLC.Program a v t) = PIR.Program a v $ embedTerm t
 
 toOutAnn :: (Functor f, PIR.AsError e uni fun a, MonadError e m)
          => SAnn s1
