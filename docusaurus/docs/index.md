@@ -2,7 +2,7 @@
 sidebar_position: 0
 ---
 
-# Plutus Core and Plutus Tx user guide
+# Plutus user guide
 
 ## Introduction
 
