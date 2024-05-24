@@ -141,14 +141,6 @@ let
                 ssreflect
                 equations
               ];
-
-            plutus-core.components.tests.plutus-core-test.preCheck = ''
-              PATH=${lib.makeBinPath [ pkgs.diffutils ]}:$PATH
-            '';
-
-            plutus-core.components.tests.plutus-ir-test.preCheck = ''
-              PATH=${lib.makeBinPath [ pkgs.diffutils ]}:$PATH
-            '';
           };
         }
 
