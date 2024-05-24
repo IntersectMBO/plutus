@@ -24,13 +24,11 @@ jobs:
       - name: plutus-core-nightly
         run: | 
           pushd plutus-core
-          nix shell nixpkgs#diffutils --command \
-            nix run --no-warn-dirty --accept-flake-config .#plutus-core-test -- --hedgehog-tests $HEDGEHOG_TESTS
+          nix run --no-warn-dirty --accept-flake-config .#checks.x86_64-linux.plutus-core-test -- --hedgehog-tests $HEDGEHOG_TESTS
           popd
 
       - name: plutus-ir-nightly
         run: |
           pushd plutus-core
-          nix shell nixpkgs#diffutils --command \
-            nix run --no-warn-dirty --accept-flake-config .#plutus-ir-test -- --hedgehog-tests $HEDGEHOG_TESTS
+          nix run --no-warn-dirty --accept-flake-config .#checks.x86_64-linux.plutus-ir-test -- --hedgehog-tests $HEDGEHOG_TESTS
           popd
