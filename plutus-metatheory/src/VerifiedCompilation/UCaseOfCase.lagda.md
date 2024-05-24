@@ -12,7 +12,7 @@ module VerifiedCompilation.UCaseOfCase where
 ## Imports
 
 ```
-open import VerifiedCompilation.Util using (DecEq; _≟_)
+open import VerifiedCompilation.Util using (DecEq; _≟_; decPointwise)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
 open import Untyped.CEK using (BApp; fullyAppliedBuiltin; BUILTIN; stepper; State; Stack)
 open import Evaluator.Base using (maxsteps)
@@ -22,12 +22,11 @@ open import Utils as U using (Maybe; nothing; just; Either)
 open import RawU using (TmCon; tmCon; decTag; TyTag; ⟦_⟧tag; decTagCon; tmCon2TagCon)
 open import Data.Product using (_×_; proj₁; proj₂; _,_)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
-open import Builtin.Signature using (_⊢♯)
 open import Data.Nat using (ℕ)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; isEquivalence; cong)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
-
+import Data.Nat.Properties as Nat using (_≟_)
 ```
 ## Translation Relation
 
@@ -81,7 +80,7 @@ This can just traverse the ASTs applying the constructors from the transition re
 need some helper functions.
 
 ```
-_⊢̂_⊳̂?_ : {X : Set} (ast ast' : X ⊢) {{ _ : DecEq X }} → Dec (X ⊢̂ ast ⊳̂ ast')
+_⊢̂_⊳̂?_ : {X : Set} {{ _ : DecEq X }} → (ast : X ⊢) → (ast' : X ⊢) → Dec (X ⊢̂ ast ⊳̂ ast')
 _⊢̂_⊳̂?_ (` x) (` y) with x ≟ y
 ...                         | yes refl = yes var
 ...                         | no ¬p = no (λ { (var) → ¬p refl })
@@ -101,7 +100,10 @@ _⊢̂_⊳̂?_ (delay ast) (delay ast') with _⊢̂_⊳̂?_ ast ast'
 _⊢̂_⊳̂?_ (con tm) (con tm') with tm ≟ tm'
 ...                                  | yes refl = yes con
 ...                                  | no ¬p = no λ { (con) → ¬p refl }
-_⊢̂_⊳̂?_ (constr i ast) (constr i' ast') = {!!}
+_⊢̂_⊳̂?_ (constr i ast) (constr i' ast') with i Nat.≟ i' | decPointwise _⊢̂_⊳̂?_ ast ast'
+...                                                       | no ¬i≟i  | _       = no {!!}
+...                                                       | yes refl | no ¬p = {!!}
+...                                                       | yes refl | yes p = {!!}
 -- _⊢̂_⊳̂?_ (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts) (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn' tt') alts'))) · (delay (case (constr tn' tt') alts')))) = yes ?
 _⊢̂_⊳̂?_ (case s ast) (case s' ast') = {!!} -- TODO: This needs the CaseOfCase pattern as well as a more general one
 --_⊢̂_⊳̂?_ (builtin b) (builtin b') with b ≟ b'
