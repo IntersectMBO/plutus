@@ -9,34 +9,25 @@ on:
       hedgehog-tests:
         description: Numer of tests to run (--hedgehog-tests XXXXX)
         required: false
-        default: "50000"
+        default: "100000"
 
 env: 
-  HEDGEHOG_TESTS: ${{ github.event.inputs.hedgehog-tests || 50000 }}
+  HEDGEHOG_TESTS: ${{ github.event.inputs.hedgehog-tests || 100000 }}
 
 jobs:
   nightly-test-suite:
-    timeout-minutes: 14400
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, plutus-benchmark]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-
-      - name: Use Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@main
-      
       - name: plutus-core-nightly
-        if: always()
-        run: |
+        run: | 
           pushd plutus-core
           nix run --no-warn-dirty --accept-flake-config .#plutus-core-test -- --hedgehog-tests $HEDGEHOG_TESTS
           popd
 
       - name: plutus-ir-nightly
-        if: always()
         run: |
           pushd plutus-core
           nix run --no-warn-dirty --accept-flake-config .#plutus-ir-test -- --hedgehog-tests $HEDGEHOG_TESTS
