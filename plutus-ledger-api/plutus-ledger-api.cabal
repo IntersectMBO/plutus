@@ -64,6 +64,7 @@ library
     PlutusLedgerApi.V1.Contexts
     PlutusLedgerApi.V1.Credential
     PlutusLedgerApi.V1.Crypto
+    PlutusLedgerApi.V1.Data.Value
     PlutusLedgerApi.V1.DCert
     PlutusLedgerApi.V1.EvaluationContext
     PlutusLedgerApi.V1.Interval
