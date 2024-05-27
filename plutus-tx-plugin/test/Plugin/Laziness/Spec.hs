@@ -25,10 +25,10 @@ import PlutusTx.Test
 import Data.Proxy
 
 laziness :: TestNested
-laziness = testNestedGhc "Laziness" [
-    goldenPir "joinError" joinErrorPir
-    , goldenUEval "joinErrorEval" [ toUPlc joinErrorPir, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False]
-    , goldenPir "lazyDepUnit" lazyDepUnit
+laziness = testNested "Laziness" . pure $ testNestedGhc
+  [ goldenPir "joinError" joinErrorPir
+  , goldenUEval "joinErrorEval" [ toUPlc joinErrorPir, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False]
+  , goldenPir "lazyDepUnit" lazyDepUnit
   ]
 
 joinErrorPir :: CompiledCode (Bool -> Bool -> ())

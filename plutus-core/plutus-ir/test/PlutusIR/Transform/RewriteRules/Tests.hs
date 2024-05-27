@@ -13,25 +13,24 @@ import Test.QuickCheck
 import Test.Tasty
 
 test_rewriteRules :: TestTree
-test_rewriteRules = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
-    testNested "RewriteRules" $
-    (fmap
-        (goldenPir (runQuote . runTestPass (\tc -> rewritePassSC tc def)) pTerm)
-        [ "equalsInt.pir" -- this tests that the function works on equalInteger
-        , "divideInt.pir" -- this tests that the function excludes not commutative functions
-        , "multiplyInt.pir" -- this tests that the function works on multiplyInteger
-        , "let.pir" -- this tests that it works in the subterms
-        , "unConstrConstrDataFst.pir"
-        , "unConstrConstrDataSnd.pir"
-        ]
-    )
-    ++
-    (fmap
-        (goldenPirEvalTrace pTermAsProg)
-        [ "unConstrConstrDataFst.pir.eval"
-        ]
-    )
-
+test_rewriteRules =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "RewriteRules"] $
+        (fmap
+            (goldenPir (runQuote . runTestPass (\tc -> rewritePassSC tc def)) pTerm)
+            [ "equalsInt.pir" -- this tests that the function works on equalInteger
+            , "divideInt.pir" -- this tests that the function excludes not commutative functions
+            , "multiplyInt.pir" -- this tests that the function works on multiplyInteger
+            , "let.pir" -- this tests that it works in the subterms
+            , "unConstrConstrDataFst.pir"
+            , "unConstrConstrDataSnd.pir"
+            ]
+        )
+        ++
+        (fmap
+            (goldenPirEvalTrace pTermAsProg)
+            [ "unConstrConstrDataFst.pir.eval"
+            ]
+        )
   where
     goldenPirEvalTrace = goldenPirM $ \ast -> ppCatch $ do
           -- we need traces to remain for checking the evaluation-order

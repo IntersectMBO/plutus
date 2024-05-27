@@ -17,13 +17,6 @@ source-repository head
   type:     git
   location: https://github.com/IntersectMBO/plutus
 
-flag defer-plugin-errors
-  description:
-    Defer errors from the plugin, useful for things like Haddock that can't handle it.
-
-  default:     False
-  manual:      True
-
 common lang
   default-language:   Haskell2010
   default-extensions:
@@ -46,8 +39,6 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -fobject-code -fno-ignore-interface-pragmas
     -fno-omit-interface-pragmas
-
-  if flag(defer-plugin-errors)
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING

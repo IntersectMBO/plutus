@@ -220,7 +220,7 @@ typeCheckAgainst
     -> m ()
 typeCheckAgainst p (PLC.Program _ v plcTerm) = do
     -- See Note [Checking the type of a term with Typeable]
-    term <- PIR.embed <$> PLC.rename plcTerm
+    term <- PIR.embedTerm <$> PLC.rename plcTerm
     -- We need to run Def *before* applying to the term, otherwise we may refer to abstract
     -- types and we won't match up with the term.
     idFun <- liftQuote $ runDefT () $ do

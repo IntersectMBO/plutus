@@ -21,7 +21,7 @@ import Test.Tasty.Extras
 import Control.Exception
 import Control.Lens hiding (op, transform)
 import Control.Monad.Except
-import Control.Monad.Morph
+import Control.Monad.Morph (hoist)
 import Control.Monad.Reader as Reader
 
 import PlutusCore qualified as PLC
@@ -125,7 +125,7 @@ withGoldenFileM name op = do
   dir <- currentDir
   let testFile = dir </> name
       goldenFile = dir </> name ++ ".golden"
-  return $ goldenVsTextM name goldenFile (op =<< T.readFile testFile)
+  embed $ goldenVsTextM name goldenFile (op =<< T.readFile testFile)
   where
     currentDir = joinPath <$> ask
 

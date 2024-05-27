@@ -52,4 +52,6 @@ clearBuiltinCostModel r = r
                { paramSerialiseData = mempty
                , paramVerifyEcdsaSecp256k1Signature = mempty
                , paramVerifySchnorrSecp256k1Signature = mempty
+               , paramIntegerToByteString = mempty
+               , paramByteStringToInteger = mempty
                }

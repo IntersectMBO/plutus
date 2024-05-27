@@ -11,14 +11,11 @@ module UntypedPlutusCore.Evaluation.Machine.CommonAPI
     runCek
     , runCekDeBruijn
     , runCekNoEmit
-    , unsafeRunCekNoEmit
     , evaluateCek
     , evaluateCekNoEmit
-    , unsafeEvaluateCek
-    , unsafeEvaluateCekNoEmit
     , EvaluationResult(..)
     , extractEvaluationResult
-    , unsafeExtractEvaluationResult
+    , unsafeToEvaluationResult
     -- * Errors
     , CekUserError(..)
     , ErrorWithCause(..)
@@ -63,7 +60,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import PlutusCore.Builtin
-import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
@@ -137,21 +133,6 @@ runCekNoEmit runner params mode =
     -- throw away the logs
     (\(res, cost, _logs) -> (res, cost)) . runCek runner params mode noEmitter
 
-{-| Unsafely evaluate a term a machine with logging disabled and keep track of costing.
-May throw a 'CekMachineException'.
-*THIS FUNCTION IS PARTIAL if the input term contains free variables*
--}
-unsafeRunCekNoEmit
-    :: ThrowableBuiltins uni fun
-    => MachineRunner cost uni fun ann
-    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-    -> ExBudgetMode cost uni fun
-    -> Term Name uni fun ann
-    -> (EvaluationResult (Term Name uni fun ()), cost)
-unsafeRunCekNoEmit runner params mode =
-    -- Don't use 'first': https://github.com/IntersectMBO/plutus/issues/3876
-    (\(e, l) -> (unsafeExtractEvaluationResult e, l)) . runCekNoEmit runner params mode
-
 -- | Evaluate a term using a machine with logging enabled.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 evaluateCek
@@ -174,29 +155,6 @@ evaluateCekNoEmit
     -> Term Name uni fun ann
     -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
 evaluateCekNoEmit runner params = fst . runCekNoEmit runner params restrictingEnormous
-
--- | Evaluate a term using a machine with logging enabled. May throw a 'CekMachineException'.
--- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
-unsafeEvaluateCek
-    :: ThrowableBuiltins uni fun
-    => MachineRunner RestrictingSt uni fun ann
-    -> EmitterMode uni fun
-    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-    -> Term Name uni fun ann
-    -> (EvaluationResult (Term Name uni fun ()), [Text])
-unsafeEvaluateCek runner emitTime params =
-    -- Don't use 'first': https://github.com/IntersectMBO/plutus/issues/3876
-    (\(e, l) -> (unsafeExtractEvaluationResult e, l)) . evaluateCek runner emitTime params
-
--- | Evaluate a term using a machine with logging disabled. May throw a 'CekMachineException'.
--- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
-unsafeEvaluateCekNoEmit
-    :: ThrowableBuiltins uni fun
-    => MachineRunner RestrictingSt uni fun ann
-    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-    -> Term Name uni fun ann
-    -> EvaluationResult (Term Name uni fun ())
-unsafeEvaluateCekNoEmit runner params = unsafeExtractEvaluationResult . evaluateCekNoEmit runner params
 
 -- | Unlift a value using a machine.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*

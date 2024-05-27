@@ -37,7 +37,7 @@ import Data.Primitive.PrimArray qualified as P
 import Data.SatInt (fromSatInt)
 import System.Directory.Extra (listFiles)
 import System.Environment (getArgs, getProgName)
-import System.FilePath (isExtensionOf)
+import System.FilePath (isExtensionOf, takeFileName)
 import System.IO (stderr)
 import Text.Printf (hPrintf, printf)
 
@@ -302,6 +302,70 @@ countBuiltins eventFiles = do
   P.itraversePrimArray_ printEntry finalCounts
     where printEntry i c = printf "%-35s %12d\n" (show (toEnum i :: DefaultFun)) c
 
+
+data EvaluationResult =  OK ExBudget | Failed | DeserialisationError
+
+-- Convert to a string for use in an R frame
+toRString :: EvaluationResult -> String
+toRString = \case
+  OK _ -> "T"
+  Failed -> "F"
+  DeserialisationError -> "NA"
+
+-- Print out the actual and claimed CPU and memory cost of every script.
+analyseCosts :: EventAnalyser
+analyseCosts ctx _ ev =
+  case ev of
+    PlutusV1Event ScriptEvaluationData{..} _ ->
+      let result =
+            case deserialiseScript PlutusV1 dataProtocolVersion dataScript of
+              Left _ -> DeserialisationError
+              Right script ->
+                case
+                  V1.evaluateScriptRestricting
+                  dataProtocolVersion
+                  V1.Quiet
+                  ctx
+                  dataBudget
+                  script
+                  dataInputs
+                of
+                  (_, Left _)     -> Failed
+                  (_, Right cost) -> OK cost
+      in printCost result dataBudget
+
+    PlutusV2Event ScriptEvaluationData{..} _ ->
+      let result =
+            case deserialiseScript PlutusV2 dataProtocolVersion dataScript of
+              Left _ -> DeserialisationError
+              Right script ->
+                case
+                  V2.evaluateScriptRestricting
+                  dataProtocolVersion
+                  V2.Quiet
+                  ctx
+                  dataBudget
+                  script
+                  dataInputs
+                of
+                  (_, Left _)     -> Failed
+                  (_, Right cost) -> OK cost
+      in printCost result dataBudget
+
+  where printCost :: EvaluationResult -> ExBudget -> IO ()
+        printCost result claimedCost =
+          let (claimedCPU, claimedMem) = costAsInts claimedCost
+          in case result of
+               OK cost ->
+                 let (actualCPU, actualMem) = costAsInts cost
+                 in printf "%15d   %15d   %15d   %15d      %2s\n" actualCPU claimedCPU actualMem claimedMem (toRString result)
+               -- Something went wrong; print the cost as "NA" ("Not Available" in R) so that R can
+               -- still process it.
+               _ ->
+                 printf "%15s   %15d   %15s   %15d      %2s\n" "NA" claimedCPU "NA" claimedMem (toRString result)
+        costAsInts :: ExBudget -> (Int, Int)
+        costAsInts (ExBudget (V2.ExCPU cpu) (V2.ExMemory mem)) = (fromSatInt cpu, fromSatInt mem)
+
 -- Extract the script from an evaluation event and apply some analysis function
 analyseUnappliedScript
     :: (Term NamedDeBruijn DefaultUni DefaultFun () -> IO ())
@@ -325,6 +389,10 @@ analyseOneFile
     -> IO ()
 analyseOneFile analyse eventFile = do
   events <- loadEvents eventFile
+  printf "# %s\n" $ takeFileName eventFile
+  -- Print the file in the output so we can narrow down the location of
+  -- interesting/anomalous data.  This may not be helpful for some of the
+  -- analyses.
   case ( mkContext V1.mkEvaluationContext (eventsCostParamsV1 events)
        , mkContext V2.mkEvaluationContext (eventsCostParamsV2 events)
        ) of
@@ -354,29 +422,6 @@ analyseOneFile analyse eventFile = do
                 Nothing            -> putStrLn "*** ctxV2 missing ***"
 
 
-max_tx_ex_steps :: Double
-max_tx_ex_steps = 10_000_000_000
-
-max_tx_ex_mem :: Double
-max_tx_ex_mem = 14_000_000
-
--- Print out the CPU and memory budgets of each script event.  These are the costs
--- paid for by the submitters, not the actual costs consumed during execution.
--- TODO: add a version that tells us the actual execution costs.
-getBudgets :: EventAnalyser
-getBudgets _ctx _params ev =
-  let printFractions d =
-        let ExBudget (V2.ExCPU cpu) (V2.ExMemory mem) = dataBudget d
-        in printf "%15d   %10.8f   %15d   %10.8f\n"
-           (fromSatInt cpu :: Int)
-           ((fromSatInt cpu) / max_tx_ex_steps)
-           (fromSatInt mem :: Int)
-           ((fromSatInt mem) / max_tx_ex_mem)
-
-  in case ev of
-       PlutusV1Event evdata _expected -> printFractions evdata
-       PlutusV2Event evdata _expected -> printFractions evdata
-
 main :: IO ()
 main =
     let analyses =
@@ -400,10 +445,10 @@ main =
               , "count the total number of occurrences of each builtin in validator scripts"
               , countBuiltins
               )
-            , ( "budgets"
-              , "print (claimed) budgets of scripts"
-              , putStrLn "         cpu     cpuFraction             mem    memFraction"
-                `thenDoAnalysis` getBudgets
+            , ( "costs"
+              , "print actual and claimed costs of scripts"
+              , putStrLn "      cpuActual        cpuClaimed         memActual         memClaimed   status"
+                `thenDoAnalysis` analyseCosts
               )
             ]
 
@@ -411,17 +456,21 @@ main =
         (prelude `thenDoAnalysis` analyser) files = prelude >> doAnalysis analyser files
 
         usage = do
-          getProgName >>= hPrintf stderr "Usage: %s <dir> <analysis>\n"
+          getProgName >>= hPrintf stderr "Usage: %s <analysis> [<dir>]\n"
+          hPrintf stderr "Analyse the .event files in <dir> (default = current directory)\n"
           hPrintf stderr "Avaliable analyses:\n"
           mapM_ printDescription analyses
               where printDescription (n,h,_) = hPrintf stderr "   %-16s: %s\n" n h
 
+        go name dir =
+          case find (\(n,_,_) -> n == name) analyses of
+            Nothing       -> printf "Unknown analysis: %s\n" name >> usage
+            Just (_,_,analysis) ->
+              filter ("event" `isExtensionOf`) <$> listFiles dir >>= \case
+              []         -> printf "No .event files in %s\n" dir
+              eventFiles -> analysis eventFiles
+
     in getArgs >>= \case
-           [dir, name] ->
-               case find (\(n,_,_) -> n == name) analyses of
-                    Nothing       -> printf "Unknown analysis: %s\n" name >> usage
-                    Just (_,_,analysis) ->
-                        filter ("event" `isExtensionOf`) <$> listFiles dir >>= \case
-                                   []         -> printf "No event files in %s\n" dir
-                                   eventFiles -> analysis eventFiles
-           _ -> usage
+      [name] -> go name "."
+      [name, dir] -> go name dir
+      _ -> usage
