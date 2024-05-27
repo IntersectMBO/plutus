@@ -35,7 +35,6 @@ module PlutusCore.Evaluation.Machine.Exception
 import PlutusPrelude
 
 import PlutusCore.Builtin.Result
-import PlutusCore.Evaluation.Error
 import PlutusCore.Evaluation.ErrorWithCause
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
@@ -74,7 +73,7 @@ instance structural ~ MachineError fun =>
         AsMachineError (EvaluationError operational structural) fun where
     _MachineError = _StructuralEvaluationError
 instance AsUnliftingError (MachineError fun) where
-    _UnliftingError = _UnliftingMachineError
+    __UnliftingError = _UnliftingMachineError
 
 type EvaluationException operational structural =
     ErrorWithCause (EvaluationError operational structural)

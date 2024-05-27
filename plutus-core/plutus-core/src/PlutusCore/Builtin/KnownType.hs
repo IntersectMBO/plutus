@@ -244,22 +244,27 @@ Lifting is allowed to the following classes of types:
 -- happy path, hence this function must not force its first argument.
 -- TODO: wrap @cause@ in 'Lazy' once we have it.
 throwBuiltinErrorWithCause
-    :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err)
+    :: ( MonadError (ErrorWithCause err cause) m
+       , AsUnliftingEvaluationError err, AsEvaluationFailure err
+       )
     => cause -> BuiltinError -> m void
 throwBuiltinErrorWithCause cause = \case
-    BuiltinUnliftingError unlErr -> throwingWithCause _UnliftingError unlErr $ Just cause
-    BuiltinEvaluationFailure     -> throwingWithCause _EvaluationFailure () $ Just cause
+    BuiltinUnliftingEvaluationError unlErr ->
+        throwingWithCause __UnliftingEvaluationError unlErr $ Just cause
+    BuiltinEvaluationFailure ->
+        throwingWithCause _EvaluationFailure () $ Just cause
 
 typeMismatchError
     :: PrettyParens (SomeTypeIn uni)
     => uni (Esc a)
     -> uni (Esc b)
-    -> UnliftingError
-typeMismatchError uniExp uniAct = MkUnliftingError . StructuralEvaluationError . fromString $ concat
-    [ "Type mismatch: "
-    , "expected: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniExp)
-    , "; actual: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniAct)
-    ]
+    -> UnliftingEvaluationError
+typeMismatchError uniExp uniAct =
+    UnliftingEvaluationError . StructuralEvaluationError . fromString $ concat
+        [ "Type mismatch: "
+        , "expected: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniExp)
+        , "; actual: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniAct)
+        ]
 -- Just for tidier Core to get generated, we don't care about performance here, since it's just a
 -- failure message and evaluation is about to be shut anyway.
 {-# NOINLINE typeMismatchError #-}
@@ -291,7 +296,7 @@ readKnownConstant val = asConstant val >>= oneShot \case
         -- optimize some of the matching away.
         case uniExp `geq` uniAct of
             Just Refl -> pure x
-            Nothing   -> throwing _UnliftingError $ typeMismatchError uniExp uniAct
+            Nothing   -> throwing _BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
@@ -335,7 +340,7 @@ makeKnownOrFail x = case makeKnown x of
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
 readKnownSelf
-    :: (ReadKnown val a, AsUnliftingError err, AsEvaluationFailure err)
+    :: (ReadKnown val a, AsUnliftingEvaluationError err, AsEvaluationFailure err)
     => val -> Either (ErrorWithCause err val) a
 readKnownSelf val = fromRightM (throwBuiltinErrorWithCause val) $ readKnown val
 {-# INLINE readKnownSelf #-}
@@ -360,7 +365,9 @@ instance
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (EvaluationResult a) where
     readKnown _ =
-        throwing (_UnliftingError . _StructuralEvaluationError) "Panic: 'TypeError' was bypassed"
+        throwing
+            (_BuiltinUnliftingEvaluationError . _StructuralEvaluationError)
+            "Panic: 'TypeError' was bypassed"
     -- Just for 'readKnown' not to appear in the generated Core.
     {-# INLINE readKnown #-}
 
@@ -374,7 +381,9 @@ instance
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (Emitter a) where
     readKnown _ =
-        throwing (_UnliftingError . _StructuralEvaluationError) "Panic: 'TypeError' was bypassed"
+        throwing
+            (_BuiltinUnliftingEvaluationError . _StructuralEvaluationError)
+            "Panic: 'TypeError' was bypassed"
     -- Just for 'readKnown' not to appear in the generated Core.
     {-# INLINE readKnown #-}
 

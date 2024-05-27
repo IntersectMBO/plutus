@@ -24,6 +24,8 @@ import PlutusPrelude
 import PlutusCore.Evaluation.Result
 
 import Control.Lens
+import Data.Bifoldable
+import Data.Bitraversable
 
 {- | The type of errors that can occur during evaluation. There are two kinds of errors:
 
@@ -56,6 +58,18 @@ data EvaluationError operational structural
 mtraverse makeClassyPrisms
     [ ''EvaluationError
     ]
+
+instance Bifunctor EvaluationError where
+    bimap f _ (OperationalEvaluationError err) = OperationalEvaluationError $ f err
+    bimap _ g (StructuralEvaluationError err)  = StructuralEvaluationError $ g err
+
+instance Bifoldable EvaluationError where
+    bifoldMap f _ (OperationalEvaluationError err) = f err
+    bifoldMap _ g (StructuralEvaluationError err)  = g err
+
+instance Bitraversable EvaluationError where
+    bitraverse f _ (OperationalEvaluationError err) = OperationalEvaluationError <$> f err
+    bitraverse _ g (StructuralEvaluationError err)  = StructuralEvaluationError <$> g err
 
 instance AsEvaluationFailure operational =>
         AsEvaluationFailure (EvaluationError operational structural) where

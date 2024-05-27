@@ -9,8 +9,10 @@ module PlutusCore.Builtin.Result
     ( EvaluationError (..)
     , AsEvaluationError (..)
     , UnliftingError (..)
+    , UnliftingEvaluationError (..)
     , BuiltinError (..)
     , BuiltinResult (..)
+    , AsUnliftingEvaluationError (..)
     , AsUnliftingError (..)
     , AsBuiltinError (..)
     , AsBuiltinResult (..)
@@ -29,19 +31,26 @@ import PlutusCore.Evaluation.Result
 import Control.Lens
 import Control.Monad.Error.Lens (throwing, throwing_)
 import Control.Monad.Except
+import Data.Bitraversable
 import Data.DList (DList)
+import Data.String (IsString)
 import Data.Text (Text)
 import Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
-newtype UnliftingError = MkUnliftingError
-    { unUnliftingError :: EvaluationError Text Text
+newtype UnliftingError = UnliftingError
+    { unUnliftingError :: Text
+    } deriving stock (Show, Eq, Generic)
+      deriving newtype (IsString, Semigroup, NFData)
+
+newtype UnliftingEvaluationError = UnliftingEvaluationError
+    { unUnliftingEvaluationError :: EvaluationError UnliftingError UnliftingError
     } deriving stock (Show, Eq)
       deriving newtype (NFData)
 
 -- | The type of errors that 'readKnown' and 'makeKnown' can return.
 data BuiltinError
-    = BuiltinUnliftingError !UnliftingError
+    = BuiltinUnliftingEvaluationError !UnliftingEvaluationError
     | BuiltinEvaluationFailure
     deriving stock (Show, Eq)
 
@@ -67,20 +76,33 @@ data BuiltinResult a
 
 mtraverse makeClassyPrisms
     [ ''UnliftingError
+    , ''UnliftingEvaluationError
     , ''BuiltinError
     , ''BuiltinResult
     ]
 
-instance AsEvaluationError UnliftingError Text Text where
-    _EvaluationError = _UnliftingError . _EvaluationError
+instance Wrapped UnliftingError
+
+instance AsEvaluationError UnliftingEvaluationError UnliftingError UnliftingError where
+    _EvaluationError = _UnliftingEvaluationError . _EvaluationError
 
 instance (AsUnliftingError operational, AsUnliftingError structural) =>
-        AsUnliftingError (EvaluationError operational structural) where
-    _UnliftingError = undefined -- prism' (_ . unUnliftingError) _
+        AsUnliftingEvaluationError (EvaluationError operational structural) where
+    -- TODO: WAT?
+    __UnliftingEvaluationError =
+        prism'
+            (bimap
+                (review __UnliftingError)
+                (review __UnliftingError))
+            (bitraverse
+                (reoption . matching __UnliftingError)
+                (reoption . matching __UnliftingError))
+          . coerced
+    {-# INLINE __UnliftingEvaluationError #-}
 
-instance AsUnliftingError BuiltinError where
-    _UnliftingError = _BuiltinUnliftingError
-    {-# INLINE _UnliftingError #-}
+instance AsUnliftingEvaluationError BuiltinError where
+    __UnliftingEvaluationError = _BuiltinUnliftingEvaluationError . __UnliftingEvaluationError
+    {-# INLINE __UnliftingEvaluationError #-}
 
 instance AsEvaluationFailure BuiltinError where
     _EvaluationFailure = _EvaluationFailureVia BuiltinEvaluationFailure
@@ -106,18 +128,20 @@ instance MonadEmitter BuiltinResult where
     {-# INLINE emit #-}
 
 instance Pretty UnliftingError where
-    pretty (MkUnliftingError err) = fold
+    pretty (UnliftingError err) = fold
         [ "Could not unlift a value:", hardline
         , pretty err
         ]
 
+deriving newtype instance Pretty UnliftingEvaluationError
+
 instance Pretty BuiltinError where
-    pretty (BuiltinUnliftingError err) = "Builtin evaluation failure:" <+> pretty err
-    pretty BuiltinEvaluationFailure    = "Builtin evaluation failure"
+    pretty (BuiltinUnliftingEvaluationError err) = "Builtin evaluation failure:" <+> pretty err
+    pretty BuiltinEvaluationFailure              = "Builtin evaluation failure"
 
 throwNotAConstant :: MonadError BuiltinError m => m void
 throwNotAConstant =
-    throwError . BuiltinUnliftingError . MkUnliftingError $
+    throwError . BuiltinUnliftingEvaluationError . UnliftingEvaluationError $
         StructuralEvaluationError "Not a constant"
 {-# INLINE throwNotAConstant #-}
 
