@@ -67,4 +67,5 @@ clearBuiltinCostModel r = r
                , paramBls12_381_finalVerify = mempty
                , paramKeccak_256 = mempty
                , paramBlake2b_224 = mempty
+               , paramRipemd_160 = mempty
                }

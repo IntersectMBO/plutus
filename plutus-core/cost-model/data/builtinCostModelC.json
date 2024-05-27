@@ -735,6 +735,19 @@
             "type": "subtracted_sizes"
         }
     },
+    "ripemd_160": {
+        "cpu": {
+            "arguments": {
+                "intercept": 2261318,
+                "slope": 64571
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": 4,
+            "type": "constant_cost"
+        }
+    },
     "remainderInteger": {
         "cpu": {
             "arguments": {

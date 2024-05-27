@@ -150,4 +150,5 @@ builtinMemoryModels = BuiltinCostModelBase
   -- a special memory costing function to handle that.
   , paramIntegerToByteString             = Id $ ModelThreeArgumentsLiteralInYOrLinearInZ $ OneVariableLinearFunction 0 1
   , paramByteStringToInteger             = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 0 1
+  , paramRipemd_160                      = Id $ hashMemModel Hash.ripemd_160
   }

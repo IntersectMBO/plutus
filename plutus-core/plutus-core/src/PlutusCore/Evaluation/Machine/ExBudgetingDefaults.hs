@@ -330,6 +330,8 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     -- Bitwise operations
     , paramIntegerToByteString             = unitCostThreeArguments
     , paramByteStringToInteger             = unitCostTwoArguments
+    -- Ripemd_160
+    , paramRipemd_160                      = unitCostOneArgument
     }
 
 unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)

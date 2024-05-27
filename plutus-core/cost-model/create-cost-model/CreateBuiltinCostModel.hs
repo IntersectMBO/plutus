@@ -112,6 +112,7 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramKeccak_256                      = "keccak_256Model"
   , paramIntegerToByteString             = "integerToByteStringModel"
   , paramByteStringToInteger             = "byteStringToIntegerModel"
+  , paramRipemd_160                      = "ripemd_160Model"
   }
 
 
@@ -238,6 +239,8 @@ createBuiltinCostModel bmfile rfile = do
   -- Bitwise operations
   paramByteStringToInteger             <- getParams readCF2 paramByteStringToInteger
   paramIntegerToByteString             <- getParams readCF3 paramIntegerToByteString
+  -- And another hash function
+  paramRipemd_160                      <- getParams readCF1 paramRipemd_160
 
   pure $ BuiltinCostModelBase {..}
 

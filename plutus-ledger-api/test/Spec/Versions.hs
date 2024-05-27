@@ -76,7 +76,7 @@ testBuiltinVersions = testGroup "builtins"
          assertBool "not in l2,Vasil" $ isRight $ V2.deserialiseScript vasilPV serialiseDataExScript
          assertBool "not in l3,future" $ isRight $ V3.deserialiseScript futurePV serialiseDataExScript
     , testCase "bls,keccak256,blake2b224 only available in l3,Future and after" $
-         for_ [blsExScript, keccak256ExScript, blake2b224ExScript] $ \script -> do
+         for_ [blsExScript, keccak256ExScript, blake2b224ExScript, ripemd160ExScript] $ \script -> do
              assertBool "in l1,Alonzo" $ isLeft $ V1.deserialiseScript alonzoPV script
              assertBool "in l1,Vasil" $ isLeft $ V1.deserialiseScript vasilPV script
              assertBool "in l2,Alonzo" $ isLeft $ V2.deserialiseScript alonzoPV script
@@ -148,3 +148,7 @@ keccak256ExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
 blake2b224ExScript :: SerialisedScript
 blake2b224ExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
     builtin () Blake2b_224 @@ [mkConstant @BS.ByteString () "hashme"]
+
+ripemd160ExScript :: SerialisedScript
+ripemd160ExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
+    builtin () Ripemd_160 @@ [mkConstant @BS.ByteString () "hashme"]

@@ -266,5 +266,8 @@ data ParamName =
   | ByteStringToInteger'cpu'arguments'c2
   | ByteStringToInteger'memory'arguments'intercept
   | ByteStringToInteger'memory'arguments'slope
+  | Ripemd_160'cpu'arguments'intercept
+  | Ripemd_160'cpu'arguments'slope
+  | Ripemd_160'memory'arguments
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)

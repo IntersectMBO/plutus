@@ -417,5 +417,8 @@ main =
               -- Bitwise operations
               , $(genTest 3 "integerToByteString")
               , $(genTest 2 "byteStringToInteger") Everywhere
+
+              -- Ripemd_160
+              , $(genTest 1 "ripemd_160")
               ]
 
