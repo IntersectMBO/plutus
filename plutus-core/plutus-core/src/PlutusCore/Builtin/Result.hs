@@ -85,6 +85,7 @@ instance Wrapped UnliftingError
 
 instance AsEvaluationError UnliftingEvaluationError UnliftingError UnliftingError where
     _EvaluationError = _UnliftingEvaluationError . _EvaluationError
+    {-# INLINE _EvaluationError #-}
 
 instance (AsUnliftingError operational, AsUnliftingError structural) =>
         AsUnliftingEvaluationError (EvaluationError operational structural) where

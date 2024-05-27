@@ -72,6 +72,8 @@ mtraverse makeClassyPrisms
 instance structural ~ MachineError fun =>
         AsMachineError (EvaluationError operational structural) fun where
     _MachineError = _StructuralEvaluationError
+
+-- TODO: state the assumption, rename 'MachineError'
 instance AsUnliftingError (MachineError fun) where
     __UnliftingError = _UnliftingMachineError
 

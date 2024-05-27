@@ -86,6 +86,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts
                                                                  CekMachineCostsBase (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
+import Control.Lens (iso)
 import Control.Lens.Review
 import Control.Monad (unless, when)
 import Control.Monad.Catch
@@ -404,6 +405,9 @@ data CekUserError
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
+
+instance AsUnliftingError CekUserError where
+    __UnliftingError = iso (UnliftingError . display) (const CekEvaluationFailure)
 
 type CekM :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
 -- | The monad the CEK machine runs in.
