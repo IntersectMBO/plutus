@@ -255,7 +255,7 @@ typeMismatchError
     => uni (Esc a)
     -> uni (Esc b)
     -> UnliftingError
-typeMismatchError uniExp uniAct = fromString $ concat
+typeMismatchError uniExp uniAct = MkUnliftingError . StructuralEvaluationError . fromString $ concat
     [ "Type mismatch: "
     , "expected: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniExp)
     , "; actual: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniAct)
@@ -335,9 +335,7 @@ makeKnownOrFail x = case makeKnown x of
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
 readKnownSelf
-    :: ( ReadKnown val a
-       , AsUnliftingError err, AsEvaluationFailure err
-       )
+    :: (ReadKnown val a, AsUnliftingError err, AsEvaluationFailure err)
     => val -> Either (ErrorWithCause err val) a
 readKnownSelf val = fromRightM (throwBuiltinErrorWithCause val) $ readKnown val
 {-# INLINE readKnownSelf #-}
@@ -361,7 +359,8 @@ instance
         ( TypeError ('Text "‘EvaluationResult’ cannot appear in the type of an argument")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (EvaluationResult a) where
-    readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
+    readKnown _ =
+        throwing (_UnliftingError . _StructuralEvaluationError) "Panic: 'TypeError' was bypassed"
     -- Just for 'readKnown' not to appear in the generated Core.
     {-# INLINE readKnown #-}
 
@@ -374,7 +373,8 @@ instance
         ( TypeError ('Text "‘Emitter’ cannot appear in the type of an argument")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (Emitter a) where
-    readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
+    readKnown _ =
+        throwing (_UnliftingError . _StructuralEvaluationError) "Panic: 'TypeError' was bypassed"
     -- Just for 'readKnown' not to appear in the generated Core.
     {-# INLINE readKnown #-}
 

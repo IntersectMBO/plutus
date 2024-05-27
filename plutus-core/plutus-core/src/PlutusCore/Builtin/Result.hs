@@ -6,7 +6,9 @@
 {-# LANGUAGE TemplateHaskell        #-}
 
 module PlutusCore.Builtin.Result
-    ( UnliftingError (..)
+    ( EvaluationError (..)
+    , AsEvaluationError (..)
+    , UnliftingError (..)
     , BuiltinError (..)
     , BuiltinResult (..)
     , AsUnliftingError (..)
@@ -21,21 +23,21 @@ module PlutusCore.Builtin.Result
 import PlutusPrelude
 
 import PlutusCore.Builtin.Emitter
+import PlutusCore.Evaluation.Error
 import PlutusCore.Evaluation.Result
 
 import Control.Lens
 import Control.Monad.Error.Lens (throwing, throwing_)
 import Control.Monad.Except
 import Data.DList (DList)
-import Data.String (IsString)
 import Data.Text (Text)
 import Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingError = MkUnliftingError
-    { unUnliftingError :: Text
+    { unUnliftingError :: EvaluationError Text Text
     } deriving stock (Show, Eq)
-      deriving newtype (IsString, Semigroup, NFData)
+      deriving newtype (NFData)
 
 -- | The type of errors that 'readKnown' and 'makeKnown' can return.
 data BuiltinError
@@ -68,6 +70,13 @@ mtraverse makeClassyPrisms
     , ''BuiltinError
     , ''BuiltinResult
     ]
+
+instance AsEvaluationError UnliftingError Text Text where
+    _EvaluationError = _UnliftingError . _EvaluationError
+
+instance (AsUnliftingError operational, AsUnliftingError structural) =>
+        AsUnliftingError (EvaluationError operational structural) where
+    _UnliftingError = undefined -- prism' (_ . unUnliftingError) _
 
 instance AsUnliftingError BuiltinError where
     _UnliftingError = _BuiltinUnliftingError
@@ -107,7 +116,9 @@ instance Pretty BuiltinError where
     pretty BuiltinEvaluationFailure    = "Builtin evaluation failure"
 
 throwNotAConstant :: MonadError BuiltinError m => m void
-throwNotAConstant = throwError $ BuiltinUnliftingError "Not a constant"
+throwNotAConstant =
+    throwError . BuiltinUnliftingError . MkUnliftingError $
+        StructuralEvaluationError "Not a constant"
 {-# INLINE throwNotAConstant #-}
 
 -- | Prepend logs to a 'BuiltinResult' computation.

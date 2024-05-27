@@ -35,6 +35,7 @@ module PlutusCore.Evaluation.Machine.Exception
 import PlutusPrelude
 
 import PlutusCore.Builtin.Result
+import PlutusCore.Evaluation.Error
 import PlutusCore.Evaluation.ErrorWithCause
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
@@ -65,50 +66,15 @@ data MachineError fun
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
-{- | The type of errors that can occur during evaluation. There are two kinds of errors:
-
-1. Operational ones -- these are errors that are indicative of the _logic_ of the program being
-   wrong. For example, 'Error' was executed, 'tailList' was applied to an empty list or evaluation
-   ran out of gas.
-2. Structural ones -- these are errors that are indicative of the _structure_ of the program being
-   wrong. For example, a free variable was encountered during evaluation, or a non-function was
-   applied to an argument.
-
-On the chain both of these are just regular failures and we don't distinguish between them there:
-if a script fails, it fails, it doesn't matter what the reason was. However in the tests it does
-matter why the failure occurred: a structural error may indicate that the test was written
-incorrectly while an operational error may be entirely expected.
-
-In other words, operational errors are regular runtime errors and structural errors are \"runtime
-type errors\". Which means that evaluating an (erased) well-typed program should never produce a
-structural error, only an operational one. This creates a sort of \"runtime type system\" for UPLC
-and it would be great to stick to it and enforce in tests etc, but we currently don't. For example,
-a built-in function expecting a list but getting something else should throw a structural error,
-but currently it'll throw an operational one. This is something that we plan to improve upon in
-future.
--}
-data EvaluationError operational structural
-    = OperationalEvaluationError !operational
-    | StructuralEvaluationError !structural
-    deriving stock (Show, Eq, Functor, Generic)
-    deriving anyclass (NFData)
-
 mtraverse makeClassyPrisms
     [ ''MachineError
-    , ''EvaluationError
     ]
 
 instance structural ~ MachineError fun =>
         AsMachineError (EvaluationError operational structural) fun where
     _MachineError = _StructuralEvaluationError
-instance AsUnliftingError structural =>
-        AsUnliftingError (EvaluationError operational structural) where
-    _UnliftingError = _StructuralEvaluationError . _UnliftingError
 instance AsUnliftingError (MachineError fun) where
     _UnliftingError = _UnliftingMachineError
-instance AsEvaluationFailure operational =>
-        AsEvaluationFailure (EvaluationError operational structural) where
-    _EvaluationFailure = _OperationalEvaluationError . _EvaluationFailure
 
 type EvaluationException operational structural =
     ErrorWithCause (EvaluationError operational structural)
@@ -163,10 +129,3 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         "A non-constructor value was scrutinized in a case expression"
     prettyBy _      (MissingCaseBranch i) =
         "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
-
-instance
-        ( HasPrettyDefaults config ~ 'True
-        , Pretty operational, PrettyBy config structural
-        ) => PrettyBy config (EvaluationError operational structural) where
-    prettyBy _      (OperationalEvaluationError operational) = pretty operational
-    prettyBy config (StructuralEvaluationError structural)   = prettyBy config structural
