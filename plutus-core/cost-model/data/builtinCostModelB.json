@@ -59,11 +59,14 @@
     },
     "blake2b_224": {
         "cpu": {
-            "arguments": 9223372036854775807,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 207616,
+                "slope": 8310
+            },
+            "type": "linear_in_x"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 4,
             "type": "constant_cost"
         }
     },
@@ -82,187 +85,199 @@
     },
     "bls12_381_G1_add": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 962335,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 18,
             "type": "constant_cost"
         }
     },
     "bls12_381_G1_compress": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 2780678,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 6,
             "type": "constant_cost"
         }
     },
     "bls12_381_G1_equal": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 442008,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 1,
             "type": "constant_cost"
         }
     },
     "bls12_381_G1_hashToGroup": {
         "cpu": {
-            "arguments": 9223372036854775807,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 52538055,
+                "slope": 3756
+            },
+            "type": "linear_in_x"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 18,
             "type": "constant_cost"
         }
     },
     "bls12_381_G1_neg": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 267929,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 18,
             "type": "constant_cost"
         }
     },
     "bls12_381_G1_scalarMul": {
         "cpu": {
-            "arguments": 9223372036854775807,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 76433006,
+                "slope": 8868
+            },
+            "type": "linear_in_x"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 18,
             "type": "constant_cost"
         }
     },
     "bls12_381_G1_uncompress": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 52948122,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 18,
             "type": "constant_cost"
         }
     },
     "bls12_381_G2_add": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 1995836,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 36,
             "type": "constant_cost"
         }
     },
     "bls12_381_G2_compress": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 3227919,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 12,
             "type": "constant_cost"
         }
     },
     "bls12_381_G2_equal": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 901022,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 1,
             "type": "constant_cost"
         }
     },
     "bls12_381_G2_hashToGroup": {
         "cpu": {
-            "arguments": 9223372036854775807,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 166917843,
+                "slope": 4307
+            },
+            "type": "linear_in_x"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 36,
             "type": "constant_cost"
         }
     },
     "bls12_381_G2_neg": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 284546,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 36,
             "type": "constant_cost"
         }
     },
     "bls12_381_G2_scalarMul": {
         "cpu": {
-            "arguments": 9223372036854775807,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 158221314,
+                "slope": 26549
+            },
+            "type": "linear_in_x"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 36,
             "type": "constant_cost"
         }
     },
     "bls12_381_G2_uncompress": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 74698472,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 36,
             "type": "constant_cost"
         }
     },
     "bls12_381_finalVerify": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 333849714,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 1,
             "type": "constant_cost"
         }
     },
     "bls12_381_millerLoop": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 254006273,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 72,
             "type": "constant_cost"
         }
     },
     "bls12_381_mulMlResult": {
         "cpu": {
-            "arguments": 9223372036854775807,
+            "arguments": 2174038,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 72,
             "type": "constant_cost"
         }
     },
     "byteStringToInteger": {
         "cpu": {
             "arguments": {
-                "c0": 9223372036854775807,
-                "c1": 9223372036854775807,
-                "c2": 9223372036854775807
+                "c0": 1006041,
+                "c1": 43623,
+                "c2": 251
             },
             "type": "quadratic_in_y"
         },
         "memory": {
             "arguments": {
-                "intercept": 9223372036854775807,
-                "slope": 9223372036854775807
+                "intercept": 0,
+                "slope": 1
             },
             "type": "linear_in_y"
         }
@@ -485,27 +500,30 @@
     "integerToByteString": {
         "cpu": {
             "arguments": {
-                "c0": 9223372036854775807,
-                "c1": 9223372036854775807,
-                "c2": 9223372036854775807
+                "c0": 1293828,
+                "c1": 28716,
+                "c2": 63
             },
             "type": "quadratic_in_z"
         },
         "memory": {
             "arguments": {
-                "intercept": 9223372036854775807,
-                "slope": 9223372036854775807
+                "intercept": 0,
+                "slope": 1
             },
             "type": "literal_in_y_or_linear_in_z"
         }
     },
     "keccak_256": {
         "cpu": {
-            "arguments": 9223372036854775807,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 2261318,
+                "slope": 64571
+            },
+            "type": "linear_in_x"
         },
         "memory": {
-            "arguments": 9223372036854775807,
+            "arguments": 4,
             "type": "constant_cost"
         }
     },
