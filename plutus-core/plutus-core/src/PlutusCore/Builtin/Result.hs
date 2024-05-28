@@ -86,7 +86,7 @@ mtraverse makeClassyPrisms
     ]
 
 instance AsEvaluationError UnliftingEvaluationError UnliftingError UnliftingError where
-    _EvaluationError = _UnliftingEvaluationError . _EvaluationError
+    _EvaluationError = coerced
     {-# INLINE _EvaluationError #-}
 
 instance (AsUnliftingError operational, AsUnliftingError structural) =>
