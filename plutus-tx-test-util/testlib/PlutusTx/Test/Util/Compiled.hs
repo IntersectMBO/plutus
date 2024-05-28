@@ -3,10 +3,11 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE ViewPatterns     #-}
 
-module Util.Common
+module PlutusTx.Test.Util.Compiled
     ( Program
     , Term
     , toAnonDeBruijnTerm
+    , toAnonDeBruijnProg
     , toNamedDeBruijnTerm
     , compiledCodeToTerm
     , haskellValueToTerm
@@ -44,6 +45,12 @@ toAnonDeBruijnTerm
     -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
 toAnonDeBruijnTerm = UPLC.termMapNames UPLC.unNameDeBruijn
 
+toAnonDeBruijnProg
+    :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+    -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+toAnonDeBruijnProg (UPLC.Program () ver body) =
+    UPLC.Program () ver $ toAnonDeBruijnTerm body
+
 {- | Just extract the body of a program wrapped in a 'CompiledCodeIn'.  We use this a lot. -}
 compiledCodeToTerm
     :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
@@ -58,7 +65,7 @@ haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
 {- | Just run a term to obtain an `EvaluationResult` (used for tests etc.) -}
 unsafeRunTermCek :: Term -> EvaluationResult Term
 unsafeRunTermCek =
-    unsafeExtractEvaluationResult
+    unsafeToEvaluationResult
         . (\(res, _, _) -> res)
         . runCekDeBruijn PLC.defaultCekParametersForTesting Cek.restrictingEnormous Cek.noEmitter
 

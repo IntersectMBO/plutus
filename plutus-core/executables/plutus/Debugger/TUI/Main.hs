@@ -46,7 +46,6 @@ import Control.Concurrent
 import Control.Monad.Except (runExcept)
 import Control.Monad.Primitive (unsafeIOToPrim)
 import Control.Monad.ST (RealWorld)
-import Data.Foldable
 import Data.Maybe
 import GHC.IO (stToIO)
 import Graphics.Vty qualified as Vty

@@ -25,8 +25,8 @@ import PlutusTx.Test
 import Data.Proxy
 
 primitives :: TestNested
-primitives = testNestedGhc "Primitives" [
-    goldenPir "string" string
+primitives = testNested "Primitives" . pure $ testNestedGhc
+  [ goldenPir "string" string
   , goldenPir "int" int
   , goldenPir "int2" int2
   , goldenPir "bool" bool

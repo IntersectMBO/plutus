@@ -12,8 +12,8 @@ import Data.Functor.Identity
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_unwrap :: TestTree
-test_unwrap = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "Unwrap" $
+test_unwrap =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "Unwrap"] $
         map
             (goldenPir (runIdentity . runTestPass unwrapCancelPass) pTerm)
             [ "unwrapWrap"

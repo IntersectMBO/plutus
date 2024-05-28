@@ -23,8 +23,8 @@ import PlutusTx.Test
 import Data.Proxy
 
 strict :: TestNested
-strict = testNestedGhc "Strict" [
-    goldenPirReadable "strictAdd" strictAdd
+strict = testNested "Strict" . pure $ testNestedGhc
+  [ goldenPirReadable "strictAdd" strictAdd
   , goldenPirReadable "strictAppend" strictAppend
   , goldenPirReadable "strictAppend2" strictAppend2
   , goldenPirReadable "strictAppendString" strictAppendString

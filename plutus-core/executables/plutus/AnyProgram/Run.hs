@@ -19,7 +19,6 @@ import Types
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
-import Data.Foldable
 import Data.Text as Text
 
 runRun :: (?opts :: Opts)

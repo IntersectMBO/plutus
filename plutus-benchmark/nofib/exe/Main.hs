@@ -201,9 +201,11 @@ options = hsubparser
 
 ---------------- Evaluation ----------------
 
-evaluateWithCek :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> UPLC.EvaluationResult (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+evaluateWithCek
+  :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+  -> UPLC.EvaluationResult (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
 evaluateWithCek =
-  UPLC.unsafeExtractEvaluationResult
+  UPLC.unsafeToEvaluationResult
   . (\(fstT,_,_) -> fstT)
   . UPLC.runCekDeBruijn PLC.defaultCekParametersForTesting UPLC.restrictingEnormous UPLC.noEmitter
 

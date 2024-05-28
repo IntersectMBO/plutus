@@ -1,4 +1,4 @@
-An error has occurred:  User error:
+An error has occurred:
 The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
 Caused by: (divideInteger 1 0)
 Final budget: ({cpu: 228687

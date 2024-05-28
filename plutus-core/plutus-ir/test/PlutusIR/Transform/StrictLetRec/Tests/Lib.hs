@@ -29,8 +29,8 @@ import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Core qualified as PIR
 import PlutusIR.Parser (pTerm)
 import UntypedPlutusCore.Core qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (CekValue, EvaluationResult (..), logEmitter,
-                                                 unsafeEvaluateCek)
+import UntypedPlutusCore.Evaluation.Machine.Cek (CekValue, EvaluationResult (..), evaluateCek,
+                                                 logEmitter, unsafeToEvaluationResult)
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts)
 
 pirTermFromFile
@@ -66,7 +66,7 @@ compilePirProgramOrFail pirProgram = do
     & runExceptT
     >>= \case
       Left (er :: PIR.Error DefaultUni DefaultFun (Provenance ())) -> fail $ show er
-      Right p -> pure (void p)
+      Right p                                                      -> pure (void p)
 
 compileTplcProgramOrFail
   :: (MonadFail m)
@@ -83,7 +83,8 @@ evaluateUplcProgramWithTraces
   :: UPLC.Program Name DefaultUni DefaultFun ()
   -> (EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ()), [Text])
 evaluateUplcProgramWithTraces uplcProg =
-  unsafeEvaluateCek logEmitter machineParameters (uplcProg ^. UPLC.progTerm)
+  first unsafeToEvaluationResult $
+    evaluateCek logEmitter machineParameters (uplcProg ^. UPLC.progTerm)
  where
   costModel :: CostModel CekMachineCosts BuiltinCostModel =
     CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
@@ -102,5 +103,5 @@ defaultCompilationCtx = do
 handlePirErrorByFailing
   :: (Pretty ann, MonadFail m) => Either (PIR.Error DefaultUni DefaultFun ann) a -> m a
 handlePirErrorByFailing = \case
-  Left e -> fail $ show e
+  Left e  -> fail $ show e
   Right x -> pure x

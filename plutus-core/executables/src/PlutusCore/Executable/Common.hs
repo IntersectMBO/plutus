@@ -71,7 +71,6 @@ import PlutusIR.Parser qualified as PIR (parse, program)
 import Control.Monad.Except
 import Data.Aeson qualified as Aeson
 import Data.ByteString.Lazy qualified as BSL
-import Data.Foldable (traverse_)
 import Data.HashMap.Monoidal qualified as H
 import Data.Kind (Type)
 import Data.List (intercalate)

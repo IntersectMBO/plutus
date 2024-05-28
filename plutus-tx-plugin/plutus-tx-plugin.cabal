@@ -172,7 +172,6 @@ test-suite plutus-tx-plugin-tests
     TH.Spec
     TH.TestTH
     Unicode.Spec
-    Util.Common
 
   build-depends:
     , base                                            >=4.9   && <5
@@ -186,6 +185,7 @@ test-suite plutus-tx-plugin-tests
     , mtl
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.28
     , plutus-tx-plugin                                ^>=1.28
+    , plutus-tx-test-util
     , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.28
     , serialise
     , tasty

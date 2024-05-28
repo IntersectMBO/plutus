@@ -26,7 +26,6 @@ import UntypedPlutusCore.Test.DeBruijn.Good
 import Control.Exception (evaluate)
 import Control.Monad.Extra (whenJust)
 import Control.Monad.Writer
-import Data.Foldable (for_)
 import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Maybe (fromJust)

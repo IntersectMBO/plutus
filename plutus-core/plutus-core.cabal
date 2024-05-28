@@ -825,6 +825,7 @@ library plutus-core-testlib
     , data-default-class
     , dependent-map                         >=0.4.0.0
     , filepath
+    , free
     , hashable
     , hedgehog                              >=1.0
     , lazy-search

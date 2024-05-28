@@ -16,7 +16,6 @@ import PlutusCore.Core
 import PlutusCore.Error
 
 import Control.Monad.Except
-import Data.Foldable (traverse_)
 
 -- | Ensure that all types in the 'Program' are normalized.
 checkProgram
