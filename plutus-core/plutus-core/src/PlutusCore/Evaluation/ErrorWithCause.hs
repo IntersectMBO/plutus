@@ -64,6 +64,8 @@ throwingWithCause
     => AReview e t -> t -> Maybe term -> m x
 throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cause) t
 
+-- | "Prismatically" throw a contentless error and its (optional) cause. 'throwingWithCause_' to
+-- 'throwingWithCause' is what 'throwing_' is to 'throwing'.
 throwingWithCause_
     -- Binds @exc@ so it can be used as a convenient parameter with @TypeApplications@.
     :: forall exc e term m x. (exc ~ ErrorWithCause e term, MonadError exc m)

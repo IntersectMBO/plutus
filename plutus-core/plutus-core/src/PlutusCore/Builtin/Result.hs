@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 
 module PlutusCore.Builtin.Result
@@ -16,6 +17,7 @@ module PlutusCore.Builtin.Result
     , AsUnliftingError (..)
     , AsBuiltinError (..)
     , AsBuiltinResult (..)
+    , _UnliftingErrorVia
     , _StructuralUnliftingError
     , _OperationalUnliftingError
     , throwNotAConstant
@@ -139,11 +141,15 @@ instance Pretty BuiltinError where
     pretty (BuiltinUnliftingEvaluationError err) = "Builtin evaluation failure:" <+> pretty err
     pretty BuiltinEvaluationFailure              = "Builtin evaluation failure"
 
-_StructuralUnliftingError :: AsBuiltinError err => AReview err UnliftingError
+_UnliftingErrorVia :: Pretty err => err -> Prism' err UnliftingError
+_UnliftingErrorVia err = iso (MkUnliftingError . display) (const err)
+{-# INLINE _UnliftingErrorVia #-}
+
+_StructuralUnliftingError :: AsBuiltinError err => Prism' err UnliftingError
 _StructuralUnliftingError = _BuiltinUnliftingEvaluationError . _StructuralEvaluationError
 {-# INLINE _StructuralUnliftingError #-}
 
-_OperationalUnliftingError :: AsBuiltinError err => AReview err UnliftingError
+_OperationalUnliftingError :: AsBuiltinError err => Prism' err UnliftingError
 _OperationalUnliftingError = _BuiltinUnliftingEvaluationError . _OperationalEvaluationError
 {-# INLINE _OperationalUnliftingError #-}
 

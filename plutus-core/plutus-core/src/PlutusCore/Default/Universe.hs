@@ -382,7 +382,7 @@ instance (HasConstantIn DefaultUni term, Integral a, Bounded a, Typeable a) =>
         inline readKnownConstant term >>= oneShot \(i :: Integer) ->
             -- We don't make use here of 'toIntegralSized' because of performance considerations,
             -- see: https://gitlab.haskell.org/ghc/ghc/-/issues/19641
-            -- TODO: benchmark an alternative `integerToIntMaybe`, modified from 'ghc-bignum'
+            -- TODO: benchmark an alternative 'integerToIntMaybe', modified from @ghc-bignum@
             if fromIntegral (minBound :: a) <= i && i <= fromIntegral (maxBound :: a)
                 then pure . AsInteger $ fromIntegral i
                 else throwing _OperationalUnliftingError . MkUnliftingError $ fold

@@ -36,7 +36,7 @@ import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.Subst
 
-import Control.Lens (iso, (^?))
+import Control.Lens ((^?))
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.ST
@@ -103,9 +103,6 @@ data CkUserError =
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
 
-instance AsUnliftingError CkUserError where
-    _UnliftingError = iso (MkUnliftingError . display) (const CkEvaluationFailure)
-
 -- | The CK machine-specific 'EvaluationException'.
 type CkEvaluationException uni fun =
     EvaluationException CkUserError (MachineError fun) (Term TyName Name uni fun ())
@@ -117,6 +114,9 @@ type CkM uni fun s =
 
 instance AsEvaluationFailure CkUserError where
     _EvaluationFailure = _EvaluationFailureVia CkEvaluationFailure
+
+instance AsUnliftingError CkUserError where
+    _UnliftingError = _UnliftingErrorVia CkEvaluationFailure
 
 instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."

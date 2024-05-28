@@ -71,6 +71,7 @@ instance Bitraversable EvaluationError where
     bitraverse f _ (OperationalEvaluationError err) = OperationalEvaluationError <$> f err
     bitraverse _ g (StructuralEvaluationError err)  = StructuralEvaluationError <$> g err
 
+-- | A raw evaluation failure is always an operational error.
 instance AsEvaluationFailure operational =>
         AsEvaluationFailure (EvaluationError operational structural) where
     _EvaluationFailure = _OperationalEvaluationError . _EvaluationFailure

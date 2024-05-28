@@ -86,7 +86,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts
                                                                  CekMachineCostsBase (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
-import Control.Lens (iso)
 import Control.Lens.Review
 import Control.Monad (unless, when)
 import Control.Monad.Catch
@@ -406,9 +405,6 @@ data CekUserError
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
 
-instance AsUnliftingError CekUserError where
-    _UnliftingError = iso (MkUnliftingError . display) (const CekEvaluationFailure)
-
 type CekM :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
 -- | The monad the CEK machine runs in.
 newtype CekM uni fun s a = CekM
@@ -483,6 +479,9 @@ instance ThrowableBuiltins uni fun => MonadError (CekEvaluationException NamedDe
 
 instance AsEvaluationFailure CekUserError where
     _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
+
+instance AsUnliftingError CekUserError where
+    _UnliftingError = _UnliftingErrorVia CekEvaluationFailure
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res)) =
