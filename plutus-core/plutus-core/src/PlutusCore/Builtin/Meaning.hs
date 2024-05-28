@@ -109,8 +109,9 @@ throw an error instead of overflowing its first argument.
 One denotation from each builtin is grouped into a 'BuiltinSemanticsVariant'.
 Each Plutus Language version is linked to a specific 'BuiltinSemanticsVariant'
 (done by plutus-ledger-api); e.g. plutus-v1 and plutus-v2 are linked to
-'DefaultFunSemanticsVariantA', whereas plutus-v3 changes the set of denotations
-to 'DefaultFunSemanticsVariantC' (thus fixing 'ConsByteString').
+'DefaultFunSemanticsVariantA' and 'DefaultFunSemanticsVariantB', whereas
+plutus-v3 changes the set of denotations to 'DefaultFunSemanticsVariantC' (thus
+fixing 'ConsByteString').
 
 Each 'BuiltinSemanticsVariant' (grouping) can change the denotation of one or
 more builtins --- or none, but what's the point in that?

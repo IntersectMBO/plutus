@@ -1840,7 +1840,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -}
 
 instance Default (BuiltinSemanticsVariant DefaultFun) where
-    def = DefaultFunSemanticsVariantC
+    def = maxBound
 
 instance Pretty (BuiltinSemanticsVariant DefaultFun) where
     pretty = viaShow

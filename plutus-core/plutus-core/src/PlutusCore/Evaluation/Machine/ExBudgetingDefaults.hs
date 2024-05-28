@@ -68,13 +68,14 @@ builtinCostModelVariantA =
 -- This is a huge record, inlining it is wasteful.
 {-# NOINLINE builtinCostModelVariantA #-}
 
+{- Note [No inlining for CekMachineCosts]
+We don't want this to get inlined, as otherwise the default 'CekMachineCosts'
+appears faster than 'CekMachineCosts' that we get in production after applying
+the costing parameters provided by the ledger. -}
 -- | Default costs for CEK machine instructions (variant A)
 cekMachineCostsVariantA :: CekMachineCosts
 cekMachineCostsVariantA =
   $$(readJSONFromFile DFP.cekMachineCostsFileA)
--- We don't want this to get inlined, as otherwise the default 'CekMachineCosts' appears faster
--- than 'CekMachineCosts' that we get in production after applying the costing parameters provided
--- by the ledger.
 {-# NOINLINE cekMachineCostsVariantA #-}
 
 {-| The default cost model, including both builtin costs and machine step costs.
@@ -94,6 +95,7 @@ builtinCostModelVariantB =
     $$(readJSONFromFile DFP.builtinCostModelFileB)
 {-# NOINLINE builtinCostModelVariantB #-}
 
+-- See Note [No inlining for CekMachineCosts]
 cekMachineCostsVariantB :: CekMachineCosts
 cekMachineCostsVariantB =
   $$(readJSONFromFile DFP.cekMachineCostsFileB)
@@ -107,6 +109,7 @@ builtinCostModelVariantC =
     $$(readJSONFromFile DFP.builtinCostModelFileC)
 {-# NOINLINE builtinCostModelVariantC #-}
 
+-- See Note [No inlining for CekMachineCosts]
 cekMachineCostsVariantC :: CekMachineCosts
 cekMachineCostsVariantC =
   $$(readJSONFromFile DFP.cekMachineCostsFileC)
@@ -139,16 +142,20 @@ defaultCostModelParamsForVariant = \case
   DefaultFunSemanticsVariantB -> defaultCostModelParamsB
   DefaultFunSemanticsVariantC -> defaultCostModelParamsC
 
+{- Note [No inlining for MachineParameters]
+We don't want this to get inlined in order for this definition not to appear
+faster than the used in production. Also see Note [noinline for saving on
+ticks]. -}
 defaultCekParametersA :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersA =
-    -- We don't want this to get inlined in order for this definition not to appear faster than the
-    -- one used in production. Also see Note [noinline for saving on ticks].
     noinline mkMachineParameters DefaultFunSemanticsVariantA cekCostModelVariantA
 
+-- See Note [No inlining for MachineParameters]
 defaultCekParametersB :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersB =
     noinline mkMachineParameters DefaultFunSemanticsVariantB cekCostModelVariantB
 
+-- See Note [No inlining for MachineParameters]
 defaultCekParametersC :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersC =
     noinline mkMachineParameters DefaultFunSemanticsVariantC cekCostModelVariantC
@@ -163,13 +170,12 @@ defaultBuiltinsRuntimeForSemanticsVariant
     => BuiltinSemanticsVariant DefaultFun
     -> BuiltinsRuntime DefaultFun term
 -- See Note [noinline for saving on ticks].
-defaultBuiltinsRuntimeForSemanticsVariant = \case
-  DefaultFunSemanticsVariantA ->
-    noinline toBuiltinsRuntime DefaultFunSemanticsVariantA builtinCostModelVariantA
-  DefaultFunSemanticsVariantB ->
-    noinline toBuiltinsRuntime DefaultFunSemanticsVariantB builtinCostModelVariantB
-  DefaultFunSemanticsVariantC ->
-    noinline toBuiltinsRuntime DefaultFunSemanticsVariantC builtinCostModelVariantC
+defaultBuiltinsRuntimeForSemanticsVariant semvar =
+  noinline toBuiltinsRuntime semvar $ builtinCostModelFor semvar
+  where builtinCostModelFor = \case
+          DefaultFunSemanticsVariantA -> builtinCostModelVariantA
+          DefaultFunSemanticsVariantB -> builtinCostModelVariantB
+          DefaultFunSemanticsVariantC -> builtinCostModelVariantC
 
 defaultCekParametersForVariant
   :: Typeable ann
