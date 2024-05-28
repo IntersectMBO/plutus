@@ -16,10 +16,8 @@ module PlutusCore.Builtin.Result
     , AsUnliftingError (..)
     , AsBuiltinError (..)
     , AsBuiltinResult (..)
-    , throwingUnliftingEvaluationError
-    , throwUnliftingEvaluationError
-    , throwStructuralUnliftingError
-    , throwOperationalUnliftingError
+    , _StructuralUnliftingError
+    , _OperationalUnliftingError
     , throwNotAConstant
     , withLogs
     , throwing
@@ -141,25 +139,16 @@ instance Pretty BuiltinError where
     pretty (BuiltinUnliftingEvaluationError err) = "Builtin evaluation failure:" <+> pretty err
     pretty BuiltinEvaluationFailure              = "Builtin evaluation failure"
 
-throwingUnliftingEvaluationError
-    :: MonadError BuiltinError m => AReview UnliftingEvaluationError err -> err -> m void
-throwingUnliftingEvaluationError l = throwing $ _BuiltinUnliftingEvaluationError . l
-{-# INLINE throwingUnliftingEvaluationError #-}
+_StructuralUnliftingError :: AsBuiltinError err => AReview err UnliftingError
+_StructuralUnliftingError = _BuiltinUnliftingEvaluationError . _StructuralEvaluationError
+{-# INLINE _StructuralUnliftingError #-}
 
-throwUnliftingEvaluationError :: MonadError BuiltinError m => UnliftingEvaluationError -> m void
-throwUnliftingEvaluationError = throwingUnliftingEvaluationError id
-{-# INLINE throwUnliftingEvaluationError #-}
-
-throwStructuralUnliftingError :: MonadError BuiltinError m => UnliftingError -> m void
-throwStructuralUnliftingError = throwingUnliftingEvaluationError _StructuralEvaluationError
-{-# INLINE throwStructuralUnliftingError #-}
-
-throwOperationalUnliftingError :: MonadError BuiltinError m => UnliftingError -> m void
-throwOperationalUnliftingError = throwingUnliftingEvaluationError _OperationalEvaluationError
-{-# INLINE throwOperationalUnliftingError #-}
+_OperationalUnliftingError :: AsBuiltinError err => AReview err UnliftingError
+_OperationalUnliftingError = _BuiltinUnliftingEvaluationError . _OperationalEvaluationError
+{-# INLINE _OperationalUnliftingError #-}
 
 throwNotAConstant :: MonadError BuiltinError m => m void
-throwNotAConstant = throwStructuralUnliftingError "Not a constant"
+throwNotAConstant = throwing _StructuralUnliftingError "Not a constant"
 {-# INLINE throwNotAConstant #-}
 
 -- | Prepend logs to a 'BuiltinResult' computation.

@@ -280,7 +280,7 @@ readKnownConstant val = asConstant val >>= oneShot \case
         -- optimize some of the matching away.
         case uniExp `geq` uniAct of
             Just Refl -> pure x
-            Nothing   -> throwUnliftingEvaluationError $ typeMismatchError uniExp uniAct
+            Nothing   -> throwing _UnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
@@ -348,7 +348,7 @@ instance
         ( TypeError ('Text "‘EvaluationResult’ cannot appear in the type of an argument")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (EvaluationResult a) where
-    readKnown _ = throwStructuralUnliftingError "Panic: 'TypeError' was bypassed"
+    readKnown _ = throwing _StructuralUnliftingError "Panic: 'TypeError' was bypassed"
     -- Just for 'readKnown' not to appear in the generated Core.
     {-# INLINE readKnown #-}
 
@@ -361,7 +361,7 @@ instance
         ( TypeError ('Text "‘Emitter’ cannot appear in the type of an argument")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (Emitter a) where
-    readKnown _ = throwStructuralUnliftingError "Panic: 'TypeError' was bypassed"
+    readKnown _ = throwing _StructuralUnliftingError "Panic: 'TypeError' was bypassed"
     -- Just for 'readKnown' not to appear in the generated Core.
     {-# INLINE readKnown #-}
 
