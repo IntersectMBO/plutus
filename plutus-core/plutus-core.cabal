@@ -82,7 +82,8 @@ common lang
 library
   import:             lang
   exposed-modules:
-    Codec.CBOR.Extras
+    Codec.Extras.FlatViaSerialise
+    Codec.Extras.SerialiseViaFlat
     Data.Aeson.THReader
     Data.Either.Extras
     Data.List.Extras
