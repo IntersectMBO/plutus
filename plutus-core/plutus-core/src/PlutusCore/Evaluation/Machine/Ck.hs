@@ -104,7 +104,7 @@ data CkUserError =
     deriving anyclass (NFData)
 
 instance AsUnliftingError CkUserError where
-    __UnliftingError = iso (UnliftingError . display) (const CkEvaluationFailure)
+    _UnliftingError = iso (MkUnliftingError . display) (const CkEvaluationFailure)
 
 -- | The CK machine-specific 'EvaluationException'.
 type CkEvaluationException uni fun =

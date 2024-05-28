@@ -407,7 +407,7 @@ data CekUserError
     deriving anyclass (NFData)
 
 instance AsUnliftingError CekUserError where
-    __UnliftingError = iso (UnliftingError . display) (const CekEvaluationFailure)
+    _UnliftingError = iso (MkUnliftingError . display) (const CekEvaluationFailure)
 
 type CekM :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
 -- | The monad the CEK machine runs in.

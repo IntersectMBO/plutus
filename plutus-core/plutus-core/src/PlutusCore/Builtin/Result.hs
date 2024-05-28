@@ -38,12 +38,12 @@ import Data.Text (Text)
 import Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
-newtype UnliftingError = UnliftingError
+newtype UnliftingError = MkUnliftingError
     { unUnliftingError :: Text
-    } deriving stock (Show, Eq, Generic)
+    } deriving stock (Show, Eq)
       deriving newtype (IsString, Semigroup, NFData)
 
-newtype UnliftingEvaluationError = UnliftingEvaluationError
+newtype UnliftingEvaluationError = MkUnliftingEvaluationError
     { unUnliftingEvaluationError :: EvaluationError UnliftingError UnliftingError
     } deriving stock (Show, Eq)
       deriving newtype (NFData)
@@ -81,8 +81,6 @@ mtraverse makeClassyPrisms
     , ''BuiltinResult
     ]
 
-instance Wrapped UnliftingError
-
 instance AsEvaluationError UnliftingEvaluationError UnliftingError UnliftingError where
     _EvaluationError = _UnliftingEvaluationError . _EvaluationError
     {-# INLINE _EvaluationError #-}
@@ -90,20 +88,16 @@ instance AsEvaluationError UnliftingEvaluationError UnliftingError UnliftingErro
 instance (AsUnliftingError operational, AsUnliftingError structural) =>
         AsUnliftingEvaluationError (EvaluationError operational structural) where
     -- TODO: WAT?
-    __UnliftingEvaluationError =
+    _UnliftingEvaluationError =
         prism'
-            (bimap
-                (review __UnliftingError)
-                (review __UnliftingError))
-            (bitraverse
-                (reoption . matching __UnliftingError)
-                (reoption . matching __UnliftingError))
+            (bimap (review _UnliftingError) (review _UnliftingError))
+            (bitraverse (reoption . matching _UnliftingError) (reoption . matching _UnliftingError))
           . coerced
-    {-# INLINE __UnliftingEvaluationError #-}
+    {-# INLINE _UnliftingEvaluationError #-}
 
 instance AsUnliftingEvaluationError BuiltinError where
-    __UnliftingEvaluationError = _BuiltinUnliftingEvaluationError . __UnliftingEvaluationError
-    {-# INLINE __UnliftingEvaluationError #-}
+    _UnliftingEvaluationError = _BuiltinUnliftingEvaluationError . _UnliftingEvaluationError
+    {-# INLINE _UnliftingEvaluationError #-}
 
 instance AsEvaluationFailure BuiltinError where
     _EvaluationFailure = _EvaluationFailureVia BuiltinEvaluationFailure
@@ -129,7 +123,7 @@ instance MonadEmitter BuiltinResult where
     {-# INLINE emit #-}
 
 instance Pretty UnliftingError where
-    pretty (UnliftingError err) = fold
+    pretty (MkUnliftingError err) = fold
         [ "Could not unlift a value:", hardline
         , pretty err
         ]
@@ -142,7 +136,7 @@ instance Pretty BuiltinError where
 
 throwNotAConstant :: MonadError BuiltinError m => m void
 throwNotAConstant =
-    throwError . BuiltinUnliftingEvaluationError . UnliftingEvaluationError $
+    throwError . BuiltinUnliftingEvaluationError . MkUnliftingEvaluationError $
         StructuralEvaluationError "Not a constant"
 {-# INLINE throwNotAConstant #-}
 

@@ -75,7 +75,7 @@ instance structural ~ MachineError fun =>
 
 -- TODO: state the assumption, rename 'MachineError'
 instance AsUnliftingError (MachineError fun) where
-    __UnliftingError = _UnliftingMachineError
+    _UnliftingError = _UnliftingMachineError
 
 type EvaluationException operational structural =
     ErrorWithCause (EvaluationError operational structural)

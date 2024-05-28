@@ -387,7 +387,7 @@ instance (HasConstantIn DefaultUni term, Integral a, Bounded a, Typeable a) =>
                 then pure . AsInteger $ fromIntegral i
                 else throwing
                         (_BuiltinUnliftingEvaluationError . _OperationalEvaluationError) $
-                            UnliftingError $ fold
+                            MkUnliftingError $ fold
                                 [ Text.pack $ show i
                                 , " is not within the bounds of "
                                 , Text.pack . show . typeRep $ Proxy @a

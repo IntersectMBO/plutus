@@ -250,7 +250,7 @@ throwBuiltinErrorWithCause
     => cause -> BuiltinError -> m void
 throwBuiltinErrorWithCause cause = \case
     BuiltinUnliftingEvaluationError unlErr ->
-        throwingWithCause __UnliftingEvaluationError unlErr $ Just cause
+        throwingWithCause _UnliftingEvaluationError unlErr $ Just cause
     BuiltinEvaluationFailure ->
         throwingWithCause _EvaluationFailure () $ Just cause
 
@@ -260,7 +260,7 @@ typeMismatchError
     -> uni (Esc b)
     -> UnliftingEvaluationError
 typeMismatchError uniExp uniAct =
-    UnliftingEvaluationError . StructuralEvaluationError . fromString $ concat
+    MkUnliftingEvaluationError . StructuralEvaluationError . fromString $ concat
         [ "Type mismatch: "
         , "expected: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniExp)
         , "; actual: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniAct)
