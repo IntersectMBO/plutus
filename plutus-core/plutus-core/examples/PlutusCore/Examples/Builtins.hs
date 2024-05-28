@@ -197,10 +197,7 @@ instance tyname ~ TyName => KnownTypeAst tyname DefaultUni Void where
 instance UniOf term ~ DefaultUni => MakeKnownIn DefaultUni term Void where
     makeKnown = absurd
 instance UniOf term ~ DefaultUni => ReadKnownIn DefaultUni term Void where
-    readKnown _ =
-        throwing
-            (_BuiltinUnliftingEvaluationError . _StructuralEvaluationError)
-            "Can't unlift to 'Void'"
+    readKnown _ = throwStructuralUnliftingError "Can't unlift to 'Void'"
 
 data BuiltinErrorCall = BuiltinErrorCall
     deriving stock (Show, Eq)

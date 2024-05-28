@@ -16,6 +16,10 @@ module PlutusCore.Builtin.Result
     , AsUnliftingError (..)
     , AsBuiltinError (..)
     , AsBuiltinResult (..)
+    , throwingUnliftingEvaluationError
+    , throwUnliftingEvaluationError
+    , throwStructuralUnliftingError
+    , throwOperationalUnliftingError
     , throwNotAConstant
     , withLogs
     , throwing
@@ -87,12 +91,15 @@ instance AsEvaluationError UnliftingEvaluationError UnliftingError UnliftingErro
 
 instance (AsUnliftingError operational, AsUnliftingError structural) =>
         AsUnliftingEvaluationError (EvaluationError operational structural) where
-    -- TODO: WAT?
-    _UnliftingEvaluationError =
-        prism'
-            (bimap (review _UnliftingError) (review _UnliftingError))
-            (bitraverse (reoption . matching _UnliftingError) (reoption . matching _UnliftingError))
-          . coerced
+    _UnliftingEvaluationError = go . coerced where
+        go =
+            prism'
+                (bimap
+                    (review _UnliftingError)
+                    (review _UnliftingError))
+                (bitraverse
+                    (reoption . matching _UnliftingError)
+                    (reoption . matching _UnliftingError))
     {-# INLINE _UnliftingEvaluationError #-}
 
 instance AsUnliftingEvaluationError BuiltinError where
@@ -134,10 +141,25 @@ instance Pretty BuiltinError where
     pretty (BuiltinUnliftingEvaluationError err) = "Builtin evaluation failure:" <+> pretty err
     pretty BuiltinEvaluationFailure              = "Builtin evaluation failure"
 
+throwingUnliftingEvaluationError
+    :: MonadError BuiltinError m => AReview UnliftingEvaluationError err -> err -> m void
+throwingUnliftingEvaluationError l = throwing $ _BuiltinUnliftingEvaluationError . l
+{-# INLINE throwingUnliftingEvaluationError #-}
+
+throwUnliftingEvaluationError :: MonadError BuiltinError m => UnliftingEvaluationError -> m void
+throwUnliftingEvaluationError = throwingUnliftingEvaluationError id
+{-# INLINE throwUnliftingEvaluationError #-}
+
+throwStructuralUnliftingError :: MonadError BuiltinError m => UnliftingError -> m void
+throwStructuralUnliftingError = throwingUnliftingEvaluationError _StructuralEvaluationError
+{-# INLINE throwStructuralUnliftingError #-}
+
+throwOperationalUnliftingError :: MonadError BuiltinError m => UnliftingError -> m void
+throwOperationalUnliftingError = throwingUnliftingEvaluationError _OperationalEvaluationError
+{-# INLINE throwOperationalUnliftingError #-}
+
 throwNotAConstant :: MonadError BuiltinError m => m void
-throwNotAConstant =
-    throwError . BuiltinUnliftingEvaluationError . MkUnliftingEvaluationError $
-        StructuralEvaluationError "Not a constant"
+throwNotAConstant = throwStructuralUnliftingError "Not a constant"
 {-# INLINE throwNotAConstant #-}
 
 -- | Prepend logs to a 'BuiltinResult' computation.

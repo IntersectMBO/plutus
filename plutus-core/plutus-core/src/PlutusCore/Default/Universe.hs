@@ -385,13 +385,11 @@ instance (HasConstantIn DefaultUni term, Integral a, Bounded a, Typeable a) =>
             -- TODO: benchmark an alternative `integerToIntMaybe`, modified from 'ghc-bignum'
             if fromIntegral (minBound :: a) <= i && i <= fromIntegral (maxBound :: a)
                 then pure . AsInteger $ fromIntegral i
-                else throwing
-                        (_BuiltinUnliftingEvaluationError . _OperationalEvaluationError) $
-                            MkUnliftingError $ fold
-                                [ Text.pack $ show i
-                                , " is not within the bounds of "
-                                , Text.pack . show . typeRep $ Proxy @a
-                                ]
+                else throwOperationalUnliftingError . MkUnliftingError $ fold
+                        [ Text.pack $ show i
+                        , " is not within the bounds of "
+                        , Text.pack . show . typeRep $ Proxy @a
+                        ]
     {-# INLINE readKnown #-}
 
 #if WORD_SIZE_IN_BITS == 64

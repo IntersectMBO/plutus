@@ -43,7 +43,6 @@ import PlutusCore.Evaluation.ErrorWithCause
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
-import Control.Monad.Except
 import Data.Either.Extras
 import Data.String
 import GHC.Exts (inline, oneShot)
@@ -239,21 +238,6 @@ Lifting is allowed to the following classes of types:
    one, and for another example define an instance for 'Void' in tests
 -}
 
--- | Attach a @cause@ to a 'BuiltinError' and throw that.
--- Note that an evaluator might require the cause to be computed lazily for best performance on the
--- happy path, hence this function must not force its first argument.
--- TODO: wrap @cause@ in 'Lazy' once we have it.
-throwBuiltinErrorWithCause
-    :: ( MonadError (ErrorWithCause err cause) m
-       , AsUnliftingEvaluationError err, AsEvaluationFailure err
-       )
-    => cause -> BuiltinError -> m void
-throwBuiltinErrorWithCause cause = \case
-    BuiltinUnliftingEvaluationError unlErr ->
-        throwingWithCause _UnliftingEvaluationError unlErr $ Just cause
-    BuiltinEvaluationFailure ->
-        throwingWithCause _EvaluationFailure () $ Just cause
-
 typeMismatchError
     :: PrettyParens (SomeTypeIn uni)
     => uni (Esc a)
@@ -296,7 +280,7 @@ readKnownConstant val = asConstant val >>= oneShot \case
         -- optimize some of the matching away.
         case uniExp `geq` uniAct of
             Just Refl -> pure x
-            Nothing   -> throwing _BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct
+            Nothing   -> throwUnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
@@ -364,10 +348,7 @@ instance
         ( TypeError ('Text "‘EvaluationResult’ cannot appear in the type of an argument")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (EvaluationResult a) where
-    readKnown _ =
-        throwing
-            (_BuiltinUnliftingEvaluationError . _StructuralEvaluationError)
-            "Panic: 'TypeError' was bypassed"
+    readKnown _ = throwStructuralUnliftingError "Panic: 'TypeError' was bypassed"
     -- Just for 'readKnown' not to appear in the generated Core.
     {-# INLINE readKnown #-}
 
@@ -380,10 +361,7 @@ instance
         ( TypeError ('Text "‘Emitter’ cannot appear in the type of an argument")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (Emitter a) where
-    readKnown _ =
-        throwing
-            (_BuiltinUnliftingEvaluationError . _StructuralEvaluationError)
-            "Panic: 'TypeError' was bypassed"
+    readKnown _ = throwStructuralUnliftingError "Panic: 'TypeError' was bypassed"
     -- Just for 'readKnown' not to appear in the generated Core.
     {-# INLINE readKnown #-}
 
