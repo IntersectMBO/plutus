@@ -144,7 +144,7 @@ prop_typePreservation tyG tmG = do
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
   tmCK <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
 -- |Property: check if both the typed CK and untyped CEK machines produce the same output
@@ -162,14 +162,14 @@ prop_agree_termEval tyG tmG = do
 
   -- run typed CK on input
   tmCk <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting tm `catchError` handleError ty
 
   -- erase CK output
   let tmUCk = eraseTerm tmCk
 
   -- run untyped CEK on erased input
   tmUCek <- withExceptT UCekP $ liftEither $
-    U.evaluateCekNoEmit defaultCekParameters (eraseTerm tm) `catchError` handleUError
+    U.evaluateCekNoEmit defaultCekParametersForTesting (eraseTerm tm) `catchError` handleUError
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $

@@ -176,7 +176,8 @@ driverThread driverMailbox brickMailbox prog mbudget = do
             _                -> coerceMode counting
     -- nilSlippage is important so as to get correct live up-to-date budget
     cekTransWithBudgetRead <- mkCekTrans
-                                 PLC.defaultCekParameters
+                              -- TODO: get correct semantics variant
+                                 PLC.defaultCekParametersForTesting
                                  exBudgetMode
                                  brickEmitter
                                  nilSlippage
