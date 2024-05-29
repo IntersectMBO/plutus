@@ -71,7 +71,6 @@ import PlutusIR.Parser qualified as PIR (parse, program)
 import Control.Monad.Except
 import Data.Aeson qualified as Aeson
 import Data.ByteString.Lazy qualified as BSL
-import Data.Foldable (traverse_)
 import Data.HashMap.Monoidal qualified as H
 import Data.Kind (Type)
 import Data.List (intercalate)
@@ -485,9 +484,9 @@ runPrintExample getFn (ExampleOptions (ExampleSingle name)) = do
 
 ---------------- Print the cost model parameters ----------------
 
-runDumpModel :: IO ()
-runDumpModel = do
-    let params = fromJust PLC.defaultCostModelParams
+runDumpModel :: PLC.BuiltinSemanticsVariant PLC.DefaultFun -> IO ()
+runDumpModel semvar = do
+    let params = fromJust $ PLC.defaultCostModelParamsForVariant semvar
     BSL.putStr $ Aeson.encode params
 
 ---------------- Print the type signatures of the default builtins ----------------

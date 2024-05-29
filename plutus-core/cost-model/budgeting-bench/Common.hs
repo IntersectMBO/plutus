@@ -78,16 +78,15 @@ benchWith
     -> String
     -> PlainTerm DefaultUni fun
     -> Benchmark
-benchWith params name term = bench name $ whnf (unsafeEvaluateCekNoEmit params) term
-{- ^ Note that to get sensible results with whnf, we must use an evaluation
-   function that looks at the result, so eg unsafeEvaluateCek won't work
-   properly because it returns a pair whose components won't be evaluated by
-   whnf.  We can't use nf because it does too much work: for instance if it gets
-   back a 'Data' value it'll traverse all of it.
--}
+-- Note that to get sensible results with 'whnf', we must use an evaluation function that looks at
+-- the result, so e.g. 'evaluateCek' won't work properly because it returns a pair whose components
+-- won't be evaluated by 'whnf'. We can't use 'nf' because it does too much work: for instance if it
+-- gets back a 'Data' value it'll traverse all of it.
+benchWith params name term = bench name $ whnf (evaluateCekNoEmit params) term
 
+{- Benchmark with the most recent CekParameters -}
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
-benchDefault = benchWith defaultCekParameters
+benchDefault = benchWith defaultCekParametersForTesting
 
 
 ---------------- Constructing Polymorphic PLC terms for benchmarking ----------------

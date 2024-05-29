@@ -59,7 +59,8 @@ mock :: [Cmd Breakpoints] -- ^ commands to feed
      -> NTerm DefaultUni DefaultFun EmptyAnn -- ^ term to debug
      -> [String] -- ^ mocking output
 mock cmds t = runST $ unCekM $ do
-    (cekTrans,_) <- mkCekTrans defaultCekParameters restrictingEnormous noEmitter defaultSlippage
+    (cekTrans,_) <- mkCekTrans defaultCekParametersForTesting
+                    restrictingEnormous noEmitter defaultSlippage
     execWriterT $ flip runReaderT cmds $
         -- MAYBE: use cutoff or partialIterT to prevent runaway
         iterM (handle cekTrans) $ runDriverT t

@@ -7,5 +7,5 @@ OldState: Computing NewState: Returning
 Driver is going to do a single step
 OldState: Returning NewState: Computing
 Driver is going to do a single step
-OldState: Computing NewState is Error: An error has occurred:  User error:
+OldState: Computing NewState is Error: An error has occurred:
 The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.

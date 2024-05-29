@@ -11,6 +11,7 @@ module PlutusLedgerApi.Common.ProtocolVersions
     , vasilPV
     , valentinePV
     , conwayPV
+    , conwayPlus1PV
     , knownPVs
     , futurePV
     ) where
@@ -68,10 +69,25 @@ valentinePV = MajorProtocolVersion 8
 conwayPV :: MajorProtocolVersion
 conwayPV = MajorProtocolVersion 9
 
+-- | The next HF after Conway. It doesn't yet have a name, and it's not
+-- yet known whether it will be an intra-era HF or introduce a new era.
+conwayPlus1PV :: MajorProtocolVersion
+conwayPlus1PV = MajorProtocolVersion 10
+
 -- | The set of protocol versions that are "known", i.e. that have been released
 -- and have actual differences associated with them.
 knownPVs :: Set.Set MajorProtocolVersion
-knownPVs = Set.fromList [ shelleyPV, allegraPV, maryPV, alonzoPV, vasilPV, valentinePV, conwayPV ]
+knownPVs =
+  Set.fromList
+    [ shelleyPV
+    , allegraPV
+    , maryPV
+    , alonzoPV
+    , vasilPV
+    , valentinePV
+    , conwayPV
+    , conwayPlus1PV
+    ]
 
 -- | This is a placeholder for when we don't yet know what protocol version will
 -- be used for something. It's a very high protocol version that should never
@@ -91,13 +107,13 @@ Here's a table specifying the mapping in full:
 
   pv pre-Conway post-Conway
 ll
-1       0           1
-2       0           1
-3       2           2
+1       A           B
+2       A           B
+3       C           C
 
 I.e. for example
 
-- post-Conway 'PlutusV1' corresponds to 'DefaultFunSemanticsVariant1'
-- pre-Conway  'PlutusV2' corresponds to 'DefaultFunSemanticsVariant0'
-- post-Conway 'PlutusV3' corresponds to 'DefaultFunSemanticsVariant2'
+- post-Conway 'PlutusV1' corresponds to 'DefaultFunSemanticsVariantB'
+- pre-Conway  'PlutusV2' corresponds to 'DefaultFunSemanticsVariantA'
+- post-Conway 'PlutusV3' corresponds to 'DefaultFunSemanticsVariantC'
 -}

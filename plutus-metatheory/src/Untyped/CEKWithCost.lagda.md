@@ -1,3 +1,7 @@
+---
+title: CEK Machine with Costs
+layout: page
+---
 # CEK Machine with costs
 
 This module implements a CEK machine for UPLC which computes costs.

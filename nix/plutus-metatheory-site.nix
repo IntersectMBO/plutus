@@ -8,8 +8,12 @@ let
     name = "plutus-metatheory-doc";
     src = inputs.self + /plutus-metatheory;
     buildInputs = [ repoRoot.nix.agda-with-stdlib ];
+
+    # Because of a quirk with jekyll, the _layouts folder must be in the same
+    # directory as the source folder.
     buildPhase = ''
-      mkdir "$out"
+      mkdir $out
+      cp -R ${inputs.self + /plutus-metatheory/html/_layouts} $out
       agda --html --html-highlight=auto --html-dir="$out" "src/index.lagda.md"
     '';
     dontInstall = true;
@@ -21,7 +25,7 @@ let
     }
     ''
       mkdir "$out"
-      # disable the disk cache otherwise it tries to write to the source
+      # Disable the disk cache otherwise it tries to write to the source
       jekyll build \
         --disable-disk-cache \
         -s ${plutus-metatheory-agda-html} \

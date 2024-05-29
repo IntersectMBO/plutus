@@ -36,7 +36,6 @@ import PlutusCore.Test
 
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
-import Data.Foldable (for_)
 import Data.Proxy
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)

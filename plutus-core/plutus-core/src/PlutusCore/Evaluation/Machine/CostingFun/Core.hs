@@ -319,7 +319,7 @@ data ModelConstantOrLinear = ModelConstantOrLinear
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
-  -- | if p then f(x) else c; p depends on usage
+-- | if p then f(x) else c; p depends on usage
 data ModelConstantOrOneArgument = ModelConstantOrOneArgument
     { modelConstantOrOneArgumentConstant :: CostingInteger
     , modelConstantOrOneArgumentModel    :: ModelOneArgument

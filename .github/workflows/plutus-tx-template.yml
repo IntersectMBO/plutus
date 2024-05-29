@@ -1,0 +1,58 @@
+# This workflows ensures that the plutus-tx-template repository stays working 
+# even if there are changes in plutus. It checks out both the current commit of 
+# plutus and the master branch of plutus-tx-template. Then, it creates a 
+# cabal.project.local for plutus-tx-template that adjusts the plutus version. 
+# Finally, it double-checks that everything still builds correctly using cabal
+# inside the devx shell.
+
+name: Plutus Tx Template
+
+on:
+  pull_request:
+
+jobs:
+  plutus-tx-template:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout plutus-tx-template
+        uses: actions/checkout@v4.1.4
+        with: 
+          repository: IntersectMBO/plutus-tx-template
+          path: plutus-tx-template 
+
+      - name: Checkout plutus
+        uses: actions/checkout@v4.1.4
+        with: 
+          path: plutus-tx-template/plutus
+  
+      - name: Write cabal.project.local
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: plutus-tx-template/cabal.project.local
+          write-mode: overwrite
+          contents: |
+            packages: 
+              plutus/plutus-tx
+              plutus/plutus-tx-plugin
+              plutus/plutus-core
+              plutus/plutus-ledger-api
+              plutus/prettyprinter-configurable
+            
+            allow-newer:
+                plutus-tx
+              , plutus-tx-plugin
+              , plutus-core
+              , plutus-ledger-api 
+              , prettyprinter-configurable
+          
+      - name: Build Project With Docker
+        run: |
+          cd plutus-tx-template 
+          ls -la 
+          docker run \
+            -v ./.:/workspaces/plutus-tx-template \
+            -w /workspaces/plutus-tx-template \
+            -i ghcr.io/input-output-hk/devx-devcontainer:x86_64-linux.ghc96-iog \
+            bash -ic "cabal update && cabal run plutus-tx-template && test -e validator.uplc"
