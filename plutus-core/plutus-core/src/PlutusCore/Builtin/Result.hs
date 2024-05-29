@@ -41,12 +41,13 @@ import Data.String (IsString)
 import Data.Text (Text)
 import Prettyprinter
 
--- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
+-- | The error message part of an 'UnliftingEvaluationError'.
 newtype UnliftingError = MkUnliftingError
     { unUnliftingError :: Text
     } deriving stock (Show, Eq)
       deriving newtype (IsString, Semigroup, NFData)
 
+-- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingEvaluationError = MkUnliftingEvaluationError
     { unUnliftingEvaluationError :: EvaluationError UnliftingError UnliftingError
     } deriving stock (Show, Eq)
@@ -89,6 +90,9 @@ instance AsEvaluationError UnliftingEvaluationError UnliftingError UnliftingErro
     _EvaluationError = coerced
     {-# INLINE _EvaluationError #-}
 
+-- | An 'UnliftingEvaluationError' /is/ an 'EvaluationError', hence for this instance we only
+-- require both @operational@ and @structural@ to have '_UnliftingError' prisms, so that we can
+-- handle both the cases pointwisely.
 instance (AsUnliftingError operational, AsUnliftingError structural) =>
         AsUnliftingEvaluationError (EvaluationError operational structural) where
     _UnliftingEvaluationError = go . coerced where
@@ -141,6 +145,17 @@ instance Pretty BuiltinError where
     pretty (BuiltinUnliftingEvaluationError err) = "Builtin evaluation failure:" <+> pretty err
     pretty BuiltinEvaluationFailure              = "Builtin evaluation failure"
 
+-- | Construct a prism focusing on the @*EvaluationFailure@ part of @err@ by taking
+-- that @*EvaluationFailure@ and
+--
+-- 1. pretty-printing and embedding it into an 'UnliftingError' for the setter part of the prism
+-- 2. returning it directly for the opposite direction (there's no other way to convert an
+--    'UnliftingError' to an evaluation failure, since the latter doesn't carry any content)
+--
+-- This is useful for providing 'AsUnliftingError' instances for types such as 'CkUserError' and
+-- 'CekUserError' to make unlifting available in the 'CkM' and 'CekM' monads, so that one can easily
+-- unwrap an evaluated term as a constant of the specified type. See 'readKnownCk' and
+-- 'readKnownCek'.
 _UnliftingErrorVia :: Pretty err => err -> Prism' err UnliftingError
 _UnliftingErrorVia err = iso (MkUnliftingError . display) (const err)
 {-# INLINE _UnliftingErrorVia #-}

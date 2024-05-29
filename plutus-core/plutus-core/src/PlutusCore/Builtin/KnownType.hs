@@ -246,8 +246,8 @@ typeMismatchError
 typeMismatchError uniExp uniAct =
     MkUnliftingEvaluationError . StructuralEvaluationError . fromString $ concat
         [ "Type mismatch: "
-        , "expected: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniExp)
-        , "; actual: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniAct)
+        , "expected: " ++ displayBy botRenderContext (SomeTypeIn uniExp)
+        , "; actual: " ++ displayBy botRenderContext (SomeTypeIn uniAct)
         ]
 -- Just for tidier Core to get generated, we don't care about performance here, since it's just a
 -- failure message and evaluation is about to be shut anyway.
