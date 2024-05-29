@@ -20,7 +20,7 @@ import PlutusCore.Generators.Hedgehog.AST as AST (genName, genProgram, genTerm, 
 import PlutusCore.Generators.Hedgehog.Interesting (fromInterestingTermGens)
 import PlutusCore.Mark (markNonFreshProgram)
 import PlutusCore.Parser qualified as Parser
-import PlutusCore.Pretty (displayPlcDebug, pretty, render)
+import PlutusCore.Pretty (display, displayPlcSimple)
 import PlutusCore.Rename.Internal (renameProgramM)
 import PlutusCore.Test (BindingRemoval (BindingRemovalNotOk), Prerename (PrerenameNo), brokenRename,
                         checkFails, noMarkRename, test_scopingGood, test_scopingSpoilRenamer)
@@ -133,9 +133,9 @@ test_rebindShadowedVariable = testCase "rebindShadowedVariable" do
 
     err =
       concat
-        [ displayPlcDebug l2
+        [ displayPlcSimple l2
         , " and "
-        , displayPlcDebug r2
+        , displayPlcSimple r2
         , " are supposed not to be equal, but they are equal"
         ]
 
@@ -191,13 +191,10 @@ test_printing_parsing_roundtrip =
 prop_printing_parsing_roundtrip :: Property
 prop_printing_parsing_roundtrip = property $ generalizeT do
   name <- forAllPretty $ runAstGen genName
-  tripping name printName parseName
+  tripping name display parse
   where
-    printName :: Name -> String
-    printName = render . pretty
-
-    parseName :: String -> Either (PlutusCore.Error DefaultUni DefaultFun ()) Name
-    parseName str = runQuoteT do
+    parse :: String -> Either (PlutusCore.Error DefaultUni DefaultFun ()) Name
+    parse str = runQuoteT do
       Parser.parse Parser.name "test_printing_parsing_roundtrip" (Text.pack str)
 
 test_names :: TestTree

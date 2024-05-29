@@ -79,7 +79,7 @@ deriving anyclass instance
     (PLC.ThrowableBuiltins uni fun, PP.Pretty ann, Typeable ann) => Exception (Error uni fun ann)
 
 instance (PLC.PrettyUni uni, Pretty fun, Pretty ann) => Pretty (Error uni fun ann) where
-    pretty = PLC.prettyPlcClassicDef
+    pretty = PLC.prettyPlcClassic
 
 
 instance (PLC.PrettyUni uni, Pretty fun, Pretty ann) =>

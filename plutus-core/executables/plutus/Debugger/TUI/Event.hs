@@ -148,13 +148,13 @@ handleDebuggerEvent _ hsDir (B.AppEvent (UpdateClientEvent budgetData cekState))
                 BE.editorText
                     EditorReturnValue
                     Nothing
-                    (PLC.displayPlcDef (dischargeCekValue v))
+                    (PLC.displayPlc (dischargeCekValue v))
             Terminating t ->
                dsReturnValueEditor .~
                 BE.editorText
                     EditorReturnValue
                     Nothing
-                    (PLC.render $ vcat ["Evaluation Finished. Result:", line, PLC.prettyPlcDef t])
+                    (PLC.render $ vcat ["Evaluation Finished. Result:", line, PLC.prettyPlc t])
             Starting{} -> id
 handleDebuggerEvent _ _ (B.AppEvent (CekErrorEvent budgetData e)) =
     modify' $ \st ->
@@ -163,7 +163,7 @@ handleDebuggerEvent _ _ (B.AppEvent (CekErrorEvent budgetData e)) =
       -- on the chain: the difference is that on the chain, a budget may become zero (exhausted)
       -- but is not allowed to become negative.
       st & set dsBudgetData budgetData
-         & appendToLogsEditor ("Error happened:" <+> PLC.prettyPlcDef e)
+         & appendToLogsEditor ("Error happened:" <+> PLC.prettyPlc e)
 handleDebuggerEvent _ _ (B.AppEvent (DriverLogEvent t)) =
     modify' $ appendToLogsEditor ("Driver logged:" <+> pretty t)
 handleDebuggerEvent _ _ (B.AppEvent (CekEmitEvent t)) =

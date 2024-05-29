@@ -6,7 +6,7 @@ import Test.Tasty.Extras
 
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc
-import PlutusCore.Pretty (prettyPlcReadableDef)
+import PlutusCore.Pretty (prettyPlcReadable)
 import PlutusCore.Quote
 import PlutusPrelude (def)
 import Test.Tasty
@@ -16,7 +16,7 @@ import UntypedPlutusCore.Purity
 
 goldenEvalOrder :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestNested
 goldenEvalOrder name tm =
-  nestedGoldenVsDoc name "" (prettyPlcReadableDef $ termEvaluationOrder def tm)
+  nestedGoldenVsDoc name "" (prettyPlcReadable $ termEvaluationOrder def tm)
 
 -- Should hit Unknown before trying to process the undefined. Shows
 -- that the computation is lazy

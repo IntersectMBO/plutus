@@ -346,7 +346,7 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = concat
                   fun' = fixupTerm tyctx ctx tyctx ctx (TyForall () x k' tyInner') fun
             ]
           Left err -> error $ displayPlcCondensedErrorClassic err
-          Right tyWrong -> error $ "Expected a 'TyForall', but got " ++ displayPlcDef tyWrong
+          Right tyWrong -> error $ "Expected a 'TyForall', but got " ++ displayPlc tyWrong
 
         -- TODO: shrink the kind too like with the type in @LamAbs@ below.
         TyAbs _ x _ body | not $ Map.member x tyctx ->

@@ -134,5 +134,5 @@ goldenVsSimplified name =
     . BSL.fromStrict
     . encodeUtf8
     . render
-    . prettyClassicDebug
+    . prettyClassicSimple
     . caseOfCase

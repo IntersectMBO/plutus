@@ -64,13 +64,13 @@ forAllPrettyT = forAllWithT display
 
 -- | Generate a value using the 'PrettyPlc' constraint for getting its 'String' representation.
 forAllPrettyPlc :: (Monad m, PrettyPlc a) => Gen a -> PropertyT m a
-forAllPrettyPlc = forAllWith displayPlcDef
+forAllPrettyPlc = forAllWith displayPlc
 
 -- | Generate a value using the 'PrettyPlc' constraint for getting its 'String' representation.
 -- A supplied generator has access to the 'Monad' the whole property has access to.
 forAllPrettyPlcT :: (Monad m, PrettyPlc a) => GenT m a -> PropertyT m a
-forAllPrettyPlcT = forAllWithT displayPlcDef
+forAllPrettyPlcT = forAllWithT displayPlc
 
 -- | Pretty-print a PLC error.
 prettyPlcErrorString :: PrettyPlc err => err -> String
-prettyPlcErrorString = render . prettyPlcCondensedErrorBy debugPrettyConfigPlcClassic
+prettyPlcErrorString = render . prettyPlcCondensedErrorBy prettyConfigPlcClassicSimple
