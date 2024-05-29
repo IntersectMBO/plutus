@@ -318,7 +318,7 @@ readTwoVariableQuadraticFunction var1 var2 e = do
   c10 <- Coefficient10 <$> getCoeff (printf "I(%s)" var1) e
   c01 <- Coefficient01 <$> getCoeff (printf "I(%s)" var2) e
   c20 <- Coefficient20 <$> getCoeff (printf "I(%s^2)" var1) e
-  c11 <- Coefficient11 <$> getCoeff (printf "I(%s) * I(%s)" var1 var2) e
+  c11 <- Coefficient11 <$> getCoeff (printf "I(%s * %s)" var1 var2) e
   c02 <- Coefficient02 <$> getCoeff (printf "I(%s^2)" var2) e
   pure $ TwoVariableQuadraticFunction c00 c10 c01 c20 c11 c02
 
@@ -371,7 +371,7 @@ readCF2AtType ty e = do
     "const_above_diagonal" -> ModelTwoArgumentsConstAboveDiagonal <$> readTwoVariableFunConstOr e
     "const_off_diagonal"   -> ModelTwoArgumentsConstOffDiagonal   <$> readOneVariableFunConstOr e
     "quadratic_in_y"       -> ModelTwoArgumentsQuadraticInY       <$> readOneVariableQuadraticFunction "y_mem" e
-    "quadratic_in_x_and_y" -> ModelTwoArgumentsQuadraticInXandY   <$> readTwoVariableQuadraticFunction "x_mem" "y_mem" e
+    "quadratic_in_x_and_y" -> ModelTwoArgumentsQuadraticInXAndY   <$> readTwoVariableQuadraticFunction "x_mem" "y_mem" e
     _                      -> error $ "Unknown two-variable model type: " ++ ty
 
 readCF2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments

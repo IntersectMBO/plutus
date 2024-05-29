@@ -69,7 +69,7 @@ renderModel =
      LinearInZ             f   -> [ renderLinearFunction f "z" ]
      QuadraticInY          f   -> [ renderOneVariablrQuadraticFunction f "y" ]
      QuadraticInZ          f   -> [ renderOneVariablrQuadraticFunction f "z" ]
-     QuadraticInXandY      f   -> [ renderTwoVariableQuadraticFunction f "x" "y" ]
+     QuadraticInXAndY      f   -> [ renderTwoVariableQuadraticFunction f "x" "y" ]
      LiteralInYOrLinearInZ f -> [ "if y==0"
                                   , printf "then %s" $ renderLinearFunction f "z"
                                   , printf "else y bytes"
