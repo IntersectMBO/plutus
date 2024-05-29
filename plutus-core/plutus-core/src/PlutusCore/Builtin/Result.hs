@@ -145,6 +145,7 @@ instance Pretty BuiltinError where
     pretty (BuiltinUnliftingEvaluationError err) = "Builtin evaluation failure:" <+> pretty err
     pretty BuiltinEvaluationFailure              = "Builtin evaluation failure"
 
+-- See Note [Ignoring context in OperationalEvaluationError].
 -- | Construct a prism focusing on the @*EvaluationFailure@ part of @err@ by taking
 -- that @*EvaluationFailure@ and
 --
@@ -153,9 +154,7 @@ instance Pretty BuiltinError where
 --    'UnliftingError' to an evaluation failure, since the latter doesn't carry any content)
 --
 -- This is useful for providing 'AsUnliftingError' instances for types such as 'CkUserError' and
--- 'CekUserError' to make unlifting available in the 'CkM' and 'CekM' monads, so that one can easily
--- unwrap an evaluated term as a constant of the specified type. See 'readKnownCk' and
--- 'readKnownCek'.
+-- 'CekUserError'.
 _UnliftingErrorVia :: Pretty err => err -> Prism' err UnliftingError
 _UnliftingErrorVia err = iso (MkUnliftingError . display) (const err)
 {-# INLINE _UnliftingErrorVia #-}

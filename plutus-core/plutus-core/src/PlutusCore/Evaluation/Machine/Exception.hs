@@ -99,7 +99,7 @@ extractEvaluationResult
 extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
 extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
     StructuralEvaluationError err -> Left  $ ErrorWithCause err cause
-    OperationalEvaluationError _  -> Right $ EvaluationFailure
+    OperationalEvaluationError _  -> Right EvaluationFailure
 
 -- | Throw on a 'StructuralEvaluationError' and turn an 'OperationalEvaluationError' into an
 -- 'EvaluationFailure'.
