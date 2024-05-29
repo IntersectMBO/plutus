@@ -68,7 +68,7 @@ data Model
     | LiteralInYOrLinearInZ LinearFunction
     | QuadraticInY          OneVariableQuadraticFunction
     | QuadraticInZ          OneVariableQuadraticFunction
-    | QuadraticInXandY      TwoVariableQuadraticFunction
+    | QuadraticInXAndY      TwoVariableQuadraticFunction
     | SubtractedSizes       LinearFunction Integer
     -- ^ Linear model in x-y plus minimum value for the case x-y < 0.
     | ConstAboveDiagonal    Integer Model
@@ -110,7 +110,7 @@ instance FromJSON Model where
                "linear_in_z"                 -> LinearInZ             <$> parseJSON args
                "quadratic_in_y"              -> QuadraticInY          <$> parseJSON args
                "quadratic_in_z"              -> QuadraticInZ          <$> parseJSON args
-               "quadratic_in_x_and_y"        -> QuadraticInXandY      <$> parseJSON args
+               "quadratic_in_x_and_y"        -> QuadraticInXAndY      <$> parseJSON args
                "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
                "subtracted_sizes"            -> SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
                "const_above_diagonal"        -> modelWithConstant ConstAboveDiagonal args
