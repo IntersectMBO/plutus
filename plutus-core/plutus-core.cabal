@@ -1,22 +1,22 @@
-cabal-version:      3.0
-name:               plutus-core
-version:            1.28.0.0
-license:            Apache-2.0
+cabal-version:   3.0
+name:            plutus-core
+version:         1.28.0.0
+license:         Apache-2.0
 license-files:
   LICENSE
   NOTICE
 
-maintainer:         michael.peyton-jones@iohk.io
-author:             Plutus Core Team
-synopsis:           Language library for Plutus Core
-description:        Pretty-printer, parser, and typechecker for Plutus Core.
-category:           Language, Plutus
-build-type:         Simple
+maintainer:      michael.peyton-jones@iohk.io
+author:          Plutus Core Team
+synopsis:        Language library for Plutus Core
+description:     Pretty-printer, parser, and typechecker for Plutus Core.
+category:        Language, Plutus
+build-type:      Simple
 extra-doc-files:
   CHANGELOG.md
   README.md
 
-extra-source-files:
+data-files:
   cost-model/data/*.R
   cost-model/data/builtinCostModelA.json
   cost-model/data/builtinCostModelB.json
