@@ -20,17 +20,34 @@ instance FromJSON LinearFunction where
     parseJSON = withObject "Linear function" $ \obj ->
                 LinearFunction <$> obj .: "intercept" <*> obj .: "slope"
 
-data QuadraticFunction =
-    QuadraticFunction
+data OneVariableQuadraticFunction =
+    OneVariableQuadraticFunction
     { coeff0_ :: Integer
     , coeff1_ :: Integer
     , coeff2_ :: Integer
     }
     deriving stock (Show, Lift)
 
-instance FromJSON QuadraticFunction where
-    parseJSON = withObject "Quadratic function" $ \obj ->
-                QuadraticFunction <$> obj .: "c0" <*> obj .: "c1" <*> obj .: "c2"
+instance FromJSON OneVariableQuadraticFunction where
+    parseJSON = withObject "One-variable quadratic function" $ \obj ->
+                OneVariableQuadraticFunction <$> obj .: "c0" <*> obj .: "c1" <*> obj .: "c2"
+
+data TwoVariableQuadraticFunction =
+    TwoVariableQuadraticFunction
+    { coeff00_ :: Integer
+    , coeff10_ :: Integer
+    , coeff01_ :: Integer
+    , coeff20_ :: Integer
+    , coeff11_ :: Integer
+    , coeff02_ :: Integer
+    }
+    deriving stock (Show, Lift)
+
+instance FromJSON TwoVariableQuadraticFunction where
+    parseJSON = withObject "Two-variable quadratic function" $ \obj ->
+                TwoVariableQuadraticFunction <$>
+                obj .: "c00" <*> obj .: "c10" <*> obj .: "c01" <*>
+                obj .: "c20" <*> obj .: "c11" <*> obj .: "c02"
 
 {- | This type reflects what is actually in the JSON.  The stuff in
    CostingFun.Core and CostingFun.JSON is much more rigid, allowing parsing only
@@ -49,8 +66,9 @@ data Model
     | LinearInY             LinearFunction
     | LinearInZ             LinearFunction
     | LiteralInYOrLinearInZ LinearFunction
-    | QuadraticInY          QuadraticFunction
-    | QuadraticInZ          QuadraticFunction
+    | QuadraticInY          OneVariableQuadraticFunction
+    | QuadraticInZ          OneVariableQuadraticFunction
+    | QuadraticInXandY      TwoVariableQuadraticFunction
     | SubtractedSizes       LinearFunction Integer
     -- ^ Linear model in x-y plus minimum value for the case x-y < 0.
     | ConstAboveDiagonal    Integer Model
@@ -92,6 +110,7 @@ instance FromJSON Model where
                "linear_in_z"                 -> LinearInZ             <$> parseJSON args
                "quadratic_in_y"              -> QuadraticInY          <$> parseJSON args
                "quadratic_in_z"              -> QuadraticInZ          <$> parseJSON args
+               "quadratic_in_x_and_y"        -> QuadraticInXandY      <$> parseJSON args
                "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
                "subtracted_sizes"            -> SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
                "const_above_diagonal"        -> modelWithConstant ConstAboveDiagonal args
