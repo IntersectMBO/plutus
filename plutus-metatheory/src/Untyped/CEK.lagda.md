@@ -506,6 +506,10 @@ BUILTIN integerToByteString = λ
       }
   ; _ -> inj₁ userError
   }
+BUILTIN ripemd-160 = λ
+  { (app base (V-con bytestring b)) -> inj₂ (V-con bytestring (RIPEMD-160 b))
+  ; _ -> inj₁ userError
+  }
 
 -- Take an apparently more general index and show that it is a fully applied builtin.
 mkFullyAppliedBuiltin : ∀ { b }

@@ -132,6 +132,8 @@ data Builtin : Set where
   -- Bitwise operations
   byteStringToInteger             : Builtin
   integerToByteString             : Builtin
+  -- Ripemd-160
+  ripemd-160                      : Builtin
 ```
 
 ## Signatures
@@ -248,6 +250,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature blake2b-224                     = ∙ [ bytestring ↑ ]⟶ bytestring ↑
     signature blake2b-256                     = ∙ [ bytestring ↑ ]⟶ bytestring ↑
     signature keccak-256                      = ∙ [ bytestring ↑ ]⟶ bytestring ↑
+    signature ripemd-160                      = ∙ [ bytestring ↑ ]⟶ bytestring ↑
     signature verifyEd25519Signature          = ∙ [ bytestring ↑ , bytestring ↑ , bytestring ↑ ]⟶ bool ↑
     signature verifyEcdsaSecp256k1Signature   = ∙ [ bytestring ↑ , bytestring ↑ , bytestring ↑ ]⟶ bool ↑
     signature verifySchnorrSecp256k1Signature = ∙ [ bytestring ↑ , bytestring ↑ , bytestring ↑ ]⟶ bool ↑
@@ -390,6 +393,7 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | Blake2b_224
                                           | ByteStringToInteger
                                           | IntegerToByteString
+                                          | Ripemd_160
                                           ) #-}
 ```
 
@@ -445,6 +449,7 @@ postulate
   BLAKE2B-224               : ByteString → ByteString
   BStoI                     : Bool -> ByteString -> Int
   ItoBS                     : Bool -> Int -> Int -> Maybe ByteString
+  RIPEMD-160                : ByteString → ByteString
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
@@ -538,6 +543,8 @@ postulate
 {-# FOREIGN GHC import PlutusCore.Bitwise.Convert qualified as Convert #-}
 {-# COMPILE GHC BStoI = Convert.byteStringToIntegerWrapper #-}
 {-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Convert.integerToByteStringWrapper e w n #-}
+
+{-# COMPILE GHC RIPEMD-160 = Hash.ripemd_160 #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr

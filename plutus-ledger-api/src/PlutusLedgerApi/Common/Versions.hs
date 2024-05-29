@@ -117,7 +117,8 @@ builtinsIntroducedIn = Map.fromList [
           Bls12_381_G2_equal, Bls12_381_G2_hashToGroup,
           Bls12_381_G2_compress, Bls12_381_G2_uncompress,
           Bls12_381_millerLoop, Bls12_381_mulMlResult, Bls12_381_finalVerify,
-          Keccak_256, Blake2b_224, IntegerToByteString, ByteStringToInteger
+          Keccak_256, Blake2b_224, IntegerToByteString, ByteStringToInteger,
+          Ripemd_160
           ])
   ]
 

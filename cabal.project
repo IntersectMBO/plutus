@@ -82,3 +82,13 @@ allow-newer:
   , inline-r:bytestring
   , inline-r:containers
   , inline-r:primitive
+
+source-repository-package
+  type: git
+  location: https://github.com/paluh/cardano-base
+  tag: ea31e27ae4c9715232fa20e2e91f23e5bd967d65
+  subdir:
+    base-deriving-via
+    cardano-crypto-class
+    cardano-crypto-praos
+    cardano-crypto-tests

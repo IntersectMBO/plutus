@@ -152,6 +152,8 @@ data DefaultFun
     -- Conversions
     | IntegerToByteString
     | ByteStringToInteger
+    -- Ripemd_160
+    | Ripemd_160
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1820,6 +1822,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
             (runCostingFunTwoArguments . paramByteStringToInteger)
+
+    toBuiltinMeaning _semvar Ripemd_160 =
+        let ripemd_160Denotation :: BS.ByteString -> BS.ByteString
+            ripemd_160Denotation = Hash.ripemd_160
+            {-# INLINE ripemd_160Denotation #-}
+        in makeBuiltinMeaning
+            ripemd_160Denotation
+            (runCostingFunOneArgument . paramRipemd_160)
+
+
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1947,6 +1959,8 @@ instance Flat DefaultFun where
               IntegerToByteString             -> 73
               ByteStringToInteger             -> 74
 
+              Ripemd_160                      -> 75
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -2023,6 +2037,7 @@ instance Flat DefaultFun where
               go 72 = pure Blake2b_224
               go 73 = pure IntegerToByteString
               go 74 = pure ByteStringToInteger
+              go 75 = pure Ripemd_160
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
