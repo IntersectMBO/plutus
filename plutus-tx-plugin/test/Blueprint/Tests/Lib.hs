@@ -44,7 +44,7 @@ import PlutusTx.TH qualified as PlutusTx
 import Prelude
 import System.FilePath ((</>))
 import Test.Tasty (TestName)
-import Test.Tasty.Extras (TestNested)
+import Test.Tasty.Extras (TestNested, embed)
 import Test.Tasty.Golden (goldenVsFile)
 import UntypedPlutusCore qualified as UPLC
 
@@ -172,4 +172,4 @@ goldenJson name cb = do
   goldenPath <- asks $ foldr (</>) name
   let actual = goldenPath ++ ".actual.json"
   let golden = goldenPath ++ ".golden.json"
-  pure $ goldenVsFile name golden actual (cb actual)
+  embed $ goldenVsFile name golden actual (cb actual)

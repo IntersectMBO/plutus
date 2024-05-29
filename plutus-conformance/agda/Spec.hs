@@ -13,7 +13,7 @@ import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Evaluation.Machine.CostModelInterface (CekMachineCosts, CostModelParams,
                                                          applyCostModelParams)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCostModel)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCostModelForTesting)
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
 import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel (BuiltinCostKeyMap, BuiltinCostMap,
@@ -42,7 +42,7 @@ type RawCostModel = (CekMachineCosts, BuiltinCostMap)
 toRawCostModel :: CostModelParams -> RawCostModel
 toRawCostModel params =
     let CostModel machineCosts builtinCosts =
-            case applyCostModelParams defaultCekCostModel params of
+            case applyCostModelParams defaultCekCostModelForTesting params of
               Left e  -> error $ show e
               Right r -> r
 

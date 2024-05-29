@@ -13,8 +13,8 @@ import PlutusIR.Transform.Rename ()
 import Test.Tasty.QuickCheck
 
 test_rename :: TestTree
-test_rename = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "Rename" $
+test_rename =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "Rename"] $
         map
             (goldenPir
              (PLC.AttachPrettyConfig debugConfig . runQuote . runTestPass (const renamePass)) pTerm)

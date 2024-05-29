@@ -43,16 +43,16 @@
                                                                                               f ->
                                                                                                z)))))))))))))))))))))))
 , ({ tally: ({BStep BConst causes ({cpu: 0 | mem: 0})
-| BStep BVar causes ({cpu: 3128000 | mem: 13600})
-| BStep BLamAbs causes ({cpu: 2116000 | mem: 9200})
-| BStep BApply causes ({cpu: 2944000 | mem: 12800})
-| BStep BDelay causes ({cpu: 828000 | mem: 3600})
-| BStep BForce causes ({cpu: 782000 | mem: 3400})
-| BStep BBuiltin causes ({cpu: 207000 | mem: 900})
+| BStep BVar causes ({cpu: 2176000 | mem: 13600})
+| BStep BLamAbs causes ({cpu: 1472000 | mem: 9200})
+| BStep BApply causes ({cpu: 2048000 | mem: 12800})
+| BStep BDelay causes ({cpu: 576000 | mem: 3600})
+| BStep BForce causes ({cpu: 544000 | mem: 3400})
+| BStep BBuiltin causes ({cpu: 144000 | mem: 900})
 | BStep BConstr causes ({cpu: 0 | mem: 0})
 | BStep BCase causes ({cpu: 0 | mem: 0})
 | BBuiltinApp Id causes ({cpu: 0 | mem: 0})
 | BStartup causes ({cpu: 100 | mem: 100})})
-| budget: ({cpu: 10005100
+| budget: ({cpu: 6960100
 | mem: 43600})
 }) )

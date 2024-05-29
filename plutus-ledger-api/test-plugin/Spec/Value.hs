@@ -160,7 +160,7 @@ eqValueCode valueCode1 valueCode2 = (res, cost) where
         $$(compile [|| \value1 value2 -> toOpaque ((value1 :: Value) == value2) ||])
             `unsafeApplyCode` valueCode1 `unsafeApplyCode` valueCode2
     (errOrRes, cost)
-        = PLC.runCekNoEmit PLC.defaultCekParameters PLC.counting
+        = PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
         . PLC.runQuote
         . PLC.unDeBruijnTermWith (Haskell.error "Free variable")
         . PLC._progTerm
@@ -223,8 +223,7 @@ test_EqCurrencyList name currencyLists =
 
 test_EqValue :: TestTree
 test_EqValue =
-    runTestNestedIn ["test-plugin", "Spec"] $
-        testNestedGhc "Value"
-            [ test_EqCurrencyList "Short" currencyListOptions
-            , test_EqCurrencyList "Long" currencyLongListOptions
-            ]
+    runTestNested ["test-plugin", "Spec", "Value"] . pure . testNestedGhc $
+        [ test_EqCurrencyList "Short" currencyListOptions
+        , test_EqCurrencyList "Long" currencyLongListOptions
+        ]

@@ -10,8 +10,8 @@ import Test.Tasty
 import Test.Tasty.Extras
 
 test_beta :: TestTree
-test_beta = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "Beta" $
+test_beta =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "Beta"] $
         map
             (goldenPir (runQuote . runTestPass betaPassSC) pTerm)
             [ "lamapp"

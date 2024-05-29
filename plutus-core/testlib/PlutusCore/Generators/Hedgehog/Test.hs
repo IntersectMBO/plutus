@@ -95,11 +95,11 @@ sampleProgramValueGolden folder name genTerm = do
 propEvaluate
     :: ( uni ~ DefaultUni, fun ~ DefaultFun
        , KnownTypeAst TyName uni a, MakeKnown (Term TyName Name uni fun ()) a
-       , PrettyPlc internal
+       , PrettyPlc structural
        )
     => (Term TyName Name uni fun () ->
            Either
-            (EvaluationException user internal (Term TyName Name uni fun ()))
+            (EvaluationException operational structural (Term TyName Name uni fun ()))
             (Term TyName Name uni fun ()))
        -- ^ An evaluator.
     -> TermGen a  -- ^ A term/value generator.

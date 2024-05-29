@@ -104,7 +104,7 @@ prop_Term tyG tmG = do
 
   -- 2. run production CK against metatheory CK
   tmPlcCK <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting tm `catchError` handleError ty
   tmCK <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail "0" tyG tmG)) $
     liftEither $ runTCKAgda tmDB
   tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
@@ -147,6 +147,6 @@ prop_Term tyG tmG = do
 
   -- 4. run prod untyped CEK against meta untyped CEK
   tmU''' <- withExceptT UCekP $ liftEither $
-    U.evaluateCekNoEmit defaultCekParameters tmU'' `catchError` handleUError
+    U.evaluateCekNoEmit defaultCekParametersForTesting tmU'' `catchError` handleUError
   unless (tmU' == tmU''') $
     throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("meta U" , tmU'),("prod U" , tmU'')])

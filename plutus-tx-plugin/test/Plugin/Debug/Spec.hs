@@ -24,8 +24,7 @@ import Data.Proxy
 
 debug :: TestNested
 debug =
-    testNestedGhc
-        "Debug"
+    testNested "Debug" . pure $ testNestedGhc
         [ goldenPirBy config "letFun" letFun
         , goldenPirBy config "fib" fib
         ]
