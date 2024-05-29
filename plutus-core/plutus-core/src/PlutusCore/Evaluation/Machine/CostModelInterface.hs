@@ -259,9 +259,9 @@ data CostModelApplyWarn =
 
 instance Pretty CostModelApplyError where
     pretty = (preamble <+>) . \case
-        CMUnknownParamError k -> "Unknown cost model parameter:" <+> pretty k
-        CMInternalReadError      -> "Internal problem occurred upon reading the given cost model parameteres"
-        CMInternalWriteError str     -> "Internal problem occurred upon generating the applied cost model parameters with JSON error:" <+> pretty str
+        CMUnknownParamError k    -> "No such parameter in target cost model:" <+> pretty k
+        CMInternalReadError      -> "Internal problem occurred upon reading the given cost model parameters"
+        CMInternalWriteError str -> "Internal problem occurred upon generating the applied cost model parameters with JSON error:" <+> pretty str
       where
           preamble = "applyParams error:"
 

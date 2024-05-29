@@ -45,8 +45,11 @@ typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do
     -- builtins can change their type according to their 'BuiltinSemanticsVariant'.
     tcConfig <- TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes semvar ()
     _ <- TPLC.inferType tcConfig term
-    let runtime = mkMachineParameters semvar $ CostModel defaultCekMachineCosts costingPart
     return . action runtime $ TPLC.eraseTerm term
+    where
+      runtime = mkMachineParameters semvar $
+                -- FIXME: make sure we have the the correct cost model for the semantics variant.
+                   CostModel defaultCekMachineCostsForTesting costingPart
 
 -- | Type check and evaluate a term, logging enabled.
 typecheckEvaluateCek

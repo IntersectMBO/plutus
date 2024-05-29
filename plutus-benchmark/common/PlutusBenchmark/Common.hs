@@ -79,7 +79,7 @@ getConfig limit = do
 -- | Evaluate a script and return the CPU and memory costs (according to the cost model)
 getCostsCek :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> (Integer, Integer)
 getCostsCek (UPLC.Program _ _ prog) =
-    case Cek.runCekDeBruijn PLC.defaultCekParameters Cek.tallying Cek.noEmitter prog of
+    case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter prog of
       (_res, Cek.TallyingSt _ budget, _logs) ->
           let ExBudget (ExCPU cpu)(ExMemory mem) = budget
           in (fromSatInt cpu, fromSatInt mem)
@@ -89,14 +89,14 @@ getCostsCek (UPLC.Program _ _ prog) =
 -- deliberately not including it in the benchmarks.
 mkEvalCtx :: LedgerApi.EvaluationContext
 mkEvalCtx =
-    case PLC.defaultCostModelParams of
+    case PLC.defaultCostModelParamsForTesting of
         Just p ->
             let errOrCtx =
                     -- The validation benchmarks were all created from PlutusV1 scripts
                     LedgerApi.mkDynEvaluationContext
                         LedgerApi.PlutusV1
-                        [DefaultFunSemanticsVariant1]
-                        (const DefaultFunSemanticsVariant1)
+                        [DefaultFunSemanticsVariantB]
+                        (const DefaultFunSemanticsVariantB)
                         p
             in case errOrCtx of
                 Right ec -> ec

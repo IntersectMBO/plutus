@@ -12,7 +12,7 @@ import ShortCircuit.WithoutGHCOptimisations qualified as WithoutOptimisations
 
 import Control.Lens ((&), (^.))
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
 import PlutusTx.Code (CompiledCode, getPlc, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.TH (compile)
@@ -49,7 +49,7 @@ tests =
 assertResult :: NTerm DefaultUni DefaultFun () -> CompiledCode a -> Assertion
 assertResult expected code = do
   let plc = getPlc code ^. progTerm
-  case runCekDeBruijn defaultCekParameters counting noEmitter plc of
+  case runCekDeBruijn defaultCekParametersForTesting counting noEmitter plc of
     (Left ex, _counting, _logs)      -> assertFailure $ show ex
     (Right actual, _counting, _logs) -> assertEqual "Evaluation has succeeded" expected actual
 

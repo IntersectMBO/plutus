@@ -178,7 +178,7 @@ mkDynEvaluationContext ll semVars toSemVar newCMP =
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
-assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModel
+assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModelForTesting
 
 -- | Evaluate a fully-applied term using the CEK machine. Useful for mimicking the behaviour of the
 -- on-chain evaluator.
