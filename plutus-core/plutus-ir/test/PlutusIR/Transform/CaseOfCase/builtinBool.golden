@@ -1,36 +1,14 @@
-(let
-  (nonrec)
-  (datatypebind
-    (datatype
-      (tyvardecl Bool (type))
-
-      match_Bool
-      (vardecl True Bool) (vardecl False Bool)
-    )
-  )
-  (datatypebind
-    (datatype
-      (tyvardecl Maybe (fun (type) (type)))
-      (tyvardecl a (type))
-      match_Maybe
-      (vardecl Nothing [ Maybe a ]) (vardecl Just (fun a [ Maybe a ]))
-    )
-  )
-  (lam
+let
+  data Bool | match_Bool where
+    True : Bool
+    False : Bool
+  data (Maybe :: * -> *) a | match_Maybe where
+    Nothing : Maybe a
+    Just : a -> Maybe a
+in
+\(x : bool) ->
+  ifThenElse
+    {integer}
     x
-    (con bool)
-    [
-      [
-        [ { (builtin ifThenElse) (con integer) } x ]
-        [
-          [ { [ match_Bool False ] (con integer) } (con integer 1) ]
-          (con integer 0)
-        ]
-      ]
-      [
-        [ { [ match_Bool True ] (con integer) } (con integer 1) ]
-        (con integer 0)
-      ]
-    ]
-  )
-)
+    (match_Bool False {integer} 1 0)
+    (match_Bool True {integer} 1 0)

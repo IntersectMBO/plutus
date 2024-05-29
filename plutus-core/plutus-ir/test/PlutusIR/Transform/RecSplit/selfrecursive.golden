@@ -1,24 +1,12 @@
-(let
-  (rec)
-  (typebind (tyvardecl unit (type)) (all a (type) (fun unit unit)))
-  (let
-    (rec)
-    (datatypebind
-      (datatype
-        (tyvardecl Nat (type))
-
-        match_Nat
-        (vardecl Zero Nat) (vardecl Suc (fun Nat Nat))
-      )
-    )
-    (let
-      (rec)
-      (termbind
-        (nonstrict)
-        (vardecl r (con integer))
-        [ [ (builtin addInteger) r ] (con integer 3) ]
-      )
-      r
-    )
-  )
-)
+letrec
+  unit = all a. unit -> unit
+in
+letrec
+  data Nat | match_Nat where
+    Zero : Nat
+    Suc : Nat -> Nat
+in
+letrec
+  ~r : integer = addInteger r 3
+in
+r

@@ -1,12 +1,11 @@
 letrec
-  data (List_0 :: * -> *) a_1 | match_List_2 where
-    Nil_3 : List_0 a_1
-    Cons_4 : a_1 -> List_0 a_1 -> List_0 a_1
+  data (List :: * -> *) a | match_List where
+    Nil : List a
+    Cons : a -> List a -> List a
 in
-match_List_2
-  {all a_1. a_1 -> a_1}
-  (Nil_3 {all a_1. a_1 -> a_1})
-  {all a_1. a_1 -> a_1}
-  (/\a_1 -> \(x_5 : a_1) -> x_5)
-  (\(head_6 : all a_1. a_1 -> a_1) (tail_7 : List_0 (all a_1. a_1 -> a_1)) ->
-     head_6)
+match_List
+  {all a. a -> a}
+  (Nil {all a. a -> a})
+  {all a. a -> a}
+  (/\a -> \(x : a) -> x)
+  (\(head : all a. a -> a) (tail : List (all a. a -> a)) -> head)

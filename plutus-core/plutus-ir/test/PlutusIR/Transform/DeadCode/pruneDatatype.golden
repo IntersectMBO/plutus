@@ -1,9 +1,7 @@
-(let
-  (nonrec)
-  (typebind (tyvardecl unit (type)) (all a (type) (fun a a)))
-  (let
-    (nonrec)
-    (typebind (tyvardecl SomeType (type)) (all a (type) (fun a a)))
-    (lam arg SomeType (error unit))
-  )
-)
+let
+  unit = all a. a -> a
+in
+let
+  SomeType = all a. a -> a
+in
+\(arg : SomeType) -> error {unit}

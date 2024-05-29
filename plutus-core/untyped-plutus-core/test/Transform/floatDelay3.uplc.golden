@@ -1,1 +1,1 @@
-(addInteger (force (delay 1)) (force (delay 1)))
+addInteger (force (delay 1)) (force (delay 1))

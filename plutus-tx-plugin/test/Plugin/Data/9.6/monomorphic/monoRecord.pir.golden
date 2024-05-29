@@ -1,24 +1,8 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl MyMonoRecord (type))
-
-        MyMonoRecord_match
-        (vardecl
-          MyMonoRecord (fun (con integer) (fun (con integer) MyMonoRecord))
-        )
-      )
-    )
-    (lam
-      ds
-      MyMonoRecord
-      [
-        { [ MyMonoRecord_match ds ] (con integer) }
-        (lam ipv (con integer) (lam ipv (con integer) ipv))
-      ]
-    )
-  )
-)
+    data MyMonoRecord | MyMonoRecord_match where
+      MyMonoRecord : integer -> integer -> MyMonoRecord
+  in
+  \(ds : MyMonoRecord) ->
+    MyMonoRecord_match ds {integer} (\(ipv : integer) (ipv : integer) -> ipv))

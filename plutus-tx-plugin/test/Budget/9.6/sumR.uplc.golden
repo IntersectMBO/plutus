@@ -1,23 +1,24 @@
-program
-  1.1.0
-  ((\fix1 ->
-      fix1
-        (\go ds ->
-           force (case ds [(delay 0), (\x xs -> delay (addInteger x (go xs)))]))
-        (fix1
-           (\`$fEnumBool_$cenumFromTo` x lim ->
-              force
-                (force
-                   (force ifThenElse
-                      (lessThanEqualsInteger x lim)
-                      (delay
-                         (delay
-                            (constr 1
-                               [ x
-                               , (`$fEnumBool_$cenumFromTo`
-                                    (addInteger 1 x)
-                                    lim) ])))
-                      (delay (delay (constr 0 []))))))
-           1
-           1000))
-     (\f -> (\s -> s s) (\s -> f (\x -> s s x))))
+(program
+   1.1.0
+   ((\fix1 ->
+       fix1
+         (\go ds ->
+            force
+              (case ds [(delay 0), (\x xs -> delay (addInteger x (go xs)))]))
+         (fix1
+            (\`$fEnumBool_$cenumFromTo` x lim ->
+               force
+                 (force
+                    (force ifThenElse
+                       (lessThanEqualsInteger x lim)
+                       (delay
+                          (delay
+                             (constr 1
+                                [ x
+                                , (`$fEnumBool_$cenumFromTo`
+                                     (addInteger 1 x)
+                                     lim) ])))
+                       (delay (delay (constr 0 []))))))
+            1
+            1000))
+      (\f -> (\s -> s s) (\s -> f (\x -> s s x)))))

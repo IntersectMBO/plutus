@@ -1,81 +1,39 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl Bool (type))
-
-        Bool_match
-        (vardecl True Bool) (vardecl False Bool)
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl nandDirect (fun Bool (fun Bool Bool)))
-      (lam
-        ds
-        Bool
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl ds Bool) ds)
-          (lam
-            ds
-            Bool
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl ds Bool) ds)
-              {
-                [
-                  [
-                    { [ Bool_match ds ] (all dead (type) Bool) }
-                    (abs dead (type) False)
-                  ]
-                  (abs
-                    dead
-                    (type)
-                    {
-                      [
-                        [
-                          { [ Bool_match ds ] (all dead (type) Bool) }
-                          (abs dead (type) False)
-                        ]
-                        (abs dead (type) True)
-                      ]
-                      (all dead (type) dead)
-                    }
-                  )
-                ]
-                (all dead (type) dead)
-              }
-            )
-          )
-        )
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl andDirect (fun Bool (fun Bool Bool)))
-      (lam
-        ds
-        Bool
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl ds Bool) ds)
-          (lam
-            ds
-            Bool
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl ds Bool) ds)
-              [
-                [ nandDirect [ [ nandDirect ds ] ds ] ] [ [ nandDirect ds ] ds ]
-              ]
-            )
-          )
-        )
-      )
-    )
-    [ [ andDirect True ] False ]
-  )
-)
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
+    ~nandDirect : Bool -> Bool -> Bool
+      = \(ds : Bool) ->
+          let
+            !ds : Bool = ds
+          in
+          \(ds : Bool) ->
+            let
+              !ds : Bool = ds
+            in
+            Bool_match
+              ds
+              {all dead. Bool}
+              (/\dead -> False)
+              (/\dead ->
+                 Bool_match
+                   ds
+                   {all dead. Bool}
+                   (/\dead -> False)
+                   (/\dead -> True)
+                   {all dead. dead})
+              {all dead. dead}
+    ~andDirect : Bool -> Bool -> Bool
+      = \(ds : Bool) ->
+          let
+            !ds : Bool = ds
+          in
+          \(ds : Bool) ->
+            let
+              !ds : Bool = ds
+            in
+            nandDirect (nandDirect ds ds) (nandDirect ds ds)
+  in
+  andDirect True False)

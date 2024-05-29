@@ -1,2 +1,2 @@
 Error during PIR typechecking:
-Free type variable at  nonSelfRecursive:8:57-8:60 :  List
+Free type variable at  nonSelfRecursive:8:57-8:60 :  List-0

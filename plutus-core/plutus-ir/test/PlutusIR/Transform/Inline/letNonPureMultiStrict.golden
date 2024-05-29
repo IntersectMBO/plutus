@@ -1,11 +1,4 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl y (con integer))
-    [
-      [ { (builtin trace) (con integer) } (con string "hello") ] (con integer 1)
-    ]
-  )
-  [ [ (builtin addInteger) y ] [ [ (builtin addInteger) y ] y ] ]
-)
+let
+  !y : integer = trace {integer} "hello" 1
+in
+addInteger y (addInteger y y)

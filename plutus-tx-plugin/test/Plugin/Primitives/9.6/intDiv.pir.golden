@@ -1,53 +1,16 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl
-        divideInteger (fun (con integer) (fun (con integer) (con integer)))
-      )
-      (builtin divideInteger)
-    )
-    (termbind
-      (nonstrict)
-      (vardecl
-        divideInteger (fun (con integer) (fun (con integer) (con integer)))
-      )
-      (lam
-        x
-        (con integer)
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl x (con integer)) x)
-          (lam
-            y
-            (con integer)
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl y (con integer)) y)
-              [ [ divideInteger x ] y ]
-            )
-          )
-        )
-      )
-    )
-    (lam
-      ds
-      (con integer)
-      (let
-        (nonrec)
-        (termbind (strict) (vardecl ds (con integer)) ds)
-        (lam
-          ds
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl ds (con integer)) ds)
-            [ [ divideInteger ds ] ds ]
-          )
-        )
-      )
-    )
-  )
-)
+    !divideInteger : integer -> integer -> integer = divideInteger
+    ~divideInteger : integer -> integer -> integer
+      = \(x : integer) ->
+          let
+            !x : integer = x
+          in
+          \(y : integer) -> let !y : integer = y in divideInteger x y
+  in
+  \(ds : integer) ->
+    let
+      !ds : integer = ds
+    in
+    \(ds : integer) -> let !ds : integer = ds in divideInteger ds ds)

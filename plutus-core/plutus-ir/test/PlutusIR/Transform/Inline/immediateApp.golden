@@ -1,1 +1,1 @@
-[ (error (fun (con integer) (con integer))) (con integer 1) ]
+error {integer -> integer} 1

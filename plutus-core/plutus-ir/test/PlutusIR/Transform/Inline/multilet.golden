@@ -1,27 +1,8 @@
-(lam
-  n
-  (con integer)
-  (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl x (con integer))
-      [
-        [ { (builtin trace) (con integer) } (con string "effect_x") ]
-        [ [ (builtin addInteger) (con integer 1) ] n ]
-      ]
-    )
-    (let
-      (nonrec)
-      (termbind
-        (strict)
-        (vardecl y (con integer))
-        [
-          [ { (builtin trace) (con integer) } (con string "effect_y") ]
-          [ [ (builtin addInteger) (con integer 2) ] n ]
-        ]
-      )
-      [ [ (builtin addInteger) x ] [ [ (builtin addInteger) y ] y ] ]
-    )
-  )
-)
+\(n : integer) ->
+  let
+    !x : integer = trace {integer} "effect_x" (addInteger 1 n)
+  in
+  let
+    !y : integer = trace {integer} "effect_y" (addInteger 2 n)
+  in
+  addInteger x (addInteger y y)
