@@ -400,40 +400,37 @@ instance PlutusTx.Eq ScriptPurpose where
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   _ == _ = Haskell.False
 
--- | Like `ScriptPurpose` but also contains redeemers, and an optional datum
--- for spending scripts.
+-- | Like `ScriptPurpose` but with an optional datum for spending scripts.
 data ScriptInfo
-  = MintingScript V2.CurrencySymbol V2.Redeemer
-  | SpendingScript V3.TxOutRef (Haskell.Maybe V2.Datum) V2.Redeemer
-  | RewardingScript V2.Credential V2.Redeemer
+  = MintingScript V2.CurrencySymbol
+  | SpendingScript V3.TxOutRef (Haskell.Maybe V2.Datum)
+  | RewardingScript V2.Credential
   | CertifyingScript
       Haskell.Integer
       -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
       TxCert
-      V2.Redeemer
-  | VotingScript Voter V2.Redeemer
+  | VotingScript Voter
   | ProposingScript
       Haskell.Integer
       -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
       ProposalProcedure
-      V2.Redeemer
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow ScriptInfo)
 
 instance PlutusTx.Eq ScriptInfo where
   {-# INLINEABLE (==) #-}
-  MintingScript a b == MintingScript a' b' =
+  MintingScript a == MintingScript a' =
+    a PlutusTx.== a'
+  SpendingScript a b== SpendingScript a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  SpendingScript a b c == SpendingScript a' b' c' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
-  RewardingScript a b == RewardingScript a' b' =
+  RewardingScript a == RewardingScript a' =
+    a PlutusTx.== a'
+  CertifyingScript a b == CertifyingScript a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  CertifyingScript a b c == CertifyingScript a' b' c' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
-  VotingScript a b == VotingScript a' b' =
+  VotingScript a == VotingScript a' =
+    a PlutusTx.== a'
+  ProposingScript a b == ProposingScript a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  ProposingScript a b c == ProposingScript a' b' c' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
   _ == _ = Haskell.False
 
 -- | An input of a pending transaction.
@@ -522,8 +519,11 @@ instance PlutusTx.Eq TxInfo where
 data ScriptContext = ScriptContext
   { scriptContextTxInfo     :: TxInfo
   -- ^ information about the transaction the currently-executing script is included in
+  , scriptContextRedeemer   :: V2.Redeemer
+  -- ^ Redeemer for the currently-executing script
   , scriptContextScriptInfo :: ScriptInfo
-  -- ^ the purpose of the currently-executing script
+  -- ^ the purpose of the currently-executing script, along with information associated
+  -- with the purpose
   }
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
 
@@ -536,8 +536,8 @@ instance Pretty ScriptContext where
 
 instance PlutusTx.Eq ScriptContext where
   {-# INLINEABLE (==) #-}
-  ScriptContext a b == ScriptContext a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
+  ScriptContext a b c == ScriptContext a' b' c' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
 
 {-# INLINEABLE findOwnInput #-}
 
@@ -546,7 +546,7 @@ findOwnInput :: ScriptContext -> Haskell.Maybe TxInInfo
 findOwnInput
   ScriptContext
     { scriptContextTxInfo = TxInfo{txInfoInputs}
-    , scriptContextScriptInfo = SpendingScript txOutRef _ _
+    , scriptContextScriptInfo = SpendingScript txOutRef _
     } =
     PlutusTx.find
       (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== txOutRef)
@@ -654,7 +654,7 @@ valueProduced = PlutusTx.foldMap V2.txOutValue PlutusTx.. txInfoOutputs
 
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: ScriptContext -> V2.CurrencySymbol
-ownCurrencySymbol ScriptContext{scriptContextScriptInfo = MintingScript cs _} = cs
+ownCurrencySymbol ScriptContext{scriptContextScriptInfo = MintingScript cs} = cs
 ownCurrencySymbol _ =
   -- "Can't get currency symbol of the current validator script"
   PlutusTx.traceError "Lh"

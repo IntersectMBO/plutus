@@ -22,11 +22,8 @@ mkScriptContext :: Int -> ScriptContext
 mkScriptContext i =
   ScriptContext
     (mkTxInfo i)
-    ( SpendingScript
-        (TxOutRef (TxId "") 0)
-        Nothing
-        (Redeemer (PlutusTx.toBuiltinData (1 :: Integer)))
-    )
+    (Redeemer (PlutusTx.toBuiltinData (1 :: Integer)))
+    (SpendingScript (TxOutRef (TxId "") 0) Nothing)
 
 
 mkTxInfo :: Int -> TxInfo
@@ -70,7 +67,7 @@ checkScriptContext1 d =
   -- Bang pattern to ensure this is forced, probably not necesssary
   -- since we do use it later
   let !sc = PlutusTx.unsafeFromBuiltinData d
-      (ScriptContext txi _) = sc
+      ScriptContext txi _ _ = sc
   in
   if PlutusTx.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
   then ()
