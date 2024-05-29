@@ -1,6 +1,4 @@
 -- editorconfig-checker-disable-file
--- | The universe used by default and its instances.
-
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
 -- on 9.2.4 this is the flag that suppresses the above warning
 {-# OPTIONS -Wno-missing-signatures #-}
@@ -34,6 +32,7 @@
 -- performance, but it's not clear why. This needs to be investigated.
 {-# OPTIONS_GHC -O2 #-}
 
+-- | The universe used by default and its instances.
 module PlutusCore.Default.Universe
     ( DefaultUni (..)
     , pattern DefaultUniList
