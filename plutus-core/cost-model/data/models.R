@@ -440,7 +440,7 @@ modelFun <- function(path) {
             filter(x_mem > 0 & y_mem > 0) %>%
             filter (x_mem > y_mem) %>%
             discard.overhead ()
-        m <- lm(t ~ I(x_mem * y_mem), filtered)
+        m <- lm(t ~ I(x_mem) + I(y_mem) + I(x_mem^2) + I(x_mem * y_mem) + I(y_mem^2), filtered)
 
        filtered2 <- data %>%  ## Data on or above diagonal: effectively constant time.
             filter.and.check.nonempty(fname) %>%
@@ -448,7 +448,7 @@ modelFun <- function(path) {
             filter (x_mem <= y_mem) %>%
             discard.overhead ()
         constant = mean(filtered2$t)
-        mk.result(m, "const_above_diagonal", constant=constant, subtype="multiplied_sizes")
+        mk.result(m, "const_above_diagonal", constant=constant, subtype="quadratic_in_x_and_y")
     }
 
     quotientIntegerModel  <- divideIntegerModel
@@ -740,14 +740,11 @@ modelFun <- function(path) {
 
     ##### Models to be returned to Haskell #####
 
-    models <- list (
+    models.for.adjustment <-
+        list (
         addIntegerModel                      = addIntegerModel,
         subtractIntegerModel                 = subtractIntegerModel,
         multiplyIntegerModel                 = multiplyIntegerModel,
-        divideIntegerModel                   = divideIntegerModel,
-        quotientIntegerModel                 = quotientIntegerModel,
-        remainderIntegerModel                = remainderIntegerModel,
-        modIntegerModel                      = modIntegerModel,
         equalsIntegerModel                   = equalsIntegerModel,
         lessThanIntegerModel                 = lessThanIntegerModel,
         lessThanEqualsIntegerModel           = lessThanEqualsIntegerModel,
@@ -816,11 +813,20 @@ modelFun <- function(path) {
         bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel,
         integerToByteStringModel             = integerToByteStringModel,
         byteStringToIntegerModel             = byteStringToIntegerModel
+        )
+
+    ## The integer division functions have a complex costing behaviour that requires some negative
+    ## coefficients to get accurate results. Because of this they are excluded from adjustModels:
+    ## the Haskell code receives the raw model and calls `abs` to take care of the (unlikely) case
+    ## when a negative value is returned.  Any other buitlins which need a non-monotonic costing
+    ## should be treated similarly.
+
+    unadjusted.models <- list(
+        divideIntegerModel                   = divideIntegerModel,
+        quotientIntegerModel                 = quotientIntegerModel,
+        remainderIntegerModel                = remainderIntegerModel,
+        modIntegerModel                      = modIntegerModel
     )
 
-    return(adjustModels(models))
-
-    ## Caution!  If we introduce any non-monotonic costing functions they should
-    ## be excluded from adjustModels and make their own adjustments for eg,
-    ## possible negative return values
+    return(c(adjustModels(models.for.adjustment), unadjusted.models))
 }
