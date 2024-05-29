@@ -289,13 +289,12 @@ readOneVariableFunConstOr e = do
   nonConstantPart <- readCF1AtType subtype e
   pure $ ModelConstantOrOneArgument constantPart nonConstantPart
 
--- | A costing function of the form a+sx.
 readOneVariableQuadraticFunction :: MonadR m => String -> SomeSEXP (Region m) -> m OneVariableQuadraticFunction
 readOneVariableQuadraticFunction var e = do
-  coeff0 <- Coefficient0 <$> getCoeff "(Intercept)" e
-  coeff1 <- Coefficient1 <$> getCoeff (printf "I(%s)" var) e
-  coeff2 <- Coefficient2 <$> getCoeff (printf "I(%s^2)" var) e
-  pure $ OneVariableQuadraticFunction coeff0 coeff1 coeff2
+  c0 <- Coefficient0 <$> getCoeff "(Intercept)" e
+  c1 <- Coefficient1 <$> getCoeff (printf "I(%s)" var) e
+  c2 <- Coefficient2 <$> getCoeff (printf "I(%s^2)" var) e
+  pure $ OneVariableQuadraticFunction c0 c1 c2
 
 readTwoVariableFunLinearOnDiagonal :: MonadR m => String -> SomeSEXP (Region m) -> m ModelConstantOrLinear
 readTwoVariableFunLinearOnDiagonal var e = do
@@ -311,6 +310,17 @@ readTwoVariableLinearFunction var1 var2 e = do
   slopeX <- Slope <$> getCoeff var1 e
   slopeY <- Slope <$> getCoeff var2 e
   pure $ TwoVariableLinearFunction intercept slopeX slopeY
+
+-- | A costing function of the form a+sx+ty
+readTwoVariableQuadraticFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableQuadraticFunction
+readTwoVariableQuadraticFunction var1 var2 e = do
+  c00 <- Coefficient00 <$> getCoeff "(Intercept)" e
+  c10 <- Coefficient10 <$> getCoeff (printf "I(%s)" var1) e
+  c01 <- Coefficient01 <$> getCoeff (printf "I(%s)" var2) e
+  c20 <- Coefficient20 <$> getCoeff (printf "I(%s^2)" var1) e
+  c11 <- Coefficient11 <$> getCoeff (printf "I(%s) * I(%s)" var1 var2) e
+  c02 <- Coefficient02 <$> getCoeff (printf "I(%s^2)" var2) e
+  pure $ TwoVariableQuadraticFunction c00 c10 c01 c20 c11 c02
 
 -- | A two-variable costing function which is constant on one region of the
 -- plane and something else elsewhere.
@@ -361,6 +371,7 @@ readCF2AtType ty e = do
     "const_above_diagonal" -> ModelTwoArgumentsConstAboveDiagonal <$> readTwoVariableFunConstOr e
     "const_off_diagonal"   -> ModelTwoArgumentsConstOffDiagonal   <$> readOneVariableFunConstOr e
     "quadratic_in_y"       -> ModelTwoArgumentsQuadraticInY       <$> readOneVariableQuadraticFunction "y_mem" e
+    "quadratic_in_x_and_y" -> ModelTwoArgumentsQuadraticInXandY   <$> readTwoVariableQuadraticFunction "x_mem" "y_mem" e
     _                      -> error $ "Unknown two-variable model type: " ++ ty
 
 readCF2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments

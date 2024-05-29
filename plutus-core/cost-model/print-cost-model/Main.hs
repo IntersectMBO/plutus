@@ -38,9 +38,23 @@ renderLinearFunction (LinearFunction intercept slope) var =
               unparen v = if v /= "" && head v == '(' && last v == ')'
                           then tail $ init v
                           else v
-renderQuadraticFunction :: QuadraticFunction -> String -> String
-renderQuadraticFunction (QuadraticFunction c0 c1 c2) var =
+renderOneVariablrQuadraticFunction
+  :: OneVariableQuadraticFunction
+  -> String
+  -> String
+renderOneVariablrQuadraticFunction
+  (OneVariableQuadraticFunction c0 c1 c2) var =
     printf "%d + %d*%s + %d*%s^2" c0 c1 var c2 var
+
+renderTwoVariableQuadraticFunction
+  :: TwoVariableQuadraticFunction
+  -> String
+  -> String
+  -> String
+renderTwoVariableQuadraticFunction
+  (TwoVariableQuadraticFunction c00 c10 c01 c20 c11 c02) var1 var2 =
+    printf "%d + %d*%s + %d*s + %d*%s^2 + %d*%s*%s + %d*%s^2"
+    c00 c10 var1 c01 var2 c20 var1 c11 var1 var2 c02 var2
 
 renderModel :: Model -> [String]
 renderModel =
@@ -53,8 +67,9 @@ renderModel =
      LinearInX             f   -> [ renderLinearFunction f "x" ]
      LinearInY             f   -> [ renderLinearFunction f "y" ]
      LinearInZ             f   -> [ renderLinearFunction f "z" ]
-     QuadraticInY          f   -> [ renderQuadraticFunction f "y" ]
-     QuadraticInZ          f   -> [ renderQuadraticFunction f "z" ]
+     QuadraticInY          f   -> [ renderOneVariablrQuadraticFunction f "y" ]
+     QuadraticInZ          f   -> [ renderOneVariablrQuadraticFunction f "z" ]
+     QuadraticInXandY      f   -> [ renderTwoVariableQuadraticFunction f "x" "y" ]
      LiteralInYOrLinearInZ f -> [ "if y==0"
                                   , printf "then %s" $ renderLinearFunction f "z"
                                   , printf "else y bytes"
