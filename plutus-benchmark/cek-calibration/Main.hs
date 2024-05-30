@@ -17,7 +17,7 @@ module Main (main) where
 
 import Prelude qualified as Haskell
 
-import PlutusBenchmark.Common (benchTermCek, mkEvalCtx)
+import PlutusBenchmark.Common (benchTermCek, mkMostRecentEvalCtx)
 import PlutusCore
 import PlutusCore.Pretty qualified as PP
 import PlutusLedgerApi.Common (EvaluationContext)
@@ -87,7 +87,7 @@ writePlc p =
 
 main1 :: Haskell.IO ()
 main1 = do
-  evalCtx <- evaluate mkEvalCtx
+  evalCtx <- evaluate mkMostRecentEvalCtx
   defaultMainWith
       (defaultConfig { C.csvFile = Just "cek-lists.csv" })
       [mkListBMs evalCtx [0,10..1000]]

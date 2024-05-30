@@ -265,6 +265,7 @@ benchmark validation
     , optparse-applicative
     , plutus-benchmark-common
     , plutus-core              ^>=1.28
+    , plutus-ledger-api        ^>=1.28
 
 ---------------- validation-decode ----------------
 
