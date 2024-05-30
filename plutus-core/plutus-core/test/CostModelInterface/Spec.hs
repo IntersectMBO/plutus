@@ -159,7 +159,7 @@ testDeserialise = assertBool "Failed to decode default ledger cost params" $
 testApply :: IO ()
 testApply = do
     let decodedParams = fromJust $ decode @CostModelParams ledgerParamsBS
-    assertBool "Failed to load the ledger cost params into the our cost model" $
+    assertBool "Failed to load the ledger cost params into our cost model" $
         isRight $ applyCostModelParams defaultCekCostModelForTesting decodedParams
 
 -- | Test to catch a mispelled/missing param.
