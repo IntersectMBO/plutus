@@ -72,7 +72,6 @@ import PlutusTx qualified
 import PlutusTx.Builtins.Internal (BuiltinList)
 import PlutusTx.Data.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
-import PlutusTx.List qualified
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
 import PlutusTx.Show qualified as PlutusTx
@@ -280,7 +279,7 @@ currencySymbolValueOf (Value mp) cur = case Map.lookup cur mp of
     Just tokens ->
         -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
         -- the latter materializes the intermediate result of `Map.elems tokens`.
-        PlutusTx.List.foldr (\(_, amt) acc -> amt + acc) 0 (Map.toList tokens)
+        Map.foldr (\amt acc -> amt + acc) 0 tokens
 
 {-# INLINABLE symbols #-}
 -- | The list of 'CurrencySymbol's of a 'Value'.
