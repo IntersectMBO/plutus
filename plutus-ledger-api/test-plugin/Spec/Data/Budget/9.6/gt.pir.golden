@@ -1,0 +1,804 @@
+let
+  !`$fToDataInteger_$ctoBuiltinData` : integer -> data
+    = \(i : integer) -> iData i
+  data (These :: * -> * -> *) a b | These_match where
+    That : b -> These a b
+    These : a -> b -> These a b
+    This : a -> These a b
+  !`$fToDataThese_$ctoBuiltinData` :
+     all a b. (\a -> a -> data) a -> (\a -> a -> data) b -> These a b -> data
+    = /\a b ->
+        \(`$dToData` : (\a -> a -> data) a)
+         (`$dToData` : (\a -> a -> data) b)
+         (ds : These a b) ->
+          These_match
+            {a}
+            {b}
+            ds
+            {data}
+            (\(arg : b) -> constrData 1 (mkCons {data} (`$dToData` arg) []))
+            (\(arg : a) (arg : b) ->
+               constrData
+                 2
+                 (mkCons
+                    {data}
+                    (`$dToData` arg)
+                    (mkCons {data} (`$dToData` arg) [])))
+            (\(arg : a) -> constrData 0 (mkCons {data} (`$dToData` arg) []))
+  ~`$dToData` : These integer integer -> data
+    = `$fToDataThese_$ctoBuiltinData`
+        {integer}
+        {integer}
+        `$fToDataInteger_$ctoBuiltinData`
+        `$fToDataInteger_$ctoBuiltinData`
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !f : integer -> integer -> Bool
+    = \(x : integer) (y : integer) ->
+        ifThenElse {Bool} (lessThanInteger x y) False True
+  data Unit | Unit_match where
+    Unit : Unit
+  !all :
+     all k a.
+       (\a -> data -> a) a ->
+       (a -> Bool) ->
+       (\k a -> list (pair data data)) k a ->
+       Bool
+    = /\k a ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a) (p : a -> Bool) ->
+          letrec
+            !go : list (pair data data) -> Bool
+              = \(xs : list (pair data data)) ->
+                  chooseList
+                    {pair data data}
+                    {Unit -> Bool}
+                    xs
+                    (\(ds : Unit) -> True)
+                    (\(ds : Unit) ->
+                       Bool_match
+                         (p
+                            (`$dUnsafeFromData`
+                               (sndPair
+                                  {data}
+                                  {data}
+                                  (headList {pair data data} xs))))
+                         {all dead. Bool}
+                         (/\dead -> go (tailList {pair data data} xs))
+                         (/\dead ->
+                            let
+                              !ds : list (pair data data)
+                                = tailList {pair data data} xs
+                            in
+                            False)
+                         {all dead. dead})
+                    Unit
+          in
+          \(ds : (\k a -> list (pair data data)) k a) -> go ds
+  !equalsByteString : bytestring -> bytestring -> Bool
+    = \(x : bytestring) (y : bytestring) ->
+        ifThenElse {Bool} (equalsByteString x y) True False
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+in
+letrec
+  data (List :: * -> *) a | List_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+let
+  !toList :
+     all k a.
+       (\a -> data -> a) k ->
+       (\a -> data -> a) a ->
+       (\k a -> list (pair data data)) k a ->
+       List (Tuple2 k a)
+    = /\k a ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) k)
+         (`$dUnsafeFromData` : (\a -> data -> a) a) ->
+          letrec
+            !go : list (pair data data) -> List (Tuple2 k a)
+              = \(xs : list (pair data data)) ->
+                  chooseList
+                    {pair data data}
+                    {Unit -> List (Tuple2 k a)}
+                    xs
+                    (\(ds : Unit) -> Nil {Tuple2 k a})
+                    (\(ds : Unit) ->
+                       let
+                         !hd : pair data data = headList {pair data data} xs
+                         !tl : list (pair data data)
+                           = tailList {pair data data} xs
+                       in
+                       Cons
+                         {Tuple2 k a}
+                         (Tuple2
+                            {k}
+                            {a}
+                            (`$dUnsafeFromData` (fstPair {data} {data} hd))
+                            (`$dUnsafeFromData` (sndPair {data} {data} hd)))
+                         (go tl))
+                    Unit
+          in
+          \(d : (\k a -> list (pair data data)) k a) -> go d
+  !`$fUnsafeFromDataThese_$cunsafeFromBuiltinData` :
+     all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> These a b
+    = /\a b ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a)
+         (`$dUnsafeFromData` : (\a -> data -> a) b)
+         (d : data) ->
+          let
+            !tup : pair integer (list data) = unConstrData d
+            !index : integer = fstPair {integer} {list data} tup
+            !args : list data = sndPair {integer} {list data} tup
+          in
+          ifThenElse
+            {all dead. These a b}
+            (equalsInteger 0 index)
+            (/\dead -> This {a} {b} (`$dUnsafeFromData` (headList {data} args)))
+            (/\dead ->
+               ifThenElse
+                 {all dead. These a b}
+                 (equalsInteger 1 index)
+                 (/\dead ->
+                    That {a} {b} (`$dUnsafeFromData` (headList {data} args)))
+                 (/\dead ->
+                    ifThenElse
+                      {all dead. These a b}
+                      (equalsInteger 2 index)
+                      (/\dead ->
+                         These
+                           {a}
+                           {b}
+                           (`$dUnsafeFromData` (headList {data} args))
+                           (`$dUnsafeFromData`
+                              (headList {data} (tailList {data} args))))
+                      (/\dead -> error {These a b})
+                      {all dead. dead})
+                 {all dead. dead})
+            {all dead. dead}
+  !`$fToDataMap_$ctoBuiltinData` :
+     all k a. (\k a -> list (pair data data)) k a -> data
+    = /\k a -> \(ds : (\k a -> list (pair data data)) k a) -> mapData ds
+  !map :
+     all k a b.
+       (\a -> data -> a) a ->
+       (\a -> a -> data) b ->
+       (a -> b) ->
+       (\k a -> list (pair data data)) k a ->
+       (\k a -> list (pair data data)) k b
+    = /\k a b ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a)
+         (`$dToData` : (\a -> a -> data) b)
+         (f : a -> b) ->
+          letrec
+            !go : list (pair data data) -> list (pair data data)
+              = \(xs : list (pair data data)) ->
+                  chooseList
+                    {pair data data}
+                    {Unit -> list (pair data data)}
+                    xs
+                    (\(ds : Unit) -> [])
+                    (\(ds : Unit) ->
+                       let
+                         !hd : pair data data = headList {pair data data} xs
+                         !tl : list (pair data data)
+                           = tailList {pair data data} xs
+                         !v : data = sndPair {data} {data} hd
+                       in
+                       mkCons
+                         {pair data data}
+                         (mkPairData
+                            (fstPair {data} {data} hd)
+                            (`$dToData` (f (`$dUnsafeFromData` v))))
+                         (go tl))
+                    Unit
+          in
+          \(ds : (\k a -> list (pair data data)) k a) -> go ds
+in
+letrec
+  !safeAppend :
+     list (pair data data) -> list (pair data data) -> list (pair data data)
+    = \(xs : list (pair data data)) (xs : list (pair data data)) ->
+        chooseList
+          {pair data data}
+          {Unit -> list (pair data data)}
+          xs
+          (\(ds : Unit) -> xs)
+          (\(ds : Unit) ->
+             let
+               !hd : pair data data = headList {pair data data} xs
+               !tl : list (pair data data) = tailList {pair data data} xs
+               !v : data = sndPair {data} {data} hd
+               !k : data = fstPair {data} {data} hd
+             in
+             letrec
+               !go : list (pair data data) -> list (pair data data)
+                 = \(xs : list (pair data data)) ->
+                     chooseList
+                       {pair data data}
+                       {Unit -> list (pair data data)}
+                       xs
+                       (\(ds : Unit) ->
+                          mkCons {pair data data} (mkPairData k v) [])
+                       (\(ds : Unit) ->
+                          let
+                            !hd : pair data data = headList {pair data data} xs
+                            !tl : list (pair data data)
+                              = tailList {pair data data} xs
+                          in
+                          ifThenElse
+                            {all dead. list (pair data data)}
+                            (equalsData k (fstPair {data} {data} hd))
+                            (/\dead ->
+                               mkCons {pair data data} (mkPairData k v) tl)
+                            (/\dead -> mkCons {pair data data} hd (go tl))
+                            {all dead. dead})
+                       Unit
+             in
+             let
+               !eta : list (pair data data) = safeAppend tl xs
+             in
+             go eta)
+          Unit
+in
+let
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  !lookup' : data -> list (pair data data) -> Maybe data
+    = \(k : data) ->
+        letrec
+          !go : list (pair data data) -> Maybe data
+            = \(xs : list (pair data data)) ->
+                chooseList
+                  {pair data data}
+                  {Unit -> Maybe data}
+                  xs
+                  (\(ds : Unit) -> Nothing {data})
+                  (\(ds : Unit) ->
+                     let
+                       !hd : pair data data = headList {pair data data} xs
+                     in
+                     ifThenElse
+                       {all dead. Maybe data}
+                       (equalsData k (fstPair {data} {data} hd))
+                       (/\dead ->
+                          let
+                            !ds : list (pair data data)
+                              = tailList {pair data data} xs
+                          in
+                          Just {data} (sndPair {data} {data} hd))
+                       (/\dead -> go (tailList {pair data data} xs))
+                       {all dead. dead})
+                  Unit
+        in
+        \(m : list (pair data data)) -> go m
+  !union :
+     all k a b.
+       (\a -> data -> a) a ->
+       (\a -> data -> a) b ->
+       (\a -> a -> data) a ->
+       (\a -> a -> data) b ->
+       (\k a -> list (pair data data)) k a ->
+       (\k a -> list (pair data data)) k b ->
+       (\k a -> list (pair data data)) k (These a b)
+    = /\k a b ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a)
+         (`$dUnsafeFromData` : (\a -> data -> a) b)
+         (`$dToData` : (\a -> a -> data) a)
+         (`$dToData` : (\a -> a -> data) b)
+         (ds : (\k a -> list (pair data data)) k a) ->
+          letrec
+            !goRight : list (pair data data) -> list (pair data data)
+              = \(xs : list (pair data data)) ->
+                  chooseList
+                    {pair data data}
+                    {Unit -> list (pair data data)}
+                    xs
+                    (\(ds : Unit) -> [])
+                    (\(ds : Unit) ->
+                       let
+                         !hd : pair data data = headList {pair data data} xs
+                         !tl : list (pair data data)
+                           = tailList {pair data data} xs
+                         !v : data = sndPair {data} {data} hd
+                         !k : data = fstPair {data} {data} hd
+                       in
+                       Maybe_match
+                         {data}
+                         (lookup' k ds)
+                         {all dead. list (pair data data)}
+                         (\(r : data) ->
+                            /\dead ->
+                              mkCons
+                                {pair data data}
+                                (mkPairData
+                                   k
+                                   (`$fToDataThese_$ctoBuiltinData`
+                                      {a}
+                                      {b}
+                                      `$dToData`
+                                      `$dToData`
+                                      (These
+                                         {a}
+                                         {b}
+                                         (`$dUnsafeFromData` v)
+                                         (`$dUnsafeFromData` r))))
+                                (goRight tl))
+                         (/\dead ->
+                            mkCons
+                              {pair data data}
+                              (mkPairData
+                                 k
+                                 (`$fToDataThese_$ctoBuiltinData`
+                                    {a}
+                                    {b}
+                                    `$dToData`
+                                    `$dToData`
+                                    (That {a} {b} (`$dUnsafeFromData` v))))
+                              (goRight tl))
+                         {all dead. dead})
+                    Unit
+          in
+          \(ds : (\k a -> list (pair data data)) k b) ->
+            letrec
+              !goLeft : list (pair data data) -> list (pair data data)
+                = \(xs : list (pair data data)) ->
+                    chooseList
+                      {pair data data}
+                      {Unit -> list (pair data data)}
+                      xs
+                      (\(ds : Unit) -> [])
+                      (\(ds : Unit) ->
+                         let
+                           !hd : pair data data = headList {pair data data} xs
+                           !tl : list (pair data data)
+                             = tailList {pair data data} xs
+                           !v : data = sndPair {data} {data} hd
+                           !k : data = fstPair {data} {data} hd
+                         in
+                         Maybe_match
+                           {data}
+                           (lookup' k ds)
+                           {all dead. list (pair data data)}
+                           (\(r : data) ->
+                              /\dead ->
+                                mkCons
+                                  {pair data data}
+                                  (mkPairData
+                                     k
+                                     (`$fToDataThese_$ctoBuiltinData`
+                                        {a}
+                                        {b}
+                                        `$dToData`
+                                        `$dToData`
+                                        (These
+                                           {a}
+                                           {b}
+                                           (`$dUnsafeFromData` v)
+                                           (`$dUnsafeFromData` r))))
+                                  (goLeft tl))
+                           (/\dead ->
+                              mkCons
+                                {pair data data}
+                                (mkPairData
+                                   k
+                                   (`$fToDataThese_$ctoBuiltinData`
+                                      {a}
+                                      {b}
+                                      `$dToData`
+                                      `$dToData`
+                                      (This {a} {b} (`$dUnsafeFromData` v))))
+                                (goLeft tl))
+                           {all dead. dead})
+                      Unit
+            in
+            safeAppend (goLeft ds) (goRight ds)
+  !unordEqWith :
+     all k v.
+       (\a -> a -> a -> Bool) k ->
+       (v -> Bool) ->
+       (v -> v -> Bool) ->
+       List (Tuple2 k v) ->
+       List (Tuple2 k v) ->
+       Bool
+    = /\k v ->
+        \(`$dEq` : (\a -> a -> a -> Bool) k)
+         (is : v -> Bool) ->
+          letrec
+            !go : List (Tuple2 k v) -> Bool
+              = \(ds : List (Tuple2 k v)) ->
+                  List_match
+                    {Tuple2 k v}
+                    ds
+                    {all dead. Bool}
+                    (/\dead -> True)
+                    (\(x : Tuple2 k v) (xs : List (Tuple2 k v)) ->
+                       /\dead ->
+                         Tuple2_match
+                           {k}
+                           {v}
+                           x
+                           {Bool}
+                           (\(ipv : k) (ipv : v) ->
+                              Bool_match
+                                (is ipv)
+                                {all dead. Bool}
+                                (/\dead -> go xs)
+                                (/\dead -> False)
+                                {all dead. dead}))
+                    {all dead. dead}
+          in
+          letrec
+            !go : List (Tuple2 k v) -> Bool
+              = \(ds : List (Tuple2 k v)) ->
+                  List_match
+                    {Tuple2 k v}
+                    ds
+                    {all dead. Bool}
+                    (/\dead -> True)
+                    (\(x : Tuple2 k v) (xs : List (Tuple2 k v)) ->
+                       /\dead ->
+                         Tuple2_match
+                           {k}
+                           {v}
+                           x
+                           {Bool}
+                           (\(ipv : k) (ipv : v) ->
+                              Bool_match
+                                (is ipv)
+                                {all dead. Bool}
+                                (/\dead -> go xs)
+                                (/\dead -> False)
+                                {all dead. dead}))
+                    {all dead. dead}
+          in
+          \(eqV : v -> v -> Bool) ->
+            letrec
+              !goBoth :
+                 List (Tuple2 k v) -> List (Tuple2 k v) -> Bool
+                = \(ds : List (Tuple2 k v))
+                   (kvsR : List (Tuple2 k v)) ->
+                    List_match
+                      {Tuple2 k v}
+                      ds
+                      {all dead. Bool}
+                      (/\dead -> go kvsR)
+                      (\(ipv : Tuple2 k v)
+                        (ipv : List (Tuple2 k v)) ->
+                         /\dead ->
+                           List_match
+                             {Tuple2 k v}
+                             kvsR
+                             {all dead. Bool}
+                             (/\dead -> go ds)
+                             (\(ipv : Tuple2 k v)
+                               (ipv : List (Tuple2 k v)) ->
+                                /\dead ->
+                                  Tuple2_match
+                                    {k}
+                                    {v}
+                                    ipv
+                                    {Bool}
+                                    (\(kL : k)
+                                      (vL : v) ->
+                                       letrec
+                                         !goRight :
+                                            List (Tuple2 k v) ->
+                                            List (Tuple2 k v) ->
+                                            Bool
+                                           = \(ds : List (Tuple2 k v))
+                                              (ds : List (Tuple2 k v)) ->
+                                               List_match
+                                                 {Tuple2 k v}
+                                                 ds
+                                                 {all dead. Bool}
+                                                 (/\dead -> False)
+                                                 (\(kvR : Tuple2 k v)
+                                                   (kvsR' :
+                                                      List (Tuple2 k v)) ->
+                                                    /\dead ->
+                                                      Tuple2_match
+                                                        {k}
+                                                        {v}
+                                                        kvR
+                                                        {Bool}
+                                                        (\(kR : k)
+                                                          (vR : v) ->
+                                                           Bool_match
+                                                             (is vR)
+                                                             {all dead. Bool}
+                                                             (/\dead ->
+                                                                goRight
+                                                                  ds
+                                                                  kvsR')
+                                                             (/\dead ->
+                                                                Bool_match
+                                                                  (`$dEq` kL kR)
+                                                                  {all dead.
+                                                                     Bool}
+                                                                  (/\dead ->
+                                                                     Bool_match
+                                                                       (eqV
+                                                                          vL
+                                                                          vR)
+                                                                       {all dead.
+                                                                          Bool}
+                                                                       (/\dead ->
+                                                                          goBoth
+                                                                            ipv
+                                                                            ((let
+                                                                                 a
+                                                                                   = Tuple2
+                                                                                       k
+                                                                                       v
+                                                                               in
+                                                                               letrec
+                                                                                 !rev :
+                                                                                    List
+                                                                                      a ->
+                                                                                    List
+                                                                                      a ->
+                                                                                    List
+                                                                                      a
+                                                                                   = \(ds :
+                                                                                         List
+                                                                                           a)
+                                                                                      (a :
+                                                                                         List
+                                                                                           a) ->
+                                                                                       List_match
+                                                                                         {a}
+                                                                                         ds
+                                                                                         {all dead.
+                                                                                            List
+                                                                                              a}
+                                                                                         (/\dead ->
+                                                                                            a)
+                                                                                         (\(x :
+                                                                                              a)
+                                                                                           (xs :
+                                                                                              List
+                                                                                                a) ->
+                                                                                            /\dead ->
+                                                                                              rev
+                                                                                                xs
+                                                                                                (Cons
+                                                                                                   {a}
+                                                                                                   x
+                                                                                                   a))
+                                                                                         {all dead.
+                                                                                            dead}
+                                                                               in
+                                                                               \(eta :
+                                                                                   List
+                                                                                     a)
+                                                                                (eta :
+                                                                                   List
+                                                                                     a) ->
+                                                                                 rev
+                                                                                   eta
+                                                                                   eta)
+                                                                               ds
+                                                                               kvsR'))
+                                                                       (/\dead ->
+                                                                          False)
+                                                                       {all dead.
+                                                                          dead})
+                                                                  (/\dead ->
+                                                                     goRight
+                                                                       (Cons
+                                                                          {Tuple2
+                                                                             k
+                                                                             v}
+                                                                          kvR
+                                                                          ds)
+                                                                       kvsR')
+                                                                  {all dead.
+                                                                     dead})
+                                                             {all dead. dead}))
+                                                 {all dead. dead}
+                                       in
+                                       Tuple2_match
+                                         {k}
+                                         {v}
+                                         ipv
+                                         {Bool}
+                                         (\(kR : k) (vR : v) ->
+                                            Bool_match
+                                              (`$dEq` kL kR)
+                                              {all dead. Bool}
+                                              (/\dead ->
+                                                 Bool_match
+                                                   (eqV vL vR)
+                                                   {all dead. Bool}
+                                                   (/\dead -> goBoth ipv ipv)
+                                                   (/\dead -> False)
+                                                   {all dead. dead})
+                                              (/\dead ->
+                                                 Bool_match
+                                                   (is vL)
+                                                   {all dead. Bool}
+                                                   (/\dead -> goBoth ipv kvsR)
+                                                   (/\dead ->
+                                                      goRight
+                                                        ((let
+                                                             a = Tuple2 k v
+                                                           in
+                                                           \(g :
+                                                               all b.
+                                                                 (a ->
+                                                                  b ->
+                                                                  b) ->
+                                                                 b ->
+                                                                 b) ->
+                                                             g
+                                                               {List a}
+                                                               (\(ds : a)
+                                                                 (ds :
+                                                                    List a) ->
+                                                                  Cons
+                                                                    {a}
+                                                                    ds
+                                                                    ds)
+                                                               (Nil {a}))
+                                                           (/\a ->
+                                                              \(c :
+                                                                  Tuple2 k v ->
+                                                                  a ->
+                                                                  a)
+                                                               (n : a) ->
+                                                                Bool_match
+                                                                  (is vR)
+                                                                  {all dead. a}
+                                                                  (/\dead -> n)
+                                                                  (/\dead ->
+                                                                     c ipv n)
+                                                                  {all dead.
+                                                                     dead}))
+                                                        ipv)
+                                                   {all dead. dead})
+                                              {all dead. dead})))
+                             {all dead. dead})
+                      {all dead. dead}
+            in
+            \(eta : List (Tuple2 k v)) (eta : List (Tuple2 k v)) ->
+              goBoth eta eta
+in
+\(l :
+    (\k a -> list (pair data data))
+      bytestring
+      ((\k a -> list (pair data data)) bytestring integer))
+ (r :
+    (\k a -> list (pair data data))
+      bytestring
+      ((\k a -> list (pair data data)) bytestring integer)) ->
+  Bool_match
+    (all
+       {bytestring}
+       {(\k a -> list (pair data data)) bytestring (These integer integer)}
+       (\(eta : data) -> unMapData eta)
+       (all
+          {bytestring}
+          {These integer integer}
+          (`$fUnsafeFromDataThese_$cunsafeFromBuiltinData`
+             {integer}
+             {integer}
+             unIData
+             unIData)
+          (\(k' : These integer integer) ->
+             These_match
+               {integer}
+               {integer}
+               k'
+               {Bool}
+               (\(b : integer) -> f 0 b)
+               (\(a : integer) (b : integer) -> f a b)
+               (\(a : integer) -> f a 0)))
+       (map
+          {bytestring}
+          {These
+             ((\k a -> list (pair data data)) bytestring integer)
+             ((\k a -> list (pair data data)) bytestring integer)}
+          {(\k a -> list (pair data data)) bytestring (These integer integer)}
+          (`$fUnsafeFromDataThese_$cunsafeFromBuiltinData`
+             {(\k a -> list (pair data data)) bytestring integer}
+             {(\k a -> list (pair data data)) bytestring integer}
+             (\(eta : data) -> unMapData eta)
+             (\(eta : data) -> unMapData eta))
+          (`$fToDataMap_$ctoBuiltinData` {bytestring} {These integer integer})
+          (\(k :
+               These
+                 ((\k a -> list (pair data data)) bytestring integer)
+                 ((\k a -> list (pair data data)) bytestring integer)) ->
+             These_match
+               {(\k a -> list (pair data data)) bytestring integer}
+               {(\k a -> list (pair data data)) bytestring integer}
+               k
+               {(\k a -> list (pair data data))
+                  bytestring
+                  (These integer integer)}
+               (\(b : (\k a -> list (pair data data)) bytestring integer) ->
+                  map
+                    {bytestring}
+                    {integer}
+                    {These integer integer}
+                    unIData
+                    `$dToData`
+                    (\(ds : integer) -> That {integer} {integer} ds)
+                    b)
+               (\(a : (\k a -> list (pair data data)) bytestring integer)
+                 (b : (\k a -> list (pair data data)) bytestring integer) ->
+                  union
+                    {bytestring}
+                    {integer}
+                    {integer}
+                    unIData
+                    unIData
+                    `$fToDataInteger_$ctoBuiltinData`
+                    `$fToDataInteger_$ctoBuiltinData`
+                    a
+                    b)
+               (\(a : (\k a -> list (pair data data)) bytestring integer) ->
+                  map
+                    {bytestring}
+                    {integer}
+                    {These integer integer}
+                    unIData
+                    `$dToData`
+                    (\(ds : integer) -> This {integer} {integer} ds)
+                    a))
+          (union
+             {bytestring}
+             {(\k a -> list (pair data data)) bytestring integer}
+             {(\k a -> list (pair data data)) bytestring integer}
+             (\(eta : data) -> unMapData eta)
+             (\(eta : data) -> unMapData eta)
+             (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
+             (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
+             l
+             r)))
+    {all dead. Bool}
+    (/\dead ->
+       Bool_match
+         (unordEqWith
+            {bytestring}
+            {(\k a -> list (pair data data)) bytestring integer}
+            equalsByteString
+            (all
+               {bytestring}
+               {integer}
+               unIData
+               (\(v : integer) ->
+                  ifThenElse {Bool} (equalsInteger 0 v) True False))
+            (\(ds : (\k a -> list (pair data data)) bytestring integer)
+              (ds : (\k a -> list (pair data data)) bytestring integer) ->
+               unordEqWith
+                 {bytestring}
+                 {integer}
+                 equalsByteString
+                 (\(v : integer) ->
+                    ifThenElse {Bool} (equalsInteger 0 v) True False)
+                 (\(x : integer) (y : integer) ->
+                    ifThenElse {Bool} (equalsInteger x y) True False)
+                 (toList {bytestring} {integer} unBData unIData ds)
+                 (toList {bytestring} {integer} unBData unIData ds))
+            (toList
+               {bytestring}
+               {(\k a -> list (pair data data)) bytestring integer}
+               unBData
+               (\(eta : data) -> unMapData eta)
+               l)
+            (toList
+               {bytestring}
+               {(\k a -> list (pair data data)) bytestring integer}
+               unBData
+               (\(eta : data) -> unMapData eta)
+               r))
+         {all dead. Bool}
+         (/\dead -> False)
+         (/\dead -> True)
+         {all dead. dead})
+    (/\dead -> False)
+    {all dead. dead}

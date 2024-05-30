@@ -1,0 +1,105 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+in
+letrec
+  data (List :: * -> *) a | List_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+letrec
+  !go : list (pair data data) -> List (Tuple2 bytestring integer)
+    = \(xs : list (pair data data)) ->
+        chooseList
+          {pair data data}
+          {Unit -> List (Tuple2 bytestring integer)}
+          xs
+          (\(ds : Unit) -> Nil {Tuple2 bytestring integer})
+          (\(ds : Unit) ->
+             let
+               !hd : pair data data = headList {pair data data} xs
+               !tl : list (pair data data) = tailList {pair data data} xs
+             in
+             Cons
+               {Tuple2 bytestring integer}
+               (Tuple2
+                  {bytestring}
+                  {integer}
+                  (unBData (fstPair {data} {data} hd))
+                  (unIData (sndPair {data} {data} hd)))
+               (go tl))
+          Unit
+in
+letrec
+  !go : List (Tuple2 bytestring integer) -> integer
+    = \(ds : List (Tuple2 bytestring integer)) ->
+        List_match
+          {Tuple2 bytestring integer}
+          ds
+          {all dead. integer}
+          (/\dead -> 0)
+          (\(x : Tuple2 bytestring integer)
+            (xs : List (Tuple2 bytestring integer)) ->
+             /\dead ->
+               Tuple2_match
+                 {bytestring}
+                 {integer}
+                 x
+                 {integer}
+                 (\(ds : bytestring) (amt : integer) -> addInteger amt (go xs)))
+          {all dead. dead}
+in
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+in
+\(ds :
+    (\k a -> list (pair data data))
+      bytestring
+      ((\k a -> list (pair data data)) bytestring integer))
+ (cur : bytestring) ->
+  Maybe_match
+    {data}
+    (let
+      !k : data = bData cur
+    in
+    letrec
+      !go : list (pair data data) -> Maybe data
+        = \(xs : list (pair data data)) ->
+            chooseList
+              {pair data data}
+              {Unit -> Maybe data}
+              xs
+              (\(ds : Unit) -> Nothing {data})
+              (\(ds : Unit) ->
+                 let
+                   !hd : pair data data = headList {pair data data} xs
+                 in
+                 ifThenElse
+                   {all dead. Maybe data}
+                   (equalsData k (fstPair {data} {data} hd))
+                   (/\dead ->
+                      let
+                        !ds : list (pair data data)
+                          = tailList {pair data data} xs
+                      in
+                      Just {data} (sndPair {data} {data} hd))
+                   (/\dead -> go (tailList {pair data data} xs))
+                   {all dead. dead})
+              Unit
+    in
+    go ds)
+    {integer}
+    (\(a : data) ->
+       go
+         (let
+           !d : (\k a -> list (pair data data)) bytestring integer = unMapData a
+         in
+         go d))
+    0

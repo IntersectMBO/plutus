@@ -117,6 +117,7 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.EvaluationEvent
     PlutusLedgerApi.Test.Examples
     PlutusLedgerApi.Test.Scripts
+    PlutusLedgerApi.Test.V1.Data.Value
     PlutusLedgerApi.Test.V1.EvaluationContext
     PlutusLedgerApi.Test.V1.Value
     PlutusLedgerApi.Test.V2.EvaluationContext
@@ -151,6 +152,7 @@ test-suite plutus-ledger-api-test
     Spec.Eval
     Spec.Interval
     Spec.ScriptDecodeError
+    Spec.V1.Data.Value
     Spec.V1.Value
     Spec.Versions
 
@@ -186,6 +188,8 @@ test-suite plutus-ledger-api-plugin-test
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   other-modules:
     Spec.Budget
+    Spec.Data.Budget
+    Spec.Data.Value
     Spec.Value
 
   build-depends:
