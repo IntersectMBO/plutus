@@ -64,7 +64,7 @@ expectFailure ::
   TestTree
 expectFailure name code arg = testCase name $ case res of
   Left NonUnitReturnValue -> pure ()
-  Left _                  -> assertFailure "evaluate failed for a different reason"
+  Left _                  -> assertFailure "evaluation failed for a different reason"
   Right _                 -> assertFailure "evaluation succeeded"
   where
     sScript = serialiseCompiledCode code

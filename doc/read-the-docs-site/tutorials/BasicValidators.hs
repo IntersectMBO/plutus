@@ -61,16 +61,16 @@ beforeEnd (Date d) (Fixed e) = d <= e
 beforeEnd (Date _) Never     = True
 
 -- | Check that the date in the redeemer is before the limit in the datum.
-validateDate :: BuiltinData -> BuiltinData -> BuiltinData -> ()
+validateDate :: BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit
 -- The 'check' function takes a 'Bool' and fails if it is false.
 -- This is handy since it's more natural to talk about booleans.
 validateDate datum redeemer _ =
     check $ beforeEnd (unsafeFromBuiltinData datum) (unsafeFromBuiltinData redeemer)
 
-dateValidator :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
+dateValidator :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit)
 dateValidator = $$(compile [|| validateDate ||])
 -- BLOCK4
-validatePayment :: BuiltinData -> BuiltinData -> BuiltinData -> ()
+validatePayment :: BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit
 validatePayment _ _ ctx =
     let valCtx = unsafeFromBuiltinData ctx
     -- The 'TxInfo' in the validation context is the representation of the
