@@ -67,11 +67,15 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
+import PlutusLedgerApi.V1 (UnsafeFromData (unsafeFromBuiltinData))
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusTx qualified
-import PlutusTx.Builtins.Internal (BuiltinList)
+import PlutusTx.Builtins qualified as B
+import PlutusTx.Builtins.Internal (BuiltinList, BuiltinPair)
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
+import PlutusTx.List qualified as List
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
 import PlutusTx.Show qualified as PlutusTx
@@ -506,7 +510,32 @@ eqMapWith is0 eqV (Map.toList -> xs1) (Map.toList -> xs2) = unordEqWith is0 eqV 
 -- tokens or no tokens at all), but does assume that no currencies or tokens within a single
 -- currency have multiple entries.
 eq :: Value -> Value -> Bool
-eq (Value currs1) (Value currs2) = eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
+eq (valueToList -> currs1) (valueToList -> currs2) =
+    unordEqWith
+        (List.all (0 ==) . fmap snd)
+        (unordEqWith (0 ==) (==))
+        currs1
+        currs2
+
+valueToList :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]
+valueToList (Map.toBuiltinList . getValue -> bList) =
+    go bList
+  where
+    go l =
+        B.matchList
+            l
+            (\() -> [])
+            ( \hd tl ->
+                (unsafeFromBuiltinData (BI.fst hd), go' . BI.unsafeDataAsMap . BI.snd $ hd) : go tl
+            )
+
+    go' l =
+        B.matchList
+            l
+            (\() -> [])
+            ( \hd tl ->
+                (unsafeFromBuiltinData (BI.fst hd), unsafeFromBuiltinData (BI.snd hd)) : go' tl
+            )
 
 newtype Lovelace = Lovelace { getLovelace :: Integer }
   deriving stock (Generic)
