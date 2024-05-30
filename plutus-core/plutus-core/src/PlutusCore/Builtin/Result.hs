@@ -58,7 +58,17 @@ data BuiltinError
 -- logging, since there's no logging on the chain and builtins don't emit much anyway. Otherwise
 -- we'd have to use @text-builder@ or @text-builder-linear@ or something of this sort.
 data BuiltinResult a
-    = BuiltinSuccess a
+    = -- 'BuiltinSuccess' is the first constructor to make it a bit more likely for GHC to
+      -- branch-predict it (which is something that we want, because most builtins return this
+      -- constructor). It is however not guaranteed that GHC will predict it, because even though
+      -- it's likely going to be a recursive case (it certainly is in the CEK machine) and thus the
+      -- constructor has precedence over 'BuiltinFailure', it doesn't have precedence over
+      -- 'BuiltinSuccessWithLogs', since that case is equally likely to be recursive.
+      --
+      -- Unfortunately, GHC doesn't offer any explicit control over branch-prediction (see this
+      -- ticket: https://gitlab.haskell.org/ghc/ghc/-/issues/849), so relying on hope is the best we
+      -- can do here.
+      BuiltinSuccess a
     | BuiltinSuccessWithLogs (DList Text) a
     | BuiltinFailure (DList Text) BuiltinError
     deriving stock (Show, Foldable)
