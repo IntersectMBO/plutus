@@ -18,6 +18,7 @@ extra-doc-files:
 
 extra-source-files:
   cost-model/data/*.R
+  cost-model/data/benching.csv
   cost-model/data/builtinCostModelA.json
   cost-model/data/builtinCostModelB.json
   cost-model/data/builtinCostModelC.json
