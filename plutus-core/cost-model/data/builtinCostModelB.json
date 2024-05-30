@@ -360,14 +360,10 @@
                 "constant": 85848,
                 "model": {
                     "arguments": {
-                        "c00": 123203,
-                        "c01": 7305,
-                        "c02": -900,
-                        "c10": 1716,
-                        "c11": 549,
-                        "c20": 57
+                        "intercept": 228465,
+                        "slope": 122
                     },
-                    "type": "quadratic_in_x_and_y"
+                    "type": "multiplied_sizes"
                 }
             },
             "type": "const_above_diagonal"
@@ -659,14 +655,10 @@
                 "constant": 85848,
                 "model": {
                     "arguments": {
-                        "c00": 123203,
-                        "c01": 7305,
-                        "c02": -900,
-                        "c10": 1716,
-                        "c11": 549,
-                        "c20": 57
+                        "intercept": 228465,
+                        "slope": 122
                     },
-                    "type": "quadratic_in_x_and_y"
+                    "type": "multiplied_sizes"
                 }
             },
             "type": "const_above_diagonal"
@@ -712,14 +704,10 @@
                 "constant": 85848,
                 "model": {
                     "arguments": {
-                        "c00": 123203,
-                        "c01": 7305,
-                        "c02": -900,
-                        "c10": 1716,
-                        "c11": 549,
-                        "c20": 57
+                        "intercept": 228465,
+                        "slope": 122
                     },
-                    "type": "quadratic_in_x_and_y"
+                    "type": "multiplied_sizes"
                 }
             },
             "type": "const_above_diagonal"
@@ -739,14 +727,10 @@
                 "constant": 85848,
                 "model": {
                     "arguments": {
-                        "c00": 123203,
-                        "c01": 7305,
-                        "c02": -900,
-                        "c10": 1716,
-                        "c11": 549,
-                        "c20": 57
+                        "intercept": 228465,
+                        "slope": 122
                     },
-                    "type": "quadratic_in_x_and_y"
+                    "type": "multiplied_sizes"
                 }
             },
             "type": "const_above_diagonal"
