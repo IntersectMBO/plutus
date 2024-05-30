@@ -22,6 +22,7 @@ module PlutusLedgerApi.Common.Eval
     ) where
 
 import PlutusCore
+import PlutusCore.Builtin (readKnownConstant)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -53,6 +54,7 @@ data EvaluationError =
     | CodecError !ScriptDecodeError -- ^ A deserialisation error
     -- TODO: make this error more informative when we have more information about what went wrong
     | CostModelParameterMismatch -- ^ An error indicating that the cost model parameters didn't match what we expected
+    | NonUnitReturnValue -- ^ The script evaluated to a value that is not the builtin unit.
     deriving stock (Show, Eq)
 makeClassyPrisms ''EvaluationError
 
@@ -64,6 +66,7 @@ instance Pretty EvaluationError where
     pretty (DeBruijnError e)          = pretty e
     pretty (CodecError e)             = pretty e
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
+    pretty NonUnitReturnValue         = "The evaluation finished but the result is not unit"
 
 -- | A simple toggle indicating whether or not we should accumulate logs during script execution.
 data VerboseMode =
@@ -227,7 +230,9 @@ evaluateScriptRestricting ll pv verbose ectx budget p args = swap $ runWriter @L
     let (res, UPLC.RestrictingSt (ExRestrictingBudget final), logs) =
             evaluateTerm (UPLC.restricting $ ExRestrictingBudget budget) pv verbose ectx appliedTerm
     tell logs
-    liftEither $ first CekError $ void res
+    case res of
+        Left e -> throwError (CekError e)
+        Right v -> unless (ll == PlutusV1 || ll == PlutusV2 || isUnit v) $ throwError NonUnitReturnValue
     pure (budget `minusExBudget` final)
 
 {-| Evaluates a script, returning the minimum budget that the script would need
@@ -250,8 +255,16 @@ evaluateScriptCounting ll pv verbose ectx p args = swap $ runWriter @LogOutput $
     let (res, UPLC.CountingSt final, logs) =
             evaluateTerm UPLC.counting pv verbose ectx appliedTerm
     tell logs
-    liftEither $ first CekError $ void res
+    case res of
+        Left e -> throwError (CekError e)
+        Right v -> unless (ll == PlutusV1 || ll == PlutusV2 || isUnit v) $ throwError NonUnitReturnValue
     pure final
+
+isUnit :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> Bool
+isUnit t = case readKnownConstant t of
+    Right () -> True
+    _        -> False
+{-# INLINE isUnit #-}
 
 {- Note [Checking the Plutus Core language version]
 Since long ago this check has been in `mkTermToEvaluate`, which makes it a phase 2 failure.

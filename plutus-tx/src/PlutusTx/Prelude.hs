@@ -28,6 +28,8 @@ module PlutusTx.Prelude (
     module Base,
     -- * Tracing functions
     module Trace,
+    -- * Unit
+    BI.BuiltinUnit,
     -- * String
     BuiltinString,
     appendString,
@@ -140,6 +142,7 @@ import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Eleme
                           verifySchnorrSecp256k1Signature)
 
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Either as Either
 import PlutusTx.Enum as Enum
 import PlutusTx.Eq as Eq
@@ -178,8 +181,8 @@ import Prelude qualified as Haskell (return, (=<<), (>>), (>>=))
 
 {-# INLINABLE check #-}
 -- | Checks a 'Bool' and aborts if it is false.
-check :: Bool -> ()
-check b = if b then () else traceError checkHasFailedError
+check :: Bool -> BI.BuiltinUnit
+check b = if b then BI.unitval else traceError checkHasFailedError
 
 {-# INLINABLE divide #-}
 -- | Integer division, rounding downwards
