@@ -49,7 +49,7 @@ import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
 
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
-import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Builtins.HasOpaque qualified as Builtins
 import PlutusTx.Trace
 
 import PlutusIR qualified as PIR
@@ -120,7 +120,7 @@ compileLiteral ::
   m (PIRTerm uni fun)
 compileLiteral = \case
   -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
-  (GHC.LitNumber _ i) -> pure $ PIR.embed $ PLC.mkConstant annMayInline i
+  (GHC.LitNumber _ i) -> pure $ PIR.embedTerm $ PLC.mkConstant annMayInline i
   GHC.LitString _ -> throwPlain $ UnsupportedError "Literal string (maybe you need to use OverloadedStrings)"
   GHC.LitChar _ -> throwPlain $ UnsupportedError "Literal char"
   GHC.LitFloat _ -> throwPlain $ UnsupportedError "Literal float"

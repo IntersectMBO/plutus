@@ -1,3 +1,7 @@
+---
+title: Type.BetaNBE.RenamingSubstitution
+layout: page
+---
 ```
 module Type.BetaNBE.RenamingSubstitution where
 

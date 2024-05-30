@@ -12,7 +12,7 @@ import Prelude hiding (Show, show, (+))
 import Control.Lens (universeOf, (&), (^.))
 import GHC.Exts (noinline)
 import PlutusCore.Default.Builtins qualified as Builtin
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
 import PlutusTx.Builtins (BuiltinString, appendString, error)
 import PlutusTx.Code (CompiledCode, getPlc, getPlcNoAnn)
 import PlutusTx.Numeric ((+))
@@ -40,7 +40,8 @@ evaluatesToError = not . evaluatesWithoutError
 
 evaluatesWithoutError :: CompiledCode a -> Bool
 evaluatesWithoutError code =
-  runCekDeBruijn defaultCekParameters counting noEmitter (getPlc code ^. UPLC.progTerm) & \case
+  runCekDeBruijn defaultCekParametersForTesting counting noEmitter
+  (getPlc code ^. UPLC.progTerm) & \case
     (Left _exception, _counter, _logs) -> False
     (Right _result, _counter, _logs) -> True
 

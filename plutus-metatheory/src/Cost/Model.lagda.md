@@ -1,4 +1,7 @@
-
+---
+title: Cost.Model
+layout: page
+---
 # Builtin Cost Models
 
 ```

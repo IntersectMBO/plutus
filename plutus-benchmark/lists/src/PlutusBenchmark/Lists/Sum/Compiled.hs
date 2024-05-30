@@ -53,7 +53,7 @@ mkSumRightScottTerm l = compiledCodeToTerm $ mkSumRightScottCode l
 
 {-# INLINABLE foldLeftBuiltin #-}
 foldLeftBuiltin :: (b -> a -> b) -> b -> BI.BuiltinList a -> b
-foldLeftBuiltin f z l = B.matchList l z (\x xs -> (foldLeftBuiltin f (f z x) xs))
+foldLeftBuiltin f z l = B.matchList' l z (\x xs -> (foldLeftBuiltin f (f z x) xs))
 
 {-# INLINABLE sumLeftBuiltin #-}
 sumLeftBuiltin :: BI.BuiltinList Integer -> Integer
@@ -61,7 +61,7 @@ sumLeftBuiltin l = foldLeftBuiltin B.addInteger 0 l
 
 {-# INLINABLE foldRightBuiltin #-}
 foldRightBuiltin :: (a -> b -> b) -> b -> BI.BuiltinList a -> b
-foldRightBuiltin f z l = B.matchList l z (\x xs -> f x $! (foldRightBuiltin f z xs))
+foldRightBuiltin f z l = B.matchList' l z (\x xs -> f x $! (foldRightBuiltin f z xs))
 
 {-# INLINABLE sumRightBuiltin #-}
 sumRightBuiltin :: BI.BuiltinList Integer -> Integer

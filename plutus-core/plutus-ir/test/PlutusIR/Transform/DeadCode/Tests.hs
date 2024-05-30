@@ -16,8 +16,8 @@ import Test.Tasty.QuickCheck
 
 
 test_deadCode :: TestTree
-test_deadCode = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "DeadCode" $
+test_deadCode =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "DeadCode"] $
         map
             (goldenPir (runQuote . runTestPass (\tc -> removeDeadBindingsPassSC tc def)) pTerm)
             [ "typeLet"

@@ -128,7 +128,6 @@ data ParamName =
   | ModInteger'cpu'arguments'model'arguments'intercept
   | ModInteger'cpu'arguments'model'arguments'slope
   | ModInteger'memory'arguments'intercept
-  | ModInteger'memory'arguments'minimum
   | ModInteger'memory'arguments'slope
   | MultiplyInteger'cpu'arguments'intercept
   | MultiplyInteger'cpu'arguments'slope
@@ -146,7 +145,6 @@ data ParamName =
   | RemainderInteger'cpu'arguments'model'arguments'intercept
   | RemainderInteger'cpu'arguments'model'arguments'slope
   | RemainderInteger'memory'arguments'intercept
-  | RemainderInteger'memory'arguments'minimum
   | RemainderInteger'memory'arguments'slope
   | SerialiseData'cpu'arguments'intercept
   | SerialiseData'cpu'arguments'slope

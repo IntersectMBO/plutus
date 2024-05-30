@@ -35,14 +35,13 @@ import PlutusBenchmark.ProtocolParameters as PP
 
 import PlutusLedgerApi.Common qualified as LedgerApi
 
-import PlutusTx qualified as Tx
-
 import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
+import PlutusTx.Test.Util.Compiled
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
@@ -52,7 +51,6 @@ import Criterion.Main
 import Criterion.Types (Config (..))
 import Data.ByteString qualified as BS
 import Data.SatInt (fromSatInt)
-import Data.Text (Text)
 import Flat qualified
 import GHC.IO.Encoding (setLocaleEncoding)
 import System.Directory
@@ -78,94 +76,27 @@ getConfig limit = do
                 timeLimit = limit
               }
 
-type Term = UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun ()
-type Program = UPLC.Program PLC.NamedDeBruijn DefaultUni DefaultFun ()
-
-{- | Given a DeBruijn-named term, give every variable the name "v".  If we later
-   call unDeBruijn, that will rename the variables to things like "v123", where
-   123 is the relevant de Bruijn index.-}
-toNamedDeBruijnTerm
-    :: UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
-    -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-toNamedDeBruijnTerm = UPLC.termMapNames UPLC.fakeNameDeBruijn
-
-{- | Remove the textual names from a NamedDeBruijn term -}
-toAnonDeBruijnTerm
-    :: Term
-    -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
-toAnonDeBruijnTerm = UPLC.termMapNames UPLC.unNameDeBruijn
-
-toAnonDeBruijnProg
-    :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-    -> UPLC.Program UPLC.DeBruijn      DefaultUni DefaultFun ()
-toAnonDeBruijnProg (UPLC.Program () ver body) =
-    UPLC.Program () ver $ toAnonDeBruijnTerm body
-
-
-{- | Just extract the body of a program wrapped in a 'CompiledCodeIn'.  We use this a lot. -}
-compiledCodeToTerm
-    :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
-compiledCodeToTerm (Tx.getPlcNoAnn -> UPLC.Program _ _ body) = body
-
-{- | Lift a Haskell value to a PLC term.  The constraints get a bit out of control
-   if we try to do this over an arbitrary universe.-}
-haskellValueToTerm
-    :: Tx.Lift DefaultUni a => a -> Term
-haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
-
-{- | Just run a term to obtain an `EvaluationResult` (used for tests etc.) -}
-unsafeRunTermCek :: Term -> EvaluationResult Term
-unsafeRunTermCek =
-    unsafeExtractEvaluationResult
-        . (\(res, _, _) -> res)
-        . runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.noEmitter
-
--- | Just run a term.
-runTermCek ::
-    Term ->
-    ( Either (CekEvaluationException UPLC.NamedDeBruijn DefaultUni DefaultFun) Term
-    , [Text]
-    )
-runTermCek =
-    (\(res, _, logs) -> (res, logs))
-        . runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.logEmitter
-
 -- | Evaluate a script and return the CPU and memory costs (according to the cost model)
 getCostsCek :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> (Integer, Integer)
 getCostsCek (UPLC.Program _ _ prog) =
-    case Cek.runCekDeBruijn PLC.defaultCekParameters Cek.tallying Cek.noEmitter prog of
+    case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter prog of
       (_res, Cek.TallyingSt _ budget, _logs) ->
           let ExBudget (ExCPU cpu)(ExMemory mem) = budget
           in (fromSatInt cpu, fromSatInt mem)
-
-{- | Evaluate a PLC term and check that the result matches a given Haskell value
-   (perhaps obtained by running the Haskell code that the term was compiled
-   from).  We evaluate the lifted Haskell value as well, because lifting may
-   produce reducible terms. The function is polymorphic in the comparison
-   operator so that we can use it with both HUnit Assertions and QuickCheck
-   Properties.  -}
-cekResultMatchesHaskellValue
-    :: Tx.Lift DefaultUni a
-    => Term
-    -> (EvaluationResult Term -> EvaluationResult Term -> b)
-    -> a
-    -> b
-cekResultMatchesHaskellValue term matches value =
-    (unsafeRunTermCek term) `matches` (unsafeRunTermCek $ haskellValueToTerm value)
 
 -- | Create the evaluation context for the benchmarks. This doesn't exactly match how it's done
 -- on-chain, but that's okay because the evaluation context is cached by the ledger, so we're
 -- deliberately not including it in the benchmarks.
 mkEvalCtx :: LedgerApi.EvaluationContext
 mkEvalCtx =
-    case PLC.defaultCostModelParams of
+    case PLC.defaultCostModelParamsForTesting of
         Just p ->
             let errOrCtx =
                     -- The validation benchmarks were all created from PlutusV1 scripts
                     LedgerApi.mkDynEvaluationContext
                         LedgerApi.PlutusV1
-                        [DefaultFunSemanticsVariant1]
-                        (const DefaultFunSemanticsVariant1)
+                        [DefaultFunSemanticsVariantB]
+                        (const DefaultFunSemanticsVariantB)
                         p
             in case errOrCtx of
                 Right ec -> ec

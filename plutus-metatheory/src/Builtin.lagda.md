@@ -184,22 +184,22 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
     
     list :  ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
     list a = (blist a) ↑
-    ```
+```
     
-    ###Operators for constructing signatures
-   
-    The following operators are used to express signatures in a familiar way,
-    but ultimately, they construct a Sig 
+### Operators for constructing signatures
 
-    An expression 
-      n⋆×n♯ [ t₁ , t₂ , t₃ ]⟶ tᵣ
-    
-    is actually parsed as
-      (((n⋆×n♯ [ t₁) , t₂) , t₃) ]⟶ tᵣ
-    
-    and constructs a signature
+The following operators are used to express signatures in a familiar way,
+but ultimately, they construct a Sig 
 
-    sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
+An expression 
+  n⋆×n♯ [ t₁ , t₂ , t₃ ]⟶ tᵣ
+
+is actually parsed as
+  (((n⋆×n♯ [ t₁) , t₂) , t₃) ]⟶ tᵣ
+
+and constructs a signature
+
+sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
 
     ```
     ArgSet : Set

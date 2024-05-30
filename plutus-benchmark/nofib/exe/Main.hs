@@ -201,8 +201,13 @@ options = hsubparser
 
 ---------------- Evaluation ----------------
 
-evaluateWithCek :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> UPLC.EvaluationResult (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
-evaluateWithCek = UPLC.unsafeExtractEvaluationResult . (\(fstT,_,_) -> fstT) . UPLC.runCekDeBruijn PLC.defaultCekParameters UPLC.restrictingEnormous UPLC.noEmitter
+evaluateWithCek
+  :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+  -> UPLC.EvaluationResult (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+evaluateWithCek =
+  UPLC.unsafeToEvaluationResult
+  . (\(fstT,_,_) -> fstT)
+  . UPLC.runCekDeBruijn PLC.defaultCekParametersForTesting UPLC.restrictingEnormous UPLC.noEmitter
 
 writeFlatNamed :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
 writeFlatNamed prog = BS.putStr . Flat.flat . UPLC.UnrestrictedProgram $ prog
@@ -249,7 +254,7 @@ measureBudget compiledCode =
    in case programE of
         Left _ -> (-1,-1) -- Something has gone wrong but I don't care.
         Right program ->
-          let (_, UPLC.TallyingSt _ budget) = UPLC.runCekNoEmit PLC.defaultCekParameters UPLC.tallying $ program ^. UPLC.progTerm
+          let (_, UPLC.TallyingSt _ budget) = UPLC.runCekNoEmit PLC.defaultCekParametersForTesting UPLC.tallying $ program ^. UPLC.progTerm
               ExCPU cpu = exBudgetCPU budget
               ExMemory mem = exBudgetMemory budget
           in (fromSatInt cpu, fromSatInt mem)

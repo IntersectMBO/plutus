@@ -11,7 +11,7 @@ module PlutusLedgerApi.V3.EvaluationContext
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V3.ParamName as V3
 
-import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariant2))
+import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantC))
 
 import Control.Monad
 import Control.Monad.Except
@@ -38,6 +38,6 @@ mkEvaluationContext =
     >=> pure . toCostModelParams
     >=> mkDynEvaluationContext
         PlutusV3
-        [DefaultFunSemanticsVariant2]
+        [DefaultFunSemanticsVariantC]
         -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
-        (const DefaultFunSemanticsVariant2)
+        (const DefaultFunSemanticsVariantC)
