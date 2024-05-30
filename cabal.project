@@ -26,6 +26,7 @@ packages: doc/read-the-docs-site
           plutus-metatheory
           plutus-tx
           plutus-tx-plugin
+          plutus-tx-test-util
           prettyprinter-configurable
           stubs/plutus-ghc-stub
 

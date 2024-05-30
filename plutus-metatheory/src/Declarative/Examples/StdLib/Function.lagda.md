@@ -1,3 +1,7 @@
+---
+title: Function
+layout: page
+---
 ```
 module Declarative.Examples.StdLib.Function where
 ```

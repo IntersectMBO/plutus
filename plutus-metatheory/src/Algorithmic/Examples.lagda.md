@@ -1,3 +1,7 @@
+---
+title: Algorithmic.Examples
+layout: page
+---
 ```
 module Algorithmic.Examples where
 ```

@@ -1,3 +1,7 @@
+---
+title: Nat
+layout: page
+---
 ```
 module Declarative.Examples.StdLib.Nat where
 ```

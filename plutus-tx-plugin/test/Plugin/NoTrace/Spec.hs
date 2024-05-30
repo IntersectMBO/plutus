@@ -13,15 +13,13 @@ import Plugin.NoTrace.Lib qualified as Lib
 import Plugin.NoTrace.WithoutTraces qualified as WithoutTraces
 import Plugin.NoTrace.WithTraces qualified as WithTraces
 import Test.Tasty (testGroup)
-import Test.Tasty.Extras (TestNested)
+import Test.Tasty.Extras (TestNested, embed)
 import Test.Tasty.HUnit (assertBool, testCase, (@=?))
 
 noTrace :: TestNested
-noTrace = pure do
-  testGroup
-    "remove-trace"
-    [ testGroup
-        "Trace calls are preserved"
+noTrace = embed $ do
+  testGroup "remove-trace"
+    [ testGroup "Trace calls are preserved"
         [ testCase "trace-argument" $
             1 @=? countTraces WithTraces.traceArgument
         , testCase "trace-show" $
@@ -36,7 +34,7 @@ noTrace = pure do
             3 @=? countTraces WithTraces.traceRepeatedly
         , testCase "trace-impure" $
             1 @=? countTraces WithTraces.traceImpure
-        , testCase "trace-impure with effect" $ -- See note [Impure trace messages]
+        , testCase "trace-impure with effect" $ -- See Note [Impure trace messages]
             assertBool "Effect is missing" (Lib.evaluatesToError WithTraces.traceImpure)
         ]
     , testGroup
@@ -55,7 +53,7 @@ noTrace = pure do
             0 @=? countTraces WithoutTraces.traceRepeatedly
         , testCase "trace-impure" $
             0 @=? countTraces WithoutTraces.traceImpure
-        , testCase "trace-impure without effect" $ -- See note [Impure trace messages]
+        , testCase "trace-impure without effect" $ -- See Note [Impure trace messages]
             assertBool "Effect wasn't erased" (Lib.evaluatesWithoutError WithoutTraces.traceImpure)
         ]
     ]

@@ -9,11 +9,29 @@ import System.FilePath
 costModelDataDir :: FilePath
 costModelDataDir = "cost-model" </> "data"
 
-builtinCostModelFile :: FilePath
-builtinCostModelFile = costModelDataDir </> "builtinCostModel" <.> "json"
+builtinCostModelFileA :: FilePath
+builtinCostModelFileA = costModelDataDir </> "builtinCostModelA" <.> "json"
 
-cekMachineCostsFile :: FilePath
-cekMachineCostsFile = costModelDataDir </> "cekMachineCosts" <.> "json"
+builtinCostModelFileB :: FilePath
+builtinCostModelFileB = costModelDataDir </> "builtinCostModelB" <.> "json"
+
+builtinCostModelFileC :: FilePath
+builtinCostModelFileC = costModelDataDir </> "builtinCostModelC" <.> "json"
+
+latestBuiltinCostModelFile :: FilePath
+latestBuiltinCostModelFile = builtinCostModelFileC
+
+cekMachineCostsFileA :: FilePath
+cekMachineCostsFileA = costModelDataDir </> "cekMachineCostsA" <.> "json"
+
+cekMachineCostsFileB :: FilePath
+cekMachineCostsFileB = costModelDataDir </> "cekMachineCostsB" <.> "json"
+
+cekMachineCostsFileC :: FilePath
+cekMachineCostsFileC = costModelDataDir </> "cekMachineCostsC" <.> "json"
+
+latestMachineCostsFile :: FilePath
+latestMachineCostsFile = cekMachineCostsFileC
 
 -- | The file containing the R models: only needed for cost-model-test.
 rModelFile :: FilePath

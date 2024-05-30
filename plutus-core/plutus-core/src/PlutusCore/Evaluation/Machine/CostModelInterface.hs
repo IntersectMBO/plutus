@@ -156,6 +156,66 @@ of these issues and the rationale for adopting the system described above.
 
 -}
 
+{- Note [Table of all possible ledger's states w.r.t. cost model parameters update]
+What Note [Cost model parameters from the ledger's point of view] says can be summarized in a table.
+We'll need to enumerate all possible combinations of
+
+    old_node / new_node
+    before_HF / after_HF
+    shorter_list / exact_list / longer_list
+
+where the last ones are about the list of cost model parameters supplied by the ledger, e.g.
+@shorter_list@ means that the ledger supplied a list of cost model parameters that is shorter than
+expected by the appropriate Plutus ledger language at the specific protocol version.
+
+Note that the exact same list may be @exact_list@ for @old_node@ and @shorter_list@ for @new_node@.
+And the exact same list may be @longer_list@ for @old_node@ and @exact_list@ for @new_node@.
+
+We'll also need to consider changing the cost model parameters of old builtins and adding cost model
+parameters for new builtins separately, because there are non-trivial differences. For old builtins
+we'll only consider the case of adding new cost model parameters, because the case of reducing the
+number of cost model parameters is trivial: the only thing we can do about it is simply keeping the
+redundant arguments and asking the ledger to continue providing them, as there's no way for us to
+remove them form the middle of the cost model parameter list. And if the number of parameters
+doesn't change, then there's nothing to worry about.
+
+We'll also only consider the case when the Plutus ledger language stays the same, because if it
+changes, then everything becomes trivial: we don't need to worry about any backward compatibility
+and can simply "start over" for a new ledger language.
+
+"OK" in the table below means "we handle this situation correctly as implied by
+Note [Cost model parameters from the ledger's point of view]".
+
+The table then looks like this:
+
+                                         old_builtin new_builtin
+    old_node / before_HF / shorter_list    OK [1]      OK [1]
+    old_node / before_HF / exact_list      OK [2]      OK [3]
+    old_node / before_HF / longer_list     OK [4]      OK [3]
+
+    old_node / after_HF / shorter_list     OK [5]      OK [5]
+    old_node / after_HF / exact_list       OK [5]      OK [5]
+    old_node / after_HF / longer_list      OK [5]      OK [5]
+
+    new_node / before_HF / shorter_list    OK [6]      OK [3]
+    new_node / before_HF / exact_list      OK [2]      OK [3]
+    new_node / before_HF / longer_list     OK [7]      OK [7]
+
+    new_node / after_HF / shorter_list     OK [8]      OK [9]
+    new_node / after_HF / exact_list       OK [2]      OK [2]
+    new_node / after_HF / longer_list      OK [10]     OK [10]
+
+[1] this is the same case as `new_node / after_HF / shorter_list`, just in the context of a different hardfork
+[2] the most straightforward case, nothing to consider
+[3] a new builtin cannot be used before the hardfork as `scriptCBORDecoder` will fail with "built-in function X is not available"
+[4] an old builtin does not touch its new cost model parameters (if any) before the hardfork, hence it's safe to ignore those extra parameters
+[5] the old node is not alive after the hardfork, hence anything is OK
+[6] an old builtin does not touch its new cost model parameters (if any) before the hardfork, hence it's safe to make those extra parameters all `maxBound`
+[7] this is a bit weird, but theoretically possible (one can propose protocol parameter updates, including updating the number of PlutusV3 cost model parameters to 100000, or updating the max block size to 0. Those will be rejected, especially if there's a guardrail in place). But even it happens in practice, `longer_list` should never be a problem, since the extra numbers are simply ignored
+[8] this is a tricky one: since it's a shorter list, the missing cost model parameters all become 'maxBound' meaning for an old builtin we end up in a situation where some of its cost model parameters are 'maxBound' and some are not, which is not enough to prevent the builtin from running. Which is however not a problem, because it _is_ fine to run the builtin after the hardfork, all we care about is that it's not undercosted and making some of the cost model parameters 'maxBound' ensures that it's not as it's literally the highest value that they can have
+[9] same as [8] except this does ensure that the builtin never runs, because all of its cost model parameters are 'maxBound', which makes the cost of the builtin higher than any reasonable budget
+[10] this is the same case as `old_node / before_HF / longer_list`, just in the context of a different hardfork
+-}
 
 {-| A raw representation of the ledger's cost model parameters.
 
@@ -199,9 +259,9 @@ data CostModelApplyWarn =
 
 instance Pretty CostModelApplyError where
     pretty = (preamble <+>) . \case
-        CMUnknownParamError k -> "Unknown cost model parameter:" <+> pretty k
-        CMInternalReadError      -> "Internal problem occurred upon reading the given cost model parameteres"
-        CMInternalWriteError str     -> "Internal problem occurred upon generating the applied cost model parameters with JSON error:" <+> pretty str
+        CMUnknownParamError k    -> "No such parameter in target cost model:" <+> pretty k
+        CMInternalReadError      -> "Internal problem occurred upon reading the given cost model parameters"
+        CMInternalWriteError str -> "Internal problem occurred upon generating the applied cost model parameters with JSON error:" <+> pretty str
       where
           preamble = "applyParams error:"
 

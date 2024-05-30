@@ -1,4 +1,7 @@
-
+---
+title: Cost.Base
+layout: page
+---
 ```
 module Cost.Base where 
 

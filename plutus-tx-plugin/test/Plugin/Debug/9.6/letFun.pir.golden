@@ -137,45 +137,45 @@
       ds
       (con { no-src-span } integer)
       (let
-        { test/Plugin/Debug/Spec.hs:39:9-39:87 }
+        { test/Plugin/Debug/Spec.hs:38:9-38:87 }
         (nonrec)
         (termbind
-          { test/Plugin/Debug/Spec.hs:39:9-39:87 }
+          { test/Plugin/Debug/Spec.hs:38:9-38:87 }
           (strict)
           (vardecl
-            { test/Plugin/Debug/Spec.hs:39:9-39:87 }
+            { test/Plugin/Debug/Spec.hs:38:9-38:87 }
             ds
-            (con { test/Plugin/Debug/Spec.hs:39:9-39:87 } integer)
+            (con { test/Plugin/Debug/Spec.hs:38:9-38:87 } integer)
           )
-          { test/Plugin/Debug/Spec.hs:39:9-39:87 } ds
+          { test/Plugin/Debug/Spec.hs:38:9-38:87 } ds
         )
         (lam
           { no-src-span }
           ds
           (con { no-src-span } integer)
           (let
-            { test/Plugin/Debug/Spec.hs:39:9-39:87 }
+            { test/Plugin/Debug/Spec.hs:38:9-38:87 }
             (nonrec)
             (termbind
-              { test/Plugin/Debug/Spec.hs:39:9-39:87 }
+              { test/Plugin/Debug/Spec.hs:38:9-38:87 }
               (strict)
               (vardecl
-                { test/Plugin/Debug/Spec.hs:39:9-39:87 }
+                { test/Plugin/Debug/Spec.hs:38:9-38:87 }
                 ds
-                (con { test/Plugin/Debug/Spec.hs:39:9-39:87 } integer)
+                (con { test/Plugin/Debug/Spec.hs:38:9-38:87 } integer)
               )
-              { test/Plugin/Debug/Spec.hs:39:9-39:87 } ds
+              { test/Plugin/Debug/Spec.hs:38:9-38:87 } ds
             )
             [
-              { test/Plugin/Debug/Spec.hs:39:9-39:87, test/Plugin/Debug/Spec.hs:39:44-39:86, test/Plugin/Debug/Spec.hs:39:54-39:79 }
+              { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79 }
               [
-                { test/Plugin/Debug/Spec.hs:39:9-39:87, test/Plugin/Debug/Spec.hs:39:44-39:86, test/Plugin/Debug/Spec.hs:39:54-39:79 }
-                { test/Plugin/Debug/Spec.hs:39:9-39:87, test/Plugin/Debug/Spec.hs:39:44-39:86, test/Plugin/Debug/Spec.hs:39:54-39:79 }
+                { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79 }
+                { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79 }
                 equalsInteger
-                { test/Plugin/Debug/Spec.hs:39:9-39:87, test/Plugin/Debug/Spec.hs:39:44-39:86, test/Plugin/Debug/Spec.hs:39:54-39:79, test/Plugin/Debug/Spec.hs:39:77-39:77 }
+                { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79, test/Plugin/Debug/Spec.hs:38:77-38:77 }
                 ds
               ]
-              { test/Plugin/Debug/Spec.hs:39:9-39:87, test/Plugin/Debug/Spec.hs:39:44-39:86, test/Plugin/Debug/Spec.hs:39:54-39:79, test/Plugin/Debug/Spec.hs:39:79-39:79 }
+              { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79, test/Plugin/Debug/Spec.hs:38:79-38:79 }
               ds
             ]
           )

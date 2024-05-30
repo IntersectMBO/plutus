@@ -1,3 +1,7 @@
+---
+title: Cost.Raw
+layout: page
+---
 # Raw Cost structures to inferface with Haskell
 
 ```
@@ -19,7 +23,7 @@ open import Utils
 {-# FOREIGN GHC import Data.Functor.Identity (Identity, runIdentity) #-}
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExBudget (ExBudget(..))  #-}
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExMemory (ExCPU(..), ExMemory(..)) #-}
-{-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCosts) #-}
+{-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCostsForTesting) #-}
 {-# FOREIGN GHC import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCostsBase(..)) #-}
 
 postulate HCekMachineCosts : Set
@@ -58,7 +62,7 @@ postulate getMemoryCost : HExBudget → CostingNat
 
 -- postulate defaultHCekMachineCosts : HCekMachineCosts
 
--- {-# COMPILE GHC defaultHCekMachineCosts = defaultCekMachineCosts #-}
+-- {-# COMPILE GHC defaultHCekMachineCosts = defaultCekMachineCostsForTesting #-}
 ```
 
 ## Interface with Builtin model from JSON

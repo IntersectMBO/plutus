@@ -141,6 +141,14 @@ let
                 ssreflect
                 equations
               ];
+
+            plutus-core.components.tests.plutus-core-test.postInstall = ''
+              wrapProgram $out/bin/plutus-core-test --set PATH ${lib.makeBinPath [ pkgs.diffutils ]}
+            '';
+
+            plutus-core.components.tests.plutus-ir-test.postInstall = ''
+              wrapProgram $out/bin/plutus-ir-test --set PATH ${lib.makeBinPath [ pkgs.diffutils ]}
+            '';
           };
         }
 

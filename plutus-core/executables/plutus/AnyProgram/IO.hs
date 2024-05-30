@@ -46,7 +46,7 @@ readProgram sngS fileS =
                     case parseProgram @ParserErrorBundle sngS $ T.decodeUtf8Lenient bs of
                         Left err  -> failE $ show err
                         Right res -> pure res
-                Flat_ -> withFlatL sngS $ do
+                Flat_ -> withLang @Flat sngS $ do
                     bs <- readFileName (fromJust $ fileS^.fName)
                     case unflat bs of
                        Left err  -> failE $ show err
@@ -59,7 +59,7 @@ readProgram sngS fileS =
                             case deserialiseOrFail $ BSL.fromStrict bs of
                                    Left err  -> failE $ show err
                                    Right res -> pure res
-                        _ ->  withFlatL sngS $
+                        _ ->  withLang @Flat sngS $
                             -- this is a cbor-embedded bytestring of the Flat encoding
                             -- so we use the SerialiseViaFlat newtype wrapper.
                             case deserialiseOrFail $ BSL.fromStrict bs of
@@ -74,7 +74,7 @@ writeProgram sng ast file =
         Just fn -> do
             printED $ show $ "Outputting" <+> pretty file
             case file^.fType.fFormat of
-                Flat_ -> writeFileName fn $ withFlatL sng $ flat ast
+                Flat_ -> writeFileName fn $ withLang @Flat sng $ flat ast
                 Text  -> writeFileName fn
                     $ T.encodeUtf8
                     $ renderStrict
@@ -84,7 +84,7 @@ writeProgram sng ast file =
                 Cbor -> writeFileName fn $ BSL.toStrict $
                     case sng %~ SData of
                         Proved Refl -> serialise ast
-                        _           -> withFlatL sng $ serialise (SerialiseViaFlat ast)
+                        _           -> withLang @Flat sng $ serialise (SerialiseViaFlat ast)
                 Json -> error "FIXME: not implemented yet"
         _ -> printE "Program passed all checks. No output file was written, use -o or --stdout."
 
@@ -98,11 +98,11 @@ prettyWithStyle = \case
 readFileName :: (?opts :: Opts)
              => FileName -> IO BS.ByteString
 readFileName = \case
-    StdOut -> failE "should not happen"
-    StdIn -> BS.hGetContents stdin
+    StdOut          -> failE "should not happen"
+    StdIn           -> BS.hGetContents stdin
     AbsolutePath fp -> BS.readFile fp
     -- TODO: it needs some restructuring in Types, Example is not a FileName and cannot be IO-read
-    Example{} -> failE "should not happen"
+    Example{}       -> failE "should not happen"
 
 writeFileName :: (?opts :: Opts)
               => FileName -> BS.ByteString -> IO ()

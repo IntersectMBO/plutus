@@ -34,8 +34,8 @@ AsData.asData [d|
 -- This can be interesting to make sure that important optimizations fire, including
 -- ones that run on UPLC.
 tests :: TestNested
-tests = testNestedGhc "Optimization" [
-   goldenUPlc "maybeFun" maybeFun
+tests = testNested "Optimization" . pure $ testNestedGhc
+   [ goldenUPlc "maybeFun" maybeFun
    , goldenPirReadable "matchAsData" matchAsData
    , goldenPirReadable "unsafeDeconstructData" unsafeDeconstructData
    ]

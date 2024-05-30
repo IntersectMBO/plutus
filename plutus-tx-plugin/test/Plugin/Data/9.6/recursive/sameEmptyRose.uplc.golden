@@ -477,16 +477,16 @@
                     (force (delay (lam s_i0 [ s_i1 s_i1 ])))
                     (lam
                       s_i0
-                      (lam
-                        x_i0
-                        [
+                      [
+                        f_i2
+                        (lam
+                          x_i0
                           [
-                            f_i3
                             [ (force (delay (lam s_i0 [ s_i1 s_i1 ]))) s_i2 ]
+                            x_i1
                           ]
-                          x_i1
-                        ]
-                      )
+                        )
+                      ]
                     )
                   ]
                 )
@@ -583,16 +583,16 @@
                       (force (delay (lam s_i0 [ s_i1 s_i1 ])))
                       (lam
                         s_i0
-                        (lam
-                          x_i0
-                          [
+                        [
+                          f_i2
+                          (lam
+                            x_i0
                             [
-                              f_i3
                               [ (force (delay (lam s_i0 [ s_i1 s_i1 ]))) s_i2 ]
+                              x_i1
                             ]
-                            x_i1
-                          ]
-                        )
+                          )
+                        ]
                       )
                     ]
                   )

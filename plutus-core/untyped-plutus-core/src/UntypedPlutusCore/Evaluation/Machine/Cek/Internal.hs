@@ -48,6 +48,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , StepKind(..)
     , ThrowableBuiltins
     , extractEvaluationResult
+    , unsafeToEvaluationResult
     , spendBudgetStreamCek
     , runCekDeBruijn
     , dischargeCekValue

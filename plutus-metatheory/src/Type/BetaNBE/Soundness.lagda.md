@@ -1,3 +1,7 @@
+---
+title: Type.BetaNBE.Soundness
+layout: page
+---
 ```
 module Type.BetaNBE.Soundness where
 ```

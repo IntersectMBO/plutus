@@ -61,7 +61,7 @@ availableBuiltins = testCase "builtins are available after Alonzo" $
 integerToByteStringExceedsBudget :: TestTree
 integerToByteStringExceedsBudget = testCase "integerToByteString should exceed budget" $
     let script = either (error . show) id $ V3.deserialiseScript conwayPV integerToByteStringFunction
-        (_, res) = V3.evaluateScriptCounting conwayPV V3.Quiet v3_evalCtxTooFewParams script []
+        (_, res) = V3.evaluateScriptCounting conwayPV V3.Quiet v3_evalCtxTooFewParams script (I 1)
     in case res of
         Left _ -> assertFailure "fails"
         Right (ExBudget cpu _mem) -> assertBool "did not exceed budget" (cpu >= fromIntegral (maxBound :: Int64))
