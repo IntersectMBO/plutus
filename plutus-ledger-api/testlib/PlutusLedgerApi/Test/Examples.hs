@@ -55,9 +55,10 @@ integerToByteStringFunction :: SerialisedScript
 integerToByteStringFunction = serialiseUPLC $ UPLC.Program () PLC.plcVersion110 body
     where
         body =
-            PLC.mkIterAppNoAnn
-                (UPLC.Builtin () PLC.IntegerToByteString)
-                [ PLC.mkConstant @Bool () False
-                , PLC.mkConstant @Integer () 5
-                , PLC.mkConstant @Integer () 1
-                ]
+            UPLC.LamAbs () (UPLC.DeBruijn 0) $
+                PLC.mkIterAppNoAnn
+                    (UPLC.Builtin () PLC.IntegerToByteString)
+                    [ PLC.mkConstant @Bool () False
+                    , PLC.mkConstant @Integer () 5
+                    , PLC.mkConstant @Integer () 1
+                    ]
