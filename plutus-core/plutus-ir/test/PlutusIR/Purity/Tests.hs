@@ -41,11 +41,13 @@ dangerTerm = runQuote $ do
   pure $ Apply () (Apply () (Var () n) (Var () m)) undefined
 
 test_evalOrder :: TestTree
-test_evalOrder = runTestNestedIn ["plutus-ir", "test", "PlutusIR"] $ testNested "Purity"
-  [ goldenEvalOrder "letFun"
-  , goldenEvalOrder "builtinAppUnsaturated"
-  , goldenEvalOrder "builtinAppSaturated"
-  , goldenEvalOrder "pureLet"
-  , goldenEvalOrder "nestedLets1"
-  , pure $ testCase "evalOrderLazy" $ 4 @=? length (unEvalOrder $ computeEvalOrderCoarse dangerTerm)
-  ]
+test_evalOrder =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Purity"]
+        [ goldenEvalOrder "letFun"
+        , goldenEvalOrder "builtinAppUnsaturated"
+        , goldenEvalOrder "builtinAppSaturated"
+        , goldenEvalOrder "pureLet"
+        , goldenEvalOrder "nestedLets1"
+        , embed $ testCase "evalOrderLazy" $
+            4 @=? length (unEvalOrder $ computeEvalOrderCoarse dangerTerm)
+        ]

@@ -227,8 +227,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     type CostingPart uni ExtensionFun = ()
 
     data BuiltinSemanticsVariant ExtensionFun =
-              ExtensionFunSemanticsVariant0
-            | ExtensionFunSemanticsVariant1
+              ExtensionFunSemanticsVariantX
+            | ExtensionFunSemanticsVariantY
         deriving stock (Enum, Bounded, Show)
 
     toBuiltinMeaning :: forall val. HasMeaningIn uni val
@@ -461,8 +461,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         makeBuiltinMeaning
             @(() -> EvaluationResult Integer)
             (\(_ :: ()) -> EvaluationSuccess $ case semvar of
-                    ExtensionFunSemanticsVariant0 -> 0
-                    ExtensionFunSemanticsVariant1 -> 1)
+                    ExtensionFunSemanticsVariantX -> 0
+                    ExtensionFunSemanticsVariantY -> 1)
             whatever
 
     -- We want to know if the CEK machine releases individual budgets after accounting for them and
@@ -535,4 +535,4 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (\_ -> unsafePerformIO . regBudgets . runCostingFunOneArgument model)
 
 instance Default (BuiltinSemanticsVariant ExtensionFun) where
-    def = ExtensionFunSemanticsVariant1
+    def = ExtensionFunSemanticsVariantY

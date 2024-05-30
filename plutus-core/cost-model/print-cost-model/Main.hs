@@ -1,7 +1,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-
 {- | A program to parse a JSON representation of costing functions for Plutus Core
    builtins and print it in readable form. -}
 module Main where
@@ -107,10 +106,22 @@ printModel component width (name, CpuAndMemoryModel cpu mem) = do
 
 ---------------- Command line processing ----------------
 
-usage :: FilePath -> IO a
-usage defaultCostModelPath = do
+-- The names of the semantic variants.  If X is a semantic variant and you pass
+-- -X on the command line then the program looks for a cost model file called
+-- builtinCostModelX.json in the data directory and prints its contents.  The -d
+-- option prints the cost model file (if any) corresponding to the final element
+-- in the list.
+semvars :: [String]
+semvars = ["A", "B", "C"]
+
+semvarOptions :: [String]
+semvarOptions = fmap ('-':) semvars
+
+usage :: [String] -> IO a
+usage paths = do
+  let semvarInfo = printf "[%s]" (intercalate "|" semvarOptions) :: String
   prog <- getProgName
-  printf "Usage: %s [-c|--cpu|-m|--mem|--memory] [-d|--default] [<filename>]\n" prog
+  printf "Usage: %s [-c|--cpu|-m|--mem|--memory] [-d|--default] [<filename>] %s\n" prog semvarInfo
   printf "\n"
   printf "Print a JSON cost model file in readable form.\n"
   printf "The variables x, y, z, etc. represent the *sizes* of the builtin's arguments\n"
@@ -121,33 +132,39 @@ usage defaultCostModelPath = do
   printf "   -c, --cpu (default):  print the CPU costing functions for each built-in function\n"
   printf "   -m, --mem --memory:  print the memory costing functions for each built-in function\n"
   printf "   -d, --default: print the contents of the default cost model in\n"
-  printf "      %s\n" defaultCostModelPath
+  printf "      %s\n" (last paths)
   printf "   <filename>: read and print the cost model in the given file\n"
+  printf "   %s: read and print out the cost model for the given semantics variant\n"
+             (intercalate "," semvarOptions)
   exitSuccess
 
-parseArgs :: [String] -> FilePath -> IO (ModelComponent, Maybe String)
-parseArgs args defaultCostModelPath =
+parseArgs :: [String] -> IO (ModelComponent, Maybe String)
+parseArgs args = do
+  let prefix = "cost-model/data/builtinCostModel"
+      extension = ".json"
+  paths <- mapM (\x -> getDataFileName (prefix ++ x ++ extension)) semvars
+  let parse [] result = pure result
+      parse (arg:rest) (component, input) =
+        case arg of
+          []    -> errorWithoutStackTrace "Empty argument"
+          '-':_ -> parseOption arg rest (component, input)
+          _     -> parse rest (component, Just arg)
+      parseOption arg rest (component, input)
+        | Just path <- lookup arg $ zip semvarOptions paths =
+            parse rest (component, Just path)
+        | elem arg ["-d", "--default"] =
+          parse rest (component, Just $ last paths)
+        | elem arg ["-c", "--cpu"] = parse rest (Cpu, input)
+        | elem arg ["-m", "--mem", "--memory"] = parse rest (Memory, input)
+        | elem arg ["-h", "--help"] = usage paths
+        | otherwise =
+            printf "Error: unknown option %s\n" arg >> usage paths
   parse args (Cpu, Nothing)
-    where parse [] result = pure result
-          parse (arg:rest) (component, input) =
-              case arg of
-                []    -> errorWithoutStackTrace "Empty argument"
-                '-':_ -> parseOption arg rest (component, input)
-                _     -> parse rest (component, Just arg)
-          parseOption arg rest (component, input)
-                      | elem arg ["-d", "--default"] =
-                        parse rest (component, Just defaultCostModelPath)
-                      | elem arg ["-c", "--cpu"] = parse rest (Cpu, input)
-                      | elem arg ["-m", "--mem", "--memory"] = parse rest (Memory, input)
-                      | elem arg ["-h", "--help"] = usage defaultCostModelPath
-                      | otherwise =
-                        printf "Error: unknown option %s\n" arg >> usage defaultCostModelPath
 
 main :: IO ()
 main = do
   args <- getArgs
-  defaultCostModelPath <- getDataFileName "cost-model/data/builtinCostModel.json"
-  (component, input) <- parseArgs args defaultCostModelPath
+  (component, input) <- parseArgs args
   bytes <- case input of
              Nothing   -> BSL.getContents  -- Read from stdin
              Just file -> BSL.readFile file

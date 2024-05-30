@@ -11,64 +11,64 @@ import PlutusTx.Ratio qualified as PlutusRatio
 import PlutusTx.Test
 import PlutusTx.TH (compile)
 import Prelude
-import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.Extras (TestNested, runTestNestedIn)
-
-runTestNested :: TestNested -> TestTree
-runTestNested = runTestNestedIn ["test", "size"]
+import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty.Extras (runTestNested, testNested)
 
 main :: IO ()
-main = defaultMain . testGroup "Size regression tests" $ [
-  testGroup "Rational" [
-    testGroup "Eq" [
-      runTestNested $ goldenSize "equal" ratEq,
-      runTestNested $ goldenSize "not-equal" ratNeq
-      ],
-    testGroup "Ord" [
-      runTestNested $ goldenSize "compare" ratCompare,
-      runTestNested $ goldenSize "less-than-equal" ratLe,
-      runTestNested $ goldenSize "greater-than-equal" ratGe,
-      runTestNested $ goldenSize "less-than" ratLt,
-      runTestNested $ goldenSize "greater-than" ratGt,
-      runTestNested $ goldenSize "max" ratMax,
-      runTestNested $ goldenSize "min" ratMin
-      ],
-    testGroup "Additive" [
-      runTestNested $ goldenSize "plus" ratPlus,
-      runTestNested $ goldenSize "zero" ratZero,
-      runTestNested $ goldenSize "minus" ratMinus,
-      runTestNested $ goldenSize "negate-specialized" ratNegate
-      ],
-    testGroup "Multiplicative" [
-      runTestNested $ goldenSize "times" ratTimes,
-      runTestNested $ goldenSize "one" ratOne,
-      runTestNested $ goldenSize "scale" ratScale
-      ],
-    testGroup "Serialization" [
-      runTestNested $ goldenSize "toBuiltinData" ratToBuiltin,
-      runTestNested $ goldenSize "fromBuiltinData" ratFromBuiltin,
-      runTestNested $ goldenSize "unsafeFromBuiltinData" ratUnsafeFromBuiltin
-      ],
-    testGroup "Construction" [
-      runTestNested $ goldenSize "unsafeRatio" ratMkUnsafe,
-      runTestNested $ goldenSize "ratio" ratMkSafe,
-      runTestNested $ goldenSize "fromInteger" ratFromInteger
-      ],
-    testGroup "Other" [
-      runTestNested $ goldenSize "numerator" ratNumerator,
-      runTestNested $ goldenSize "denominator" ratDenominator,
-      runTestNested $ goldenSize "round" ratRound,
-      runTestNested $ goldenSize "truncate" ratTruncate,
-      runTestNested $ goldenSize "properFraction" ratProperFraction,
-      runTestNested $ goldenSize "recip" ratRecip,
-      runTestNested $ goldenSize "abs-specialized" ratAbs
-      ],
-    testGroup "Comparison" [
-      fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate),
-      fitsUnder "abs" ("specialized", ratAbs) ("general", genAbs),
-      fitsUnder "scale" ("type class method", ratScale) ("equivalent in other primitives", genScale)
+main = defaultMain $ testGroup "Size regression tests"
+  [ runTestNested ["test", "size", "Golden"]
+      [ testNested "Rational"
+          [ testNested "Eq"
+              [ goldenSize "equal" ratEq
+              , goldenSize "not-equal" ratNeq
+              ]
+          , testNested "Ord"
+              [ goldenSize "compare" ratCompare
+              , goldenSize "less-than-equal" ratLe
+              , goldenSize "greater-than-equal" ratGe
+              , goldenSize "less-than" ratLt
+              , goldenSize "greater-than" ratGt
+              , goldenSize "max" ratMax
+              , goldenSize "min" ratMin
+              ]
+          , testNested "Additive"
+              [ goldenSize "plus" ratPlus
+              , goldenSize "zero" ratZero
+              , goldenSize "minus" ratMinus
+              , goldenSize "negate-specialized" ratNegate
+              ]
+          , testNested "Multiplicative"
+              [ goldenSize "times" ratTimes
+              , goldenSize "one" ratOne
+              , goldenSize "scale" ratScale
+              ]
+          , testNested "Serialization"
+              [ goldenSize "toBuiltinData" ratToBuiltin
+              , goldenSize "fromBuiltinData" ratFromBuiltin
+              , goldenSize "unsafeFromBuiltinData" ratUnsafeFromBuiltin
+              ]
+          , testNested "Construction"
+              [ goldenSize "unsafeRatio" ratMkUnsafe
+              , goldenSize "ratio" ratMkSafe
+              , goldenSize "fromInteger" ratFromInteger
+              ]
+          , testNested "Other"
+              [ goldenSize "numerator" ratNumerator
+              , goldenSize "denominator" ratDenominator
+              , goldenSize "round" ratRound
+              , goldenSize "truncate" ratTruncate
+              , goldenSize "properFraction" ratProperFraction
+              , goldenSize "recip" ratRecip
+              , goldenSize "abs-specialized" ratAbs
+              ]
+          ]
       ]
-    ]
+  , testGroup "Comparison"
+      [ fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate)
+      , fitsUnder "abs" ("specialized", ratAbs) ("general", genAbs)
+      , fitsUnder "scale" ("type class method", ratScale)
+          ("equivalent in other primitives", genScale)
+      ]
   ]
 
 -- Compiled definitions

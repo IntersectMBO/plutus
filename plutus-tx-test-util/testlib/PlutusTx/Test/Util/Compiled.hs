@@ -3,10 +3,11 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE ViewPatterns     #-}
 
-module Util.Common
+module PlutusTx.Test.Util.Compiled
     ( Program
     , Term
     , toAnonDeBruijnTerm
+    , toAnonDeBruijnProg
     , toNamedDeBruijnTerm
     , compiledCodeToTerm
     , haskellValueToTerm
@@ -44,6 +45,12 @@ toAnonDeBruijnTerm
     -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
 toAnonDeBruijnTerm = UPLC.termMapNames UPLC.unNameDeBruijn
 
+toAnonDeBruijnProg
+    :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+    -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+toAnonDeBruijnProg (UPLC.Program () ver body) =
+    UPLC.Program () ver $ toAnonDeBruijnTerm body
+
 {- | Just extract the body of a program wrapped in a 'CompiledCodeIn'.  We use this a lot. -}
 compiledCodeToTerm
     :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
@@ -58,9 +65,9 @@ haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
 {- | Just run a term to obtain an `EvaluationResult` (used for tests etc.) -}
 unsafeRunTermCek :: Term -> EvaluationResult Term
 unsafeRunTermCek =
-    unsafeExtractEvaluationResult
+    unsafeToEvaluationResult
         . (\(res, _, _) -> res)
-        . runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.noEmitter
+        . runCekDeBruijn PLC.defaultCekParametersForTesting Cek.restrictingEnormous Cek.noEmitter
 
 -- | Just run a term.
 runTermCek ::
@@ -70,7 +77,7 @@ runTermCek ::
     )
 runTermCek =
     (\(res, _, logs) -> (res, logs))
-        . runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.logEmitter
+        . runCekDeBruijn PLC.defaultCekParametersForTesting Cek.restrictingEnormous Cek.logEmitter
 
 {- | Evaluate a PLC term and check that the result matches a given Haskell value
    (perhaps obtained by running the Haskell code that the term was compiled

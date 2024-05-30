@@ -13,42 +13,45 @@ import Data.Functor
 import Flat
 
 test_prettyprinting :: TestTree
-test_prettyprinting = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Core"] $
-    testNested "prettyprinting"
-    $ map (goldenPir id pTerm)
-    [ "basic"
-    , "maybe"
-    ]
+test_prettyprinting =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Core", "prettyprinting"] $
+        map
+            (goldenPir id pTerm)
+            [ "basic"
+            , "maybe"
+            ]
 
 test_prettyprintingReadable :: TestTree
-test_prettyprintingReadable = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Core"] $
-    testNested "prettyprintingReadable"
-    $ map (goldenPirDoc prettyPirReadable pTerm)
-    [ "basic"
-    , "maybe"
-    , "letInLet"
-    , "letDep"
-    , "listMatch"
-    , "idleAll"
-    , "some"
-    , "even3"
-    , "stupidZero"
-    , "mutuallyRecursiveValues"
-    , "errorBinding"
-    , "some"
-    , "stupidZero"
-    , "recursiveTypeBind"
-    ]
+test_prettyprintingReadable =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Core", "prettyprintingReadable"] $
+        map
+            (goldenPirDoc prettyPirReadable pTerm)
+            [ "basic"
+            , "maybe"
+            , "letInLet"
+            , "letDep"
+            , "listMatch"
+            , "idleAll"
+            , "some"
+            , "even3"
+            , "stupidZero"
+            , "mutuallyRecursiveValues"
+            , "errorBinding"
+            , "some"
+            , "stupidZero"
+            , "recursiveTypeBind"
+            ]
 
 test_serialization :: TestTree
-test_serialization = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Core"] $
-    testNested "serialization"
-    $ map (goldenPir roundTripPirTerm pTerm)
-    [ "serializeBasic"
-    , "serializeMaybePirTerm"
-    , "serializeEvenOdd"
-    , "serializeListMatch"
-    ]
+test_serialization =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Core", "serialization"] $
+        map
+            (goldenPir roundTripPirTerm pTerm)
+            [ "serializeBasic"
+            , "serializeMaybePirTerm"
+            , "serializeEvenOdd"
+            , "serializeListMatch"
+            ]
 
 roundTripPirTerm
   :: Term TyName Name PLC.DefaultUni PLC.DefaultFun a

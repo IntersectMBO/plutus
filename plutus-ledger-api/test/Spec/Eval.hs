@@ -26,7 +26,6 @@ import UntypedPlutusCore.Test.DeBruijn.Good
 import Control.Exception (evaluate)
 import Control.Monad.Extra (whenJust)
 import Control.Monad.Writer
-import Data.Foldable (for_)
 import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Maybe (fromJust)
@@ -86,7 +85,7 @@ testUnlifting = testCase "check unlifting behaviour changes in Vasil" $ do
     evalAPI vasilPV illPartialBuiltin @?= True
 
 costParams :: [Int64]
-costParams = Map.elems (fromJust defaultCostModelParams)
+costParams = Map.elems (fromJust defaultCostModelParamsForTesting)
 
 lengthParamNamesV :: PlutusLedgerLanguage -> Int
 lengthParamNamesV PlutusV1 = length $ enumerate @V1.ParamName

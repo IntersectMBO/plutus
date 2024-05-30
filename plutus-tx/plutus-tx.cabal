@@ -212,6 +212,7 @@ test-suite plutus-tx-test
     , hedgehog
     , hedgehog-fn
     , lens
+    , mtl
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.28
     , plutus-tx                                       ^>=1.28
     , pretty-show
@@ -220,4 +221,3 @@ test-suite plutus-tx-test
     , tasty-hedgehog
     , tasty-hunit
     , text
-    , transformers

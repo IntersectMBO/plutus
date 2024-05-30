@@ -37,11 +37,14 @@ instance (Pretty err, Pretty cause) => Pretty (ErrorWithCause err cause) where
 
 instance (PrettyBy config cause, PrettyBy config err) =>
             PrettyBy config (ErrorWithCause err cause) where
-    prettyBy config (ErrorWithCause err mayCause) =
-        "An error has occurred: " <+> prettyBy config err <>
-            case mayCause of
-                Nothing    -> mempty
-                Just cause -> hardline <> "Caused by:" <+> prettyBy config cause
+    prettyBy config (ErrorWithCause err mayCause) = fold
+        [ "An error has occurred:"
+        , hardline
+        , prettyBy config err
+        , case mayCause of
+            Nothing    -> mempty
+            Just cause -> hardline <> "Caused by:" <+> prettyBy config cause
+        ]
 
 instance (PrettyPlc cause, PrettyPlc err) =>
             Show (ErrorWithCause err cause) where

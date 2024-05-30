@@ -20,7 +20,7 @@ import PlutusIR.Transform.StrictLetRec.Tests.Lib (defaultCompilationCtx,
                                                   pirTermFromFile)
 import System.FilePath.Posix (joinPath, (</>))
 import Test.Tasty (TestTree)
-import Test.Tasty.Extras (runTestNestedIn, testNested)
+import Test.Tasty.Extras (embed, runTestNested, testNested)
 import Test.Tasty.HUnit (testCase, (@?=))
 import UntypedPlutusCore.Evaluation.Machine.Cek (EvaluationResult (..))
 
@@ -28,9 +28,7 @@ path :: [FilePath]
 path = ["plutus-ir", "test", "PlutusIR", "Transform"]
 
 test_letRec :: TestTree
-test_letRec = runTestNestedIn path do
-  testNested
-    "StrictLetRec"
+test_letRec = runTestNested path . pure $ testNested "StrictLetRec"
     [ let
         runCompilationM m = either (fail . show) pure do
           ctx <- defaultCompilationCtx
@@ -40,7 +38,7 @@ test_letRec = runTestNestedIn path do
           (runCompilationM . runTestPass (`compileLetsPassSC` RecTerms))
           (const noProvenance <<$>> pTerm)
           "strictLetRec"
-    , pure $ testCase "traces" do
+    , embed $ testCase "traces" do
         (result, traces) <- do
           pirTerm <- pirTermFromFile (joinPath path </> "StrictLetRec" </> "strictLetRec")
           evalPirProgramWithTracesOrFail (pirTermAsProgram (void pirTerm))
