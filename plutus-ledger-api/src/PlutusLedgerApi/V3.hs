@@ -56,6 +56,7 @@ module PlutusLedgerApi.V3 (
   -- * Context types
   ScriptContext (..),
   ScriptPurpose (..),
+  ScriptInfo (..),
 
   -- ** Supporting types used in the context types
 
@@ -118,7 +119,7 @@ module PlutusLedgerApi.V3 (
 
   -- *** Association maps
   V2.Map,
-  V2.fromList,
+  V2.unsafeFromList,
 
   -- *** Newtypes and hash types
   V2.ScriptHash (..),
@@ -192,10 +193,11 @@ evaluateScriptCounting ::
   EvaluationContext ->
   -- | The script to evaluate
   ScriptForEvaluation ->
-  -- | The arguments to the script
-  [PLC.Data] ->
+  -- | The @ScriptContext@ argument to the script
+  PLC.Data ->
   (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting = Common.evaluateScriptCounting thisLedgerLanguage
+evaluateScriptCounting mpv verbose ec s arg =
+  Common.evaluateScriptCounting thisLedgerLanguage mpv verbose ec s [arg]
 
 {- | Evaluates a script, with a cost model and a budget that restricts how many
 resources it can use according to the cost model. Also returns the budget that
@@ -215,7 +217,8 @@ evaluateScriptRestricting ::
   ExBudget ->
   -- | The script to evaluate
   ScriptForEvaluation ->
-  -- | The arguments to the script
-  [PLC.Data] ->
+  -- | The @ScriptContext@ argument to the script
+  PLC.Data ->
   (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptRestricting = Common.evaluateScriptRestricting thisLedgerLanguage
+evaluateScriptRestricting mpv verbose ec budget s arg =
+  Common.evaluateScriptRestricting thisLedgerLanguage mpv verbose ec budget s [arg]

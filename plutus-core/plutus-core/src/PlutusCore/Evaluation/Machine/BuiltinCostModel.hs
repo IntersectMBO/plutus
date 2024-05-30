@@ -14,6 +14,7 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     ( BuiltinCostModel
     , BuiltinCostModelBase(..)
     , CostingFun(..)
+    , UnimplementedCostingFun(..)
     , Intercept(..)
     , Slope(..)
     , Coefficient0(..)
@@ -22,13 +23,10 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     , OneVariableLinearFunction(..)
     , OneVariableQuadraticFunction(..)
     , TwoVariableLinearFunction(..)
-    , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
-    , ModelConstantOrLinear(..)
+    , ModelConstantOrOneArgument(..)
     , ModelConstantOrTwoArguments(..)
-    , ModelMultipliedSizes(..)
-    , ModelMinSize(..)
-    , ModelMaxSize(..)
+    , ModelConstantOrLinear(..)  -- Deprecated: see Note [Backward compatibility for costing functions]
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)

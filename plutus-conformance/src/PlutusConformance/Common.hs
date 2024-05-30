@@ -10,8 +10,8 @@ import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParams)
-import PlutusCore.Name (Name)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParamsForTesting)
+import PlutusCore.Name.Unique (Name)
 import PlutusCore.Quote (runQuoteT)
 import PlutusPrelude (Pretty (pretty), display, void)
 import UntypedPlutusCore qualified as UPLC
@@ -219,7 +219,7 @@ runUplcEvalTests ::
     -- whether it should labelled as `ExpectedFailure`.
     -> IO ()
 runUplcEvalTests eval expectedFailTests = do
-    let params = fromJust defaultCostModelParams
+    let params = fromJust defaultCostModelParamsForTesting
     tests <-
         discoverTests
             eval

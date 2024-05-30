@@ -9,7 +9,7 @@ import PlutusIR
 import PlutusIR.Subst
 
 import PlutusCore qualified as PLC
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 
 import Control.Lens
 

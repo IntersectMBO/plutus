@@ -14,6 +14,7 @@ import PlutusPrelude
 import CBOR.DataStability qualified
 import Check.Spec qualified as Check
 import CostModelInterface.Spec
+import CostModelSafety.Spec
 import Evaluation.Spec (test_evaluation)
 import Generators.QuickCheck.Utils (test_utils)
 import Names.Spec
@@ -35,7 +36,6 @@ import PlutusCore.Test
 
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
-import Data.Foldable (for_)
 import Data.Proxy
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
@@ -333,6 +333,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , test_evaluation
     , test_normalizationCheck
     , test_costModelInterface
+    , test_costModelSafety
     , CBOR.DataStability.tests
     , Check.tests
     , NEAT.tests

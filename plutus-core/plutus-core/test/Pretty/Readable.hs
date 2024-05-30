@@ -31,8 +31,7 @@ test_PrettyReadable =
   where
     folder :: Pretty fun => PlcFolderContents DefaultUni fun -> TestTree
     folder
-        = runTestNestedIn ["plutus-core", "test", "Pretty", "Golden"]
-        . testNested "Readable"
+        = runTestNested ["plutus-core", "test", "Pretty", "Golden", "Readable"]
         . foldPlcFolderContents testNested testReadable testReadable
 
 test_Pretty :: TestTree

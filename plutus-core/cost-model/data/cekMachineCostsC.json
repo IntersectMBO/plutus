@@ -1,0 +1,13 @@
+{
+    "cekStartupCost" : {"exBudgetCPU":     100, "exBudgetMemory": 100},
+    "cekVarCost"     : {"exBudgetCPU":   16000, "exBudgetMemory": 100},
+    "cekConstCost"   : {"exBudgetCPU":   16000, "exBudgetMemory": 100},
+    "cekLamCost"     : {"exBudgetCPU":   16000, "exBudgetMemory": 100},
+    "cekDelayCost"   : {"exBudgetCPU":   16000, "exBudgetMemory": 100},
+    "cekForceCost"   : {"exBudgetCPU":   16000, "exBudgetMemory": 100},
+    "cekApplyCost"   : {"exBudgetCPU":   16000, "exBudgetMemory": 100},
+    "cekBuiltinCost" : {"exBudgetCPU":   16000, "exBudgetMemory": 100},
+    "cekConstrCost"  : {"exBudgetCPU":   16000, "exBudgetMemory": 100},
+    "cekCaseCost"    : {"exBudgetCPU":   16000, "exBudgetMemory": 100}
+}
+

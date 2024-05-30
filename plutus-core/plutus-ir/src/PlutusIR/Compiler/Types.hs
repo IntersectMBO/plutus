@@ -27,7 +27,7 @@ import PlutusCore.Quote
 import PlutusCore.StdLib.Type qualified as Types
 import PlutusCore.TypeCheck.Internal qualified as PLC
 import PlutusCore.Version qualified as PLC
-import PlutusIR.Transform.RewriteRules.Rules
+import PlutusIR.Transform.RewriteRules.Internal (RewriteRules)
 import PlutusPrelude
 
 import Control.Monad.Error.Lens (throwing)
@@ -65,7 +65,7 @@ data DatatypeStyle = ScottEncoding | SumsOfProducts
 instance Pretty DatatypeStyle where
   pretty = viaShow
 
-data DatatypeCompilationOpts = DatatypeCompilationOpts
+newtype DatatypeCompilationOpts = DatatypeCompilationOpts
     { _dcoStyle :: DatatypeStyle
     } deriving stock (Show)
 
@@ -75,31 +75,32 @@ defaultDatatypeCompilationOpts :: DatatypeCompilationOpts
 defaultDatatypeCompilationOpts = DatatypeCompilationOpts SumsOfProducts
 
 data CompilationOpts a = CompilationOpts {
-    _coOptimize                        :: Bool
-    , _coTypecheck                     :: Bool
-    , _coPedantic                      :: Bool
-    , _coVerbose                       :: Bool
-    , _coDebug                         :: Bool
-    , _coDatatypes                     :: DatatypeCompilationOpts
+    _coOptimize                         :: Bool
+    , _coTypecheck                      :: Bool
+    , _coPedantic                       :: Bool
+    , _coVerbose                        :: Bool
+    , _coDebug                          :: Bool
+    , _coDatatypes                      :: DatatypeCompilationOpts
     -- Simplifier passes
-    , _coMaxSimplifierIterations       :: Int
-    , _coDoSimplifierUnwrapCancel      :: Bool
-    , _coDoSimplifierCaseReduce        :: Bool
-    , _coDoSimplifierRewrite           :: Bool
-    , _coDoSimplifierBeta              :: Bool
-    , _coDoSimplifierInline            :: Bool
-    , _coDoSimplifierKnownCon          :: Bool
-    , _coDoSimplifierCaseOfCase        :: Bool
-    , _coDoSimplifierEvaluateBuiltins  :: Bool
-    , _coDoSimplifierStrictifyBindings :: Bool
-    , _coInlineHints                   :: InlineHints PLC.Name (Provenance a)
-    , _coInlineConstants               :: Bool
+    , _coMaxSimplifierIterations        :: Int
+    , _coDoSimplifierUnwrapCancel       :: Bool
+    , _coDoSimplifierCaseReduce         :: Bool
+    , _coDoSimplifierRewrite            :: Bool
+    , _coDoSimplifierBeta               :: Bool
+    , _coDoSimplifierInline             :: Bool
+    , _coDoSimplifierKnownCon           :: Bool
+    , _coDoSimplifierCaseOfCase         :: Bool
+    , _coDoSimplifierEvaluateBuiltins   :: Bool
+    , _coDoSimplifierStrictifyBindings  :: Bool
+    , _coDoSimplifierRemoveDeadBindings :: Bool
+    , _coInlineHints                    :: InlineHints PLC.Name (Provenance a)
+    , _coInlineConstants                :: Bool
     -- Profiling
-    , _coProfile                       :: Bool
-    , _coRelaxedFloatin                :: Bool
-    , _coCaseOfCaseConservative        :: Bool
+    , _coProfile                        :: Bool
+    , _coRelaxedFloatin                 :: Bool
+    , _coCaseOfCaseConservative         :: Bool
     -- | Whether to try and preserve the logging beahviour of the program.
-    , _coPreserveLogging               :: Bool
+    , _coPreserveLogging                :: Bool
     } deriving stock (Show)
 
 makeLenses ''CompilationOpts
@@ -128,6 +129,7 @@ defaultCompilationOpts = CompilationOpts
   , _coRelaxedFloatin = True
   , _coCaseOfCaseConservative = True
   , _coPreserveLogging = False
+  , _coDoSimplifierRemoveDeadBindings = True
   }
 
 data CompilationCtx uni fun a = CompilationCtx {

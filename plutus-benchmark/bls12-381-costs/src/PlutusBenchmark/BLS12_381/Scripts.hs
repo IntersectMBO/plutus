@@ -44,6 +44,7 @@ where
 import PlutusCore (DefaultFun, DefaultUni)
 import PlutusLedgerApi.V1.Bytes qualified as P (bytes, fromHex)
 import PlutusTx qualified as Tx
+import PlutusTx.Plugin ()
 import UntypedPlutusCore qualified as UPLC
 
 import PlutusTx.Prelude as Tx hiding (sort, (<>))
@@ -91,9 +92,8 @@ byteStringToIntegerLE = Tx.byteStringToInteger LittleEndian
 
 {-# INLINABLE hashAndAddG1 #-}
 hashAndAddG1 :: [BuiltinByteString] -> BuiltinBLS12_381_G1_Element
-hashAndAddG1 [] = error ()
-hashAndAddG1 (p:ps) =
-    go ps (Tx.bls12_381_G1_hashToGroup p emptyByteString)
+hashAndAddG1 l =
+    go l (Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_zero)
     where go [] !acc     = acc
           go (q:qs) !acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_hashToGroup q emptyByteString) acc
 
@@ -105,9 +105,8 @@ mkHashAndAddG1Script l =
 -- Hash some bytestrings onto G2 and add them all together
 {-# INLINABLE hashAndAddG2 #-}
 hashAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
-hashAndAddG2 [] = error ()
-hashAndAddG2 (p:ps) =
-    go ps (Tx.bls12_381_G2_hashToGroup p emptyByteString)
+hashAndAddG2 l =
+    go l (Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_zero)
     where go [] !acc     = acc
           go (q:qs) !acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_hashToGroup q emptyByteString) acc
 
@@ -119,9 +118,8 @@ mkHashAndAddG2Script l =
 -- Uncompress a list of compressed G1 points and add them all together
 {-# INLINABLE uncompressAndAddG1 #-}
 uncompressAndAddG1 :: [BuiltinByteString] -> BuiltinBLS12_381_G1_Element
-uncompressAndAddG1 [] = error ()
-uncompressAndAddG1 (p:ps) =
-    go ps (Tx.bls12_381_G1_uncompress p)
+uncompressAndAddG1 l =
+    go l (Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_zero)
     where go [] acc     = acc
           go (q:qs) acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_uncompress q) acc
 
@@ -134,9 +132,8 @@ mkUncompressAndAddG1Script l =
 -- Uncompress a list of compressed G1 points and add them all together
 {-# INLINABLE uncompressAndAddG2 #-}
 uncompressAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
-uncompressAndAddG2 [] = error ()
-uncompressAndAddG2 (p:ps) =
-    go ps (Tx.bls12_381_G2_uncompress p)
+uncompressAndAddG2 l =
+    go l (Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_zero)
     where go [] acc     = acc
           go (q:qs) acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_uncompress q) acc
 

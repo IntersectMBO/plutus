@@ -29,14 +29,13 @@ import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
-import Control.DeepSeq
 import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
-import GHC.Exts (inline, oneShot)
+import GHC.Exts (inline, lazy, oneShot)
 import GHC.TypeLits
 
 -- | Turn a list of Haskell types @args@ into a functional type ending in @res@.
@@ -111,8 +110,9 @@ throw an error instead of overflowing its first argument.
 One denotation from each builtin is grouped into a 'BuiltinSemanticsVariant'.
 Each Plutus Language version is linked to a specific 'BuiltinSemanticsVariant'
 (done by plutus-ledger-api); e.g. plutus-v1 and plutus-v2 are linked to
-'DefaultFunSemanticsVariant1', whereas plutus-v3 changes the set of denotations
-to 'DefaultFunSemanticsVariant2' (thus fixing 'ConsByteString').
+'DefaultFunSemanticsVariantA' and 'DefaultFunSemanticsVariantB', whereas
+plutus-v3 changes the set of denotations to 'DefaultFunSemanticsVariantC' (thus
+fixing 'ConsByteString').
 
 Each 'BuiltinSemanticsVariant' (grouping) can change the denotation of one or
 more builtins --- or none, but what's the point in that?
@@ -391,6 +391,7 @@ toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> (# BuiltinRuntime val #)
 toBuiltinRuntime cost (BuiltinMeaning _ _ denot) = denot cost
 {-# INLINE toBuiltinRuntime #-}
 
+
 -- See Note [Inlining meanings of builtins].
 -- | Calculate runtime info for all built-in functions given meanings of builtins (as a constraint),
 -- the semantics variant of the set of builtins and a cost model.
@@ -400,23 +401,15 @@ toBuiltinsRuntime
     -> cost
     -> BuiltinsRuntime fun val
 toBuiltinsRuntime semvar cost =
-    let runtime = BuiltinsRuntime $ \fun ->
-            toBuiltinRuntime cost $ inline toBuiltinMeaning semvar fun
-        -- This pragma is very important, removing it destroys the carefully set up optimizations of
-        -- of costing functions (see Note [Optimizations of runCostingFun*]). The reason for that is
-        -- that if @runtime@ doesn't have a pragma, then GHC sees that it's only referenced once and
-        -- inlines it below, together with this entire function (since we tell GHC to), at which
-        -- point everything's inlined and we're completely at GHC's mercy to optimize things
-        -- properly. Unfortunately, GHC doesn't want to cooperate and push 'toBuiltinRuntime' to
-        -- the inside of the inlined to 'toBuiltinMeaning' call, creating lots of 'BuiltinMeaning's
-        -- instead of 'BuiltinRuntime's with the former hiding the costing optimizations behind a
-        -- lambda binding the @cost@ variable, which renders all the optimizations useless. By
-        -- using a @NOINLINE@ pragma we tell GHC to create a separate thunk, which it can properly
-        -- optimize, because the other bazillion things don't get in the way.
-        {-# NOINLINE runtime #-}
-    in
-        -- Force each 'BuiltinRuntime' to WHNF, so that the thunk is allocated and forced at
-        -- initialization time rather than at runtime. Not that we'd lose much by not forcing all
-        -- 'BuiltinRuntime's here, but why pay even very little if there's an easy way not to pay.
-        force runtime
+    -- A call to 'lazy' is to make sure that the returned 'BuiltinsRuntime' is properly cached in a
+    -- 'let'-binding. This makes it easier for GHC to optimize the internals of builtins, because
+    -- without a 'let'-binding GHC would sometimes refuse to cooperate and push 'toBuiltinRuntime'
+    -- to the inside of the inlined 'toBuiltinMeaning' call, creating lots of 'BuiltinMeaning's
+    -- instead of 'BuiltinRuntime's with the former hiding the costing optimizations behind a lambda
+    -- binding the @cost@ variable, which makes the optimizations useless.
+    -- By using 'lazy' we tell GHC to create a separate thunk, which it can properly optimize,
+    -- because the other bazillion things don't get in the way. We used to use an explicit
+    -- 'let'-binding marked with @NOINLINE@, but that turned out to be unreliable, because GHC
+    -- feels free to turn it into a join point instead of a proper thunk.
+    lazy . BuiltinsRuntime $ \fun -> toBuiltinRuntime cost $ inline toBuiltinMeaning semvar fun
 {-# INLINE toBuiltinsRuntime #-}

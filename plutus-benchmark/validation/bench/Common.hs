@@ -4,24 +4,17 @@ module Common (
     benchWith
     , unsafeUnflat
     , mkEvalCtx
-    , evaluateCekLikeInProd
+    , benchTermCek
     , peelDataArguments
     , Term
     ) where
 
-import PlutusBenchmark.Common (getConfig, getDataDir)
+import PlutusBenchmark.Common (benchTermCek, getConfig, getDataDir, mkEvalCtx)
 import PlutusBenchmark.NaturalSort
 
-import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
-import PlutusCore.Default qualified as PLC (BuiltinSemanticsVariant (DefaultFunSemanticsVariant1))
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
-import PlutusLedgerApi.Common (PlutusLedgerLanguage (PlutusV1), evaluateTerm,
-                               ledgerLanguageIntroducedIn, mkDynEvaluationContext)
-import PlutusLedgerApi.V1 (EvaluationContext, VerboseMode (..))
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Criterion.Main
 import Criterion.Main.Options (Mode, parseWith)
@@ -131,31 +124,6 @@ benchWith act = do
     mkScriptBM dir file =
         env (BS.readFile $ dir </> file) $ \(~scriptBS) ->
             bench (dropExtension file) $ act file scriptBS
-
--- | Create the evaluation context for the benchmarks. This doesn't exactly match how it's done
--- on-chain, but that's okay because the evaluation context is cached by the ledger, so we're
--- deliberately not including it in the benchmarks.
-mkEvalCtx :: EvaluationContext
-mkEvalCtx =
-    case PLC.defaultCostModelParams of
-        -- The validation benchmarks were all created from PlutusV1 scripts
-        Just p -> case mkDynEvaluationContext PLC.DefaultFunSemanticsVariant1 p of
-            Right ec -> ec
-            Left err -> error $ show err
-        Nothing -> error "Couldn't get cost model params"
-
--- | Evaluate a term as it would be evaluated using the on-chain evaluator.
-evaluateCekLikeInProd
-    :: EvaluationContext
-    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
-    -> Either
-            (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
-            (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
-evaluateCekLikeInProd evalCtx term = do
-    let (getRes, _, _) =
-            -- The validation benchmarks were all created from PlutusV1 scripts
-            evaluateTerm UPLC.restrictingEnormous (ledgerLanguageIntroducedIn PlutusV1) Quiet evalCtx term
-    getRes
 
 type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 

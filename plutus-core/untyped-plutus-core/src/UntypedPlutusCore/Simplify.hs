@@ -1,73 +1,48 @@
 {-# LANGUAGE GADTs            #-}
-{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
 
 module UntypedPlutusCore.Simplify (
+    module Opts,
     simplifyTerm,
     simplifyProgram,
-    SimplifyOpts (..),
-    soMaxSimplifierIterations,
-    soMaxCseIterations,
-    soInlineHints,
-    soConservativeOpts,
-    soInlineConstants,
-    defaultSimplifyOpts,
     InlineHints (..),
 ) where
 
 import PlutusCore.Compiler.Types
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Default.Builtins
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import UntypedPlutusCore.Core.Type
+import UntypedPlutusCore.Simplify.Opts as Opts
 import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce
 import UntypedPlutusCore.Transform.Cse
-import UntypedPlutusCore.Transform.FloatDelay
-import UntypedPlutusCore.Transform.ForceDelay
-import UntypedPlutusCore.Transform.Inline
+import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
+import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
+import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
 
-import Control.Lens.TH
 import Control.Monad
 import Data.List
 import Data.Typeable
-
-data SimplifyOpts name a = SimplifyOpts
-    { _soMaxSimplifierIterations :: Int
-    , _soMaxCseIterations        :: Int
-    , _soConservativeOpts        :: Bool
-    , _soInlineHints             :: InlineHints name a
-    , _soInlineConstants         :: Bool
-    }
-    deriving stock (Show)
-
-makeLenses ''SimplifyOpts
-
-defaultSimplifyOpts :: SimplifyOpts name a
-defaultSimplifyOpts =
-    SimplifyOpts
-        { _soMaxSimplifierIterations = 12
-        , _soMaxCseIterations = 4
-        , _soConservativeOpts = False
-        , _soInlineHints = mempty
-        , _soInlineConstants = True
-        }
 
 simplifyProgram ::
     forall name uni fun m a.
     (Compiling m uni fun name a) =>
     SimplifyOpts name a ->
+    BuiltinSemanticsVariant fun ->
     Program name uni fun a ->
     m (Program name uni fun a)
-simplifyProgram opts (Program a v t) = Program a v <$> simplifyTerm opts t
+simplifyProgram opts builtinSemanticsVariant (Program a v t) =
+  Program a v <$> simplifyTerm opts builtinSemanticsVariant t
 
 simplifyTerm ::
     forall name uni fun m a.
     (Compiling m uni fun name a) =>
     SimplifyOpts name a ->
+    BuiltinSemanticsVariant fun ->
     Term name uni fun a ->
     m (Term name uni fun a)
-simplifyTerm opts =
+simplifyTerm opts builtinSemanticsVariant =
     simplifyNTimes (_soMaxSimplifierIterations opts) >=> cseNTimes cseTimes
   where
     -- Run the simplifier @n@ times
@@ -82,20 +57,21 @@ simplifyTerm opts =
     -- generate simplification step
     simplifyStep :: Int -> Term name uni fun a -> m (Term name uni fun a)
     simplifyStep _ =
-        floatDelay
-            >=> pure . forceDelayCancel
-            >=> pure . caseOfCase'
-            >=> pure . caseReduce
-            >=> inline (_soInlineConstants opts) (_soInlineHints opts)
+      floatDelay
+        >=> pure . forceDelay
+        >=> pure . caseOfCase'
+        >=> pure . caseReduce
+        >=> inline (_soInlineConstants opts) (_soInlineHints opts) builtinSemanticsVariant
 
     caseOfCase' :: Term name uni fun a -> Term name uni fun a
     caseOfCase' = case eqT @fun @DefaultFun of
-        Just Refl -> caseOfCase
-        Nothing   -> id
+      Just Refl -> caseOfCase
+      Nothing   -> id
 
     cseStep :: Int -> Term name uni fun a -> m (Term name uni fun a)
-    cseStep _ = case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
-        (Just Refl, Just Refl) -> cse
+    cseStep _ =
+      case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
+        (Just Refl, Just Refl) -> cse builtinSemanticsVariant
         _                      -> pure
 
     cseTimes = if _soConservativeOpts opts then 0 else _soMaxCseIterations opts

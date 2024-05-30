@@ -9,7 +9,7 @@
 module PlutusCore.Generators.QuickCheck.Common where
 
 import PlutusCore.Default
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.TypeCheck (defKindCheckConfig)
 import PlutusCore.TypeCheck.Internal (inferKindM, runTypeCheckM, withTyVar)
 import PlutusIR

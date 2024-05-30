@@ -9,6 +9,7 @@ import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Lift ()
 import PlutusTx.List qualified as L
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as P
 
 {-
@@ -51,14 +52,14 @@ matchWithBuiltinLists :: Workload BI.BuiltinList -> Integer
 matchWithBuiltinLists (lixs, rixs, ls, rs) = go lixs rixs 0
   where
     go ltodo rtodo acc =
-      B.matchList
+      B.matchList'
         ltodo
         acc
-        (\lix lrest -> B.matchList rtodo acc
+        (\lix lrest -> B.matchList' rtodo acc
           (\rix rrest -> go lrest rrest
             ((ls !! lix) `B.addInteger` (rs !! rix) `B.addInteger` acc)))
     l !! ix =
-      B.matchList
+      B.matchList'
         l
         (\() -> P.traceError "empty list")
         (\h t -> \() -> if ix P.== 0 then h else t !! (ix `B.subtractInteger` 1))

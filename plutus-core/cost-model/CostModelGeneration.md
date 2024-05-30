@@ -63,7 +63,7 @@ costing functions involves a number of steps.
 
 * When the rest of the `plutus-core` package is compiled, the contents of
   `builtCostModel.json` are read and used by some Template Haskell code to
-  construct Haskell functions which implement the cost models.  
+  construct Haskell functions which implement the cost models.
 
 * To ensure consistency, `cabal bench plutus-core:cost-model-test` runs some
   QuickCheck tests to run the R models and the Haskell models and checks that
@@ -136,11 +136,12 @@ codebase.
 
     ```
     toBuiltinMeaning XorByteString =
-        makeBuiltinMeaning
-            xorByteString
-            mempty
-            where xorByteString a b =
+        let xorByteStringDenotation :: Data.ByteString.ByteString -> Data.ByteString.ByteString -> Data.ByteString.ByteString
+            xorByteStringDenotation a b =
                       Data.ByteString.pack $ zipWith (Data.Bits.xor) (Data.ByteString.unpack a) (Data.ByteString.unpack b)
+        in makeBuiltinMeaning
+               xorByteStringDenotation
+               (runCostingFunTwoArguments . unimplementedCostingFun)
     ```
 
     This assumes that the appropriate modules have been imported.  The
@@ -150,9 +151,11 @@ codebase.
     a check that the inputs are the same length.  For more complicated functions
     one might also put the implementation in a separate file.
 
-    The final argument of `makeBuiltinMeaning` contains the costing functions for
-    the relevant builtin.  Initially this should be set to `mempty`; we'll come
-    back and fix it later.
+    The final argument of `makeBuiltinMeaning` contains the costing functions
+    for the relevant builtin.  Initially this should be set to
+    `unimplementedCostingFun`; we'll come back and fix it later.  This assigns a
+    very large cost to prevent the uncosted version from being accidentally used
+    in situations where precise costs are important.
 
     Note that there are certain restrictions on built-in functions: for example,
     the function should be deterministic, it **must not throw any exceptions**,
@@ -181,10 +184,10 @@ to check that the semantics of the new builtin are correct.
 
 After the above steps have been carried out the new builtin will be available in
 Plutus Core, but will not incur any charges when it is called.  To fix this we
-have to add a costing function of a suitable shape and replace the `mempty` in
+have to add a costing function of a suitable shape and replace the `unimplementedCostingFun` in
 the definition of the function.
 
-#### Step 1: add the basic type of the costing function to the cost model type 
+#### Step 1: add the basic type of the costing function to the cost model type
 
 Firstly, add a new entry to the `BuiltinCostModelBase` type in
 [`PlutusCore.Evaluation.Machine.BuiltinCostModel`](../plutus-core/src/PlutusCore/Evaluation/Machine/BuiltinCostModel.hs).
@@ -207,8 +210,9 @@ in this case you should add new cases to the appropriate
 
 For `xorByteString` it would be reasonable to expect the time taken to be linear
 in the minimum of the argument sizes (the function stops when it gets to the end
-of the smaller bytestring), so we should use the `ModelTwoArgumentsMinSize`
-constructor: see Step 6 for this, and Step 7 for a caveat.
+of the smaller bytestring), so we should probably use the
+`ModelTwoArgumentsMinSize` constructor: see Steps 6 and 7 for details and some
+caveats.
 
 
 #### Step 2: add a unit cost model for new function
@@ -275,18 +279,19 @@ the Cost Model" note.
 #### Step 4: add the correct costing function to the definition of the new builtin
 
 Now go back to
-[`Builtins.hs`](../plutus-core/src/PlutusCore/Default/Builtins.hs) and
-replace `mempty` in the definition of the builtin with some code to
-run the appropriate `param<builtin-name>` function:
+[`Builtins.hs`](../plutus-core/src/PlutusCore/Default/Builtins.hs) and replace
+`unimplementedCostingFun` in the definition of the builtin with the appropriate
+`param<builtin-name>` function:
 
-```
+    ```
     toBuiltinMeaning XorByteString =
-        makeBuiltinMeaning
-            xorByteString
-            (runCostingFunTwoArguments . paramXorByteString)
-            where xorByteString a b =
+        let xorByteStringDenotation :: Data.ByteString.ByteString -> Data.ByteString.ByteString -> Data.ByteString.ByteString
+            xorByteStringDenotation a b =
                       Data.ByteString.pack $ zipWith (Data.Bits.xor) (Data.ByteString.unpack a) (Data.ByteString.unpack b)
-```
+        in makeBuiltinMeaning
+               xorByteStringDenotation
+               (runCostingFunTwoArguments . paramXorByteString)
+    ```
 
 #### Step 5: add a benchmark for the new builtin and run it
 
@@ -362,7 +367,7 @@ worst-case model.
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
         m <- lm(t ~ pmin(x_mem, y_mem), filtered)
-        adjustModel(m,fname)
+        return (mk.result (m, "min_size")
     }
 ```
 
@@ -379,7 +384,7 @@ object. (That's what gets read in by the code in Step 6: `paramXorByteString`
 contains the string "xorByteStringModel" and that lets the Haskell code retrieve
 the correct thing from R.)
 
-#### Step 7: add code to read the costing function from R into Haskell 
+#### Step 7: add code to read the costing function from R into Haskell
 
 Next we have to update the code which converts benchmarking results into JSON
 models.  Go to
@@ -397,28 +402,30 @@ occur in the object, and they can sometimes be quite cryptic.)
 Also add a new clause in [`CreateBuiltinCostModel`](./create-cost-model/CreateBuiltinCostModel.hs):
 
 ```
-    paramXorByteString                   <- getParams xorByteString paramXorByteString
-```
-
-and a function to extract the cost parameters for the R code.  This should be modelled on the existing
-functions at the end of the file:
+    paramXorByteString                   <- getParams readCF2 paramXorByteString
 
 ```
-xorByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-xorByteString cpuModelR = do
-  cpuModel <- ModelTwoArgumentsMinSize <$> readModelMinSize cpuModelR
-  let memModel = ModelTwoArgumentsMinSize $ ModelMinSize 0 1
-  pure $ CostingFun (cpuModel) memModel
-```
+(in general, use `readCF<N>` function where `N` is the arity of the builtin).
 
-The CPU costing function is obtained by running the R code, but the memory usage
-costing function is defined statically here.  Memory usage costing functions
-only account for memory retained after the function has returned and not for any
-working memory that may be allocated during its execution.  Typically this means
-that the memory costing function should measure the size of the object returned
-by the builtin.  For our `xorByteString` implementation, if the arguments have
-sizes `m` and `n` then the result will have size `min(m,n)` so we define the memory
-costing function to be `(m,n) -> 0 + 1*min(m,n)`.
+When the Haskell code is run it will run the R code and process the objects
+constructed by it.  For `paramXorByteString` it will read the "min_size" tag and
+create a `ModelMinSize` object in Haskell, with the constructor arguments also
+extracted from the R object.
+
+The CPU costing function is obtained from the R code, but the memory usage
+costing function is defined statically in
+[`BuiltinMemoryModels`](./create-cost-model/BuiltinMemoryModels.hs).
+Memory usage costing functions only account for memory retained after the
+function has returned and not for any working memory that may be allocated
+during its execution.  Typically this means that the memory costing function
+should measure the size of the object returned by the builtin.  For our
+`xorByteString` implementation, if the arguments have sizes `m` and `n` then the
+result will have size `min(m,n)` so we define the memory costing function to be
+`(m,n) -> 0 + 1*min(m,n)`: this is represented in the Haskell file by
+```
+  paramXorByteString = Id $ ModelTwoArgumentsMinSize $ OneVariableLinearFunction 0 1
+
+```
 
 
 #### Step 8: test the Haskell versions of the costing functions

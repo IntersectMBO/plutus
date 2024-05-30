@@ -3,7 +3,7 @@ module PlutusCore.Generators.QuickCheck.SubstitutionTests where
 
 import PlutusCore.Generators.QuickCheck
 
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote (runQuote)
 import PlutusCore.Rename
 import PlutusIR.Subst

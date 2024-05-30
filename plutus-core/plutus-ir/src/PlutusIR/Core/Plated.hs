@@ -36,7 +36,7 @@ import PlutusCore.Arity
 import PlutusCore.Core (tyVarDeclSubkinds, typeSubkinds, typeSubtypes, typeSubtypesDeep,
                         typeUniques, typeUniquesDeep, varDeclSubtypes)
 import PlutusCore.Flat ()
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 
 import PlutusIR.Core.Type
 

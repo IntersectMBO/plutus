@@ -96,12 +96,10 @@ To reduce code size, on-chain errors only output codes. Here's what they mean:
   - ``Li: DecodingError``
 
 - Prelude errors
-
   - ``PT1: TH Generation of Indexed Data Error``
-  - ``PT2: Void is not supported``
-  - ``PT3: Ratio number can't have a zero denominator``
-  - ``PT4: 'round' got an incorrect input``
-  - ``PT5: 'check' input is 'False'``
+  - ``PT2: PlutusTx.IsData.Class.unsafeFromBuiltinData: Void is not supported``
+  - ``PT3: PlutusTx.Ratio: zero denominator``
+  - ``PT5: PlutusTx.Prelude.check: input is 'False'``
   - ``PT6: PlutusTx.List.!!: negative index``
   - ``PT7: PlutusTx.List.!!: index too large``
   - ``PT8: PlutusTx.List.head: empty list``
@@ -115,6 +113,8 @@ To reduce code size, on-chain errors only output codes. Here's what they mean:
   - ``PT16: PlutusTx.Enum.Ordering.succ: bad argument``
   - ``PT17: PlutusTx.Enum.Ordering.pred: bad argument``
   - ``PT18: PlutusTx.Enum.Ordering.toEnum: bad argument``
+  - ``PT19: PlutusTx.List.last: empty list``
+  - ``PT20: PlutusTx.Ratio.recip: reciprocal of zero``
 
 - State machine errors
 

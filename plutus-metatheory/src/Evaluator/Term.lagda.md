@@ -1,3 +1,7 @@
+---
+title: Term - Haskell Interface to the Metatheory
+layout: page
+---
 # Haskell Interface to the metatheory
 
 This module contains functions that are meant to be called from Haskell code.

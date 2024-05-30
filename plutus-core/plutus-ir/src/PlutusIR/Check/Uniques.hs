@@ -6,7 +6,7 @@ module PlutusIR.Check.Uniques
     ) where
 
 import PlutusCore.Error
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusIR.Analysis.Definitions
 import PlutusIR.Core
 

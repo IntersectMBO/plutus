@@ -8,7 +8,7 @@ module PlutusIR.Normalize
     ) where
 
 import PlutusCore.Core as PLC (Normalized (..))
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Normalize as Export (normalizeType)
 import PlutusCore.Normalize.Internal hiding (normalizeTypesInM)
 import PlutusCore.Quote

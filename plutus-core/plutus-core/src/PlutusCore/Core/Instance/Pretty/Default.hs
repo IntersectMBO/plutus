@@ -13,7 +13,7 @@ import PlutusPrelude
 
 import PlutusCore.Core.Instance.Pretty.Classic ()
 import PlutusCore.Core.Type
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty.Classic
 import PlutusCore.Pretty.PrettyConst
 

@@ -28,6 +28,7 @@ module PlutusTx.List (
     unzip,
     (++),
     (!!),
+    indexBuiltinList,
     head,
     last,
     tail,
@@ -47,6 +48,7 @@ module PlutusTx.List (
 import PlutusTx.Bool (Bool (..), not, otherwise, (||))
 import PlutusTx.Builtins (Integer)
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Eq (Eq, (/=), (==))
 import PlutusTx.ErrorCodes
 import PlutusTx.Ord (Ord, Ordering (..), compare, (<), (<=))
@@ -245,6 +247,28 @@ xs0 !! n0 = go n0 xs0
         if Builtins.equalsInteger n 0
             then x
             else go (Builtins.subtractInteger n 1) xs
+
+-- | Index operator for builtin lists.
+--
+--   >>> indexBuiltinList (toBuiltin [10, 11, 12]) 2
+--   12
+--
+indexBuiltinList :: forall a. BI.BuiltinList a -> Integer -> a
+indexBuiltinList xs0 i0
+  | i0 `Builtins.lessThanInteger` 0 = traceError builtinListNegativeIndexError
+  | otherwise = go xs0 i0
+  where
+    go :: BI.BuiltinList a -> Integer -> a
+    go xs i =
+      Builtins.matchList
+        xs
+        (\_ -> traceError builtinListIndexTooLargeError)
+        ( \hd tl _ ->
+            if i `Builtins.equalsInteger` 0
+              then hd
+              else go tl (Builtins.subtractInteger i 1)
+        )
+        ()
 
 {-# INLINABLE revAppend #-}
 -- | Cons each element of the first list to the second one in reverse order (i.e. the last element

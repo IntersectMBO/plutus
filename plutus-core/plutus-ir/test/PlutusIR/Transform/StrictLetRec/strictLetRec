@@ -1,0 +1,9 @@
+(let (rec)
+  ( termbind (strict) (vardecl xxx (fun (con integer) (con integer)))
+    [
+      [{ (builtin trace) (fun (con integer) (con integer)) } (con string "hello")]
+      (lam z (con integer) [ xxx z ])
+    ]
+  )
+  (con integer 1)
+)

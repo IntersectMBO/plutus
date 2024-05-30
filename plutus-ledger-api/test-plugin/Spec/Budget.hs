@@ -27,8 +27,7 @@ import PlutusTx.TH (compile)
 
 tests :: TestTree
 tests =
-  runTestNestedIn ["test-plugin", "Spec"] $
-    testNestedGhc "Budget" $
+  runTestNested ["test-plugin", "Spec", "Budget"] . pure . testNestedGhc $
       [ goldenPirReadable "gt" compiledGt
       , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
       ]
@@ -50,7 +49,8 @@ compiledCurrencySymbolValueOf :: CompiledCode (Value -> CurrencySymbol -> Intege
 compiledCurrencySymbolValueOf = $$(compile [||currencySymbolValueOf||])
 
 mkValue :: [(Integer, [(Integer, Integer)])] -> Value
-mkValue = Value . Map.fromList . fmap (bimap toSymbol (Map.fromList . fmap (first toToken)))
+mkValue =
+    Value . Map.unsafeFromList . fmap (bimap toSymbol (Map.unsafeFromList . fmap (first toToken)))
 
 toSymbol :: Integer -> CurrencySymbol
 toSymbol = currencySymbol . fromString . show

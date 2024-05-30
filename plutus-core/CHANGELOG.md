@@ -1,4 +1,48 @@
 
+<a id='changelog-1.28.0.0'></a>
+# 1.28.0.0 — 2024-05-15
+
+## Fixed
+
+- A "stricter" version of `Z`-combinator that allows certain PIR programs not to lose their traces
+and yields minor performance gains.
+
+<a id='changelog-1.27.0.0'></a>
+# 1.27.0.0 — 2024-04-30
+
+## Removed
+
+- Debugger executable is removed and integrated inside plutus executable.
+
+## Added
+
+- An experimental "plutus" tool that unifies `pir`, `plc`, `uplc`, and `debugger` executables into one.
+- `Codec.CBOR.Extras` module is migrated here from `plutus-ledger-api.
+
+## Fixed
+
+- Restrict `eraseTerm`/`eraseProgram` to only work with `TPLC Name` input.
+
+<a id='changelog-1.26.0.0'></a>
+# 1.26.0.0 — 2024-04-19
+
+## Changed
+
+- Improvements to costing infrastructure.
+
+- Use `Vector` in the datastructure for `case` terms during evaluation. This speeds
+  up evaluation fairly significantly.
+
+- The `flat` encoding of the `Data` type has been modified slightly to make sure that
+  the result is always in the canonical format described in the Plutus Core specification.
+
+<a id='changelog-1.25.0.0'></a>
+# 1.25.0.0 — 2024-04-03
+
+## Changed
+
+- Partially applied builtins are estimated to be pure and work-free to better inform other optimizations, e.g. common subexpression elimination.
+
 <a id='changelog-1.22.0.0'></a>
 # 1.22.0.0 — 2024-02-21
 

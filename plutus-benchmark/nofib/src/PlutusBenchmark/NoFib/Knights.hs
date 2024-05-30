@@ -17,6 +17,7 @@ import PlutusBenchmark.NoFib.Knights.Queue
 
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx qualified as Tx
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 import Prelude qualified as Haskell
 

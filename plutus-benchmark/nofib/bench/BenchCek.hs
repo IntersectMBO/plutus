@@ -1,8 +1,13 @@
+{-# LANGUAGE BangPatterns #-}
+
 {- | Plutus benchmarks for the CEK machine based on some nofib examples. -}
 module Main where
 
-import PlutusBenchmark.Common (benchTermCek)
-import Shared (benchWith)
+import Shared (benchTermCek, benchWith, mkEvalCtx)
+
+import Control.Exception (evaluate)
 
 main :: IO ()
-main = benchWith benchTermCek
+main = do
+  evalCtx <- evaluate mkEvalCtx
+  benchWith $ benchTermCek evalCtx

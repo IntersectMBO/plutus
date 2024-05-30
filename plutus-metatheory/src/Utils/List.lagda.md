@@ -1,4 +1,7 @@
-
+---
+title: Utils.List
+layout: page
+---
 ```
 module Utils.List where
 ```

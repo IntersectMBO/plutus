@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeOperators         #-}
+
 module PlutusTx.Lift (
     safeLift,
     safeLiftProgram,
@@ -17,7 +17,8 @@ module PlutusTx.Lift (
     typeCode,
     makeTypeable,
     makeLift,
-    LiftError(..)) where
+    LiftError(..)
+) where
 
 import PlutusTx.Code
 import PlutusTx.Lift.Class qualified as Lift
@@ -58,7 +59,8 @@ import Prelude as Haskell
 
 -- | Get a Plutus Core term corresponding to the given value.
 safeLift
-    :: (Lift.Lift uni a
+    :: forall a e uni fun m
+     . (Lift.Lift uni a
        , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ()), PLC.GEq uni
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PLC.AsFreeVariableError e
@@ -86,8 +88,8 @@ safeLift v x = do
           & PLC.coSimplifyOpts . UPLC.soMaxCseIterations .~ 0
     plc <- flip runReaderT ccConfig $ compileProgram (Program () v pir)
     uplc <- flip runReaderT ucOpts $ PLC.compileProgram plc
-    (UPLC.Program _ _ db) <- traverseOf UPLC.progTerm UPLC.deBruijnTerm uplc
-    pure $ (void pir, void db)
+    UPLC.Program _ _ db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm uplc
+    pure (void pir, void db)
 
 -- | Get a Plutus Core program corresponding to the given value.
 safeLiftProgram
@@ -218,7 +220,7 @@ typeCheckAgainst
     -> m ()
 typeCheckAgainst p (PLC.Program _ v plcTerm) = do
     -- See Note [Checking the type of a term with Typeable]
-    term <- PIR.embed <$> PLC.rename plcTerm
+    term <- PIR.embedTerm <$> PLC.rename plcTerm
     -- We need to run Def *before* applying to the term, otherwise we may refer to abstract
     -- types and we won't match up with the term.
     idFun <- liftQuote $ runDefT () $ do
@@ -265,4 +267,4 @@ typeCode p prog = do
     _ <- typeCheckAgainst p prog
     compiled <- flip runReaderT PLC.defaultCompilationOpts $ PLC.compileProgram prog
     db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm compiled
-    pure $ DeserializedCode (const mempty <$> db) Nothing mempty
+    pure $ DeserializedCode (mempty <$ db) Nothing mempty

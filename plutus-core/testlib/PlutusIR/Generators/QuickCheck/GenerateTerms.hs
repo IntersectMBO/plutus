@@ -31,7 +31,7 @@ import PlutusCore.Builtin
 import PlutusCore.Core (argsFunKind)
 import PlutusCore.Default
 import PlutusCore.MkPlc (mkConstantOf)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Subst (typeSubstClosedType)
 import PlutusIR
 import PlutusIR.Compiler

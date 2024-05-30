@@ -18,7 +18,7 @@ import PlutusPrelude
 
 import PlutusCore.Core
 import PlutusCore.Mark
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename.Internal
 

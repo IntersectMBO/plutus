@@ -9,7 +9,7 @@ module PlutusCore.Generators.QuickCheck.Utils
 import PlutusCore.Default
 import PlutusCore.Generators.QuickCheck.Split as Export
 import PlutusCore.MkPlc hiding (error)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.Quote
 import PlutusIR

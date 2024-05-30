@@ -11,7 +11,7 @@ module PlutusIR.Transform.Inline.Utils where
 
 import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.Subst (typeSubstTyNamesM)
@@ -27,6 +27,8 @@ import Control.Monad.Reader
 import Control.Monad.State
 
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
+import PlutusCore.Name.UniqueMap (UniqueMap)
+import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo qualified as VarInfo
 
@@ -135,7 +137,7 @@ lookupTerm
     => name -- ^ The name of the variable.
     -> InlinerState tyname name uni fun ann
     -> Maybe (InlineTerm tyname name uni fun ann)
-lookupTerm n s = lookupName n $ s ^. termSubst . unTermSubst
+lookupTerm n s = UMap.lookupName n $ s ^. termSubst . unTermSubst
 
 -- | Insert the unprocessed variable into the term substitution.
 extendTerm
@@ -144,7 +146,7 @@ extendTerm
     -> InlineTerm tyname name uni fun ann -- ^ The substitution range.
     -> InlinerState tyname name uni fun ann
     -> InlinerState tyname name uni fun ann
-extendTerm n clos s = s & termSubst . unTermSubst %~ insertByName n clos
+extendTerm n clos s = s & termSubst . unTermSubst %~ UMap.insertByName n clos
 
 -- | Look up the unprocessed type variable in the type substitution.
 lookupType
@@ -152,11 +154,11 @@ lookupType
     => tyname
     -> InlinerState tyname name uni fun ann
     -> Maybe (Dupable (Type tyname uni ann))
-lookupType tn s = lookupName tn $ s ^. typeSubst . unTypeSubst
+lookupType tn s = UMap.lookupName tn $ s ^. typeSubst . unTypeSubst
 
 -- | Check if the type substitution is empty.
 isTypeSubstEmpty :: InlinerState tyname name uni fun ann -> Bool
-isTypeSubstEmpty (InlinerState _ (TypeSubst tyEnv) _) = isEmpty tyEnv
+isTypeSubstEmpty (InlinerState _ (TypeSubst tyEnv) _) = null tyEnv
 
 -- | Insert the unprocessed type variable into the type substitution.
 extendType
@@ -165,7 +167,7 @@ extendType
     -> Type tyname uni ann -- ^ Its type.
     -> InlinerState tyname name uni fun ann
     -> InlinerState tyname name uni fun ann
-extendType tn ty s = s &  typeSubst . unTypeSubst %~ insertByName tn (dupable ty)
+extendType tn ty s = s &  typeSubst . unTypeSubst %~ UMap.insertByName tn (dupable ty)
 
 -- | Look up a variable in the in scope set.
 lookupVarInfo
@@ -173,7 +175,7 @@ lookupVarInfo
     => name -- ^ The name of the variable.
     -> InlinerState tyname name uni fun ann
     -> Maybe (InlineVarInfo tyname name uni fun ann)
-lookupVarInfo n s = lookupName n $ s ^. nonRecInScopeSet . unNonRecInScopeSet
+lookupVarInfo n s = UMap.lookupName n $ s ^. nonRecInScopeSet . unNonRecInScopeSet
 
 -- | Insert a variable into the substitution.
 extendVarInfo
@@ -182,7 +184,7 @@ extendVarInfo
     -> InlineVarInfo tyname name uni fun ann -- ^ The variable's info.
     -> InlinerState tyname name uni fun ann
     -> InlinerState tyname name uni fun ann
-extendVarInfo n info s = s & nonRecInScopeSet . unNonRecInScopeSet %~ insertByName n info
+extendVarInfo n info s = s & nonRecInScopeSet . unNonRecInScopeSet %~ UMap.insertByName n info
 
 
 applyTypeSubstitution :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun

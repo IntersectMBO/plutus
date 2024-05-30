@@ -40,7 +40,7 @@ module PlutusCore.DeBruijn
 import PlutusCore.DeBruijn.Internal
 
 import PlutusCore.Core.Type
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import Control.Lens hiding (Index, Level, index)

@@ -11,7 +11,7 @@ import Control.Monad.Trans.Maybe
 import Data.Maybe
 import PlutusCore qualified as PLC
 import PlutusCore.Arity
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusCore.Quote
 import PlutusIR
 import PlutusIR.Analysis.Builtins

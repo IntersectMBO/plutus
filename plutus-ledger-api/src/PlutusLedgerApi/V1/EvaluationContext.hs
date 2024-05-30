@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable
 {-# LANGUAGE TypeApplications #-}
 module PlutusLedgerApi.V1.EvaluationContext
     ( EvaluationContext
@@ -9,13 +10,15 @@ module PlutusLedgerApi.V1.EvaluationContext
     ) where
 
 import PlutusLedgerApi.Common
+import PlutusLedgerApi.Common.Versions (conwayPV)
 import PlutusLedgerApi.V1.ParamName as V1
 
-import PlutusCore.Default as Plutus (BuiltinSemanticsVariant (DefaultFunSemanticsVariant1))
+import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB))
 
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Writer.Strict
+import Data.Int (Int64)
 
 {-|  Build the 'EvaluationContext'.
 
@@ -30,8 +33,15 @@ IMPORTANT: The evaluation context of every Plutus version must be recreated upon
 a protocol update with the updated cost model parameters.
 -}
 mkEvaluationContext :: (MonadError CostModelApplyError m, MonadWriter [CostModelApplyWarn] m)
-                    => [Integer] -- ^ the (updated) cost model parameters of the protocol
+                    => [Int64] -- ^ the (updated) cost model parameters of the protocol
                     -> m EvaluationContext
-mkEvaluationContext = tagWithParamNames @V1.ParamName
-                    >=> pure . toCostModelParams
-                    >=> mkDynEvaluationContext Plutus.DefaultFunSemanticsVariant1
+mkEvaluationContext =
+    tagWithParamNames @V1.ParamName
+    >=> pure . toCostModelParams
+    >=> mkDynEvaluationContext
+        PlutusV1
+        [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB]
+        -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
+        (\pv -> if pv < conwayPV
+            then DefaultFunSemanticsVariantA
+            else DefaultFunSemanticsVariantB)

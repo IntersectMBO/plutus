@@ -75,8 +75,8 @@ data ParamName =
   | EncodeUtf8'memory'arguments'intercept
   | EncodeUtf8'memory'arguments'slope
   | EqualsByteString'cpu'arguments'constant
-  | EqualsByteString'cpu'arguments'intercept
-  | EqualsByteString'cpu'arguments'slope
+  | EqualsByteString'cpu'arguments'intercept -- TODO: this should change in the PlutusV3 cost model
+  | EqualsByteString'cpu'arguments'slope     -- TODO: this should change in the PlutusV3 cost model
   | EqualsByteString'memory'arguments
   | EqualsData'cpu'arguments'intercept
   | EqualsData'cpu'arguments'slope
@@ -85,8 +85,8 @@ data ParamName =
   | EqualsInteger'cpu'arguments'slope
   | EqualsInteger'memory'arguments
   | EqualsString'cpu'arguments'constant
-  | EqualsString'cpu'arguments'intercept
-  | EqualsString'cpu'arguments'slope
+  | EqualsString'cpu'arguments'intercept    -- TODO: this should change in the PlutusV3 cost model
+  | EqualsString'cpu'arguments'slope        -- TODO: this should change in the PlutusV3 cost model
   | EqualsString'memory'arguments
   | FstPair'cpu'arguments
   | FstPair'memory'arguments
@@ -128,7 +128,6 @@ data ParamName =
   | ModInteger'cpu'arguments'model'arguments'intercept
   | ModInteger'cpu'arguments'model'arguments'slope
   | ModInteger'memory'arguments'intercept
-  | ModInteger'memory'arguments'minimum
   | ModInteger'memory'arguments'slope
   | MultiplyInteger'cpu'arguments'intercept
   | MultiplyInteger'cpu'arguments'slope
@@ -146,7 +145,6 @@ data ParamName =
   | RemainderInteger'cpu'arguments'model'arguments'intercept
   | RemainderInteger'cpu'arguments'model'arguments'slope
   | RemainderInteger'memory'arguments'intercept
-  | RemainderInteger'memory'arguments'minimum
   | RemainderInteger'memory'arguments'slope
   | SerialiseData'cpu'arguments'intercept
   | SerialiseData'cpu'arguments'slope

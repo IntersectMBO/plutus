@@ -17,12 +17,10 @@ import PlutusPrelude
 import PlutusCore.Core.Type
 import PlutusCore.DeBruijn
 import PlutusCore.Eq
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Rename.Monad
 
 import Universe
-
-import Data.Foldable (for_)
 
 instance (GEq uni, Eq ann) => Eq (Type TyName uni ann) where
     ty1 == ty2 = runEqRename @TypeRenaming $ eqTypeM ty1 ty2

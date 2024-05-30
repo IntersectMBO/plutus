@@ -2,20 +2,18 @@ program
   1.1.0
   ((\s ->
       s s)
-     (\s x ->
-        (\go ds ->
-           force
-             (case
-                ds
-                [ (delay (constr 1 []))
-                , (\x xs ->
-                     delay
-                       (force
-                          (force ifThenElse
-                             (lessThanEqualsInteger 10 x)
-                             (delay (go (addInteger 1 x) xs))
-                             (delay (constr 0 [x]))))) ]))
-          (s s))
+     (\s i ds ->
+        force
+          (case
+             ds
+             [ (delay (constr 1 []))
+             , (\x xs ->
+                  delay
+                    (force
+                       (force ifThenElse
+                          (lessThanEqualsInteger 10 x)
+                          (delay ((\x -> s s x) (addInteger 1 i) xs))
+                          (delay (constr 0 [i]))))) ]))
      0
      (constr 1
         [ 1

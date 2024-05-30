@@ -3,9 +3,15 @@ layout: page
 title: Table of Contents
 ---
 
+# Table of Contents
+
+_This documentation has been produced from the code, which is developed as [Literate Agda](https://agda.readthedocs.io/en/latest/tools/literate-programming.html). Consequently, it contains all of the necessary details to recreate and check the formalisation, including compiler options such as:_
+
 ```
 {-# OPTIONS --rewriting #-}
 ```
+
+## Introduction
 
 The Formalisation is split into several sections.
 

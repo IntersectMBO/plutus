@@ -33,7 +33,9 @@ import PlutusCore.Core
 
 import Control.Lens
 import Control.Lens.Unsound qualified as Unsound
-import Data.Set as Set
+import PlutusCore.Name.Unique (HasUnique)
+import PlutusCore.Name.UniqueSet (UniqueSet)
+import PlutusCore.Name.UniqueSet qualified as USet
 
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
 purely = coerce
@@ -221,35 +223,45 @@ programMapNames f g (Program a v term) = Program a v (termMapNames f g term)
 -- Free variables
 
 -- | Get all the free term variables in a term.
-fvTerm :: Ord name => Traversal' (Term tyname name uni fun ann) name
+fvTerm :: HasUnique name unique => Traversal' (Term tyname name uni fun ann) name
 fvTerm = fvTermCtx mempty
 
-fvTermCtx :: Ord name => Set.Set name -> Traversal' (Term tyname name uni fun ann) name
+fvTermCtx
+    :: HasUnique name unique
+    => UniqueSet unique -> Traversal' (Term tyname name uni fun ann) name
 fvTermCtx bound f = \case
-    Var a n         -> Var a <$> (if Set.member n bound then pure n else f n)
-    LamAbs a n ty t -> LamAbs a n ty <$> fvTermCtx (Set.insert n bound) f t
+    Var a n         -> Var a <$> (if USet.memberByName n bound then pure n else f n)
+    LamAbs a n ty t -> LamAbs a n ty <$> fvTermCtx (USet.insertByName n bound) f t
     t               -> (termSubterms . fvTermCtx bound) f t
 
 -- | Get all the free type variables in a term.
-ftvTerm :: Ord tyname => Traversal' (Term tyname name uni fun ann) tyname
+ftvTerm :: HasUnique tyname unique => Traversal' (Term tyname name uni fun ann) tyname
 ftvTerm = ftvTermCtx mempty
 
-ftvTermCtx :: Ord tyname => Set.Set tyname -> Traversal' (Term tyname name uni fun ann) tyname
+ftvTermCtx
+    :: HasUnique tyname unique
+    => UniqueSet unique
+    -> Traversal' (Term tyname name uni fun ann) tyname
 ftvTermCtx bound f = \case
-    TyAbs a ty k t -> TyAbs a ty k <$> ftvTermCtx (Set.insert ty bound) f t
+    TyAbs a ty k t -> TyAbs a ty k <$> ftvTermCtx (USet.insertByName ty bound) f t
     -- sound because the subterms and subtypes are disjoint
     t              ->
         ((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t
 
 -- | Get all the free type variables in a type.
-ftvTy :: Ord tyname => Traversal' (Type tyname uni ann) tyname
+ftvTy
+    :: HasUnique tyname unique =>
+    Traversal' (Type tyname uni ann) tyname
 ftvTy = ftvTyCtx mempty
 
-ftvTyCtx :: Ord tyname => Set.Set tyname -> Traversal' (Type tyname uni ann) tyname
+ftvTyCtx
+    :: HasUnique tyname unique
+    => UniqueSet unique
+    -> Traversal' (Type tyname uni ann) tyname
 ftvTyCtx bound f = \case
-    TyVar a ty          -> TyVar a <$> (if Set.member ty bound then pure ty else f ty)
-    TyForall a bnd k ty -> TyForall a bnd k <$> ftvTyCtx (Set.insert bnd bound) f ty
-    TyLam a bnd k ty    -> TyLam a bnd k <$> ftvTyCtx (Set.insert bnd bound) f ty
+    TyVar a ty          -> TyVar a <$> (if USet.memberByName ty bound then pure ty else f ty)
+    TyForall a bnd k ty -> TyForall a bnd k <$> ftvTyCtx (USet.insertByName bnd bound) f ty
+    TyLam a bnd k ty    -> TyLam a bnd k <$> ftvTyCtx (USet.insertByName bnd bound) f ty
     t                   -> (typeSubtypes . ftvTyCtx bound) f t
 
 

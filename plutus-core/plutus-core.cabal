@@ -1,26 +1,29 @@
-cabal-version:      3.0
-name:               plutus-core
-version:            1.22.1.0
-license:            Apache-2.0
+cabal-version:   3.0
+name:            plutus-core
+version:         1.28.0.0
+license:         Apache-2.0
 license-files:
   LICENSE
   NOTICE
 
-maintainer:         michael.peyton-jones@iohk.io
-author:             Plutus Core Team
-synopsis:           Language library for Plutus Core
-description:        Pretty-printer, parser, and typechecker for Plutus Core.
-category:           Language, Plutus
-build-type:         Simple
+maintainer:      michael.peyton-jones@iohk.io
+author:          Plutus Core Team
+synopsis:        Language library for Plutus Core
+description:     Pretty-printer, parser, and typechecker for Plutus Core.
+category:        Language, Plutus
+build-type:      Simple
 extra-doc-files:
   CHANGELOG.md
   README.md
 
-extra-source-files:
+data-files:
   cost-model/data/*.R
-  cost-model/data/benching.csv
-  cost-model/data/builtinCostModel.json
-  cost-model/data/cekMachineCosts.json
+  cost-model/data/builtinCostModelA.json
+  cost-model/data/builtinCostModelB.json
+  cost-model/data/builtinCostModelC.json
+  cost-model/data/cekMachineCostsA.json
+  cost-model/data/cekMachineCostsB.json
+  cost-model/data/cekMachineCostsC.json
   plutus-core/test/CostModelInterface/defaultCostModelParams.json
 
 source-repository head
@@ -79,6 +82,7 @@ common lang
 library
   import:             lang
   exposed-modules:
+    Codec.CBOR.Extras
     Data.Aeson.THReader
     Data.Either.Extras
     Data.List.Extras
@@ -98,6 +102,7 @@ library
     PlutusCore.Check.Value
     PlutusCore.Compiler
     PlutusCore.Compiler.Erase
+    PlutusCore.Compiler.Opts
     PlutusCore.Compiler.Types
     PlutusCore.Core
     PlutusCore.Crypto.BLS12_381.Error
@@ -146,7 +151,9 @@ library
     PlutusCore.FsTree
     PlutusCore.Mark
     PlutusCore.MkPlc
-    PlutusCore.Name
+    PlutusCore.Name.Unique
+    PlutusCore.Name.UniqueMap
+    PlutusCore.Name.UniqueSet
     PlutusCore.Normalize
     PlutusCore.Normalize.Internal
     PlutusCore.Parser
@@ -198,6 +205,7 @@ library
     UntypedPlutusCore.Parser
     UntypedPlutusCore.Purity
     UntypedPlutusCore.Rename
+    UntypedPlutusCore.Transform.CaseOfCase
 
   other-modules:
     Data.Aeson.Flatten
@@ -254,9 +262,9 @@ library
     UntypedPlutusCore.Mark
     UntypedPlutusCore.Rename.Internal
     UntypedPlutusCore.Simplify
+    UntypedPlutusCore.Simplify.Opts
     UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
-    UntypedPlutusCore.Transform.CaseOfCase
     UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.Cse
     UntypedPlutusCore.Transform.FloatDelay
@@ -312,7 +320,7 @@ library
     , nothunks                    ^>=0.1.5
     , parser-combinators          >=0.4.0
     , prettyprinter               >=1.1.0.1
-    , prettyprinter-configurable  ^>=1.22
+    , prettyprinter-configurable  ^>=1.28
     , primitive
     , profunctors
     , recursion-schemes
@@ -329,6 +337,7 @@ library
     , time
     , transformers
     , unordered-containers
+    , vector
     , witherable
 
   if impl(ghc <9.0)
@@ -349,6 +358,7 @@ test-suite plutus-core-test
     CBOR.DataStability
     Check.Spec
     CostModelInterface.Spec
+    CostModelSafety.Spec
     Evaluation.Machines
     Evaluation.Spec
     Generators.QuickCheck.Utils
@@ -366,13 +376,14 @@ test-suite plutus-core-test
     , bytestring
     , containers
     , data-default-class
+    , extra
     , filepath
     , flat                                            ^>=0.6
     , hedgehog
     , hex-text
     , mmorph
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.22
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.28
     , prettyprinter
     , serialise
     , tasty
@@ -419,7 +430,9 @@ test-suite untyped-plutus-core-test
     Evaluation.Regressions
     Flat.Spec
     Generators
+    Transform.CaseOfCase.Test
     Transform.Simplify
+    Transform.Simplify.Lib
 
   build-depends:
     , base                                            >=4.9   && <5
@@ -430,10 +443,11 @@ test-suite untyped-plutus-core-test
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.22
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.28
     , pretty-show
     , prettyprinter
     , QuickCheck
+    , serialise
     , split
     , tasty
     , tasty-golden
@@ -441,6 +455,7 @@ test-suite untyped-plutus-core-test
     , tasty-hunit
     , tasty-quickcheck
     , text
+    , vector
 
 executable plc
   import:         lang
@@ -451,8 +466,8 @@ executable plc
     , bytestring
     , flat                  ^>=0.6
     , optparse-applicative
-    , plutus-core           ^>=1.22
-    , plutus-core-execlib   ^>=1.22
+    , plutus-core           ^>=1.28
+    , plutus-core-execlib   ^>=1.28
     , text
 
 executable uplc
@@ -468,8 +483,8 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core           ^>=1.22
-    , plutus-core-execlib   ^>=1.22
+    , plutus-core           ^>=1.28
+    , plutus-core-execlib   ^>=1.28
     , prettyprinter
     , split
     , text
@@ -481,6 +496,7 @@ executable uplc
 library plutus-ir
   import:          lang
   visibility:      public
+  hs-source-dirs:  plutus-ir/src
   exposed-modules:
     PlutusIR
     PlutusIR.Analysis.Builtins
@@ -528,6 +544,7 @@ library plutus-ir
     PlutusIR.Transform.Rename
     PlutusIR.Transform.RewriteRules
     PlutusIR.Transform.RewriteRules.CommuteFnWithConst
+    PlutusIR.Transform.RewriteRules.RemoveTrace
     PlutusIR.Transform.StrictifyBindings
     PlutusIR.Transform.Substitute
     PlutusIR.Transform.ThunkRecursions
@@ -535,7 +552,6 @@ library plutus-ir
     PlutusIR.TypeCheck
     PlutusIR.TypeCheck.Internal
 
-  hs-source-dirs:  plutus-ir/src
   other-modules:
     PlutusIR.Analysis.Definitions
     PlutusIR.Analysis.Size
@@ -545,7 +561,7 @@ library plutus-ir
     PlutusIR.Compiler.Recursion
     PlutusIR.Normalize
     PlutusIR.Transform.RewriteRules.Common
-    PlutusIR.Transform.RewriteRules.Rules
+    PlutusIR.Transform.RewriteRules.Internal
     PlutusIR.Transform.RewriteRules.UnConstrConstrData
 
   build-depends:
@@ -564,7 +580,7 @@ library plutus-ir
     , mtl
     , multiset
     , parser-combinators   >=0.4.0
-    , plutus-core          ^>=1.22
+    , plutus-core          ^>=1.28
     , prettyprinter        >=1.1.0.1
     , profunctors
     , semigroupoids
@@ -597,6 +613,7 @@ test-suite plutus-ir-test
     PlutusIR.Compiler.Error.Tests
     PlutusIR.Compiler.Let.Tests
     PlutusIR.Compiler.Recursion.Tests
+    PlutusIR.Contexts.Tests
     PlutusIR.Core.Tests
     PlutusIR.Generators.QuickCheck.Tests
     PlutusIR.Parser.Tests
@@ -616,6 +633,8 @@ test-suite plutus-ir-test
     PlutusIR.Transform.Rename.Tests
     PlutusIR.Transform.RewriteRules.Tests
     PlutusIR.Transform.StrictifyBindings.Tests
+    PlutusIR.Transform.StrictLetRec.Tests
+    PlutusIR.Transform.StrictLetRec.Tests.Lib
     PlutusIR.Transform.ThunkRecursions.Tests
     PlutusIR.Transform.Unwrap.Tests
     PlutusIR.TypeCheck.Tests
@@ -624,12 +643,13 @@ test-suite plutus-ir-test
   build-depends:
     , base                                                       >=4.9   && <5
     , containers
+    , filepath
     , flat                                                       ^>=0.6
     , hashable
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.22
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.28
     , QuickCheck
     , serialise
     , tasty
@@ -652,10 +672,78 @@ executable pir
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core-execlib                   ^>=1.22
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.22
+    , plutus-core-execlib                   ^>=1.28
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.28
     , text
     , transformers
+
+executable plutus
+  import:             lang
+  main-is:            Main.hs
+  hs-source-dirs:     executables/plutus
+
+  -- singletons-th does not support GHC<=8.10
+  if impl(ghc <9.6)
+    buildable: False
+
+  -- Hydra complains that this is not buildable on mingw32 because of brick.
+  -- Strange, because I thought vty added support for windows.
+  if os(windows)
+    buildable: False
+
+  other-modules:
+    AnyProgram.Apply
+    AnyProgram.Bench
+    AnyProgram.Compile
+    AnyProgram.Debug
+    AnyProgram.Example
+    AnyProgram.IO
+    AnyProgram.Parse
+    AnyProgram.Run
+    AnyProgram.With
+    Common
+    Debugger.TUI.Draw
+    Debugger.TUI.Event
+    Debugger.TUI.Main
+    Debugger.TUI.Types
+    GetOpt
+    Mode.Compile
+    Mode.HelpVersion
+    Mode.ListExamples
+    Mode.PrintBuiltins
+    Mode.PrintCostModel
+    Types
+
+  build-depends:
+    , aeson-pretty
+    , base                                  >=4.9   && <5
+    , brick
+    , bytestring
+    , containers
+    , exceptions
+    , filepath
+    , flat
+    , lens
+    , megaparsec
+    , microlens
+    , microlens-th                          ^>=0.4
+    , mono-traversable
+    , mtl
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.28
+    , prettyprinter
+    , primitive
+    , serialise
+    , singletons
+    , singletons-th
+    , text
+    , text-zipper
+    , vty                                   ^>=6
+    , vty-crossplatform                     ^>=0.2
+
+  ghc-options:        -O2 -threaded -rtsopts -with-rtsopts=-N
+  default-extensions:
+    GADTs
+    TypeApplications
 
 ----------------------------------------------
 -- support libs
@@ -681,7 +769,7 @@ library plutus-core-execlib
     , monoidal-containers
     , mtl
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.22
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.28
     , prettyprinter
     , text
 
@@ -736,6 +824,7 @@ library plutus-core-testlib
     , data-default-class
     , dependent-map                         >=0.4.0.0
     , filepath
+    , free
     , hashable
     , hedgehog                              >=1.0
     , lazy-search
@@ -743,9 +832,9 @@ library plutus-core-testlib
     , mmorph
     , mtl
     , multiset
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.22
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.28
     , prettyprinter                         >=1.1.0.1
-    , prettyprinter-configurable            ^>=1.22
+    , prettyprinter-configurable            ^>=1.28
     , QuickCheck
     , quickcheck-instances
     , quickcheck-transformer
@@ -777,47 +866,7 @@ library plutus-ir-cert
   exposed-modules:  PlutusIR.Certifier
   build-depends:
     , base
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.22
-
-----------------------------------------------
--- debugger
-----------------------------------------------
-
-executable debugger
-  import:         lang
-  main-is:        Main.hs
-
-  -- brick does not work on windows
-  if os(windows)
-    buildable: False
-
-  hs-source-dirs: executables/debugger
-  other-modules:
-    Draw
-    Event
-    Types
-
-  ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-    , base                  >=4.9   && <5
-    , brick
-    , containers
-    , exceptions
-    , filepath
-    , megaparsec
-    , microlens
-    , microlens-th          ^>=0.4
-    , mono-traversable
-    , mtl
-    , optparse-applicative
-    , plutus-core           ^>=1.22
-    , plutus-core-execlib   ^>=1.22
-    , prettyprinter
-    , primitive
-    , text
-    , text-zipper
-    , vty                   ^>=6
-    , vty-crossplatform     ^>=0.2
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.28
 
 ----------------------------------------------
 -- profiling
@@ -895,7 +944,7 @@ executable cost-model-budgeting-bench
     , hedgehog
     , mtl
     , optparse-applicative
-    , plutus-core            ^>=1.22
+    , plutus-core            ^>=1.28
     , QuickCheck
     , quickcheck-instances
     , random
@@ -926,17 +975,16 @@ executable generate-cost-model
     , barbies
     , base                  >=4.9   && <5
     , bytestring
-    , cassava
     , directory
-    , exceptions
-    , extra
     , inline-r              >=1.0.1
     , optparse-applicative
-    , plutus-core           ^>=1.22
+    , plutus-core           ^>=1.28
     , text
-    , vector
 
-  other-modules:  CreateBuiltinCostModel
+  --    , exceptions
+  other-modules:
+    BuiltinMemoryModels
+    CreateBuiltinCostModel
 
 -- The cost models for builtins are generated using R and converted into a JSON
 -- form that can later be used to construct Haskell functions.  This tests that
@@ -967,18 +1015,16 @@ benchmark cost-model-test
     , barbies
     , base              >=4.9   && <5
     , bytestring
-    , cassava
-    , exceptions
-    , extra
     , hedgehog
     , inline-r          >=1.0.1
     , mmorph
-    , plutus-core       ^>=1.22
+    , plutus-core       ^>=1.28
     , template-haskell
     , text
-    , vector
 
-  other-modules:  CreateBuiltinCostModel
+  other-modules:
+    BuiltinMemoryModels
+    CreateBuiltinCostModel
 
 executable print-cost-model
   import:         lang
@@ -989,7 +1035,7 @@ executable print-cost-model
     , aeson
     , base         >=4.9   && <5
     , bytestring
-    , plutus-core  ^>=1.22
+    , plutus-core  ^>=1.28
 
 ----------------------------------------------
 -- satint

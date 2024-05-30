@@ -28,7 +28,7 @@ module PlutusCore.Core.Plated
 import PlutusPrelude ((<^>))
 
 import PlutusCore.Core.Type
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Control.Lens
 

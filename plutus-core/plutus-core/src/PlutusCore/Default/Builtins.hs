@@ -43,6 +43,7 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
+import NoThunks.Class (NoThunks)
 import Prettyprinter (viaShow)
 
 -- See Note [Pattern matching on built-in types].
@@ -1072,13 +1073,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
 
     {- | Allow different variants of builtins with different implementations, and
-       possibly different semantics.  Note that DefaultFunSemanticsVariant1,
-       DefaultFunSemanticsVariant1 etc. do not correspond directly to PlutusV1,
+       possibly different semantics.  Note that DefaultFunSemanticsVariantA,
+       DefaultFunSemanticsVariantB etc. do not correspond directly to PlutusV1,
        PlutusV2 etc. in plutus-ledger-api: see Note [Builtin semantics variants]. -}
-    data BuiltinSemanticsVariant DefaultFun =
-              DefaultFunSemanticsVariant1
-            | DefaultFunSemanticsVariant2
-        deriving stock (Enum, Bounded, Show)
+    data BuiltinSemanticsVariant DefaultFun
+        = DefaultFunSemanticsVariantA
+        | DefaultFunSemanticsVariantB
+        | DefaultFunSemanticsVariantC
+        deriving stock (Eq, Enum, Bounded, Show, Generic)
+        deriving anyclass (NFData, NoThunks)
 
     -- Integers
     toBuiltinMeaning
@@ -1176,6 +1179,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             appendByteStringDenotation
             (runCostingFunTwoArguments . paramAppendByteString)
 
+    -- See Note [Builtin semantics variants]
     toBuiltinMeaning semvar ConsByteString =
         -- The costing function is the same for all variants of this builtin,
         -- but since the denotation of the builtin accepts constants of
@@ -1185,26 +1189,26 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 :: ExMemoryUsage a => BuiltinCostModel -> a -> BS.ByteString -> ExBudgetStream
             costingFun = runCostingFunTwoArguments . paramConsByteString
             {-# INLINE costingFun #-}
-        -- See Note [Builtin semantics variants]
-        in case semvar of
-            DefaultFunSemanticsVariant1 ->
+            consByteStringMeaning_V1 =
                 let consByteStringDenotation :: Integer -> BS.ByteString -> BS.ByteString
                     consByteStringDenotation n xs = BS.cons (fromIntegral n) xs
                     {-# INLINE consByteStringDenotation #-}
                 in makeBuiltinMeaning
                     consByteStringDenotation
                     costingFun
-            -- For builtin semantics variants other (i.e. larger) than
-            -- DefaultFunSemanticsVariant1, the first input must be in range
-            -- [0..255].  See Note [How to add a built-in function: simple
-            -- cases]
-            DefaultFunSemanticsVariant2 ->
+            -- For builtin semantics variants larger than 'DefaultFunSemanticsVariantA', the first
+            -- input must be in range @[0..255]@.
+            consByteStringMeaning_V2 =
                 let consByteStringDenotation :: Word8 -> BS.ByteString -> BS.ByteString
                     consByteStringDenotation = BS.cons
                     {-# INLINE consByteStringDenotation #-}
                 in makeBuiltinMeaning
                     consByteStringDenotation
                     costingFun
+        in case semvar of
+            DefaultFunSemanticsVariantA -> consByteStringMeaning_V1
+            DefaultFunSemanticsVariantB -> consByteStringMeaning_V1
+            DefaultFunSemanticsVariantC -> consByteStringMeaning_V2
 
     toBuiltinMeaning _semvar SliceByteString =
         let sliceByteStringDenotation :: Int -> Int -> BS.ByteString -> BS.ByteString
@@ -1287,8 +1291,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
             verifyEd25519SignatureDenotation =
                 case semvar of
-                  DefaultFunSemanticsVariant1 -> verifyEd25519Signature_V1
-                  DefaultFunSemanticsVariant2 -> verifyEd25519Signature_V2
+                  DefaultFunSemanticsVariantA -> verifyEd25519Signature_V1
+                  DefaultFunSemanticsVariantB -> verifyEd25519Signature_V2
+                  DefaultFunSemanticsVariantC -> verifyEd25519Signature_V2
             {-# INLINE verifyEd25519SignatureDenotation #-}
         in makeBuiltinMeaning
             verifyEd25519SignatureDenotation
@@ -1818,8 +1823,24 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
+    {- *** IMPORTANT! *** When you're adding a new builtin above you typically won't
+       be able to add a sensible costing function until the implementation is
+       complete and you can benchmark it.  It's still necessary to supply
+       `toBuiltinMeaning` with some costing function though: this **MUST** be
+       `unimplementedCostingFun`: this will assign a very large cost to any
+       invocation of the function, preventing it from being used in places where
+       costs are important (for example on testnets) until the implementation is
+       complete and a proper costing function has been defined.  Once the
+       builtin is ready for general use replace `unimplementedCostingFun` with
+       the appropriate `param<BuiltinName>` from BuiltinCostModelBase.
+
+       Please leave this comment immediately after the definition of the final
+       builtin to maximise the chances of it being seen the next time someone
+       implements a new builtin.
+    -}
+
 instance Default (BuiltinSemanticsVariant DefaultFun) where
-    def = DefaultFunSemanticsVariant2
+    def = maxBound
 
 instance Pretty (BuiltinSemanticsVariant DefaultFun) where
     pretty = viaShow

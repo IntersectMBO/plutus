@@ -71,7 +71,6 @@ import PlutusIR.Parser qualified as PIR (parse, program)
 import Control.Monad.Except
 import Data.Aeson qualified as Aeson
 import Data.ByteString.Lazy qualified as BSL
-import Data.Foldable (traverse_)
 import Data.HashMap.Monoidal qualified as H
 import Data.Kind (Type)
 import Data.List (intercalate)
@@ -485,9 +484,9 @@ runPrintExample getFn (ExampleOptions (ExampleSingle name)) = do
 
 ---------------- Print the cost model parameters ----------------
 
-runDumpModel :: IO ()
-runDumpModel = do
-    let params = fromJust PLC.defaultCostModelParams
+runDumpModel :: PLC.BuiltinSemanticsVariant PLC.DefaultFun -> IO ()
+runDumpModel semvar = do
+    let params = fromJust $ PLC.defaultCostModelParamsForVariant semvar
     BSL.putStr $ Aeson.encode params
 
 ---------------- Print the type signatures of the default builtins ----------------
@@ -544,8 +543,9 @@ runPrintBuiltinSignatures = do
       (\x -> putStr (printf "%-35s: %s\n" (show $ PP.pretty x) (show $ getSignature x)))
       builtins
   where
-    getSignature (PLC.toBuiltinMeaning @_ @_ @(PlcTerm ()) def -> PLC.BuiltinMeaning sch _ _) =
-        typeSchemeToSignature sch
+    getSignature b =
+      case PLC.toBuiltinMeaning @PLC.DefaultUni @PLC.DefaultFun @(PlcTerm ()) def b of
+        PLC.BuiltinMeaning sch _ _ -> typeSchemeToSignature sch
 
 ---------------- Parse and print a PLC/UPLC source file ----------------
 

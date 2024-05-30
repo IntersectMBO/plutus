@@ -11,7 +11,7 @@ import UntypedPlutusCore.Core
 
 import PlutusCore.Analysis.Definitions (ScopeType (TermScope), UniqueInfos, addDef, addUsage)
 import PlutusCore.Error (UniqueError)
-import PlutusCore.Name (HasUnique, TermUnique (TermUnique), Unique (Unique))
+import PlutusCore.Name.Unique (HasUnique, TermUnique (TermUnique), Unique (Unique))
 
 import Control.Lens (forMOf_)
 import Control.Monad.State (MonadState, execStateT)

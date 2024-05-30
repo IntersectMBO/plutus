@@ -3,7 +3,7 @@ module PlutusIR.Analysis.RetainedSize.Tests where
 import Test.Tasty
 import Test.Tasty.Extras
 
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote
 import PlutusCore.Rename qualified as PLC
@@ -13,8 +13,8 @@ import PlutusIR.Test
 import PlutusPrelude
 
 test_retainedSize :: TestTree
-test_retainedSize = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Analysis"] $
-    testNested "RetainedSize" $
+test_retainedSize =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Analysis", "RetainedSize"] $
         map
             (goldenPir renameAndAnnotate pTerm)
             [ "typeLet"

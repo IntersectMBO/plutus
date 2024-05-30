@@ -1,10 +1,24 @@
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+
 module Test.Tasty.Extras
-    ( TestNested
-    , runTestNestedIn
+    ( Layer (..)
+    , embed
+    , nestWith
+    , TestNestedM (..)
+    , TestNested
+    , runTestNestedM
+    , testNestedNamedM
+    , testNestedM
+    , testNestedGhcM
     , runTestNested
+    , testNestedNamed
     , testNested
     , testNestedGhc
-    , runTestGroupNestedGhc
     , goldenVsText
     , goldenVsTextM
     , goldenVsDoc
@@ -16,18 +30,19 @@ module Test.Tasty.Extras
     , makeVersionedFilePath
     ) where
 
-import PlutusPrelude
+import PlutusPrelude hiding (toList)
 
+import Control.Monad.Free.Church (F (runF), MonadFree, liftF)
 import Control.Monad.Reader
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Version
+import GHC.Exts
 import System.FilePath (joinPath, (</>))
 import System.Info
 import Test.Tasty
 import Test.Tasty.Golden
-
 
 -- | We use the GHC version number to create directories with names like `9.2`
 -- and `9.6` containing golden files whose contents depend on the GHC version.
@@ -50,31 +65,124 @@ ghcVersion = showVersion compilerVersion
 makeVersionedFilePath :: [FilePath] -> FilePath -> FilePath
 makeVersionedFilePath path file = joinPath path </> ghcVersion </> file
 
+{- | A monad allowing one to emit elements of type @a@. Semantically equivalent to
+@Writer (DList a) r@, but:
+
+1. is faster, being based on the Church-encoded free monad
+2. implements 'Monoid', so that all the "Data.Foldable" convenience is supported
+3. has better ergonomics as it doesn't require the user to wrap @a@ values into 'DList's
+
+This type is also semantically equivalent to @Stream (Of a) Identity r@.
+
+Useful for monadically creating tree-like structures, for example the following
+
+> import Data.Tree
+> yield = embed . pure
+> main = putStrLn . drawTree . Node "a" . toList $ do
+>     yield "b"
+>     nestWith (Node "c") $ do
+>         yield "d"
+>         yield "e"
+>     yield "f"
+
+will produce
+
+> -a
+> |
+> +- b
+> |
+> +- c
+> |  |
+> |  +- d
+> |  |
+> |  `- e
+> |
+> `- f
+-}
+newtype Layer a r = Layer
+    { unLayer :: F ((,) a) r
+    } deriving newtype (Functor, Applicative, Monad, MonadFree ((,) a))
+
+instance unit ~ () => Semigroup (Layer a unit) where
+    (<>) = (*>)
+
+instance unit ~ () => Monoid (Layer a unit) where
+    mempty = pure ()
+
+instance unit ~ () => IsList (Layer a unit) where
+    type Item (Layer a unit) = a
+    fromList = traverse_ embed
+    toList layer = runF (unLayer layer) mempty $ uncurry (:)
+
+-- | Embed the given value into a 'Layer'-like type (either 'Layer' itself or a monad transformer
+-- stack with 'Layer' at the bottom).
+embed :: MonadFree ((,) a) m => a -> m ()
+embed x = liftF (x, ())
+
+-- | Collapse the given 'Layer' into a single element by converting it into a list, applying the
+-- given function to the result and 'embed'ding it back.
+nestWith :: ([a] -> a) -> Layer a () -> Layer a ()
+nestWith f = embed . f . toList
+
+newtype TestNestedM r = TestNestedM
+    { unTestNestedM :: ReaderT [FilePath] (Layer TestTree) r
+    } deriving newtype
+        (Functor, Applicative, Monad, MonadReader [FilePath], MonadFree ((,) TestTree))
+
 -- | A 'TestTree' of tests under some name prefix.
-type TestNested = Reader [FilePath] TestTree
+type TestNested = TestNestedM ()
 
--- | Run a 'TestTree' of tests with a given name prefix.  This doesn't actually
--- run the tests: instead it runs a computation in the Reader monad.
-runTestNestedIn :: [FilePath] -> TestNested -> TestTree
-runTestNestedIn path test = runReader test path
+instance unit ~ () => Semigroup (TestNestedM unit) where
+    (<>) = (*>)
 
--- | Run a 'TestTree' of tests with an empty prefix.  This doesn't actually run
--- the tests: instead it runs a computation in the Reader monad.
-runTestNested :: TestNested -> TestTree
-runTestNested = runTestNestedIn []
+instance unit ~ () => Monoid (TestNestedM unit) where
+    mempty = pure ()
 
--- | Descend into a name prefix.
+-- | Run a 'TestNested' computation to produce a 'TestTree' (without actually executing the tests).
+runTestNestedM :: [String] -> TestNested -> TestTree
+runTestNestedM []   _    = error "Path cannot be empty"
+runTestNestedM path test = testGroup (last path) . toList $ runReaderT (unTestNestedM test) path
+
+-- | Descend into a folder.
+testNestedNamedM
+    :: FilePath  -- ^ The name of the folder.
+    -> String    -- ^ The name of the test group to render in CLI.
+    -> TestNested
+    -> TestNested
+testNestedNamedM folderName testName
+    = TestNestedM
+    . local (++ [folderName])
+    . mapReaderT (nestWith $ testGroup testName)
+    . unTestNestedM
+
+-- | Descend into a folder for a 'TestNested' computation.
+testNestedM :: FilePath -> TestNested -> TestNested
+testNestedM folderName = testNestedNamedM folderName folderName
+
+-- | Like 'testNestedM' but adds a subdirectory corresponding to the GHC version being used.
+testNestedGhcM :: TestNested -> TestNested
+testNestedGhcM = testNestedM ghcVersion
+
+-- | Run a list of 'TestNested' computation to produce a 'TestTree' (without actually executing the
+-- tests).
+runTestNested :: [String] -> [TestNested] -> TestTree
+runTestNested path = runTestNestedM path . fold
+
+-- | Descend into a folder for a list of tests.
+testNestedNamed
+    :: FilePath  -- ^ The name of the folder.
+    -> String    -- ^ The name of the test group to render in CLI.
+    -> [TestNested]
+    -> TestNested
+testNestedNamed folderName testName = testNestedNamedM folderName testName . fold
+
+-- | Descend into a folder for a list of 'TestNested' computations.
 testNested :: FilePath -> [TestNested] -> TestNested
-testNested folderName =
-    local (++ [folderName]) . fmap (testGroup folderName) . sequence
+testNested folderName = testNestedM folderName . fold
 
--- | Like `testNested` but adds a subdirectory corresponding to the GHC version being used.
-testNestedGhc :: FilePath -> [TestNested] -> TestNested
-testNestedGhc folderName = testNested (folderName </> ghcVersion)
-
--- Create a TestTree which runs in the directory 'path/<ghc-version>
-runTestGroupNestedGhc :: [FilePath] -> [TestNested] -> TestTree
-runTestGroupNestedGhc path = runTestNested . testNestedGhc (joinPath path)
+-- | Like 'testNested' but adds a subdirectory corresponding to the GHC version being used.
+testNestedGhc :: [TestNested] -> TestNested
+testNestedGhc = testNestedGhcM . fold
 
 -- | Check the contents of a file against a 'Text'.
 goldenVsText :: TestName -> FilePath -> Text -> TestTree
@@ -84,7 +192,7 @@ goldenVsText name ref = goldenVsTextM name ref . pure
 goldenVsTextM :: TestName -> FilePath -> IO Text -> TestTree
 goldenVsTextM name ref val =
     goldenVsStringDiff name (\expected actual -> ["diff", "-u", expected, actual]) ref $
-    BSL.fromStrict . encodeUtf8 <$> val
+        BSL.fromStrict . encodeUtf8 <$> val
 
 -- | Check the contents of a file against a 'Doc'.
 goldenVsDoc :: TestName -> FilePath -> Doc ann -> TestTree
@@ -102,8 +210,7 @@ nestedGoldenVsText name ext = nestedGoldenVsTextM name ext . pure
 nestedGoldenVsTextM :: TestName -> FilePath -> IO Text -> TestNested
 nestedGoldenVsTextM name ext text = do
     path <- ask
-    -- TODO: make more generic
-    return $ goldenVsTextM name (foldr (</>) (name ++ ext ++ ".golden") path) text
+    embed $ goldenVsTextM name (foldr (</>) (name ++ ext ++ ".golden") path) text
 
 -- | Check the contents of a file under a name prefix against a 'Text'.
 nestedGoldenVsDoc :: TestName -> FilePath -> Doc ann -> TestNested

@@ -34,23 +34,23 @@ import GHC.Num.Integer
 {- HLINT ignore -}
 
 errors :: TestNested
-errors = testNestedGhc "Errors"
-         [ goldenUPlc "machInt" machInt
-         -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
-         -- , goldenPlc "negativeInt" negativeInt
-         , goldenUPlc "caseInt" caseInt
-         , goldenUPlc "stringLiteral" stringLiteral
-         , goldenUPlc "recursiveNewtype" recursiveNewtype
-         , goldenUPlc "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
-         , goldenUPlc "literalCaseInt" literalCaseInt
-         , goldenUPlc "literalCaseBs" literalCaseBs
-         , goldenUPlc "literalAppendBs" literalAppendBs
-         , goldenUPlc "literalCaseOther" literalCaseOther
-         , goldenUPlc "rangeEnumFromTo" rangeEnumFromTo
-         , goldenUPlc "rangeEnumFromThenTo" rangeEnumFromThenTo
-         , goldenUPlc "rangeEnumFrom" rangeEnumFrom
-         , goldenUPlc "rangeEnumFromThen" rangeEnumFromThen
-         ]
+errors = testNested "Errors" . pure $ testNestedGhc
+  [ goldenUPlc "machInt" machInt
+  -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
+  -- , goldenPlc "negativeInt" negativeInt
+  , goldenUPlc "caseInt" caseInt
+  , goldenUPlc "stringLiteral" stringLiteral
+  , goldenUPlc "recursiveNewtype" recursiveNewtype
+  , goldenUPlc "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
+  , goldenUPlc "literalCaseInt" literalCaseInt
+  , goldenUPlc "literalCaseBs" literalCaseBs
+  , goldenUPlc "literalAppendBs" literalAppendBs
+  , goldenUPlc "literalCaseOther" literalCaseOther
+  , goldenUPlc "rangeEnumFromTo" rangeEnumFromTo
+  , goldenUPlc "rangeEnumFromThenTo" rangeEnumFromThenTo
+  , goldenUPlc "rangeEnumFrom" rangeEnumFrom
+  , goldenUPlc "rangeEnumFromThen" rangeEnumFromThen
+  ]
 
 machInt :: CompiledCode Int
 machInt = plc (Proxy @"machInt") (1::Int)

@@ -30,7 +30,7 @@ import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Evaluation.Result
 import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import PlutusCore.StdLib.Data.Bool

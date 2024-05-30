@@ -22,7 +22,6 @@ import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
 
-import PlutusCore.Evaluation.Machine.MachineParameters
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
@@ -82,7 +81,11 @@ data BenchmarkOptions =
       Double
 
 data DbgOptions =
-    DbgOptions Input Format CekModel
+    DbgOptions
+      Input Format
+      CekModel
+      (BuiltinSemanticsVariant PLC.DefaultFun)
+
 
 ---------------- Main commands -----------------
 
@@ -95,7 +98,7 @@ data Command = Apply       ApplyOptions
              | Example     ExampleOptions
              | Eval        EvalOptions
              | Dbg         DbgOptions
-             | DumpModel
+             | DumpModel   (BuiltinSemanticsVariant PLC.DefaultFun)
              | PrintBuiltinSignatures
 
 ---------------- Option parsers ----------------
@@ -137,7 +140,7 @@ evalOpts =
 dbgOpts :: Parser DbgOptions
 dbgOpts =
   DbgOptions <$>
-    input <*> inputformat <*> cekmodel
+    input <*> inputformat <*> cekmodel <*> builtinSemanticsVariant
 
 -- Reader for budget.  The --restricting option requires two integer arguments
 -- and the easiest way to do this is to supply a colon-separated pair of
@@ -239,8 +242,8 @@ plutusOpts = hsubparser $
     <> command "debug"
            (info (Dbg <$> dbgOpts)
             (progDesc "Debug an untyped Plutus Core program using the CEK machine."))
-    <> command "dump-model"
-           (info (pure DumpModel)
+    <> command "dump-cost-model"
+           (info (DumpModel <$> builtinSemanticsVariant)
             (progDesc "Dump the cost model parameters."))
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
@@ -251,13 +254,15 @@ plutusOpts = hsubparser $
 ---------------- Optimisation ----------------
 
 -- | Run the UPLC optimisations
-runOptimisations:: OptimiseOptions -> IO ()
+runOptimisations :: OptimiseOptions -> IO ()
 runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
-    prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
-    simplified <- PLC.runQuoteT $ do
-                    renamed <- PLC.rename prog
-                    UPLC.simplifyProgram UPLC.defaultSimplifyOpts renamed
-    writeProgram outp ofmt mode simplified
+  prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
+  simplified <- PLC.runQuoteT $ do
+    renamed <- PLC.rename prog
+    let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
+        defaultBuiltinSemanticsVariant = def
+    UPLC.simplifyProgram UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
+  writeProgram outp ofmt mode simplified
 
 ---------------- Script application ----------------
 
@@ -265,7 +270,7 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
 -- scripts must be UPLC.Program objects.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((readProgram ifmt ::  Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
+  scripts <- mapM ((readProgram ifmt :: Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
   let appliedScript =
         case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
@@ -282,16 +287,15 @@ runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) =
     p:ds -> do
          prog@(UPLC.Program _ version _) :: UplcProg SrcSpan <- readProgram ifmt (FileInput p)
          args <- mapM (getDataObject version) ds
-         let prog' = () <$ prog
+         let prog' = void prog
              appliedScript = foldl1 (unsafeFromRight .* UPLC.applyProgram) (prog':args)
          writeProgram outp ofmt mode appliedScript
              where getDataObject :: UPLC.Version -> FilePath -> IO (UplcProg ())
                    getDataObject ver path = do
                      bs <- BSL.readFile path
                      case unflat bs of
-                       Left err -> fail ("Error reading " ++ show path ++ ": " ++ show err)
-                       Right (d :: Data) ->
-                           pure $ UPLC.Program () ver $ mkConstant () d
+                       Left err          -> fail ("Error reading " ++ show path ++ ": " ++ show err)
+                       Right (d :: Data) -> pure $ UPLC.Program () ver $ mkConstant () d
 
 ---------------- Benchmarking ----------------
 
@@ -299,8 +303,8 @@ runBenchmark :: BenchmarkOptions -> IO ()
 runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
   prog <- readProgram ifmt inp
   let criterionConfig = defaultConfig {reportFile = Nothing, timeLimit = timeLim}
-      cekparams = mkMachineParameters semvar PLC.defaultCekCostModel
-      getResult (x,_,_) = either (error . show) (\_ -> ()) x  -- Extract an evaluation result
+      cekparams = PLC.defaultCekParametersForVariant semvar
+      getResult (x,_,_) = either (error . show) (const ()) x  -- Extract an evaluation result
       evaluate = getResult . Cek.runCekDeBruijn cekparams Cek.restrictingEnormous Cek.noEmitter
       -- readProgam throws away De Bruijn indices and returns an AST with Names;
       -- we have to put them back to get an AST with NamedDeBruijn names.
@@ -309,7 +313,7 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
       -- Big names slow things down
       !anonTerm = UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) term
       -- Big annotations slow things down
-      !unitAnnTerm = force (() <$ anonTerm)
+      !unitAnnTerm = force (void anonTerm)
   benchmarkWith criterionConfig $! whnf evaluate unitAnnTerm
 
 ---------------- Evaluation ----------------
@@ -321,7 +325,7 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode
     let term = void $ prog ^. UPLC.progTerm
         cekparams = case cekModel of
                     -- AST nodes are charged according to the default cost model
-                    Default -> mkMachineParameters semvar PLC.defaultCekCostModel
+                    Default -> PLC.defaultCekParametersForVariant semvar
                     -- AST nodes are charged one unit each, so we can see how many times each node
                     -- type is encountered.  This is useful for calibrating the budgeting code
                     Unit    -> PLC.unitCekParameters
@@ -354,14 +358,14 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode
 ---------------- Debugging ----------------
 
 runDbg :: DbgOptions -> IO ()
-runDbg (DbgOptions inp ifmt cekModel) = do
+runDbg (DbgOptions inp ifmt cekModel semvar) = do
     prog <- readProgram ifmt inp
     let term = prog ^. UPLC.progTerm
         nterm = fromRight (error "Term to debug must be closed.") $
                    runExcept @FreeVariableError $ UPLC.deBruijnTerm term
     let cekparams = case cekModel of
-                    -- AST nodes are charged according to the default cost model
-                    Default -> PLC.defaultCekParameters
+                    -- AST nodes are charged according to the appropriate cost model
+                    Default -> PLC.defaultCekParametersForVariant semvar
                     -- AST nodes are charged one unit each, so we can see how many times each node
                     -- type is encountered.  This is useful for calibrating the budgeting code
                     Unit    -> PLC.unitCekParameters
@@ -436,5 +440,5 @@ main = do
         Optimise    opts       -> runOptimisations     opts
         Print       opts       -> runPrint   @UplcProg opts
         Convert     opts       -> runConvert @UplcProg opts
-        DumpModel              -> runDumpModel
+        DumpModel   opts       -> runDumpModel         opts
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

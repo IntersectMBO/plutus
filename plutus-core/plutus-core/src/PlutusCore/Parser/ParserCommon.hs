@@ -18,7 +18,7 @@ import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 import PlutusCore.Annotation
 import PlutusCore.Core.Type
 import PlutusCore.Error
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 {- Note [Whitespace invariant]

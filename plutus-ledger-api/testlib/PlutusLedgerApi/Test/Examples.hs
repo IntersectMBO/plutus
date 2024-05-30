@@ -1,7 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 -- | This module contains example values to be used for testing. These should NOT be used in non-test code!
-module PlutusLedgerApi.Test.Examples (alwaysSucceedingNAryFunction, alwaysFailingNAryFunction, summingFunction, saltFunction) where
+module PlutusLedgerApi.Test.Examples where
 
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
@@ -50,3 +50,15 @@ saltFunction salt b0 = serialiseUPLC $ UPLC.Program () version body
         body = UPLC.Apply ()
             (UPLC.LamAbs () (UPLC.DeBruijn 0) b1)
             (UPLC.Constant () $ Some $ PLC.ValueOf PLC.DefaultUniInteger salt)
+
+integerToByteStringFunction :: SerialisedScript
+integerToByteStringFunction = serialiseUPLC $ UPLC.Program () PLC.plcVersion110 body
+    where
+        body =
+            UPLC.LamAbs () (UPLC.DeBruijn 0) $
+                PLC.mkIterAppNoAnn
+                    (UPLC.Builtin () PLC.IntegerToByteString)
+                    [ PLC.mkConstant @Bool () False
+                    , PLC.mkConstant @Integer () 5
+                    , PLC.mkConstant @Integer () 1
+                    ]

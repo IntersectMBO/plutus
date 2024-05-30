@@ -144,7 +144,7 @@ restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMod
             when (cpuLeft' < 0 || memLeft' < 0) $ do
                 let budgetLeft = ExBudget cpuLeft' memLeft'
                 throwingWithCause _EvaluationError
-                    (UserEvaluationError . CekOutOfExError $ ExRestrictingBudget budgetLeft)
+                    (OperationalEvaluationError . CekOutOfExError $ ExRestrictingBudget budgetLeft)
                     Nothing
         spender = CekBudgetSpender spend
         remaining = ExBudget <$> readCpu <*> readMem

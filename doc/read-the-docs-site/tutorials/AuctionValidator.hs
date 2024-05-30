@@ -1,7 +1,9 @@
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE ImportQualifiedPost   #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE Strict                #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -28,6 +30,7 @@ import PlutusLedgerApi.V2 (Datum (..), OutputDatum (..), ScriptContext (..), TxI
                            TxOut (..), from, to)
 import PlutusLedgerApi.V2.Contexts (getContinuingOutputs)
 import PlutusTx
+import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 
@@ -206,3 +209,24 @@ auctionValidatorScript params =
   $$(PlutusTx.compile [||auctionUntypedValidator||])
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion100 params
 -- BLOCK9
+PlutusTx.asData [d|
+  data Bid' = Bid'
+    { bBidder' :: PubKeyHash,
+      -- ^ Bidder's wallet address.
+      bAmount' :: Lovelace
+      -- ^ Bid amount in Lovelace.
+    }
+    -- We can derive instances with the newtype strategy, and they
+    -- will be based on the instances for 'Data'
+    deriving newtype (Eq, Ord, PlutusTx.ToData, FromData, UnsafeFromData)
+
+  -- don't do this for the datum, since it's just a newtype so
+  -- simply delegates to the underlying type
+
+  -- | Redeemer is the input that changes the state of a smart contract.
+  -- In this case it is either a new bid, or a request to close the auction
+  -- and pay out the seller and the highest bidder.
+  data AuctionRedeemer' = NewBid' Bid | Payout'
+    deriving newtype (Eq, Ord, PlutusTx.ToData, FromData, UnsafeFromData)
+  |]
+-- BLOCK10

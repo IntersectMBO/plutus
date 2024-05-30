@@ -45,7 +45,7 @@ module PlutusCore.DeBruijn.Internal (
   fromFake,
 ) where
 
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.Quote
 

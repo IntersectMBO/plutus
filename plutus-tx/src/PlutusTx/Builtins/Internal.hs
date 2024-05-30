@@ -10,6 +10,9 @@
 -- they're NOINLINE!
 {-# OPTIONS_GHC -O0 #-}
 
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use newtype instead of data" #-} -- See Note [Opaque builtin types]
+
 -- | This module contains the special Haskell names that are used to map to builtin types or functions
 -- in Plutus Core.
 --
@@ -22,13 +25,13 @@ import Data.ByteArray qualified as BA
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Coerce (coerce)
-import Data.Data
+import Data.Data (Data)
 import Data.Foldable qualified as Foldable
 import Data.Hashable (Hashable (..))
 import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
-import GHC.Generics
+import GHC.Generics (Generic)
 import PlutusCore.Bitwise.Convert qualified as Convert
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -39,7 +42,6 @@ import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Pretty (Pretty (..), display)
-import PlutusTx.Utils (mustBeReplaced)
 import Prettyprinter (viaShow)
 
 {-
@@ -89,7 +91,7 @@ see 'Addr#' popping up everywhere.
 
 {-# NOINLINE error #-}
 error :: BuiltinUnit -> a
-error = mustBeReplaced "error"
+error = Haskell.error "PlutusTx.Builtins.Internal.error"
 
 {-
 BOOL
@@ -257,7 +259,7 @@ verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteS
 verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Ed25519.verifyEd25519Signature_V1 vk msg sig of
     BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
-        mustBeReplaced "Ed25519 signature verification errored."
+        Haskell.error "Ed25519 signature verification errored."
     BuiltinSuccess b              -> BuiltinBool b
     BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
 
@@ -270,7 +272,7 @@ verifyEcdsaSecp256k1Signature ::
 verifyEcdsaSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Secp256k1.verifyEcdsaSecp256k1Signature vk msg sig of
     BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
-        mustBeReplaced "ECDSA SECP256k1 signature verification errored."
+        Haskell.error "ECDSA SECP256k1 signature verification errored."
     BuiltinSuccess b              -> BuiltinBool b
     BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
 
@@ -283,7 +285,7 @@ verifySchnorrSecp256k1Signature ::
 verifySchnorrSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Secp256k1.verifySchnorrSecp256k1Signature vk msg sig of
     BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
-        mustBeReplaced "Schnorr SECP256k1 signature verification errored."
+        Haskell.error "Schnorr SECP256k1 signature verification errored."
     BuiltinSuccess b              -> BuiltinBool b
     BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
 
@@ -397,7 +399,7 @@ tail (BuiltinList (_:xs)) = BuiltinList xs
 tail (BuiltinList [])     = Haskell.error "empty list"
 
 {-# NOINLINE chooseList #-}
-chooseList :: BuiltinList a -> b -> b-> b
+chooseList :: BuiltinList a -> b -> b -> b
 chooseList (BuiltinList [])    b1 _ = b1
 chooseList (BuiltinList (_:_)) _ b2 = b2
 
@@ -470,7 +472,7 @@ mkConstr i (BuiltinList args) = BuiltinData (PLC.Constr i (fmap builtinDataToDat
 
 {-# NOINLINE mkMap #-}
 mkMap :: BuiltinList (BuiltinPair BuiltinData BuiltinData) -> BuiltinData
-mkMap (BuiltinList es) = BuiltinData (PLC.Map $ (fmap p2p es))
+mkMap (BuiltinList es) = BuiltinData (PLC.Map (fmap p2p es))
   where
       p2p (BuiltinPair (d, d')) = (builtinDataToData d, builtinDataToData d')
 
@@ -578,14 +580,14 @@ bls12_381_G1_compress (BuiltinBLS12_381_G1_Element a) = BuiltinByteString (BLS12
 bls12_381_G1_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_uncompress (BuiltinByteString b) =
     case BLS12_381.G1.uncompress b of
-      Left err -> mustBeReplaced $ "BSL12_381 G1 uncompression error: " ++ show err
+      Left err -> Haskell.error $ "BSL12_381 G1 uncompression error: " ++ show err
       Right a  -> BuiltinBLS12_381_G1_Element a
 
 {-# NOINLINE bls12_381_G1_hashToGroup #-}
 bls12_381_G1_hashToGroup ::  BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_hashToGroup (BuiltinByteString msg) (BuiltinByteString dst) =
     case BLS12_381.G1.hashToGroup msg dst of
-      Left err -> mustBeReplaced $ show err
+      Left err -> Haskell.error $ show err
       Right p  -> BuiltinBLS12_381_G1_Element p
 
 {-# NOINLINE bls12_381_G1_compressed_zero #-}
@@ -633,14 +635,14 @@ bls12_381_G2_compress (BuiltinBLS12_381_G2_Element a) = BuiltinByteString (BLS12
 bls12_381_G2_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_uncompress (BuiltinByteString b) =
     case BLS12_381.G2.uncompress b of
-      Left err -> mustBeReplaced $ "BSL12_381 G2 uncompression error: " ++ show err
+      Left err -> Haskell.error $ "BSL12_381 G2 uncompression error: " ++ show err
       Right a  -> BuiltinBLS12_381_G2_Element a
 
 {-# NOINLINE bls12_381_G2_hashToGroup #-}
 bls12_381_G2_hashToGroup ::  BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_hashToGroup (BuiltinByteString msg) (BuiltinByteString dst) =
     case BLS12_381.G2.hashToGroup msg dst of
-      Left err -> mustBeReplaced $ show err
+      Left err -> Haskell.error $ show err
       Right p  -> BuiltinBLS12_381_G2_Element p
 
 {-# NOINLINE bls12_381_G2_compressed_zero #-}
@@ -693,7 +695,7 @@ integerToByteString
 integerToByteString (BuiltinBool endiannessArg) paddingArg input =
   case Convert.integerToByteStringWrapper endiannessArg paddingArg input of
     BuiltinFailure logs err        -> traceAll (logs <> pure (display err)) $
-        mustBeReplaced "Integer to ByteString conversion errored."
+        Haskell.error "Integer to ByteString conversion errored."
     BuiltinSuccess bs              -> BuiltinByteString bs
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
 

@@ -26,6 +26,7 @@ packages: doc/read-the-docs-site
           plutus-metatheory
           plutus-tx
           plutus-tx-plugin
+          plutus-tx-test-util
           prettyprinter-configurable
           stubs/plutus-ghc-stub
 
@@ -71,14 +72,13 @@ source-repository-package
   location: https://github.com/jaccokrijnen/plutus-cert
   tag: e814b9171398cbdfecdc6823067156a7e9fc76a3
 
-if impl(ghc >= 9.8)
-  allow-newer:
-    -- https://github.com/tweag/HaskellR/pull/420
-    , inline-r:singletons-th
-    , inline-r:aeson
-    , inline-r:text
-    , inline-r:template-haskell
-    , inline-r:deepseq
-    , inline-r:bytestring
-    , inline-r:containers
-    , inline-r:primitive
+allow-newer:
+  -- https://github.com/tweag/HaskellR/pull/420
+  , inline-r:singletons-th
+  , inline-r:aeson
+  , inline-r:text
+  , inline-r:template-haskell
+  , inline-r:deepseq
+  , inline-r:bytestring
+  , inline-r:containers
+  , inline-r:primitive

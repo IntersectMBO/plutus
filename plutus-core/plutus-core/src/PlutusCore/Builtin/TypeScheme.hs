@@ -22,7 +22,7 @@ import PlutusCore.Builtin.KnownKind
 import PlutusCore.Builtin.KnownType
 import PlutusCore.Builtin.KnownTypeAst
 import PlutusCore.Core
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Data.Kind qualified as GHC (Type)
 import Data.Proxy

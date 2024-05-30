@@ -9,7 +9,7 @@ module PlutusCore.StdLib.Data.ScottUnit
 
 import PlutusCore.Core
 import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 -- | '()' as a PLC type.

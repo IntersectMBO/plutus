@@ -6,17 +6,18 @@ module PlutusIR.Transform.RewriteRules
     ( rewriteWith
     , rewritePass
     , rewritePassSC
-    , RewriteRules (..)
+    , RewriteRules
+    , unRewriteRules
     , defaultUniRewriteRules
     ) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Core (HasUniques)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusIR as PIR
 import PlutusIR.Analysis.VarInfo
-import PlutusIR.Transform.RewriteRules.Rules
+import PlutusIR.Transform.RewriteRules.Internal
 
 import Control.Lens
 import PlutusIR.Pass
@@ -61,11 +62,11 @@ rewriteWith :: ( Monoid a, t ~ Term tyname Name uni fun a
             => RewriteRules uni fun
             -> t
             -> m t
-rewriteWith (RewriteRules rules) t =
+rewriteWith rules t =
     -- We collect `VarsInfo` on the whole program term and pass it on as arg to each RewriteRule.
     -- This has the limitation that any variables newly-introduced by the rules would
     -- not be accounted in `VarsInfo`. This is currently fine, because we only rely on VarsInfo
     -- for isPure; isPure is safe w.r.t "open" terms.
     let vinfo = termVarInfo t
-    in transformMOf termSubterms (rules vinfo) t
+    in transformMOf termSubterms (unRewriteRules rules vinfo) t
 

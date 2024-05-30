@@ -33,6 +33,13 @@ open import Type.RenamingSubstitution
 
 This serves as a declaritive specification of the semantics of types.
 
+We define type equality as an intrinsically scoped and kinded relation. In particular,
+this means it is impossible to state an equation between types in different contexts, or of
+different kinds. The only interesting rule is the β-rule from the lambda calculus. We omit
+the η-rule as Plutus Core does not have it. The additional
+types (`⇒`, `Π`, and `µ`) do not have any computational behaviour, and are essentially inert.
+In particular, the fixed point operator `µ` does not complicate the equational theory.
+
 We need to give constructors for reflexivity, symmetry and
 transitivity as the presence of the beta-rule prevents these
 properties from being derivable. We have congruence rules for all

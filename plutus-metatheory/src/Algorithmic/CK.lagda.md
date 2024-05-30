@@ -1,3 +1,7 @@
+---
+title: Algorithmic.CK
+layout: page
+---
 # CK machine
 
 ```

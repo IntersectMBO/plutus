@@ -33,7 +33,7 @@ import PlutusCore.Generators.Hedgehog.Utils
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty (PrettyConst, botRenderContext, prettyConst)
 import PlutusCore.Quote
 

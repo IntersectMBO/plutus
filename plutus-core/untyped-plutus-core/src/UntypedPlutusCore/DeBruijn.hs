@@ -28,7 +28,7 @@ module UntypedPlutusCore.DeBruijn
 
 import PlutusCore.DeBruijn.Internal
 
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import UntypedPlutusCore.Core
 

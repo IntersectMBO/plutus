@@ -2,7 +2,7 @@
 module PlutusIR.Compiler.Names (safeFreshName, safeFreshTyName) where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Name (isQuotedIdentifierChar)
+import PlutusCore.Name.Unique (isQuotedIdentifierChar)
 import PlutusCore.Quote
 
 import Data.List

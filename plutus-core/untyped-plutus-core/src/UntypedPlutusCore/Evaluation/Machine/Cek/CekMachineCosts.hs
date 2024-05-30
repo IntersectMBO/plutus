@@ -74,17 +74,18 @@ deriving anyclass instance AllBF NoThunks f CekMachineCostsBase => NoThunks (Cek
 -- a different version of CekMachineCosts: see ExBudgetingDefaults.defaultCekMachineCosts.
 unitCekMachineCosts :: CekMachineCosts
 unitCekMachineCosts =
-    CekMachineCostsBase { cekStartupCost = zeroCost
-                    , cekVarCost     = unitCost
-                    , cekConstCost   = unitCost
-                    , cekLamCost     = unitCost
-                    , cekDelayCost   = unitCost
-                    , cekForceCost   = unitCost
-                    , cekApplyCost   = unitCost
-                    , cekBuiltinCost = unitCost
-                    , cekConstrCost = unitCost
-                    , cekCaseCost = unitCost
-                    }
-        where
-          zeroCost = Identity $ ExBudget 0 0
-          unitCost = Identity $ ExBudget 1 0
+    CekMachineCostsBase
+    { cekStartupCost = zeroCost
+    , cekVarCost     = unitCost
+    , cekConstCost   = unitCost
+    , cekLamCost     = unitCost
+    , cekDelayCost   = unitCost
+    , cekForceCost   = unitCost
+    , cekApplyCost   = unitCost
+    , cekBuiltinCost = unitCost
+    , cekConstrCost  = unitCost
+    , cekCaseCost    = unitCost
+    }
+  where
+    zeroCost = Identity $ ExBudget 0 0
+    unitCost = Identity $ ExBudget 1 0

@@ -15,12 +15,13 @@ import PlutusLedgerApi.Test.V3.EvaluationContext qualified as V3
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusPrelude
 
+import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Maybe
 
 -- | Example values of costs for @PlutusV2@, in expected ledger order.
 -- Suitable to be used in testing.
-costModelParamsForTesting :: [(V2.ParamName, Integer)]
+costModelParamsForTesting :: [(V2.ParamName, Int64)]
 costModelParamsForTesting = Map.toList $ fromJust $
     Common.extractCostModelParamsLedgerOrder mCostModel
 
@@ -51,4 +52,6 @@ clearBuiltinCostModel r = r
                { paramSerialiseData = mempty
                , paramVerifyEcdsaSecp256k1Signature = mempty
                , paramVerifySchnorrSecp256k1Signature = mempty
+               , paramIntegerToByteString = mempty
+               , paramByteStringToInteger = mempty
                }

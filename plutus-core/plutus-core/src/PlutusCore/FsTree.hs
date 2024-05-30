@@ -19,7 +19,7 @@ module PlutusCore.FsTree
     ) where
 
 import PlutusCore.Core
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 -- We use 'String's for names, because 'FilePath's are 'String's.
 -- | An 'FsTree' is either a file or a folder with a list of 'FsTree's inside.

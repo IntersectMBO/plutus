@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NumericUnderscores    #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -10,6 +11,7 @@
 {-# LANGUAGE StrictData            #-}
 module PlutusCore.Evaluation.Machine.CostingFun.Core
     ( CostingFun(..)
+    , UnimplementedCostingFun(..)
     , Intercept(..)
     , Slope(..)
     , Coefficient0(..)
@@ -18,13 +20,10 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
     , OneVariableLinearFunction(..)
     , TwoVariableLinearFunction(..)
     , OneVariableQuadraticFunction(..)
-    , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
-    , ModelConstantOrLinear(..)
+    , ModelConstantOrLinear(..)  -- Deprecated: see below.
+    , ModelConstantOrOneArgument(..)
     , ModelConstantOrTwoArguments(..)
-    , ModelMultipliedSizes(..)
-    , ModelMinSize(..)
-    , ModelMaxSize(..)
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)
@@ -77,12 +76,46 @@ instance ab ~ ExBudgetStream => OnMemoryUsages ExBudgetStream ab where
     onMemoryUsages = id
     {-# INLINE onMemoryUsages #-}
 
+{- | A type of costing functions parametric over a model type.  In practice the we
+have one model type `Model<N>Arguments` for every N, where N is the arity of the
+builtin whose costs we want to model.  Each model type has a number of
+constructors defining different "shapes" of N-parameter functions which
+calculate a cost given the sizes of the builtin's arguments. -}
 data CostingFun model = CostingFun
     { costingFunCpu    :: model
     , costingFunMemory :: model
     }
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (Default, NFData)
+
+{- | In the initial stages of implementing a new builtin it is necessary to
+   provide a temporary costing function which is used until the builtin has been
+   properly costed: `see CostModelGeneration.md`.  Each `Model<N>Arguments` type
+   defines an instance of this class where `unimplementedCostingFun` is a
+   constant costing function which returns a very high cost for all inputs.
+   This prevents new functions from being used in situations where costs are
+   important until a sensible costing function has been implemented. -}
+class UnimplementedCostingFun a where
+  unimplementedCostingFun :: b -> CostingFun a
+
+{- | Make a very expensive pair of CPU and memory costing functions.  The name is
+   slightly misleading because it actually makes a function which returns such a
+   pair, which is what is required at the use site in `PlutusCore.Default.Builtins`,
+   where properly implemented costing functions are constructed from a
+   BuiltinCostModel object.  We can't use maxBound :: CostingInteger because then the
+   evaluator always fails; instead we assign a cost of 100,000,000,000, which is well
+   beyond the current on-chain CPU and memory limits (10,000,000,000 and 14,000,000
+   respectively) but still allows over 92,000,000 evaluations before the maximum
+   CostingInteger is reached.  This allows us to use an "uncosted" builtin for
+   testing and for running costing benchmarks, but will prevent it from being used
+   when the Plutus Core evaluator is invoked by the ledger.
+-}
+makeUnimplementedCostingFun :: (CostingInteger -> model) -> b -> CostingFun model
+makeUnimplementedCostingFun c =
+  const $ CostingFun (c k) (c k)
+  where k = 100_000_000_000
+
+---------------- Types for use within costing functions ----------------
 
 -- | A wrapped 'CostingInteger' that is supposed to be used as an intercept.
 newtype Intercept = Intercept
@@ -121,11 +154,15 @@ newtype Coefficient2 = Coefficient2
 
 data ModelOneArgument =
     ModelOneArgumentConstantCost CostingInteger
-    | ModelOneArgumentLinearCost OneVariableLinearFunction
+    | ModelOneArgumentLinearInX OneVariableLinearFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
+
 instance Default ModelOneArgument where
-    def = ModelOneArgumentConstantCost 0
+    def = ModelOneArgumentConstantCost maxBound
+
+instance UnimplementedCostingFun ModelOneArgument where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelOneArgumentConstantCost
 
 {- Note [runCostingFun* API]
 Costing functions take unlifted values, compute the 'ExMemory' of each of them and then invoke
@@ -211,7 +248,7 @@ runOneArgumentModel
     -> CostStream
 runOneArgumentModel (ModelOneArgumentConstantCost c) =
     lazy $ \_ -> CostLast c
-runOneArgumentModel (ModelOneArgumentLinearCost (OneVariableLinearFunction intercept slope)) =
+runOneArgumentModel (ModelOneArgumentLinearInX (OneVariableLinearFunction intercept slope)) =
     lazy $ \costs1 -> scaleLinearly intercept slope costs1
 {-# NOINLINE runOneArgumentModel #-}
 
@@ -260,13 +297,10 @@ evaluateOneVariableQuadraticFunction
    (OneVariableQuadraticFunction (Coefficient0 c0) (Coefficient1 c1)  (Coefficient2 c2)) x =
        c0 + c1*x + c2*x*x
 
--- | s * (x + y) + I
-data ModelAddedSizes = ModelAddedSizes
-    { modelAddedSizesIntercept :: Intercept
-    , modelAddedSizesSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
-
+-- FIXME: we could use ModelConstantOrOneArgument for
+-- ModelTwoArgumentsSubtractedSizes instead, but that would change the order of
+-- the cost model parameters since the minimum value would come first instead of
+-- last.
 -- | s * (x - y) + I
 data ModelSubtractedSizes = ModelSubtractedSizes
     { modelSubtractedSizesIntercept :: Intercept
@@ -275,32 +309,20 @@ data ModelSubtractedSizes = ModelSubtractedSizes
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
--- | s * (x * y) + I
-data ModelMultipliedSizes = ModelMultipliedSizes
-    { modelMultipliedSizesIntercept :: Intercept
-    , modelMultipliedSizesSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
-
--- | s * min(x, y) + I
-data ModelMinSize = ModelMinSize
-    { modelMinSizeIntercept :: Intercept
-    , modelMinSizeSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
-
--- | s * max(x, y) + I
-data ModelMaxSize = ModelMaxSize
-    { modelMaxSizeIntercept :: Intercept
-    , modelMaxSizeSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
-
+-- | NB: this is subsumed by ModelConstantOrOneArgument, but we have to keep it
+-- for the time being.  See Note [Backward compatibility for costing functions].
 -- | if p then s*x else c; p depends on usage
 data ModelConstantOrLinear = ModelConstantOrLinear
     { modelConstantOrLinearConstant  :: CostingInteger
     , modelConstantOrLinearIntercept :: Intercept
     , modelConstantOrLinearSlope     :: Slope
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
+
+-- | if p then f(x) else c; p depends on usage
+data ModelConstantOrOneArgument = ModelConstantOrOneArgument
+    { modelConstantOrOneArgumentConstant :: CostingInteger
+    , modelConstantOrOneArgumentModel    :: ModelOneArgument
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -311,26 +333,45 @@ data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
+{- Note [Backward compatibility for costing functions].  The PR at
+   https://github.com/IntersectMBO/plutus/pull/5857 generalised the costing
+   function types and made them more composable: in particular,
+   ModelTwoArgumentsLinearOnDiagonal was replaced by
+   ModelTwoArgumentsConstOffDiagonal and ModelConstantOrLinear was removed.
+   However, this changes some of the tags (specifically, for `equalsByteString`
+   and `equalsString`) in builtinCostModel.json, and these are used in the
+   Alonzo genesis file and so shouldn't be changed.  For the time being we've
+   restored the ModelTwoArgumentsLinearOnDiagonal constructor so that we can
+   still deal with the old tags.  New builtins should use
+   ModelTwoArgumentsConstOffDiagonal instead.  A better long-term solution might
+   be to adapt the JSON conversion code to translate linear_on_diagonal objects
+   to ConstOffDiagonal objects (and perhaps back, although configurable cost
+   models may mean that we don't need to do that).
+-}
 
 data ModelTwoArguments =
-    ModelTwoArgumentsConstantCost       CostingInteger
-  | ModelTwoArgumentsLinearInX          OneVariableLinearFunction
-  | ModelTwoArgumentsLinearInY          OneVariableLinearFunction
-  | ModelTwoArgumentsLinearInXAndY      TwoVariableLinearFunction
-  | ModelTwoArgumentsAddedSizes         ModelAddedSizes
-  | ModelTwoArgumentsSubtractedSizes    ModelSubtractedSizes
-  | ModelTwoArgumentsMultipliedSizes    ModelMultipliedSizes
-  | ModelTwoArgumentsMinSize            ModelMinSize
-  | ModelTwoArgumentsMaxSize            ModelMaxSize
-  | ModelTwoArgumentsLinearOnDiagonal   ModelConstantOrLinear
-  | ModelTwoArgumentsConstAboveDiagonal ModelConstantOrTwoArguments
-  | ModelTwoArgumentsConstBelowDiagonal ModelConstantOrTwoArguments
-  | ModelTwoArgumentsQuadraticInY       OneVariableQuadraticFunction
+    ModelTwoArgumentsConstantCost        CostingInteger
+  | ModelTwoArgumentsLinearInX           OneVariableLinearFunction
+  | ModelTwoArgumentsLinearInY           OneVariableLinearFunction
+  | ModelTwoArgumentsLinearInXAndY       TwoVariableLinearFunction
+  | ModelTwoArgumentsAddedSizes          OneVariableLinearFunction
+  | ModelTwoArgumentsSubtractedSizes     ModelSubtractedSizes
+  | ModelTwoArgumentsMultipliedSizes     OneVariableLinearFunction
+  | ModelTwoArgumentsMinSize             OneVariableLinearFunction
+  | ModelTwoArgumentsMaxSize             OneVariableLinearFunction
+  | ModelTwoArgumentsLinearOnDiagonal    ModelConstantOrLinear
+  | ModelTwoArgumentsConstOffDiagonal    ModelConstantOrOneArgument
+  | ModelTwoArgumentsConstAboveDiagonal  ModelConstantOrTwoArguments
+  | ModelTwoArgumentsConstBelowDiagonal  ModelConstantOrTwoArguments
+  | ModelTwoArgumentsQuadraticInY        OneVariableQuadraticFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
 instance Default ModelTwoArguments where
-    def = ModelTwoArgumentsConstantCost 0
+    def = ModelTwoArgumentsConstantCost maxBound
+
+instance UnimplementedCostingFun ModelTwoArguments where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelTwoArgumentsConstantCost
 
 -- See Note [runCostingFun* API].
 runCostingFunTwoArguments
@@ -371,7 +412,7 @@ runTwoArgumentModel
 runTwoArgumentModel
     (ModelTwoArgumentsConstantCost c) = lazy $ \_ _ -> CostLast c
 runTwoArgumentModel
-    (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) =
+    (ModelTwoArgumentsAddedSizes (OneVariableLinearFunction intercept slope)) =
         lazy $ \costs1 costs2 ->
             scaleLinearly intercept slope $ addCostStream costs1 costs2
 runTwoArgumentModel
@@ -381,17 +422,17 @@ runTwoArgumentModel
                 !size2 = sumCostStream costs2
             scaleLinearly intercept slope $ CostLast (max minSize $ size1 - size2)
 runTwoArgumentModel
-    (ModelTwoArgumentsMultipliedSizes (ModelMultipliedSizes intercept slope)) =
+    (ModelTwoArgumentsMultipliedSizes (OneVariableLinearFunction intercept slope)) =
         lazy $ \costs1 costs2 -> do
             let !size1 = sumCostStream costs1
                 !size2 = sumCostStream costs2
             scaleLinearly intercept slope $ CostLast (size1 * size2)
 runTwoArgumentModel
-    (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) =
+    (ModelTwoArgumentsMinSize (OneVariableLinearFunction intercept slope)) =
         lazy $ \costs1 costs2 -> do
             scaleLinearly intercept slope $ minCostStream costs1 costs2
 runTwoArgumentModel
-    (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) =
+    (ModelTwoArgumentsMaxSize (OneVariableLinearFunction intercept slope)) =
         lazy $ \costs1 costs2 -> do
             let !size1 = sumCostStream costs1
                 !size2 = sumCostStream costs2
@@ -409,6 +450,7 @@ runTwoArgumentModel
         lazy $ \costs1 costs2 ->
             scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
 runTwoArgumentModel
+    -- See Note [Backward compatibility for costing functions]
     -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
     (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) =
         lazy $ \costs1 costs2 -> do
@@ -417,6 +459,16 @@ runTwoArgumentModel
             if size1 == size2
                 then scaleLinearly intercept slope $ CostLast size1
                 else CostLast c
+runTwoArgumentModel
+    -- Off the diagonal, return the constant.  On the diagonal, run the other model.
+    (ModelTwoArgumentsConstOffDiagonal (ModelConstantOrOneArgument c m)) =
+        case runOneArgumentModel m of
+            !run -> lazy $ \costs1 costs2 -> do
+                let !size1 = sumCostStream costs1
+                    !size2 = sumCostStream costs2
+                if size1 /= size2
+                    then CostLast c
+                    else run (CostLast size1)
 runTwoArgumentModel
     -- Below the diagonal, return the constant. Above the diagonal, run the other model.
     (ModelTwoArgumentsConstBelowDiagonal (ModelConstantOrTwoArguments c m)) =
@@ -448,7 +500,7 @@ runTwoArgumentModel
 
 data ModelThreeArguments =
     ModelThreeArgumentsConstantCost          CostingInteger
-  | ModelThreeArgumentsAddedSizes            ModelAddedSizes
+  | ModelThreeArgumentsAddedSizes            OneVariableLinearFunction
   | ModelThreeArgumentsLinearInX             OneVariableLinearFunction
   | ModelThreeArgumentsLinearInY             OneVariableLinearFunction
   | ModelThreeArgumentsLinearInZ             OneVariableLinearFunction
@@ -458,7 +510,10 @@ data ModelThreeArguments =
     deriving anyclass (NFData)
 
 instance Default ModelThreeArguments where
-    def = ModelThreeArgumentsConstantCost 0
+    def = ModelThreeArgumentsConstantCost maxBound
+
+instance UnimplementedCostingFun ModelThreeArguments where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelThreeArgumentsConstantCost
 
 runThreeArgumentModel
     :: ModelThreeArguments
@@ -468,7 +523,7 @@ runThreeArgumentModel
     -> CostStream
 runThreeArgumentModel (ModelThreeArgumentsConstantCost c) = lazy $ \_ _ _ -> CostLast c
 runThreeArgumentModel
-    (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) =
+    (ModelThreeArgumentsAddedSizes (OneVariableLinearFunction intercept slope)) =
         lazy $ \costs1 costs2 costs3 ->
             scaleLinearly intercept slope . addCostStream costs1 $ addCostStream costs2 costs3
 runThreeArgumentModel
@@ -528,7 +583,10 @@ data ModelFourArguments =
     deriving anyclass (NFData)
 
 instance Default ModelFourArguments where
-    def = ModelFourArgumentsConstantCost 0
+    def = ModelFourArgumentsConstantCost maxBound
+
+instance UnimplementedCostingFun ModelFourArguments where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelFourArgumentsConstantCost
 
 runFourArgumentModel
     :: ModelFourArguments
@@ -570,7 +628,10 @@ data ModelFiveArguments =
     deriving anyclass (NFData)
 
 instance Default ModelFiveArguments where
-    def = ModelFiveArgumentsConstantCost 0
+    def = ModelFiveArgumentsConstantCost maxBound
+
+instance UnimplementedCostingFun ModelFiveArguments where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelFiveArgumentsConstantCost
 
 runFiveArgumentModel
     :: ModelFiveArguments
@@ -614,7 +675,10 @@ data ModelSixArguments =
     deriving anyclass (NFData)
 
 instance Default ModelSixArguments where
-    def = ModelSixArgumentsConstantCost 0
+    def = ModelSixArgumentsConstantCost maxBound
+
+instance UnimplementedCostingFun ModelSixArguments where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelSixArgumentsConstantCost
 
 runSixArgumentModel
     :: ModelSixArguments

@@ -33,6 +33,7 @@ import GHC.Types.TyThing qualified as GHC
 import GHC.Tc.Utils.TcType qualified as GHC
 #endif
 
+import PlutusTx.Bool qualified
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
@@ -48,7 +49,7 @@ import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
 
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
-import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Builtins.HasOpaque qualified as Builtins
 import PlutusTx.Trace
 
 import PlutusIR qualified as PIR
@@ -119,7 +120,7 @@ compileLiteral ::
   m (PIRTerm uni fun)
 compileLiteral = \case
   -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
-  (GHC.LitNumber _ i) -> pure $ PIR.embed $ PLC.mkConstant annMayInline i
+  (GHC.LitNumber _ i) -> pure $ PIR.embedTerm $ PLC.mkConstant annMayInline i
   GHC.LitString _ -> throwPlain $ UnsupportedError "Literal string (maybe you need to use OverloadedStrings)"
   GHC.LitChar _ -> throwPlain $ UnsupportedError "Literal char"
   GHC.LitFloat _ -> throwPlain $ UnsupportedError "Literal float"
@@ -136,8 +137,11 @@ compileLiteral = \case
 stringExprContent :: GHC.CoreExpr -> Maybe BS.ByteString
 stringExprContent = \case
   GHC.Lit (GHC.LitString bs) -> Just bs
-  -- unpackCString# is just a wrapper around a literal
-  GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> stringExprContent expr
+  -- unpackCString# / unpackCStringUtf8# are just wrappers around a literal
+  GHC.Var n `GHC.App` expr
+    | let name = GHC.getName n
+    , name == GHC.unpackCStringName || name == GHC.unpackCStringUtf8Name ->
+      stringExprContent expr
   -- See Note [unpackFoldrCString#]
   GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
     | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> stringExprContent expr
@@ -684,7 +688,21 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
     _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
+  boolOperatorOr <- GHC.getName <$> getThing '(PlutusTx.Bool.||)
+  boolOperatorAnd <- GHC.getName <$> getThing '(PlutusTx.Bool.&&)
   case e of
+    {- Note [Lazy boolean operators]
+      (||) and (&&) have a special treatment: we want them lazy in the second argument,
+      as this is the behavior in Haskell and other PLs.
+      Covered by this spec: plutus-tx-plugin/test/ShortCircuit/Spec.hs
+    -}
+    -- Lazy ||
+    GHC.App (GHC.App (GHC.Var var) a) b | GHC.getName var == boolOperatorOr ->
+      compileExpr $ GHC.mkIfThenElse a (GHC.Var GHC.trueDataConId) b
+    -- Lazy &&
+    GHC.App (GHC.App (GHC.Var var) a) b | GHC.getName var == boolOperatorAnd ->
+      compileExpr $ GHC.mkIfThenElse a b (GHC.Var GHC.falseDataConId)
+
     -- See Note [String literals]
     -- IsString has only one method, so it's enough to know that it's an IsString method
     -- to know we're looking at fromString.

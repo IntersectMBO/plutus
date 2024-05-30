@@ -13,12 +13,13 @@ import PlutusLedgerApi.Test.Common.EvaluationContext as Common
 import PlutusLedgerApi.V3 qualified as V3
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
+import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Maybe
 
 -- | Example values of costs for @PlutusV3@, in expected ledger order.
 -- Suitable to be used in testing.
-costModelParamsForTesting :: [(V3.ParamName, Integer)]
+costModelParamsForTesting :: [(V3.ParamName, Int64)]
 costModelParamsForTesting = Map.toList $ fromJust $
     Common.extractCostModelParamsLedgerOrder mCostModel
 
@@ -26,7 +27,7 @@ costModelParamsForTesting = Map.toList $ fromJust $
 mCostModel :: MCostModel
 mCostModel =
     -- nothing to clear because v4 does not exist (yet).
-    toMCostModel defaultCekCostModel
+    toMCostModel defaultCekCostModelForTesting
 
 {- | Assign to `mempty` those CEK constructs that @PlutusV3@ introduces (indirectly by introducing
 a ledger language version with those CEK constructs).
@@ -66,6 +67,4 @@ clearBuiltinCostModel r = r
                , paramBls12_381_finalVerify = mempty
                , paramKeccak_256 = mempty
                , paramBlake2b_224 = mempty
-               , paramIntegerToByteString = mempty
-               , paramByteStringToInteger = mempty
                }

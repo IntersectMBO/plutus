@@ -4,7 +4,8 @@
 module Main where
 
 import Common (benchWith, unsafeUnflat)
-import PlutusBenchmark.Common (benchTermAgdaCek, toNamedDeBruijnTerm)
+import PlutusBenchmark.Agda.Common (benchTermAgdaCek)
+import PlutusBenchmark.Common (toNamedDeBruijnTerm)
 import UntypedPlutusCore qualified as UPLC
 
 import Control.DeepSeq (force)
