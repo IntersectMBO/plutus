@@ -72,7 +72,7 @@ integerToByteStringExceedsBudget = testCase "integerToByteString should exceed b
         Left _ -> assertFailure "fails"
         Right (ExBudget cpu _mem) -> assertBool "did not exceed budget" (cpu >= fromIntegral (maxBound :: Int64))
 
-{-
+{-  ** FIXME: These don't work with the new cost model setup
 saltedFunction :: TestTree
 saltedFunction =
     let evaluate ss ss' args =

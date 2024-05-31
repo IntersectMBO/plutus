@@ -70,12 +70,14 @@ testWith str evalFn = testGroup str $ fmap (uncurry testCase)
     ,("const0var0", evalFn (const0 @@ [unitval, fun0var0]) @?= False) -- fails at scopechecking
     ,("iteLazy0" , evalFn iteLazy0 @?= False) -- fails at scopechecking
     ,("iteStrict0", evalFn iteStrict0 @?= False) -- fails at scopechecking
-    ,("illITELazy", evalFn illITELazy @?= True) -- a type error that the machine cannot catch
-    ,("illITEStrict", evalFn illITEStrict @?= True) -- a type error that the machine cannot catch
-    ,("illAdd", evalFn illAdd @?= False) -- type error is caught by the machine
-    ,("illOverAppBuiltin", evalFn illOverAppBuiltin @?= False) -- type error is caught by the machine
-    ,("illOverAppFun", evalFn illOverAppFun @?= False) -- type error is caught by the machine
+--    ,("illITELazy", evalFn illITELazy @?= True) -- a type error that the machine cannot catch
+--    ,("illITEStrict", evalFn illITEStrict @?= True) -- a type error that the machine cannot catch
+--    ,("illAdd", evalFn illAdd @?= False) -- type error is caught by the machine
+--    ,("illOverAppBuiltin", evalFn illOverAppBuiltin @?= False) -- type error is caught by the machine
+--    ,("illOverAppFun", evalFn illOverAppFun @?= False) -- type error is caught by the machine
     ]
+
+{- ** FIXME: this is broken with the new cost model setup
 
 testUnlifting :: TestTree
 testUnlifting = testCase "check unlifting behaviour changes in Vasil" $ do
@@ -83,6 +85,7 @@ testUnlifting = testCase "check unlifting behaviour changes in Vasil" $ do
     -- exercised on chain, it was safe to be switched to the new behavior (jedi mind trick).
     evalAPI alonzoPV illPartialBuiltin @?= True
     evalAPI vasilPV illPartialBuiltin @?= True
+-}
 
 costParams :: [Int64]
 costParams = Map.elems (fromJust defaultCostModelParamsForTesting)
@@ -124,9 +127,9 @@ evaluationContextNoThunks =
 
 tests :: TestTree
 tests = testGroup "eval"
-    [ -- testAPI        -- FIXME
-    -- , testUnlifting  -- FIXME
-      evaluationContextCacheIsComplete
+    [ testAPI
+--    , testUnlifting
+    , evaluationContextCacheIsComplete
     , evaluationContextNoThunks
     ]
 
