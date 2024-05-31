@@ -119,6 +119,7 @@ library
     PlutusCore.Default
     PlutusCore.Default.Builtins
     PlutusCore.Error
+    PlutusCore.Evaluation.Error
     PlutusCore.Evaluation.ErrorWithCause
     PlutusCore.Evaluation.Machine.BuiltinCostModel
     PlutusCore.Evaluation.Machine.Ck
