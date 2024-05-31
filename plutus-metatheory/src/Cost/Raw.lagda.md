@@ -90,6 +90,7 @@ record OneVariableQuadraticFunction : Set where
 record TwoVariableQuadraticFunction : Set where
     constructor mkTwoVariableQuadraticFunction
     field
+        minimum : CostingNat
         coeff00 : CostingNat
         coeff10 : CostingNat
         coeff01 : CostingNat

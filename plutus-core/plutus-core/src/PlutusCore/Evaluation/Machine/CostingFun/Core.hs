@@ -349,18 +349,24 @@ evaluateOneVariableQuadraticFunction
    (OneVariableQuadraticFunction (Coefficient0 c0) (Coefficient1 c1)  (Coefficient2 c2)) x =
        c0 + c1*x + c2*x*x
 
+{- Note [Minimum values for two-variable quadratic costing functions] Unlike most
+   of our other costing functions our use cases for two-variable quadratic
+   costing functions may require one or more negative coefficients, so there's a
+   danger that we could return a negative cost.  This is unlikely, but we make
+   certain that it never happens by returning a result that is at never smaller
+   than a minimum value that is stored along with the coefficients of the
+   function.
+-}
 -- | c00 + c10*x + c01*y + c20*x^2 + c11*c*y + c02*y^2
--- Note that (unlike most of our other costing functions) our use cases for this
--- may require one or more negative coefficients, so we have to be careful not
--- to incur negative costs.
 data TwoVariableQuadraticFunction = TwoVariableQuadraticFunction
-    { twoVariableQuadraticFunctionC00 :: Coefficient00
-    , twoVariableQuadraticFunctionC10 :: Coefficient10
-    , twoVariableQuadraticFunctionC01 :: Coefficient01
-    , twoVariableQuadraticFunctionC20 :: Coefficient20
-    , twoVariableQuadraticFunctionC11 :: Coefficient11
-    , twoVariableQuadraticFunctionC02 :: Coefficient02
-    } deriving stock (Show, Eq, Generic, Lift)
+  { twoVariableQuadraticFunctionMinimum :: CostingInteger
+  , twoVariableQuadraticFunctionC00     :: Coefficient00
+  , twoVariableQuadraticFunctionC10     :: Coefficient10
+  , twoVariableQuadraticFunctionC01     :: Coefficient01
+  , twoVariableQuadraticFunctionC20     :: Coefficient20
+  , twoVariableQuadraticFunctionC11     :: Coefficient11
+  , twoVariableQuadraticFunctionC02     :: Coefficient02
+  } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
 {-# INLINE evaluateTwoVariableQuadraticFunction #-}
@@ -370,11 +376,12 @@ evaluateTwoVariableQuadraticFunction
   -> CostingInteger
   -> CostingInteger
 evaluateTwoVariableQuadraticFunction
-   (TwoVariableQuadraticFunction
+   (TwoVariableQuadraticFunction minVal
     (Coefficient00 c00) (Coefficient10 c10)  (Coefficient01 c01)
     (Coefficient20 c20) (Coefficient11 c11) (Coefficient02 c02)
-   ) x y = abs (c00 + c10*x + c01*y + c20*x*x + c11*x*y + c02*y*y)
-  -- We want to be absolutely sure that we don't get back a negative number here
+   ) x y = max minVal (c00 + c10*x + c01*y + c20*x*x + c11*x*y + c02*y*y)
+  -- We want to be absolutely sure that we don't get back a negative number
+  -- here: see Note [Minimum values for two variable quadratic costing functions]
 
 -- FIXME: we could use ModelConstantOrOneArgument for
 -- ModelTwoArgumentsSubtractedSizes instead, but that would change the order of

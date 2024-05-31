@@ -71,6 +71,7 @@ data ParamName =
   | DivideInteger'cpu'arguments'model'arguments'c10
   | DivideInteger'cpu'arguments'model'arguments'c11
   | DivideInteger'cpu'arguments'model'arguments'c20
+  | DivideInteger'cpu'arguments'model'arguments'minimum
   | DivideInteger'memory'arguments'intercept
   | DivideInteger'memory'arguments'minimum
   | DivideInteger'memory'arguments'slope
@@ -135,6 +136,7 @@ data ParamName =
   | ModInteger'cpu'arguments'model'arguments'c10
   | ModInteger'cpu'arguments'model'arguments'c11
   | ModInteger'cpu'arguments'model'arguments'c20
+  | ModInteger'cpu'arguments'model'arguments'minimum
   | ModInteger'memory'arguments'intercept
   | ModInteger'memory'arguments'slope
   | MultiplyInteger'cpu'arguments'intercept
@@ -150,6 +152,7 @@ data ParamName =
   | QuotientInteger'cpu'arguments'model'arguments'c10
   | QuotientInteger'cpu'arguments'model'arguments'c11
   | QuotientInteger'cpu'arguments'model'arguments'c20
+  | QuotientInteger'cpu'arguments'model'arguments'minimum
   | QuotientInteger'memory'arguments'intercept
   | QuotientInteger'memory'arguments'minimum
   | QuotientInteger'memory'arguments'slope
@@ -160,6 +163,7 @@ data ParamName =
   | RemainderInteger'cpu'arguments'model'arguments'c10
   | RemainderInteger'cpu'arguments'model'arguments'c11
   | RemainderInteger'cpu'arguments'model'arguments'c20
+  | RemainderInteger'cpu'arguments'model'arguments'minimum
   | RemainderInteger'memory'arguments'intercept
   | RemainderInteger'memory'arguments'slope
   | SerialiseData'cpu'arguments'intercept

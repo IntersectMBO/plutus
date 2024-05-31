@@ -51,9 +51,9 @@ renderTwoVariableQuadraticFunction
   -> String
   -> String
 renderTwoVariableQuadraticFunction
-  (TwoVariableQuadraticFunction c00 c10 c01 c20 c11 c02) var1 var2 =
-    printf "%d + %d*%s + %d*%s + %d*%s^2 + %d*%s*%s + %d*%s^2"
-    c00 c10 var1 c01 var2 c20 var1 c11 var1 var2 c02 var2
+  (TwoVariableQuadraticFunction minVal c00 c10 c01 c20 c11 c02) var1 var2 =
+    printf "max(%d, %d + %d*%s + %d*%s + %d*%s^2 + %d*%s*%s + %d*%s^2)"
+    minVal c00 c10 var1 c01 var2 c20 var1 c11 var1 var2 c02 var2
 
 renderModel :: Model -> [String]
 renderModel =

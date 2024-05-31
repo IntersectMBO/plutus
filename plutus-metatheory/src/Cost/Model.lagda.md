@@ -63,7 +63,8 @@ data CostingModel : ℕ → Set where
   constantCost       : ∀{n} → CostingNat → CostingModel n
   linearCostIn       : ∀{n} → Fin n → Intercept → Slope → CostingModel n
   quadraticCostIn1   : ∀{n} → Fin n → CostingNat → CostingNat → CostingNat → CostingModel n
-  quadraticCostIn2   : ∀{n} → Fin n → Fin n → CostingNat → CostingNat → CostingNat → CostingNat → CostingNat → CostingNat → CostingModel n
+  quadraticCostIn2   : ∀{n} → Fin n → Fin n → CostingNat → CostingNat → CostingNat → CostingNat
+                            → CostingNat → CostingNat → CostingNat → CostingModel n
    -- take the cost literally if it is a positive integer, or else, use the provided model.
   literalCostIn      : ∀{n} → Fin n → CostingModel n → CostingModel n
   addedSizes         : ∀{n} → Intercept → Slope → CostingModel n
@@ -109,10 +110,11 @@ runModel : ∀{n} → CostingModel n → Vec Value n → CostingNat
 runModel (constantCost x) _ = x
 runModel (linearCostIn n i s) xs = i + s * sizeOf (lookup xs n)
 runModel (quadraticCostIn1 n c0 c1 c2) xs = let x = sizeOf (lookup xs n) in c0 + c1 * x + c2 * x * x
-runModel (quadraticCostIn2 m n c00 c10 c01 c20 c11 c02) xs =
+runModel (quadraticCostIn2 m n min c00 c10 c01 c20 c11 c02) xs =
   let x = sizeOf (lookup xs m)
       y = sizeOf (lookup xs n)
-  in c00 + c10 * x + c01 * y + c20 * x * x + c11 * x * y + c02 * y * y
+      r = c00 + c10 * x + c01 * y + c20 * x * x + c11 * x * y + c02 * y * y
+  in min ⊔ r
 runModel (addedSizes i s) xs = i + s * (sum (map sizeOf xs))
 runModel (multipliedSizes i s) xs = i + s * (prod (map sizeOf xs))
 runModel (minSize i s) xs = i + s * minimum (map sizeOf xs)
@@ -165,8 +167,8 @@ convertRawModel {suc (suc n)} (LinearInY (mkLF intercept slope)) = just (linearC
 convertRawModel {suc (suc n)} (QuadraticInY (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 (suc zero) c0 c1 c2)
 convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
 convertRawModel {suc (suc (suc n))} (QuadraticInZ (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 (suc (suc zero)) c0 c1 c2)
-convertRawModel {suc (suc n)} (QuadraticInXAndY (mkQF2 c00 c10 c01 c20 c11 c02)) =
-    just (quadraticCostIn2 zero (suc zero) c00 c10 c01 c20 c11 c02)
+convertRawModel {suc (suc n)} (QuadraticInXAndY (mkQF2 minVal c00 c10 c01 c20 c11 c02)) =
+    just (quadraticCostIn2 zero (suc zero) minVal c00 c10 c01 c20 c11 c02)
 convertRawModel {suc (suc (suc n))} (LiteralInYOrLinearInZ (mkLF intercept slope)) =
     just (literalCostIn  (suc zero) (linearCostIn (suc (suc zero)) intercept slope))
 convertRawModel {2} (SubtractedSizes (mkLF intercept slope) c) = just (twoArgumentsSubtractedSizes intercept slope c)

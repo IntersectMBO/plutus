@@ -435,20 +435,24 @@ modelFun <- function(path) {
     ## a good fit.
     divideIntegerModel <- {
         fname <- "DivideInteger"
-        filtered <- data %>%  ## Data below diagonal
-            filter.and.check.nonempty(fname) %>%
-            filter(x_mem > 0 & y_mem > 0) %>%
-            filter (x_mem > y_mem) %>%
-            discard.overhead ()
-        m <- lm(t ~ I(x_mem) + I(y_mem) + I(x_mem^2) + I(x_mem * y_mem) + I(y_mem^2), filtered)
 
-       filtered2 <- data %>%  ## Data on or above diagonal: effectively constant time.
+        data1 <- data %>%  ## Data on or above diagonal: effectively constant time.
             filter.and.check.nonempty(fname) %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             filter (x_mem <= y_mem) %>%
             discard.overhead ()
-        constant = mean(filtered2$t)
-        mk.result(m, "const_above_diagonal", constant=constant, subtype="quadratic_in_x_and_y")
+        constant = mean(data1$t)
+
+        data2 <- data %>%  ## Data below diagonal
+            filter.and.check.nonempty(fname) %>%
+            filter(x_mem > 0 & y_mem > 0) %>%
+            filter (x_mem > y_mem) %>%
+            discard.overhead ()
+        m <- lm(t ~ I(x_mem) + I(y_mem) + I(x_mem^2) + I(x_mem * y_mem) + I(y_mem^2), data2)
+
+        ## Re-use the above--diagonal cost as the minimum cost below the diagonal.  See Note
+        ## [Minimum values for two-variable quadratic costing functions].
+        mk.result(m, "const_above_diagonal", constant=constant, minimum=constant, subtype="quadratic_in_x_and_y")
     }
 
     quotientIntegerModel  <- divideIntegerModel
@@ -817,11 +821,11 @@ modelFun <- function(path) {
 
     ## The integer division functions have a complex costing behaviour that requires some negative
     ## coefficients to get accurate results. Because of this they are excluded from adjustModels:
-    ## the Haskell code receives the raw model and calls `abs` to take care of the (unlikely) case
-    ## when a negative value is returned.  Any other builtins which need a non-monotonic costing
-    ## function should be treated similarly.
+    ## the Haskell code receives the raw model and takes care of the (unlikely) case when a negative
+    ## value is returned itself (using a minimm value returned from R as an extra parameter).  Any
+    ## other builtins which need a non-monotonic costing function should be treated similarly.
 
-    unadjusted.models <- list(
+    unadjusted.models <- list (
         divideIntegerModel                   = divideIntegerModel,
         quotientIntegerModel                 = quotientIntegerModel,
         remainderIntegerModel                = remainderIntegerModel,

@@ -34,7 +34,8 @@ instance FromJSON OneVariableQuadraticFunction where
 
 data TwoVariableQuadraticFunction =
     TwoVariableQuadraticFunction
-    { coeff00_ :: Integer
+    { minimum  :: Integer
+    , coeff00_ :: Integer
     , coeff10_ :: Integer
     , coeff01_ :: Integer
     , coeff20_ :: Integer
@@ -45,7 +46,7 @@ data TwoVariableQuadraticFunction =
 
 instance FromJSON TwoVariableQuadraticFunction where
     parseJSON = withObject "Two-variable quadratic function" $ \obj ->
-                TwoVariableQuadraticFunction <$>
+                TwoVariableQuadraticFunction <$> obj .: "minimum" <*>
                 obj .: "c00" <*> obj .: "c10" <*> obj .: "c01" <*>
                 obj .: "c20" <*> obj .: "c11" <*> obj .: "c02"
 

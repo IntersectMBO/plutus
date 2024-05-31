@@ -311,16 +311,16 @@ readTwoVariableLinearFunction var1 var2 e = do
   slopeY <- Slope <$> getCoeff var2 e
   pure $ TwoVariableLinearFunction intercept slopeX slopeY
 
--- | A costing function of the form a+sx+ty
 readTwoVariableQuadraticFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableQuadraticFunction
 readTwoVariableQuadraticFunction var1 var2 e = do
+  minVal <- getExtraParam "minimum" e
   c00 <- Coefficient00 <$> getCoeff "(Intercept)" e
   c10 <- Coefficient10 <$> getCoeff (printf "I(%s)" var1) e
   c01 <- Coefficient01 <$> getCoeff (printf "I(%s)" var2) e
   c20 <- Coefficient20 <$> getCoeff (printf "I(%s^2)" var1) e
   c11 <- Coefficient11 <$> getCoeff (printf "I(%s * %s)" var1 var2) e
   c02 <- Coefficient02 <$> getCoeff (printf "I(%s^2)" var2) e
-  pure $ TwoVariableQuadraticFunction c00 c10 c01 c20 c11 c02
+  pure $ TwoVariableQuadraticFunction minVal c00 c10 c01 c20 c11 c02
 
 -- | A two-variable costing function which is constant on one region of the
 -- plane and something else elsewhere.
