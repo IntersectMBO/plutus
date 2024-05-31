@@ -381,7 +381,7 @@ evaluateTwoVariableQuadraticFunction
     (Coefficient20 c20) (Coefficient11 c11) (Coefficient02 c02)
    ) x y = max minVal (c00 + c10*x + c01*y + c20*x*x + c11*x*y + c02*y*y)
   -- We want to be absolutely sure that we don't get back a negative number
-  -- here: see Note [Minimum values for two variable quadratic costing functions]
+  -- here: see Note [Minimum values for two-variable quadratic costing functions]
 
 -- FIXME: we could use ModelConstantOrOneArgument for
 -- ModelTwoArgumentsSubtractedSizes instead, but that would change the order of

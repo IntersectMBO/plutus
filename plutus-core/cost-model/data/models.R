@@ -450,7 +450,7 @@ modelFun <- function(path) {
             discard.overhead ()
         m <- lm(t ~ I(x_mem) + I(y_mem) + I(x_mem^2) + I(x_mem * y_mem) + I(y_mem^2), data2)
 
-        ## Re-use the above--diagonal cost as the minimum cost below the diagonal.  See Note
+        ## Re-use the above-diagonal cost as the minimum cost below the diagonal.  See Note
         ## [Minimum values for two-variable quadratic costing functions].
         mk.result(m, "const_above_diagonal", constant=constant, minimum=constant, subtype="quadratic_in_x_and_y")
     }
