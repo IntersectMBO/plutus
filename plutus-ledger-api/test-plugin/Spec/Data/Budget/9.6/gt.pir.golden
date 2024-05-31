@@ -1,58 +1,4 @@
 let
-  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-    Tuple2 : a -> b -> Tuple2 a b
-in
-letrec
-  data (List :: * -> *) a | List_match where
-    Nil : List a
-    Cons : a -> List a -> List a
-in
-letrec
-  !go : List (Tuple2 bytestring integer) -> List integer
-    = \(ds : List (Tuple2 bytestring integer)) ->
-        List_match
-          {Tuple2 bytestring integer}
-          ds
-          {all dead. List integer}
-          (/\dead -> Nil {integer})
-          (\(x : Tuple2 bytestring integer)
-            (xs : List (Tuple2 bytestring integer)) ->
-             /\dead ->
-               Cons
-                 {integer}
-                 (Tuple2_match
-                    {bytestring}
-                    {integer}
-                    x
-                    {integer}
-                    (\(ds : bytestring) (b : integer) -> b))
-                 (go xs))
-          {all dead. dead}
-in
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
-letrec
-  !go : List integer -> Bool
-    = \(ds : List integer) ->
-        List_match
-          {integer}
-          ds
-          {all dead. Bool}
-          (/\dead -> True)
-          (\(x : integer) (xs : List integer) ->
-             /\dead ->
-               ifThenElse
-                 {all dead. Bool}
-                 (equalsInteger 0 x)
-                 (/\dead -> go xs)
-                 (/\dead -> False)
-                 {all dead. dead})
-          {all dead. dead}
-in
-let
   !`$fToDataInteger_$ctoBuiltinData` : integer -> data
     = \(i : integer) -> iData i
   data (These :: * -> * -> *) a b | These_match where
@@ -85,99 +31,12 @@ let
         {integer}
         `$fToDataInteger_$ctoBuiltinData`
         `$fToDataInteger_$ctoBuiltinData`
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !f : integer -> integer -> Bool
     = \(x : integer) (y : integer) ->
         ifThenElse {Bool} (lessThanInteger x y) False True
-  data Unit | Unit_match where
-    Unit : Unit
-  !all :
-     all k a.
-       (\a -> data -> a) a ->
-       (a -> Bool) ->
-       (\k a -> list (pair data data)) k a ->
-       Bool
-    = /\k a ->
-        \(`$dUnsafeFromData` : (\a -> data -> a) a) (p : a -> Bool) ->
-          letrec
-            !go : list (pair data data) -> Bool
-              = \(xs : list (pair data data)) ->
-                  chooseList
-                    {pair data data}
-                    {Unit -> Bool}
-                    xs
-                    (\(ds : Unit) -> True)
-                    (\(ds : Unit) ->
-                       Bool_match
-                         (p
-                            (`$dUnsafeFromData`
-                               (sndPair
-                                  {data}
-                                  {data}
-                                  (headList {pair data data} xs))))
-                         {all dead. Bool}
-                         (/\dead -> go (tailList {pair data data} xs))
-                         (/\dead ->
-                            let
-                              !ds : list (pair data data)
-                                = tailList {pair data data} xs
-                            in
-                            False)
-                         {all dead. dead})
-                    Unit
-          in
-          \(ds : (\k a -> list (pair data data)) k a) -> go ds
-in
-letrec
-  !`$fEqValue_go'` : list (pair data data) -> List (Tuple2 bytestring integer)
-    = \(l : list (pair data data)) ->
-        let
-          ~hd : pair data data = headList {pair data data} l
-        in
-        chooseList
-          {pair data data}
-          {Unit -> List (Tuple2 bytestring integer)}
-          l
-          (\(ds : Unit) -> Nil {Tuple2 bytestring integer})
-          (\(ds : Unit) ->
-             Cons
-               {Tuple2 bytestring integer}
-               (Tuple2
-                  {bytestring}
-                  {integer}
-                  (unBData (fstPair {data} {data} hd))
-                  (unIData (sndPair {data} {data} hd)))
-               (`$fEqValue_go'` (tailList {pair data data} l)))
-          Unit
-in
-letrec
-  !`$fEqValue_go` :
-     list (pair data data) ->
-     List (Tuple2 bytestring (List (Tuple2 bytestring integer)))
-    = \(l : list (pair data data)) ->
-        let
-          ~hd : pair data data = headList {pair data data} l
-        in
-        chooseList
-          {pair data data}
-          {Unit -> List (Tuple2 bytestring (List (Tuple2 bytestring integer)))}
-          l
-          (\(ds : Unit) ->
-             Nil {Tuple2 bytestring (List (Tuple2 bytestring integer))})
-          (\(ds : Unit) ->
-             Cons
-               {Tuple2 bytestring (List (Tuple2 bytestring integer))}
-               (Tuple2
-                  {bytestring}
-                  {List (Tuple2 bytestring integer)}
-                  (unBData (fstPair {data} {data} hd))
-                  (`$fEqValue_go'` (unMapData (sndPair {data} {data} hd))))
-               (`$fEqValue_go` (tailList {pair data data} l)))
-          Unit
-in
-let
-  !equalsByteString : bytestring -> bytestring -> Bool
-    = \(x : bytestring) (y : bytestring) ->
-        ifThenElse {Bool} (equalsByteString x y) True False
   !`$fUnsafeFromDataThese_$cunsafeFromBuiltinData` :
      all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> These a b
     = /\a b ->
@@ -217,6 +76,8 @@ let
   !`$fToDataMap_$ctoBuiltinData` :
      all k a. (\k a -> list (pair data data)) k a -> data
     = /\k a -> \(ds : (\k a -> list (pair data data)) k a) -> mapData ds
+  data Unit | Unit_match where
+    Unit : Unit
   !map :
      all k a b.
        (\a -> data -> a) a ->
@@ -452,276 +313,206 @@ let
                       Unit
             in
             safeAppend (goLeft ds) (goRight ds)
-  !unordEqWith :
-     all k v.
-       (\a -> a -> a -> Bool) k ->
-       (v -> Bool) ->
-       (v -> v -> Bool) ->
-       List (Tuple2 k v) ->
-       List (Tuple2 k v) ->
+in
+letrec
+  !rev : all a. list a -> list a -> list a
+    = /\a ->
+        \(l : list a) (acc : list a) ->
+          chooseList
+            {a}
+            {Unit -> list a}
+            l
+            (\(ds : Unit) -> acc)
+            (\(ds : Unit) ->
+               rev {a} (tailList {a} l) (mkCons {a} (headList {a} l) acc))
+            Unit
+in
+let
+  !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
+    = \(d : data) -> d
+  !all :
+     all k a.
+       (\a -> data -> a) a ->
+       (a -> Bool) ->
+       (\k a -> list (pair data data)) k a ->
        Bool
-    = /\k v ->
-        \(`$dEq` : (\a -> a -> a -> Bool) k)
-         (is : v -> Bool) ->
+    = /\k a ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a) (p : a -> Bool) ->
           letrec
-            !go : List (Tuple2 k v) -> Bool
-              = \(ds : List (Tuple2 k v)) ->
-                  List_match
-                    {Tuple2 k v}
-                    ds
-                    {all dead. Bool}
-                    (/\dead -> True)
-                    (\(x : Tuple2 k v) (xs : List (Tuple2 k v)) ->
-                       /\dead ->
-                         Tuple2_match
-                           {k}
-                           {v}
-                           x
-                           {Bool}
-                           (\(ipv : k) (ipv : v) ->
-                              Bool_match
-                                (is ipv)
-                                {all dead. Bool}
-                                (/\dead -> go xs)
-                                (/\dead -> False)
-                                {all dead. dead}))
-                    {all dead. dead}
+            !go : list (pair data data) -> Bool
+              = \(xs : list (pair data data)) ->
+                  chooseList
+                    {pair data data}
+                    {Unit -> Bool}
+                    xs
+                    (\(ds : Unit) -> True)
+                    (\(ds : Unit) ->
+                       Bool_match
+                         (p
+                            (`$dUnsafeFromData`
+                               (sndPair
+                                  {data}
+                                  {data}
+                                  (headList {pair data data} xs))))
+                         {all dead. Bool}
+                         (/\dead -> go (tailList {pair data data} xs))
+                         (/\dead ->
+                            let
+                              !ds : list (pair data data)
+                                = tailList {pair data data} xs
+                            in
+                            False)
+                         {all dead. dead})
+                    Unit
           in
-          letrec
-            !go : List (Tuple2 k v) -> Bool
-              = \(ds : List (Tuple2 k v)) ->
-                  List_match
-                    {Tuple2 k v}
-                    ds
-                    {all dead. Bool}
-                    (/\dead -> True)
-                    (\(x : Tuple2 k v) (xs : List (Tuple2 k v)) ->
-                       /\dead ->
-                         Tuple2_match
-                           {k}
-                           {v}
-                           x
-                           {Bool}
-                           (\(ipv : k) (ipv : v) ->
-                              Bool_match
-                                (is ipv)
-                                {all dead. Bool}
-                                (/\dead -> go xs)
-                                (/\dead -> False)
-                                {all dead. dead}))
-                    {all dead. dead}
-          in
-          \(eqV : v -> v -> Bool) ->
-            letrec
-              !goBoth :
-                 List (Tuple2 k v) -> List (Tuple2 k v) -> Bool
-                = \(ds : List (Tuple2 k v))
-                   (kvsR : List (Tuple2 k v)) ->
-                    List_match
-                      {Tuple2 k v}
-                      ds
-                      {all dead. Bool}
-                      (/\dead -> go kvsR)
-                      (\(ipv : Tuple2 k v)
-                        (ipv : List (Tuple2 k v)) ->
-                         /\dead ->
-                           List_match
-                             {Tuple2 k v}
-                             kvsR
-                             {all dead. Bool}
-                             (/\dead -> go ds)
-                             (\(ipv : Tuple2 k v)
-                               (ipv : List (Tuple2 k v)) ->
-                                /\dead ->
-                                  Tuple2_match
-                                    {k}
-                                    {v}
-                                    ipv
-                                    {Bool}
-                                    (\(kL : k)
-                                      (vL : v) ->
-                                       letrec
-                                         !goRight :
-                                            List (Tuple2 k v) ->
-                                            List (Tuple2 k v) ->
-                                            Bool
-                                           = \(ds : List (Tuple2 k v))
-                                              (ds : List (Tuple2 k v)) ->
-                                               List_match
-                                                 {Tuple2 k v}
-                                                 ds
-                                                 {all dead. Bool}
-                                                 (/\dead -> False)
-                                                 (\(kvR : Tuple2 k v)
-                                                   (kvsR' :
-                                                      List (Tuple2 k v)) ->
-                                                    /\dead ->
-                                                      Tuple2_match
-                                                        {k}
-                                                        {v}
-                                                        kvR
-                                                        {Bool}
-                                                        (\(kR : k)
-                                                          (vR : v) ->
-                                                           Bool_match
-                                                             (is vR)
-                                                             {all dead. Bool}
-                                                             (/\dead ->
-                                                                goRight
-                                                                  ds
-                                                                  kvsR')
-                                                             (/\dead ->
-                                                                Bool_match
-                                                                  (`$dEq` kL kR)
-                                                                  {all dead.
-                                                                     Bool}
-                                                                  (/\dead ->
-                                                                     Bool_match
-                                                                       (eqV
-                                                                          vL
-                                                                          vR)
-                                                                       {all dead.
-                                                                          Bool}
-                                                                       (/\dead ->
-                                                                          goBoth
-                                                                            ipv
-                                                                            ((let
-                                                                                 a
-                                                                                   = Tuple2
-                                                                                       k
-                                                                                       v
-                                                                               in
-                                                                               letrec
-                                                                                 !rev :
-                                                                                    List
-                                                                                      a ->
-                                                                                    List
-                                                                                      a ->
-                                                                                    List
-                                                                                      a
-                                                                                   = \(ds :
-                                                                                         List
-                                                                                           a)
-                                                                                      (a :
-                                                                                         List
-                                                                                           a) ->
-                                                                                       List_match
-                                                                                         {a}
-                                                                                         ds
-                                                                                         {all dead.
-                                                                                            List
-                                                                                              a}
-                                                                                         (/\dead ->
-                                                                                            a)
-                                                                                         (\(x :
-                                                                                              a)
-                                                                                           (xs :
-                                                                                              List
-                                                                                                a) ->
-                                                                                            /\dead ->
-                                                                                              rev
-                                                                                                xs
-                                                                                                (Cons
-                                                                                                   {a}
-                                                                                                   x
-                                                                                                   a))
-                                                                                         {all dead.
-                                                                                            dead}
-                                                                               in
-                                                                               \(eta :
-                                                                                   List
-                                                                                     a)
-                                                                                (eta :
-                                                                                   List
-                                                                                     a) ->
-                                                                                 rev
-                                                                                   eta
-                                                                                   eta)
-                                                                               ds
-                                                                               kvsR'))
-                                                                       (/\dead ->
-                                                                          False)
-                                                                       {all dead.
-                                                                          dead})
-                                                                  (/\dead ->
-                                                                     goRight
-                                                                       (Cons
-                                                                          {Tuple2
-                                                                             k
-                                                                             v}
-                                                                          kvR
-                                                                          ds)
-                                                                       kvsR')
-                                                                  {all dead.
-                                                                     dead})
-                                                             {all dead. dead}))
-                                                 {all dead. dead}
-                                       in
-                                       Tuple2_match
-                                         {k}
-                                         {v}
-                                         ipv
-                                         {Bool}
-                                         (\(kR : k) (vR : v) ->
-                                            Bool_match
-                                              (`$dEq` kL kR)
-                                              {all dead. Bool}
-                                              (/\dead ->
-                                                 Bool_match
-                                                   (eqV vL vR)
-                                                   {all dead. Bool}
-                                                   (/\dead -> goBoth ipv ipv)
-                                                   (/\dead -> False)
-                                                   {all dead. dead})
-                                              (/\dead ->
-                                                 Bool_match
-                                                   (is vL)
-                                                   {all dead. Bool}
-                                                   (/\dead -> goBoth ipv kvsR)
-                                                   (/\dead ->
-                                                      goRight
-                                                        ((let
-                                                             a = Tuple2 k v
-                                                           in
-                                                           \(g :
-                                                               all b.
-                                                                 (a ->
-                                                                  b ->
-                                                                  b) ->
-                                                                 b ->
-                                                                 b) ->
-                                                             g
-                                                               {List a}
-                                                               (\(ds : a)
-                                                                 (ds :
-                                                                    List a) ->
-                                                                  Cons
-                                                                    {a}
-                                                                    ds
-                                                                    ds)
-                                                               (Nil {a}))
-                                                           (/\a ->
-                                                              \(c :
-                                                                  Tuple2 k v ->
-                                                                  a ->
-                                                                  a)
-                                                               (n : a) ->
-                                                                Bool_match
-                                                                  (is vR)
-                                                                  {all dead. a}
-                                                                  (/\dead -> n)
-                                                                  (/\dead ->
-                                                                     c ipv n)
-                                                                  {all dead.
-                                                                     dead}))
-                                                        ipv)
-                                                   {all dead. dead})
-                                              {all dead. dead})))
-                             {all dead. dead})
-                      {all dead. dead}
-            in
-            \(eta : List (Tuple2 k v)) (eta : List (Tuple2 k v)) ->
-              goBoth eta eta
+          \(ds : (\k a -> list (pair data data)) k a) -> go ds
+  !unordEqWith :
+     (data -> Bool) ->
+     (data -> data -> Bool) ->
+     list (pair data data) ->
+     list (pair data data) ->
+     Bool
+    = \(is : data -> Bool)
+       (eqV : data -> data -> Bool) ->
+        letrec
+          !goBoth :
+             list (pair data data) -> list (pair data data) -> Bool
+            = \(l : list (pair data data)) ->
+                let
+                  ~hd : pair data data = headList {pair data data} l
+                  ~v : data = sndPair {data} {data} hd
+                  ~tl : list (pair data data) = tailList {pair data data} l
+                in
+                \(l : list (pair data data)) ->
+                  let
+                    ~hd : pair data data = headList {pair data data} l
+                  in
+                  chooseList
+                    {pair data data}
+                    {Unit -> Bool}
+                    l
+                    (\(ds : Unit) ->
+                       chooseList
+                         {pair data data}
+                         {Unit -> Bool}
+                         l
+                         (\(ds : Unit) -> True)
+                         (\(ds : Unit) ->
+                            all
+                              {data}
+                              {data}
+                              `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                              is
+                              l)
+                         Unit)
+                    (\(ds : Unit) ->
+                       chooseList
+                         {pair data data}
+                         {Unit -> Bool}
+                         l
+                         (\(ds : Unit) ->
+                            all
+                              {data}
+                              {data}
+                              `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                              is
+                              l)
+                         (\(ds : Unit) ->
+                            let
+                              !d : data = fstPair {data} {data} hd
+                            in
+                            letrec
+                              !goRight :
+                                 list (pair data data) ->
+                                 list (pair data data) ->
+                                 Bool
+                                = \(acc : list (pair data data))
+                                   (l : list (pair data data)) ->
+                                    let
+                                      ~hd : pair data data
+                                        = headList {pair data data} l
+                                      ~v : data = sndPair {data} {data} hd
+                                    in
+                                    chooseList
+                                      {pair data data}
+                                      {Unit -> Bool}
+                                      l
+                                      (\(ds : Unit) -> False)
+                                      (\(ds : Unit) ->
+                                         Bool_match
+                                           (is v)
+                                           {all dead. Bool}
+                                           (/\dead ->
+                                              goRight
+                                                acc
+                                                (tailList {pair data data} l))
+                                           (/\dead ->
+                                              ifThenElse
+                                                {all dead. Bool}
+                                                (equalsData
+                                                   (fstPair {data} {data} hd)
+                                                   d)
+                                                (/\dead ->
+                                                   Bool_match
+                                                     (eqV v v)
+                                                     {all dead. Bool}
+                                                     (/\dead ->
+                                                        goBoth
+                                                          tl
+                                                          (rev
+                                                             {pair data data}
+                                                             acc
+                                                             (tailList
+                                                                {pair data data}
+                                                                l)))
+                                                     (/\dead -> False)
+                                                     {all dead. dead})
+                                                (/\dead ->
+                                                   goRight
+                                                     (mkCons
+                                                        {pair data data}
+                                                        hd
+                                                        acc)
+                                                     (tailList
+                                                        {pair data data}
+                                                        l))
+                                                {all dead. dead})
+                                           {all dead. dead})
+                                      Unit
+                            in
+                            ifThenElse
+                              {all dead. Bool}
+                              (equalsData d (fstPair {data} {data} hd))
+                              (/\dead ->
+                                 Bool_match
+                                   (eqV v (sndPair {data} {data} hd))
+                                   {all dead. Bool}
+                                   (/\dead ->
+                                      goBoth tl (tailList {pair data data} l))
+                                   (/\dead -> False)
+                                   {all dead. dead})
+                              (/\dead ->
+                                 Bool_match
+                                   (is v)
+                                   {all dead. Bool}
+                                   (/\dead -> goBoth tl l)
+                                   (/\dead ->
+                                      goRight
+                                        (Bool_match
+                                           (is (sndPair {data} {data} hd))
+                                           {all dead. list (pair data data)}
+                                           (/\dead -> [])
+                                           (/\dead ->
+                                              mkCons {pair data data} hd [])
+                                           {all dead. dead})
+                                        (tailList {pair data data} l))
+                                   {all dead. dead})
+                              {all dead. dead})
+                         Unit)
+                    Unit
+        in
+        \(eta : list (pair data data)) (eta : list (pair data data)) ->
+          goBoth eta eta
 in
 \(l :
     (\k a -> list (pair data data))
@@ -820,20 +611,28 @@ in
     (/\dead ->
        Bool_match
          (unordEqWith
-            {bytestring}
-            {List (Tuple2 bytestring integer)}
-            equalsByteString
-            (\(eta : List (Tuple2 bytestring integer)) -> go (go eta))
-            (unordEqWith
-               {bytestring}
-               {integer}
-               equalsByteString
-               (\(v : integer) ->
-                  ifThenElse {Bool} (equalsInteger 0 v) True False)
-               (\(x : integer) (y : integer) ->
-                  ifThenElse {Bool} (equalsInteger x y) True False))
-            (`$fEqValue_go` l)
-            (`$fEqValue_go` r))
+            (\(v : data) ->
+               all
+                 {bytestring}
+                 {integer}
+                 unIData
+                 (\(v : integer) ->
+                    ifThenElse {Bool} (equalsInteger 0 v) True False)
+                 (unMapData v))
+            (\(v : data) (v : data) ->
+               unordEqWith
+                 (\(v : data) ->
+                    ifThenElse {Bool} (equalsInteger 0 (unIData v)) True False)
+                 (\(v : data) (v : data) ->
+                    ifThenElse
+                      {Bool}
+                      (equalsInteger (unIData v) (unIData v))
+                      True
+                      False)
+                 (unMapData v)
+                 (unMapData v))
+            l
+            r)
          {all dead. Bool}
          (/\dead -> False)
          (/\dead -> True)
