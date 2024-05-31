@@ -552,28 +552,33 @@ unordEqWith is0 eqV = goBoth where
                 )
 
 
-{-# INLINABLE eqMapWith #-}
--- | Check equality of two 'Map's given a function checking whether a value is zero and a function
+{-# INLINABLE eqMapOfMapsWith #-}
+-- | Check equality of two maps of maps indexed by 'CurrencySymbol's,
+--- given a function checking whether a value is zero and a function
 -- checking equality of values.
-eqMapWith
+eqMapOfMapsWith
     :: (Map.Map TokenName Integer -> Bool)
     -> (Map.Map TokenName Integer -> Map.Map TokenName Integer -> Bool)
     -> Map.Map CurrencySymbol (Map.Map TokenName Integer)
     -> Map.Map CurrencySymbol (Map.Map TokenName Integer)
     -> Bool
-eqMapWith is0 eqV map1 map2 =
+eqMapOfMapsWith is0 eqV map1 map2 =
     let xs1 = Map.toBuiltinList map1
         xs2 = Map.toBuiltinList map2
         is0' v = is0 (unsafeFromBuiltinData v)
         eqV' v1 v2 = eqV (unsafeFromBuiltinData v1) (unsafeFromBuiltinData v2)
      in unordEqWith is0' eqV' xs1 xs2
 
-{-# INLINABLE eqMapWith' #-}
--- | Check equality of two 'Map's given a function checking whether a value is zero and a function
+{-# INLINABLE eqMapWith #-}
+-- | Check equality of two 'Map Token Integer's given a function checking whether a value is zero and a function
 -- checking equality of values.
-eqMapWith'
-    :: (Integer -> Bool) -> (Integer -> Integer -> Bool) -> Map.Map TokenName Integer -> Map.Map TokenName Integer -> Bool
-eqMapWith' is0 eqV map1 map2 =
+eqMapWith
+    :: (Integer -> Bool)
+    -> (Integer -> Integer -> Bool)
+    -> Map.Map TokenName Integer
+    -> Map.Map TokenName Integer
+    -> Bool
+eqMapWith is0 eqV map1 map2 =
     let xs1 = Map.toBuiltinList map1
         xs2 = Map.toBuiltinList map2
         is0' v = is0 (unsafeFromBuiltinData v)
@@ -587,27 +592,7 @@ eqMapWith' is0 eqV map1 map2 =
 -- currency have multiple entries.
 eq :: Value -> Value -> Bool
 eq (Value currs1) (Value currs2) =
-    eqMapWith (Map.all (0 ==)) (eqMapWith' (0 ==) (==)) currs1 currs2
-
-valueToList :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]
-valueToList (Map.toBuiltinList . getValue -> bList) =
-    go bList
-  where
-    go l =
-        B.matchList
-            l
-            (\() -> [])
-            ( \hd tl ->
-                (unsafeFromBuiltinData (BI.fst hd), go' . BI.unsafeDataAsMap . BI.snd $ hd) : go tl
-            )
-
-    go' l =
-        B.matchList
-            l
-            (\() -> [])
-            ( \hd tl ->
-                (unsafeFromBuiltinData (BI.fst hd), unsafeFromBuiltinData (BI.snd hd)) : go' tl
-            )
+    eqMapOfMapsWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
 
 newtype Lovelace = Lovelace { getLovelace :: Integer }
   deriving stock (Generic)
