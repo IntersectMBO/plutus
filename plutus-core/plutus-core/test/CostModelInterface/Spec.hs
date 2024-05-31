@@ -80,6 +80,7 @@ extractParams model = do
 -- | Extract some params from a cost model and return the updated version, failing if it doesn't work
 applyParams :: CekCostModel -> CostModelParams -> IO CekCostModel
 applyParams model params = fromRightM (assertFailure . show . pretty) $ applyCostModelParams model params
+
 -- | Just check that extraction works.
 testExtraction :: CekCostModel -> IO ()
 testExtraction model = do
@@ -159,7 +160,7 @@ testDeserialise = assertBool "Failed to decode default ledger cost params" $
 testApply :: IO ()
 testApply = do
     let decodedParams = fromJust $ decode @CostModelParams ledgerParamsBS
-    assertBool "Failed to load the ledger cost params into the our cost model" $
+    assertBool "Failed to load the ledger cost params into our cost model" $
         isRight $ applyCostModelParams defaultCekCostModelForTesting decodedParams
 
 -- | Test to catch a mispelled/missing param.
