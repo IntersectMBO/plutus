@@ -37,9 +37,8 @@ v3_evalCtxTooFewParams :: V3.EvaluationContext
 v3_evalCtxTooFewParams = fst $ unsafeFromRight $ runWriterT $ V3.mkEvaluationContext (take 223 $ fmap snd V3.costModelParamsForTesting)
 
 
--- FIXME: the change in the structure of the cost models have invalidated many
--- of the plutus-ledger-api tests.  We need to work out how to fix these
--- properly.
+-- ** FIXME: the change in the structure of the cost models has invalidated a number of the
+-- plutus-ledger-api tests.  We need to work out how to fix these properly.
 {-
 alwaysTrue :: TestTree
 alwaysTrue = testCase "always true script returns true" $
