@@ -95,8 +95,8 @@ record TwoVariableQuadraticFunction : Set where
         coeff10 : CostingNat
         coeff01 : CostingNat
         coeff20 : CostingNat
-        coefr11 : CostingNat
-        coefr02 : CostingNat
+        coeff11 : CostingNat
+        coeff02 : CostingNat
 
 {-# COMPILE GHC TwoVariableQuadraticFunction = data TwoVariableQuadraticFunction(TwoVariableQuadraticFunction) #-}
 
