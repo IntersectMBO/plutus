@@ -480,14 +480,14 @@ unordEqWith is0 eqV = goBoth where
                     -- null l2 case
                     (\() -> True)
                     -- non-null l2 case
-                    (\ _ _ -> Map.all is0 (Map.unsafeFromBuiltinList l2))
+                    (\ _ _ -> Map.all is0 (Map.unsafeFromBuiltinList l2 :: Map.Map BuiltinData BuiltinData))
             )
             -- non-null l1 case
             ( \hd1 tl1 ->
                 B.matchList
                     l2
                     -- null l2 case
-                    (\() -> Map.all is0 (Map.unsafeFromBuiltinList l1))
+                    (\() -> Map.all is0 (Map.unsafeFromBuiltinList l1 :: Map.Map BuiltinData BuiltinData))
                     -- non-null l2 case
                     ( \hd2 tl2 ->
                         let
@@ -555,11 +555,25 @@ unordEqWith is0 eqV = goBoth where
 {-# INLINABLE eqMapWith #-}
 -- | Check equality of two 'Map's given a function checking whether a value is zero and a function
 -- checking equality of values.
-eqMapWith ::
-    forall k v
-    . (PlutusTx.UnsafeFromData v)
-    => (v -> Bool) -> (v -> v -> Bool) -> Map.Map k v -> Map.Map k v -> Bool
+eqMapWith
+    :: (Map.Map TokenName Integer -> Bool)
+    -> (Map.Map TokenName Integer -> Map.Map TokenName Integer -> Bool)
+    -> Map.Map CurrencySymbol (Map.Map TokenName Integer)
+    -> Map.Map CurrencySymbol (Map.Map TokenName Integer)
+    -> Bool
 eqMapWith is0 eqV map1 map2 =
+    let xs1 = Map.toBuiltinList map1
+        xs2 = Map.toBuiltinList map2
+        is0' v = is0 (unsafeFromBuiltinData v)
+        eqV' v1 v2 = eqV (unsafeFromBuiltinData v1) (unsafeFromBuiltinData v2)
+     in unordEqWith is0' eqV' xs1 xs2
+
+{-# INLINABLE eqMapWith' #-}
+-- | Check equality of two 'Map's given a function checking whether a value is zero and a function
+-- checking equality of values.
+eqMapWith'
+    :: (Integer -> Bool) -> (Integer -> Integer -> Bool) -> Map.Map TokenName Integer -> Map.Map TokenName Integer -> Bool
+eqMapWith' is0 eqV map1 map2 =
     let xs1 = Map.toBuiltinList map1
         xs2 = Map.toBuiltinList map2
         is0' v = is0 (unsafeFromBuiltinData v)
@@ -573,7 +587,7 @@ eqMapWith is0 eqV map1 map2 =
 -- currency have multiple entries.
 eq :: Value -> Value -> Bool
 eq (Value currs1) (Value currs2) =
-    eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
+    eqMapWith (Map.all (0 ==)) (eqMapWith' (0 ==) (==)) currs1 currs2
 
 valueToList :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]
 valueToList (Map.toBuiltinList . getValue -> bList) =
