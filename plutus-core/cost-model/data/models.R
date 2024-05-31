@@ -818,8 +818,8 @@ modelFun <- function(path) {
     ## The integer division functions have a complex costing behaviour that requires some negative
     ## coefficients to get accurate results. Because of this they are excluded from adjustModels:
     ## the Haskell code receives the raw model and calls `abs` to take care of the (unlikely) case
-    ## when a negative value is returned.  Any other buitlins which need a non-monotonic costing
-    ## should be treated similarly.
+    ## when a negative value is returned.  Any other builtins which need a non-monotonic costing
+    ## function should be treated similarly.
 
     unadjusted.models <- list(
         divideIntegerModel                   = divideIntegerModel,
