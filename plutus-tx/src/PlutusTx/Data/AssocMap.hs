@@ -484,6 +484,7 @@ map f (Map m) = Map $ go m
                 (go tl)
         )
 
+{-# INLINEABLE foldr #-}
 foldr :: forall a b k. (P.UnsafeFromData a) => (a -> b -> b) -> b -> Map k a -> b
 foldr f z (Map m) = go m
   where
