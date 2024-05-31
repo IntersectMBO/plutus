@@ -22,7 +22,7 @@ module PlutusLedgerApi.Common.Eval
     ) where
 
 import PlutusCore
-import PlutusCore.Builtin (readKnownConstant)
+import PlutusCore.Builtin (readKnown)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -229,10 +229,7 @@ evaluateScriptRestricting ll pv verbose ectx budget p args = swap $ runWriter @L
     appliedTerm <- mkTermToEvaluate ll pv p args
     let (res, UPLC.RestrictingSt (ExRestrictingBudget final), logs) =
             evaluateTerm (UPLC.restricting $ ExRestrictingBudget budget) pv verbose ectx appliedTerm
-    tell logs
-    case res of
-        Left e -> throwError (CekError e)
-        Right v -> unless (ll == PlutusV1 || ll == PlutusV2 || isUnit v) $ throwError NonUnitReturnValue
+    processLogsAndErrors ll logs res
     pure (budget `minusExBudget` final)
 
 {-| Evaluates a script, returning the minimum budget that the script would need
@@ -254,17 +251,30 @@ evaluateScriptCounting ll pv verbose ectx p args = swap $ runWriter @LogOutput $
     appliedTerm <- mkTermToEvaluate ll pv p args
     let (res, UPLC.CountingSt final, logs) =
             evaluateTerm UPLC.counting pv verbose ectx appliedTerm
+    processLogsAndErrors ll logs res
+    pure final
+
+processLogsAndErrors ::
+    forall m.
+    (MonadError EvaluationError m, MonadWriter LogOutput m) =>
+    PlutusLedgerLanguage ->
+    LogOutput ->
+    Either
+        (UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+        (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()) ->
+    m ()
+processLogsAndErrors ll logs res = do
     tell logs
     case res of
         Left e -> throwError (CekError e)
-        Right v -> unless (ll == PlutusV1 || ll == PlutusV2 || isUnit v) $ throwError NonUnitReturnValue
-    pure final
-
-isUnit :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> Bool
-isUnit t = case readKnownConstant t of
-    Right () -> True
-    _        -> False
-{-# INLINE isUnit #-}
+        Right v ->
+            unless (ll == PlutusV1 || ll == PlutusV2 || isBuiltinUnit v) $
+                throwError NonUnitReturnValue
+    where
+        isBuiltinUnit t = case readKnown t of
+            Right () -> True
+            _        -> False
+{-# INLINE processLogsAndErrors #-}
 
 {- Note [Checking the Plutus Core language version]
 Since long ago this check has been in `mkTermToEvaluate`, which makes it a phase 2 failure.
