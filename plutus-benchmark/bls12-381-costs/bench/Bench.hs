@@ -7,7 +7,7 @@ module Main where
 import Criterion.Main
 
 import PlutusBenchmark.BLS12_381.Scripts
-import PlutusBenchmark.Common (benchProgramCek, mkEvalCtx)
+import PlutusBenchmark.Common (benchProgramCek, mkMostRecentEvalCtx)
 import PlutusLedgerApi.Common (EvaluationContext)
 import PlutusTx.Prelude qualified as Tx
 
@@ -77,7 +77,7 @@ schnorrG2Verify ctx = bench "schnorrG2Verify" $ benchProgramCek ctx mkSchnorrG2V
 
 main :: IO ()
 main = do
-  evalCtx <- evaluate mkEvalCtx
+  evalCtx <- evaluate mkMostRecentEvalCtx
   defaultMain [
         bgroup "hashAndAddG1" $ fmap (benchHashAndAddG1 evalCtx) [0, 10..150]
       , bgroup "hashAndAddG2" $ fmap (benchHashAndAddG2 evalCtx) [0, 10..150]

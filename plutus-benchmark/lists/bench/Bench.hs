@@ -6,7 +6,7 @@ module Main (main) where
 
 import Criterion.Main
 
-import PlutusBenchmark.Common (benchTermCek, getConfig, mkEvalCtx)
+import PlutusBenchmark.Common (benchTermCek, getConfig, mkMostRecentEvalCtx)
 import PlutusBenchmark.Lists.Sort qualified as Sort
 import PlutusBenchmark.Lists.Sum.Compiled qualified as Sum.Compiled
 import PlutusBenchmark.Lists.Sum.HandWritten qualified as Sum.HandWritten
@@ -54,5 +54,5 @@ main :: IO ()
 main = do
   -- Run each benchmark for at least 15 seconds.  Change this with -L or --timeout.
   config <- getConfig 15.0
-  evalCtx <- evaluate mkEvalCtx
+  evalCtx <- evaluate mkMostRecentEvalCtx
   defaultMainWith config $ benchmarks evalCtx
