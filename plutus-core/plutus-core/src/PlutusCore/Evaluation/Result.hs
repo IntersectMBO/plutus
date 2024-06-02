@@ -43,7 +43,7 @@ evaluationFailure :: AsEvaluationFailure err => err
 evaluationFailure = _EvaluationFailure # ()
 {-# INLINE evaluationFailure #-}
 
--- | Construct a 'Prism' focusing on the @*EvaluationFailure@ part of @err@ by taking
+-- | Construct a prism focusing on the @*EvaluationFailure@ part of @err@ by taking
 -- that @*EvaluationFailure@ and
 --
 -- 1. returning it for the setter part of the prism

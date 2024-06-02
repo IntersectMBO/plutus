@@ -3,15 +3,23 @@
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 
 module PlutusCore.Builtin.Result
-    ( UnliftingError (..)
+    ( EvaluationError (..)
+    , AsEvaluationError (..)
+    , UnliftingError (..)
+    , UnliftingEvaluationError (..)
     , BuiltinError (..)
     , BuiltinResult (..)
+    , AsUnliftingEvaluationError (..)
     , AsUnliftingError (..)
     , AsBuiltinError (..)
     , AsBuiltinResult (..)
+    , _UnliftingErrorVia
+    , _StructuralUnliftingError
+    , _OperationalUnliftingError
     , throwNotAConstant
     , withLogs
     , throwing
@@ -21,25 +29,33 @@ module PlutusCore.Builtin.Result
 import PlutusPrelude
 
 import PlutusCore.Builtin.Emitter
+import PlutusCore.Evaluation.Error
 import PlutusCore.Evaluation.Result
 
 import Control.Lens
 import Control.Monad.Error.Lens (throwing, throwing_)
 import Control.Monad.Except
+import Data.Bitraversable
 import Data.DList (DList)
 import Data.String (IsString)
 import Data.Text (Text)
 import Prettyprinter
 
--- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
+-- | The error message part of an 'UnliftingEvaluationError'.
 newtype UnliftingError = MkUnliftingError
     { unUnliftingError :: Text
     } deriving stock (Show, Eq)
       deriving newtype (IsString, Semigroup, NFData)
 
+-- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
+newtype UnliftingEvaluationError = MkUnliftingEvaluationError
+    { unUnliftingEvaluationError :: EvaluationError UnliftingError UnliftingError
+    } deriving stock (Show, Eq)
+      deriving newtype (NFData)
+
 -- | The type of errors that 'readKnown' and 'makeKnown' can return.
 data BuiltinError
-    = BuiltinUnliftingError !UnliftingError
+    = BuiltinUnliftingEvaluationError !UnliftingEvaluationError
     | BuiltinEvaluationFailure
     deriving stock (Show, Eq)
 
@@ -65,13 +81,34 @@ data BuiltinResult a
 
 mtraverse makeClassyPrisms
     [ ''UnliftingError
+    , ''UnliftingEvaluationError
     , ''BuiltinError
     , ''BuiltinResult
     ]
 
-instance AsUnliftingError BuiltinError where
-    _UnliftingError = _BuiltinUnliftingError
-    {-# INLINE _UnliftingError #-}
+instance AsEvaluationError UnliftingEvaluationError UnliftingError UnliftingError where
+    _EvaluationError = coerced
+    {-# INLINE _EvaluationError #-}
+
+-- | An 'UnliftingEvaluationError' /is/ an 'EvaluationError', hence for this instance we only
+-- require both @operational@ and @structural@ to have '_UnliftingError' prisms, so that we can
+-- handle both the cases pointwisely.
+instance (AsUnliftingError operational, AsUnliftingError structural) =>
+        AsUnliftingEvaluationError (EvaluationError operational structural) where
+    _UnliftingEvaluationError = go . coerced where
+        go =
+            prism'
+                (bimap
+                    (review _UnliftingError)
+                    (review _UnliftingError))
+                (bitraverse
+                    (reoption . matching _UnliftingError)
+                    (reoption . matching _UnliftingError))
+    {-# INLINE _UnliftingEvaluationError #-}
+
+instance AsUnliftingEvaluationError BuiltinError where
+    _UnliftingEvaluationError = _BuiltinUnliftingEvaluationError . _UnliftingEvaluationError
+    {-# INLINE _UnliftingEvaluationError #-}
 
 instance AsEvaluationFailure BuiltinError where
     _EvaluationFailure = _EvaluationFailureVia BuiltinEvaluationFailure
@@ -102,12 +139,36 @@ instance Pretty UnliftingError where
         , pretty err
         ]
 
+deriving newtype instance Pretty UnliftingEvaluationError
+
 instance Pretty BuiltinError where
-    pretty (BuiltinUnliftingError err) = "Builtin evaluation failure:" <+> pretty err
-    pretty BuiltinEvaluationFailure    = "Builtin evaluation failure"
+    pretty (BuiltinUnliftingEvaluationError err) = "Builtin evaluation failure:" <+> pretty err
+    pretty BuiltinEvaluationFailure              = "Builtin evaluation failure"
+
+-- See Note [Ignoring context in OperationalEvaluationError].
+-- | Construct a prism focusing on the @*EvaluationFailure@ part of @err@ by taking
+-- that @*EvaluationFailure@ and
+--
+-- 1. pretty-printing and embedding it into an 'UnliftingError' for the setter part of the prism
+-- 2. returning it directly for the opposite direction (there's no other way to convert an
+--    'UnliftingError' to an evaluation failure, since the latter doesn't carry any content)
+--
+-- This is useful for providing 'AsUnliftingError' instances for types such as 'CkUserError' and
+-- 'CekUserError'.
+_UnliftingErrorVia :: Pretty err => err -> Prism' err UnliftingError
+_UnliftingErrorVia err = iso (MkUnliftingError . display) (const err)
+{-# INLINE _UnliftingErrorVia #-}
+
+_StructuralUnliftingError :: AsBuiltinError err => Prism' err UnliftingError
+_StructuralUnliftingError = _BuiltinUnliftingEvaluationError . _StructuralEvaluationError
+{-# INLINE _StructuralUnliftingError #-}
+
+_OperationalUnliftingError :: AsBuiltinError err => Prism' err UnliftingError
+_OperationalUnliftingError = _BuiltinUnliftingEvaluationError . _OperationalEvaluationError
+{-# INLINE _OperationalUnliftingError #-}
 
 throwNotAConstant :: MonadError BuiltinError m => m void
-throwNotAConstant = throwError $ BuiltinUnliftingError "Not a constant"
+throwNotAConstant = throwing _StructuralUnliftingError "Not a constant"
 {-# INLINE throwNotAConstant #-}
 
 -- | Prepend logs to a 'BuiltinResult' computation.
