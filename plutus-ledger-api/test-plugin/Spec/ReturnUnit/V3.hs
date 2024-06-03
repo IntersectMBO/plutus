@@ -63,7 +63,7 @@ expectFailure ::
   Data ->
   TestTree
 expectFailure name code arg = testCase name $ case res of
-  Left NonUnitReturnValue -> pure ()
+  Left InvalidReturnValue -> pure ()
   Left _                  -> assertFailure "evaluation failed for a different reason"
   Right _                 -> assertFailure "evaluation succeeded"
   where

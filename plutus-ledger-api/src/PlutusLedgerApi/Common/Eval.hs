@@ -54,7 +54,7 @@ data EvaluationError =
     | CodecError !ScriptDecodeError -- ^ A deserialisation error
     -- TODO: make this error more informative when we have more information about what went wrong
     | CostModelParameterMismatch -- ^ An error indicating that the cost model parameters didn't match what we expected
-    | NonUnitReturnValue -- ^ The script evaluated to a value that is not the builtin unit.
+    | InvalidReturnValue -- ^ The script evaluated to a value that is not a valid return value.
     deriving stock (Show, Eq)
 makeClassyPrisms ''EvaluationError
 
@@ -66,7 +66,10 @@ instance Pretty EvaluationError where
     pretty (DeBruijnError e)          = pretty e
     pretty (CodecError e)             = pretty e
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
-    pretty NonUnitReturnValue         = "The evaluation finished but the result is not unit"
+    pretty InvalidReturnValue         =
+        "The evaluation finished but the result value is not valid. "
+        <> "Plutus V3 scripts must return BuiltinUnit. "
+        <> "Returning any other value is considered a failure."
 
 -- | A simple toggle indicating whether or not we should accumulate logs during script execution.
 data VerboseMode =
@@ -266,15 +269,20 @@ processLogsAndErrors ::
 processLogsAndErrors ll logs res = do
     tell logs
     case res of
-        Left e -> throwError (CekError e)
-        Right v ->
-            unless (ll == PlutusV1 || ll == PlutusV2 || isBuiltinUnit v) $
-                throwError NonUnitReturnValue
+        Left e  -> throwError (CekError e)
+        Right v -> unless (isResultValid ll v) (throwError InvalidReturnValue)
+{-# INLINE processLogsAndErrors #-}
+
+isResultValid ::
+    PlutusLedgerLanguage ->
+    UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () ->
+    Bool
+isResultValid ll res = ll == PlutusV1 || ll == PlutusV2 || isBuiltinUnit res
     where
         isBuiltinUnit t = case readKnown t of
             Right () -> True
             _        -> False
-{-# INLINE processLogsAndErrors #-}
+{-# INLINE isResultValid #-}
 
 {- Note [Checking the Plutus Core language version]
 Since long ago this check has been in `mkTermToEvaluate`, which makes it a phase 2 failure.
