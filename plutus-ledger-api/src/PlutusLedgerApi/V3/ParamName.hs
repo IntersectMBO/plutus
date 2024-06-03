@@ -65,8 +65,13 @@ data ParamName =
   | DecodeUtf8'memory'arguments'intercept
   | DecodeUtf8'memory'arguments'slope
   | DivideInteger'cpu'arguments'constant
-  | DivideInteger'cpu'arguments'model'arguments'intercept
-  | DivideInteger'cpu'arguments'model'arguments'slope
+  | DivideInteger'cpu'arguments'model'arguments'c00
+  | DivideInteger'cpu'arguments'model'arguments'c01
+  | DivideInteger'cpu'arguments'model'arguments'c02
+  | DivideInteger'cpu'arguments'model'arguments'c10
+  | DivideInteger'cpu'arguments'model'arguments'c11
+  | DivideInteger'cpu'arguments'model'arguments'c20
+  | DivideInteger'cpu'arguments'model'arguments'minimum
   | DivideInteger'memory'arguments'intercept
   | DivideInteger'memory'arguments'minimum
   | DivideInteger'memory'arguments'slope
@@ -75,8 +80,8 @@ data ParamName =
   | EncodeUtf8'memory'arguments'intercept
   | EncodeUtf8'memory'arguments'slope
   | EqualsByteString'cpu'arguments'constant
-  | EqualsByteString'cpu'arguments'intercept -- TODO: this should change in the PlutusV3 cost model
-  | EqualsByteString'cpu'arguments'slope     -- TODO: this should change in the PlutusV3 cost model
+  | EqualsByteString'cpu'arguments'intercept
+  | EqualsByteString'cpu'arguments'slope
   | EqualsByteString'memory'arguments
   | EqualsData'cpu'arguments'intercept
   | EqualsData'cpu'arguments'slope
@@ -85,8 +90,8 @@ data ParamName =
   | EqualsInteger'cpu'arguments'slope
   | EqualsInteger'memory'arguments
   | EqualsString'cpu'arguments'constant
-  | EqualsString'cpu'arguments'intercept    -- TODO: this should change in the PlutusV3 cost model
-  | EqualsString'cpu'arguments'slope        -- TODO: this should change in the PlutusV3 cost model
+  | EqualsString'cpu'arguments'intercept
+  | EqualsString'cpu'arguments'slope
   | EqualsString'memory'arguments
   | FstPair'cpu'arguments
   | FstPair'memory'arguments
@@ -125,8 +130,13 @@ data ParamName =
   | MkPairData'cpu'arguments
   | MkPairData'memory'arguments
   | ModInteger'cpu'arguments'constant
-  | ModInteger'cpu'arguments'model'arguments'intercept
-  | ModInteger'cpu'arguments'model'arguments'slope
+  | ModInteger'cpu'arguments'model'arguments'c00
+  | ModInteger'cpu'arguments'model'arguments'c01
+  | ModInteger'cpu'arguments'model'arguments'c02
+  | ModInteger'cpu'arguments'model'arguments'c10
+  | ModInteger'cpu'arguments'model'arguments'c11
+  | ModInteger'cpu'arguments'model'arguments'c20
+  | ModInteger'cpu'arguments'model'arguments'minimum
   | ModInteger'memory'arguments'intercept
   | ModInteger'memory'arguments'slope
   | MultiplyInteger'cpu'arguments'intercept
@@ -136,14 +146,24 @@ data ParamName =
   | NullList'cpu'arguments
   | NullList'memory'arguments
   | QuotientInteger'cpu'arguments'constant
-  | QuotientInteger'cpu'arguments'model'arguments'intercept
-  | QuotientInteger'cpu'arguments'model'arguments'slope
+  | QuotientInteger'cpu'arguments'model'arguments'c00
+  | QuotientInteger'cpu'arguments'model'arguments'c01
+  | QuotientInteger'cpu'arguments'model'arguments'c02
+  | QuotientInteger'cpu'arguments'model'arguments'c10
+  | QuotientInteger'cpu'arguments'model'arguments'c11
+  | QuotientInteger'cpu'arguments'model'arguments'c20
+  | QuotientInteger'cpu'arguments'model'arguments'minimum
   | QuotientInteger'memory'arguments'intercept
   | QuotientInteger'memory'arguments'minimum
   | QuotientInteger'memory'arguments'slope
   | RemainderInteger'cpu'arguments'constant
-  | RemainderInteger'cpu'arguments'model'arguments'intercept
-  | RemainderInteger'cpu'arguments'model'arguments'slope
+  | RemainderInteger'cpu'arguments'model'arguments'c00
+  | RemainderInteger'cpu'arguments'model'arguments'c01
+  | RemainderInteger'cpu'arguments'model'arguments'c02
+  | RemainderInteger'cpu'arguments'model'arguments'c10
+  | RemainderInteger'cpu'arguments'model'arguments'c11
+  | RemainderInteger'cpu'arguments'model'arguments'c20
+  | RemainderInteger'cpu'arguments'model'arguments'minimum
   | RemainderInteger'memory'arguments'intercept
   | RemainderInteger'memory'arguments'slope
   | SerialiseData'cpu'arguments'intercept

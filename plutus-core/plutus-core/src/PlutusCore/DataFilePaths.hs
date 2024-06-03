@@ -40,5 +40,5 @@ rModelFile = costModelDataDir </> "models" <.> "R"
 -- | The file containing the benchmark results for the built-in functions: only
 -- needed for cost-model-test.
 benchingResultsFile :: FilePath
-benchingResultsFile = costModelDataDir </> "benching" <.> "csv"
+benchingResultsFile = costModelDataDir </> "benching-conway" <.> "csv"
 

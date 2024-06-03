@@ -44,6 +44,9 @@ import Hedgehog.Range qualified as Range
    for exact equality of the outputs but instead check that the R result and the
    Haskell result agreee to within a factor of 1/100 (one percent).
 -}
+-- FIXME: with this limit the two-variable quadratic costing functions for the
+-- integer division builtins fail to pass the test.  We don't run the test in
+-- CI, but we should still fix it.
 
 -- | Maximum allowable difference beween R result and Haskell result.
 epsilon :: Double
