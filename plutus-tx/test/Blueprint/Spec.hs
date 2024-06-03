@@ -71,8 +71,17 @@ $( PlutusTx.asData
 testUnrollNop :: Unroll Nop :~: '[Nop]
 testUnrollNop = Refl
 
+testUnrollListNop :: Unroll [Nop] :~: '[Nop]
+testUnrollListNop = Refl
+
+testUnrollListsNop :: Unroll [[[Nop]]] :~: '[Nop]
+testUnrollListsNop = Refl
+
 testUnrollBaz :: Unroll Baz :~: [Baz, Integer]
 testUnrollBaz = Refl
+
+testUnrollListBaz :: Unroll [Baz] :~: [Baz, Integer]
+testUnrollListBaz = Refl
 
 testUnrollZap :: Unroll Zap :~: [Zap, Nop, Integer, Bool]
 testUnrollZap = Refl

@@ -91,6 +91,7 @@ type family Unroll (p :: Type) :: [Type] where
   Unroll BuiltinString = '[BuiltinString]
   Unroll (BuiltinList a) = Prepend (BuiltinList a) (GUnroll (Rep a))
   Unroll BuiltinByteString = '[BuiltinByteString]
+  Unroll [a] = Unroll a
   Unroll p = Prepend p (GUnroll (Break (NoGeneric p) (Rep p)))
 
 -- | Detect stuck type family: https://blog.csongor.co.uk/report-stuck-families/#custom-type-errors
