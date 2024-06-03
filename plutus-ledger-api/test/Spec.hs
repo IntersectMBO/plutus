@@ -19,7 +19,7 @@ import Spec.Versions qualified
 
 import Test.Tasty
 import Test.Tasty.HUnit
--- import Test.Tasty.QuickCheck
+import Test.Tasty.QuickCheck
 
 import Control.Monad.Writer
 import Data.Int (Int64)
@@ -36,10 +36,6 @@ v1_evalCtxForTesting = fst $ unsafeFromRight $ runWriterT $ V1.mkEvaluationConte
 v3_evalCtxTooFewParams :: V3.EvaluationContext
 v3_evalCtxTooFewParams = fst $ unsafeFromRight $ runWriterT $ V3.mkEvaluationContext (take 223 $ fmap snd V3.costModelParamsForTesting)
 
-
--- ** FIXME: the change in the structure of the cost models has invalidated a number of the
--- plutus-ledger-api tests.  We need to work out how to fix these properly.
-{-
 alwaysTrue :: TestTree
 alwaysTrue = testCase "always true script returns true" $
     let script = either (error . show) id $ V1.deserialiseScript alonzoPV (alwaysSucceedingNAryFunction 2)
@@ -51,7 +47,6 @@ alwaysFalse = testCase "always false script returns false" $
     let script = either (error . show) id $ V1.deserialiseScript alonzoPV (alwaysFailingNAryFunction 2)
         (_, res) = V1.evaluateScriptCounting alonzoPV V1.Quiet v1_evalCtxForTesting script [I 1, I 2]
     in assertBool "fails" (isLeft res)
--}
 
 unavailableBuiltins :: TestTree
 unavailableBuiltins = testCase "builtins are unavailable before Alonzo" $
@@ -71,7 +66,6 @@ integerToByteStringExceedsBudget = testCase "integerToByteString should exceed b
         Left _ -> assertFailure "fails"
         Right (ExBudget cpu _mem) -> assertBool "did not exceed budget" (cpu >= fromIntegral (maxBound :: Int64))
 
-{-  ** FIXME: These don't work with the new cost model setup
 saltedFunction :: TestTree
 saltedFunction =
     let evaluate ss ss' args =
@@ -112,16 +106,15 @@ saltedFunction =
             f'' = saltFunction salt' f
         in salt /= salt' ==> f' /= f''
     ]
--}
+
 
 tests :: TestTree
 tests = testGroup "plutus-ledger-api"[
     testGroup "basic evaluation tests" [
-{-          alwaysTrue
-          , alwaysFalse
-          , saltedFunction
--}
-          unavailableBuiltins
+          alwaysTrue
+        , alwaysFalse
+        , saltedFunction
+        , unavailableBuiltins
         , availableBuiltins
         , integerToByteStringExceedsBudget
     ]
