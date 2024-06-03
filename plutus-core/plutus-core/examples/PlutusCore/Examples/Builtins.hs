@@ -174,7 +174,7 @@ instance
     type IsBuiltin _ (MetaForall name a) = 'False
     type ToHoles _ (MetaForall name a) = '[TypeHole a]
     type ToBinds uni acc (MetaForall name a) = ToBinds uni (Insert ('GADT.Some name) acc) a
-    toTypeAst _ = toTypeAst $ Proxy @a
+    typeAst = toTypeAst $ Proxy @a
 instance MakeKnownIn DefaultUni term a => MakeKnownIn DefaultUni term (MetaForall name a) where
     makeKnown (MetaForall x) = makeKnown x
 -- 'ReadKnownIn' doesn't make sense for 'MetaForall'.
@@ -185,16 +185,19 @@ instance (tyname ~ TyName, KnownTypeAst tyname uni a) =>
     type IsBuiltin _ (PlcListRep a) = 'False
     type ToHoles _ (PlcListRep a) = '[RepHole a]
     type ToBinds uni acc (PlcListRep a) = ToBinds uni acc a
-    toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
+    typeAst = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 
 instance tyname ~ TyName => KnownTypeAst tyname DefaultUni Void where
-    toTypeAst _ = runQuote $ do
+    type IsBuiltin _ _ = 'False
+    type ToHoles _ _ = '[]
+    type ToBinds _ acc _ = acc
+    typeAst = runQuote $ do
         a <- freshTyName "a"
         pure $ TyForall () a (Type ()) $ TyVar () a
 instance UniOf term ~ DefaultUni => MakeKnownIn DefaultUni term Void where
     makeKnown = absurd
 instance UniOf term ~ DefaultUni => ReadKnownIn DefaultUni term Void where
-    readKnown _ = throwing _UnliftingError "Can't unlift to 'Void'"
+    readKnown _ = throwing _StructuralUnliftingError "Can't unlift to 'Void'"
 
 data BuiltinErrorCall = BuiltinErrorCall
     deriving stock (Show, Eq)

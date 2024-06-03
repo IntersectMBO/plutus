@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -8,10 +9,13 @@
 module PlutusCore.Evaluation.ErrorWithCause
     ( ErrorWithCause (..)
     , throwingWithCause
+    , throwingWithCause_
+    , throwBuiltinErrorWithCause
     ) where
 
 import PlutusPrelude
 
+import PlutusCore.Builtin.Result
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
@@ -59,3 +63,26 @@ throwingWithCause
     :: forall exc e t term m x. (exc ~ ErrorWithCause e term, MonadError exc m)
     => AReview e t -> t -> Maybe term -> m x
 throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cause) t
+
+-- | "Prismatically" throw a contentless error and its (optional) cause. 'throwingWithCause_' is to
+-- 'throwingWithCause' as 'throwing_' is to 'throwing'.
+throwingWithCause_
+    -- Binds @exc@ so it can be used as a convenient parameter with @TypeApplications@.
+    :: forall exc e term m x. (exc ~ ErrorWithCause e term, MonadError exc m)
+    => AReview e () -> Maybe term -> m x
+throwingWithCause_ l = throwingWithCause l ()
+
+-- | Attach a @cause@ to a 'BuiltinError' and throw that.
+-- Note that an evaluator might require the cause to be computed lazily for best performance on the
+-- happy path, hence this function must not force its first argument.
+-- TODO: wrap @cause@ in 'Lazy' once we have it.
+throwBuiltinErrorWithCause
+    :: ( MonadError (ErrorWithCause err cause) m
+       , AsUnliftingEvaluationError err, AsEvaluationFailure err
+       )
+    => cause -> BuiltinError -> m void
+throwBuiltinErrorWithCause cause = \case
+    BuiltinUnliftingEvaluationError unlErr ->
+        throwingWithCause _UnliftingEvaluationError unlErr $ Just cause
+    BuiltinEvaluationFailure ->
+        throwingWithCause_ _EvaluationFailure $ Just cause
