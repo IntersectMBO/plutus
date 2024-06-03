@@ -15,6 +15,7 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     , defaultCostModelParamsForTesting
     , defaultBuiltinCostModelForTesting
     , defaultCekCostModelForTesting
+    , defaultCekCostModelForTestingB
     , unitCekMachineCosts
     , unitCekParameters
     )
@@ -219,6 +220,9 @@ defaultCostModelParamsForTesting = defaultCostModelParamsC
 defaultCekCostModelForTesting :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModelForTesting = cekCostModelVariantC
 
+defaultCekCostModelForTestingB :: CostModel CekMachineCosts BuiltinCostModel
+defaultCekCostModelForTestingB = cekCostModelVariantB
+
 {- A cost model with unit costs, so we can count how often each builtin is called.
   This currently works for all semantics variants because to date we have only
   ever added new builtins and never removed any. -}
@@ -333,4 +337,3 @@ unitCekParameters =
     -- See Note [noinline for saving on ticks].
     noinline mkMachineParameters def $
         CostModel unitCekMachineCosts unitCostBuiltinCostModel
-

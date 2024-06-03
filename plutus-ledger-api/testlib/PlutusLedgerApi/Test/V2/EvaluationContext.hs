@@ -9,6 +9,7 @@ module PlutusLedgerApi.Test.V2.EvaluationContext
     ) where
 
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusLedgerApi.Test.Common.EvaluationContext as Common
 import PlutusLedgerApi.Test.V3.EvaluationContext qualified as V3
@@ -27,7 +28,7 @@ costModelParamsForTesting = Map.toList $ fromJust $
 
 -- | The PlutusV2 "cost model" is constructed by the v3 "cost model", by clearing v3 introductions.
 mCostModel :: MCostModel
-mCostModel = V3.mCostModel
+mCostModel = toMCostModel defaultCekCostModelForTestingB
            & machineCostModel
            %~ V3.clearMachineCostModel
            & builtinCostModel
