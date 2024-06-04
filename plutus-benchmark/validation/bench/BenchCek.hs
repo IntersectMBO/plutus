@@ -4,6 +4,8 @@ module Main where
 import Common (benchTermCek, benchWith, mkEvalCtx, unsafeUnflat)
 import Control.Exception (evaluate)
 import PlutusBenchmark.Common (toNamedDeBruijnTerm)
+import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantA))
+import PlutusLedgerApi.Common (PlutusLedgerLanguage (PlutusV1))
 import UntypedPlutusCore as UPLC
 
 {-|
@@ -16,7 +18,9 @@ import UntypedPlutusCore as UPLC
 -}
 main :: IO ()
 main = do
-  evalCtx <- evaluate mkEvalCtx
+  -- The validation benchmarks were all created with PlutusV1, so let's make
+  -- sure that the evaluation context matches.
+  evalCtx <- evaluate $ mkEvalCtx PlutusV1 DefaultFunSemanticsVariantA
   let mkCekBM file program =
           benchTermCek evalCtx . toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file program
   benchWith mkCekBM

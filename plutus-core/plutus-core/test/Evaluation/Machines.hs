@@ -34,5 +34,5 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines = testGroup
     "machines"
-    [ testMachine "CK" $ evaluateCkNoEmit defaultBuiltinsRuntime
+    [ testMachine "CK" $ evaluateCkNoEmit defaultBuiltinsRuntimeForTesting
     ]

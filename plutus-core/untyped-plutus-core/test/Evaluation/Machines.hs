@@ -61,8 +61,8 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK"  $ Cek.evaluateCekNoEmit Plc.defaultCekParameters
-        , testMachine "SteppableCEK"  $ SCek.evaluateCekNoEmit Plc.defaultCekParameters
+        [ testMachine "CEK"  $ Cek.evaluateCekNoEmit Plc.defaultCekParametersForTesting
+        , testMachine "SteppableCEK"  $ SCek.evaluateCekNoEmit Plc.defaultCekParametersForTesting
         ]
 
 testBudget
@@ -76,7 +76,7 @@ testBudget runtime name term =
     name
     ".uplc"
     (render $
-        prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCosts runtime) Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCostsForTesting runtime) Cek.tallying term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] where
@@ -124,9 +124,9 @@ test_budget
     = localOption (SizeCutoff 1000000)
     . runTestNested ["untyped-plutus-core", "test", "Evaluation", "Machines", "Budget"]
     $ concat
-        [ folder Plc.defaultBuiltinsRuntime bunchOfFibs
+        [ folder Plc.defaultBuiltinsRuntimeForTesting bunchOfFibs
         , folder (toBuiltinsRuntime def ()) bunchOfIdNats
-        , folder Plc.defaultBuiltinsRuntime bunchOfIfThenElseNats
+        , folder Plc.defaultBuiltinsRuntimeForTesting bunchOfIfThenElseNats
         ]
   where
     folder runtime =
@@ -138,7 +138,7 @@ testTallying name term =
     name
     ".uplc"
     (render $
-        prettyPlcReadableDef $ runCekNoEmit Plc.defaultCekParameters Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit Plc.defaultCekParametersForTesting Cek.tallying term)
 
 test_tallying :: TestTree
 test_tallying =

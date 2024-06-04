@@ -67,7 +67,7 @@ unsafeRunTermCek :: Term -> EvaluationResult Term
 unsafeRunTermCek =
     unsafeToEvaluationResult
         . (\(res, _, _) -> res)
-        . runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.noEmitter
+        . runCekDeBruijn PLC.defaultCekParametersForTesting Cek.restrictingEnormous Cek.noEmitter
 
 -- | Just run a term.
 runTermCek ::
@@ -77,7 +77,7 @@ runTermCek ::
     )
 runTermCek =
     (\(res, _, logs) -> (res, logs))
-        . runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.logEmitter
+        . runCekDeBruijn PLC.defaultCekParametersForTesting Cek.restrictingEnormous Cek.logEmitter
 
 {- | Evaluate a PLC term and check that the result matches a given Haskell value
    (perhaps obtained by running the Haskell code that the term was compiled

@@ -190,17 +190,22 @@ test-suite plutus-ledger-api-plugin-test
     Spec.Budget
     Spec.Data.Budget
     Spec.Data.Value
+    Spec.ReturnUnit.V1
+    Spec.ReturnUnit.V2
+    Spec.ReturnUnit.V3
     Spec.Value
 
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                                                              >=4.9   && <5
     , containers
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.28
-    , plutus-ledger-api                               ^>=1.28
-    , plutus-tx-plugin                                ^>=1.28
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.28
+    , mtl
+    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.28
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.28
+    , plutus-tx-plugin                                                  ^>=1.28
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.28
     , prettyprinter
     , tasty
+    , tasty-hunit
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
 -- running this in CI.

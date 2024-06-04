@@ -115,6 +115,9 @@ type CkM uni fun s =
 instance AsEvaluationFailure CkUserError where
     _EvaluationFailure = _EvaluationFailureVia CkEvaluationFailure
 
+instance AsUnliftingError CkUserError where
+    _UnliftingError = _UnliftingErrorVia CkEvaluationFailure
+
 instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
 
