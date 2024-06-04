@@ -17,6 +17,8 @@ open import Builtin using (Builtin)
 open import VerifiedCompilation.Equality using (decEq-⊢)
 open import Data.List using (List; [_])
 open import Data.Nat using (ℕ)
+open import Function using (_∋_)
+
 
 ```
 ## Pattern Views for Terms
@@ -29,13 +31,13 @@ Following suggestions from Philip Wadler: creating Views for each Term type and 
 make this reusable. We can create patterns using nested calls to these views, and decide them with nested calls to the decision procedures. 
 ```
 
-Pred : Set₁
-Pred = ∀{X} → (X ⊢) → Set
+Pred : Set → Set₁
+Pred X = (X ⊢) → Set
 
-ListPred : Set₁
-ListPred = ∀{X} → List (X ⊢) → Set
+ListPred : Set → Set₁
+ListPred X = List (X ⊢) → Set
 
-data isVar (X : Set) : Pred where
+data isVar (X : Set) : Pred X where
   isvar : (v : X) → isVar X (` v)
 isVar? : {X : Set} → Decidable (isVar X)
 isVar? (` x) = yes (isvar x)
@@ -49,9 +51,9 @@ isVar? (case x ts) = no (λ ())
 isVar? (builtin b) = no (λ ())
 isVar? error = no (λ ())
 
-data isLambda (X : Set) (P : Pred) : Pred where
+data isLambda (X : Set) (P : Pred (Maybe X)) : Pred X where
   islambda : (t : ((Maybe X) ⊢)) → P t → isLambda X P (ƛ t)
-isLambda? : {X : Set} → {P : Pred} → (Decidable P) → Decidable (isLambda X P)
+isLambda? : {X : Set} → {P : Pred (Maybe X)} → (Decidable P) → Decidable (isLambda X P)
 isLambda? isP? (` x) = no λ ()
 isLambda? isP? (ƛ t) with isP? t
 ...                                | no ¬p = no λ { (islambda .t x) → ¬p x}
@@ -65,9 +67,9 @@ isLambda? isP? (case t ts) = no (λ ())
 isLambda? isP? (_⊢.builtin b) = no (λ ())
 isLambda? isP? _⊢.error = no (λ ())
 
-data isApp (X : Set) (P Q : Pred) : Pred where
+data isApp (X : Set) (P Q : Pred X) : Pred X where
   isapp : (l r : (X ⊢)) → P l → Q r → isApp X P Q (l · r)
-isApp? : {X : Set} → { P Q : Pred} → Decidable P → Decidable Q → Decidable (isApp X P Q)
+isApp? : {X : Set} → { P Q : Pred X} → Decidable P → Decidable Q → Decidable (isApp X P Q)
 isApp? isP? isQ? (` x) = no (λ ())
 isApp? isP? isQ? (ƛ t) = no (λ ())
 isApp? isP? isQ? (t · t₁) with (isP? t) ×-dec (isQ? t₁)
@@ -81,9 +83,9 @@ isApp? isP? isQ? (case t ts) = no (λ ())
 isApp? isP? isQ? (builtin b) = no (λ ())
 isApp? isP? isQ? error = no (λ ())
 
-data isForce (X : Set) (P : Pred) : Pred where
+data isForce (X : Set) (P : Pred X) : Pred X where
   isforce : (t : (X ⊢)) → P t → isForce X P (force t)
-isForce? : {X : Set} → {P : Pred} → Decidable P → Decidable (isForce X P)
+isForce? : {X : Set} → {P : Pred X} → Decidable P → Decidable (isForce X P)
 isForce? isP? (` x) = no (λ ())
 isForce? isP? (ƛ t) = no (λ ())
 isForce? isP? (t · t₁) = no (λ ())
@@ -98,9 +100,9 @@ isForce? isP? (builtin b) = no (λ ())
 isForce? isP? error = no (λ ())
 
 
-data isDelay (X : Set) (P : Pred) : Pred where
+data isDelay (X : Set) (P : Pred X) : Pred X where
   isdelay : (t : (X ⊢)) → P t → isDelay X P (delay t)
-isDelay? : {X : Set} → {P : Pred} → Decidable P → Decidable (isDelay X P)
+isDelay? : {X : Set} → {P : Pred X} → Decidable P → Decidable (isDelay X P)
 isDelay? isP? (` x) = no (λ ())
 isDelay? isP? (ƛ t) = no (λ ())
 isDelay? isP? (t · t₁) = no (λ ())
@@ -114,23 +116,24 @@ isDelay? isP? (case t ts) = no (λ ())
 isDelay? isP? (builtin b) = no (λ ())
 isDelay? isP? error = no (λ ())
 
-data isCon (X : Set) : Pred where
+data isCon (X : Set) : Pred X where
   iscon : (t : TmCon)  → isCon X (con t)
+
 isCon? : {X : Set} → Decidable (isCon X) 
-isCon? (` x) = no (λ _ → x)
+isCon? (` x) = no (λ ())
 isCon? (ƛ t) = no (λ ())
 isCon? (t · t₁) = no (λ ())
 isCon? (force t) = no (λ ())
 isCon? (delay t) = no (λ ())
-isCon? (con c) = yes (iscon c)
+isCon? (con c) = yes (iscon c) --(iscon c)
 isCon? (constr i xs) = no (λ ())
 isCon? (case t ts) = no (λ ())
 isCon? (builtin b) = no (λ ())
 isCon? error = no (λ ())
 
-data isConstr (X : Set) (Qs : ListPred) : Pred where
+data isConstr (X : Set) (Qs : ListPred X) : Pred X where
   isconstr : (i : ℕ) → (xs : List (X ⊢)) → Qs xs → isConstr X Qs (constr i xs)
-isConstr? : {X : Set} → {Qs : ListPred} → Decidable Qs → Decidable (isConstr X Qs)
+isConstr? : {X : Set} → {Qs : ListPred X} → Decidable Qs → Decidable (isConstr X Qs)
 isConstr? isQs? (` x) = no (λ())
 isConstr? isQs? (ƛ t) = no (λ())
 isConstr? isQs? (t · t₁) = no (λ())
@@ -144,9 +147,9 @@ isConstr? isQs? (case t ts) = no (λ())
 isConstr? isQs? (builtin b) = no (λ())
 isConstr? isQs? error = no (λ())
 
-data isCase (X : Set) (P : Pred) (Qs : ListPred) : Pred where
+data isCase (X : Set) (P : Pred X) (Qs : ListPred X) : Pred X where
   iscase :  (t : (X ⊢)) → (ts : List (X ⊢)) → P t → Qs ts → isCase X P Qs (case t ts)
-isCase? : {X : Set} → {P : Pred} → {Qs : ListPred} → Decidable P → Decidable Qs → Decidable (isCase X P Qs) 
+isCase? : {X : Set} → {P : Pred X} → {Qs : ListPred X} → Decidable P → Decidable Qs → Decidable (isCase X P Qs) 
 isCase? isP? isQs? (` x) = no (λ ()) 
 isCase? isP? isQs? (ƛ t) = no (λ ()) 
 isCase? isP? isQs? (t · t₁) = no (λ ()) 
@@ -160,10 +163,10 @@ isCase? isP? isQs? (case t ts) with (isP? t) ×-dec (isQs? ts)
 isCase? isP? isQs? (builtin b) = no (λ ()) 
 isCase? isP? isQs? error = no (λ ()) 
 
-data isBuiltin (X : Set) : Pred where
+data isBuiltin (X : Set) : Pred X where
   isbuiltin : (b : Builtin) → isBuiltin X (builtin b)
 isBuiltin? : {X : Set} → Decidable (isBuiltin X)
-isBuiltin? (` x) = no (λ _ → x)
+isBuiltin? (` x) = no (λ ())
 isBuiltin? (ƛ t) = no (λ ())
 isBuiltin? (t · t₁) = no (λ ())
 isBuiltin? (force t) = no (λ ())
@@ -174,7 +177,7 @@ isBuiltin? (case t ts) = no (λ ())
 isBuiltin? (builtin b) = yes (isbuiltin b)
 isBuiltin? error = no (λ ())
 
-data isError (X : Set) : Pred where
+data isError (X : Set) : Pred X where
   iserror : isError X error
 isError? : {X : Set} → Decidable (isError X)
 isError? (` x) = no (λ ())
