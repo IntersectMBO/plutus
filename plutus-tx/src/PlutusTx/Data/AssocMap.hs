@@ -38,7 +38,7 @@ import PlutusTx.List qualified as List
 import PlutusTx.Prelude hiding (all, any, foldr, map, null, toList, uncons)
 import PlutusTx.Prelude qualified
 import PlutusTx.These
-
+import Prettyprinter (Pretty (..))
 
 import Prelude qualified as Haskell
 
@@ -64,11 +64,9 @@ on a list representation.
 -}
 newtype Map k a = Map (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData))
   deriving stock (Haskell.Eq, Haskell.Show)
-
 instance P.ToData (Map k a) where
   {-# INLINEABLE toBuiltinData #-}
   toBuiltinData (Map d) = BI.mkMap d
-
 instance P.FromData (Map k a) where
   {-# INLINABLE fromBuiltinData #-}
   fromBuiltinData = Just . Map . BI.unsafeDataAsMap
@@ -76,6 +74,20 @@ instance P.FromData (Map k a) where
 instance P.UnsafeFromData (Map k a) where
   {-# INLINABLE unsafeFromBuiltinData #-}
   unsafeFromBuiltinData = Map . BI.unsafeDataAsMap
+
+instance Eq (Map k a) where
+  (Map m1) == (Map m2) =
+    P.equalsData (BI.mkMap m1) (BI.mkMap m2)
+
+  sorted (Map m) = Map (BI.sort m)
+
+instance
+  ( Pretty k
+  , Pretty a
+  , P.UnsafeFromData k
+  , P.UnsafeFromData a
+  ) => Pretty (Map k a) where
+  pretty = pretty . toList
 
 {-# INLINEABLE lookup #-}
 -- | Look up the value corresponding to the key.
