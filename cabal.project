@@ -16,7 +16,7 @@ index-state:
   -- Bump both the following dates if you need newer packages from Hackage
   , hackage.haskell.org 2024-01-08T22:38:30Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2024-01-16T11:00:00Z
+  , cardano-haskell-packages 2024-06-03T14:31:53Z
 
 packages: doc/read-the-docs-site
           plutus-benchmark
@@ -83,12 +83,3 @@ allow-newer:
   , inline-r:containers
   , inline-r:primitive
 
-source-repository-package
-  type: git
-  location: https://github.com/paluh/cardano-base
-  tag: ea31e27ae4c9715232fa20e2e91f23e5bd967d65
-  subdir:
-    base-deriving-via
-    cardano-crypto-class
-    cardano-crypto-praos
-    cardano-crypto-tests
