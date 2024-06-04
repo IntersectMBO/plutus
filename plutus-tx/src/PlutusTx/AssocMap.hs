@@ -76,7 +76,8 @@ newtype Map k v = Map {unMap :: [(k, v)]}
 
 instance (Eq k, Eq v) => Eq (Map k v) where
   Map m1 == m2 =
-    List.all (\(k, v) -> lookup k m2 == Just v) m1
+    length m1 == length m2
+    && List.all (\(k, v) -> lookup k m2 == Just v) m1
 
 instance (Haskell.Eq k, Haskell.Eq v) => Haskell.Eq (Map k v) where
   Map m1 == Map m2 =
