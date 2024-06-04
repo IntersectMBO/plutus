@@ -11,12 +11,12 @@ module VerifiedCompilation.UCaseOfCase where
 ## Imports
 
 ```
-open import VerifiedCompilation.Util using (DecEq; _≟_; decPointwise)
+open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
 open import Untyped.CEK using (BApp; fullyAppliedBuiltin; BUILTIN; stepper; State; Stack)
 open import Evaluator.Base using (maxsteps)
 open import Builtin using (Builtin; ifThenElse)
-open import Data.List using (List; zip; [_])
+open import Data.List using (List; [_])
 open import Utils as U using (Maybe; nothing; just; Either)
 open import RawU using (TmCon; tmCon; decTag; TyTag; ⟦_⟧tag; decTagCon; tmCon2TagCon)
 open import Data.Product using (_×_; proj₁; proj₂; _,_)

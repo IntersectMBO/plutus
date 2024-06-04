@@ -15,6 +15,9 @@ open import Data.Product using (_,_)
 open import RawU using (TmCon)
 open import Builtin using (Builtin)
 open import VerifiedCompilation.Equality using (decEq-⊢)
+open import Data.List using (List; [_])
+open import Data.Nat using (ℕ)
+
 ```
 ## Pattern Views for Terms
 
@@ -28,6 +31,9 @@ make this reusable. We can create patterns using nested calls to these views, an
 
 Pred : Set₁
 Pred = ∀{X} → (X ⊢) → Set
+
+ListPred : Set₁
+ListPred = ∀{X} → List (X ⊢) → Set
 
 data isVar (X : Set) : Pred where
   isvar : (v : X) → isVar X (` v)
@@ -122,13 +128,37 @@ isCon? (case t ts) = no (λ ())
 isCon? (builtin b) = no (λ ())
 isCon? error = no (λ ())
 
-{-
-data isConstr ????
--}
+data isConstr (X : Set) (Qs : ListPred) : Pred where
+  isconstr : (i : ℕ) → (xs : List (X ⊢)) → Qs xs → isConstr X Qs (constr i xs)
+isConstr? : {X : Set} → {Qs : ListPred} → Decidable Qs → Decidable (isConstr X Qs)
+isConstr? isQs? (` x) = no (λ())
+isConstr? isQs? (ƛ t) = no (λ())
+isConstr? isQs? (t · t₁) = no (λ())
+isConstr? isQs? (force t) = no (λ())
+isConstr? isQs? (delay t) = no (λ())
+isConstr? isQs? (con x) = no (λ())
+isConstr? isQs? (constr i xs) with isQs? xs
+...                                           | no ¬q = no λ { (isconstr i₁ xs₁ q) → ¬q q }
+...                                           | yes q = yes (isconstr i xs q) 
+isConstr? isQs? (case t ts) = no (λ())
+isConstr? isQs? (builtin b) = no (λ())
+isConstr? isQs? error = no (λ())
 
-{-
-data isCase ???
--}
+data isCase (X : Set) (P : Pred) (Qs : ListPred) : Pred where
+  iscase :  (t : (X ⊢)) → (ts : List (X ⊢)) → P t → Qs ts → isCase X P Qs (case t ts)
+isCase? : {X : Set} → {P : Pred} → {Qs : ListPred} → Decidable P → Decidable Qs → Decidable (isCase X P Qs) 
+isCase? isP? isQs? (` x) = no (λ ()) 
+isCase? isP? isQs? (ƛ t) = no (λ ()) 
+isCase? isP? isQs? (t · t₁) = no (λ ()) 
+isCase? isP? isQs? (force t) = no (λ ())
+isCase? isP? isQs? (delay t) = no (λ ())
+isCase? isP? isQs? (con x) = no (λ ())
+isCase? isP? isQs? (constr i xs) = no (λ ())
+isCase? isP? isQs? (case t ts) with (isP? t) ×-dec (isQs? ts)
+...                                            | no ¬p = no λ { (iscase t₁ ts₁ p q) → ¬p (p , q)} 
+...                                            | yes (p , q) = yes (iscase t ts p q)
+isCase? isP? isQs? (builtin b) = no (λ ()) 
+isCase? isP? isQs? error = no (λ ()) 
 
 data isBuiltin (X : Set) : Pred where
   isbuiltin : (b : Builtin) → isBuiltin X (builtin b)
