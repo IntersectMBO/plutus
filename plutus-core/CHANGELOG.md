@@ -1,4 +1,32 @@
 
+<a id='changelog-1.29.0.0'></a>
+# 1.29.0.0 — 2024-06-04
+
+## Removed
+
+- `unsafeRunCekNoEmit` and all `unsafeEvaluate*` functions in #6043. To replace e.g. `unsafeEvaluateCek` you can use `evaluateCek` in combination with `unsafeToEvaluationResult`.
+
+- `UnknownBuiltin` and `UnknownBuiltinType` in #6064.
+
+## Added
+
+- Primitives `integerToByteString` and `byteStringToInteger` are added to PlutusV2,
+  enabled at protocol version 10.
+
+- A new cost model for PlutusV3.
+
+- Missing `KnownTypeAst`, `ReadKnownIn` and `MakeKnownIn` for integral types (`Int8`, `Word16` etc) in #6036
+
+## Changed
+
+- Renamed `unsafeExtractEvaluationResult` to `unsafeToEvaluationResult`.
+
+- We now have configurable cost models which allow different costs for different Plutus language versions and protocol versions.
+
+- Made unlifting errors a bit more flexible by allowing operational unlifting errors in #6036
+
+- CPU charges reduced for PlutusV1 and PlutusV2 scripts in the Conway era.
+
 <a id='changelog-1.28.0.0'></a>
 # 1.28.0.0 — 2024-05-15
 
