@@ -92,7 +92,7 @@ library plutus-benchmark-common
     , flat                 ^>=0.6
     , plutus-core          ^>=1.29
     , plutus-ledger-api    ^>=1.29
-    , plutus-tx-test-util  ^>=1.29
+    , plutus-tx-test-util
     , tasty
     , tasty-golden
     , temporary
