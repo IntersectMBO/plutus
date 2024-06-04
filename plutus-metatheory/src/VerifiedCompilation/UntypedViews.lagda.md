@@ -14,6 +14,7 @@ open import Relation.Nullary.Product using (_×-dec_)
 open import Data.Product using (_,_)
 open import RawU using (TmCon)
 open import Builtin using (Builtin)
+open import VerifiedCompilation.Equality using (decEq-⊢)
 ```
 ## Pattern Views for Terms
 
@@ -107,9 +108,9 @@ isDelay? isP? (case t ts) = no (λ ())
 isDelay? isP? (builtin b) = no (λ ())
 isDelay? isP? error = no (λ ())
 
-data isCon : Pred where
-  iscon : (t : TmCon)  → isCon (con t)
-isCon? : {X : Set} → Decidable (isCon) 
+data isCon (X : Set) : Pred where
+  iscon : (t : TmCon)  → isCon X (con t)
+isCon? : {X : Set} → Decidable (isCon X) 
 isCon? (` x) = no (λ _ → x)
 isCon? (ƛ t) = no (λ ())
 isCon? (t · t₁) = no (λ ())
@@ -129,9 +130,9 @@ data isConstr ????
 data isCase ???
 -}
 
-data isBuiltin : Pred where
-  isbuiltin : (b : Builtin) → isBuiltin (builtin b)
-isBuiltin? : Decidable isBuiltin
+data isBuiltin (X : Set) : Pred where
+  isbuiltin : (b : Builtin) → isBuiltin X (builtin b)
+isBuiltin? : {X : Set} → Decidable (isBuiltin X)
 isBuiltin? (` x) = no (λ _ → x)
 isBuiltin? (ƛ t) = no (λ ())
 isBuiltin? (t · t₁) = no (λ ())
@@ -143,10 +144,17 @@ isBuiltin? (case t ts) = no (λ ())
 isBuiltin? (builtin b) = yes (isbuiltin b)
 isBuiltin? error = no (λ ())
 
-{- 
 data isError (X : Set) : Pred where
-  iserror : (t : X ⊢) → t ≟ error → isError X (error)
+  iserror : isError X error
 isError? : {X : Set} → Decidable (isError X)
-isError? t = ?
--}
+isError? (` x) = no (λ ())
+isError? (ƛ t) = no (λ ())
+isError? (t · t₁) = no (λ ())
+isError? (force t) = no (λ ())
+isError? (delay t) = no (λ ())
+isError? (con x) = no (λ ())
+isError? (constr i xs) = no (λ ())
+isError? (case t ts) = no (λ ())
+isError? (builtin b) = no (λ ())
+isError? error = yes iserror
 ```
