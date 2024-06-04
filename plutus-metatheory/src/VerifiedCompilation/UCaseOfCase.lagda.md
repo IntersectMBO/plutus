@@ -12,6 +12,7 @@ module VerifiedCompilation.UCaseOfCase where
 
 ```
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
+open import VerifiedCompilation.UntypedViews using (Pred)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
 open import Untyped.CEK using (BApp; fullyAppliedBuiltin; BUILTIN; stepper; State; Stack)
 open import Evaluator.Base using (maxsteps)
@@ -25,190 +26,6 @@ open import Data.Nat using (ℕ)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; isEquivalence; cong)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
-```
-
-```
-data CoCCase {X : Set} : (X ⊢) → Set where
-  isCoCCase : (b : X ⊢) (tn fn : ℕ) (alts tt ft : List (X ⊢)) → CoCCase (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
-```
-Construct the view - This is truly horrible; there really should be a better way :(
-```
-viewCoCCase : {X : Set} → (x : (X ⊢)) → Dec (CoCCase x)
-viewCoCCase (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts) = yes (isCoCCase b tn fn alts tt ft)
-viewCoCCase (` x) = no (λ ())
-viewCoCCase (ƛ x) = no (λ ())
-viewCoCCase (x · x₁) = no (λ ())
-viewCoCCase (force x) = no (λ ())
-viewCoCCase (delay x) = no (λ ())
-viewCoCCase (con x) = no (λ ())
-viewCoCCase (constr i xs) = no (λ ())
-viewCoCCase (case (` x) ts) = no λ ()
-viewCoCCase (case (ƛ x) ts) = no λ ()
-viewCoCCase (case (` x · x₁) ts) = no λ ()
-viewCoCCase (case (ƛ x · x₁) ts) = no λ ()
-viewCoCCase (case ((` x · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case ((ƛ x · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((` x · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((ƛ x · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case ((((x · x₄) · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((force (` x) · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((force (ƛ x) · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((force (x · x₄) · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((force (force x) · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((force (delay x) · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((force (con x) · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((force (constr i xs) · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((force (case x ts₁) · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · x₂) · ` x) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · x₂) · ƛ x₁) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · x₂) · (x₁ · x₄)) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · x₂) · force x₁) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · x₂) · delay x₁) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · x₂) · con x) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · ` x) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · ƛ x₂) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · (x₂ · x₄)) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · force x₂) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · delay x₂) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · con x) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.addInteger) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.subtractInteger) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.multiplyInteger) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.divideInteger) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.quotientInteger) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.remainderInteger) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.modInteger) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.equalsInteger) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.lessThanInteger) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.lessThanEqualsInteger) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.appendByteString) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.consByteString) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.sliceByteString) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.lengthOfByteString) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.indexByteString) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.equalsByteString) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.lessThanByteString) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.lessThanEqualsByteString) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.sha2-256) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.sha3-256) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.blake2b-256) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.verifyEd25519Signature) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.verifyEcdsaSecp256k1Signature) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.verifySchnorrSecp256k1Signature) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.appendString) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.equalsString) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.encodeUtf8) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.decodeUtf8) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.chooseUnit) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.trace) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.fstPair) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.sndPair) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.chooseList) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.mkCons) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.headList) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.tailList) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.nullList) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.chooseData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.constrData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.mapData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.listData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.iData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.unConstrData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.unMapData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.unListData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.unIData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.unBData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.equalsData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.serialiseData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.mkPairData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.mkNilData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.mkNilPairData) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G1-add) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G1-neg) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G1-scalarMul) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G1-equal) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G1-hashToGroup) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G1-compress) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G1-uncompress) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G2-add) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G2-neg) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G2-scalarMul) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G2-equal) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G2-hashToGroup) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G2-compress) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-G2-uncompress) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-millerLoop) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-mulMlResult) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.bls12-381-finalVerify) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.keccak-256) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.blake2b-224) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.byteStringToInteger) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin Builtin.integerToByteString) · x₃) · constr i₁ xs₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · case x₂ ts₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · builtin b₁) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · error) · constr i xs) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · x₂) · case x₁ ts₁) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · x₂) · builtin b₁) ts) = no λ ()
-viewCoCCase (case (((force (builtin b) · x₃) · x₂) · error) ts) = no λ ()
-viewCoCCase (case (((force error · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((delay x · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((con x · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((constr i xs · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((case x ts₁ · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((builtin b · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (((error · x₃) · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case ((force x · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case ((delay x · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case ((con x · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case ((constr i xs · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case ((case x ts₁ · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case ((builtin b · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case ((error · x₂) · x₁) ts) = no λ ()
-viewCoCCase (case (force x · x₁) ts) = no λ ()
-viewCoCCase (case (delay x · x₁) ts) = no λ ()
-viewCoCCase (case (con x · x₁) ts) = no λ ()
-viewCoCCase (case (constr i xs · x₁) ts) = no λ ()
-viewCoCCase (case (case x ts₁ · x₁) ts) = no λ ()
-viewCoCCase (case (builtin b · x₁) ts) = no λ ()
-viewCoCCase (case (error · x₁) ts) = no λ ()
-viewCoCCase (case (force x) ts) = no λ ()
-viewCoCCase (case (delay x) ts) = no λ ()
-viewCoCCase (case (con x) ts) = no λ ()
-viewCoCCase (case (constr i xs) ts) = no λ ()
-viewCoCCase (case (case x ts₁) ts) = no λ ()
-viewCoCCase (case (builtin b) ts) = no λ ()
-viewCoCCase (case error ts) = no λ ()
-viewCoCCase (builtin b) = no (λ ())
-viewCoCCase error = no (λ ())
-```
-
-The Case of Case `force` pattern view. 
-```
-data CoCForce {X : Set} : (X ⊢) → Set where
-  isCoCForce : (b' : X ⊢) (tn' fn' : ℕ) (alts' alts'' tt' ft' : List (X ⊢))  → CoCForce (force ((((force (builtin ifThenElse)) · b') · (delay (case (constr tn' tt') alts'))) · (delay (case (constr fn' ft') alts''))))
-
-viewCoCForce : {X : Set} → (x : (X ⊢)) → Dec (CoCForce x)
-viewCoCForce (force ((((force (builtin ifThenElse)) · b') · (delay (case (constr tn' tt') alts'))) · (delay (case (constr fn' ft') alts'')))) = yes (isCoCForce b' tn' fn' alts' alts'' tt' ft')
-viewCoCForce (` x) = no (λ ())
-viewCoCForce (ƛ x) = no (λ ())
-viewCoCForce (x · x₁) = no (λ ())
-viewCoCForce (force (` x)) = {!!}
-viewCoCForce (force (ƛ x)) = {!!}
-viewCoCForce (force (x · x₁)) = {!!}
-viewCoCForce (force (force x)) = {!!}
-viewCoCForce (force (delay x)) = {!!}
-viewCoCForce (force (con x)) = {!!}
-viewCoCForce (force (constr i xs)) = {!!}
-viewCoCForce (force (case x ts)) = {!!}
-viewCoCForce (force (builtin b)) = {!!}
-viewCoCForce (force error) = {!!}
-viewCoCForce (delay x) = no (λ ())
-viewCoCForce (con x) = no (λ ())
-viewCoCForce (constr i xs) = no (λ ())
-viewCoCForce (case x ts) = no (λ ())
-viewCoCForce (builtin b) = no (λ ())
-viewCoCForce error = no (λ ())
 ```
 ## Translation Relation
 
@@ -256,6 +73,16 @@ Since this compiler phase is just a syntax re-arrangement in a very particular s
 match on that situation in the before and after ASTs and apply the translation rule for this, or
 expect anything else to be unaltered.
 
+This translation matches on exactly one, very specific pattern. Using parameterised Views we can
+detect that case.
+```
+data CoCCasePattern : Pred where
+  isCoCCasePattern : ∀ {b : X ⊢} {tn fn : ℕ} {alts tt ft : List (X ⊢)} → (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
+isCoCCase? : {X : Set} → Dec (CoCCasePattern)
+isCoCCase? t = ?
+```
+
+
 This must traverse the ASTs applying the constructors from the transition relation, so where
 the structure is unchanged we still need to check the sub-components.
 
@@ -299,14 +126,9 @@ _⊢̂_⊳̂?_ error error = yes error
 ```
 If we have `case` translated to `force` we need to be sure that it matches exactly the Case of Case pattern
 ```
-
-_⊢̂_⊳̂?_ (case p ast) (force ast') with viewCoCCase (case p ast) | viewCoCForce (force ast')
-
-... | no ¬p | _ = no λ { x → {!!}}
-... | yes (isCoCCase _ _ _ _ _ _) | no ¬p = no {!!}
-
+_⊢̂_⊳̂?_ ast ast' with isCoC? ast ast'
 _⊢̂_⊳̂?_ .(case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
-               .(force ((((force (builtin ifThenElse)) · b') · (delay (case (constr tn' tt') alts'))) · (delay (case (constr fn' ft') alts'')))) | yes (isCoCCase b tn fn alts tt ft) | yes (isCoCForce b' tn' fn' alts' alts'' tt' ft')
+               .(force ((((force (builtin ifThenElse)) · b') · (delay (case (constr tn' tt') alts'))) · (delay (case (constr fn' ft') alts'')))) | yes (isCoC b tn tt fn ft b'  tn' tt' alts' fn' ft' alts'')
         with b ≟ b' | tn ≟ tn'   | fn ≟ fn'   | alts' ≟ alts''  | decPointwise _⊢̂_⊳̂?_ alts alts' | decPointwise _⊢̂_⊳̂?_ tt tt' | decPointwise _⊢̂_⊳̂?_ ft ft'
 ...         | no ¬b≟b' | _            | _            | _                | _                | _              | _              = no λ { (caseofcase _ _ _ ) → ¬b≟b' refl } 
 ...         | yes refl   | no tn≠tn' | _            | _                | _                | _              | _              = no λ { (caseofcase _ _ _ ) →  tn≠tn' refl } 
