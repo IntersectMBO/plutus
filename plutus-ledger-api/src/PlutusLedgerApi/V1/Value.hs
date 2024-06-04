@@ -17,7 +17,7 @@
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 -- We need -fexpose-all-unfoldings to compile the Marlowe validator
 -- with GHC 9.6.2.
--- TODO. Look into this more closely: see PLT-7976.
+-- TODO. Look into this more closely: see https://github.com/IntersectMBO/plutus/issues/6172.
 
 -- | Functions for working with 'Value'.
 module PlutusLedgerApi.V1.Value (
@@ -266,7 +266,7 @@ instance MeetSemiLattice Value where
 valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
 valueOf (Value mp) cur tn =
     case Map.lookup cur mp of
-        Nothing -> 0 :: Integer
+        Nothing -> 0
         Just i  -> case Map.lookup tn i of
             Nothing -> 0
             Just v  -> v
