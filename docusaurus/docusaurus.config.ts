@@ -11,7 +11,7 @@ const config: Config = {
   url: "https://plutus.readthedocs.io",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: "/",
+  baseUrl: "/plutus/master/docs/",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -54,10 +54,12 @@ const config: Config = {
       "classic",
       {
         docs: {
+          routeBasePath: "/",
           sidebarPath: "./sidebars.ts",
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/IntersectMBO/plutus/edit/docusaurus",
+          editUrl:
+            "https://github.com/IntersectMBO/plutus/edit/master/docusaurus",
         },
         theme: {
           customCss: "./src/css/custom.css",
@@ -96,8 +98,8 @@ const config: Config = {
           title: "Docs",
           items: [
             {
-              label: "Tutorial",
-              to: "/docs/intro",
+              label: "User Guide",
+              to: "/",
             },
           ],
         },
