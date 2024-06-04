@@ -43,6 +43,7 @@ import PlutusTx.Builtins qualified as P hiding (null)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData
 import PlutusTx.Lift (makeLift)
+import PlutusTx.List qualified as List
 import PlutusTx.Prelude hiding (all, filter, mapMaybe, null, toList)
 import PlutusTx.Prelude qualified as P
 import PlutusTx.These
@@ -70,8 +71,16 @@ import Prettyprinter (Pretty (..))
 -- Take care when using 'fromBuiltinData' and 'unsafeFromBuiltinData', as neither function performs
 -- deduplication of the input collection and may create invalid 'Map's!
 newtype Map k v = Map {unMap :: [(k, v)]}
-  deriving stock (Generic, Haskell.Eq, Haskell.Show, Data, TH.Lift)
-  deriving newtype (Eq, Ord, NFData)
+  deriving stock (Generic, Haskell.Show, Data, TH.Lift)
+  deriving newtype (NFData)
+
+instance (Eq k, Eq v) => Eq (Map k v) where
+  Map m1 == m2 =
+    List.all (\(k, v) -> lookup k m2 == Just v) m1
+
+instance (Haskell.Eq k, Haskell.Eq v) => Haskell.Eq (Map k v) where
+  Map m1 == Map m2 =
+    Haskell.all (\(k, v) -> Haskell.lookup k m2 Haskell.== Just v) m1
 
 -- | Hand-written instances to use the underlying 'Map' type in 'Data', and
 -- to be reasonably efficient.

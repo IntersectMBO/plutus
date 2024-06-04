@@ -84,7 +84,7 @@ data TxInfo = TxInfo
     , txInfoData            :: Map DatumHash Datum -- ^ The lookup table of datums attached to the transaction
                                                   -- /V1->V2/: changed from assoc list to a 'PlutusTx.AssocMap'
     , txInfoId              :: TxId  -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
-    } deriving stock (Generic, Haskell.Show, Haskell.Eq)
+    } deriving stock (Generic, Haskell.Eq, Haskell.Show)
 
 instance Eq TxInfo where
     {-# INLINABLE (==) #-}
