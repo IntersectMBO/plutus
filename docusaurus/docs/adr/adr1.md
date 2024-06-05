@@ -115,7 +115,7 @@ List decisions related to this one. Useful relations among decisions include cau
 
 Map decisions to objectives or requirements, to show accountability. Each architecture decision is assessed as to its contribution to each major objective. We can then assess how well the objective is met across all decisions, as part of an overall architecture evaluation.
 
-### Affected Artifacts
+### Affected artifacts
 
 List the architecture elements and/or relations affected by this decision. You might also list the effects on other design or scope decisions, pointing to the documents where those decisions are described. You might also include external artifacts upstream and downstream of the architecture, as well as management artifacts such as budgets and schedules.
 
