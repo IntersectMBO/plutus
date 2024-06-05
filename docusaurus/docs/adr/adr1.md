@@ -65,7 +65,7 @@ List each author’s name and email.
 
 ### Status
 
-State the status of the decision, such as “draft” if the decision is still being written, as “proposed” if the project stakeholders haven’t agreed with it yet, “accepted” once it is agreed. If a later ADR changes or reverses a decision, it may be marked as “deprecated” or “superseded” with a reference to its replacement. (This is not the status of implementing the decision.)
+State the status of the decision, such as 'draft' if the decision is still being written, as 'proposed' if the project stakeholders haven’t agreed with it yet, or 'accepted' once it is agreed. If a later ADR changes or reverses a decision, it may be marked as 'deprecated' or 'superseded' with a reference to its replacement. (This is not the status of implementing the decision.)
 
 ### Issue (or context)
 
