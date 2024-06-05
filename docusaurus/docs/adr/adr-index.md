@@ -17,9 +17,9 @@ The goals are:
 
 The general process for creating an ADR is:
 
-1. Cloning the repository.
+1. Cloning the repository
 2. Creating a new file with the format:
     `[<ADR_NUMBER\>-<TITLE>.md]` in the directory `[doc/adr]`
-3. Adding the ADR in the table of content tree of the documentation.
+3. Adding the ADR in the table of contents tree of the documentation
 4. Committing and pushing to the repository.
 
