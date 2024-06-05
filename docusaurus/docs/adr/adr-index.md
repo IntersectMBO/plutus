@@ -10,9 +10,9 @@ An ADR is a document that captures an important architectural decision made alon
 
 The goals are:
 
-- Making decisions transparent to internal/external stakeholders and contributors.
-- Getting feedback on decisions that we're about to make or have made.
-- Providing external contributors a framework to propose architectural changes.
+- Making decisions transparent to internal/external stakeholders and contributors
+- Getting feedback on decisions that we're about to make or have made
+- Providing external contributors with a framework to propose architectural changes
 - Providing a big picture of all major decisions that were made.
 
 The general process for creating an ADR is:
