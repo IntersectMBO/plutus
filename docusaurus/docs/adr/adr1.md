@@ -111,7 +111,7 @@ Clearly understanding and stating the implications of the decisions has been a v
 
 List decisions related to this one. Useful relations among decisions include causality (which decisions caused other ones), structure (showing decisions’ parents or children, corresponding to architecture elements at higher or lower levels), or temporality (which decisions came before or after others).
 
-### Related Requirements
+### Related requirements
 
 Map decisions to objectives or requirements, to show accountability. Each architecture decision is assessed as to its contribution to each major objective. We can then assess how well the objective is met across all decisions, as part of an overall architecture evaluation.
 
