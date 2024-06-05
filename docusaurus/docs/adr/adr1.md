@@ -91,7 +91,7 @@ Outline why a position was selected. This is probably as important as the decisi
 
 List alternatives (that is, options or positions) considered.
 
-Explain alternatives with sufficient detail to judge their suitability; refer to external documentation to do so if necessary. Only viable positions should be described here. While you don’t need an exhaustive list, you also don’t want to hear the question “Did you think about… ?” during a final review, which might lead to a loss of credibility and a questioning of other architectural decisions. Listing alternatives espoused by others also helps them know that their opinions were heard. Finally, listing alternatives helps the architect make the right decision, because listing alternatives cannot be done unless those alternatives were given due consideration.
+Explain alternatives with sufficient detail to judge their suitability; refer to external documentation if necessary. Only viable positions should be described here. While you don’t need an exhaustive list, you also don’t want to hear the question 'Did you think about… ?' during a final review, which might lead to a loss of credibility and a questioning of other architectural decisions. Listing alternatives espoused by others also helps them know their opinions were heard. Finally, listing alternatives helps the architect make the right decision, because listing alternatives cannot be done unless those alternatives were given due consideration.
 
 ### Implications (or consequences)
 
