@@ -34,11 +34,11 @@ For each decision, it is important to consider the following factors:
 
 ## Decision
 
-- We will use ADRs to document, propose and discuss any important or significant architectural and design decisions.
-- The ADR format will follow the format described in [Implications](#implications) section.
+- We will use ADRs to document, propose, and discuss any important or significant architectural and design decisions.
+- The ADR format will follow the format described in the [Implications](#implications) section.
 - We will follow the convention of storing those ADRs as rST or Markdown formatted documents stored under the [docs/adr] directory, as exemplified in Nat Pryce's [adr-tools](https://github.com/npryce/adr-tools). 
 This does not imply that we will be using [adr-tools] itself, as we might diverge from the proposed structure.
-- We will keep rejected ADRs
+- We will keep rejected ADRs.
 - We will strive, if possible, to create an ADR as early as possible in relation to the actual implementation.
 
 ## Implications
