@@ -105,7 +105,7 @@ Describe the decision’s implications. For example, it may:
 * Require renegotiation of the schedule with the customers
 * Require additional training for the staff.
 
-Clearly understanding and stating the implications of the decisions has been a very effective tool in gaining buy-in. All consequences should be listed here, not just the “positive” ones. A particular decision may have positive, negative, and neutral consequences, but all of them affect the team and project in the future.
+Clearly understanding and stating the implications of the decisions has been a very effective tool in gaining buy-in. All consequences should be listed here, not just the 'positive' ones. A particular decision may have positive, negative, and neutral consequences, but all of them affect the team and project in the future.
 
 ### Related Decisions
 
