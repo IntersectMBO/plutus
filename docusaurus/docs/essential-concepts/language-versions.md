@@ -33,10 +33,10 @@ Therefore, to change Plutus, we need to create a new language in the ledger.
 Since, in most cases, this language will be very similar to the ones that came before, we refer to these as 'Plutus language versions.'
 However, from the ledger's perspective, they are entirely unrelated and there is generally no requirement that they be similar or compatible in any way.
 
-There are two different uses of "language" here that are important to keep distinct:
+There are two different uses of 'language' here that are important to keep distinct:
 
-1. Plutus Core is a *programming* language in which Plutus scripts are written;
-2. Plutus (the Plutus Core programming language and a particular interface) is a "language" in the terminology of the ledger.
+1. Plutus Core is a *programming* language in which Plutus scripts are written
+2. Plutus (the Plutus Core programming language and a particular interface) is a 'language' in the terminology of the ledger.
 
 In particular, a specific version of the Plutus Core programming language may be used in multiple versions of the Plutus ledger language, if, for example, the only difference is to the interface. 
 To date, all versions of Plutus use the same version of the Plutus Core. 
@@ -46,5 +46,5 @@ built-in functions may be available.
 
 *See also:*
 
-- [Plutus language changes](../reference/plutus-language-changes.md) for a description of what has changed between versions.
+- [Plutus language changes](../reference/plutus-language-changes.md) for a description of what has changed between versions
 - [Upgrading to Vasil and Plutus script addresses](../reference/upgrade-vasil-plutus-script-addresses.md).
