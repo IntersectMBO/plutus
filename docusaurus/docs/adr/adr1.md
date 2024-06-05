@@ -20,10 +20,10 @@ We are in search for a means to document our architectural and design decisions 
 To do that, there is a practice called architectural decision records (ADR) that we can
 integrate into our workflow.
 
-This does not replace actual architecture documentation, but provides people who are contributing:
+This does not replace actual architecture documentation, but provides people who are contributing with:
 
 - the means to understand architectural and design decisions that were made
-- a framework for proposing changes to the current architecture
+- a framework for proposing changes to the current architecture.
 
 For each decision, it is important to consider the following factors:
 
