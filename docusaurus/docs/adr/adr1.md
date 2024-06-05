@@ -30,7 +30,7 @@ For each decision, it is important to consider the following factors:
 - what we have decided to do
 - why we have made this decision
 - what we expect the impact of this decision to be
-- what we have learned in the process
+- what we have learned in the process.
 
 ## Decision
 
