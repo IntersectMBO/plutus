@@ -37,14 +37,17 @@ sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal"
 #
 # The ?* pattern prevents 'find' from attempting to modify ".cabal" (no basename).
 #
-# The pattern $PACKAGE[^-A-Za-z0-1][^^] matches exactly the package name followed by anything
-# up to ^. We need [^-A-Za-z0-1] to prevent eg `plutus-tx` from matching `plutus-tx-plugin`.
+# The pattern $PACKAGE[^-A-Za-z0-1][^^] matches the package name followed by the rest of the
+# line up to but not including the first ^ (if any); anything after that is replaced with the
+# new bound. We need [^-A-Za-z0-1] to exactly match the name of the package whose bounds we
+# want to update and make sure that we don't get a situation like `plutus-tx` matching
+# `plutus-tx-plugin`.
 #
 # The second sed command is to match the case where the package name is at the end of the line:
 # we need this because the first case requires at least one character after the package name.
 #
 # Note that this all requires a comma (maybe preceded and/or followed by whitespace) at the
-# start of the line: it won't work with commas at the end.
+# start of the line: it won't work with a comma at the end.
 
 echo "Updating version bounds on $PACKAGE to '^>=$major_version'"
 find . -name "?*.cabal" -exec sed -i "s/\(^[ \t]*,[ \t]*$PACKAGE[^-A-Za-z0-1][^^]*\).*/\1^>=$major_version/" {} \; \
