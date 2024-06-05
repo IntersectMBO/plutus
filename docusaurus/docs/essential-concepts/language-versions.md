@@ -7,7 +7,7 @@ sidebar_position: 20
 The Cardano ledger tags scripts with a *language*. 
 This determines what the ledger will do with the script.
 
-For example, the "simple" script language introduced in the Allegra era allows for a few basic kinds of checks to be made, such as time locks. 
+For example, the 'simple' script language introduced in the Allegra era allows for a few basic kinds of checks to be made, such as time locks. 
 In order to interpret simple scripts, the ledger must (among other things) extract the validation interval information from the transaction in order to check the conditions imposed by the script.
 
 Plutus scripts, introduced in the Alonzo era, have a more complex interface than simple scripts. 
