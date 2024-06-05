@@ -19,6 +19,12 @@ VERSION=$2
 
 IFS='.' read -r -a components <<< "$VERSION"
 
+if [[ ${#components[@]} < 2 ]]; then
+    echo "Too few components in version number" $VERSION "(need at least two)"
+    usage
+    exit 1
+fi
+
 major_version="${components[0]}.${components[1]}"
 
 echo "Updating version of $PACKAGE to $VERSION"
