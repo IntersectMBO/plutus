@@ -107,7 +107,7 @@ Describe the decision’s implications. For example, it may:
 
 Clearly understanding and stating the implications of the decisions has been a very effective tool in gaining buy-in. All consequences should be listed here, not just the 'positive' ones. A particular decision may have positive, negative, and neutral consequences, but all of them affect the team and project in the future.
 
-### Related Decisions
+### Related decisions
 
 List decisions related to this one. Useful relations among decisions include causality (which decisions caused other ones), structure (showing decisions’ parents or children, corresponding to architecture elements at higher or lower levels), or temporality (which decisions came before or after others).
 
