@@ -73,7 +73,7 @@ This section describes the architectural design issue being addressed. This desc
 
 ### Decision
 
-Clearly state the solution chosen. It is the selection of one of the positions that the architect could have taken. It is stated in full sentences, with active voice. “We will …”
+Clearly state the solution chosen. It is the selection of one of the positions that the architect could have taken. It is stated in full sentences, with active voice. 'We will …'
 
 ### Tags
 
