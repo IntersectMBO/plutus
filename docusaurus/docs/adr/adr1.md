@@ -57,7 +57,7 @@ What follows is the ADR format (adapted from the book).
 
 These documents have names that are short noun phrases.
 
-For example, “ADR 1: Deployment on Ruby on Rails 3.0.10” or “ADR 9: LDAP for Multitenant Integration.”
+For example, 'ADR 1: Deployment on Ruby on Rails 3.0.10' or 'ADR 9: LDAP for Multitenant Integration.'
 
 ### Authors
 
