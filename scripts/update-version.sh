@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
 usage () {
-  echo "$(basename $0) PACKAGE VERSION
+  echo "usage: $(basename $0) PACKAGE VERSION
   Updates the version for PACKAGE to VERSION, and updates bounds
   on that package in other cabal files."
 }
 
-if [ "$#" == "0" ]; then
+if [[ $# != 2 ]]; then
+  echo "Wrong number of arguments"
   usage
   exit 1
 fi
@@ -24,7 +25,7 @@ echo "Updating version of $PACKAGE to $VERSION"
 # update package version in cabal file for package
 sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal"
 
-# update version bounds in all cabal files
+# Update version bounds in all cabal files
 # It looks for patterns like the following:
 #
 # - ", plutus-core"
@@ -33,6 +34,21 @@ sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal"
 # - ", plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0"
 #
 # and updates the version bounds to "^>={major version}"
+#
 # The ?* pattern prevents 'find' from attempting to modify ".cabal" (no basename).
+#
+# The pattern $PACKAGE[^-A-Za-z0-1][^^] matches the package name followed by the rest of the
+# line up to but not including the first ^ (if any); anything after that is replaced with the
+# new bound. We need [^-A-Za-z0-1] to exactly match the name of the package whose bounds we
+# want to update and make sure that we don't get a situation like `plutus-tx` matching
+# `plutus-tx-plugin`.
+#
+# The second sed command is to match the case where the package name is at the end of the line:
+# we need this because the first case requires at least one character after the package name.
+#
+# Note that this all requires a comma (maybe preceded and/or followed by whitespace) at the
+# start of the line: it won't work with a comma at the end.
+
 echo "Updating version bounds on $PACKAGE to '^>=$major_version'"
-find . -name "?*.cabal" -exec sed -i "s/\(, $PACKAGE[^^]*\).*/\1 ^>=$major_version/" {} \;
+find . -name "?*.cabal" -exec sed -i "s/\(^[ \t]*,[ \t]*$PACKAGE[^-A-Za-z0-1][^^]*\).*/\1^>=$major_version/" {} \; \
+                        -exec sed -i "s/\(^[ \t]*,[ \t]*$PACKAGE$\)/\1 ^>=$major_version/" {} \;
