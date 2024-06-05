@@ -29,8 +29,8 @@ For example, if we want to put more information in the *context* (e.g., in order
 > 
 > For more details about what kinds of changes require a new language, see the Cardano Improvement Proposal, [CIP 35&mdash;Plutus Core Evolution](https://cips.cardano.org/cips/cip35/).
 
-Therefore, in order to change Plutus, we need to create a new language in the ledger. 
-Since, in most cases, this language will be very similar to the ones that came before, we refer to these as "Plutus language versions." 
+Therefore, to change Plutus, we need to create a new language in the ledger. 
+Since, in most cases, this language will be very similar to the ones that came before, we refer to these as 'Plutus language versions.'
 However, from the ledger's perspective, they are entirely unrelated and there is generally no requirement that they be similar or compatible in any way.
 
 There are two different uses of "language" here that are important to keep distinct:
