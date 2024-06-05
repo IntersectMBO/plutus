@@ -207,9 +207,9 @@ Here is a summary:
 
 ## Implications
 
-In summary, we proposed to implement the debugging machine as a coroutine system with "steps". 
+In summary, we proposed to implement the debugging machine as a coroutine system with 'steps'. 
 This implies that:
 
-- We have to maintain the CEK machine. E.g., we need to check its conformance.
-- We will add a debugger for our users. We can give users more information at each evaluation step.
-- We will need to write some tests to ensure that the debugging machine continuously output reasonable information.
+- We have to maintain the CEK machine (eg, we need to check its conformance)
+- We will add a debugger for our users providing them with more information at each evaluation step
+- We will need to write some tests to ensure that the debugging machine continuously outputs reasonable information.
