@@ -17,7 +17,7 @@ Accepted
 ## Context
 
 We are in search for a means to document our architectural and design decisions for all of our components. 
-In order to do that, there is a practice called architectural decision records ("ADR"), that we can
+To do that, there is a practice called architectural decision records (ADR) that we can
 integrate into our workflow.
 
 This does not replace actual architecture documentation, but provides people who are contributing:
