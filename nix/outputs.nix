@@ -30,7 +30,6 @@ in
 
     hydraJobs.required = lib.iogx.mkHydraRequiredJob { };
   }
-
   {
     packages.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
     packages.pre-commit-check = ghc96.pre-commit-check;

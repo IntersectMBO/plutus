@@ -103,3 +103,13 @@ if grep -q -R -E "/dist-newstyle/.*" $DST; then
   echo "internal error: not all /dist-newstyle hrefs were replaced"
   exit 1
 fi
+
+# Produce the aggregated doc-index.json
+shopt -s globstar
+echo "[]" > "$DST/doc-index.json"
+for file in $(ls $DST/**/doc-index.json); do
+  PROJECT=$(dirname $file);
+  EXPR=".[0] + [.[1][] | (. + {link: (\"$project/\" + .link)}) ]"
+  jq -s "$EXPR" "$DST/doc-index.json" "$file" > $DST/doc-index.tmp.json
+  mv $DST/doc-index.tmp.json "$DST/doc-index.json"
+done
