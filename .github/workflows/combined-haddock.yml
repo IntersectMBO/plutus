@@ -1,7 +1,7 @@
 # This workflow builds a combined haddock and publishes it to:
 #   https://intersectmbo.github.io/plutus/haddock/master
 #   https://intersectmbo.github.io/plutus/haddock/release/X.X.X.X
-name: Combined Haddock
+name: "Combined Haddock"
 on:
   workflow_dispatch:
   push:
