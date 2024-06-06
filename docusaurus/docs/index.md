@@ -42,7 +42,7 @@ See, for example:
 ## The Plutus repository
 
 The [Plutus repository](https://github.com/IntersectMBO/plutus) contains the implementation, specification, and mechanized metatheory of Plutus Core. 
-It also contains the Plutus Tx compiler and the libraries, such as `PlutusTx.List`, for writing Haskell code that can be compiled to Plutus Core.
+It also contains the Plutus Tx compiler and the [combined documentation for all the public Plutus code libraries](https://intersectmbo.github.io/plutus/master/), such as `PlutusTx.List`, for writing Haskell code that can be compiled to Plutus Core.
 
 ## Educational resources
 
