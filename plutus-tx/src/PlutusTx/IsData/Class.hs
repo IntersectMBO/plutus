@@ -205,3 +205,7 @@ toData a = builtinDataToData (toBuiltinData a)
 -- | Convert a value from 'PLC.Data', returning 'Nothing' if this fails.
 fromData :: (FromData a) => PLC.Data -> Maybe a
 fromData d = fromBuiltinData (BuiltinData d)
+
+-- | Convert a value from 'PLC.Data', throwing if this fails.
+unsafeFromData :: (UnsafeFromData a) => PLC.Data -> a
+unsafeFromData d = unsafeFromBuiltinData (BuiltinData d)
