@@ -74,9 +74,19 @@ data BuiltinError
 -- logging, since there's no logging on the chain and builtins don't emit much anyway. Otherwise
 -- we'd have to use @text-builder@ or @text-builder-linear@ or something of this sort.
 data BuiltinResult a
-    = BuiltinFailure (DList Text) BuiltinError
-    | BuiltinSuccess a
+    = -- 'BuiltinSuccess' is the first constructor to make it a bit more likely for GHC to
+      -- branch-predict it (which is something that we want, because most builtins return this
+      -- constructor). It is however not guaranteed that GHC will predict it, because even though
+      -- it's likely going to be a recursive case (it certainly is in the CEK machine) and thus the
+      -- constructor has precedence over 'BuiltinFailure', it doesn't have precedence over
+      -- 'BuiltinSuccessWithLogs', since that case is equally likely to be recursive.
+      --
+      -- Unfortunately, GHC doesn't offer any explicit control over branch-prediction (see this
+      -- ticket: https://gitlab.haskell.org/ghc/ghc/-/issues/849), so relying on hope is the best we
+      -- can do here.
+      BuiltinSuccess a
     | BuiltinSuccessWithLogs (DList Text) a
+    | BuiltinFailure (DList Text) BuiltinError
     deriving stock (Show, Foldable)
 
 mtraverse makeClassyPrisms
@@ -174,43 +184,43 @@ throwNotAConstant = throwing _StructuralUnliftingError "Not a constant"
 -- | Prepend logs to a 'BuiltinResult' computation.
 withLogs :: DList Text -> BuiltinResult a -> BuiltinResult a
 withLogs logs1 = \case
-    BuiltinFailure logs2 err       -> BuiltinFailure (logs1 <> logs2) err
     BuiltinSuccess x               -> BuiltinSuccessWithLogs logs1 x
     BuiltinSuccessWithLogs logs2 x -> BuiltinSuccessWithLogs (logs1 <> logs2) x
+    BuiltinFailure logs2 err       -> BuiltinFailure (logs1 <> logs2) err
 {-# INLINE withLogs #-}
 
 instance Functor BuiltinResult where
-    fmap _ (BuiltinFailure logs err)       = BuiltinFailure logs err
     fmap f (BuiltinSuccess x)              = BuiltinSuccess (f x)
     fmap f (BuiltinSuccessWithLogs logs x) = BuiltinSuccessWithLogs logs (f x)
+    fmap _ (BuiltinFailure logs err)       = BuiltinFailure logs err
     {-# INLINE fmap #-}
 
     -- Written out explicitly just in case.
-    _ <$ BuiltinFailure logs err       = BuiltinFailure logs err
     x <$ BuiltinSuccess _              = BuiltinSuccess x
     x <$ BuiltinSuccessWithLogs logs _ = BuiltinSuccessWithLogs logs x
+    _ <$ BuiltinFailure logs err       = BuiltinFailure logs err
     {-# INLINE (<$) #-}
 
 instance Applicative BuiltinResult where
     pure = BuiltinSuccess
     {-# INLINE pure #-}
 
-    BuiltinFailure logs err       <*> _ = BuiltinFailure logs err
     BuiltinSuccess f              <*> a = fmap f a
     BuiltinSuccessWithLogs logs f <*> a = withLogs logs $ fmap f a
+    BuiltinFailure logs err       <*> _ = BuiltinFailure logs err
     {-# INLINE (<*>) #-}
 
     -- Better than the default implementation, because the value in the 'BuiltinSuccess' case
     -- doesn't need to be retained.
-    BuiltinFailure logs err       *> _ = BuiltinFailure logs err
     BuiltinSuccess _              *> b = b
     BuiltinSuccessWithLogs logs _ *> b = withLogs logs b
+    BuiltinFailure logs err       *> _ = BuiltinFailure logs err
     {-# INLINE (*>) #-}
 
 instance Monad BuiltinResult where
-    BuiltinFailure logs err       >>= _ = BuiltinFailure logs err
     BuiltinSuccess x              >>= f = f x
     BuiltinSuccessWithLogs logs x >>= f = withLogs logs $ f x
+    BuiltinFailure logs err       >>= _ = BuiltinFailure logs err
     {-# INLINE (>>=) #-}
 
     (>>) = (*>)
