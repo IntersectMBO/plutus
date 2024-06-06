@@ -277,10 +277,10 @@ builtinNames = [
     , 'Builtins.integerToByteString
     , 'Builtins.byteStringToInteger
 
-    , 'Builtins.bitwiseLogicalAnd
-    , 'Builtins.bitwiseLogicalOr
-    , 'Builtins.bitwiseLogicalXor
-    , 'Builtins.bitwiseLogicalComplement
+    , 'Builtins.andByteString
+    , 'Builtins.orByteString
+    , 'Builtins.xorByteString
+    , 'Builtins.complementByteString
     , 'Builtins.readBit
     , 'Builtins.writeBits
     , 'Builtins.replicateByteString
@@ -442,10 +442,10 @@ defineBuiltinTerms = do
             PLC.ByteStringToInteger -> defineBuiltinInl 'Builtins.byteStringToInteger
 
             -- Logical operations
-            PLC.BitwiseLogicalAnd -> defineBuiltinInl 'Builtins.bitwiseLogicalAnd
-            PLC.BitwiseLogicalOr -> defineBuiltinInl 'Builtins.bitwiseLogicalOr
-            PLC.BitwiseLogicalXor -> defineBuiltinInl 'Builtins.bitwiseLogicalXor
-            PLC.BitwiseLogicalComplement -> defineBuiltinInl 'Builtins.bitwiseLogicalComplement
+            PLC.AndByteString -> defineBuiltinInl 'Builtins.andByteString
+            PLC.OrByteString -> defineBuiltinInl 'Builtins.orByteString
+            PLC.XorByteString -> defineBuiltinInl 'Builtins.xorByteString
+            PLC.ComplementByteString -> defineBuiltinInl 'Builtins.complementByteString
             PLC.ReadBit -> defineBuiltinInl 'Builtins.readBit
             PLC.WriteBits -> defineBuiltinInl 'Builtins.writeBits
             PLC.ReplicateByteString -> defineBuiltinInl 'Builtins.replicateByteString

@@ -118,7 +118,7 @@ builtinsIntroducedIn = Map.fromList [
           Bls12_381_G2_compress, Bls12_381_G2_uncompress,
           Bls12_381_millerLoop, Bls12_381_mulMlResult, Bls12_381_finalVerify,
           Keccak_256, Blake2b_224, IntegerToByteString, ByteStringToInteger,
-          BitwiseLogicalAnd, BitwiseLogicalOr, BitwiseLogicalXor, BitwiseLogicalComplement,
+          AndByteString, OrByteString, XorByteString, ComplementByteString,
           ReadBit, WriteBits, ReplicateByteString
           ])
   ]

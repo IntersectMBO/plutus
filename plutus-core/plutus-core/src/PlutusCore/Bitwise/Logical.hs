@@ -4,10 +4,10 @@
 
 -- | Implementations of bitwise logical primops.
 module PlutusCore.Bitwise.Logical (
-  bitwiseLogicalAnd,
-  bitwiseLogicalOr,
-  bitwiseLogicalXor,
-  bitwiseLogicalComplement,
+  andByteString,
+  orByteString,
+  xorByteString,
+  complementByteString,
   readBit,
   writeBits,
   replicateByteString
@@ -30,8 +30,8 @@ import System.IO.Unsafe (unsafeDupablePerformIO)
 
 {- Note [Binary bitwise operation implementation and manual specialization]
 
-   All of the 'binary' bitwise operations (namely `bitwiseLogicalAnd`,
-   `bitwiseLogicalOr` and `bitwiseLogicalXor`) operate similarly:
+   All of the 'binary' bitwise operations (namely `andByteString`,
+   `orByteString` and `xorByteString`) operate similarly:
 
    1. Decide which of their two `ByteString` arguments determines the length
       of the result. For padding semantics, this is the _longer_ argument,
@@ -41,8 +41,8 @@ import System.IO.Unsafe (unsafeDupablePerformIO)
    2. Copy the choice made in step 1 into a fresh mutable buffer.
    3. Traverse over each byte of the argument _not_ chosen in step 1, and
       combine each of those bytes with the byte at the corresponding index of
-      the fresh mutable buffer from step 2 (`.&.` for `bitwiseLogicalAnd`,
-      `.|.` for `bitwiseLogicalOr`, `xor` for `bitwiseLogicalXor`).
+      the fresh mutable buffer from step 2 (`.&.` for `andByteString`,
+      `.|.` for `orByteString`, `xor` for `xorByteString`).
 
   We also make use of loop sectioning to optimize this operation: see Note
   [Loop sectioning] explaining why we do this. Fundamentally, this doesn't
@@ -103,8 +103,9 @@ import System.IO.Unsafe (unsafeDupablePerformIO)
   -}
 
 -- | Bitwise logical AND, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md).
-bitwiseLogicalAnd :: Bool -> ByteString -> ByteString -> ByteString
-bitwiseLogicalAnd shouldPad bs1 bs2 =
+{-# INLINEABLE andByteString #-}
+andByteString :: Bool -> ByteString -> ByteString -> ByteString
+andByteString shouldPad bs1 bs2 =
   let (shorter, longer) = if BS.length bs1 < BS.length bs2 then (bs1, bs2) else (bs2, bs1)
       (toCopy, toTraverse) = if shouldPad then (longer, shorter) else (shorter, longer)
    in go toCopy toTraverse (BS.length shorter)
@@ -131,8 +132,9 @@ bitwiseLogicalAnd shouldPad bs1 bs2 =
               pokeElemOff smallDstPtr i $ w8_1 Bits..&. w8_2
 
 -- | Bitwise logical OR, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md).
-bitwiseLogicalOr :: Bool -> ByteString -> ByteString -> ByteString
-bitwiseLogicalOr shouldPad bs1 bs2 =
+{-# INLINEABLE orByteString #-}
+orByteString :: Bool -> ByteString -> ByteString -> ByteString
+orByteString shouldPad bs1 bs2 =
   let (shorter, longer) = if BS.length bs1 < BS.length bs2 then (bs1, bs2) else (bs2, bs1)
       (toCopy, toTraverse) = if shouldPad then (longer, shorter) else (shorter, longer)
    in go toCopy toTraverse (BS.length shorter)
@@ -159,8 +161,9 @@ bitwiseLogicalOr shouldPad bs1 bs2 =
               pokeElemOff smallDstPtr i $ w8_1 Bits..|. w8_2
 
 -- | Bitwise logical XOR, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md).
-bitwiseLogicalXor :: Bool -> ByteString -> ByteString -> ByteString
-bitwiseLogicalXor shouldPad bs1 bs2 =
+{-# INLINEABLE xorByteString #-}
+xorByteString :: Bool -> ByteString -> ByteString -> ByteString
+xorByteString shouldPad bs1 bs2 =
   let (shorter, longer) = if BS.length bs1 < BS.length bs2 then (bs1, bs2) else (bs2, bs1)
       (toCopy, toTraverse) = if shouldPad then (longer, shorter) else (shorter, longer)
    in go toCopy toTraverse (BS.length shorter)
@@ -187,9 +190,9 @@ bitwiseLogicalXor shouldPad bs1 bs2 =
               pokeElemOff smallDstPtr i $ Bits.xor w8_1 w8_2
 
 -- | Bitwise logical complement, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md).
-{-# INLINEABLE bitwiseLogicalComplement #-}
-bitwiseLogicalComplement :: ByteString -> ByteString
-bitwiseLogicalComplement bs = unsafeDupablePerformIO . BS.useAsCStringLen bs $ \(srcPtr, len) -> do
+{-# INLINEABLE complementByteString #-}
+complementByteString :: ByteString -> ByteString
+complementByteString bs = unsafeDupablePerformIO . BS.useAsCStringLen bs $ \(srcPtr, len) -> do
   -- We use loop sectioning here; see Note [Loop sectioning] as to why we do this
   let (bigStrides, littleStrides) = len `quotRem` 8
   let offset = bigStrides * 8

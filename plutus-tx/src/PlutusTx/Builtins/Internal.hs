@@ -712,39 +712,39 @@ byteStringToInteger (BuiltinBool statedEndianness) (BuiltinByteString input) =
 LOGICAL
 -}
 
-{-# NOINLINE bitwiseLogicalAnd #-}
-bitwiseLogicalAnd ::
+{-# NOINLINE andByteString #-}
+andByteString ::
   BuiltinBool ->
   BuiltinByteString ->
   BuiltinByteString ->
   BuiltinByteString
-bitwiseLogicalAnd (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
-  BuiltinByteString . Logical.bitwiseLogicalAnd isPaddingSemantics data1 $ data2
+andByteString (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
+  BuiltinByteString . Logical.andByteString isPaddingSemantics data1 $ data2
 
-{-# NOINLINE bitwiseLogicalOr #-}
-bitwiseLogicalOr ::
+{-# NOINLINE orByteString #-}
+orByteString ::
   BuiltinBool ->
   BuiltinByteString ->
   BuiltinByteString ->
   BuiltinByteString
-bitwiseLogicalOr (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
-  BuiltinByteString . Logical.bitwiseLogicalOr isPaddingSemantics data1 $ data2
+orByteString (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
+  BuiltinByteString . Logical.orByteString isPaddingSemantics data1 $ data2
 
-{-# NOINLINE bitwiseLogicalXor #-}
-bitwiseLogicalXor ::
+{-# NOINLINE xorByteString #-}
+xorByteString ::
   BuiltinBool ->
   BuiltinByteString ->
   BuiltinByteString ->
   BuiltinByteString
-bitwiseLogicalXor (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
-  BuiltinByteString . Logical.bitwiseLogicalXor isPaddingSemantics data1 $ data2
+xorByteString (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
+  BuiltinByteString . Logical.xorByteString isPaddingSemantics data1 $ data2
 
-{-# NOINLINE bitwiseLogicalComplement #-}
-bitwiseLogicalComplement ::
+{-# NOINLINE complementByteString #-}
+complementByteString ::
   BuiltinByteString ->
   BuiltinByteString
-bitwiseLogicalComplement (BuiltinByteString bs) =
-  BuiltinByteString . Logical.bitwiseLogicalComplement $ bs
+complementByteString (BuiltinByteString bs) =
+  BuiltinByteString . Logical.complementByteString $ bs
 
 {-# NOINLINE readBit #-}
 readBit ::

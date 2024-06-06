@@ -30,7 +30,7 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Numeric (showHex)
 import PlutusCore qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusPrelude (Word8, def)
 import Test.Tasty (TestTree, testGroup)
@@ -69,7 +69,7 @@ getSet =
           mkConstant @ByteString () bs,
           mkConstant @Integer () i
           ]
-    case typecheckReadKnownCek def defaultBuiltinCostModel lookupExp of
+    case typecheckReadKnownCek def defaultBuiltinCostModelForTesting lookupExp of
       Left err -> annotateShow err >> failure
       Right (Left err) -> annotateShow err >> failure
       Right (Right b) -> do
@@ -227,10 +227,10 @@ complementSelfInverse :: TestTree
 complementSelfInverse =
   testPropertyNamed "self-inverse" "self_inverse" . property $ do
     bs <- forAllByteString
-    let lhsInner = mkIterAppNoAnn (builtin () PLC.BitwiseLogicalComplement) [
+    let lhsInner = mkIterAppNoAnn (builtin () PLC.ComplementByteString) [
           mkConstant @ByteString () bs
           ]
-    let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseLogicalComplement) [
+    let lhs = mkIterAppNoAnn (builtin () PLC.ComplementByteString) [
           lhsInner
           ]
     let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
@@ -245,8 +245,8 @@ complementSelfInverse =
 -- * The complement of an OR is an AND of complements.
 deMorgan :: TestTree
 deMorgan = testGroup "De Morgan's laws" [
-  testPropertyNamed "NOT AND -> OR" "demorgan_and" . go PLC.BitwiseLogicalAnd $ PLC.BitwiseLogicalOr,
-  testPropertyNamed "NOT OR -> AND" "demorgan_or" . go PLC.BitwiseLogicalOr $ PLC.BitwiseLogicalAnd
+  testPropertyNamed "NOT AND -> OR" "demorgan_and" . go PLC.AndByteString $ PLC.OrByteString,
+  testPropertyNamed "NOT OR -> AND" "demorgan_or" . go PLC.OrByteString $ PLC.AndByteString
   ]
   where
     go :: UPLC.DefaultFun -> UPLC.DefaultFun -> Property
@@ -259,13 +259,13 @@ deMorgan = testGroup "De Morgan's laws" [
             mkConstant @ByteString () bs1,
             mkConstant @ByteString () bs2
             ]
-      let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseLogicalComplement) [
+      let lhs = mkIterAppNoAnn (builtin () PLC.ComplementByteString) [
             lhsInner
             ]
-      let rhsInner1 = mkIterAppNoAnn (builtin () PLC.BitwiseLogicalComplement) [
+      let rhsInner1 = mkIterAppNoAnn (builtin () PLC.ComplementByteString) [
             mkConstant @ByteString () bs1
             ]
-      let rhsInner2 = mkIterAppNoAnn (builtin () PLC.BitwiseLogicalComplement) [
+      let rhsInner2 = mkIterAppNoAnn (builtin () PLC.ComplementByteString) [
             mkConstant @ByteString () bs2
             ]
       let rhs = mkIterAppNoAnn (builtin () g) [
@@ -284,12 +284,12 @@ xorInvoluteLaw :: TestTree
 xorInvoluteLaw = testPropertyNamed "involute (both)" "involute_both" . property $ do
   bs <- forAllByteString
   semantics <- forAllWith showSemantics Gen.bool
-  let lhsInner = mkIterAppNoAnn (builtin () PLC.BitwiseLogicalXor) [
+  let lhsInner = mkIterAppNoAnn (builtin () PLC.XorByteString) [
         mkConstant @Bool () semantics,
         mkConstant @ByteString () bs,
         mkConstant @ByteString () bs
         ]
-  let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseLogicalXor) [
+  let lhs = mkIterAppNoAnn (builtin () PLC.XorByteString) [
         mkConstant @Bool () semantics,
         mkConstant @ByteString () bs,
         lhsInner
@@ -557,7 +557,7 @@ evaluateAndVerify ::
   PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
   PropertyT IO ()
 evaluateAndVerify expected actual =
-  case typecheckEvaluateCek def defaultBuiltinCostModel actual of
+  case typecheckEvaluateCek def defaultBuiltinCostModelForTesting actual of
     Left x -> annotateShow x >> failure
     Right (res, logs) -> case res of
       PLC.EvaluationFailure   -> annotateShow logs >> failure

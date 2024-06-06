@@ -154,10 +154,10 @@ data DefaultFun
     | IntegerToByteString
     | ByteStringToInteger
     -- Logical
-    | BitwiseLogicalAnd
-    | BitwiseLogicalOr
-    | BitwiseLogicalXor
-    | BitwiseLogicalComplement
+    | AndByteString
+    | OrByteString
+    | XorByteString
+    | ComplementByteString
     | ReadBit
     | WriteBits
     | ReplicateByteString
@@ -1832,36 +1832,36 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramByteStringToInteger)
 
     -- Logical
-    toBuiltinMeaning _semvar BitwiseLogicalAnd =
-        let bitwiseLogicalAndDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
-            bitwiseLogicalAndDenotation = Logical.bitwiseLogicalAnd
-            {-# INLINE bitwiseLogicalAndDenotation #-}
+    toBuiltinMeaning _semvar AndByteString =
+        let andByteStringDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+            andByteStringDenotation = Logical.andByteString
+            {-# INLINE andByteStringDenotation #-}
         in makeBuiltinMeaning
-            bitwiseLogicalAndDenotation
+            andByteStringDenotation
             (runCostingFunThreeArguments . unimplementedCostingFun)
 
-    toBuiltinMeaning _semvar BitwiseLogicalOr =
-        let bitwiseLogicalOrDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
-            bitwiseLogicalOrDenotation = Logical.bitwiseLogicalOr
-            {-# INLINE bitwiseLogicalOrDenotation #-}
+    toBuiltinMeaning _semvar OrByteString =
+        let orByteStringDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+            orByteStringDenotation = Logical.orByteString
+            {-# INLINE orByteStringDenotation #-}
         in makeBuiltinMeaning
-            bitwiseLogicalOrDenotation
+            orByteStringDenotation
             (runCostingFunThreeArguments . unimplementedCostingFun)
 
-    toBuiltinMeaning _semvar BitwiseLogicalXor =
-        let bitwiseLogicalXorDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
-            bitwiseLogicalXorDenotation = Logical.bitwiseLogicalXor
-            {-# INLINE bitwiseLogicalXorDenotation #-}
+    toBuiltinMeaning _semvar XorByteString =
+        let xorByteStringDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+            xorByteStringDenotation = Logical.xorByteString
+            {-# INLINE xorByteStringDenotation #-}
         in makeBuiltinMeaning
-            bitwiseLogicalXorDenotation
+            xorByteStringDenotation
             (runCostingFunThreeArguments . unimplementedCostingFun)
 
-    toBuiltinMeaning _semvar BitwiseLogicalComplement =
-        let bitwiseLogicalComplementDenotation :: BS.ByteString -> BS.ByteString
-            bitwiseLogicalComplementDenotation = Logical.bitwiseLogicalComplement
-            {-# INLINE bitwiseLogicalComplementDenotation #-}
+    toBuiltinMeaning _semvar ComplementByteString =
+        let complementByteStringDenotation :: BS.ByteString -> BS.ByteString
+            complementByteStringDenotation = Logical.complementByteString
+            {-# INLINE complementByteStringDenotation #-}
         in makeBuiltinMeaning
-            bitwiseLogicalComplementDenotation
+            complementByteStringDenotation
             (runCostingFunOneArgument . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ReadBit =
@@ -2015,10 +2015,10 @@ instance Flat DefaultFun where
               IntegerToByteString             -> 73
               ByteStringToInteger             -> 74
 
-              BitwiseLogicalAnd               -> 75
-              BitwiseLogicalOr                -> 76
-              BitwiseLogicalXor               -> 77
-              BitwiseLogicalComplement        -> 78
+              AndByteString                   -> 75
+              OrByteString                    -> 76
+              XorByteString                   -> 77
+              ComplementByteString            -> 78
               ReadBit                         -> 79
               WriteBits                       -> 80
               ReplicateByteString             -> 81
@@ -2099,10 +2099,10 @@ instance Flat DefaultFun where
               go 72 = pure Blake2b_224
               go 73 = pure IntegerToByteString
               go 74 = pure ByteStringToInteger
-              go 75 = pure BitwiseLogicalAnd
-              go 76 = pure BitwiseLogicalOr
-              go 77 = pure BitwiseLogicalXor
-              go 78 = pure BitwiseLogicalComplement
+              go 75 = pure AndByteString
+              go 76 = pure OrByteString
+              go 77 = pure XorByteString
+              go 78 = pure ComplementByteString
               go 79 = pure ReadBit
               go 80 = pure WriteBits
               go 81 = pure ReplicateByteString

@@ -909,29 +909,29 @@ test_Logical =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
   testGroup "Logical" $ [
     testGroup "bitwiseLogicalAnd" [
-      Laws.abelianSemigroupLaws "truncation" PLC.BitwiseLogicalAnd False,
-      Laws.idempotenceLaw "truncation" PLC.BitwiseLogicalAnd False,
-      Laws.absorbtionLaw "truncation" PLC.BitwiseLogicalAnd False "",
-      Laws.leftDistributiveLaw "truncation" "itself" PLC.BitwiseLogicalAnd PLC.BitwiseLogicalAnd False,
-      Laws.leftDistributiveLaw "truncation" "OR" PLC.BitwiseLogicalAnd PLC.BitwiseLogicalOr False,
-      Laws.leftDistributiveLaw "truncation" "XOR" PLC.BitwiseLogicalAnd PLC.BitwiseLogicalXor False,
-      Laws.abelianMonoidLaws "padding" PLC.BitwiseLogicalAnd True "",
-      Laws.distributiveLaws "padding" PLC.BitwiseLogicalAnd True
+      Laws.abelianSemigroupLaws "truncation" PLC.AndByteString False,
+      Laws.idempotenceLaw "truncation" PLC.AndByteString False,
+      Laws.absorbtionLaw "truncation" PLC.AndByteString False "",
+      Laws.leftDistributiveLaw "truncation" "itself" PLC.AndByteString PLC.AndByteString False,
+      Laws.leftDistributiveLaw "truncation" "OR" PLC.AndByteString PLC.OrByteString False,
+      Laws.leftDistributiveLaw "truncation" "XOR" PLC.AndByteString PLC.XorByteString False,
+      Laws.abelianMonoidLaws "padding" PLC.AndByteString True "",
+      Laws.distributiveLaws "padding" PLC.AndByteString True
       ],
     testGroup "bitwiseLogicalOr" [
-      Laws.abelianSemigroupLaws "truncation" PLC.BitwiseLogicalOr False,
-      Laws.idempotenceLaw "truncation" PLC.BitwiseLogicalOr False,
-      Laws.absorbtionLaw "truncation" PLC.BitwiseLogicalOr False "",
-      Laws.leftDistributiveLaw "truncation" "itself" PLC.BitwiseLogicalOr PLC.BitwiseLogicalOr False,
-      Laws.leftDistributiveLaw "truncation" "AND" PLC.BitwiseLogicalOr PLC.BitwiseLogicalAnd False,
-      Laws.abelianMonoidLaws "padding" PLC.BitwiseLogicalOr True "",
-      Laws.distributiveLaws "padding" PLC.BitwiseLogicalOr True
+      Laws.abelianSemigroupLaws "truncation" PLC.OrByteString False,
+      Laws.idempotenceLaw "truncation" PLC.OrByteString False,
+      Laws.absorbtionLaw "truncation" PLC.OrByteString False "",
+      Laws.leftDistributiveLaw "truncation" "itself" PLC.OrByteString PLC.OrByteString False,
+      Laws.leftDistributiveLaw "truncation" "AND" PLC.OrByteString PLC.AndByteString False,
+      Laws.abelianMonoidLaws "padding" PLC.OrByteString True "",
+      Laws.distributiveLaws "padding" PLC.OrByteString True
       ],
     testGroup "bitwiseLogicalXor" [
-      Laws.abelianSemigroupLaws "truncation" PLC.BitwiseLogicalXor False,
-      Laws.absorbtionLaw "truncation" PLC.BitwiseLogicalXor False "",
+      Laws.abelianSemigroupLaws "truncation" PLC.XorByteString False,
+      Laws.absorbtionLaw "truncation" PLC.XorByteString False "",
       Laws.xorInvoluteLaw,
-      Laws.abelianMonoidLaws "padding" PLC.BitwiseLogicalXor True ""
+      Laws.abelianMonoidLaws "padding" PLC.XorByteString True ""
       ],
     testGroup "bitwiseLogicalComplement" [
       Laws.complementSelfInverse,
