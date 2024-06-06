@@ -908,7 +908,7 @@ test_Logical :: TestTree
 test_Logical =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
   testGroup "Logical" $ [
-    testGroup "bitwiseLogicalAnd" [
+    testGroup "andByteString" [
       Laws.abelianSemigroupLaws "truncation" PLC.AndByteString False,
       Laws.idempotenceLaw "truncation" PLC.AndByteString False,
       Laws.absorbtionLaw "truncation" PLC.AndByteString False "",
@@ -918,7 +918,7 @@ test_Logical =
       Laws.abelianMonoidLaws "padding" PLC.AndByteString True "",
       Laws.distributiveLaws "padding" PLC.AndByteString True
       ],
-    testGroup "bitwiseLogicalOr" [
+    testGroup "orByteString" [
       Laws.abelianSemigroupLaws "truncation" PLC.OrByteString False,
       Laws.idempotenceLaw "truncation" PLC.OrByteString False,
       Laws.absorbtionLaw "truncation" PLC.OrByteString False "",
@@ -927,7 +927,7 @@ test_Logical =
       Laws.abelianMonoidLaws "padding" PLC.OrByteString True "",
       Laws.distributiveLaws "padding" PLC.OrByteString True
       ],
-    testGroup "bitwiseLogicalXor" [
+    testGroup "xorByteString" [
       Laws.abelianSemigroupLaws "truncation" PLC.XorByteString False,
       Laws.absorbtionLaw "truncation" PLC.XorByteString False "",
       Laws.xorInvoluteLaw,
