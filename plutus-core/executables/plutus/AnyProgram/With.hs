@@ -1,27 +1,40 @@
+{-# LANGUAGE AllowAmbiguousTypes      #-}
 {-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE QuantifiedConstraints    #-}
 {-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE UndecidableInstances     #-}
 {-# LANGUAGE UndecidableSuperClasses  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 -- | BOILERPLATE needed to support Hasochism.
 -- See <https://homepages.inf.ed.ac.uk/slindley/papers/hasochism.pdf>
 module AnyProgram.With where
 
+import PlutusCore qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Pretty as PLC
+import PlutusIR qualified as PIR
 import UntypedPlutusCore qualified as UPLC
 
 import Data.Kind (Constraint)
-import Flat
 import Types
 
 -- for: (typeclass `compose` type)
 type ComposeC :: forall a b. (b -> Constraint) -> (a -> b) -> a -> Constraint
 class    constr (f x) => ComposeC constr f x
 instance constr (f x) => ComposeC constr f x
+
+type UnitC :: forall a. a -> Constraint
+class    UnitC x
+instance UnitC x
+
+type AndC :: forall a. (a -> Constraint) -> (a -> Constraint) -> a -> Constraint
+class    (constr1 x, constr2 x) => AndC constr1 constr2 x
+instance (constr1 x, constr2 x) => AndC constr1 constr2 x
 
 withN :: forall constr s r
       . ( constr (FromName 'Name)
@@ -52,34 +65,71 @@ withA s r = case s of
     SUnit       -> r
     STxSrcSpans -> r
 
-withFlatL :: forall s r. SLang s ->  (Flat (FromLang s) => r) -> r
-withFlatL s r = case s of
-    SPir sname sann -> withN @Flat sname $ withNT @Flat sname $ withA @Flat sann r
-    SPlc sname sann -> withN @Flat sname $ withNT @Flat sname $ withA @Flat sann r
-    SUplc sname sann -> withN @Flat sname $ withN @(ComposeC Flat UPLC.Binder) sname $
-                       withA @Flat sann r
-    SData -> error "Flat is not available for Data"
+withLangGeneral
+    :: forall constrTyName constrBinder constrName constrAnn constr s r.
+        ( constrTyName (FromNameTy 'Name)
+        , constrTyName (FromNameTy 'DeBruijn)
+        , constrTyName (FromNameTy 'NamedDeBruijn)
+        , constrBinder (UPLC.Binder UPLC.Name)
+        , constrBinder (UPLC.Binder UPLC.DeBruijn)
+        , constrBinder (UPLC.Binder UPLC.NamedDeBruijn)
+        , constrName (FromName 'Name)
+        , constrName (FromName 'DeBruijn)
+        , constrName (FromName 'NamedDeBruijn)
+        , constrAnn (FromAnn 'Unit)
+        , constrAnn (FromAnn 'TxSrcSpans)
+        , (forall tyname name ann. (constrTyName tyname, constrName name, constrAnn ann) =>
+            constr (PIR.Program tyname name UPLC.DefaultUni UPLC.DefaultFun ann))
+        , (forall tyname name ann. (constrTyName tyname, constrName name, constrAnn ann) =>
+            constr (PLC.Program tyname name UPLC.DefaultUni UPLC.DefaultFun ann))
+        , (forall name ann. (constrBinder (UPLC.Binder name), constrName name, constrAnn ann) =>
+            constr (UPLC.UnrestrictedProgram name UPLC.DefaultUni UPLC.DefaultFun ann))
+        )
+    => SLang s -> (constr (FromLang s) => r) -> r
+withLangGeneral s r = case s of
+    SPir sname sann ->
+          withNT @constrTyName sname
+        $ withN @constrName sname
+        $ withA @constrAnn sann r
+    SPlc sname sann ->
+          withNT @constrTyName sname
+        $ withN @constrName sname
+        $ withA @constrAnn sann r
+    SUplc sname sann ->
+          withN @(ComposeC constrBinder UPLC.Binder) sname
+        $ withN @constrName sname
+        $ withA @constrAnn sann r
+    SData -> error "not implemented yet"
 
-withShowL :: forall s r. SLang s ->  (Show (FromLang s) => r) -> r
-withShowL s r = case s of
-    SPir sname sann -> withN @Show sname $ withNT @Show sname $ withA @Show sann r
-    SPlc sname sann -> withN @Show sname $ withNT @Show sname $ withA @Show sann r
-    SUplc sname sann -> withN @Show sname $ withN @(ComposeC Show UPLC.Binder) sname $
-                       withA @Show sann r
-    SData -> r
+withLang
+    :: forall constr s r.
+        ( constr (FromNameTy 'Name)
+        , constr (FromNameTy 'DeBruijn)
+        , constr (FromNameTy 'NamedDeBruijn)
+        , constr (UPLC.Binder UPLC.Name)
+        , constr (UPLC.Binder UPLC.DeBruijn)
+        , constr (UPLC.Binder UPLC.NamedDeBruijn)
+        , constr (FromName 'Name)
+        , constr (FromName 'DeBruijn)
+        , constr (FromName 'NamedDeBruijn)
+        , constr (FromAnn 'Unit)
+        , constr (FromAnn 'TxSrcSpans)
+        , (forall tyname name ann. (constr tyname, constr name, constr ann) =>
+            constr (PIR.Program tyname name UPLC.DefaultUni UPLC.DefaultFun ann))
+        , (forall tyname name ann. (constr tyname, constr name, constr ann) =>
+            constr (PLC.Program tyname name UPLC.DefaultUni UPLC.DefaultFun ann))
+        , (forall name ann. (constr (UPLC.Binder name), constr name, constr ann) =>
+            constr (UPLC.UnrestrictedProgram name UPLC.DefaultUni UPLC.DefaultFun ann))
+        )
+    => SLang s -> (constr (FromLang s) => r) -> r
+withLang = withLangGeneral @constr @constr @constr @constr @constr
 
-withPrettyPlcL :: forall s r. SLang s -> (PrettyBy PrettyConfigPlc (FromLang s) => r) -> r
-withPrettyPlcL s r = case s of
-    SPir sname sann -> withN @PrettyClassic sname $ withN @PrettyReadable sname $
-                      withNT @PrettyClassic sname $ withNT @PrettyReadable sname $
-                      withA @Pretty sann r
-    SPlc sname sann -> withN @PrettyClassic sname $ withN @PrettyReadable sname $
-                      withNT @PrettyClassic sname $ withNT @PrettyReadable sname $
-                      withA @Pretty sann r
-    SUplc sname sann -> withN @PrettyClassic sname $ withN @PrettyReadable sname $
-                       withA @Pretty sann r
-    SData -> r
+withPrettyPlcL :: forall s r. SLang s -> (PrettyPlc (FromLang s) => r) -> r
+withPrettyPlcL = withLangGeneral
+    @(PrettyClassic `AndC` PrettyReadable)
+    @UnitC
+    @(PrettyClassic `AndC` PrettyReadable)
+    @Pretty
+    @PrettyPlc
 
--- a dummy to make `withPrettyPlcL` work also with `Data`
-instance PrettyBy PrettyConfigPlc PLC.Data where
-    prettyBy _           = pretty
+instance PrettyBy PrettyConfigPlc PLC.Data

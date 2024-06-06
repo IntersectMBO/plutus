@@ -40,7 +40,8 @@ import PlutusLedgerApi.V2 (CurrencySymbol, ScriptContext (scriptContextTxInfo), 
 import PlutusLedgerApi.V2.Contexts (valueSpent)
 import PlutusTx (CompiledCode, unsafeFromBuiltinData)
 import PlutusTx.Plugin ()
-import PlutusTx.Prelude as PlutusTxPrelude (Bool (..), BuiltinData, check, toBuiltin, ($), (.))
+import PlutusTx.Prelude as PlutusTxPrelude (Bool (..), BuiltinData, BuiltinUnit, check, toBuiltin,
+                                            ($), (.))
 
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
@@ -65,7 +66,7 @@ mkRolePayoutValidator (currency, role) _ ctx =
 
 
 -- | Compute the hash of a script.
-hashScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ()) -> ScriptHash
+hashScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit) -> ScriptHash
 hashScript =
   -- FIXME: Apparently this is the wrong recipe, since its hash disagrees with `cardano-cli`.
   ScriptHash
@@ -78,11 +79,11 @@ hashScript =
 {-# INLINABLE rolePayoutValidator #-}
 
 -- | The Marlowe payout validator.
-rolePayoutValidator :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
+rolePayoutValidator :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit)
 rolePayoutValidator =
   $$(PlutusTx.compile [|| rolePayoutValidator' ||])
     where
-      rolePayoutValidator' :: BuiltinData -> BuiltinData -> BuiltinData -> ()
+      rolePayoutValidator' :: BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit
       rolePayoutValidator' d r p =
         check
           $ mkRolePayoutValidator

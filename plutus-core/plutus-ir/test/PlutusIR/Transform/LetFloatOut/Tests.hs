@@ -19,8 +19,8 @@ import PlutusPrelude
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_letFloatOut :: TestTree
-test_letFloatOut = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "LetFloatOut" $
+test_letFloatOut =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "LetFloatOut"] $
         map
             (goldenPir (runQuote . runTestPass testPass) pTerm)
             [ "letInLet"

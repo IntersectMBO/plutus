@@ -27,8 +27,7 @@ import PlutusTx.TH (compile)
 
 tests :: TestTree
 tests =
-  runTestNestedIn ["test-plugin", "Spec"] $
-    testNestedGhc "Budget" $
+  runTestNested ["test-plugin", "Spec", "Budget"] . pure . testNestedGhc $
       [ goldenPirReadable "gt" compiledGt
       , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
       ]

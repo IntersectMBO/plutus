@@ -53,11 +53,17 @@ saltFunction salt b0 = serialiseUPLC $ UPLC.Program () version body
 
 integerToByteStringFunction :: SerialisedScript
 integerToByteStringFunction = serialiseUPLC $ UPLC.Program () PLC.plcVersion110 body
-    where
-        body =
-            PLC.mkIterAppNoAnn
-                (UPLC.Builtin () PLC.IntegerToByteString)
-                [ PLC.mkConstant @Bool () False
-                , PLC.mkConstant @Integer () 5
-                , PLC.mkConstant @Integer () 1
-                ]
+  where
+    body =
+      -- This is run as a Plutus V3 script, so it must return BuiltinUnit
+      UPLC.LamAbs () (UPLC.DeBruijn 0) $
+        UPLC.Apply
+          ()
+          (UPLC.LamAbs () (UPLC.DeBruijn 0) (PLC.mkConstant () ()))
+          ( PLC.mkIterAppNoAnn
+              (UPLC.Builtin () PLC.IntegerToByteString)
+              [ PLC.mkConstant @Bool () False
+              , PLC.mkConstant @Integer () 5
+              , PLC.mkConstant @Integer () 1
+              ]
+          )

@@ -123,7 +123,7 @@ nopCostModel =
 nopCostParameters :: MachineParameters CekMachineCosts NopFun (CekValue DefaultUni NopFun ())
 nopCostParameters =
     mkMachineParameters def $
-        CostModel defaultCekMachineCosts nopCostModel
+        CostModel defaultCekMachineCostsForTesting nopCostModel
 
 -- This is just to avoid some deeply nested case expressions for the NopNc
 -- functions below.  There is a Monad instance for EvaluationResult, but that
@@ -153,7 +153,7 @@ n >: k =
 instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
     type CostingPart uni NopFun = NopCostModel
 
-    data BuiltinSemanticsVariant NopFun = NopFunSemanticsVariant1
+    data BuiltinSemanticsVariant NopFun = NopFunSemanticsVariantX
 
     -- Built-in Bools
     toBuiltinMeaning
@@ -287,7 +287,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
              (runCostingFunSixArguments . paramNop6)
 
 instance Default (BuiltinSemanticsVariant NopFun) where
-    def = NopFunSemanticsVariant1
+    def = NopFunSemanticsVariantX
 
 ---------------- Benchmarks ----------------
 

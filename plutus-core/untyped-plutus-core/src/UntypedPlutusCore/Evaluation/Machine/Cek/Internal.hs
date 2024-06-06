@@ -48,6 +48,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , StepKind(..)
     , ThrowableBuiltins
     , extractEvaluationResult
+    , unsafeToEvaluationResult
     , spendBudgetStreamCek
     , runCekDeBruijn
     , dischargeCekValue
@@ -478,6 +479,9 @@ instance ThrowableBuiltins uni fun => MonadError (CekEvaluationException NamedDe
 
 instance AsEvaluationFailure CekUserError where
     _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
+
+instance AsUnliftingError CekUserError where
+    _UnliftingError = _UnliftingErrorVia CekEvaluationFailure
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res)) =

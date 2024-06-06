@@ -29,7 +29,7 @@ module PlutusCore.MkPlc
     , mkTyVar
     , tyDeclVar
     , Def (..)
-    , embed
+    , embedTerm
     , TermDef
     , TypeDef
     , FunctionType (..)
@@ -121,20 +121,20 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     constr   = Constr
     kase     = Case
 
-embed :: TermLike term tyname name uni fun => Term tyname name uni fun ann -> term ann
-embed = \case
+embedTerm :: TermLike term tyname name uni fun => Term tyname name uni fun ann -> term ann
+embedTerm = \case
     Var a n           -> var a n
-    TyAbs a tn k t    -> tyAbs a tn k (embed t)
-    LamAbs a n ty t   -> lamAbs a n ty (embed t)
-    Apply a t1 t2     -> apply a (embed t1) (embed t2)
+    TyAbs a tn k t    -> tyAbs a tn k (embedTerm t)
+    LamAbs a n ty t   -> lamAbs a n ty (embedTerm t)
+    Apply a t1 t2     -> apply a (embedTerm t1) (embedTerm t2)
     Constant a c      -> constant a c
     Builtin a bi      -> builtin a bi
-    TyInst a t ty     -> tyInst a (embed t) ty
+    TyInst a t ty     -> tyInst a (embedTerm t) ty
     Error a ty        -> error a ty
-    Unwrap a t        -> unwrap a (embed t)
-    IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
-    Constr a ty i es  -> constr a ty i (fmap embed es)
-    Case a ty arg cs  -> kase a ty (embed arg) (fmap embed cs)
+    Unwrap a t        -> unwrap a (embedTerm t)
+    IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embedTerm t)
+    Constr a ty i es  -> constr a ty i (fmap embedTerm es)
+    Case a ty arg cs  -> kase a ty (embedTerm arg) (fmap embedTerm cs)
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
 mkVar :: TermLike term tyname name uni fun => ann -> VarDecl tyname name uni ann -> term ann

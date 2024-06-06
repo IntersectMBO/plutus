@@ -68,6 +68,7 @@ module PlutusTx.Builtins (
                          -- * Pairs
                          , pairToPair
                          -- * Lists
+                         , null
                          , matchList
                          , matchList'
                          , headMaybe
@@ -395,6 +396,10 @@ trace = BI.trace
 -- | Convert a String into a ByteString.
 encodeUtf8 :: BuiltinString -> BuiltinByteString
 encodeUtf8 = BI.encodeUtf8
+
+{-# INLINABLE null #-}
+null :: forall a. BI.BuiltinList a -> Bool
+null l = fromOpaque (BI.null l)
 
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> (() -> r) -> (a -> BI.BuiltinList a -> r) -> r

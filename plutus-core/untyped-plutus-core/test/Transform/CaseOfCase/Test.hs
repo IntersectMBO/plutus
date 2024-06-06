@@ -9,8 +9,8 @@ import Data.Text.Encoding (encodeUtf8)
 import Data.Vector qualified as V
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel,
-                                                          defaultCekMachineCosts)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting,
+                                                          defaultCekMachineCostsForTesting)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters,
                                                         mkMachineParameters)
 import PlutusCore.MkPlc (mkConstant, mkIterApp)
@@ -23,7 +23,7 @@ import Test.Tasty.HUnit (testCase, (@?=))
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (CekMachineCosts, CekValue, EvaluationResult (..),
-                                                 noEmitter, unsafeEvaluateCek)
+                                                 evaluateCek, noEmitter, unsafeToEvaluationResult)
 import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
 
 test_caseOfCase :: TestTree
@@ -119,13 +119,13 @@ testCaseOfCaseWithError =
 evaluateUplc
   :: UPLC.Term Name DefaultUni DefaultFun ()
   -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
-evaluateUplc = fst <$> unsafeEvaluateCek noEmitter machineParameters
+evaluateUplc = unsafeToEvaluationResult . fst <$> evaluateCek noEmitter machineParameters
  where
   costModel :: CostModel CekMachineCosts BuiltinCostModel =
-    CostModel defaultCekMachineCosts defaultBuiltinCostModel
+    CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
   machineParameters
     :: MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ()) =
-      mkMachineParameters def costModel
+      mkMachineParameters def costModel -- TODO: proper semantic variant. What should def be?
 
 goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsSimplified name =

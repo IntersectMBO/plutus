@@ -19,7 +19,6 @@ import PlutusCore.Rename.Monad
 
 import Universe
 
-import Data.Foldable (for_)
 import Data.Hashable
 import Data.Vector qualified as V
 

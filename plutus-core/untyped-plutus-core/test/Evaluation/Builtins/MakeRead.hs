@@ -38,7 +38,8 @@ readMakeHetero
     => a -> EvaluationResult b
 readMakeHetero x = do
     xTerm <- makeKnownOrFail @_ @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
-    case extractEvaluationResult <$> typecheckReadKnownCek def TPLC.defaultBuiltinCostModel xTerm of
+    case extractEvaluationResult <$> typecheckReadKnownCek def
+      TPLC.defaultBuiltinCostModelForTesting xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
         Right (Right res) -> res
@@ -86,7 +87,8 @@ test_collectText = testPropertyNamed "collectText" "collectText" . property $ do
             , rest
             ]
         term = foldr step unitval (reverse strs)
-    strs' <- case typecheckEvaluateCek def TPLC.defaultBuiltinCostModel term of
+    -- FIXME: semantic variant?
+    strs' <- case typecheckEvaluateCek def TPLC.defaultBuiltinCostModelForTesting term of
         Left _                             -> failure
         Right (EvaluationFailure, _)       -> failure
         Right (EvaluationSuccess _, strs') -> return strs'
