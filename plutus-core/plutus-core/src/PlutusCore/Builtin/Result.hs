@@ -215,3 +215,23 @@ instance Monad BuiltinResult where
 
     (>>) = (*>)
     {-# INLINE (>>) #-}
+
+instance MonadError BuiltinError BuiltinResult where
+    throwError builtinErr = BuiltinFailure operationalLogs builtinErr where
+        operationalLogs = case builtinErr of
+            BuiltinUnliftingEvaluationError
+                (MkUnliftingEvaluationError
+                    (OperationalEvaluationError
+                        (MkUnliftingError operationalErr))) -> pure operationalErr
+            _ -> mempty
+
+    -- Throwing logs out is lame, but embedding them into the error would be weird, since that
+    -- would change the error. Not that any of that matters, we only implement this because it's a
+    -- method of 'MonadError' and we can't not implement it.
+    --
+    -- We could make it @MonadError (DList Text, BuiltinError)@, but logs are arbitrary and are not
+    -- necessarily an inherent part of an error, so preserving them is as questionable as not doing
+    -- so.
+    BuiltinFailure _ err `catchError` f = f err
+    res                  `catchError` _ = res
+    {-# INLINE catchError #-}

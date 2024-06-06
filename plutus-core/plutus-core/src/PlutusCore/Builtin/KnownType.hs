@@ -23,7 +23,6 @@ module PlutusCore.Builtin.KnownType
     , BuiltinResult (..)
     , ReadKnownM
     , MakeKnownIn (..)
-    , liftReadKnownM
     , readKnownConstant
     , MakeKnown
     , ReadKnownIn (..)
@@ -261,12 +260,6 @@ typeMismatchError uniExp uniAct =
 -- and 'coerceArg') and there is no abstraction barrier anyway.
 -- | The monad that 'readKnown' runs in.
 type ReadKnownM = Either BuiltinError
-
--- | Lift a 'ReadKnownM' computation into 'BuiltinResult'.
-liftReadKnownM :: ReadKnownM a -> BuiltinResult a
-liftReadKnownM (Left err) = BuiltinFailure mempty err
-liftReadKnownM (Right x)  = BuiltinSuccess x
-{-# INLINE liftReadKnownM #-}
 
 -- See Note [Unlifting a term as a value of a built-in type].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
