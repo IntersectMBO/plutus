@@ -74,11 +74,6 @@ newtype Map k v = Map {unMap :: [(k, v)]}
   deriving stock (Generic, Haskell.Show, Data, TH.Lift)
   deriving newtype (NFData)
 
-instance (Eq k, Eq v) => Eq (Map k v) where
-  Map m1 == m2 =
-    length m1 == length m2
-    && List.all (\(k, v) -> lookup k m2 == Just v) m1
-
 instance (Haskell.Eq k, Haskell.Eq v) => Haskell.Eq (Map k v) where
   Map m1 == Map m2 =
     Haskell.all (\(k, v) -> Haskell.lookup k m2 Haskell.== Just v) m1
