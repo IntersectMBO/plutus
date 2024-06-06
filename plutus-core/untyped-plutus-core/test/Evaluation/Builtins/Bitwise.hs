@@ -22,7 +22,7 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Numeric (showHex)
 import PlutusCore qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusPrelude (Word8, def)
 import Test.Tasty (TestTree)
@@ -149,7 +149,7 @@ csbHomomorphism = [
     let lhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
           mkConstant @ByteString () ""
           ]
-    case typecheckEvaluateCek def defaultBuiltinCostModel lhs of
+    case typecheckEvaluateCek def defaultBuiltinCostModelForTesting lhs of
         Left x -> assertFailure . show $ x
         Right (res, logs) -> case res of
           PLC.EvaluationFailure   -> assertFailure . show $ logs
@@ -259,7 +259,7 @@ evaluateAndVerify ::
   PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
   PropertyT IO ()
 evaluateAndVerify expected actual =
-  case typecheckEvaluateCek def defaultBuiltinCostModel actual of
+  case typecheckEvaluateCek def defaultBuiltinCostModelForTesting actual of
     Left x -> annotateShow x >> failure
     Right (res, logs) -> case res of
       PLC.EvaluationFailure   -> annotateShow logs >> failure
