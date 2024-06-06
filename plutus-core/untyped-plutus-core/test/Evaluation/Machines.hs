@@ -5,7 +5,6 @@
 
 module Evaluation.Machines
     ( test_machines
-    --, test_memory
     , test_budget
     , test_tallying
     ) where
@@ -41,16 +40,20 @@ import Test.Tasty.Golden
 import Test.Tasty.Hedgehog
 
 testMachine
-    :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc internal)
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc structural)
     => String
     -> (Term Name uni fun () ->
-           Either (EvaluationException user internal (Term Name uni fun ())) (Term Name uni fun ()))
+           Either
+               (EvaluationException operational structural (Term Name uni fun ()))
+               (Term Name uni fun ()))
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
         testPropertyNamed name (fromString name) . withTests 200 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
-            let resExp = eraseTerm <$> makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
+            let resExp =
+                    eraseTerm <$>
+                        makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
             case extractEvaluationResult . eval $ eraseTerm term of
                 Left err     -> fail $ show err
                 Right resAct -> resAct === resExp
@@ -58,8 +61,8 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK"  $ Cek.evaluateCekNoEmit Plc.defaultCekParameters
-        , testMachine "SteppableCEK"  $ SCek.evaluateCekNoEmit Plc.defaultCekParameters
+        [ testMachine "CEK"  $ Cek.evaluateCekNoEmit Plc.defaultCekParametersForTesting
+        , testMachine "SteppableCEK"  $ SCek.evaluateCekNoEmit Plc.defaultCekParametersForTesting
         ]
 
 testBudget
@@ -73,7 +76,7 @@ testBudget runtime name term =
     name
     ".uplc"
     (render $
-        prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCosts runtime) Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCostsForTesting runtime) Cek.tallying term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] where
@@ -119,19 +122,15 @@ test_budget :: TestTree
 test_budget
     -- Error diffs are very big
     = localOption (SizeCutoff 1000000)
-    . runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
-    . testNested "Budget"
+    . runTestNested ["untyped-plutus-core", "test", "Evaluation", "Machines", "Budget"]
     $ concat
-        [ folder Plc.defaultBuiltinsRuntime bunchOfFibs
+        [ folder Plc.defaultBuiltinsRuntimeForTesting bunchOfFibs
         , folder (toBuiltinsRuntime def ()) bunchOfIdNats
-        , folder Plc.defaultBuiltinsRuntime bunchOfIfThenElseNats
+        , folder Plc.defaultBuiltinsRuntimeForTesting bunchOfIfThenElseNats
         ]
   where
     folder runtime =
-        foldPlcFolderContents
-            testNested
-            (\name _ -> pure $ testGroup name [])
-            (\name -> testBudget runtime name . eraseTerm)
+        foldPlcFolderContents testNested mempty (\name -> testBudget runtime name . eraseTerm)
 
 testTallying :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
 testTallying name term =
@@ -139,15 +138,12 @@ testTallying name term =
     name
     ".uplc"
     (render $
-        prettyPlcReadableDef $ runCekNoEmit Plc.defaultCekParameters Cek.tallying term)
+        prettyPlcReadableDef $ runCekNoEmit Plc.defaultCekParametersForTesting Cek.tallying term)
 
 test_tallying :: TestTree
 test_tallying =
     -- Error diffs are very big
     localOption (SizeCutoff 1000000)
-        . runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
-        .  testNested "Tallying"
-        .  foldPlcFolderContents testNested
-                                 (\name _ -> pure $ testGroup name [])
-                                 (\name -> testTallying name . eraseTerm)
+        . runTestNested ["untyped-plutus-core", "test", "Evaluation", "Machines", "Tallying"]
+        . foldPlcFolderContents testNested mempty (\name -> testTallying name . eraseTerm)
         $ bunchOfFibs

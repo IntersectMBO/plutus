@@ -36,8 +36,8 @@ AsData.asData [d|
 makeLift ''MaybeD
 
 tests :: TestNested
-tests = testNestedGhc "Budget" [
-    goldenBudget "sum" compiledSum
+tests = testNested "Budget" . pure $ testNestedGhc
+  [ goldenBudget "sum" compiledSum
   , goldenUPlcReadable "sum" compiledSum
   , goldenPirReadable "sum" compiledSum
   , goldenEvalCekCatch "sum" [compiledSum]

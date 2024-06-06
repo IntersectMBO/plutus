@@ -42,14 +42,14 @@ currencyValueOf (Value m) c = case Map.lookup c m of
 -- BLOCK2
 -- The 'plutus-ledger' package from 'plutus-apps' provides helper functions to automate
 -- some of this boilerplate.
-oneAtATimePolicyUntyped :: BuiltinData -> BuiltinData -> ()
+oneAtATimePolicyUntyped :: BuiltinData -> BuiltinData -> BuiltinUnit
 -- 'check' fails with 'error' if the argument is not 'True'.
 oneAtATimePolicyUntyped r c =
     check $ oneAtATimePolicy (unsafeFromBuiltinData r) (unsafeFromBuiltinData c)
 
 -- We can use 'compile' to turn a minting policy into a compiled Plutus Core program,
 -- just as for validator scripts.
-oneAtATimeCompiled :: CompiledCode (BuiltinData -> BuiltinData -> ())
+oneAtATimeCompiled :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinUnit)
 oneAtATimeCompiled = $$(compile [|| oneAtATimePolicyUntyped ||])
 -- BLOCK3
 singleSignerPolicy :: () -> ScriptContext -> Bool

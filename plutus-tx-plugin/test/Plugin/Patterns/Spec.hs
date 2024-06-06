@@ -56,7 +56,7 @@ psymRec = plc (Proxy @"psymRec") (
   )
 
 patterns :: TestNested
-patterns = testNestedGhc "Patterns" [
-    goldenPirReadable "psym1" psym1
-    , goldenPirReadable "psymRec" psymRec
+patterns = testNested "Patterns" Prelude.. Prelude.pure Prelude.$ testNestedGhc
+  [ goldenPirReadable "psym1" psym1
+  , goldenPirReadable "psymRec" psymRec
   ]

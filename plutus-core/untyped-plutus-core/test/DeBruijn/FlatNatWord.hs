@@ -73,13 +73,14 @@ prop_OldVsNewIndex = testProperty "oldVsNew Index" $ property $ do
     Hedgehog.assert $ unflat @Index encoded `isCompatible` unflat @OldIndex encoded
 
 test_flatNatWord :: TestNested
-test_flatNatWord = testNested "FlatNatWord" $ fmap pure
-    [ test_MinBound
-    , test_MaxBound
-    , prop_CompatInBounds
-    , prop_DecLarger
-    , prop_OldVsNewIndex
-    ]
+test_flatNatWord =
+    testNested "FlatNatWord" $ map embed
+        [ test_MinBound
+        , test_MaxBound
+        , prop_CompatInBounds
+        , prop_DecLarger
+        , prop_OldVsNewIndex
+        ]
 
 -- * Old implementation of Flat Index copy-pasted and renamed to OldIndex
 

@@ -3,7 +3,7 @@
 module Main (main) where
 
 import PlutusConformance.Common
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek qualified as SCek
 
@@ -20,7 +20,7 @@ evalSteppableUplcProg = UplcEvaluatorWithoutCosting $ traverseOf UPLC.progTerm $
     case UPLC.deBruijnTerm t of
         Left (_ :: UPLC.FreeVariableError) -> Nothing
         Right _                            -> Just ()
-    case SCek.evaluateCekNoEmit defaultCekParameters t of
+    case SCek.evaluateCekNoEmit defaultCekParametersForTesting t of
         Left _     -> Nothing
         Right prog -> Just prog
 

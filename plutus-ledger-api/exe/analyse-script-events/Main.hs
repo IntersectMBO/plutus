@@ -34,7 +34,6 @@ import Control.Monad.Writer.Strict
 import Data.Int (Int64)
 import Data.List (find, intercalate)
 import Data.Primitive.PrimArray qualified as P
-import Data.SatInt (fromSatInt)
 import System.Directory.Extra (listFiles)
 import System.Environment (getArgs, getProgName)
 import System.FilePath (isExtensionOf, takeFileName)
@@ -308,8 +307,8 @@ data EvaluationResult =  OK ExBudget | Failed | DeserialisationError
 -- Convert to a string for use in an R frame
 toRString :: EvaluationResult -> String
 toRString = \case
-  OK _ -> "T"
-  Failed -> "F"
+  OK _                 -> "T"
+  Failed               -> "F"
   DeserialisationError -> "NA"
 
 -- Print out the actual and claimed CPU and memory cost of every script.
@@ -471,6 +470,6 @@ main =
               eventFiles -> analysis eventFiles
 
     in getArgs >>= \case
-      [name] -> go name "."
+      [name]      -> go name "."
       [name, dir] -> go name dir
-      _ -> usage
+      _           -> usage

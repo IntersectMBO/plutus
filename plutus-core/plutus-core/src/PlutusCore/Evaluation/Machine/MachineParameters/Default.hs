@@ -46,7 +46,7 @@ inlining).
 
 -- | Produce a 'DefaultMachineParameters' for each of the given semantics variants.
 -- The 'CostModelParams' argument is used to update the costing parameters returned by
--- 'toCekCostModel' for each of the semantics variants.
+-- 'cekCostModelForVariant' for each of the semantics variants.
 --
 -- Whenever you need to evaluate UPLC in a performance-sensitive manner (e.g. in the production,
 -- for benchmarking, for cost calibration etc), you MUST use this definition for creating a
@@ -68,7 +68,7 @@ mkMachineParametersFor semVars newCMP = do
     res <- for semVars $ \semVar ->
         -- See Note [Inlining meanings of builtins].
         (,) semVar . inline mkMachineParameters semVar <$>
-            applyCostModelParams (toCekCostModel semVar) newCMP
+            applyCostModelParams (cekCostModelForVariant semVar) newCMP
     -- Force all thunks to pay the cost of creating machine parameters upfront. Doing it here saves
     -- us from doing that in every single benchmark runner.
     pure $! force res

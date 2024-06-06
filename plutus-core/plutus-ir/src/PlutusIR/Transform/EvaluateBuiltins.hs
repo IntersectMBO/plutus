@@ -28,10 +28,10 @@ evaluateBuiltinsPass :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
   -> BuiltinsInfo uni fun
   -> CostingPart uni fun
   -> Pass m TyName Name uni fun a
-evaluateBuiltinsPass tcconfig conservative binfo costModel =
+evaluateBuiltinsPass tcconfig preserveLogging binfo costModel =
   NamedPass "evaluate builtins" $
     Pass
-      (pure . evaluateBuiltins conservative binfo costModel)
+      (pure . evaluateBuiltins preserveLogging binfo costModel)
       [Typechecks tcconfig]
       [ConstCondition (Typechecks tcconfig)]
 
@@ -46,7 +46,7 @@ evaluateBuiltins
   -> CostingPart uni fun
   -> Term tyname name uni fun a
   -> Term tyname name uni fun a
-evaluateBuiltins conservative binfo costModel = transformOf termSubterms processTerm
+evaluateBuiltins preserveLogging binfo costModel = transformOf termSubterms processTerm
   where
     -- Nothing means "leave the original term as it was"
     eval
@@ -55,18 +55,18 @@ evaluateBuiltins conservative binfo costModel = transformOf termSubterms process
       -> Maybe (Term tyname name uni fun ())
     eval (BuiltinCostedResult _ getX) AppContextEnd =
         case getX of
-            BuiltinSuccess v           -> Just v
+            BuiltinSuccess term           -> Just term
             -- Evaluates successfully, but does logging. If we're being conservative
             -- then we should leave these in, so we don't remove people's logging!
             -- Otherwise `trace "hello" x` is a prime candidate for evaluation!
-            BuiltinSuccessWithLogs _ v -> if conservative then Nothing else Just v
+            BuiltinSuccessWithLogs _ term -> if preserveLogging then Nothing else Just term
             -- Evaluation failure. This can mean that the evaluation legitimately
             -- failed (e.g. `divideInteger 1 0`), or that it failed because the
             -- argument terms are not currently in the right form (because they're
             -- not evaluated, we're in the middle of a term here!). Since we can't
             -- distinguish these, we have to assume it's the latter case and just leave
             -- things alone.
-            BuiltinFailure{}           -> Nothing
+            BuiltinFailure{}              -> Nothing
     eval (BuiltinExpectArgument toRuntime) (TermAppContext arg _ ctx) =
         -- Builtin evaluation does not work with annotations, so we have to throw
         -- the argument annotation away here

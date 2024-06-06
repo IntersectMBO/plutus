@@ -111,21 +111,21 @@ not exploited.
 
 -- handle a user error and turn it back into an error term
 handleError :: Type TyName DefaultUni ()
-       -> U.ErrorWithCause (U.EvaluationError user internal) term
-       -> Either (U.ErrorWithCause (U.EvaluationError user internal) term)
+       -> U.ErrorWithCause (U.EvaluationError operational structural) term
+       -> Either (U.ErrorWithCause (U.EvaluationError operational structural) term)
                  (Term TyName Name DefaultUni DefaultFun ())
 handleError ty e = case U._ewcError e of
-  U.UserEvaluationError     _ -> return (Error () ty)
-  U.InternalEvaluationError _ -> throwError e
+  U.OperationalEvaluationError _ -> return (Error () ty)
+  U.StructuralEvaluationError _  -> throwError e
 
 -- untyped version of `handleError`
 handleUError ::
-          U.ErrorWithCause (U.EvaluationError user internal) term
-       -> Either (U.ErrorWithCause (U.EvaluationError user internal) term)
+          U.ErrorWithCause (U.EvaluationError operational structural) term
+       -> Either (U.ErrorWithCause (U.EvaluationError operational structural) term)
                  (U.Term Name DefaultUni DefaultFun ())
 handleUError e = case U._ewcError e of
-  U.UserEvaluationError     _ -> return (U.Error ())
-  U.InternalEvaluationError _ -> throwError e
+  U.OperationalEvaluationError _ -> return (U.Error ())
+  U.StructuralEvaluationError _  -> throwError e
 
 -- |Property: check if the type is preserved by evaluation.
 --
@@ -144,7 +144,7 @@ prop_typePreservation tyG tmG = do
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
   tmCK <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
 -- |Property: check if both the typed CK and untyped CEK machines produce the same output
@@ -162,14 +162,14 @@ prop_agree_termEval tyG tmG = do
 
   -- run typed CK on input
   tmCk <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting tm `catchError` handleError ty
 
   -- erase CK output
   let tmUCk = eraseTerm tmCk
 
   -- run untyped CEK on erased input
   tmUCek <- withExceptT UCekP $ liftEither $
-    U.evaluateCekNoEmit defaultCekParameters (eraseTerm tm) `catchError` handleUError
+    U.evaluateCekNoEmit defaultCekParametersForTesting (eraseTerm tm) `catchError` handleUError
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $

@@ -25,12 +25,11 @@ import PlutusTx.Prelude qualified as P
 import PlutusTx.Test (goldenPir, goldenUPlc)
 
 import Data.Proxy (Proxy (..))
-import Test.Tasty.Extras (TestNested, testNestedGhc)
+import Test.Tasty.Extras (TestNested, testNested, testNestedGhc)
 
 basic :: TestNested
 basic =
-  testNestedGhc
-    "Basic"
+  testNested "Basic" . pure $ testNestedGhc
     [ goldenPir "monoId" monoId
     , goldenPir "monoK" monoK
     , goldenPir "letFun" letFun

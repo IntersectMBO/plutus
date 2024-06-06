@@ -41,7 +41,7 @@ test_names = testGroup "names"
       T.test_scopingGood "dead code elimination" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         removeDeadBindings def
     , T.test_scopingGood "constant folding" genTerm T.BindingRemovalNotOk T.PrerenameYes $
-        pure . evaluateBuiltins False def defaultBuiltinCostModel
+        pure . evaluateBuiltins False def defaultBuiltinCostModelForTesting
     , -- At the moment the inliner does not preserve global uniqueness (contrary to what it
       -- promises) due to the lack of marking in it (or initial renaming of the entire program,
       -- which would perform marking too).

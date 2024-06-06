@@ -40,7 +40,7 @@ testCekInternalFree = testGroup "cekInternal" $ fmap (uncurry testCase)
     ]
   where
       evalV = toFakeTerm
-             >>> runCekDeBruijn PLC.defaultCekParameters counting noEmitter
+             >>> runCekDeBruijn PLC.defaultCekParametersForTesting counting noEmitter
              >>> (\(res,_,_) -> res)
 
       eval = evalV

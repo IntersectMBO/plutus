@@ -46,7 +46,6 @@ import Control.Concurrent
 import Control.Monad.Except (runExcept)
 import Control.Monad.Primitive (unsafeIOToPrim)
 import Control.Monad.ST (RealWorld)
-import Data.Foldable
 import Data.Maybe
 import GHC.IO (stToIO)
 import Graphics.Vty qualified as Vty
@@ -177,7 +176,8 @@ driverThread driverMailbox brickMailbox prog mbudget = do
             _                -> coerceMode counting
     -- nilSlippage is important so as to get correct live up-to-date budget
     cekTransWithBudgetRead <- mkCekTrans
-                                 PLC.defaultCekParameters
+                              -- TODO: get correct semantics variant
+                                 PLC.defaultCekParametersForTesting
                                  exBudgetMode
                                  brickEmitter
                                  nilSlippage

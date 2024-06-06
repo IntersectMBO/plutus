@@ -13,8 +13,8 @@ import PlutusIR.Test
 import PlutusPrelude
 
 test_retainedSize :: TestTree
-test_retainedSize = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Analysis"] $
-    testNested "RetainedSize" $
+test_retainedSize =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Analysis", "RetainedSize"] $
         map
             (goldenPir renameAndAnnotate pTerm)
             [ "typeLet"
