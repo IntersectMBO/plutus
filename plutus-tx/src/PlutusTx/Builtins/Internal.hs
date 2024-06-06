@@ -258,10 +258,10 @@ keccak_256 (BuiltinByteString b) = BuiltinByteString $ Hash.keccak_256 b
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Ed25519.verifyEd25519Signature_V1 vk msg sig of
-    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
-        Haskell.error "Ed25519 signature verification errored."
     BuiltinSuccess b              -> BuiltinBool b
     BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
+    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
+        Haskell.error "Ed25519 signature verification errored."
 
 {-# NOINLINE verifyEcdsaSecp256k1Signature #-}
 verifyEcdsaSecp256k1Signature ::
@@ -271,10 +271,10 @@ verifyEcdsaSecp256k1Signature ::
   BuiltinBool
 verifyEcdsaSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Secp256k1.verifyEcdsaSecp256k1Signature vk msg sig of
-    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
-        Haskell.error "ECDSA SECP256k1 signature verification errored."
     BuiltinSuccess b              -> BuiltinBool b
     BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
+    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
+        Haskell.error "ECDSA SECP256k1 signature verification errored."
 
 {-# NOINLINE verifySchnorrSecp256k1Signature #-}
 verifySchnorrSecp256k1Signature ::
@@ -284,10 +284,10 @@ verifySchnorrSecp256k1Signature ::
   BuiltinBool
 verifySchnorrSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Secp256k1.verifySchnorrSecp256k1Signature vk msg sig of
-    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
-        Haskell.error "Schnorr SECP256k1 signature verification errored."
     BuiltinSuccess b              -> BuiltinBool b
     BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
+    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
+        Haskell.error "Schnorr SECP256k1 signature verification errored."
 
 traceAll :: forall (a :: Type) (f :: Type -> Type) .
   (Foldable f) => f Text -> a -> a
@@ -694,10 +694,10 @@ integerToByteString
     -> BuiltinByteString
 integerToByteString (BuiltinBool endiannessArg) paddingArg input =
   case Convert.integerToByteStringWrapper endiannessArg paddingArg input of
-    BuiltinFailure logs err        -> traceAll (logs <> pure (display err)) $
-        Haskell.error "Integer to ByteString conversion errored."
     BuiltinSuccess bs              -> BuiltinByteString bs
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
+    BuiltinFailure logs err        -> traceAll (logs <> pure (display err)) $
+        Haskell.error "Integer to ByteString conversion errored."
 
 {-# NOINLINE byteStringToInteger #-}
 byteStringToInteger
