@@ -59,6 +59,8 @@ on a list representation.
 newtype Map k a = Map (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData))
   deriving stock (Haskell.Show)
 
+-- | Haskell Equality check for `Map`, should not be called from Plutus Tx code.
+-- Warning: this operation is O(n^2).
 instance (Haskell.Eq k, Haskell.Eq v) => Haskell.Eq (Map k v) where
   m1 == m2@(Map m2') =
     size m1 == size m2
