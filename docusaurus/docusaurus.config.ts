@@ -4,7 +4,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
   title: "Plutus Documentation",
-  tagline: "Plutus Core and Plutus Tx user guide",
+  tagline: "Plutus user guide",
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
@@ -82,7 +82,7 @@ const config: Config = {
           type: "docSidebar",
           sidebarId: "tutorialSidebar",
           position: "left",
-          label: "Documentation",
+          label: "User guide",
         },
         {
           type: "html",
