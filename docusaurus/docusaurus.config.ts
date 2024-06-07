@@ -85,35 +85,17 @@ const config: Config = {
           label: "Documentation",
         },
         {
-          href: "https://github.com/IntersectMBO/plutus",
-          label: "GitHub",
+          type: "html",
           position: "right",
+          value:
+            '<a href="https://github.com/IntersectMBO/plutus" class="github-link" target="_blank"></a>',
         },
       ],
     },
     footer: {
       style: "dark",
-      links: [
-        {
-          title: "Docs",
-          items: [
-            {
-              label: "User Guide",
-              to: "/",
-            },
-          ],
-        },
-        {
-          title: "More",
-          items: [
-            {
-              label: "GitHub",
-              href: "https://github.com/IntersectMBO/plutus",
-            },
-          ],
-        },
-      ],
-      copyright: `Copyright © ${new Date().getFullYear()} IOHK. Built with Docusaurus.`,
+      links: [],
+      copyright: `Copyright`,
     },
     prism: {
       theme: prismThemes.github,
