@@ -79,8 +79,6 @@ instance Eq (Map k a) where
   (Map m1) == (Map m2) =
     P.equalsData (BI.mkMap m1) (BI.mkMap m2)
 
-  sorted (Map m) = Map (BI.sort m)
-
 instance
   ( Pretty k
   , Pretty a
