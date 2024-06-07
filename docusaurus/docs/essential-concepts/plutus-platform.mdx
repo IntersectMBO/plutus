@@ -83,19 +83,6 @@ Furthermore, while none of these are quite as security-critical as the trusted k
 
 Even simple applications must deal with this complexity, and for more advanced applications that deal with state across time, the difficulty is magnified.
 
-## Why we call it a platform
-
-This is why the Plutus Platform is a *platform*. 
-Rather than just providing a few tools to make the bare minimum possible, we aim to support application development in its entirety, all the way through from authoring to testing, runtime support, and (eventually) verification. 
-
-Conceptually, the Platform breaks down based on which part of the system we're interested in:
-
-- [Plutus Foundation](plutus-foundation.md): support for writing the trusted kernel of code, and executing it on the chain
-- [The Plutus Application Framework](https://github.com/IntersectMBO/plutus-apps): support for writing applications ("Plutus Applications") in a particular style
-
-![A high-level architecture of the Plutus Platform, with an emphasis on applications](../../static/img/platform-architecture.png)
-*A high-level architecture of the Plutus Platform, with an emphasis on applications*
-
 ## Additional resources
 
 - Michael Peyton-Jones and Jann Mueller introduce the Plutus platform in [this session](https://youtu.be/usMPt8KpBeI?si=4zkS3J7Bq8aFxWbU) from the Cardano 2020 event. 
