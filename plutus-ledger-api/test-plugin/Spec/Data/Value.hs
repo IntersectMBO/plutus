@@ -160,7 +160,7 @@ eqValueCode valueCode1 valueCode2 = (res, cost) where
         $$(compile [|| \value1 value2 -> toOpaque ((value1 :: Value) == value2) ||])
             `unsafeApplyCode` valueCode1 `unsafeApplyCode` valueCode2
     (errOrRes, cost)
-        = PLC.runCekNoEmit PLC.unitCekParameters PLC.counting
+        = PLC.runCekNoEmit PLC.defaultCekParametersForTesting PLC.counting
         . PLC.runQuote
         . PLC.unDeBruijnTermWith (Haskell.error "Free variable")
         . PLC._progTerm
