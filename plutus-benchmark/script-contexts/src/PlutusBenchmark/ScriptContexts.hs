@@ -5,7 +5,6 @@
 
 module PlutusBenchmark.ScriptContexts where
 
-import Data.Eq qualified as Haskell
 import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Value
 import PlutusLedgerApi.V3 (OutputDatum (NoOutputDatum), PubKeyHash (..), Redeemer (..),
@@ -142,7 +141,7 @@ mkScriptContextEqualityDataCode sc =
 scriptContextEqualityTerm :: ScriptContext -> PlutusTx.BuiltinData -> ()
 -- See Note [Redundant arguments to equality benchmarks]
 scriptContextEqualityTerm sc _ =
-  if sc Haskell.== sc
+  if sc PlutusTx.== sc
   then ()
   else PlutusTx.traceError "The argument is not equal to itself"
 
