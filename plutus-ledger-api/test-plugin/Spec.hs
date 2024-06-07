@@ -1,6 +1,8 @@
 module Main where
 
 import Spec.Budget qualified
+import Spec.Data.Budget qualified
+import Spec.Data.Value qualified
 import Spec.ReturnUnit.V1 qualified
 import Spec.ReturnUnit.V2 qualified
 import Spec.ReturnUnit.V3 qualified
@@ -18,4 +20,6 @@ tests = testGroup "plutus-ledger-api-plugin-test"
     , Spec.ReturnUnit.V1.tests
     , Spec.ReturnUnit.V2.tests
     , Spec.ReturnUnit.V3.tests
+    , Spec.Data.Budget.tests
+    , Spec.Data.Value.test_EqValue
     ]

@@ -20,7 +20,7 @@
 -- TODO. Look into this more closely: see https://github.com/IntersectMBO/plutus/issues/6172.
 
 -- | Functions for working with 'Value'.
-module PlutusLedgerApi.V1.Value (
+module PlutusLedgerApi.V1.Data.Value (
     -- ** Currency symbols
       CurrencySymbol(..)
     , currencySymbol
@@ -67,11 +67,14 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
+import PlutusLedgerApi.V1 (UnsafeFromData (unsafeFromBuiltinData))
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusTx qualified
-import PlutusTx.AssocMap qualified as Map
+import PlutusTx.Builtins qualified as B
+import PlutusTx.Builtins.Internal (BuiltinList, BuiltinPair)
+import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.Data.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
-import PlutusTx.List qualified
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
 import PlutusTx.Show qualified as PlutusTx
@@ -214,8 +217,7 @@ There is no 'Ord Value' instance since 'Value' is only a partial order, so 'comp
 do the right thing in some cases.
  -}
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
-    deriving stock (Generic, Data, Haskell.Show)
-    deriving anyclass (NFData)
+    deriving stock (Generic, Haskell.Show)
     deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving Pretty via (PrettyShow Value)
 
@@ -250,7 +252,7 @@ deriving via (Additive Value) instance AdditiveGroup Value
 
 instance Module Integer Value where
     {-# INLINABLE scale #-}
-    scale i (Value xs) = Value (fmap (fmap (\i' -> i * i')) xs)
+    scale i (Value xs) = Value (Map.map (Map.map (\i' -> i * i')) xs)
 
 instance JoinSemiLattice Value where
     {-# INLINABLE (\/) #-}
@@ -280,11 +282,11 @@ currencySymbolValueOf (Value mp) cur = case Map.lookup cur mp of
     Just tokens ->
         -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
         -- the latter materializes the intermediate result of `Map.elems tokens`.
-        PlutusTx.List.foldr (\(_, amt) acc -> amt + acc) 0 (Map.toList tokens)
+        Map.foldr (\amt acc -> amt + acc) 0 tokens
 
 {-# INLINABLE symbols #-}
 -- | The list of 'CurrencySymbol's of a 'Value'.
-symbols :: Value -> [CurrencySymbol]
+symbols :: Value -> BuiltinList BuiltinData
 symbols (Value mp) = Map.keys mp
 
 {-# INLINABLE singleton #-}
@@ -319,10 +321,10 @@ unionVal (Value l) (Value r) =
     let
         combined = Map.union l r
         unThese k = case k of
-            This a    -> This <$> a
-            That b    -> That <$> b
+            This a    -> Map.map This a
+            That b    -> Map.map That b
             These a b -> Map.union a b
-    in unThese <$> combined
+    in Map.map unThese combined
 
 {-# INLINABLE unionWith #-}
 -- | Combine two 'Value' maps with the argument function.
@@ -335,7 +337,7 @@ unionWith f ls rs =
             This a    -> f a 0
             That b    -> f 0 b
             These a b -> f a b
-    in Value (fmap (fmap unThese) combined)
+    in Value (Map.map (Map.map unThese) combined)
 
 {-# INLINABLE flattenValue #-}
 -- | Convert a 'Value' to a simple list, keeping only the non-zero amounts.
@@ -457,47 +459,131 @@ in the other, since in that case computing equality of values was expensive and 
 The algorithm we use here is very similar, if not identical, to @valueEqualsValue4@ from
 https://github.com/IntersectMBO/plutus/issues/5135
 -}
-unordEqWith :: forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> Bool
+unordEqWith
+    :: (BuiltinData -> Bool)
+    -> (BuiltinData -> BuiltinData -> Bool)
+    -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
+    -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
+    -> Bool
 unordEqWith is0 eqV = goBoth where
-    -- Recurse on the spines of both the lists simultaneously.
-    goBoth :: [(k, v)] -> [(k, v)] -> Bool
-    -- One spine is longer than the other one, but this still can result in a succeeding equality
-    -- check if the non-empty list only contains zero values.
-    goBoth []                 kvsR                             = all (is0 . snd) kvsR
-    -- Symmetric to the previous case.
-    goBoth kvsL               []                               = all (is0 . snd) kvsL
-    -- Both spines are non-empty.
-    goBoth ((kL, vL) : kvsL') kvsR0@(kvR0@(kR0, vR0) : kvsR0')
-        -- We could've avoided having this clause if we always searched for the right key-value pair
-        -- using @goRight@, however the sheer act of invoking that function, passing an empty list
-        -- to it as an accumulator and calling 'revAppend' afterwards affects performance quite a
-        -- bit, considering that all of that happens for every single element of the left list.
-        -- Hence we handle the special case of lists being equal pointwise (or at least their
-        -- prefixes being equal pointwise) with a bit of additional logic to get some easy
-        -- performance gains.
-        | kL == kR0  = if vL `eqV` vR0 then goBoth kvsL' kvsR0' else False
-        | is0 vL     = goBoth kvsL' kvsR0
-        | otherwise  = goRight [kvR0 | not $ is0 vR0] kvsR0'
-        where
-            -- Recurse on the spine of the right list looking for a key-value pair whose key matches
-            -- @kL@, i.e. the first key in the remaining part of the left list. The accumulator
-            -- contains (in reverse order) all elements of the right list processed so far whose
-            -- keys are not equal to @kL@ and values are non-zero.
-            goRight :: [(k, v)] -> [(k, v)] -> Bool
-            goRight _   []                     = False
-            goRight acc (kvR@(kR, vR) : kvsR')
-                | is0 vR    = goRight acc kvsR'
-                -- @revAppend@ recreates @kvsR0'@ with @(kR, vR)@ removed, since that pair
-                -- equals @(kL, vL)@ from the left list, hence we throw both of them away.
-                | kL == kR  = if vL `eqV` vR then goBoth kvsL' (revAppend acc kvsR') else False
-                | otherwise = goRight (kvR : acc) kvsR'
+    goBoth
+        :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
+        -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
+        -> Bool
+    goBoth l1 l2 =
+        B.matchList
+            l1
+            -- null l1 case
+            ( \() ->
+                B.matchList
+                    l2
+                    -- null l2 case
+                    (\() -> True)
+                    -- non-null l2 case
+                    (\ _ _ -> Map.all is0 (Map.unsafeFromBuiltinList l2 :: Map.Map BuiltinData BuiltinData))
+            )
+            -- non-null l1 case
+            ( \hd1 tl1 ->
+                B.matchList
+                    l2
+                    -- null l2 case
+                    (\() -> Map.all is0 (Map.unsafeFromBuiltinList l1 :: Map.Map BuiltinData BuiltinData))
+                    -- non-null l2 case
+                    ( \hd2 tl2 ->
+                        let
+                            k1 = BI.fst hd1
+                            v1 = BI.snd hd1
+                            k2 = BI.fst hd2
+                            v2 = BI.snd hd2
+                        in
+                            if k1 == k2
+                            then
+                                if eqV v1 v2
+                                then goBoth tl1 tl2
+                                else False
+                            else
+                                if is0 v1
+                                then goBoth tl1 l2
+                                else
+                                    let
+                                        goRight
+                                            :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
+                                            -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
+                                            -> Bool
+                                        goRight acc l =
+                                            B.matchList
+                                                l
+                                                -- null l case
+                                                (\() -> False)
+                                                -- non-null l case
+                                                ( \hd tl ->
+                                                    let
+                                                        k = BI.fst hd
+                                                        v = BI.snd hd
+                                                    in
+                                                        if is0 v
+                                                        then goRight acc tl
+                                                        else
+                                                            if k == k1
+                                                            then
+                                                                if eqV v1 v
+                                                                then goBoth tl1 (revAppend' acc tl)
+                                                                else False
+                                                            else goRight (hd `BI.mkCons` acc) tl
+                                                )
+                                    in
+                                        goRight
+                                            ( if is0 v2
+                                                then BI.mkNilPairData BI.unitval
+                                                else hd2 `BI.mkCons` BI.mkNilPairData BI.unitval
+                                            )
+                                            tl2
+                    )
+            )
+
+    revAppend' = rev
+      where
+        rev l acc =
+            B.matchList
+                l
+                (\() -> acc)
+                ( \hd tl ->
+                    rev tl (hd `BI.mkCons` acc)
+                )
+
+
+{-# INLINABLE eqMapOfMapsWith #-}
+-- | Check equality of two maps of maps indexed by 'CurrencySymbol's,
+--- given a function checking whether a value is zero and a function
+-- checking equality of values.
+eqMapOfMapsWith
+    :: (Map.Map TokenName Integer -> Bool)
+    -> (Map.Map TokenName Integer -> Map.Map TokenName Integer -> Bool)
+    -> Map.Map CurrencySymbol (Map.Map TokenName Integer)
+    -> Map.Map CurrencySymbol (Map.Map TokenName Integer)
+    -> Bool
+eqMapOfMapsWith is0 eqV map1 map2 =
+    let xs1 = Map.toBuiltinList map1
+        xs2 = Map.toBuiltinList map2
+        is0' v = is0 (unsafeFromBuiltinData v)
+        eqV' v1 v2 = eqV (unsafeFromBuiltinData v1) (unsafeFromBuiltinData v2)
+     in unordEqWith is0' eqV' xs1 xs2
 
 {-# INLINABLE eqMapWith #-}
--- | Check equality of two 'Map's given a function checking whether a value is zero and a function
+-- | Check equality of two 'Map Token Integer's given a function checking whether a value is zero and a function
 -- checking equality of values.
-eqMapWith ::
-    forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> Map.Map k v -> Map.Map k v -> Bool
-eqMapWith is0 eqV (Map.toList -> xs1) (Map.toList -> xs2) = unordEqWith is0 eqV xs1 xs2
+eqMapWith
+    :: (Integer -> Bool)
+    -> (Integer -> Integer -> Bool)
+    -> Map.Map TokenName Integer
+    -> Map.Map TokenName Integer
+    -> Bool
+eqMapWith is0 eqV map1 map2 =
+    let xs1 = Map.toBuiltinList map1
+        xs2 = Map.toBuiltinList map2
+        is0' v = is0 (unsafeFromBuiltinData v)
+        eqV' v1 v2 = eqV (unsafeFromBuiltinData v1) (unsafeFromBuiltinData v2)
+     in unordEqWith is0' eqV' xs1 xs2
 
 {-# INLINABLE eq #-}
 -- | Check equality of two 'Value's. Does not assume orderness of lists within a 'Value' or a lack
@@ -505,7 +591,8 @@ eqMapWith is0 eqV (Map.toList -> xs1) (Map.toList -> xs2) = unordEqWith is0 eqV 
 -- tokens or no tokens at all), but does assume that no currencies or tokens within a single
 -- currency have multiple entries.
 eq :: Value -> Value -> Bool
-eq (Value currs1) (Value currs2) = eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
+eq (Value currs1) (Value currs2) =
+    eqMapOfMapsWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
 
 newtype Lovelace = Lovelace { getLovelace :: Integer }
   deriving stock (Generic)
