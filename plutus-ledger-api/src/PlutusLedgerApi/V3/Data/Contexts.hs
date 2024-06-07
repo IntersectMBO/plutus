@@ -56,7 +56,7 @@ import Prettyprinter.Extras
 import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.V3.Tx qualified as V3
 import PlutusTx qualified
-import PlutusTx.Data.AssocMap hiding (filter, mapMaybe)
+import PlutusTx.Data.AssocMap
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio (Rational)
 
@@ -438,27 +438,6 @@ data TxInfo = TxInfo
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
-instance Pretty TxInfo where
-  pretty TxInfo{..} =
-    vsep
-      [ "TxId:" <+> pretty txInfoId
-      , "Inputs:" <+> pretty txInfoInputs
-      , "Reference inputs:" <+> pretty txInfoReferenceInputs
-      , "Outputs:" <+> pretty txInfoOutputs
-      , "Fee:" <+> pretty txInfoFee
-      , "Value minted:" <+> pretty txInfoMint
-      , "TxCerts:" <+> pretty txInfoTxCerts
-      , "Wdrl:" <+> pretty txInfoWdrl
-      , "Valid range:" <+> pretty txInfoValidRange
-      , "Signatories:" <+> pretty txInfoSignatories
-      , "Redeemers:" <+> pretty txInfoRedeemers
-      , "Datums:" <+> pretty txInfoData
-      , "Votes:" <+> pretty txInfoVotes
-      , "Proposal Procedures:" <+> pretty txInfoProposalProcedures
-      , "Current Treasury Amount:" <+> pretty txInfoCurrentTreasuryAmount
-      , "Treasury Donation:" <+> pretty txInfoTreasuryDonation
-      ]
-
 instance PlutusTx.Eq TxInfo where
   {-# INLINEABLE (==) #-}
   TxInfo a b c d e f g h i j k l m n o p
@@ -488,13 +467,6 @@ data ScriptContext = ScriptContext
   -- ^ the purpose of the currently-executing script
   }
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
-
-instance Pretty ScriptContext where
-  pretty ScriptContext{..} =
-    vsep
-      [ "Purpose:" <+> pretty scriptContextPurpose
-      , nest 2 (vsep ["TxInfo:", pretty scriptContextTxInfo])
-      ]
 
 instance PlutusTx.Eq ScriptContext where
   {-# INLINEABLE (==) #-}
@@ -734,3 +706,31 @@ PlutusTx.makeIsDataIndexed ''TxInfo [('TxInfo, 0)]
 
 PlutusTx.makeLift ''ScriptContext
 PlutusTx.makeIsDataIndexed ''ScriptContext [('ScriptContext, 0)]
+
+instance Pretty TxInfo where
+  pretty TxInfo{..} =
+    vsep
+      [ "TxId:" <+> pretty txInfoId
+      , "Inputs:" <+> pretty txInfoInputs
+      , "Reference inputs:" <+> pretty txInfoReferenceInputs
+      , "Outputs:" <+> pretty txInfoOutputs
+      , "Fee:" <+> pretty txInfoFee
+      , "Value minted:" <+> pretty txInfoMint
+      , "TxCerts:" <+> pretty txInfoTxCerts
+      , "Wdrl:" <+> pretty txInfoWdrl
+      , "Valid range:" <+> pretty txInfoValidRange
+      , "Signatories:" <+> pretty txInfoSignatories
+      , "Redeemers:" <+> pretty txInfoRedeemers
+      , "Datums:" <+> pretty txInfoData
+      , "Votes:" <+> pretty txInfoVotes
+      , "Proposal Procedures:" <+> pretty txInfoProposalProcedures
+      , "Current Treasury Amount:" <+> pretty txInfoCurrentTreasuryAmount
+      , "Treasury Donation:" <+> pretty txInfoTreasuryDonation
+      ]
+
+instance Pretty ScriptContext where
+  pretty ScriptContext{..} =
+    vsep
+      [ "Purpose:" <+> pretty scriptContextPurpose
+      , nest 2 (vsep ["TxInfo:", pretty scriptContextTxInfo])
+      ]

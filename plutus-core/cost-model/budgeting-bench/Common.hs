@@ -84,8 +84,9 @@ benchWith
 -- gets back a 'Data' value it'll traverse all of it.
 benchWith params name term = bench name $ whnf (evaluateCekNoEmit params) term
 
+{- Benchmark with the most recent CekParameters -}
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
-benchDefault = benchWith defaultCekParameters
+benchDefault = benchWith defaultCekParametersForTesting
 
 
 ---------------- Constructing Polymorphic PLC terms for benchmarking ----------------

@@ -1,0 +1,16 @@
+name: Combined Haddock
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - release/**
+jobs:
+  build-and-deploy-combined-haddock:
+    runs-on: [self-hosted, plutus-benchmark]
+    permissions:
+      contents: write
+    environment:
+      name: github-pages
+    steps:
+      - run: exit 0 

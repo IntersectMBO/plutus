@@ -33,7 +33,7 @@ import GHC.Generics (Generic)
 import PlutusLedgerApi.V3 (BuiltinData, ScriptContext, UnsafeFromData (..))
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 import PlutusTx.Lift (makeLift)
-import PlutusTx.Prelude (check)
+import PlutusTx.Prelude (BuiltinUnit, check)
 
 -- END imports
 -- BEGIN MyParams annotations
@@ -88,7 +88,7 @@ typedValidator MkMyParams{..} datum redeemer _scriptContext =
     R1 -> myBool
     R2 -> myInteger == datum
 
-untypedValidator :: MyParams -> BuiltinData -> BuiltinData -> BuiltinData -> ()
+untypedValidator :: MyParams -> BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit
 untypedValidator params datum redeemer scriptContext =
   check $ typedValidator params datum' redeemer' scriptContext'
  where
@@ -162,4 +162,3 @@ writeBlueprintToFile :: FilePath -> IO ()
 writeBlueprintToFile path = writeBlueprint path myContractBlueprint
 
 -- END write blueprint to file
-

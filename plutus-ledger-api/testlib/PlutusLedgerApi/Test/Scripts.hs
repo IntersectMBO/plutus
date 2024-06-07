@@ -8,7 +8,6 @@ module PlutusLedgerApi.Test.Scripts
 
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V1.Scripts
-import PlutusTx
 import UntypedPlutusCore qualified as UPLC
 
 uplcToScriptForEvaluation ::

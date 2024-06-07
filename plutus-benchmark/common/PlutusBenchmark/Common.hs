@@ -17,6 +17,7 @@ module PlutusBenchmark.Common
     , runTermCek
     , cekResultMatchesHaskellValue
     , mkEvalCtx
+    , mkMostRecentEvalCtx
     , evaluateCekLikeInProd
     , benchTermCek
     , TestSize (..)
@@ -79,29 +80,38 @@ getConfig limit = do
 -- | Evaluate a script and return the CPU and memory costs (according to the cost model)
 getCostsCek :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> (Integer, Integer)
 getCostsCek (UPLC.Program _ _ prog) =
-    case Cek.runCekDeBruijn PLC.defaultCekParameters Cek.tallying Cek.noEmitter prog of
+    case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter prog of
       (_res, Cek.TallyingSt _ budget, _logs) ->
           let ExBudget (ExCPU cpu)(ExMemory mem) = budget
           in (fromSatInt cpu, fromSatInt mem)
 
--- | Create the evaluation context for the benchmarks. This doesn't exactly match how it's done
--- on-chain, but that's okay because the evaluation context is cached by the ledger, so we're
--- deliberately not including it in the benchmarks.
-mkEvalCtx :: LedgerApi.EvaluationContext
-mkEvalCtx =
-    case PLC.defaultCostModelParams of
+-- | Create the evaluation context for the benchmarks. This doesn't exactly
+-- match how it's done on-chain, but that's okay because the evaluation context
+-- is cached by the ledger, so we're deliberately not including it in the
+-- benchmarks.  Different benchmarks may depend on different language versions
+-- and semantic variants, so we have to specify those here.
+mkEvalCtx
+  :: LedgerApi.PlutusLedgerLanguage
+  -> BuiltinSemanticsVariant DefaultFun
+  -> LedgerApi.EvaluationContext
+mkEvalCtx ll semvar =
+    case PLC.defaultCostModelParamsForVariant semvar of
         Just p ->
             let errOrCtx =
-                    -- The validation benchmarks were all created from PlutusV1 scripts
                     LedgerApi.mkDynEvaluationContext
-                        LedgerApi.PlutusV1
-                        [DefaultFunSemanticsVariant1]
-                        (const DefaultFunSemanticsVariant1)
+                        ll
+                        [semvar]
+                        (const semvar)
                         p
             in case errOrCtx of
                 Right ec -> ec
                 Left err -> error $ show err
-        Nothing -> error "Couldn't get cost model params"
+        Nothing -> error $ "Couldn't get cost model params for " ++ (show semvar)
+
+-- Many of our benchmarks should use an evaluation context for the most recent
+-- Plutus language version and the ost recent semantic variant.
+mkMostRecentEvalCtx :: LedgerApi.EvaluationContext
+mkMostRecentEvalCtx = mkEvalCtx maxBound maxBound
 
 -- | Evaluate a term as it would be evaluated using the on-chain evaluator.
 evaluateCekLikeInProd

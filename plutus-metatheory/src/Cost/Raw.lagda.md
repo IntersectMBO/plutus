@@ -23,7 +23,7 @@ open import Utils
 {-# FOREIGN GHC import Data.Functor.Identity (Identity, runIdentity) #-}
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExBudget (ExBudget(..))  #-}
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExMemory (ExCPU(..), ExMemory(..)) #-}
-{-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCosts) #-}
+{-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCostsForTesting) #-}
 {-# FOREIGN GHC import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCostsBase(..)) #-}
 
 postulate HCekMachineCosts : Set
@@ -62,7 +62,7 @@ postulate getMemoryCost : HExBudget → CostingNat
 
 -- postulate defaultHCekMachineCosts : HCekMachineCosts
 
--- {-# COMPILE GHC defaultHCekMachineCosts = defaultCekMachineCosts #-}
+-- {-# COMPILE GHC defaultHCekMachineCosts = defaultCekMachineCostsForTesting #-}
 ```
 
 ## Interface with Builtin model from JSON
@@ -78,14 +78,27 @@ record LinearFunction : Set where
 
 {-# COMPILE GHC LinearFunction = data LinearFunction(LinearFunction) #-}
 
-record QuadraticFunction : Set where
-    constructor mkQuadraticFunction
+record OneVariableQuadraticFunction : Set where
+    constructor mkOneVariableQuadraticFunction
     field
         coeff0 : CostingNat
         coeff1 : CostingNat
         coeff2 : CostingNat
 
-{-# COMPILE GHC QuadraticFunction = data QuadraticFunction(QuadraticFunction) #-}
+{-# COMPILE GHC OneVariableQuadraticFunction = data OneVariableQuadraticFunction(OneVariableQuadraticFunction) #-}
+
+record TwoVariableQuadraticFunction : Set where
+    constructor mkTwoVariableQuadraticFunction
+    field
+        minimum : CostingNat
+        coeff00 : CostingNat
+        coeff10 : CostingNat
+        coeff01 : CostingNat
+        coeff20 : CostingNat
+        coeff11 : CostingNat
+        coeff02 : CostingNat
+
+{-# COMPILE GHC TwoVariableQuadraticFunction = data TwoVariableQuadraticFunction(TwoVariableQuadraticFunction) #-}
 
 data RawModel : Set where
     ConstantCost          : CostingNat → RawModel
@@ -97,8 +110,9 @@ data RawModel : Set where
     LinearInY             : LinearFunction → RawModel
     LinearInZ             : LinearFunction → RawModel
     LiteralInYOrLinearInZ : LinearFunction → RawModel
-    QuadraticInY          : QuadraticFunction → RawModel
-    QuadraticInZ          : QuadraticFunction → RawModel
+    QuadraticInY          : OneVariableQuadraticFunction → RawModel
+    QuadraticInZ          : OneVariableQuadraticFunction → RawModel
+    QuadraticInXAndY      : TwoVariableQuadraticFunction → RawModel
     SubtractedSizes       : LinearFunction → CostingNat → RawModel
     ConstAboveDiagonal    : CostingNat → RawModel → RawModel
     ConstBelowDiagonal    : CostingNat → RawModel → RawModel
@@ -107,8 +121,8 @@ data RawModel : Set where
 {-# COMPILE GHC RawModel = data Model (ConstantCost | AddedSizes | MultipliedSizes |
                                    MinSize | MaxSize | LinearInX | LinearInY | LinearInZ |
                                    LiteralInYOrLinearInZ | QuadraticInY | QuadraticInZ |
-                                   SubtractedSizes | ConstAboveDiagonal | ConstBelowDiagonal |
-                                   ConstOffDiagonal)  #-}
+                                   QuadraticInXAndY | SubtractedSizes | ConstAboveDiagonal | 
+                                   ConstBelowDiagonal | ConstOffDiagonal)  #-}
 
 record CpuAndMemoryModel : Set where
      constructor mkCpuAndMemoryModel

@@ -156,8 +156,6 @@ import PlutusLedgerApi.V3.ParamName
 import PlutusLedgerApi.V3.Tx
 import PlutusTx.Ratio qualified as Ratio
 
-import Control.Monad.Except (MonadError)
-
 {- | An alias to the Plutus ledger language this module exposes at runtime.
  MAYBE: Use CPP '__FILE__' + some TH to automate this.
 -}

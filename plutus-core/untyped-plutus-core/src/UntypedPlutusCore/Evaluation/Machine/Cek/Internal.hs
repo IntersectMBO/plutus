@@ -480,6 +480,9 @@ instance ThrowableBuiltins uni fun => MonadError (CekEvaluationException NamedDe
 instance AsEvaluationFailure CekUserError where
     _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
 
+instance AsUnliftingError CekUserError where
+    _UnliftingError = _UnliftingErrorVia CekEvaluationFailure
+
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res)) =
         cat
@@ -655,11 +658,11 @@ evalBuiltinApp fun term runtime = case runtime of
     BuiltinCostedResult budgets getX -> do
         spendBudgetStreamCek (BBuiltinApp fun) budgets
         case getX of
+            BuiltinSuccess x              -> pure x
+            BuiltinSuccessWithLogs logs x -> ?cekEmitter logs $> x
             BuiltinFailure logs err       -> do
                 ?cekEmitter logs
                 throwBuiltinErrorWithCause term err
-            BuiltinSuccess x              -> pure x
-            BuiltinSuccessWithLogs logs x -> ?cekEmitter logs $> x
     _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 

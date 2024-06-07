@@ -21,7 +21,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 getBudgetUsage :: Term -> Maybe Integer
 getBudgetUsage term =
     case (\ (fstT,sndT,_) -> (fstT,sndT) ) $
-      Cek.runCekDeBruijn PLC.defaultCekParameters Cek.counting Cek.noEmitter term
+      Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.counting Cek.noEmitter term
     of
       (Left _, _)                 -> Nothing
       (Right _, Cek.CountingSt c) ->

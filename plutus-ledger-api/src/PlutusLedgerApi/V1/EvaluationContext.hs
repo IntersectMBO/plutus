@@ -13,10 +13,9 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.Common.Versions (conwayPV)
 import PlutusLedgerApi.V1.ParamName as V1
 
-import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariant0, DefaultFunSemanticsVariant1))
+import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB))
 
 import Control.Monad
-import Control.Monad.Except
 import Control.Monad.Writer.Strict
 import Data.Int (Int64)
 
@@ -40,8 +39,8 @@ mkEvaluationContext =
     >=> pure . toCostModelParams
     >=> mkDynEvaluationContext
         PlutusV1
-        [DefaultFunSemanticsVariant0, DefaultFunSemanticsVariant1]
+        [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB]
         -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
         (\pv -> if pv < conwayPV
-            then DefaultFunSemanticsVariant0
-            else DefaultFunSemanticsVariant1)
+            then DefaultFunSemanticsVariantA
+            else DefaultFunSemanticsVariantB)
