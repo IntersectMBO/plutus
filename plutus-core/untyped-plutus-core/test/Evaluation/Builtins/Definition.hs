@@ -912,7 +912,11 @@ test_Bitwise =
     testGroup "bitwiseShift" [
       testGroup "homomorphism" Bitwise.shiftHomomorphism,
       testPropertyNamed "shifts over bit length clear input" "shift_too_much"
-                        Bitwise.shiftClear
+                        Bitwise.shiftClear,
+      testPropertyNamed "positive shifts clear low indexes" "shift_pos_low"
+                        Bitwise.shiftPosClearLow,
+      testPropertyNamed "negative shifts clear high indexes" "shift_neg_high"
+                        Bitwise.shiftNegClearHigh
     ],
   testGroup "bitwiseRotate" [
       testGroup "homomorphism" Bitwise.rotateHomomorphism,

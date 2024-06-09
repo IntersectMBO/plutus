@@ -11,7 +11,9 @@ module Evaluation.Builtins.Bitwise (
   csbHomomorphism,
   shiftClear,
   rotateRollover,
-  csbRotate
+  csbRotate,
+  shiftPosClearLow,
+  shiftNegClearHigh,
   ) where
 
 import Data.ByteString (ByteString)
@@ -184,29 +186,64 @@ csbHomomorphism = [
             ]
       evaluateAndVerify (mkConstant @Bool () True) compareExp
 
--- Currently, this test only verifies that shifting either positively or
--- negatively by more than the bit length has the same result. We need to
--- add an additional check that we also get all-zero, but until CIP-122
--- operations merge, we can't.
 shiftClear :: Property
 shiftClear = property $ do
   bs <- forAllByteString
   let bitLen = 8 * BS.length bs
-  i <- forAll . Gen.integral . Range.linear 0 $ 512
-  j <- forAll . Gen.integral . Range.linear 0 $ negate 512
+  i <- forAll . Gen.integral . Range.linear (negate 256) $ 256
+  adjustment <- case signum i of
+    (-1) -> pure $ negate bitLen + i
+    -- Here, we shift by the length exactly, so we randomly pick negative or positive
+    0    -> forAll . Gen.element $ [bitLen, negate bitLen]
+    _    -> pure $ bitLen + i
   let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
         mkConstant @ByteString () bs,
-        mkConstant @Integer () (fromIntegral bitLen + i)
+        mkConstant @Integer () (fromIntegral adjustment)
         ]
-  let rhs = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
-        mkConstant @ByteString () bs,
-        mkConstant @Integer () ((negate . fromIntegral $ bitLen) + j)
+  let rhsInner = mkIterAppNoAnn (builtin () PLC.LengthOfByteString) [
+        mkConstant @ByteString () bs
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.ReplicateByteString) [
+        rhsInner,
+        mkConstant @Integer () 0
         ]
   let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
         lhs,
         rhs
         ]
   evaluateAndVerify (mkConstant @Bool () True) compareExp
+
+shiftPosClearLow :: Property
+shiftPosClearLow = property $ do
+  bs <- forAllByteString1
+  let bitLen = 8 * BS.length bs
+  n <- forAll . Gen.integral . Range.linear 1 $ bitLen - 1
+  i <- forAll . Gen.integral . Range.linear 0 $ n - 1
+  let lhsInner = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () (fromIntegral n)
+        ]
+  let lhs = mkIterAppNoAnn (builtin () PLC.ReadBit) [
+        lhsInner,
+        mkConstant @Integer () (fromIntegral i)
+        ]
+  evaluateAndVerify (mkConstant @Bool () False) lhs
+
+shiftNegClearHigh :: Property
+shiftNegClearHigh = property $ do
+  bs <- forAllByteString1
+  let bitLen = 8 * BS.length bs
+  n <- forAll . Gen.integral . Range.linear 1 $ bitLen - 1
+  i <- forAll . Gen.integral . Range.linear 0 $ n - 1
+  let lhsInner = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () (fromIntegral . negate $ n)
+        ]
+  let lhs = mkIterAppNoAnn (builtin () PLC.ReadBit) [
+        lhsInner,
+        mkConstant @Integer () (fromIntegral $ bitLen - i - 1)
+        ]
+  evaluateAndVerify (mkConstant @Bool () False) lhs
 
 rotateRollover :: Property
 rotateRollover = property $ do
@@ -253,6 +290,9 @@ csbRotate = property $ do
 
 forAllByteString :: PropertyT IO ByteString
 forAllByteString = forAllWith hexShow . Gen.bytes . Range.linear 0 $ 1024
+
+forAllByteString1 :: PropertyT IO ByteString
+forAllByteString1 = forAllWith hexShow . Gen.bytes . Range.linear 1 $ 1024
 
 evaluateAndVerify ::
   UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
