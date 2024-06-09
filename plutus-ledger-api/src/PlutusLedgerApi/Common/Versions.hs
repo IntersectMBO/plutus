@@ -120,6 +120,8 @@ builtinsIntroducedIn = Map.fromList [
           Keccak_256, Blake2b_224, IntegerToByteString, ByteStringToInteger
           ]),
   ((PlutusV3, futurePV), Set.fromList [
+          AndByteString, OrByteString, XorByteString, ComplementByteString,
+          ReadBit, WriteBits, ReplicateByteString,
           BitwiseShift, BitwiseRotate, CountSetBits, FindFirstSetBit
           ])
   ]

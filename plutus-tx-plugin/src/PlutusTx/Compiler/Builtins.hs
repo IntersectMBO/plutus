@@ -277,6 +277,14 @@ builtinNames = [
     , 'Builtins.integerToByteString
     , 'Builtins.byteStringToInteger
 
+    , 'Builtins.andByteString
+    , 'Builtins.orByteString
+    , 'Builtins.xorByteString
+    , 'Builtins.complementByteString
+    , 'Builtins.readBit
+    , 'Builtins.writeBits
+    , 'Builtins.replicateByteString
+
     , 'Builtins.bitwiseShift
     , 'Builtins.bitwiseRotate
     , 'Builtins.countSetBits
@@ -437,6 +445,15 @@ defineBuiltinTerms = do
             -- Bitwise operations
             PLC.IntegerToByteString -> defineBuiltinInl 'Builtins.integerToByteString
             PLC.ByteStringToInteger -> defineBuiltinInl 'Builtins.byteStringToInteger
+
+            -- Logical operations
+            PLC.AndByteString -> defineBuiltinInl 'Builtins.andByteString
+            PLC.OrByteString -> defineBuiltinInl 'Builtins.orByteString
+            PLC.XorByteString -> defineBuiltinInl 'Builtins.xorByteString
+            PLC.ComplementByteString -> defineBuiltinInl 'Builtins.complementByteString
+            PLC.ReadBit -> defineBuiltinInl 'Builtins.readBit
+            PLC.WriteBits -> defineBuiltinInl 'Builtins.writeBits
+            PLC.ReplicateByteString -> defineBuiltinInl 'Builtins.replicateByteString
 
             -- Other bitwise ops
             PLC.BitwiseShift -> defineBuiltinInl 'Builtins.bitwiseShift

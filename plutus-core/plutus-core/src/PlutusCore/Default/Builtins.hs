@@ -27,6 +27,7 @@ import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Pretty (PrettyConfigPlc)
 
 import PlutusCore.Bitwise.Convert as Convert
+import PlutusCore.Bitwise.Logical as Logical
 import PlutusCore.Bitwise.Other as Other
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -153,6 +154,14 @@ data DefaultFun
     -- Conversions
     | IntegerToByteString
     | ByteStringToInteger
+    -- Logical
+    | AndByteString
+    | OrByteString
+    | XorByteString
+    | ComplementByteString
+    | ReadBit
+    | WriteBits
+    | ReplicateByteString
     -- Bitwise
     | BitwiseShift
     | BitwiseRotate
@@ -1811,21 +1820,81 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Conversions
     {- See Note [Input length limitation for IntegerToByteString] -}
     toBuiltinMeaning _semvar IntegerToByteString =
-      let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> BuiltinResult BS.ByteString
-          {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
-             costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
-          integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
-          {-# INLINE integerToByteStringDenotation #-}
+        let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> BuiltinResult BS.ByteString
+            {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
+               costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
+            integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
+            {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
-          integerToByteStringDenotation
-          (runCostingFunThreeArguments . paramIntegerToByteString)
+            integerToByteStringDenotation
+            (runCostingFunThreeArguments . paramIntegerToByteString)
+
     toBuiltinMeaning _semvar ByteStringToInteger =
-      let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
-          byteStringToIntegerDenotation = byteStringToIntegerWrapper
-          {-# INLINE byteStringToIntegerDenotation #-}
+        let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
+            byteStringToIntegerDenotation = byteStringToIntegerWrapper
+            {-# INLINE byteStringToIntegerDenotation #-}
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
             (runCostingFunTwoArguments . paramByteStringToInteger)
+
+    -- Logical
+    toBuiltinMeaning _semvar AndByteString =
+        let andByteStringDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+            andByteStringDenotation = Logical.andByteString
+            {-# INLINE andByteStringDenotation #-}
+        in makeBuiltinMeaning
+            andByteStringDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar OrByteString =
+        let orByteStringDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+            orByteStringDenotation = Logical.orByteString
+            {-# INLINE orByteStringDenotation #-}
+        in makeBuiltinMeaning
+            orByteStringDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar XorByteString =
+        let xorByteStringDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+            xorByteStringDenotation = Logical.xorByteString
+            {-# INLINE xorByteStringDenotation #-}
+        in makeBuiltinMeaning
+            xorByteStringDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar ComplementByteString =
+        let complementByteStringDenotation :: BS.ByteString -> BS.ByteString
+            complementByteStringDenotation = Logical.complementByteString
+            {-# INLINE complementByteStringDenotation #-}
+        in makeBuiltinMeaning
+            complementByteStringDenotation
+            (runCostingFunOneArgument . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar ReadBit =
+        let readBitDenotation :: BS.ByteString -> Int -> BuiltinResult Bool
+            readBitDenotation = Logical.readBit
+            {-# INLINE readBitDenotation #-}
+        in makeBuiltinMeaning
+            readBitDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar WriteBits =
+        let writeBitsDenotation :: BS.ByteString -> [(Integer, Bool)] -> BuiltinResult BS.ByteString
+            writeBitsDenotation = Logical.writeBits
+            {-# INLINE writeBitsDenotation #-}
+        in makeBuiltinMeaning
+            writeBitsDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar ReplicateByteString =
+        let byteStringReplicateDenotation :: Int -> Word8 -> BuiltinResult BS.ByteString
+            byteStringReplicateDenotation = Logical.replicateByteString
+            {-# INLINE byteStringReplicateDenotation #-}
+        in makeBuiltinMeaning
+            byteStringReplicateDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
+    -- Bitwise
 
     toBuiltinMeaning _semvar BitwiseShift =
         let bitwiseShiftDenotation :: BS.ByteString -> Int -> BS.ByteString
@@ -1858,6 +1927,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             findFirstSetBitDenotation
             (runCostingFunOneArgument . unimplementedCostingFun)
+
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1985,6 +2055,14 @@ instance Flat DefaultFun where
               IntegerToByteString             -> 73
               ByteStringToInteger             -> 74
 
+              AndByteString                   -> 75
+              OrByteString                    -> 76
+              XorByteString                   -> 77
+              ComplementByteString            -> 78
+              ReadBit                         -> 79
+              WriteBits                       -> 80
+              ReplicateByteString             -> 81
+
               BitwiseShift                    -> 82
               BitwiseRotate                   -> 83
               CountSetBits                    -> 84
@@ -2066,6 +2144,13 @@ instance Flat DefaultFun where
               go 72 = pure Blake2b_224
               go 73 = pure IntegerToByteString
               go 74 = pure ByteStringToInteger
+              go 75 = pure AndByteString
+              go 76 = pure OrByteString
+              go 77 = pure XorByteString
+              go 78 = pure ComplementByteString
+              go 79 = pure ReadBit
+              go 80 = pure WriteBits
+              go 81 = pure ReplicateByteString
               go 82 = pure BitwiseShift
               go 83 = pure BitwiseRotate
               go 84 = pure CountSetBits

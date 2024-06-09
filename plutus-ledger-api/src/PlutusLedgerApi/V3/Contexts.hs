@@ -532,6 +532,7 @@ instance Pretty ScriptContext where
     vsep
       [ "ScriptInfo:" <+> pretty scriptContextScriptInfo
       , nest 2 (vsep ["TxInfo:", pretty scriptContextTxInfo])
+      , nest 2 (vsep ["Redeemer:", pretty scriptContextRedeemer])
       ]
 
 instance PlutusTx.Eq ScriptContext where
