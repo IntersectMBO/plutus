@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE ImpredicativeTypes  #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 -- | Functions for compiling PIR recursive let-bound functions into PLC.

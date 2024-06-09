@@ -1,6 +1,7 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE QuantifiedConstraints #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusIR.Pass.Test where
 
@@ -18,6 +19,7 @@ import PlutusIR.TypeCheck
 import PlutusIR.TypeCheck qualified as TC
 import PlutusPrelude
 import Test.QuickCheck
+import Text.SimpleShow
 
 -- Convert Either Error () to Either String () to match with the Testable (Either String ())
 -- instance.
@@ -41,6 +43,11 @@ runTestPass
   :: (PLC.ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.Pretty a
+     , forall t. SimpleShow (uni t)
+     , SimpleShow tyname
+     , SimpleShow fun
+     , SimpleShow name
+     , PLC.Everywhere uni SimpleShow
      , Typeable a
      , Monoid a
      , Monad m
@@ -51,7 +58,7 @@ runTestPass
 runTestPass pass t = do
   res <- runExceptT $ do
     tcconfig <- TC.getDefTypeCheckConfig mempty
-    runPass (\_ -> pure ()) True (pass tcconfig) t
+    runPass (\_ -> pure ()) (\_ -> pure ()) True (pass tcconfig) t
   case res of
     Left e  -> throw e
     Right v -> pure v
@@ -77,7 +84,10 @@ testPassProp exitMonad pass =
 -- of the term, and a more specific "exit" function.
 testPassProp' ::
   forall m tyname name a prop
-  . (Monad m, Testable prop)
+  . (Monad m, Testable prop
+     , SimpleShow tyname
+     , SimpleShow name
+     )
   => a
   -> (Term TyName Name PLC.DefaultUni PLC.DefaultFun ()
       -> Term tyname name PLC.DefaultUni PLC.DefaultFun a)
@@ -92,6 +102,6 @@ testPassProp' ann before after pass =
       res = do
         tcconfig <- getDefTypeCheckConfig ann
         let tm' = before tm
-        _ <- runPass (\_ -> pure ()) True (pass tcconfig) tm'
+        _ <- runPass (\_ -> pure ()) (\_ -> pure ()) True (pass tcconfig) tm'
         pure ()
     in after res

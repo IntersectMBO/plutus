@@ -7,6 +7,7 @@
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE PatternSynonyms          #-}
 {-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE QuantifiedConstraints    #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TemplateHaskell          #-}
 {-# LANGUAGE TypeApplications         #-}
@@ -69,13 +70,14 @@ import Data.List.NonEmpty qualified as NE
 import Data.Word
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift
+import Text.SimpleShow
 import Universe
 
 data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
     deriving stock (Eq, Show, Functor, Generic, Lift)
-    deriving anyclass (NFData, Hashable)
+    deriving anyclass (NFData, Hashable, SimpleShow)
 
 -- | The kind of a pattern functor (the first 'Type' argument of 'TyIFix') at a given kind (of the
 -- second 'Type' argument of 'TyIFix'):
@@ -108,6 +110,14 @@ data Type tyname uni ann
     | TySOP ann [[Type tyname uni ann]] -- ^ Sum-of-products type
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
+
+deriving anyclass instance
+  ( SimpleShow tyname
+  , forall t. SimpleShow (uni t)
+  , Everywhere uni SimpleShow
+  , SimpleShow a
+  ) =>
+  SimpleShow (Type tyname uni a)
 
 -- | Get recursively all the domains and codomains of a type.
 -- @splitFunTyParts (A->B->C) = [A, B, C]@
@@ -188,6 +198,11 @@ data TyVarDecl tyname ann = TyVarDecl
     } deriving stock (Functor, Show, Generic)
 makeLenses ''TyVarDecl
 
+deriving anyclass instance
+  ( SimpleShow tyname
+  , SimpleShow a
+  ) => SimpleShow (TyVarDecl tyname a)
+
 -- | A "variable declaration", i.e. a name and a type for a variable.
 data VarDecl tyname name uni ann = VarDecl
     { _varDeclAnn  :: ann
@@ -195,6 +210,15 @@ data VarDecl tyname name uni ann = VarDecl
     , _varDeclType :: Type tyname uni ann
     } deriving stock (Functor, Show, Generic)
 makeLenses ''VarDecl
+
+deriving anyclass instance
+  ( SimpleShow tyname
+  , SimpleShow name
+  , forall t. SimpleShow (uni t)
+  , Everywhere uni SimpleShow
+  , SimpleShow a
+  ) =>
+  SimpleShow (VarDecl tyname name uni a)
 
 -- | A "type declaration", i.e. a kind for a type.
 data TyDecl tyname uni ann = TyDecl

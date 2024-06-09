@@ -29,6 +29,7 @@ import GHC.Generics
 import NoThunks.Class
 import Prelude
 import Prettyprinter
+import Text.SimpleShow
 
 -- Attempting to make this strict made code slower by 2%,
 -- see https://github.com/IntersectMBO/plutus/pull/4622
@@ -57,6 +58,8 @@ instance Pretty Data where
         B b         ->
             -- Base64 encode the ByteString since it may contain arbitrary bytes
             pretty (Text.decodeLatin1 (Base64.encode b))
+
+deriving anyclass instance SimpleShow Data
 
 {- Note [Encoding via Term]
 We want to write a custom encoder/decoder for Data (i.e. not use the Generic version), but actually

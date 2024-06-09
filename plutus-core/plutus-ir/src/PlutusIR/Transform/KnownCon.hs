@@ -32,6 +32,7 @@ knownConPass ::
 knownConPass tcconfig =
   NamedPass "case of known constructor" $
     Pass
+      PassKnownConstructor
       (pure . knownCon)
       [Typechecks tcconfig, GloballyUniqueNames]
       [ConstCondition (Typechecks tcconfig)]

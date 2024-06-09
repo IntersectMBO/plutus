@@ -31,8 +31,10 @@ import Data.ByteString (ByteString, length)
 import Data.Coerce (coerce)
 import Data.Hashable
 import Data.Proxy (Proxy (..))
+import Data.Text qualified as T
 import Flat
 import Prettyprinter
+import Text.SimpleShow
 
 {- | See Note [Wrapping the BLS12-381 types in Plutus Core]. -}
 newtype Element = Element { unElement :: BlstBindings.Point2 }
@@ -58,6 +60,9 @@ instance NFData Element where
 
 instance Hashable Element where
     hashWithSalt salt = hashWithSalt salt . compress
+
+instance SimpleShow Element where
+    simpleShow = T.pack . show
 
 -- | Add two G2 group elements
 add :: Element -> Element -> Element

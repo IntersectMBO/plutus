@@ -54,6 +54,7 @@ strictifyBindingsPass ::
 strictifyBindingsPass tcconfig binfo =
   NamedPass "strictify bindings" $
     Pass
+      PassStrictifyBindings
       (pure . strictifyBindings binfo)
       [Typechecks tcconfig]
       [ConstCondition (Typechecks tcconfig)]

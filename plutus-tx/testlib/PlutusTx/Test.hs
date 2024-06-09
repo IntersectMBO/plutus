@@ -3,6 +3,7 @@
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -57,6 +58,7 @@ import PlutusIR.Test ()
 import PlutusIR.Transform.RewriteRules as PIR
 import PlutusPrelude
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
+import Text.SimpleShow
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
@@ -188,6 +190,9 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (PIR.BuiltinsInfo uni fun)
   , Default (PIR.RewriteRules uni fun)
+  , PLC.Everywhere uni SimpleShow
+  , forall t. SimpleShow (uni t)
+  , SimpleShow fun
   ) =>
   ToTPlc (CompiledCodeIn uni fun a) uni fun
   where

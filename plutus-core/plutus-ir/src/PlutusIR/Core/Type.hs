@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -49,12 +50,23 @@ import Data.Hashable
 import Data.Text qualified as T
 import Data.Word
 import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
+import Text.SimpleShow
 
 -- Datatypes
 
 data Datatype tyname name uni a
   = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] name [VarDecl tyname name uni a]
   deriving stock (Functor, Show, Generic)
+
+deriving anyclass instance
+  ( SimpleShow tyname
+  , SimpleShow name
+  , forall t. SimpleShow (uni t)
+  , Closed uni
+  , Everywhere uni SimpleShow
+  , SimpleShow a
+  ) =>
+  SimpleShow (Datatype tyname name uni a)
 
 varDeclNameString :: VarDecl tyname Name uni a -> String
 varDeclNameString = T.unpack . PLC._nameText . _varDeclName
@@ -75,7 +87,7 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 -}
 data Recursivity = NonRec | Rec
   deriving stock (Show, Eq, Generic, Ord)
-  deriving anyclass (Hashable)
+  deriving anyclass (Hashable, SimpleShow)
 
 {- | Recursivity can form a 'Semigroup' / lattice, where 'NonRec' < 'Rec'.
 The lattice is ordered by "power": a non-recursive binding group can be made recursive
@@ -88,6 +100,7 @@ instance Semigroup Recursivity where
 
 data Strictness = NonStrict | Strict
   deriving stock (Show, Eq, Generic)
+  deriving anyclass (SimpleShow)
 
 data Binding tyname name uni fun a
   = TermBind a Strictness (VarDecl tyname name uni a) (Term tyname name uni fun a)
@@ -105,6 +118,17 @@ deriving stock instance
   , Closed uni
   )
   => Show (Binding tyname name uni fun a)
+
+deriving anyclass instance
+  ( SimpleShow tyname
+  , SimpleShow name
+  , forall b. SimpleShow (uni b)
+  , Closed uni
+  , Everywhere uni SimpleShow
+  , SimpleShow fun
+  , SimpleShow a
+  ) =>
+  SimpleShow (Binding tyname name uni fun a)
 
 -- Terms
 
@@ -162,6 +186,15 @@ deriving stock instance
   , Closed uni
   )
   => Show (Term tyname name uni fun a)
+
+deriving anyclass instance
+  ( SimpleShow tyname
+  , SimpleShow name
+  , forall b. SimpleShow (uni b)
+  , Closed uni
+  , Everywhere uni SimpleShow
+  , SimpleShow fun, SimpleShow a) =>
+  SimpleShow (Term tyname name uni fun a)
 
 -- See Note [ExMemoryUsage instances for non-constants].
 instance ExMemoryUsage (Term tyname name uni fun ann) where

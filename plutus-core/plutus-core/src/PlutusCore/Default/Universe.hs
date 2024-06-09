@@ -62,6 +62,7 @@ import Data.Typeable (typeRep)
 import Data.Word
 import GHC.Exts (inline, oneShot)
 import Text.PrettyBy.Fixity
+import Text.SimpleShow
 import Universe as Export
 
 {- Note [PLC types and universes]
@@ -177,6 +178,12 @@ instance GEq DefaultUni where
         geqRec :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
         geqRec = geqStep
         {-# OPAQUE geqRec #-}
+
+instance SimpleShow (DefaultUni a) where
+  simpleShow x = parens True (Text.pack (show x))
+
+instance SimpleShow (Some (ValueOf DefaultUni)) where
+  simpleShow (Some x) = parens True (simpleShow x)
 
 -- | For pleasing the coverage checker.
 noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any

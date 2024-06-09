@@ -22,8 +22,10 @@ import Text.PrettyBy (PrettyBy, prettyBy)
 import Control.DeepSeq (NFData, rnf)
 import Data.Coerce (coerce)
 import Data.Hashable
+import Data.Text qualified as T
 import Flat
 import Prettyprinter
+import Text.SimpleShow
 
 {- | This type represents the result of computing a pairing using the Miller
    loop.  Values of this type are ephemeral, only created during script
@@ -52,6 +54,9 @@ instance NFData MlResult where
 
 instance Hashable MlResult where
     hashWithSalt salt = const salt
+
+instance SimpleShow MlResult where
+    simpleShow = T.pack . show
 
 millerLoop :: G1.Element -> G2.Element -> MlResult
 millerLoop = coerce BlstBindings.millerLoop
