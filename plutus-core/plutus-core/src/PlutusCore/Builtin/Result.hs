@@ -231,12 +231,3 @@ instance Monad BuiltinResult where
 
     (>>) = (*>)
     {-# INLINE (>>) #-}
-
-instance Alternative BuiltinResult where
-    empty = evaluationFailure
-    {-# INLINE empty #-}
-
-    a@BuiltinSuccess{}         <|> _ = a
-    a@BuiltinSuccessWithLogs{} <|> _ = a
-    BuiltinFailure{}           <|> b = b
-    {-# INLINE (<|>) #-}

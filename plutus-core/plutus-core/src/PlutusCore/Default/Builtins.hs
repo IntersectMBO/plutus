@@ -36,6 +36,7 @@ import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
 
 import Codec.Serialise (serialise)
+import Control.Monad (unless)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Ix (Ix)
@@ -195,7 +196,7 @@ nonZeroSecondArg
 --
 -- The bang is to communicate to GHC that the function is strict in both the arguments just in case
 -- it'd want to allocate a thunk for the first argument otherwise.
-nonZeroSecondArg _ !_ 0 = fail "cannot divide by zero"
+nonZeroSecondArg _ !_ 0 = fail "Cannot divide by zero"
 nonZeroSecondArg f  x y = pure $ f x y
 {-# INLINE nonZeroSecondArg #-}
 
@@ -203,8 +204,7 @@ nonZeroSecondArg f  x y = pure $ f x y
 -- error message and returns 'EvaluationFailure' in the 'Left' case and wraps
 -- the result in 'EvaluationSuccess' in the 'Right' case.
 eitherToBuiltinResult :: Show e => Either e r -> BuiltinResult r
-eitherToBuiltinResult (Left e)  = fail $ show e
-eitherToBuiltinResult (Right r) = pure r
+eitherToBuiltinResult = either (fail . show) pure
 {-# INLINE eitherToBuiltinResult #-}
 
 {- Note [Constants vs built-in functions]
@@ -1253,8 +1253,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar IndexByteString =
         let indexByteStringDenotation :: BS.ByteString -> Int -> BuiltinResult Word8
             indexByteStringDenotation xs n = do
-                -- TODO: fix this mess with @indexMaybe@ from @bytestring >= 0.11.0.0@.
-                guard $ n >= 0 && n < BS.length xs
+                unless (n >= 0 && n < BS.length xs) $
+                    -- The arguments are going to be printed in the "cause" part of the error
+                    -- message, so we don't need to repeat them here.
+                    fail "Index out of bounds"
                 pure $ BS.index xs n
             {-# INLINE indexByteStringDenotation #-}
         in makeBuiltinMeaning
@@ -1424,8 +1426,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar FstPair =
         let fstPairDenotation :: SomeConstant uni (a, b) -> BuiltinResult (Opaque val a)
             fstPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) = do
-                DefaultUniPair uniA _ <- pure uniPairAB
-                pure . fromValueOf uniA $ fst xy
+                case uniPairAB of
+                    DefaultUniPair uniA _ -> pure . fromValueOf uniA $ fst xy
+                    _                     -> undefined -- throwing _StructuralUnliftingError _
             {-# INLINE fstPairDenotation #-}
         in makeBuiltinMeaning
             fstPairDenotation
@@ -1434,8 +1437,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar SndPair =
         let sndPairDenotation :: SomeConstant uni (a, b) -> BuiltinResult (Opaque val b)
             sndPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) = do
-                DefaultUniPair _ uniB <- pure uniPairAB
-                pure . fromValueOf uniB $ snd xy
+                case uniPairAB of
+                    DefaultUniPair _ uniB -> pure . fromValueOf uniB $ snd xy
+                    _                     -> undefined -- throwing _StructuralUnliftingError _
             {-# INLINE sndPairDenotation #-}
         in makeBuiltinMeaning
             sndPairDenotation
@@ -1445,10 +1449,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar ChooseList =
         let chooseListDenotation :: SomeConstant uni [a] -> b -> b -> BuiltinResult b
             chooseListDenotation (SomeConstant (Some (ValueOf uniListA xs))) a b = do
-              DefaultUniList _ <- pure uniListA
-              pure $ case xs of
-                  []    -> a
-                  _ : _ -> b
+                case uniListA of
+                    DefaultUniList _ -> pure $ case xs of
+                        []    -> a
+                        _ : _ -> b
+                    _ -> undefined -- throwing _StructuralUnliftingError _
             {-# INLINE chooseListDenotation #-}
         in makeBuiltinMeaning
             chooseListDenotation
@@ -1460,15 +1465,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             mkConsDenotation
               (SomeConstant (Some (ValueOf uniA x)))
               (SomeConstant (Some (ValueOf uniListA xs))) = do
-                  DefaultUniList uniA' <- pure uniListA
-                  -- Checking that the type of the constant is the same as the type of the elements
-                  -- of the unlifted list. Note that there's no way we could enforce this statically
-                  -- since in UPLC one can create an ill-typed program that attempts to prepend
-                  -- a value of the wrong type to a list.
-                  -- Should that rather give us an 'UnliftingError'? For that we need
-                  -- https://github.com/IntersectMBO/plutus/pull/3035
-                  Just Refl <- pure $ uniA `geq` uniA'
-                  pure . fromValueOf uniListA $ x : xs
+                case uniListA of
+                    DefaultUniList uniA' -> case uniA `geq` uniA' of
+                        Just Refl -> pure . fromValueOf uniListA $ x : xs
+                        _         -> undefined -- throwing _StructuralUnliftingError _
+                    _ -> undefined -- throwing _StructuralUnliftingError _
             {-# INLINE mkConsDenotation #-}
         in makeBuiltinMeaning
             mkConsDenotation
@@ -1477,9 +1478,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar HeadList =
         let headListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val a)
             headListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
-                DefaultUniList uniA <- pure uniListA
-                x : _ <- pure xs
-                pure $ fromValueOf uniA x
+                case uniListA of
+                    DefaultUniList uniA -> case xs of
+                        []    -> fail "Empty list"
+                        x : _ -> pure $ fromValueOf uniA x
+                    _ -> undefined -- throwing _StructuralUnliftingError _
             {-# INLINE headListDenotation #-}
         in makeBuiltinMeaning
             headListDenotation
@@ -1488,9 +1491,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar TailList =
         let tailListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             tailListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
-                DefaultUniList _ <- pure uniListA
-                _ : xs' <- pure xs
-                pure $ fromValueOf uniListA xs'
+                case uniListA of
+                    DefaultUniList _ -> case xs of
+                        []      -> fail "Empty list"
+                        _ : xs' -> pure $ fromValueOf uniListA xs'
+                    _ -> undefined -- throwing _StructuralUnliftingError _
             {-# INLINE tailListDenotation #-}
         in makeBuiltinMeaning
             tailListDenotation
@@ -1499,8 +1504,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar NullList =
         let nullListDenotation :: SomeConstant uni [a] -> BuiltinResult Bool
             nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
-                DefaultUniList _ <- pure uniListA
-                pure $ null xs
+                case uniListA of
+                    DefaultUniList _ -> pure $ null xs
+                    _                -> undefined -- throwing _StructuralUnliftingError _
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
             nullListDenotation
@@ -1565,7 +1571,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unConstrDataDenotation :: Data -> BuiltinResult (Integer, [Data])
             unConstrDataDenotation = \case
                 Constr i ds -> pure (i, ds)
-                _           -> fail "not a 'Constr'"
+                _           -> fail "Expected the Constr constructor but got a different one"
             {-# INLINE unConstrDataDenotation #-}
         in makeBuiltinMeaning
             unConstrDataDenotation
@@ -1575,7 +1581,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unMapDataDenotation :: Data -> BuiltinResult [(Data, Data)]
             unMapDataDenotation = \case
                 Map es -> pure es
-                _      -> fail "not a 'Map'"
+                _      -> fail "Expected the Map constructor but got a different one"
             {-# INLINE unMapDataDenotation #-}
         in makeBuiltinMeaning
             unMapDataDenotation
@@ -1585,7 +1591,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unListDataDenotation :: Data -> BuiltinResult [Data]
             unListDataDenotation = \case
                 List ds -> pure ds
-                _       -> fail "not a 'List'"
+                _       -> fail "Expected the List constructor but got a different one"
             {-# INLINE unListDataDenotation #-}
         in makeBuiltinMeaning
             unListDataDenotation
@@ -1595,7 +1601,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unIDataDenotation :: Data -> BuiltinResult Integer
             unIDataDenotation = \case
                 I i -> pure i
-                _   -> fail "not an 'I'"
+                _   -> fail "Expected the I constructor but got a different one"
             {-# INLINE unIDataDenotation #-}
         in makeBuiltinMeaning
             unIDataDenotation
@@ -1605,7 +1611,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unBDataDenotation :: Data -> BuiltinResult BS.ByteString
             unBDataDenotation = \case
                 B b -> pure b
-                _   -> fail "not a 'B'"
+                _   -> fail "Expected the B constructor but got a different one"
             {-# INLINE unBDataDenotation #-}
         in makeBuiltinMeaning
             unBDataDenotation
