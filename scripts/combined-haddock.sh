@@ -36,7 +36,7 @@ rm -rf $DST
 mkdir -p $DST
 
 # List of target haskell packages 
-PACKAGE_NAMES=$(find $SRC -type d -maxdepth 1 | sed -E 's/-[0-9].*$//')
+PACKAGE_DIRS=$(find $SRC -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | sed -E 's/-[0-9].*$//' | sort -u)
 
 # Merge each package's sublibraries into a single folder, for example:
 # Merge:
@@ -46,9 +46,9 @@ PACKAGE_NAMES=$(find $SRC -type d -maxdepth 1 | sed -E 's/-[0-9].*$//')
 #   ...
 # Into: 
 #   plutus-core/* 
-for NAME in "${PACKAGE_NAMES[@]}"; do 
-  SUBLIBS=$(find $SRC -type d -name "$NAME*" -print)
+for NAME in $PACKAGE_NAMES; do 
   mkdir -p $DST/$NAME/src
+  SUBLIBS=$(find $SRC -type d -name "$NAME*" -print)
   for SUBLIB in $SUBLIBS; do 
     cp -R $SUBLIB/* $DST/$NAME
   done 
