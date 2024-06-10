@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 -- | Tests for all kinds of built-in functions.
 
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -464,9 +465,12 @@ test_SerialiseDataImpossible =
         typecheckAnd def evalRestricting defaultBuiltinCostModelForTesting dataLoop @?=
             Right EvaluationFailure
 
+-- | If the first char is an opening paren and the last chat is a closing paren, then remove them.
+-- This is useful for rendering a term-as-a-test-name in CLI, since currently we wrap readably
+-- pretty-printed terms in parens (which is to be fixed).
 stripParensIfAny :: String -> String
-stripParensIfAny ('(' : str) = init str
-stripParensIfAny str         = str
+stripParensIfAny str@('(' : str1) | last str == ')' = init str1
+stripParensIfAny str                                = str
 
 -- | Apply a built-in function to type then term arguments, evaluate that expression and expect
 -- evaluation to succeed and return the given @a@ value.
@@ -860,16 +864,18 @@ test_ConsByteString =
         let asciiBangWrapped = fromIntegral @Word8 @Integer maxBound
                              + 1 -- to make word8 wraparound
                              + 33 -- the index of '!' in ascii table
-            expr1 = mkIterAppNoAnn (builtin () (Left ConsByteString :: DefaultFunExt))
+            expr1 = mkIterAppNoAnn (builtin () ConsByteString)
                     [cons @Integer asciiBangWrapped, cons @ByteString "hello world"]
-        Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=?
-              typecheckEvaluateCekNoEmit (PairV DefaultFunSemanticsVariantA def) defaultBuiltinCostModelExt expr1
-        Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=?
-              typecheckEvaluateCekNoEmit (PairV DefaultFunSemanticsVariantB def) defaultBuiltinCostModelExt expr1
-        Right EvaluationFailure @=? typecheckEvaluateCekNoEmit
-                  (PairV DefaultFunSemanticsVariantC def) defaultBuiltinCostModelExt expr1
-        Right EvaluationFailure @=?
-              typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt expr1
+        for_ enumerate $ \case
+            semVar@DefaultFunSemanticsVariantA ->
+                Right (EvaluationSuccess $ cons @ByteString "!hello world") @=?
+                    typecheckEvaluateCekNoEmit semVar defaultBuiltinCostModelForTesting expr1
+            semVar@DefaultFunSemanticsVariantB ->
+                Right (EvaluationSuccess $ cons @ByteString "!hello world") @=?
+                      typecheckEvaluateCekNoEmit semVar defaultBuiltinCostModelForTesting expr1
+            semVar@DefaultFunSemanticsVariantC ->
+                Right EvaluationFailure @=?
+                    typecheckEvaluateCekNoEmit semVar defaultBuiltinCostModelForTesting expr1
 
 -- shorthand
 cons :: (DefaultUni `HasTermLevel` a, TermLike term tyname name DefaultUni fun) => a -> term ()
