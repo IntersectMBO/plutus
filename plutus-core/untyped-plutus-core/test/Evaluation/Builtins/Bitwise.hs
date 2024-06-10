@@ -14,11 +14,23 @@ module Evaluation.Builtins.Bitwise (
   csbRotate,
   shiftPosClearLow,
   shiftNegClearHigh,
+  rotateMoveBits,
+  csbComplement,
+  csbInclusionExclusion,
+  csbAnd,
+  csbOr,
+  csbXor,
+  ffsReplicate,
+  ffsAnd,
+  ffsOr,
+  ffsXor,
+  ffsIndex
   ) where
 
+import Control.Monad (unless)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
-import Evaluation.Builtins.Common (typecheckEvaluateCek)
+import Evaluation.Builtins.Common (typecheckEvaluateCek, typecheckReadKnownCek)
 import Hedgehog (Property, PropertyT, annotateShow, failure, forAll, forAllWith, property, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -31,6 +43,198 @@ import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (assertEqual, assertFailure, testCase)
 import UntypedPlutusCore qualified as UPLC
+
+ffsIndex :: Property
+ffsIndex = property $ do
+  bs <- forAllNonZeroByteString
+  let ffsExp = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
+        mkConstant @ByteString () bs
+        ]
+  case typecheckReadKnownCek def defaultBuiltinCostModelForTesting ffsExp of
+    Left err -> annotateShow err >> failure
+    Right (Left err) -> annotateShow err >> failure
+    Right (Right ix) -> do
+      let hitIxExp = mkIterAppNoAnn (builtin () PLC.ReadBit) [
+            mkConstant @ByteString () bs,
+            mkConstant @Integer () ix
+            ]
+      evaluateAndVerify (mkConstant @Bool () True) hitIxExp
+      unless (ix == 0) $ do
+        i <- forAll . Gen.integral . Range.linear 0 $ ix - 1
+        let missIxExp = mkIterAppNoAnn (builtin () PLC.ReadBit) [
+              mkConstant @ByteString () bs,
+              mkConstant @Integer () i
+              ]
+        evaluateAndVerify (mkConstant @Bool () False) missIxExp
+
+ffsAnd :: Property
+ffsAnd = property $ do
+  bs <- forAllByteString
+  semantics <- forAll Gen.bool
+  let lhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
+        mkConstant @ByteString () bs
+        ]
+  let rhsInner = mkIterAppNoAnn (builtin () PLC.AndByteString) [
+        mkConstant @Bool () semantics,
+        mkConstant @ByteString () bs,
+        mkConstant @ByteString () bs
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
+        rhsInner
+        ]
+  evaluateTheSame lhs rhs
+
+ffsOr :: Property
+ffsOr = property $ do
+  bs <- forAllByteString
+  semantics <- forAll Gen.bool
+  let lhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
+        mkConstant @ByteString () bs
+        ]
+  let rhsInner = mkIterAppNoAnn (builtin () PLC.OrByteString) [
+        mkConstant @Bool () semantics,
+        mkConstant @ByteString () bs,
+        mkConstant @ByteString () bs
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
+        rhsInner
+        ]
+  evaluateTheSame lhs rhs
+
+ffsXor :: Property
+ffsXor = property $ do
+  bs <- forAllByteString
+  semantics <- forAll Gen.bool
+  let rhsInner = mkIterAppNoAnn (builtin () PLC.XorByteString) [
+        mkConstant @Bool () semantics,
+        mkConstant @ByteString () bs,
+        mkConstant @ByteString () bs
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
+        rhsInner
+        ]
+  evaluateAndVerify (mkConstant @Integer () (negate 1)) rhs
+
+ffsReplicate :: Property
+ffsReplicate = property $ do
+  n <- forAll . Gen.integral . Range.linear 1 $ 512
+  w8 <- forAll . Gen.integral . Range.linear 0 $ 255
+  let lhsInner = mkIterAppNoAnn (builtin () PLC.ReplicateByteString) [
+        mkConstant @Integer () n,
+        mkConstant @Integer () w8
+        ]
+  let lhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
+        lhsInner
+        ]
+  let rhsInner = mkIterAppNoAnn (builtin () PLC.ReplicateByteString) [
+        mkConstant @Integer () 1,
+        mkConstant @Integer () w8
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
+        rhsInner
+        ]
+  evaluateTheSame lhs rhs
+
+csbComplement :: Property
+csbComplement = property $ do
+  bs <- forAllByteString
+  let bitLen = BS.length bs * 8
+  let lhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
+        mkConstant @ByteString () bs
+        ]
+  let rhsComplement = mkIterAppNoAnn (builtin () PLC.ComplementByteString) [
+        mkConstant @ByteString () bs
+        ]
+  let rhsCount = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
+        rhsComplement
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.SubtractInteger) [
+        mkConstant @Integer () (fromIntegral bitLen),
+        rhsCount
+        ]
+  evaluateTheSame lhs rhs
+
+csbInclusionExclusion :: Property
+csbInclusionExclusion = property $ do
+  x <- forAllByteString
+  y <- forAllByteString
+  let lhsInner = mkIterAppNoAnn (builtin () PLC.XorByteString) [
+        mkConstant @Bool () False,
+        mkConstant @ByteString () x,
+        mkConstant @ByteString () y
+        ]
+  let lhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
+        lhsInner
+        ]
+  let rhsOr = mkIterAppNoAnn (builtin () PLC.OrByteString) [
+        mkConstant @Bool () False,
+        mkConstant @ByteString () x,
+        mkConstant @ByteString () y
+        ]
+  let rhsAnd = mkIterAppNoAnn (builtin () PLC.AndByteString) [
+        mkConstant @Bool () False,
+        mkConstant @ByteString () x,
+        mkConstant @ByteString () y
+        ]
+  let rhsCountOr = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
+        rhsOr
+        ]
+  let rhsCountAnd = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
+        rhsAnd
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.SubtractInteger) [
+        rhsCountOr,
+        rhsCountAnd
+        ]
+  evaluateTheSame lhs rhs
+
+csbAnd :: Property
+csbAnd = property $ do
+  bs <- forAllByteString
+  semantics <- forAll Gen.bool
+  let lhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
+        mkConstant @ByteString () bs
+        ]
+  let rhsInner = mkIterAppNoAnn (builtin () PLC.AndByteString) [
+        mkConstant @Bool () semantics,
+        mkConstant @ByteString () bs,
+        mkConstant @ByteString () bs
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
+        rhsInner
+        ]
+  evaluateTheSame lhs rhs
+
+csbOr :: Property
+csbOr = property $ do
+  bs <- forAllByteString
+  semantics <- forAll Gen.bool
+  let lhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
+        mkConstant @ByteString () bs
+        ]
+  let rhsInner = mkIterAppNoAnn (builtin () PLC.OrByteString) [
+        mkConstant @Bool () semantics,
+        mkConstant @ByteString () bs,
+        mkConstant @ByteString () bs
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
+        rhsInner
+        ]
+  evaluateTheSame lhs rhs
+
+csbXor :: Property
+csbXor = property $ do
+  bs <- forAllByteString
+  semantics <- forAll Gen.bool
+  let rhsInner = mkIterAppNoAnn (builtin () PLC.XorByteString) [
+        mkConstant @Bool () semantics,
+        mkConstant @ByteString () bs,
+        mkConstant @ByteString () bs
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
+        rhsInner
+        ]
+  evaluateAndVerify (mkConstant @Integer () 0) rhs
 
 shiftHomomorphism :: [TestTree]
 shiftHomomorphism = [
@@ -266,6 +470,30 @@ rotateRollover = property $ do
         ]
   evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+rotateMoveBits :: Property
+rotateMoveBits = property $ do
+  bs <- forAllByteString1
+  let bitLen = 8 * BS.length bs
+  i <- forAll . Gen.integral . Range.linear 0 $ bitLen - 1
+  j <- forAll . Gen.integral . Range.linear (negate 256) $ 256
+  let lhs = mkIterAppNoAnn (builtin () PLC.ReadBit) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () (fromIntegral i)
+        ]
+  let rhsRotation = mkIterAppNoAnn (builtin () PLC.BitwiseRotate) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () (fromIntegral j)
+        ]
+  let rhsIndex = mkIterAppNoAnn (builtin () PLC.ModInteger) [
+        mkConstant @Integer () (fromIntegral $ i + j),
+        mkConstant @Integer () (fromIntegral bitLen)
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.ReadBit) [
+        rhsRotation,
+        rhsIndex
+        ]
+  evaluateTheSame lhs rhs
+
 csbRotate :: Property
 csbRotate = property $ do
   bs <- forAllByteString
@@ -294,6 +522,10 @@ forAllByteString = forAllWith hexShow . Gen.bytes . Range.linear 0 $ 1024
 forAllByteString1 :: PropertyT IO ByteString
 forAllByteString1 = forAllWith hexShow . Gen.bytes . Range.linear 1 $ 1024
 
+forAllNonZeroByteString :: PropertyT IO ByteString
+forAllNonZeroByteString =
+  forAllWith hexShow . Gen.filterT (BS.any (/= 0x00)) . Gen.bytes . Range.linear 0 $ 1024
+
 evaluateAndVerify ::
   UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
   PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
@@ -304,6 +536,24 @@ evaluateAndVerify expected actual =
     Right (res, logs) -> case res of
       PLC.EvaluationFailure   -> annotateShow logs >> failure
       PLC.EvaluationSuccess r -> r === expected
+
+evaluateTheSame ::
+  PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
+  PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
+  PropertyT IO ()
+evaluateTheSame lhs rhs =
+  case typecheckEvaluateCek def defaultBuiltinCostModelForTesting lhs of
+    Left x -> annotateShow x >> failure
+    Right (resLhs, logsLhs) -> case typecheckEvaluateCek def defaultBuiltinCostModelForTesting rhs of
+      Left x -> annotateShow x >> failure
+      Right (resRhs, logsRhs) -> case (resLhs, resRhs) of
+        (PLC.EvaluationFailure, PLC.EvaluationFailure) -> do
+          annotateShow logsLhs
+          annotateShow logsRhs
+          failure
+        (PLC.EvaluationSuccess rLhs, PLC.EvaluationSuccess rRhs) -> rLhs === rRhs
+        (PLC.EvaluationFailure, _) -> annotateShow logsLhs >> failure
+        (_, PLC.EvaluationFailure) -> annotateShow logsRhs >> failure
 
 hexShow :: ByteString -> String
 hexShow = ("0x" <>) . BS.foldl' (\acc w8 -> acc <> byteToHex w8) ""

@@ -921,14 +921,36 @@ test_Bitwise =
   testGroup "bitwiseRotate" [
       testGroup "homomorphism" Bitwise.rotateHomomorphism,
       testPropertyNamed "rotations over bit length roll over" "rotate_too_much"
-                        Bitwise.rotateRollover
+                        Bitwise.rotateRollover,
+      testPropertyNamed "rotations move bits but don't change them" "rotate_move"
+                        Bitwise.rotateMoveBits
     ],
   testGroup "countSetBits" [
       testGroup "homomorphism" Bitwise.csbHomomorphism,
       testPropertyNamed "rotation preserves count" "popcount_rotate"
-                        Bitwise.csbRotate
+                        Bitwise.csbRotate,
+      testPropertyNamed "count of the complement" "popcount_complement"
+                        Bitwise.csbComplement,
+      testPropertyNamed "inclusion-exclusion" "popcount_inclusion_exclusion"
+                        Bitwise.csbInclusionExclusion,
+      testPropertyNamed "count of self-AND" "popcount_self_and"
+                        Bitwise.csbAnd,
+      testPropertyNamed "count of self-OR" "popcount_self_or"
+                        Bitwise.csbOr,
+      testPropertyNamed "count of self-XOR" "popcount_self_xor"
+                        Bitwise.csbXor
     ],
   testGroup "findFirstSetBit" [
+      testPropertyNamed "find first in replicated" "ffs_replicate"
+                        Bitwise.ffsReplicate,
+      testPropertyNamed "find first of self-AND" "ffs_and"
+                        Bitwise.ffsAnd,
+      testPropertyNamed "find first of self-OR" "ffs_or"
+                        Bitwise.ffsOr,
+      testPropertyNamed "find first of self-XOR" "ffs_xor"
+                        Bitwise.ffsXor,
+      testPropertyNamed "found index set, lower indices clear" "ffs_index"
+                        Bitwise.ffsIndex
     ]
   ]
 
