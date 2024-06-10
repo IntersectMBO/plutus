@@ -36,28 +36,7 @@ rm -rf $DST
 mkdir -p $DST
 
 # List of target haskell packages 
-# TODO use `find` to avoid hard-coding the list
-PACKAGE_NAMES=(
-  array
-  base
-  deepseq
-  ghc-bignum
-  ghc-boot-th
-  ghc-prim
-  integer-gmp
-  pretty
-  template-haskell
-  plutus-benchmark 
-  plutus-conformance
-  plutus-core
-  plutus-ghc-stub
-  plutus-ledger-api
-  plutus-metatheory
-  plutus-tx
-  plutus-tx-plugin
-  plutus-tx-test-util
-  prettyprinter-configurable
-)
+PACKAGE_NAMES=$(find $SRC -type d -maxdepth 1 | sed -E 's/-[0-9].*$//')
 
 # Merge each package's sublibraries into a single folder, for example:
 # Merge:
