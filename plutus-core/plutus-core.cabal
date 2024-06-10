@@ -82,7 +82,8 @@ common lang
 library
   import:             lang
   exposed-modules:
-    Codec.CBOR.Extras
+    Codec.Extras.FlatViaSerialise
+    Codec.Extras.SerialiseViaFlat
     Data.Aeson.THReader
     Data.Either.Extras
     Data.List.Extras
@@ -92,6 +93,7 @@ library
     PlutusCore.Annotation
     PlutusCore.Arity
     PlutusCore.Bitwise.Convert
+    PlutusCore.Bitwise.Logical
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
@@ -422,6 +424,7 @@ test-suite untyped-plutus-core-test
     Evaluation.Builtins.Conversion
     Evaluation.Builtins.Costing
     Evaluation.Builtins.Definition
+    Evaluation.Builtins.Laws
     Evaluation.Builtins.MakeRead
     Evaluation.Builtins.SignatureVerification
     Evaluation.Debug

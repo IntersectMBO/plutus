@@ -27,6 +27,7 @@ import PlutusCore.Pretty
 import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
+import PlutusCore qualified as PLC
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
 import PlutusCore.StdLib.Data.Bool
@@ -39,20 +40,19 @@ import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.ScottUnit qualified as Scott
 import PlutusCore.StdLib.Data.Unit
 
-import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
-import Evaluation.Builtins.Common
-import Evaluation.Builtins.Conversion qualified as Conversion
-import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
-                                                  ed25519_VariantBProp, ed25519_VariantCProp,
-                                                  schnorrSecp256k1Prop)
-
-
 import Control.Exception
 import Data.ByteString (ByteString, pack)
 import Data.DList qualified as DList
 import Data.Proxy
 import Data.String (IsString (fromString))
 import Data.Text (Text)
+import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
+import Evaluation.Builtins.Common
+import Evaluation.Builtins.Conversion qualified as Conversion
+import Evaluation.Builtins.Laws qualified as Laws
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
+                                                  ed25519_VariantBProp, ed25519_VariantCProp,
+                                                  schnorrSecp256k1Prop)
 import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -889,7 +889,7 @@ test_Conversion =
         -- appendByteString (integerToByteString False 0 q)
         -- (integerToByteString False 0 r)
         testPropertyNamed "property 7" "i2b_prop7" . property $ Conversion.i2bProperty7,
-        testGroup "CIP-0087 examples" Conversion.i2bCipExamples,
+        testGroup "CIP-121 examples" Conversion.i2bCipExamples,
         testGroup "Tests for integerToByteString size limit" Conversion.i2bLimitTests
         ],
       testGroup "ByteString -> Integer" [
@@ -899,9 +899,55 @@ test_Conversion =
         testPropertyNamed "property 2" "b2i_prop2" . property $ Conversion.b2iProperty2,
         -- integerToByteString b (lengthOfByteString bs) (byteStringToInteger b bs) = bs
         testPropertyNamed "property 3" "b2i_prop3" . property $ Conversion.b2iProperty3,
-        testGroup "CIP-0087 examples" Conversion.b2iCipExamples
+        testGroup "CIP-121 examples" Conversion.b2iCipExamples
         ]
       ]
+
+-- Tests for the logical operations, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md)
+test_Logical :: TestTree
+test_Logical =
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
+  testGroup "Logical" $ [
+    testGroup "andByteString" [
+      Laws.abelianSemigroupLaws "truncation" PLC.AndByteString False,
+      Laws.idempotenceLaw "truncation" PLC.AndByteString False,
+      Laws.absorbtionLaw "truncation" PLC.AndByteString False "",
+      Laws.leftDistributiveLaw "truncation" "itself" PLC.AndByteString PLC.AndByteString False,
+      Laws.leftDistributiveLaw "truncation" "OR" PLC.AndByteString PLC.OrByteString False,
+      Laws.leftDistributiveLaw "truncation" "XOR" PLC.AndByteString PLC.XorByteString False,
+      Laws.abelianMonoidLaws "padding" PLC.AndByteString True "",
+      Laws.distributiveLaws "padding" PLC.AndByteString True
+      ],
+    testGroup "orByteString" [
+      Laws.abelianSemigroupLaws "truncation" PLC.OrByteString False,
+      Laws.idempotenceLaw "truncation" PLC.OrByteString False,
+      Laws.absorbtionLaw "truncation" PLC.OrByteString False "",
+      Laws.leftDistributiveLaw "truncation" "itself" PLC.OrByteString PLC.OrByteString False,
+      Laws.leftDistributiveLaw "truncation" "AND" PLC.OrByteString PLC.AndByteString False,
+      Laws.abelianMonoidLaws "padding" PLC.OrByteString True "",
+      Laws.distributiveLaws "padding" PLC.OrByteString True
+      ],
+    testGroup "xorByteString" [
+      Laws.abelianSemigroupLaws "truncation" PLC.XorByteString False,
+      Laws.absorbtionLaw "truncation" PLC.XorByteString False "",
+      Laws.xorInvoluteLaw,
+      Laws.abelianMonoidLaws "padding" PLC.XorByteString True ""
+      ],
+    testGroup "bitwiseLogicalComplement" [
+      Laws.complementSelfInverse,
+      Laws.deMorgan
+      ],
+    testGroup "bit reading and modification" [
+      Laws.getSet,
+      Laws.setGet,
+      Laws.setSet,
+      Laws.writeBitsHomomorphismLaws
+      ],
+    testGroup "replicateByteString" [
+      Laws.replicateHomomorphismLaws,
+      Laws.replicateIndex
+      ]
+    ]
 
 test_definition :: TestTree
 test_definition =
@@ -938,4 +984,5 @@ test_definition =
         , test_Version
         , test_ConsByteString
         , test_Conversion
+        , test_Logical
         ]

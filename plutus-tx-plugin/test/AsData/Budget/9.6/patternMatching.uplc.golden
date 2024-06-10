@@ -26,10 +26,10 @@ program
                                   (addInteger cse cse))
                                [ (delay (addInteger cse cse))
                                , (delay (addInteger cse cse)) ])))
-                      (case cse [(\x y z w -> z)]))
-                   (case cse [(\x y z w -> w)]))
-                (case cse [(\x y z w -> x)]))
-             (case cse [(\x y z w -> y)]))
+                      (case cse [(\x y z w -> w)]))
+                   (case cse [(\x y z w -> y)]))
+                (case cse [(\x y z w -> z)]))
+             (case cse [(\x y z w -> x)]))
           (\x y ->
              force ifThenElse
                (lessThanInteger x y)
