@@ -36,7 +36,7 @@ rm -rf $DST
 mkdir -p $DST
 
 # List of target haskell packages 
-PACKAGE_DIRS=$(find $SRC -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | sed -E 's/-[0-9].*$//' | sort -u)
+PACKAGE_NAMES=$(find $SRC -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | sed -E 's/-[0-9].*$//' | sort -u)
 
 # Merge each package's sublibraries into a single folder, for example:
 # Merge:
@@ -47,10 +47,10 @@ PACKAGE_DIRS=$(find $SRC -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | 
 # Into: 
 #   plutus-core/* 
 for NAME in $PACKAGE_NAMES; do 
-  mkdir -p $DST/$NAME/src
   SUBLIBS=$(find $SRC -type d -name "$NAME*" -print)
+  mkdir -p $DST/$NAME/src
   for SUBLIB in $SUBLIBS; do 
-    cp -R $SUBLIB/* $DST/$NAME
+    cp -R $SUBLIB/. $DST/$NAME
   done 
 done 
 
@@ -58,7 +58,7 @@ done
 cp -R $SRC/{*.html,*.js,*.css,*.png} $DST
 
 # Replace all /nix/store hrefs for ghc documentation in the destination folder.
-for NAME in "${PACKAGE_NAMES[@]}"; do 
+for NAME in $PACKAGE_NAMES; do 
   find "$DST/$NAME" -type f -name "*.html" | while read -r FILE; do
     sed -i -E "s|file:///nix/store/.*-ghc-.*-doc/.*/libraries/([^0-9]*)-[0-9][^/]*/(.*)|../../\1/\2|g" $FILE
   done
@@ -71,7 +71,7 @@ if grep -q -R -E "/nix/store/.*" $DST; then
 fi
 
 # Replace all dist-newstyle hrefs in the destination folder. 
-for NAME in "${PACKAGE_NAMES[@]}"; do 
+for NAME in $PACKAGE_NAMES; do 
   find "$DST/$NAME" -type f -name "*.html" | while read -r FILE; do
     sed -i -E "s|file:///.*dist-newstyle/.*/doc/html/(.*)|../../\1|g" $FILE
   done
