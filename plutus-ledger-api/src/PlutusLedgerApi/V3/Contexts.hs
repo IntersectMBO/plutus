@@ -237,7 +237,7 @@ data Committee = Committee
   , committeeQuorum  :: PlutusTx.Rational
   -- ^ Quorum of the committee that is necessary for a successful vote
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show)
 
 instance Pretty Committee where
   pretty Committee{..} =
@@ -317,7 +317,7 @@ data GovernanceAction
       Rational -- ^ New quorum
   | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
   | InfoAction
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show)
   deriving (Pretty) via (PrettyShow GovernanceAction)
 
 -- | A proposal procedure. The optional anchor is omitted.
@@ -326,7 +326,7 @@ data ProposalProcedure = ProposalProcedure
   , ppReturnAddr       :: V2.Credential
   , ppGovernanceAction :: GovernanceAction
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show)
 
 instance Pretty ProposalProcedure where
   pretty ProposalProcedure{..} =
@@ -350,7 +350,7 @@ data ScriptPurpose
       Haskell.Integer
       -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
       ProposalProcedure
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
 -- | Like `ScriptPurpose` but with an optional datum for spending scripts.
@@ -367,7 +367,7 @@ data ScriptInfo
       Haskell.Integer
       -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
       ProposalProcedure
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show)
   deriving (Pretty) via (PrettyShow ScriptInfo)
 
 -- | An input of a pending transaction.
@@ -408,7 +408,7 @@ data TxInfo = TxInfo
   , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
   , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show)
 
 instance Pretty TxInfo where
   pretty TxInfo{..} =
@@ -441,7 +441,7 @@ data ScriptContext = ScriptContext
   -- ^ the purpose of the currently-executing script, along with information associated
   -- with the purpose
   }
-  deriving stock (Generic, Haskell.Eq, Haskell.Show)
+  deriving stock (Generic, Haskell.Show)
 
 instance Pretty ScriptContext where
   pretty ScriptContext{..} =

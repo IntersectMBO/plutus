@@ -74,12 +74,6 @@ newtype Map k v = Map {unMap :: [(k, v)]}
   deriving stock (Generic, Haskell.Show, Data, TH.Lift)
   deriving newtype (NFData)
 
--- | Haskell Equality check for `Map`, should not be called from Plutus Tx code.
--- Warning: this operation is O(n^2).
-instance (Haskell.Eq k, Haskell.Eq v) => Haskell.Eq (Map k v) where
-  Map m1 == Map m2 =
-    Haskell.all (\(k, v) -> Haskell.lookup k m2 Haskell.== Just v) m1
-
 -- | Hand-written instances to use the underlying 'Map' type in 'Data', and
 -- to be reasonably efficient.
 instance (ToData k, ToData v) => ToData (Map k v) where
