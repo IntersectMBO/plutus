@@ -59,25 +59,6 @@ on a list representation.
 newtype Map k a = Map (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData))
   deriving stock (Haskell.Show)
 
--- | Haskell Equality check for `Map`, should not be called from Plutus Tx code.
--- Warning: this operation is O(n^2).
-instance (Haskell.Eq k, Haskell.Eq v) => Haskell.Eq (Map k v) where
-  m1 == m2@(Map m2') =
-    size m1 == size m2
-    && all' (\(P.pairToPair -> (k, v)) -> lookup' k m2' Haskell.== Just v) m1
-    where
-      all' p (Map m) = go m
-        where
-          go xs =
-            P.matchList
-              xs
-              (\() -> True)
-              ( \hd tl ->
-                  if p hd
-                    then go tl
-                    else False
-              )
-
 instance P.ToData (Map k a) where
   {-# INLINEABLE toBuiltinData #-}
   toBuiltinData (Map d) = BI.mkMap d
@@ -89,18 +70,6 @@ instance P.FromData (Map k a) where
 instance P.UnsafeFromData (Map k a) where
   {-# INLINABLE unsafeFromBuiltinData #-}
   unsafeFromBuiltinData = Map . BI.unsafeDataAsMap
-
-{-# INLINEABLE size #-}
-size :: forall k a. Map k a -> Integer
-size (Map m) = go m
-  where
-    go l =
-      P.matchList
-        l
-        (\() -> 0)
-        ( \_ tl ->
-            1 + go tl
-        )
 
 {-# INLINEABLE lookup #-}
 -- | Look up the value corresponding to the key.
