@@ -17,7 +17,7 @@ cat << EOF > $SRC/haddock.prologue
 * "UntypedPlutusCore": On-chain Plutus code.
 EOF
 
-Clean project and build haddock
+# Clean project and build haddock
 cabal clean 
 cabal update
 cabal build all
