@@ -1,3 +1,7 @@
+---
+title: Algorithmic.BehaviouralEquivalence.CCvsCEK
+layout: page
+---
 # CEK behavioural equivalence with CK machine
 
 ```

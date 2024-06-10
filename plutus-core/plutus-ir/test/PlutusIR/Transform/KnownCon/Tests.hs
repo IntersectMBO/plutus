@@ -11,8 +11,8 @@ import PlutusIR.Transform.KnownCon qualified as KnownCon
 import Test.QuickCheck
 
 test_knownCon :: TestTree
-test_knownCon = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "KnownCon" $
+test_knownCon =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "KnownCon"] $
         map
             (goldenPir (runQuote . runTestPass KnownCon.knownConPassSC) pTerm)
             [ "applicative"

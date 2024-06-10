@@ -20,17 +20,35 @@ instance FromJSON LinearFunction where
     parseJSON = withObject "Linear function" $ \obj ->
                 LinearFunction <$> obj .: "intercept" <*> obj .: "slope"
 
-data QuadraticFunction =
-    QuadraticFunction
+data OneVariableQuadraticFunction =
+    OneVariableQuadraticFunction
     { coeff0_ :: Integer
     , coeff1_ :: Integer
     , coeff2_ :: Integer
     }
     deriving stock (Show, Lift)
 
-instance FromJSON QuadraticFunction where
-    parseJSON = withObject "Quadratic function" $ \obj ->
-                QuadraticFunction <$> obj .: "c0" <*> obj .: "c1" <*> obj .: "c2"
+instance FromJSON OneVariableQuadraticFunction where
+    parseJSON = withObject "One-variable quadratic function" $ \obj ->
+                OneVariableQuadraticFunction <$> obj .: "c0" <*> obj .: "c1" <*> obj .: "c2"
+
+data TwoVariableQuadraticFunction =
+    TwoVariableQuadraticFunction
+    { minimum  :: Integer
+    , coeff00_ :: Integer
+    , coeff10_ :: Integer
+    , coeff01_ :: Integer
+    , coeff20_ :: Integer
+    , coeff11_ :: Integer
+    , coeff02_ :: Integer
+    }
+    deriving stock (Show, Lift)
+
+instance FromJSON TwoVariableQuadraticFunction where
+    parseJSON = withObject "Two-variable quadratic function" $ \obj ->
+                TwoVariableQuadraticFunction <$> obj .: "minimum" <*>
+                obj .: "c00" <*> obj .: "c10" <*> obj .: "c01" <*>
+                obj .: "c20" <*> obj .: "c11" <*> obj .: "c02"
 
 {- | This type reflects what is actually in the JSON.  The stuff in
    CostingFun.Core and CostingFun.JSON is much more rigid, allowing parsing only
@@ -49,8 +67,9 @@ data Model
     | LinearInY             LinearFunction
     | LinearInZ             LinearFunction
     | LiteralInYOrLinearInZ LinearFunction
-    | QuadraticInY          QuadraticFunction
-    | QuadraticInZ          QuadraticFunction
+    | QuadraticInY          OneVariableQuadraticFunction
+    | QuadraticInZ          OneVariableQuadraticFunction
+    | QuadraticInXAndY      TwoVariableQuadraticFunction
     | SubtractedSizes       LinearFunction Integer
     -- ^ Linear model in x-y plus minimum value for the case x-y < 0.
     | ConstAboveDiagonal    Integer Model
@@ -78,7 +97,7 @@ instance FromJSON Model where
              {- We always have an "arguments" field which is a Value.  Usually it's
                 actually an Object (ie, a map) representing a linear function, but
                 sometimes it contains other data, and in those cases we need to
-                coerce it to an Object (with objOf) to extract the relevant date.
+                coerce it to an Object (with objOf) to extract the relevant data.
                 We could do that once here and rely on laziness to save us in the
                 cases when we don't have an Object, but that looks a bit misleading. -}
              case ty of
@@ -92,20 +111,32 @@ instance FromJSON Model where
                "linear_in_z"                 -> LinearInZ             <$> parseJSON args
                "quadratic_in_y"              -> QuadraticInY          <$> parseJSON args
                "quadratic_in_z"              -> QuadraticInZ          <$> parseJSON args
+               "quadratic_in_x_and_y"        -> QuadraticInXAndY      <$> parseJSON args
                "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
-               "subtracted_sizes"            ->
-                  SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
-               "const_above_diagonal"        ->
-                  ConstAboveDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "const_below_diagonal"        ->
-                  ConstBelowDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "const_off_diagonal"      ->
-                  ConstOffDiagonal      <$> objOf args .: "constant" <*> objOf args .: "model"
-               _                             -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
+               "subtracted_sizes"            -> SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
+               "const_above_diagonal"        -> modelWithConstant ConstAboveDiagonal args
+               "const_below_diagonal"        -> modelWithConstant ConstBelowDiagonal args
+               "const_off_diagonal"          -> modelWithConstant ConstOffDiagonal   args
+               {- An adaptor to deal with the old "linear_on_diagonal" tag.  See Note [Backward
+                  compatibility for costing functions].  We never want to convert back to JSON
+                  here, so it's OK to forget that we originally got something tagged with
+                 "linear_on_diagonal". -}
+               "linear_on_diagonal" ->
+                 let o = objOf args
+                 in do
+                   constant   <- o  .: "constant"
+                   intercept  <- o .: "intercept"
+                   slope      <- o .: "slope"
+                   pure $ ConstOffDiagonal constant (LinearInX $ LinearFunction intercept slope)
+
+               _ -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
 
                where objOf (Object o) = o
                      objOf _          =
                       errorWithoutStackTrace "Failed to get Object while parsing \"arguments\""
+
+                     modelWithConstant constr x = constr <$>  o .: "constant" <*> o .: "model"
+                       where o = objOf x
 
 {- | A CPU usage modelling function and a memory usage modelling function bundled
    together -}

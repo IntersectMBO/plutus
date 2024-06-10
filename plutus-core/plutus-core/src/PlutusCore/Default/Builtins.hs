@@ -27,6 +27,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, LiteralByteSi
 import PlutusCore.Pretty (PrettyConfigPlc)
 
 import PlutusCore.Bitwise.Convert as Convert
+import PlutusCore.Bitwise.Logical as Logical
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -152,6 +153,14 @@ data DefaultFun
     -- Conversions
     | IntegerToByteString
     | ByteStringToInteger
+    -- Logical
+    | AndByteString
+    | OrByteString
+    | XorByteString
+    | ComplementByteString
+    | ReadBit
+    | WriteBits
+    | ReplicateByteString
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1088,13 +1097,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
 
     {- | Allow different variants of builtins with different implementations, and
-       possibly different semantics.  Note that DefaultFunSemanticsVariant1,
-       DefaultFunSemanticsVariant1 etc. do not correspond directly to PlutusV1,
+       possibly different semantics.  Note that DefaultFunSemanticsVariantA,
+       DefaultFunSemanticsVariantB etc. do not correspond directly to PlutusV1,
        PlutusV2 etc. in plutus-ledger-api: see Note [Builtin semantics variants]. -}
     data BuiltinSemanticsVariant DefaultFun
-        = DefaultFunSemanticsVariant0
-        | DefaultFunSemanticsVariant1
-        | DefaultFunSemanticsVariant2
+        = DefaultFunSemanticsVariantA
+        | DefaultFunSemanticsVariantB
+        | DefaultFunSemanticsVariantC
         deriving stock (Eq, Enum, Bounded, Show, Generic)
         deriving anyclass (NFData, NoThunks)
 
@@ -1211,7 +1220,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 in makeBuiltinMeaning
                     consByteStringDenotation
                     costingFun
-            -- For builtin semantics variants larger than 'DefaultFunSemanticsVariant1', the first
+            -- For builtin semantics variants larger than 'DefaultFunSemanticsVariantA', the first
             -- input must be in range @[0..255]@.
             consByteStringMeaning_V2 =
                 let consByteStringDenotation :: Word8 -> BS.ByteString -> BS.ByteString
@@ -1221,9 +1230,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     consByteStringDenotation
                     costingFun
         in case semvar of
-            DefaultFunSemanticsVariant0 -> consByteStringMeaning_V1
-            DefaultFunSemanticsVariant1 -> consByteStringMeaning_V1
-            DefaultFunSemanticsVariant2 -> consByteStringMeaning_V2
+            DefaultFunSemanticsVariantA -> consByteStringMeaning_V1
+            DefaultFunSemanticsVariantB -> consByteStringMeaning_V1
+            DefaultFunSemanticsVariantC -> consByteStringMeaning_V2
 
     toBuiltinMeaning _semvar SliceByteString =
         let sliceByteStringDenotation :: Int -> Int -> BS.ByteString -> BS.ByteString
@@ -1306,9 +1315,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
             verifyEd25519SignatureDenotation =
                 case semvar of
-                  DefaultFunSemanticsVariant0 -> verifyEd25519Signature_V1
-                  DefaultFunSemanticsVariant1 -> verifyEd25519Signature_V2
-                  DefaultFunSemanticsVariant2 -> verifyEd25519Signature_V2
+                  DefaultFunSemanticsVariantA -> verifyEd25519Signature_V1
+                  DefaultFunSemanticsVariantB -> verifyEd25519Signature_V2
+                  DefaultFunSemanticsVariantC -> verifyEd25519Signature_V2
             {-# INLINE verifyEd25519SignatureDenotation #-}
         in makeBuiltinMeaning
             verifyEd25519SignatureDenotation
@@ -1820,21 +1829,80 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Conversions
     {- See Note [Input length limitation for IntegerToByteString] -}
     toBuiltinMeaning _semvar IntegerToByteString =
-      let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> BuiltinResult BS.ByteString
-          {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
-             costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
-          integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
-          {-# INLINE integerToByteStringDenotation #-}
+        let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> BuiltinResult BS.ByteString
+            {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
+               costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
+            integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
+            {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
-          integerToByteStringDenotation
-          (runCostingFunThreeArguments . paramIntegerToByteString)
+            integerToByteStringDenotation
+            (runCostingFunThreeArguments . paramIntegerToByteString)
+
     toBuiltinMeaning _semvar ByteStringToInteger =
-      let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
-          byteStringToIntegerDenotation = byteStringToIntegerWrapper
-          {-# INLINE byteStringToIntegerDenotation #-}
+        let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
+            byteStringToIntegerDenotation = byteStringToIntegerWrapper
+            {-# INLINE byteStringToIntegerDenotation #-}
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
             (runCostingFunTwoArguments . paramByteStringToInteger)
+
+    -- Logical
+    toBuiltinMeaning _semvar AndByteString =
+        let andByteStringDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+            andByteStringDenotation = Logical.andByteString
+            {-# INLINE andByteStringDenotation #-}
+        in makeBuiltinMeaning
+            andByteStringDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar OrByteString =
+        let orByteStringDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+            orByteStringDenotation = Logical.orByteString
+            {-# INLINE orByteStringDenotation #-}
+        in makeBuiltinMeaning
+            orByteStringDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar XorByteString =
+        let xorByteStringDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
+            xorByteStringDenotation = Logical.xorByteString
+            {-# INLINE xorByteStringDenotation #-}
+        in makeBuiltinMeaning
+            xorByteStringDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar ComplementByteString =
+        let complementByteStringDenotation :: BS.ByteString -> BS.ByteString
+            complementByteStringDenotation = Logical.complementByteString
+            {-# INLINE complementByteStringDenotation #-}
+        in makeBuiltinMeaning
+            complementByteStringDenotation
+            (runCostingFunOneArgument . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar ReadBit =
+        let readBitDenotation :: BS.ByteString -> Int -> BuiltinResult Bool
+            readBitDenotation = Logical.readBit
+            {-# INLINE readBitDenotation #-}
+        in makeBuiltinMeaning
+            readBitDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar WriteBits =
+        let writeBitsDenotation :: BS.ByteString -> [(Integer, Bool)] -> BuiltinResult BS.ByteString
+            writeBitsDenotation = Logical.writeBits
+            {-# INLINE writeBitsDenotation #-}
+        in makeBuiltinMeaning
+            writeBitsDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar ReplicateByteString =
+        let byteStringReplicateDenotation :: Int -> Word8 -> BuiltinResult BS.ByteString
+            byteStringReplicateDenotation = Logical.replicateByteString
+            {-# INLINE byteStringReplicateDenotation #-}
+        in makeBuiltinMeaning
+            byteStringReplicateDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1855,7 +1923,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -}
 
 instance Default (BuiltinSemanticsVariant DefaultFun) where
-    def = DefaultFunSemanticsVariant2
+    def = maxBound
 
 instance Pretty (BuiltinSemanticsVariant DefaultFun) where
     pretty = viaShow
@@ -1962,6 +2030,14 @@ instance Flat DefaultFun where
               IntegerToByteString             -> 73
               ByteStringToInteger             -> 74
 
+              AndByteString                   -> 75
+              OrByteString                    -> 76
+              XorByteString                   -> 77
+              ComplementByteString            -> 78
+              ReadBit                         -> 79
+              WriteBits                       -> 80
+              ReplicateByteString             -> 81
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -2038,6 +2114,13 @@ instance Flat DefaultFun where
               go 72 = pure Blake2b_224
               go 73 = pure IntegerToByteString
               go 74 = pure ByteStringToInteger
+              go 75 = pure AndByteString
+              go 76 = pure OrByteString
+              go 77 = pure XorByteString
+              go 78 = pure ComplementByteString
+              go 79 = pure ReadBit
+              go 80 = pure WriteBits
+              go 81 = pure ReplicateByteString
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

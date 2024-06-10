@@ -27,7 +27,7 @@ costModelParamsForTesting = Map.toList $ fromJust $
 mCostModel :: MCostModel
 mCostModel =
     -- nothing to clear because v4 does not exist (yet).
-    toMCostModel defaultCekCostModel
+    toMCostModel defaultCekCostModelForTesting
 
 {- | Assign to `mempty` those CEK constructs that @PlutusV3@ introduces (indirectly by introducing
 a ledger language version with those CEK constructs).
@@ -67,6 +67,4 @@ clearBuiltinCostModel r = r
                , paramBls12_381_finalVerify = mempty
                , paramKeccak_256 = mempty
                , paramBlake2b_224 = mempty
-               , paramIntegerToByteString = mempty
-               , paramByteStringToInteger = mempty
                }

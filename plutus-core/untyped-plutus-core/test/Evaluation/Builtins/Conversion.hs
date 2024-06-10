@@ -22,7 +22,7 @@ module Evaluation.Builtins.Conversion (
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import PlutusCore qualified as PLC
 import PlutusCore.Bitwise.Convert (integerToByteStringMaximumOutputLength)
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusPrelude (Word8, def)
 import UntypedPlutusCore qualified as UPLC
@@ -36,11 +36,10 @@ import Test.Tasty (TestTree)
 import Test.Tasty.HUnit (assertEqual, assertFailure, testCase)
 import Text.Show.Pretty (ppShow)
 
--- Properties and examples directly from CIP-0087:
+-- Properties and examples directly from CIP-121:
 --
--- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX#builtinintegertobytestring
--- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX#builtinbytestringtointeger
-
+-- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-0121#builtinintegertobytestring
+-- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-0121#builtinbytestringtointeger
 
 -- lengthOfByteString (integerToByteString e d 0) = d
 i2bProperty1 :: PropertyT IO ()
@@ -539,7 +538,7 @@ evaluateAndVerify ::
   PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
   PropertyT IO ()
 evaluateAndVerify expected actual =
-  case typecheckEvaluateCek def defaultBuiltinCostModel actual of
+  case typecheckEvaluateCek def defaultBuiltinCostModelForTesting actual of
     Left x -> annotateShow x >> failure
     Right (res, logs) -> case res of
       PLC.EvaluationFailure   -> annotateShow logs >> failure
@@ -550,8 +549,8 @@ evaluateAndVerify2 ::
   PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
   PropertyT IO ()
 evaluateAndVerify2 expected actual =
-  let expectedResult = typecheckEvaluateCek def defaultBuiltinCostModel expected
-      actualResult = typecheckEvaluateCek def defaultBuiltinCostModel actual
+  let expectedResult = typecheckEvaluateCek def defaultBuiltinCostModelForTesting expected
+      actualResult = typecheckEvaluateCek def defaultBuiltinCostModelForTesting actual
     in case (expectedResult, actualResult) of
       (Left err, _) -> annotateShow err >> failure
       (_, Left err) -> annotateShow err >> failure
@@ -563,7 +562,7 @@ evaluateAndVerify2 expected actual =
 evaluateShouldFail ::
   PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
   IO ()
-evaluateShouldFail expr = case typecheckEvaluateCek def defaultBuiltinCostModel expr of
+evaluateShouldFail expr = case typecheckEvaluateCek def defaultBuiltinCostModelForTesting expr of
   Left _ -> assertFailure "unexpectedly failed to typecheck"
   Right (result, _) -> case result of
     PLC.EvaluationFailure   -> pure ()
@@ -574,7 +573,7 @@ evaluateAssertEqual ::
   PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
   IO ()
 evaluateAssertEqual expected actual =
-  case typecheckEvaluateCek def defaultBuiltinCostModel actual of
+  case typecheckEvaluateCek def defaultBuiltinCostModelForTesting actual of
     Left _ -> assertFailure "unexpectedly failed to typecheck"
     Right (result, _) -> case result of
       PLC.EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"

@@ -421,8 +421,8 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname)  %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead ()
-        m <- lm(t ~ I(x_mem + y_mem), filtered)
-        mk.result(m,"added_sizes")
+        m <- lm(t ~ I(x_mem * y_mem), filtered)
+        mk.result(m,"multiplied_sizes")
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
 
@@ -435,20 +435,24 @@ modelFun <- function(path) {
     ## a good fit.
     divideIntegerModel <- {
         fname <- "DivideInteger"
-        filtered <- data %>%  ## Data below diagonal
-            filter.and.check.nonempty(fname) %>%
-            filter(x_mem > 0 & y_mem > 0) %>%
-            filter (x_mem > y_mem) %>%
-            discard.overhead ()
-        m <- lm(t ~ I(x_mem * y_mem), filtered)
 
-       filtered2 <- data %>%  ## Data on or above diagonal: effectively constant time.
+        data1 <- data %>%  ## Data on or above diagonal: effectively constant time.
             filter.and.check.nonempty(fname) %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             filter (x_mem <= y_mem) %>%
             discard.overhead ()
-        constant = mean(filtered2$t)
-        mk.result(m, "const_above_diagonal", constant=constant, subtype="multiplied_sizes")
+        constant = mean(data1$t)
+
+        data2 <- data %>%  ## Data below diagonal
+            filter.and.check.nonempty(fname) %>%
+            filter(x_mem > 0 & y_mem > 0) %>%
+            filter (x_mem > y_mem) %>%
+            discard.overhead ()
+        m <- lm(t ~ I(x_mem) + I(y_mem) + I(x_mem^2) + I(x_mem * y_mem) + I(y_mem^2), data2)
+
+        ## Re-use the above-diagonal cost as the minimum cost below the diagonal.  See Note
+        ## [Minimum values for two-variable quadratic costing functions].
+        mk.result(m, "const_above_diagonal", constant=constant, minimum=constant, subtype="quadratic_in_x_and_y")
     }
 
     quotientIntegerModel  <- divideIntegerModel
@@ -517,6 +521,9 @@ modelFun <- function(path) {
     lengthOfByteStringModel <- constantModel ("LengthOfByteString")  ## Just returns a field
     indexByteStringModel    <- constantModel ("IndexByteString")     ## Constant-time array access
 
+    ## NOTE: We could also use const_off_diagonal here, but we have to keep
+    ## linear _on_diagonal for backward compatibility for the time being.
+    ## See Note [Backward compatibility for costing functions].
     equalsByteStringModel <- {
         fname <- "EqualsByteString"
         filtered <- data %>%
@@ -526,10 +533,10 @@ modelFun <- function(path) {
         m <- lm(t ~ x_mem, filtered)
 
         constant <- min(filtered$t)
-        ## FIXME.  The `constant` value above is the above-diagonal cost, which we
-        ## don't collect benchmarking data for.  Collect some data and infer it
+        ## FIXME.  The `constant` value above is the off-diagonal cost, which we
+        ## don't collect benchmarking data for.  Collect some data and infer it.
 
-        mk.result(m, "const_off_diagonal", constant=constant, subtype="linear_in_x")
+        mk.result(m, "linear_on_diagonal", constant=constant)
     }
 
     lessThanByteStringModel <- {
@@ -580,6 +587,9 @@ modelFun <- function(path) {
         mk.result(m, "added_sizes")
     }
 
+    ## NOTE: We could also use const_off_diagonal here, but we have to keep
+    ## linear _on_diagonal for backward compatibility for the time being.
+    ## See Note [Backward compatibility for costing functions].
     equalsStringModel <- {
         fname <- "EqualsString"
         filtered <- data %>%
@@ -589,11 +599,11 @@ modelFun <- function(path) {
         m <- lm(t ~ x_mem, filtered)
 
         constant <- min(filtered$t)
-        ## FIXME.  The `constant` value above is the above-diagonal cost, which
+        ## FIXME.  The `constant` value above is the off-diagonal cost, which
         ## we don't collect benchmarking data for.  We might want to collect
         ## some data and infer it.
 
-        mk.result(m, "const_off_diagonal", constant=constant, subtype="linear_in_x")
+        mk.result(m, "linear_on_diagonal", constant=constant)
     }
 
     decodeUtf8Model <- linearInX ("DecodeUtf8")
@@ -734,14 +744,11 @@ modelFun <- function(path) {
 
     ##### Models to be returned to Haskell #####
 
-    models <- list (
+    models.for.adjustment <-
+        list (
         addIntegerModel                      = addIntegerModel,
         subtractIntegerModel                 = subtractIntegerModel,
         multiplyIntegerModel                 = multiplyIntegerModel,
-        divideIntegerModel                   = divideIntegerModel,
-        quotientIntegerModel                 = quotientIntegerModel,
-        remainderIntegerModel                = remainderIntegerModel,
-        modIntegerModel                      = modIntegerModel,
         equalsIntegerModel                   = equalsIntegerModel,
         lessThanIntegerModel                 = lessThanIntegerModel,
         lessThanEqualsIntegerModel           = lessThanEqualsIntegerModel,
@@ -810,11 +817,20 @@ modelFun <- function(path) {
         bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel,
         integerToByteStringModel             = integerToByteStringModel,
         byteStringToIntegerModel             = byteStringToIntegerModel
+        )
+
+    ## The integer division functions have a complex costing behaviour that requires some negative
+    ## coefficients to get accurate results. Because of this they are excluded from adjustModels:
+    ## the Haskell code receives the raw model and takes care of the (unlikely) case when a negative
+    ## value is returned itself (using a minimm value returned from R as an extra parameter).  Any
+    ## other builtins which need a non-monotonic costing function should be treated similarly.
+
+    unadjusted.models <- list (
+        divideIntegerModel                   = divideIntegerModel,
+        quotientIntegerModel                 = quotientIntegerModel,
+        remainderIntegerModel                = remainderIntegerModel,
+        modIntegerModel                      = modIntegerModel
     )
 
-    return(adjustModels(models))
-
-    ## Caution!  If we introduce any non-monotonic costing functions they should
-    ## be excluded from adjustModels and make their own adjustments for eg,
-    ## possible negative return values
+    return(c(adjustModels(models.for.adjustment), unadjusted.models))
 }

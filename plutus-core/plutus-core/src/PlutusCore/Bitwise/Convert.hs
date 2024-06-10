@@ -118,7 +118,7 @@ data IntegerToByteStringError =
   deriving stock (Eq, Show)
 
 -- | Conversion from 'Integer' to 'ByteString', as per
--- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
+-- [CIP-121](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-0121).
 --
 -- For performance and clarity, the endianness argument uses
 -- 'ByteOrder', and the length argument is an 'Int'.
@@ -232,7 +232,7 @@ integerToByteString requestedByteOrder requestedLength input
       Builder.bytes (BS.replicate paddingLength 0x0) <> acc
 
 -- | Conversion from 'ByteString' to 'Integer', as per
--- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
+-- [CIP-121](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-0121).
 --
 -- For clarity, the stated endianness argument uses 'ByteOrder'.
 byteStringToInteger :: ByteOrder -> ByteString -> Integer

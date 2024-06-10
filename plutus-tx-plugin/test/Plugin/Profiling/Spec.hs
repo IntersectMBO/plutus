@@ -29,8 +29,8 @@ import Data.Proxy (Proxy (Proxy))
 import Prelude
 
 profiling :: TestNested
-profiling = testNestedGhc "Profiling" [
-  goldenPir "fib" fibTest
+profiling = testNested "Profiling" . pure $ testNestedGhc
+  [ goldenPir "fib" fibTest
   , goldenUEvalLogs "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenUEvalLogs "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenPir "addInt" addIntTest

@@ -29,6 +29,7 @@ module PlutusLedgerApi.V3.Contexts
   , GovernanceAction (..)
   , ProposalProcedure (..)
   , ScriptPurpose (..)
+  , ScriptInfo (..)
   , TxInInfo (..)
   , TxInfo (..)
   , ScriptContext (..)
@@ -366,6 +367,7 @@ instance PlutusTx.Eq ProposalProcedure where
       PlutusTx.&& b PlutusTx.== b'
       PlutusTx.&& c PlutusTx.== c'
 
+-- | A `ScriptPurpose` uniquely identifies a Plutus script within a transaction.
 data ScriptPurpose
   = Minting V2.CurrencySymbol
   | Spending V3.TxOutRef
@@ -395,6 +397,39 @@ instance PlutusTx.Eq ScriptPurpose where
   Voting a == Voting a' =
     a PlutusTx.== a'
   Proposing a b == Proposing a' b' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
+  _ == _ = Haskell.False
+
+-- | Like `ScriptPurpose` but with an optional datum for spending scripts.
+data ScriptInfo
+  = MintingScript V2.CurrencySymbol
+  | SpendingScript V3.TxOutRef (Haskell.Maybe V2.Datum)
+  | RewardingScript V2.Credential
+  | CertifyingScript
+      Haskell.Integer
+      -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
+      TxCert
+  | VotingScript Voter
+  | ProposingScript
+      Haskell.Integer
+      -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
+      ProposalProcedure
+  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving (Pretty) via (PrettyShow ScriptInfo)
+
+instance PlutusTx.Eq ScriptInfo where
+  {-# INLINEABLE (==) #-}
+  MintingScript a == MintingScript a' =
+    a PlutusTx.== a'
+  SpendingScript a b== SpendingScript a' b' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
+  RewardingScript a == RewardingScript a' =
+    a PlutusTx.== a'
+  CertifyingScript a b == CertifyingScript a' b' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
+  VotingScript a == VotingScript a' =
+    a PlutusTx.== a'
+  ProposingScript a b == ProposingScript a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   _ == _ = Haskell.False
 
@@ -482,24 +517,28 @@ instance PlutusTx.Eq TxInfo where
 
 -- | The context that the currently-executing script can access.
 data ScriptContext = ScriptContext
-  { scriptContextTxInfo  :: TxInfo
+  { scriptContextTxInfo     :: TxInfo
   -- ^ information about the transaction the currently-executing script is included in
-  , scriptContextPurpose :: ScriptPurpose
-  -- ^ the purpose of the currently-executing script
+  , scriptContextRedeemer   :: V2.Redeemer
+  -- ^ Redeemer for the currently-executing script
+  , scriptContextScriptInfo :: ScriptInfo
+  -- ^ the purpose of the currently-executing script, along with information associated
+  -- with the purpose
   }
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
 
 instance Pretty ScriptContext where
   pretty ScriptContext{..} =
     vsep
-      [ "Purpose:" <+> pretty scriptContextPurpose
+      [ "ScriptInfo:" <+> pretty scriptContextScriptInfo
       , nest 2 (vsep ["TxInfo:", pretty scriptContextTxInfo])
+      , nest 2 (vsep ["Redeemer:", pretty scriptContextRedeemer])
       ]
 
 instance PlutusTx.Eq ScriptContext where
   {-# INLINEABLE (==) #-}
-  ScriptContext a b == ScriptContext a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
+  ScriptContext a b c == ScriptContext a' b' c' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
 
 {-# INLINEABLE findOwnInput #-}
 
@@ -508,7 +547,7 @@ findOwnInput :: ScriptContext -> Haskell.Maybe TxInInfo
 findOwnInput
   ScriptContext
     { scriptContextTxInfo = TxInfo{txInfoInputs}
-    , scriptContextPurpose = Spending txOutRef
+    , scriptContextScriptInfo = SpendingScript txOutRef _
     } =
     PlutusTx.find
       (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== txOutRef)
@@ -616,7 +655,7 @@ valueProduced = PlutusTx.foldMap V2.txOutValue PlutusTx.. txInfoOutputs
 
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: ScriptContext -> V2.CurrencySymbol
-ownCurrencySymbol ScriptContext{scriptContextPurpose = Minting cs} = cs
+ownCurrencySymbol ScriptContext{scriptContextScriptInfo = MintingScript cs} = cs
 ownCurrencySymbol _ =
   -- "Can't get currency symbol of the current validator script"
   PlutusTx.traceError "Lh"
@@ -724,6 +763,17 @@ PlutusTx.makeIsDataIndexed
   , ('Certifying, 3)
   , ('Voting, 4)
   , ('Proposing, 5)
+  ]
+
+PlutusTx.makeLift ''ScriptInfo
+PlutusTx.makeIsDataIndexed
+  ''ScriptInfo
+  [ ('MintingScript, 0)
+  , ('SpendingScript, 1)
+  , ('RewardingScript, 2)
+  , ('CertifyingScript, 3)
+  , ('VotingScript, 4)
+  , ('ProposingScript, 5)
   ]
 
 PlutusTx.makeLift ''TxInInfo

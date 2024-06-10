@@ -67,11 +67,11 @@ import PlutusTx (CompiledCode, makeIsDataIndexed, makeLift, unsafeFromBuiltinDat
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude as PlutusTxPrelude (AdditiveGroup ((-)), AdditiveMonoid (zero),
                                             AdditiveSemigroup ((+)), Bool (..), BuiltinByteString,
-                                            BuiltinData, BuiltinString, Enum (fromEnum), Eq (..),
-                                            Functor (fmap), Integer, Maybe (..), Ord ((>)),
-                                            Semigroup ((<>)), all, any, check, elem, filter, find,
-                                            foldMap, null, otherwise, snd, toBuiltin, ($), (&&),
-                                            (.), (/=), (||))
+                                            BuiltinData, BuiltinString, BuiltinUnit,
+                                            Enum (fromEnum), Eq (..), Functor (fmap), Integer,
+                                            Maybe (..), Ord ((>)), Semigroup ((<>)), all, any,
+                                            check, elem, filter, find, foldMap, null, otherwise,
+                                            snd, toBuiltin, ($), (&&), (.), (/=), (||))
 
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
@@ -406,7 +406,7 @@ makeIsDataIndexed ''MarloweTxInput [('Input,0),('MerkleizedTxInput,1)]
 
 
 -- | Compute the hash of a script.
-hashScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ()) -> ScriptHash
+hashScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit) -> ScriptHash
 hashScript =
   -- FIXME: Apparently this is the wrong recipe, since its hash disagrees with `cardano-cli`.
   ScriptHash
@@ -417,10 +417,10 @@ hashScript =
 
 
 -- | The validator for Marlowe semantics.
-marloweValidator :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
+marloweValidator :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit)
 marloweValidator =
   let
-    marloweValidator' :: ScriptHash -> BuiltinData -> BuiltinData -> BuiltinData -> ()
+    marloweValidator' :: ScriptHash -> BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit
     marloweValidator' rpvh d r p =
       check
         $ mkMarloweValidator rpvh

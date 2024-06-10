@@ -66,7 +66,7 @@ cekVarCostCpuKey :: Text.Text
 cekVarCostCpuKey = "cekVarCost-exBudgetCPU"  -- This is the result of flatten . toJSON
 
 randomCekCostModel :: CekCostModel
-randomCekCostModel = CostModel randomCekCosts defaultBuiltinCostModel
+randomCekCostModel = CostModel randomCekCosts defaultBuiltinCostModelForTesting
 
 -- Tests
 
@@ -80,6 +80,7 @@ extractParams model = do
 -- | Extract some params from a cost model and return the updated version, failing if it doesn't work
 applyParams :: CekCostModel -> CostModelParams -> IO CekCostModel
 applyParams model params = fromRightM (assertFailure . show . pretty) $ applyCostModelParams model params
+
 -- | Just check that extraction works.
 testExtraction :: CekCostModel -> IO ()
 testExtraction model = do
@@ -159,8 +160,8 @@ testDeserialise = assertBool "Failed to decode default ledger cost params" $
 testApply :: IO ()
 testApply = do
     let decodedParams = fromJust $ decode @CostModelParams ledgerParamsBS
-    assertBool "Failed to load the ledger cost params into the our cost model" $
-        isRight $ applyCostModelParams defaultCekCostModel decodedParams
+    assertBool "Failed to load the ledger cost params into our cost model" $
+        isRight $ applyCostModelParams defaultCekCostModelForTesting decodedParams
 
 -- | Test to catch a mispelled/missing param.
 -- A parameter with that name exists in the ledger params but is missing from the cost model, and that is an error.
@@ -170,7 +171,7 @@ testMispelled = do
         (cekVarCostValueM, paramsReducted) = deleteLookup cekVarCostCpuKey params
         paramsMispelled = Map.insert cekVarCostCpuKeyMispelled (fromJust cekVarCostValueM) paramsReducted
     assertBool "Failed to catch mispelled cost param" $
-        isLeft $ applyCostModelParams defaultCekCostModel paramsMispelled
+        isLeft $ applyCostModelParams defaultCekCostModelForTesting paramsMispelled
   where
       cekVarCostCpuKeyMispelled = "cekVarCost--exBudgetCPU"
       deleteLookup = Map.updateLookupWithKey (const $ const Nothing)
@@ -179,41 +180,46 @@ test_costModelInterface :: TestTree
 test_costModelInterface =
     testGroup "cost model interface tests"
        [ testGroup "extractCostModelParams works"
-             [ testCase "defaultCekCostModel" $ testExtraction defaultCekCostModel
+             [ testCase "defaultCekCostModel" $ testExtraction defaultCekCostModelForTesting
              , testCase "randomCekCostModel"  $ testExtraction randomCekCostModel
              ]
        , testGroup "self-update is identity"
-             [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testSelfUpdate defaultCekCostModel
+             [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testSelfUpdate defaultCekCostModelForTesting
              , testCase "randomCekCostModel  <- randomCekCostModel"  $ testSelfUpdate randomCekCostModel
              ]
        , testGroup "update-empty is identity"
-             [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testUpdateEmpty defaultCekCostModel
+             [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testUpdateEmpty defaultCekCostModelForTesting
              , testCase "randomCekCostModel  <- randomCekCostModel"  $ testUpdateEmpty randomCekCostModel
              ]
        , testGroup "overwriting works"
-             [ testCase "defaultCekCostModel <- randomCekCostModel"  $ testOverwrite defaultCekCostModel randomCekCostModel
-             , testCase "randomCekCostModel  <- defaultCekCostModel" $ testOverwrite randomCekCostModel  defaultCekCostModel
+             [ testCase "defaultCekCostModel <- randomCekCostModel"  $ testOverwrite defaultCekCostModelForTesting randomCekCostModel
+             , testCase "randomCekCostModel  <- defaultCekCostModel" $ testOverwrite randomCekCostModel  defaultCekCostModelForTesting
              ]
        , testGroup "superfluous entry in params is NOT OK in self-update"
-             [ testCase "defaultCekCostModel" $ testSelfUpdateWithExtraEntry defaultCekCostModel
+             [ testCase "defaultCekCostModel" $ testSelfUpdateWithExtraEntry defaultCekCostModelForTesting
              , testCase "randomCekCostModel"  $ testSelfUpdateWithExtraEntry randomCekCostModel
              ]
        , testGroup "missing entry in params is OK in self-update"
-             [ testCase "defaultCekCostModel" $ testSelfUpdateWithMissingEntry defaultCekCostModel
+             [ testCase "defaultCekCostModel" $ testSelfUpdateWithMissingEntry defaultCekCostModelForTesting
              , testCase "randomCekCostModel"  $ testSelfUpdateWithMissingEntry randomCekCostModel
              ]
        , testGroup "missing entry in update of different model"
-             [ testCase "defaultCekCostModel" $ testOtherUpdateWithMissingEntry defaultCekCostModel randomCekCostModel
-             , testCase "randomCekCostModel"  $ testOtherUpdateWithMissingEntry randomCekCostModel defaultCekCostModel
+             [ testCase "defaultCekCostModel" $ testOtherUpdateWithMissingEntry defaultCekCostModelForTesting randomCekCostModel
+             , testCase "randomCekCostModel"  $ testOtherUpdateWithMissingEntry randomCekCostModel defaultCekCostModelForTesting
              ]
        , testGroup "extract after apply is identity"
-             [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testExtractAfterUpdate defaultCekCostModel defaultCekCostModel
-             , testCase "randomCekCostModel  <- randomCekCostModel"  $ testExtractAfterUpdate randomCekCostModel  randomCekCostModel
-             , testCase "randomCekCostModel  <- defaultCekCostModel" $ testExtractAfterUpdate randomCekCostModel  defaultCekCostModel
-             , testCase "defaultCekCostModel <- randomCekCostModel"  $ testExtractAfterUpdate defaultCekCostModel randomCekCostModel
+             [ testCase "defaultCekCostModel <- defaultCekCostModel" $
+               testExtractAfterUpdate defaultCekCostModelForTesting defaultCekCostModelForTesting
+             , testCase "randomCekCostModel  <- randomCekCostModel"  $
+               testExtractAfterUpdate randomCekCostModel  randomCekCostModel
+             , testCase "randomCekCostModel  <- defaultCekCostModel" $
+               testExtractAfterUpdate randomCekCostModel  defaultCekCostModelForTesting
+             , testCase "defaultCekCostModel <- randomCekCostModel"  $
+               testExtractAfterUpdate defaultCekCostModelForTesting randomCekCostModel
              ]
        , testGroup "default ledger params"
              [ testCase "default ledger params deserialize" testDeserialise
+             -- TODO: do something here for each version of the cost model?
              , testCase "default ledger params can be applied to default cost model" testApply
              , testCase "mispelled param in ledger params " testMispelled
              ]

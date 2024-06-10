@@ -42,17 +42,17 @@
                                                                                             (\z
                                                                                               f ->
                                                                                                z)))))))))))))))))))))))
-, ({ tally: ({BStep BConst causes ({cpu: 92000 | mem: 400})
-| BStep BVar causes ({cpu: 3473000 | mem: 15100})
-| BStep BLamAbs causes ({cpu: 2576000 | mem: 11200})
-| BStep BApply causes ({cpu: 3381000 | mem: 14700})
-| BStep BDelay causes ({cpu: 989000 | mem: 4300})
-| BStep BForce causes ({cpu: 805000 | mem: 3500})
-| BStep BBuiltin causes ({cpu: 92000 | mem: 400})
+, ({ tally: ({BStep BConst causes ({cpu: 64000 | mem: 400})
+| BStep BVar causes ({cpu: 2288000 | mem: 14300})
+| BStep BLamAbs causes ({cpu: 1728000 | mem: 10800})
+| BStep BApply causes ({cpu: 2256000 | mem: 14100})
+| BStep BDelay causes ({cpu: 656000 | mem: 4100})
+| BStep BForce causes ({cpu: 528000 | mem: 3300})
+| BStep BBuiltin causes ({cpu: 64000 | mem: 400})
 | BStep BConstr causes ({cpu: 0 | mem: 0})
 | BStep BCase causes ({cpu: 0 | mem: 0})
-| BBuiltinApp IfThenElse causes ({cpu: 322224 | mem: 4})
+| BBuiltinApp IfThenElse causes ({cpu: 304196 | mem: 4})
 | BStartup causes ({cpu: 100 | mem: 100})})
-| budget: ({cpu: 11730324
-| mem: 49704})
+| budget: ({cpu: 7888296
+| mem: 47504})
 }) )

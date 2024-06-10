@@ -15,6 +15,8 @@ runPrintCostModel :: (?opts :: Opts) => IO ()
 runPrintCostModel = do
     -- MAYBE: move to print-cost-model executable impl. which is much prettier
     printE "Cost model of latest plutus version:"
-    let params = fromJust PLC.defaultCostModelParams
+    -- TODO: add a semantic variant here to get the right machine parameters
+    let params = fromJust PLC.defaultCostModelParamsForTesting
+
     BSL.putStr $ Aeson.encodePretty params
     putStrLn "" -- just for reading clarity

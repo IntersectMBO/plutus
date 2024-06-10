@@ -2,7 +2,7 @@
 module Sum.Spec (tests) where
 
 import Test.Tasty
-import Test.Tasty.Extras (TestNested, runTestGroupNestedGhc)
+import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
 import Test.Tasty.QuickCheck
 
 import PlutusBenchmark.Common (Term, cekResultMatchesHaskellValue)
@@ -14,8 +14,8 @@ import PlutusTx.Test qualified as Tx
 
 -- Make a set of golden tests with results stored in a given subdirectory
 -- inside a subdirectory determined by the GHC version.
-testGroupGhcIn :: [FilePath] -> [TestNested] -> TestTree
-testGroupGhcIn dir = runTestGroupNestedGhc (["lists", "test"] ++ dir)
+runTestGhc :: [FilePath] -> [TestNested] -> TestTree
+runTestGhc path = runTestNested (["lists", "test"] ++ path) . pure . testNestedGhc
 
 -- | Check that the various summation functions all give the same result as 'sum'
 
@@ -37,7 +37,7 @@ tests =
       , testProperty "Compiled left fold (built-in lists)"     $ prop_sum Compiled.mkSumLeftBuiltinTerm
       , testProperty "Compiled left fold (data lists)"         $ prop_sum Compiled.mkSumLeftDataTerm
       ]
-    , testGroupGhcIn ["Sum"]
+    , runTestGhc ["Sum"]
       [ Tx.goldenBudget "right-fold-scott"    $ Compiled.mkSumRightScottCode input
       , Tx.goldenBudget "right-fold-built-in" $ Compiled.mkSumRightBuiltinCode input
       , Tx.goldenBudget "right-fold-data"     $ Compiled.mkSumRightDataCode input

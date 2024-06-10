@@ -18,7 +18,7 @@ module PlutusTx.Compiler.Builtins (
     , lookupBuiltinType
     , errorFunc) where
 
-import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Builtins.HasOpaque qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as Builtins
 
 import PlutusTx.Compiler.Error
@@ -49,11 +49,10 @@ import Language.Haskell.TH.Syntax qualified as TH
 import Control.Monad.Reader (asks)
 
 import Data.ByteString qualified as BS
-import Data.Foldable (for_)
 import Data.Functor
 import Data.Proxy
 import Data.Text (Text)
-import PlutusPrelude (enumerate)
+import PlutusPrelude (enumerate, for_)
 
 {- Note [Mapping builtins]
 We want the user to be able to call the Plutus builtins as normal Haskell functions.
@@ -277,6 +276,14 @@ builtinNames = [
 
     , 'Builtins.integerToByteString
     , 'Builtins.byteStringToInteger
+
+    , 'Builtins.andByteString
+    , 'Builtins.orByteString
+    , 'Builtins.xorByteString
+    , 'Builtins.complementByteString
+    , 'Builtins.readBit
+    , 'Builtins.writeBits
+    , 'Builtins.replicateByteString
     ]
 
 defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -433,6 +440,15 @@ defineBuiltinTerms = do
             -- Bitwise operations
             PLC.IntegerToByteString -> defineBuiltinInl 'Builtins.integerToByteString
             PLC.ByteStringToInteger -> defineBuiltinInl 'Builtins.byteStringToInteger
+
+            -- Logical operations
+            PLC.AndByteString -> defineBuiltinInl 'Builtins.andByteString
+            PLC.OrByteString -> defineBuiltinInl 'Builtins.orByteString
+            PLC.XorByteString -> defineBuiltinInl 'Builtins.xorByteString
+            PLC.ComplementByteString -> defineBuiltinInl 'Builtins.complementByteString
+            PLC.ReadBit -> defineBuiltinInl 'Builtins.readBit
+            PLC.WriteBits -> defineBuiltinInl 'Builtins.writeBits
+            PLC.ReplicateByteString -> defineBuiltinInl 'Builtins.replicateByteString
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m ann

@@ -1,3 +1,7 @@
+---
+title: Scoped
+layout: page
+---
 ```
 module Scoped where
 ```

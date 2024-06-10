@@ -22,8 +22,6 @@ import PlutusCore.Rename.Monad
 
 import Universe
 
-import Data.Foldable (for_)
-
 instance (GEq uni, Eq ann) => Eq (Type TyName uni ann) where
     ty1 == ty2 = runEqRename @TypeRenaming $ eqTypeM ty1 ty2
 

@@ -1,3 +1,7 @@
+---
+title: Type.BetaNormal.Equality
+layout: page
+---
 ```
 module Type.BetaNormal.Equality where
 ```

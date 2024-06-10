@@ -1,4 +1,7 @@
-
+---
+title: Algorithmic.Signature
+layout: page
+---
 ```
 module Algorithmic.Signature where
 ```

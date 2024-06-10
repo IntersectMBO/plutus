@@ -1,0 +1,32 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+in
+letrec
+  !go : list data -> integer -> data
+    = \(xs : list data) (i : integer) ->
+        chooseList
+          {data}
+          {Unit -> Unit -> data}
+          xs
+          (\(ds : Unit) -> error {Unit -> data})
+          (\(ds : Unit) (ds : Unit) ->
+             let
+               !hd : data = headList {data} xs
+               !tl : list data = tailList {data} xs
+             in
+             ifThenElse
+               {all dead. data}
+               (equalsInteger 0 i)
+               (/\dead -> hd)
+               (/\dead -> go tl (subtractInteger i 1))
+               {all dead. dead})
+          Unit
+          Unit
+in
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+\(d : data) -> let !xs : list data = unListData d in go xs 5

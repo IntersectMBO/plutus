@@ -29,7 +29,7 @@ module PlutusCore.Evaluation.Machine.Exception
     , throwing_
     , throwingWithCause
     , extractEvaluationResult
-    , unsafeExtractEvaluationResult
+    , unsafeToEvaluationResult
     ) where
 
 import PlutusPrelude
@@ -55,73 +55,59 @@ data MachineError fun
     | OpenTermEvaluatedMachineError
       -- ^ An attempt to evaluate an open term.
     | UnliftingMachineError UnliftingError
-      -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
+      -- ^ An attempt to compute a constant application resulted in 'UnliftingError'.
     | BuiltinTermArgumentExpectedMachineError
-      -- ^ A builtin expected a term argument, but something else was received
+      -- ^ A builtin expected a term argument, but something else was received.
     | UnexpectedBuiltinTermArgumentMachineError
       -- ^ A builtin received a term argument when something else was expected
-    | UnknownBuiltin fun
     | NonConstrScrutinized
     | MissingCaseBranch Word64
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
--- | The type of errors (all of them) which can occur during evaluation
--- (some are used-caused, some are internal).
-data EvaluationError user internal
-    = InternalEvaluationError !internal
-      -- ^ Indicates bugs.
-    | UserEvaluationError !user
-      -- ^ Indicates user errors.
-    deriving stock (Show, Eq, Functor, Generic)
-    deriving anyclass (NFData)
-
 mtraverse makeClassyPrisms
     [ ''MachineError
-    , ''EvaluationError
     ]
 
-instance internal ~ MachineError fun => AsMachineError (EvaluationError user internal) fun where
-    _MachineError = _InternalEvaluationError
-instance AsUnliftingError internal => AsUnliftingError (EvaluationError user internal) where
-    _UnliftingError = _InternalEvaluationError . _UnliftingError
+instance structural ~ MachineError fun =>
+        AsMachineError (EvaluationError operational structural) fun where
+    _MachineError = _StructuralEvaluationError
+
 instance AsUnliftingError (MachineError fun) where
     _UnliftingError = _UnliftingMachineError
-instance AsEvaluationFailure user => AsEvaluationFailure (EvaluationError user internal) where
-    _EvaluationFailure = _UserEvaluationError . _EvaluationFailure
 
-type EvaluationException user internal =
-    ErrorWithCause (EvaluationError user internal)
+type EvaluationException operational structural =
+    ErrorWithCause (EvaluationError operational structural)
 
-{- Note [Ignoring context in UserEvaluationError]
-The UserEvaluationError error has a term argument, but
-extractEvaluationResult just discards this and returns
-EvaluationFailure.  This means that, for example, if we use the `plc`
-command to execute a program containing a division by zero, plc exits
-silently without reporting that anything has gone wrong (but returning
-a non-zero exit code to the shell via `exitFailure`).  This is because
-UserEvaluationError is used in cases when a PLC program itself goes
-wrong (for example, a failure due to `(error)`, a failure during
-builtin evaluation, or exceeding the gas limit).  This is used to
-signal unsuccessful in validation and so is not regarded as a real
-error; in contrast, machine errors, typechecking failures,
-and so on are genuine errors and we report their context if available.
- -}
+{- Note [Ignoring context in OperationalEvaluationError]
+The 'OperationalEvaluationError' error has a term argument, but 'extractEvaluationResult' just
+discards this and returns 'EvaluationFailure'. This means that, for example, if we use the @plc@
+command to execute a program containing a division by zero, @plc@ exits silently without reporting
+that anything has gone wrong (but returning a non-zero exit code to the shell via 'exitFailure').
+This is because 'OperationalEvaluationError' is used in cases when a PLC program itself goes wrong
+(see the Haddocks of 'EvaluationError'). This is used to signal unsuccessful validation and so is
+not regarded as a real error; in contrast structural errors are genuine errors and we report their
+context if available.
+-}
 
--- | Turn any 'UserEvaluationError' into an 'EvaluationFailure'.
+-- See Note [Ignoring context in OperationalEvaluationError].
+-- | Preserve the contents of an 'StructuralEvaluationError' as a 'Left' and turn an
+-- 'OperationalEvaluationError' into a @Right EvaluationFailure@.
 extractEvaluationResult
-    :: Either (EvaluationException user internal term) a
-    -> Either (ErrorWithCause internal term) (EvaluationResult a)
+    :: Either (EvaluationException operational structural term) a
+    -> Either (ErrorWithCause structural term) (EvaluationResult a)
 extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
 extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
-    InternalEvaluationError err -> Left  $ ErrorWithCause err cause
-    UserEvaluationError _       -> Right $ EvaluationFailure
+    StructuralEvaluationError err -> Left  $ ErrorWithCause err cause
+    OperationalEvaluationError _  -> Right EvaluationFailure
 
-unsafeExtractEvaluationResult
+-- | Throw on a 'StructuralEvaluationError' and turn an 'OperationalEvaluationError' into an
+-- 'EvaluationFailure'.
+unsafeToEvaluationResult
     :: (PrettyPlc internal, PrettyPlc term, Typeable internal, Typeable term)
     => Either (EvaluationException user internal term) a
     -> EvaluationResult a
-unsafeExtractEvaluationResult = unsafeFromEither . extractEvaluationResult
+unsafeToEvaluationResult = unsafeFromEither . extractEvaluationResult
 
 instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
             PrettyBy config (MachineError fun) where
@@ -139,22 +125,7 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         "A builtin received a term argument when something else was expected"
     prettyBy _      (UnliftingMachineError unliftingError)  =
         pretty unliftingError
-    prettyBy _      (UnknownBuiltin fun)                  =
-        "Encountered an unknown built-in function:" <+> pretty fun
     prettyBy _      NonConstrScrutinized =
         "A non-constructor value was scrutinized in a case expression"
     prettyBy _      (MissingCaseBranch i) =
         "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
-
-instance
-        ( HasPrettyDefaults config ~ 'True
-        , PrettyBy config internal, Pretty user
-        ) => PrettyBy config (EvaluationError user internal) where
-    prettyBy config (InternalEvaluationError err) = fold
-        [ "error:", hardline
-        , prettyBy config err
-        ]
-    prettyBy _      (UserEvaluationError err) = fold
-        [ "User error:", hardline
-        , pretty err
-        ]

@@ -1,11 +1,9 @@
--- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE GADTs              #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module PlutusTx.Coverage ( CoverageAnnotation(..)
                          , CoverageIndex(..)
@@ -32,9 +30,9 @@ module PlutusTx.Coverage ( CoverageAnnotation(..)
 
 import Control.Lens
 
+import Codec.Extras.FlatViaSerialise
 import Codec.Serialise
-
-import PlutusCore.Flat
+import Flat hiding (to)
 
 import Control.DeepSeq
 import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
@@ -51,8 +49,6 @@ import Control.Monad.Writer
 import Prettyprinter
 
 import Prelude
-
-import Flat hiding (to)
 
 {- Note [Coverage annotations]
    During compilation we can insert coverage annotations in `trace` calls in
@@ -80,7 +76,7 @@ data CovLoc = CovLoc { _covLocFile      :: String
                      , _covLocEndCol    :: Int }
   deriving stock (Ord, Eq, Show, Read, Generic)
   deriving anyclass (Serialise)
-  deriving Flat via (AsSerialize CovLoc)
+  deriving Flat via (FlatViaSerialise CovLoc)
   deriving anyclass (NFData, ToJSON, FromJSON)
 
 makeLenses ''CovLoc
@@ -93,7 +89,7 @@ data CoverageAnnotation = CoverLocation CovLoc
                         | CoverBool CovLoc Bool
                         deriving stock (Ord, Eq, Show, Read, Generic)
                         deriving anyclass (Serialise)
-                        deriving Flat via (AsSerialize CoverageAnnotation)
+                        deriving Flat via (FlatViaSerialise CoverageAnnotation)
                         deriving anyclass (NFData, ToJSON, FromJSON, ToJSONKey, FromJSONKey)
 
 instance Pretty CoverageAnnotation where
@@ -106,7 +102,7 @@ data Metadata = ApplicationHeadSymbol String
                 --   compiler, but can be added later using `addCoverageMetadata`.
     deriving stock (Ord, Eq, Show, Generic)
     deriving anyclass (Serialise)
-    deriving Flat via (AsSerialize Metadata)
+    deriving Flat via (FlatViaSerialise Metadata)
     deriving anyclass (NFData, ToJSON, FromJSON)
 
 instance Pretty Metadata where
@@ -116,7 +112,7 @@ newtype CoverageMetadata = CoverageMetadata { _metadataSet :: Set Metadata }
     deriving stock (Ord, Eq, Show, Generic)
     deriving anyclass (Serialise, NFData, ToJSON, FromJSON)
     deriving newtype (Semigroup, Monoid)
-    deriving Flat via (AsSerialize CoverageMetadata)
+    deriving Flat via (FlatViaSerialise CoverageMetadata)
 
 makeLenses ''CoverageMetadata
 
@@ -125,11 +121,12 @@ instance Pretty CoverageMetadata where
 
 -- | This type keeps track of all coverage annotations and where they have been inserted / what
 -- annotations are expected to be found when executing a piece of code.
-data CoverageIndex = CoverageIndex { _coverageMetadata :: Map CoverageAnnotation CoverageMetadata }
-                      deriving stock (Ord, Eq, Show, Generic)
-                      deriving anyclass (Serialise)
-                      deriving Flat via (AsSerialize CoverageIndex)
-                      deriving anyclass (NFData, ToJSON, FromJSON)
+newtype CoverageIndex = CoverageIndex
+    { _coverageMetadata :: Map CoverageAnnotation CoverageMetadata }
+    deriving stock (Ord, Eq, Show, Generic)
+    deriving anyclass (Serialise)
+    deriving Flat via (FlatViaSerialise CoverageIndex)
+    deriving anyclass (NFData, ToJSON, FromJSON)
 
 makeLenses ''CoverageIndex
 
@@ -154,19 +151,21 @@ addLocationToCoverageIndex src = do
   pure ann
 
 -- | Include a boolean coverage annotation in the index
-addBoolCaseToCoverageIndex :: MonadWriter CoverageIndex m => CovLoc -> Bool -> CoverageMetadata -> m CoverageAnnotation
+addBoolCaseToCoverageIndex :: MonadWriter CoverageIndex m
+                           => CovLoc -> Bool -> CoverageMetadata -> m CoverageAnnotation
 addBoolCaseToCoverageIndex src b meta = do
-  let ann = boolCaseCoverageAnn src b
+  let ann = CoverBool src b
   tell $ CoverageIndex (Map.singleton ann meta)
   pure ann
 
 -- | Add metadata to a coverage annotation. Does nothing if the annotation is not in the index.
 addCoverageMetadata :: CoverageAnnotation -> Metadata -> CoverageIndex -> CoverageIndex
-addCoverageMetadata ann meta idx = idx & coverageMetadata . at ann . _Just . metadataSet %~ Set.insert meta
-
-{-# INLINE boolCaseCoverageAnn #-}
-boolCaseCoverageAnn :: CovLoc -> Bool -> CoverageAnnotation
-boolCaseCoverageAnn src b = CoverBool src b
+addCoverageMetadata ann meta idx = idx
+                                 & coverageMetadata
+                                 . at ann
+                                 . _Just
+                                 . metadataSet
+                                 %~ Set.insert meta
 
 newtype CoverageData = CoverageData { _coveredAnnotations :: Set CoverageAnnotation }
   deriving stock (Ord, Eq, Show, Generic)
@@ -193,14 +192,14 @@ coverageDataFromLogMsg :: String -> CoverageData
 coverageDataFromLogMsg = foldMap (CoverageData . Set.singleton) . readMaybe
 
 instance Pretty CoverageReport where
-  pretty report =
-    vsep $ ["=========[COVERED]=========="] ++
-           [ nest 4 $ vsep (pretty ann : (map pretty . Set.toList . foldMap _metadataSet $ metadata ann))
-           | ann <- Set.toList $ allAnns `Set.intersection` coveredAnns ] ++
-           ["========[UNCOVERED]========="] ++
-           (map pretty . Set.toList $ uncoveredAnns) ++
-           ["=========[IGNORED]=========="] ++
-           (map pretty . Set.toList $ ignoredAnns Set.\\ coveredAnns)
+  pretty report = vsep $
+      ["=========[COVERED]=========="] ++
+      [ nest 4 $ vsep (pretty ann : (map pretty . Set.toList . foldMap _metadataSet $ metadata ann))
+      | ann <- Set.toList $ allAnns `Set.intersection` coveredAnns ] ++
+      ["========[UNCOVERED]========="] ++
+      (map pretty . Set.toList $ uncoveredAnns) ++
+      ["=========[IGNORED]=========="] ++
+      (map pretty . Set.toList $ ignoredAnns Set.\\ coveredAnns)
     where
       allAnns       = report ^. coverageIndex . coverageAnnotations
       coveredAnns   = report ^. coverageData  . coveredAnnotations

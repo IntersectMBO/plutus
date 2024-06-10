@@ -17,10 +17,18 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
     , Coefficient0(..)
     , Coefficient1(..)
     , Coefficient2(..)
+    , Coefficient00(..)
+    , Coefficient10(..)
+    , Coefficient01(..)
+    , Coefficient20(..)
+    , Coefficient11(..)
+    , Coefficient02(..)
     , OneVariableLinearFunction(..)
-    , TwoVariableLinearFunction(..)
     , OneVariableQuadraticFunction(..)
+    , TwoVariableLinearFunction(..)
+    , TwoVariableQuadraticFunction(..)
     , ModelSubtractedSizes(..)
+    , ModelConstantOrLinear(..)  -- Deprecated: see below.
     , ModelConstantOrOneArgument(..)
     , ModelConstantOrTwoArguments(..)
     , ModelOneArgument(..)
@@ -146,6 +154,48 @@ newtype Coefficient1 = Coefficient1
 -- coefficient of a polynomial.
 newtype Coefficient2 = Coefficient2
     { unCoefficient2 :: CostingInteger
+    } deriving stock (Generic, Lift)
+      deriving newtype (Show, Eq, Num, NFData)
+
+-- | A wrapped 'CostingInteger' that is supposed to be used as the degree (0,0)
+-- coefficient of a two-variable polynomial.
+newtype Coefficient00 = Coefficient00
+    { unCoefficient00 :: CostingInteger
+    } deriving stock (Generic, Lift)
+      deriving newtype (Show, Eq, Num, NFData)
+
+-- | A wrapped 'CostingInteger' that is supposed to be used as the degree (1,0)
+-- coefficient of a two-variable polynomial.
+newtype Coefficient10 = Coefficient10
+    { unCoefficient10 :: CostingInteger
+    } deriving stock (Generic, Lift)
+      deriving newtype (Show, Eq, Num, NFData)
+
+-- | A wrapped 'CostingInteger' that is supposed to be used as the degree (0,1)
+-- coefficient of a two-variable polynomial.
+newtype Coefficient01 = Coefficient01
+    { unCoefficient01 :: CostingInteger
+    } deriving stock (Generic, Lift)
+      deriving newtype (Show, Eq, Num, NFData)
+
+-- | A wrapped 'CostingInteger' that is supposed to be used as the degree (2,0)
+-- coefficient of a two-variable polynomial.
+newtype Coefficient20 = Coefficient20
+    { unCoefficient20 :: CostingInteger
+    } deriving stock (Generic, Lift)
+      deriving newtype (Show, Eq, Num, NFData)
+
+-- | A wrapped 'CostingInteger' that is supposed to be used as the degree (1,1)
+-- coefficient of a two-variable polynomial.
+newtype Coefficient11 = Coefficient11
+    { unCoefficient11 :: CostingInteger
+    } deriving stock (Generic, Lift)
+      deriving newtype (Show, Eq, Num, NFData)
+
+-- | A wrapped 'CostingInteger' that is supposed to be used as the degree (0,2)
+-- coefficient of a two-variable polynomial.
+newtype Coefficient02 = Coefficient02
+    { unCoefficient02 :: CostingInteger
     } deriving stock (Generic, Lift)
       deriving newtype (Show, Eq, Num, NFData)
 
@@ -282,7 +332,7 @@ data TwoVariableLinearFunction = TwoVariableLinearFunction
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
--- | c2*x^2 + c1*x + c0
+-- | c0 + c1*x + c2*x^2
 data OneVariableQuadraticFunction = OneVariableQuadraticFunction
     { oneVariableQuadraticFunctionC0 :: Coefficient0
     , oneVariableQuadraticFunctionC1 :: Coefficient1
@@ -291,10 +341,47 @@ data OneVariableQuadraticFunction = OneVariableQuadraticFunction
     deriving anyclass (NFData)
 
 {-# INLINE evaluateOneVariableQuadraticFunction #-}
-evaluateOneVariableQuadraticFunction :: OneVariableQuadraticFunction -> CostingInteger -> CostingInteger
+evaluateOneVariableQuadraticFunction
+  :: OneVariableQuadraticFunction
+  -> CostingInteger
+  -> CostingInteger
 evaluateOneVariableQuadraticFunction
    (OneVariableQuadraticFunction (Coefficient0 c0) (Coefficient1 c1)  (Coefficient2 c2)) x =
        c0 + c1*x + c2*x*x
+
+{- Note [Minimum values for two-variable quadratic costing functions] Unlike most
+   of our other costing functions our use cases for two-variable quadratic
+   costing functions may require one or more negative coefficients, so there's a
+   danger that we could return a negative cost.  This is unlikely, but we make
+   certain that it never happens by returning a result that is at never smaller
+   than a minimum value that is stored along with the coefficients of the
+   function.
+-}
+-- | c00 + c10*x + c01*y + c20*x^2 + c11*c*y + c02*y^2
+data TwoVariableQuadraticFunction = TwoVariableQuadraticFunction
+  { twoVariableQuadraticFunctionMinimum :: CostingInteger
+  , twoVariableQuadraticFunctionC00     :: Coefficient00
+  , twoVariableQuadraticFunctionC10     :: Coefficient10
+  , twoVariableQuadraticFunctionC01     :: Coefficient01
+  , twoVariableQuadraticFunctionC20     :: Coefficient20
+  , twoVariableQuadraticFunctionC11     :: Coefficient11
+  , twoVariableQuadraticFunctionC02     :: Coefficient02
+  } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
+
+{-# INLINE evaluateTwoVariableQuadraticFunction #-}
+evaluateTwoVariableQuadraticFunction
+  :: TwoVariableQuadraticFunction
+  -> CostingInteger
+  -> CostingInteger
+  -> CostingInteger
+evaluateTwoVariableQuadraticFunction
+   (TwoVariableQuadraticFunction minVal
+    (Coefficient00 c00) (Coefficient10 c10)  (Coefficient01 c01)
+    (Coefficient20 c20) (Coefficient11 c11) (Coefficient02 c02)
+   ) x y = max minVal (c00 + c10*x + c01*y + c20*x*x + c11*x*y + c02*y*y)
+  -- We want to be absolutely sure that we don't get back a negative number
+  -- here: see Note [Minimum values for two-variable quadratic costing functions]
 
 -- FIXME: we could use ModelConstantOrOneArgument for
 -- ModelTwoArgumentsSubtractedSizes instead, but that would change the order of
@@ -305,6 +392,16 @@ data ModelSubtractedSizes = ModelSubtractedSizes
     { modelSubtractedSizesIntercept :: Intercept
     , modelSubtractedSizesSlope     :: Slope
     , modelSubtractedSizesMinimum   :: CostingInteger
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
+
+-- | NB: this is subsumed by ModelConstantOrOneArgument, but we have to keep it
+-- for the time being.  See Note [Backward compatibility for costing functions].
+-- | if p then s*x else c; p depends on usage
+data ModelConstantOrLinear = ModelConstantOrLinear
+    { modelConstantOrLinearConstant  :: CostingInteger
+    , modelConstantOrLinearIntercept :: Intercept
+    , modelConstantOrLinearSlope     :: Slope
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -322,6 +419,21 @@ data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
+{- Note [Backward compatibility for costing functions].  The PR at
+   https://github.com/IntersectMBO/plutus/pull/5857 generalised the costing
+   function types and made them more composable: in particular,
+   ModelTwoArgumentsLinearOnDiagonal was replaced by
+   ModelTwoArgumentsConstOffDiagonal and ModelConstantOrLinear was removed.
+   However, this changes some of the tags (specifically, for `equalsByteString`
+   and `equalsString`) in builtinCostModel.json, and these are used in the
+   Alonzo genesis file and so shouldn't be changed.  For the time being we've
+   restored the ModelTwoArgumentsLinearOnDiagonal constructor so that we can
+   still deal with the old tags.  New builtins should use
+   ModelTwoArgumentsConstOffDiagonal instead.  A better long-term solution might
+   be to adapt the JSON conversion code to translate linear_on_diagonal objects
+   to ConstOffDiagonal objects (and perhaps back, although configurable cost
+   models may mean that we don't need to do that).
+-}
 
 data ModelTwoArguments =
     ModelTwoArgumentsConstantCost        CostingInteger
@@ -333,10 +445,12 @@ data ModelTwoArguments =
   | ModelTwoArgumentsMultipliedSizes     OneVariableLinearFunction
   | ModelTwoArgumentsMinSize             OneVariableLinearFunction
   | ModelTwoArgumentsMaxSize             OneVariableLinearFunction
+  | ModelTwoArgumentsLinearOnDiagonal    ModelConstantOrLinear
   | ModelTwoArgumentsConstOffDiagonal    ModelConstantOrOneArgument
   | ModelTwoArgumentsConstAboveDiagonal  ModelConstantOrTwoArguments
   | ModelTwoArgumentsConstBelowDiagonal  ModelConstantOrTwoArguments
   | ModelTwoArgumentsQuadraticInY        OneVariableQuadraticFunction
+  | ModelTwoArgumentsQuadraticInXAndY    TwoVariableQuadraticFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -423,6 +537,16 @@ runTwoArgumentModel
         lazy $ \costs1 costs2 ->
             scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
 runTwoArgumentModel
+    -- See Note [Backward compatibility for costing functions]
+    -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
+    (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) =
+        lazy $ \costs1 costs2 -> do
+            let !size1 = sumCostStream costs1
+                !size2 = sumCostStream costs2
+            if size1 == size2
+                then scaleLinearly intercept slope $ CostLast size1
+                else CostLast c
+runTwoArgumentModel
     -- Off the diagonal, return the constant.  On the diagonal, run the other model.
     (ModelTwoArgumentsConstOffDiagonal (ModelConstantOrOneArgument c m)) =
         case runOneArgumentModel m of
@@ -456,6 +580,12 @@ runTwoArgumentModel
     (ModelTwoArgumentsQuadraticInY f) =
         lazy $ \_ costs2 ->
             CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs2
+runTwoArgumentModel
+    (ModelTwoArgumentsQuadraticInXAndY f) =
+        lazy $ \costs1 costs2 ->
+             let !size1 = sumCostStream costs1
+                 !size2 = sumCostStream costs2
+             in CostLast $ evaluateTwoVariableQuadraticFunction f size1 size2
 {-# NOINLINE runTwoArgumentModel #-}
 
 

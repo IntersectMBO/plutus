@@ -48,7 +48,7 @@ data Command = Apply       ApplyOptions
              | Example     ExampleOptions
              | Erase       EraseOptions
              | Eval        EvalOptions
-             | DumpModel
+             | DumpModel   (BuiltinSemanticsVariant PLC.DefaultFun)
              | PrintBuiltinSignatures
 
 ---------------- Option parsers ----------------
@@ -114,8 +114,8 @@ plutusOpts = hsubparser $
     <> command "evaluate"
            (info (Eval <$> evalOpts)
             (progDesc "Evaluate a typed Plutus Core program using the CK machine."))
-    <> command "dump-model"
-           (info (pure DumpModel)
+    <> command "dump-cost-model"
+           (info (DumpModel <$> builtinSemanticsVariant)
             (progDesc "Dump the cost model parameters."))
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
@@ -223,5 +223,5 @@ main = do
         Erase       opts       -> runErase            opts
         Print       opts       -> runPrint   @PlcProg opts
         Convert     opts       -> runConvert @PlcProg opts
-        DumpModel              -> runDumpModel
+        DumpModel   opts       -> runDumpModel        opts
         PrintBuiltinSignatures -> runPrintBuiltinSignatures
