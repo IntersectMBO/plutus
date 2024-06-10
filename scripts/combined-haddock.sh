@@ -4,8 +4,8 @@
 
 # Setup source directory 
 SRC=combined_haddock_src
-# rm -rf $SRC
-# mkdir -p $SRC
+rm -rf $SRC
+mkdir -p $SRC
 
 # Write haddock prologue 
 cat << EOF > $SRC/haddock.prologue
@@ -17,18 +17,18 @@ cat << EOF > $SRC/haddock.prologue
 * "UntypedPlutusCore": On-chain Plutus code.
 EOF
 
-# Clean project and build haddock
-# cabal clean 
-# cabal update
-# cabal build all
-# cabal haddock-project \
-#   --quickjump \
-#   --gen-contents \
-#   --hyperlinked-source \
-#   --gen-index \
-#   --internal \
-#   --output=$SRC \
-#   --prologue=$SRC/haddock.prologue
+Clean project and build haddock
+cabal clean 
+cabal update
+cabal build all
+cabal haddock-project \
+  --quickjump \
+  --gen-contents \
+  --hyperlinked-source \
+  --gen-index \
+  --internal \
+  --output=$SRC \
+  --prologue=$SRC/haddock.prologue
 
 # Setup destination directory 
 DST=combined_haddock_dst
