@@ -17,7 +17,7 @@ import PlutusCore.Pretty qualified as PP
 import PlutusPrelude hiding ((%~))
 import Types
 
-import Codec.CBOR.Extras
+import Codec.Extras.SerialiseViaFlat
 import Codec.Serialise (deserialiseOrFail, serialise)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL

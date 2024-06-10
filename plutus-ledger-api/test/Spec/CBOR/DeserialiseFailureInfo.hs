@@ -4,8 +4,8 @@
 module Spec.CBOR.DeserialiseFailureInfo (tests) where
 
 import Codec.CBOR.Decoding qualified as CBOR
-import Codec.CBOR.Extras qualified as CBOR
 import Codec.CBOR.Read qualified as CBOR
+import Codec.Extras.SerialiseViaFlat qualified as CBOR
 
 import Data.Bifunctor
 import Data.ByteString.Lazy qualified as LBS

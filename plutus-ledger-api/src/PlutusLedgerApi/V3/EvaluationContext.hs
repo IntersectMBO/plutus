@@ -14,7 +14,6 @@ import PlutusLedgerApi.V3.ParamName as V3
 import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantC))
 
 import Control.Monad
-import Control.Monad.Except
 import Control.Monad.Writer.Strict
 import Data.Int (Int64)
 

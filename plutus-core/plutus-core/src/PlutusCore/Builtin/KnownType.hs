@@ -310,9 +310,9 @@ type ReadKnown val = ReadKnownIn (UniOf val) val
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
 makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult val
 makeKnownOrFail x = case makeKnown x of
-    BuiltinFailure _ _           -> EvaluationFailure
     BuiltinSuccess val           -> EvaluationSuccess val
     BuiltinSuccessWithLogs _ val -> EvaluationSuccess val
+    BuiltinFailure _ _           -> EvaluationFailure
 {-# INLINE makeKnownOrFail #-}
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
