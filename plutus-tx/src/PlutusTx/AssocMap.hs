@@ -74,12 +74,6 @@ newtype Map k v = Map {unMap :: [(k, v)]}
   deriving stock (Generic, Haskell.Show, Data, TH.Lift)
   deriving newtype (NFData)
 
--- | Equality check for `Map`. Warning: this operation is O(n^2).
-instance (Eq k, Eq v) => Eq (Map k v) where
-  Map m1 == m2 =
-    length m1 == length m2
-    && List.all (\(k, v) -> lookup k m2 == Just v) m1
-
 -- | Haskell Equality check for `Map`, should not be called from Plutus Tx code.
 -- Warning: this operation is O(n^2).
 instance (Haskell.Eq k, Haskell.Eq v) => Haskell.Eq (Map k v) where
