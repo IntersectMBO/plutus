@@ -51,8 +51,8 @@ jobs:
           auto-push: true
           # Enable alert commit comment
           comment-on-alert: true
-          # Mention @input-output-hk/plutus-core in the commit comment
-          alert-comment-cc-users: '@input-output-hk/plutus-core'
+          # Mention @IntersectMBO/plutus-core in the commit comment
+          alert-comment-cc-users: '@IntersectMBO/plutus-core'
           # Percentage value like "110%". 
           # It is a ratio indicating how worse the current benchmark result is. 
           # For example, if we now get 110 ns/iter and previously got 100 ns/iter, it gets 110% worse.
