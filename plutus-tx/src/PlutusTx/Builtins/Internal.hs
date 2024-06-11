@@ -713,21 +713,21 @@ byteStringToInteger (BuiltinBool statedEndianness) (BuiltinByteString input) =
 BITWISE
 -}
 
-{-# NOINLINE bitwiseShift #-}
-bitwiseShift ::
+{-# NOINLINE shiftByteString #-}
+shiftByteString ::
   BuiltinByteString ->
   BuiltinInteger ->
   BuiltinByteString
-bitwiseShift (BuiltinByteString bs) =
-  BuiltinByteString . Other.bitwiseShift bs . fromIntegral
+shiftByteString (BuiltinByteString bs) =
+  BuiltinByteString . Other.shiftByteString bs . fromIntegral
 
-{-# NOINLINE bitwiseRotate #-}
-bitwiseRotate ::
+{-# NOINLINE rotateByteString #-}
+rotateByteString ::
   BuiltinByteString ->
   BuiltinInteger ->
   BuiltinByteString
-bitwiseRotate (BuiltinByteString bs) =
-  BuiltinByteString . Other.bitwiseRotate bs . fromIntegral
+rotateByteString (BuiltinByteString bs) =
+  BuiltinByteString . Other.rotateByteString bs . fromIntegral
 
 {-# NOINLINE countSetBits #-}
 countSetBits ::
@@ -805,13 +805,13 @@ writeBits (BuiltinByteString bs) (BuiltinList xs) =
       BuiltinSuccess bs' -> BuiltinByteString bs'
       BuiltinSuccessWithLogs logs bs' -> traceAll logs $ BuiltinByteString bs'
 
-{-# NOINLINE replicateByteString #-}
-replicateByteString ::
+{-# NOINLINE replicateByte #-}
+replicateByte ::
   BuiltinInteger ->
   BuiltinInteger ->
   BuiltinByteString
-replicateByteString n w8 =
-  case Logical.replicateByteString (fromIntegral n) (fromIntegral w8) of
+replicateByte n w8 =
+  case Logical.replicateByte (fromIntegral n) (fromIntegral w8) of
     BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
       Haskell.error "byteStringReplicate errored."
     BuiltinSuccess bs -> BuiltinByteString bs

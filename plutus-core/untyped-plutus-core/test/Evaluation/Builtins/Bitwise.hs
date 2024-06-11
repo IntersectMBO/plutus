@@ -119,14 +119,14 @@ ffsReplicate :: Property
 ffsReplicate = property $ do
   n <- forAll . Gen.integral . Range.linear 1 $ 512
   w8 <- forAll . Gen.integral . Range.linear 0 $ 255
-  let lhsInner = mkIterAppNoAnn (builtin () PLC.ReplicateByteString) [
+  let lhsInner = mkIterAppNoAnn (builtin () PLC.ReplicateByte) [
         mkConstant @Integer () n,
         mkConstant @Integer () w8
         ]
   let lhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
         lhsInner
         ]
-  let rhsInner = mkIterAppNoAnn (builtin () PLC.ReplicateByteString) [
+  let rhsInner = mkIterAppNoAnn (builtin () PLC.ReplicateByte) [
         mkConstant @Integer () 1,
         mkConstant @Integer () w8
         ]
@@ -246,7 +246,7 @@ shiftHomomorphism = [
     idProp :: Property
     idProp = property $ do
       bs <- forAllByteString
-      let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
+      let lhs = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
             mkConstant @ByteString () bs,
             mkConstant @Integer () 0
             ]
@@ -260,15 +260,15 @@ shiftHomomorphism = [
             mkConstant @Integer () i,
             mkConstant @Integer () j
             ]
-      let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
+      let lhs = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
             mkConstant @ByteString () bs,
             lhsInner
             ]
-      let rhsInner = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
+      let rhsInner = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
             mkConstant @ByteString () bs,
             mkConstant @Integer () i
             ]
-      let rhs = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
+      let rhs = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
             rhsInner,
             mkConstant @Integer () j
             ]
@@ -286,15 +286,15 @@ shiftHomomorphism = [
             mkConstant @Integer () i,
             mkConstant @Integer () j
             ]
-      let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
+      let lhs = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
             mkConstant @ByteString () bs,
             lhsInner
             ]
-      let rhsInner = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
+      let rhsInner = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
             mkConstant @ByteString () bs,
             mkConstant @Integer () i
             ]
-      let rhs = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
+      let rhs = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
             rhsInner,
             mkConstant @Integer () j
             ]
@@ -313,7 +313,7 @@ rotateHomomorphism = [
     idProp :: Property
     idProp = property $ do
       bs <- forAllByteString
-      let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseRotate) [
+      let lhs = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
             mkConstant @ByteString () bs,
             mkConstant @Integer () 0
             ]
@@ -331,15 +331,15 @@ rotateHomomorphism = [
             mkConstant @Integer () i,
             mkConstant @Integer () j
             ]
-      let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseRotate) [
+      let lhs = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
             mkConstant @ByteString () bs,
             lhsInner
             ]
-      let rhsInner = mkIterAppNoAnn (builtin () PLC.BitwiseRotate) [
+      let rhsInner = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
             mkConstant @ByteString () bs,
             mkConstant @Integer () i
             ]
-      let rhs = mkIterAppNoAnn (builtin () PLC.BitwiseRotate) [
+      let rhs = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
             rhsInner,
             mkConstant @Integer () j
             ]
@@ -400,14 +400,14 @@ shiftClear = property $ do
     -- Here, we shift by the length exactly, so we randomly pick negative or positive
     0    -> forAll . Gen.element $ [bitLen, negate bitLen]
     _    -> pure $ bitLen + i
-  let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
+  let lhs = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
         mkConstant @ByteString () bs,
         mkConstant @Integer () (fromIntegral adjustment)
         ]
   let rhsInner = mkIterAppNoAnn (builtin () PLC.LengthOfByteString) [
         mkConstant @ByteString () bs
         ]
-  let rhs = mkIterAppNoAnn (builtin () PLC.ReplicateByteString) [
+  let rhs = mkIterAppNoAnn (builtin () PLC.ReplicateByte) [
         rhsInner,
         mkConstant @Integer () 0
         ]
@@ -423,7 +423,7 @@ shiftPosClearLow = property $ do
   let bitLen = 8 * BS.length bs
   n <- forAll . Gen.integral . Range.linear 1 $ bitLen - 1
   i <- forAll . Gen.integral . Range.linear 0 $ n - 1
-  let lhsInner = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
+  let lhsInner = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
         mkConstant @ByteString () bs,
         mkConstant @Integer () (fromIntegral n)
         ]
@@ -439,7 +439,7 @@ shiftNegClearHigh = property $ do
   let bitLen = 8 * BS.length bs
   n <- forAll . Gen.integral . Range.linear 1 $ bitLen - 1
   i <- forAll . Gen.integral . Range.linear 0 $ n - 1
-  let lhsInner = mkIterAppNoAnn (builtin () PLC.BitwiseShift) [
+  let lhsInner = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
         mkConstant @ByteString () bs,
         mkConstant @Integer () (fromIntegral . negate $ n)
         ]
@@ -454,13 +454,13 @@ rotateRollover = property $ do
   bs <- forAllByteString
   let bitLen = 8 * BS.length bs
   i <- forAll . Gen.integral . Range.linear (negate 512) $ 512
-  let lhs = mkIterAppNoAnn (builtin () PLC.BitwiseRotate) [
+  let lhs = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
         mkConstant @ByteString () bs,
         mkConstant @Integer () (case signum i of
                                   (-1) -> (negate . fromIntegral $ bitLen) + i
                                   _    -> fromIntegral bitLen + i)
         ]
-  let rhs = mkIterAppNoAnn (builtin () PLC.BitwiseRotate) [
+  let rhs = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
         mkConstant @ByteString () bs,
         mkConstant @Integer () i
         ]
@@ -480,7 +480,7 @@ rotateMoveBits = property $ do
         mkConstant @ByteString () bs,
         mkConstant @Integer () (fromIntegral i)
         ]
-  let rhsRotation = mkIterAppNoAnn (builtin () PLC.BitwiseRotate) [
+  let rhsRotation = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
         mkConstant @ByteString () bs,
         mkConstant @Integer () (fromIntegral j)
         ]
@@ -501,7 +501,7 @@ csbRotate = property $ do
   let lhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
         mkConstant @ByteString () bs
         ]
-  let rhsInner = mkIterAppNoAnn (builtin () PLC.BitwiseRotate) [
+  let rhsInner = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
         mkConstant @ByteString () bs,
         mkConstant @Integer () i
         ]

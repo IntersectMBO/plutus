@@ -3,8 +3,8 @@
 
 -- | Implementation for shifts, rotation, popcount and find-first-set
 module PlutusCore.Bitwise.Other (
-  bitwiseShift,
-  bitwiseRotate,
+  shiftByteString,
+  rotateByteString,
   countSetBits,
   findFirstSetBit
   ) where
@@ -78,8 +78,8 @@ of 8, we can be _much_ faster, as Step 2 becomes unnecessary in that case.
 
 -- | Shifts, as per [this
 -- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
-bitwiseShift :: ByteString -> Int -> ByteString
-bitwiseShift bs bitMove
+shiftByteString :: ByteString -> Int -> ByteString
+shiftByteString bs bitMove
   | BS.null bs = bs
   | bitMove == 0 = bs
   | otherwise = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
@@ -151,8 +151,8 @@ bitwiseShift bs bitMove
 
 -- | Rotations, as per [this
 -- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
-bitwiseRotate :: ByteString -> Int -> ByteString
-bitwiseRotate bs bitMove
+rotateByteString :: ByteString -> Int -> ByteString
+rotateByteString bs bitMove
   | BS.null bs = bs
   | otherwise =
       -- To save ourselves some trouble, we work only with absolute shifts

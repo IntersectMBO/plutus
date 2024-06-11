@@ -161,10 +161,10 @@ data DefaultFun
     | ComplementByteString
     | ReadBit
     | WriteBits
-    | ReplicateByteString
+    | ReplicateByte
     -- Bitwise
-    | BitwiseShift
-    | BitwiseRotate
+    | ShiftByteString
+    | RotateByteString
     | CountSetBits
     | FindFirstSetBit
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
@@ -1886,30 +1886,30 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             writeBitsDenotation
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
-    toBuiltinMeaning _semvar ReplicateByteString =
-        let byteStringReplicateDenotation :: Int -> Word8 -> BuiltinResult BS.ByteString
-            byteStringReplicateDenotation = Logical.replicateByteString
-            {-# INLINE byteStringReplicateDenotation #-}
+    toBuiltinMeaning _semvar ReplicateByte =
+        let replicateByteDenotation :: Int -> Word8 -> BuiltinResult BS.ByteString
+            replicateByteDenotation = Logical.replicateByte
+            {-# INLINE replicateByteDenotation #-}
         in makeBuiltinMeaning
-            byteStringReplicateDenotation
+            replicateByteDenotation
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     -- Bitwise
 
-    toBuiltinMeaning _semvar BitwiseShift =
-        let bitwiseShiftDenotation :: BS.ByteString -> Int -> BS.ByteString
-            bitwiseShiftDenotation = Other.bitwiseShift
-            {-# INLINE bitwiseShiftDenotation #-}
+    toBuiltinMeaning _semvar ShiftByteString =
+        let shiftByteStringDenotation :: BS.ByteString -> Int -> BS.ByteString
+            shiftByteStringDenotation = Other.shiftByteString
+            {-# INLINE shiftByteStringDenotation #-}
         in makeBuiltinMeaning
-            bitwiseShiftDenotation
+            shiftByteStringDenotation
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
-    toBuiltinMeaning _semvar BitwiseRotate =
-        let bitwiseRotateDenotation :: BS.ByteString -> Int -> BS.ByteString
-            bitwiseRotateDenotation = Other.bitwiseRotate
-            {-# INLINE bitwiseRotateDenotation #-}
+    toBuiltinMeaning _semvar RotateByteString =
+        let rotateByteStringDenotation :: BS.ByteString -> Int -> BS.ByteString
+            rotateByteStringDenotation = Other.rotateByteString
+            {-# INLINE rotateByteStringDenotation #-}
         in makeBuiltinMeaning
-            bitwiseRotateDenotation
+            rotateByteStringDenotation
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar CountSetBits =
@@ -2061,10 +2061,10 @@ instance Flat DefaultFun where
               ComplementByteString            -> 78
               ReadBit                         -> 79
               WriteBits                       -> 80
-              ReplicateByteString             -> 81
+              ReplicateByte                   -> 81
 
-              BitwiseShift                    -> 82
-              BitwiseRotate                   -> 83
+              ShiftByteString                 -> 82
+              RotateByteString                -> 83
               CountSetBits                    -> 84
               FindFirstSetBit                 -> 85
 
@@ -2150,9 +2150,9 @@ instance Flat DefaultFun where
               go 78 = pure ComplementByteString
               go 79 = pure ReadBit
               go 80 = pure WriteBits
-              go 81 = pure ReplicateByteString
-              go 82 = pure BitwiseShift
-              go 83 = pure BitwiseRotate
+              go 81 = pure ReplicateByte
+              go 82 = pure ShiftByteString
+              go 83 = pure RotateByteString
               go 84 = pure CountSetBits
               go 85 = pure FindFirstSetBit
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t

@@ -137,8 +137,8 @@ isCommutative = \case
   ComplementByteString            -> False
   ReadBit                         -> False
   WriteBits                       -> False
-  ReplicateByteString             -> False
-  BitwiseShift                    -> False
-  BitwiseRotate                   -> False
+  ReplicateByte                   -> False
+  ShiftByteString                 -> False
+  RotateByteString                -> False
   CountSetBits                    -> False
   FindFirstSetBit                 -> False

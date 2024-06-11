@@ -283,10 +283,10 @@ builtinNames = [
     , 'Builtins.complementByteString
     , 'Builtins.readBit
     , 'Builtins.writeBits
-    , 'Builtins.replicateByteString
+    , 'Builtins.replicateByte
 
-    , 'Builtins.bitwiseShift
-    , 'Builtins.bitwiseRotate
+    , 'Builtins.shiftByteString
+    , 'Builtins.rotateByteString
     , 'Builtins.countSetBits
     , 'Builtins.findFirstSetBit
     ]
@@ -453,11 +453,11 @@ defineBuiltinTerms = do
             PLC.ComplementByteString -> defineBuiltinInl 'Builtins.complementByteString
             PLC.ReadBit -> defineBuiltinInl 'Builtins.readBit
             PLC.WriteBits -> defineBuiltinInl 'Builtins.writeBits
-            PLC.ReplicateByteString -> defineBuiltinInl 'Builtins.replicateByteString
+            PLC.ReplicateByte -> defineBuiltinInl 'Builtins.replicateByte
 
             -- Other bitwise ops
-            PLC.BitwiseShift -> defineBuiltinInl 'Builtins.bitwiseShift
-            PLC.BitwiseRotate -> defineBuiltinInl 'Builtins.bitwiseRotate
+            PLC.ShiftByteString -> defineBuiltinInl 'Builtins.shiftByteString
+            PLC.RotateByteString -> defineBuiltinInl 'Builtins.rotateByteString
             PLC.CountSetBits -> defineBuiltinInl 'Builtins.countSetBits
             PLC.FindFirstSetBit -> defineBuiltinInl 'Builtins.findFirstSetBit
 

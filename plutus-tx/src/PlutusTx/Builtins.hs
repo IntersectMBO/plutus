@@ -117,10 +117,10 @@ module PlutusTx.Builtins (
                          , complementByteString
                          , readBit
                          , writeBits
-                         , replicateByteString
+                         , replicateByte
                          -- * Bitwise
-                         , bitwiseShift
-                         , bitwiseRotate
+                         , shiftByteString
+                         , rotateByteString
                          , countSetBits
                          , findFirstSetBit
                          ) where
@@ -669,15 +669,15 @@ byteStringToInteger endianness =
 
 -- | Shift a 'BuiltinByteString', as per [this
 -- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
-{-# INLINEABLE bitwiseShift #-}
-bitwiseShift :: BuiltinByteString -> Integer -> BuiltinByteString
-bitwiseShift = BI.bitwiseShift
+{-# INLINEABLE shiftByteString #-}
+shiftByteString :: BuiltinByteString -> Integer -> BuiltinByteString
+shiftByteString = BI.shiftByteString
 
 -- | Rotate a 'BuiltinByteString', as per [this
 -- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
-{-# INLINEABLE bitwiseRotate #-}
-bitwiseRotate :: BuiltinByteString -> Integer -> BuiltinByteString
-bitwiseRotate = BI.bitwiseRotate
+{-# INLINEABLE rotateByteString #-}
+rotateByteString :: BuiltinByteString -> Integer -> BuiltinByteString
+rotateByteString = BI.rotateByteString
 
 -- | Count the set bits in a 'BuiltinByteString', as per [this
 -- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
@@ -815,9 +815,9 @@ writeBits = BI.writeBits
 --
 -- * [Operation
 -- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#replicateByteString)
-{-# INLINEABLE replicateByteString #-}
-replicateByteString ::
+{-# INLINEABLE replicateByte #-}
+replicateByte ::
   Integer ->
   Integer ->
   BuiltinByteString
-replicateByteString = BI.replicateByteString
+replicateByte = BI.replicateByte
