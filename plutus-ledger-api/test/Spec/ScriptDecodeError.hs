@@ -2,7 +2,7 @@
 
 module Spec.ScriptDecodeError where
 
-import Codec.CBOR.Extras (DeserialiseFailureInfo (..), DeserialiseFailureReason (..))
+import Codec.Extras.SerialiseViaFlat (DeserialiseFailureInfo (..), DeserialiseFailureReason (..))
 import PlutusCore.Version (plcVersion100)
 import PlutusLedgerApi.Common (ScriptDecodeError (..))
 import PlutusLedgerApi.Common.Versions (PlutusLedgerLanguage (..), conwayPV, vasilPV)

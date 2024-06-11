@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-ledger-api
-version:         1.28.0.0
+version:         1.29.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -64,6 +64,7 @@ library
     PlutusLedgerApi.V1.Contexts
     PlutusLedgerApi.V1.Credential
     PlutusLedgerApi.V1.Crypto
+    PlutusLedgerApi.V1.Data.Value
     PlutusLedgerApi.V1.DCert
     PlutusLedgerApi.V1.EvaluationContext
     PlutusLedgerApi.V1.Interval
@@ -100,8 +101,8 @@ library
     , lens
     , mtl
     , nothunks
-    , plutus-core        ^>=1.28
-    , plutus-tx          ^>=1.28
+    , plutus-core        ^>=1.29
+    , plutus-tx          ^>=1.29
     , prettyprinter
     , serialise
     , tagged
@@ -116,6 +117,7 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.EvaluationEvent
     PlutusLedgerApi.Test.Examples
     PlutusLedgerApi.Test.Scripts
+    PlutusLedgerApi.Test.V1.Data.Value
     PlutusLedgerApi.Test.V1.EvaluationContext
     PlutusLedgerApi.Test.V1.Value
     PlutusLedgerApi.Test.V2.EvaluationContext
@@ -128,9 +130,9 @@ library plutus-ledger-api-testlib
     , base64-bytestring
     , bytestring
     , containers
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.28
-    , plutus-ledger-api                               ^>=1.28
-    , plutus-tx                                       ^>=1.28
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.29
+    , plutus-ledger-api                               ^>=1.29
+    , plutus-tx                                       ^>=1.29
     , prettyprinter
     , PyF                                             >=0.11.1.0
     , QuickCheck
@@ -150,6 +152,7 @@ test-suite plutus-ledger-api-test
     Spec.Eval
     Spec.Interval
     Spec.ScriptDecodeError
+    Spec.V1.Data.Value
     Spec.V1.Value
     Spec.Versions
 
@@ -163,9 +166,9 @@ test-suite plutus-ledger-api-test
     , lens
     , mtl
     , nothunks
-    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.28
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.28
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.28
+    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.29
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.29
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.29
     , prettyprinter
     , serialise
     , tasty
@@ -185,17 +188,24 @@ test-suite plutus-ledger-api-plugin-test
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   other-modules:
     Spec.Budget
+    Spec.Data.Budget
+    Spec.Data.Value
+    Spec.ReturnUnit.V1
+    Spec.ReturnUnit.V2
+    Spec.ReturnUnit.V3
     Spec.Value
 
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                                                              >=4.9   && <5
     , containers
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.28
-    , plutus-ledger-api                               ^>=1.28
-    , plutus-tx-plugin                                ^>=1.28
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.28
+    , mtl
+    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.29
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.29
+    , plutus-tx-plugin                                                  ^>=1.29
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.29
     , prettyprinter
     , tasty
+    , tasty-hunit
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
 -- running this in CI.
@@ -211,8 +221,8 @@ executable test-onchain-evaluation
     , extra
     , filepath
     , mtl
-    , plutus-core                                                       ^>=1.28
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.28
+    , plutus-core                                                       ^>=1.29
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.29
     , serialise
     , tasty
     , tasty-hunit
@@ -231,9 +241,9 @@ executable analyse-script-events
     , filepath
     , lens
     , mtl
-    , plutus-core                                                       ^>=1.28
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.28
-    , plutus-tx                                                         ^>=1.28
+    , plutus-core                                                       ^>=1.29
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.29
+    , plutus-tx                                                         ^>=1.29
     , primitive
     , serialise
 

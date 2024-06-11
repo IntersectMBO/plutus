@@ -11,15 +11,16 @@ import Prelude
 import Plugin.NoTrace.Lib (countTraces)
 import Plugin.NoTrace.Lib qualified as Lib
 import Plugin.NoTrace.WithoutTraces qualified as WithoutTraces
+import Plugin.NoTrace.WithPreservedLogging qualified as WithPreservedLogging
 import Plugin.NoTrace.WithTraces qualified as WithTraces
 import Test.Tasty (testGroup)
 import Test.Tasty.Extras (TestNested, embed)
 import Test.Tasty.HUnit (assertBool, testCase, (@=?))
 
 noTrace :: TestNested
-noTrace = embed $ do
+noTrace = embed do
   testGroup "remove-trace"
-    [ testGroup "Trace calls are preserved"
+    [ testGroup "Trace calls are preserved (no-remove-trace)"
         [ testCase "trace-argument" $
             1 @=? countTraces WithTraces.traceArgument
         , testCase "trace-show" $
@@ -37,8 +38,26 @@ noTrace = embed $ do
         , testCase "trace-impure with effect" $ -- See Note [Impure trace messages]
             assertBool "Effect is missing" (Lib.evaluatesToError WithTraces.traceImpure)
         ]
+    , testGroup "Trace calls are preserved (preserve-logging)"
+        [ testCase "trace-argument" $
+            1 @=? countTraces WithPreservedLogging.traceArgument
+        , testCase "trace-show" $
+            1 @=? countTraces WithPreservedLogging.traceShow
+        , testCase "trace-complex" $
+            2 @=? countTraces WithPreservedLogging.traceComplex
+        , testCase "trace-direct" $
+            1 @=? countTraces WithPreservedLogging.traceDirect
+        , testCase "trace-non-constant" $
+            1 @=? countTraces WithPreservedLogging.traceNonConstant
+        , testCase "trace-repeatedly" $
+            3 @=? countTraces WithPreservedLogging.traceRepeatedly
+        , testCase "trace-impure" $
+            1 @=? countTraces WithPreservedLogging.traceImpure
+        , testCase "trace-impure with effect" $ -- See Note [Impure trace messages]
+            assertBool "Effect is missing" (Lib.evaluatesToError WithPreservedLogging.traceImpure)
+        ]
     , testGroup
-        "Trace calls are removed"
+        "Trace calls are removed (remove-trace)"
         [ testCase "trace-argument" $
             0 @=? countTraces WithoutTraces.traceArgument
         , testCase "trace-show" $

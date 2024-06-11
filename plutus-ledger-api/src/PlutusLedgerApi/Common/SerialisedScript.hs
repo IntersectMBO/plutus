@@ -32,8 +32,8 @@ import UntypedPlutusCore qualified as UPLC
 import PlutusCore.DeBruijn.Internal (FakeNamedDeBruijn (FakeNamedDeBruijn))
 
 import Codec.CBOR.Decoding qualified as CBOR
-import Codec.CBOR.Extras as CBOR.Extras
 import Codec.CBOR.Read qualified as CBOR
+import Codec.Extras.SerialiseViaFlat as CBOR.Extras
 import Codec.Serialise
 import Control.Arrow ((>>>))
 import Control.DeepSeq (NFData)
@@ -159,9 +159,8 @@ serialiseUPLC =
 ledger-language-version-specific checks like for allowable builtins.
 -}
 uncheckedDeserialiseUPLC :: SerialisedScript -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
-uncheckedDeserialiseUPLC = unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
-  where
-    unSerialiseViaFlat (SerialiseViaFlat (UPLC.UnrestrictedProgram a)) = a
+uncheckedDeserialiseUPLC =
+    UPLC.unUnrestrictedProgram . unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
 
 -- | A script with named de-bruijn indices.
 newtype ScriptNamedDeBruijn
@@ -212,7 +211,7 @@ scriptCBORDecoder ll pv =
    in do
         -- Deserialise using 'FakeNamedDeBruijn' to get the fake names added
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <-
-          decodeViaFlat flatDecoder
+          decodeViaFlatWith flatDecoder
         pure $ coerce p
 
 {- | The deserialization from a serialised script into a `ScriptForEvaluation`,

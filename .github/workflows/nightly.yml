@@ -16,7 +16,7 @@ env:
 
 jobs:
   nightly-test-suite:
-    runs-on: [self-hosted, plutus-benchmark]
+    runs-on: [self-hosted, plutus-shared]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

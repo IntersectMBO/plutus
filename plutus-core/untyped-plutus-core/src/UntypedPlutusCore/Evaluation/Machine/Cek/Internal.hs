@@ -468,6 +468,9 @@ instance ThrowableBuiltins uni fun => MonadError (CekEvaluationException NamedDe
 instance AsEvaluationFailure CekUserError where
     _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
 
+instance AsUnliftingError CekUserError where
+    _UnliftingError = _UnliftingErrorVia CekEvaluationFailure
+
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res)) =
         cat

@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-core
-version:         1.28.0.0
+version:         1.29.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -82,7 +82,8 @@ common lang
 library
   import:             lang
   exposed-modules:
-    Codec.CBOR.Extras
+    Codec.Extras.FlatViaSerialise
+    Codec.Extras.SerialiseViaFlat
     Data.Aeson.THReader
     Data.Either.Extras
     Data.List.Extras
@@ -92,6 +93,7 @@ library
     PlutusCore.Annotation
     PlutusCore.Arity
     PlutusCore.Bitwise.Convert
+    PlutusCore.Bitwise.Logical
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
@@ -119,6 +121,7 @@ library
     PlutusCore.Default
     PlutusCore.Default.Builtins
     PlutusCore.Error
+    PlutusCore.Evaluation.Error
     PlutusCore.Evaluation.ErrorWithCause
     PlutusCore.Evaluation.Machine.BuiltinCostModel
     PlutusCore.Evaluation.Machine.Ck
@@ -320,7 +323,7 @@ library
     , nothunks                    ^>=0.1.5
     , parser-combinators          >=0.4.0
     , prettyprinter               >=1.1.0.1
-    , prettyprinter-configurable  ^>=1.28
+    , prettyprinter-configurable  ^>=1.29
     , primitive
     , profunctors
     , recursion-schemes
@@ -383,7 +386,7 @@ test-suite plutus-core-test
     , hex-text
     , mmorph
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.28
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.29
     , prettyprinter
     , serialise
     , tasty
@@ -421,6 +424,7 @@ test-suite untyped-plutus-core-test
     Evaluation.Builtins.Conversion
     Evaluation.Builtins.Costing
     Evaluation.Builtins.Definition
+    Evaluation.Builtins.Laws
     Evaluation.Builtins.MakeRead
     Evaluation.Builtins.SignatureVerification
     Evaluation.Debug
@@ -443,7 +447,7 @@ test-suite untyped-plutus-core-test
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.28
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.29
     , pretty-show
     , prettyprinter
     , QuickCheck
@@ -466,8 +470,8 @@ executable plc
     , bytestring
     , flat                  ^>=0.6
     , optparse-applicative
-    , plutus-core           ^>=1.28
-    , plutus-core-execlib   ^>=1.28
+    , plutus-core           ^>=1.29
+    , plutus-core-execlib   ^>=1.29
     , text
 
 executable uplc
@@ -483,8 +487,8 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core           ^>=1.28
-    , plutus-core-execlib   ^>=1.28
+    , plutus-core           ^>=1.29
+    , plutus-core-execlib   ^>=1.29
     , prettyprinter
     , split
     , text
@@ -580,7 +584,7 @@ library plutus-ir
     , mtl
     , multiset
     , parser-combinators   >=0.4.0
-    , plutus-core          ^>=1.28
+    , plutus-core          ^>=1.29
     , prettyprinter        >=1.1.0.1
     , profunctors
     , semigroupoids
@@ -649,7 +653,7 @@ test-suite plutus-ir-test
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.28
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.29
     , QuickCheck
     , serialise
     , tasty
@@ -672,8 +676,8 @@ executable pir
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core-execlib                   ^>=1.28
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.28
+    , plutus-core-execlib                   ^>=1.29
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.29
     , text
     , transformers
 
@@ -729,7 +733,7 @@ executable plutus
     , microlens-th                          ^>=0.4
     , mono-traversable
     , mtl
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.28
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.29
     , prettyprinter
     , primitive
     , serialise
@@ -769,7 +773,7 @@ library plutus-core-execlib
     , monoidal-containers
     , mtl
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.28
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.29
     , prettyprinter
     , text
 
@@ -832,9 +836,9 @@ library plutus-core-testlib
     , mmorph
     , mtl
     , multiset
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.28
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.29
     , prettyprinter                         >=1.1.0.1
-    , prettyprinter-configurable            ^>=1.28
+    , prettyprinter-configurable            ^>=1.29
     , QuickCheck
     , quickcheck-instances
     , quickcheck-transformer
@@ -866,7 +870,7 @@ library plutus-ir-cert
   exposed-modules:  PlutusIR.Certifier
   build-depends:
     , base
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.28
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.29
 
 ----------------------------------------------
 -- profiling
@@ -944,7 +948,7 @@ executable cost-model-budgeting-bench
     , hedgehog
     , mtl
     , optparse-applicative
-    , plutus-core            ^>=1.28
+    , plutus-core            ^>=1.29
     , QuickCheck
     , quickcheck-instances
     , random
@@ -978,7 +982,7 @@ executable generate-cost-model
     , directory
     , inline-r              >=1.0.1
     , optparse-applicative
-    , plutus-core           ^>=1.28
+    , plutus-core           ^>=1.29
     , text
 
   --    , exceptions
@@ -993,7 +997,7 @@ executable generate-cost-model
 -- prevent it from being run automatically but will still allow us to run it
 -- manually; `cabal bench` also sets the working directory to the root of the
 -- relevant package, which makes it easier to find the cost model data files
--- (unlike `cabal run` for exectuables, which sets the working directory to the
+-- (unlike `cabal run` for executables, which sets the working directory to the
 -- current shell directory).
 benchmark cost-model-test
   import:         lang
@@ -1018,7 +1022,7 @@ benchmark cost-model-test
     , hedgehog
     , inline-r          >=1.0.1
     , mmorph
-    , plutus-core       ^>=1.28
+    , plutus-core       ^>=1.29
     , template-haskell
     , text
 
@@ -1035,7 +1039,7 @@ executable print-cost-model
     , aeson
     , base         >=4.9   && <5
     , bytestring
-    , plutus-core  ^>=1.28
+    , plutus-core  ^>=1.29
 
 ----------------------------------------------
 -- satint

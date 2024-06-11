@@ -1,4 +1,19 @@
 
+<a id='changelog-1.29.0.0'></a>
+# 1.29.0.0 — 2024-06-04
+
+## Added
+
+- Added `Data.AssocList.Map` module which provides a map implementation based on `Data`.
+
+## Changed
+
+- Split `PlutusTx.Builtins.Class` into `PlutusTx.Builtins.HasBuiltin` and `PlutusTx.Builtins.HasOpaque` in #5971:
++ Split 'FromBuiltin' into 'HasFromBuiltin' and 'HasFromOpaque'
++ Split 'ToBuiltin' into 'HasToBuiltin' and 'HasToOpaque'
+
+- The PlutusTx `These` type had the Haskell implementations of `Show`, `Eq` and `Ord` instances instead of PlutusTx ones. This has been fixed.
+
 <a id='changelog-1.28.0.0'></a>
 # 1.28.0.0 — 2024-05-15
 
