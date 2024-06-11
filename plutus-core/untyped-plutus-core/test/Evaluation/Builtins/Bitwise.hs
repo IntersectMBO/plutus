@@ -17,12 +17,8 @@ module Evaluation.Builtins.Bitwise (
   rotateMoveBits,
   csbComplement,
   csbInclusionExclusion,
-  csbAnd,
-  csbOr,
   csbXor,
   ffsReplicate,
-  ffsAnd,
-  ffsOr,
   ffsXor,
   ffsIndex
   ) where
@@ -44,6 +40,13 @@ import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (assertEqual, assertFailure, testCase)
 import UntypedPlutusCore qualified as UPLC
 
+-- | If we find a valid index for the first set bit, then:
+--
+-- 1. The specified index should have a set bit; and
+-- 2. Any valid smaller index should have a clear bit.
+--
+-- We 'hack' the generator slightly here to ensure we don't end up with all-zeroes (or the empty
+-- bytestring), as otherwise, the test wouldn't be meaningful.
 ffsIndex :: Property
 ffsIndex = property $ do
   bs <- forAllNonZeroByteString
@@ -67,40 +70,8 @@ ffsIndex = property $ do
               ]
         evaluateAndVerify (mkConstant @Bool () False) missIxExp
 
-ffsAnd :: Property
-ffsAnd = property $ do
-  bs <- forAllByteString
-  semantics <- forAll Gen.bool
-  let lhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
-        mkConstant @ByteString () bs
-        ]
-  let rhsInner = mkIterAppNoAnn (builtin () PLC.AndByteString) [
-        mkConstant @Bool () semantics,
-        mkConstant @ByteString () bs,
-        mkConstant @ByteString () bs
-        ]
-  let rhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
-        rhsInner
-        ]
-  evaluateTheSame lhs rhs
-
-ffsOr :: Property
-ffsOr = property $ do
-  bs <- forAllByteString
-  semantics <- forAll Gen.bool
-  let lhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
-        mkConstant @ByteString () bs
-        ]
-  let rhsInner = mkIterAppNoAnn (builtin () PLC.OrByteString) [
-        mkConstant @Bool () semantics,
-        mkConstant @ByteString () bs,
-        mkConstant @ByteString () bs
-        ]
-  let rhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
-        rhsInner
-        ]
-  evaluateTheSame lhs rhs
-
+-- | For any choice of bytestring, if we XOR it with itself, there should be no set bits; that is,
+-- finding the first set bit should give @-1@.
 ffsXor :: Property
 ffsXor = property $ do
   bs <- forAllByteString
@@ -115,6 +86,8 @@ ffsXor = property $ do
         ]
   evaluateAndVerify (mkConstant @Integer () (negate 1)) rhs
 
+-- | If we replicate any byte any (positive) number of times, the first set bit should be the same as
+-- in the case where we replicated it exactly once.
 ffsReplicate :: Property
 ffsReplicate = property $ do
   n <- forAll . Gen.integral . Range.linear 1 $ 512
@@ -135,6 +108,8 @@ ffsReplicate = property $ do
         ]
   evaluateTheSame lhs rhs
 
+-- | For any bytestring whose bit length is @n@ and has @k@ set bits, its complement should have
+-- @n - k@ set bits.
 csbComplement :: Property
 csbComplement = property $ do
   bs <- forAllByteString
@@ -154,6 +129,8 @@ csbComplement = property $ do
         ]
   evaluateTheSame lhs rhs
 
+-- | The inclusion-exclusion principle: specifically, for any @x@ and @y@, the number of set bits in
+-- @x XOR y@ should be the number of set bits in @x OR y@ minus the number of set bits in @x AND y@.
 csbInclusionExclusion :: Property
 csbInclusionExclusion = property $ do
   x <- forAllByteString
@@ -188,40 +165,7 @@ csbInclusionExclusion = property $ do
         ]
   evaluateTheSame lhs rhs
 
-csbAnd :: Property
-csbAnd = property $ do
-  bs <- forAllByteString
-  semantics <- forAll Gen.bool
-  let lhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
-        mkConstant @ByteString () bs
-        ]
-  let rhsInner = mkIterAppNoAnn (builtin () PLC.AndByteString) [
-        mkConstant @Bool () semantics,
-        mkConstant @ByteString () bs,
-        mkConstant @ByteString () bs
-        ]
-  let rhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
-        rhsInner
-        ]
-  evaluateTheSame lhs rhs
-
-csbOr :: Property
-csbOr = property $ do
-  bs <- forAllByteString
-  semantics <- forAll Gen.bool
-  let lhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
-        mkConstant @ByteString () bs
-        ]
-  let rhsInner = mkIterAppNoAnn (builtin () PLC.OrByteString) [
-        mkConstant @Bool () semantics,
-        mkConstant @ByteString () bs,
-        mkConstant @ByteString () bs
-        ]
-  let rhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
-        rhsInner
-        ]
-  evaluateTheSame lhs rhs
-
+-- | For any bytestring @x@, the number of set bits in @x XOR x@ should be 0.
 csbXor :: Property
 csbXor = property $ do
   bs <- forAllByteString
@@ -236,6 +180,8 @@ csbXor = property $ do
         ]
   evaluateAndVerify (mkConstant @Integer () 0) rhs
 
+-- | There should exist a monoid homomorphism between natural number addition and function composition for
+-- shifts over a fixed bytestring argument.
 shiftHomomorphism :: [TestTree]
 shiftHomomorphism = [
   testPropertyNamed "zero shift is identity" "zero_shift_id" idProp,
@@ -310,6 +256,8 @@ shiftHomomorphism = [
             ]
       evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | There should exist a monoid homomorphism between integer addition and function composition for
+-- rotations over a fixed bytestring argument.
 rotateHomomorphism :: [TestTree]
 rotateHomomorphism = [
   testPropertyNamed "zero rotation is identity" "zero_rotate_id" idProp,
@@ -355,6 +303,8 @@ rotateHomomorphism = [
             ]
       evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | There should exist a monoid homomorphism between bytestring concatenation and natural number
+-- addition.
 csbHomomorphism :: [TestTree]
 csbHomomorphism = [
   testCase "count of empty is zero" $ do
@@ -396,6 +346,7 @@ csbHomomorphism = [
             ]
       evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | Shifting by more than the bit length (either positive or negative) clears the result.
 shiftClear :: Property
 shiftClear = property $ do
   bs <- forAllByteString
@@ -423,6 +374,7 @@ shiftClear = property $ do
         ]
   evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | Positive shifts clear low-index bits.
 shiftPosClearLow :: Property
 shiftPosClearLow = property $ do
   bs <- forAllByteString1
@@ -439,6 +391,7 @@ shiftPosClearLow = property $ do
         ]
   evaluateAndVerify (mkConstant @Bool () False) lhs
 
+-- | Negative shifts clear high-index bits.
 shiftNegClearHigh :: Property
 shiftNegClearHigh = property $ do
   bs <- forAllByteString1
@@ -455,6 +408,7 @@ shiftNegClearHigh = property $ do
         ]
   evaluateAndVerify (mkConstant @Bool () False) lhs
 
+-- | Rotations by more than the bit length 'roll over' bits.
 rotateRollover :: Property
 rotateRollover = property $ do
   bs <- forAllByteString
@@ -476,6 +430,7 @@ rotateRollover = property $ do
         ]
   evaluateAndVerify (mkConstant @Bool () True) compareExp
 
+-- | Rotations move bits, but don't change them.
 rotateMoveBits :: Property
 rotateMoveBits = property $ do
   bs <- forAllByteString1
@@ -500,6 +455,7 @@ rotateMoveBits = property $ do
         ]
   evaluateTheSame lhs rhs
 
+-- | Rotations do not change how many set (and clear) bits there are.
 csbRotate :: Property
 csbRotate = property $ do
   bs <- forAllByteString

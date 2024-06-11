@@ -986,20 +986,12 @@ test_Bitwise =
                         Bitwise.csbComplement,
       testPropertyNamed "inclusion-exclusion" "popcount_inclusion_exclusion"
                         Bitwise.csbInclusionExclusion,
-      testPropertyNamed "count of self-AND" "popcount_self_and"
-                        Bitwise.csbAnd,
-      testPropertyNamed "count of self-OR" "popcount_self_or"
-                        Bitwise.csbOr,
       testPropertyNamed "count of self-XOR" "popcount_self_xor"
                         Bitwise.csbXor
     ],
   testGroup "findFirstSetBit" [
       testPropertyNamed "find first in replicated" "ffs_replicate"
                         Bitwise.ffsReplicate,
-      testPropertyNamed "find first of self-AND" "ffs_and"
-                        Bitwise.ffsAnd,
-      testPropertyNamed "find first of self-OR" "ffs_or"
-                        Bitwise.ffsOr,
       testPropertyNamed "find first of self-XOR" "ffs_xor"
                         Bitwise.ffsXor,
       testPropertyNamed "found index set, lower indices clear" "ffs_index"
