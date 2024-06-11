@@ -1,9 +1,5 @@
 -- editorconfig-checker-disable-file
 -- | The CEK machine.
--- The CEK machine relies on variables having non-equal 'Unique's whenever they have non-equal
--- string names. I.e. 'Unique's are used instead of string names. This is for efficiency reasons.
--- The CEK machines handles name capture by design.
-
 
 {-# LANGUAGE BangPatterns             #-}
 {-# LANGUAGE ConstraintKinds          #-}
@@ -140,28 +136,22 @@ Hence we don't export 'computeCek' and instead define 'runCek' in this file and 
 though the rest of the user-facing API (which 'runCek' is a part of) is defined downstream.
 
 Another problem is handling mutual recursion in the 'computeCek'/'returnCek'/'forceEvaluate'/etc
-family. If we keep these functions at the top level, GHC won't be able to pull the constraints out of
-the family (confirmed by inspecting Core: GHC thinks that since the superclass constraints
+family. If we keep these functions at the top level, GHC won't be able to pull the constraints out
+of the family (confirmed by inspecting Core: GHC thinks that since the superclass constraints
 populating the dictionary representing the @Ix fun@ constraint are redundant, they can be replaced
 with calls to 'error' in a recursive call, but that changes the dictionary and so it can no longer
 be pulled out of recursion). But that entails passing a redundant argument around, which slows down
 the machine a tiny little bit.
 
-Hence we define a number of the functions as local functions making use of a
-shared context from their parent function. This also allows GHC to inline almost
-all of the machine into a single definition (with a bunch of recursive join
-points in it).
+Hence we define a all happy-path functions having CEK-machine-specific constraints as local
+functions making use of a shared context from their parent function. This also allows GHC to inline
+almost all of the machine into a single definition (with a bunch of recursive join points in it).
 
 In general, it's advised to run benchmarks (and look at Core output if the results are suspicious)
 on any changes in this file.
 
-Finally, it's important to put bang patterns on any Int arguments to ensure that GHC unboxes them:
+Finally, it's important to put bang patterns on any 'Int' arguments to ensure that GHC unboxes them:
 this can make a surprisingly large difference.
--}
-
-{- Note [Scoping]
-The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
-prerequisite. The CEK machine correctly handles name shadowing.
 -}
 
 -- | The 'Term's that CEK can execute must have DeBruijn binders
@@ -481,7 +471,6 @@ instance Pretty CekUserError where
           ]
     pretty CekEvaluationFailure = "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
--- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
 dischargeCekValEnv :: forall uni fun ann. CekValEnv uni fun ann -> NTerm uni fun () -> NTerm uni fun ()
@@ -791,6 +780,8 @@ enterComputeCek = computeCek
         let ctr = ?cekStepCounter
         iforCounter_ ctr spend
         resetCounter ctr
+    -- It's very important for this definition not to get inlined. Inlining it caused performance to
+    -- degrade by 16+%: https://github.com/IntersectMBO/plutus/pull/5931
     {-# NOINLINE spendAccumulatedBudget #-}
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
