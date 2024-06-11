@@ -20,7 +20,8 @@ module Evaluation.Builtins.Bitwise (
   csbXor,
   ffsReplicate,
   ffsXor,
-  ffsIndex
+  ffsIndex,
+  ffsZero
   ) where
 
 import Control.Monad (unless)
@@ -39,6 +40,16 @@ import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (assertEqual, assertFailure, testCase)
 import UntypedPlutusCore qualified as UPLC
+
+-- | Finding the first set bit in a bytestring with only zero bytes should always give -1.
+ffsZero :: Property
+ffsZero = property $ do
+  len <- forAll . Gen.integral . Range.linear 0 $ 1024
+  let bs = BS.replicate len 0x00
+  let rhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
+        mkConstant @ByteString () bs
+        ]
+  evaluateAndVerify (mkConstant @Integer () (negate 1)) rhs
 
 -- | If we find a valid index for the first set bit, then:
 --

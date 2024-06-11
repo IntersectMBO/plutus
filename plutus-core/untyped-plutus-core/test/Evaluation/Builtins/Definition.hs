@@ -962,7 +962,7 @@ test_Bitwise :: TestTree
 test_Bitwise =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
   testGroup "Bitwise" $ [
-    testGroup "bitwiseShift" [
+    testGroup "shiftByteString" [
       testGroup "homomorphism" Bitwise.shiftHomomorphism,
       testPropertyNamed "shifts over bit length clear input" "shift_too_much"
                         Bitwise.shiftClear,
@@ -971,7 +971,7 @@ test_Bitwise =
       testPropertyNamed "negative shifts clear high indexes" "shift_neg_high"
                         Bitwise.shiftNegClearHigh
     ],
-  testGroup "bitwiseRotate" [
+  testGroup "rotateByteString" [
       testGroup "homomorphism" Bitwise.rotateHomomorphism,
       testPropertyNamed "rotations over bit length roll over" "rotate_too_much"
                         Bitwise.rotateRollover,
@@ -990,6 +990,8 @@ test_Bitwise =
                         Bitwise.csbXor
     ],
   testGroup "findFirstSetBit" [
+      testPropertyNamed "find first in zero bytestrings" "ffs_zero"
+                        Bitwise.ffsZero,
       testPropertyNamed "find first in replicated" "ffs_replicate"
                         Bitwise.ffsReplicate,
       testPropertyNamed "find first of self-XOR" "ffs_xor"
@@ -1029,7 +1031,7 @@ test_Logical =
       Laws.xorInvoluteLaw,
       Laws.abelianMonoidLaws "padding" PLC.XorByteString True ""
       ],
-    testGroup "bitwiseLogicalComplement" [
+    testGroup "complementByteString" [
       Laws.complementSelfInverse,
       Laws.deMorgan
       ],
@@ -1039,7 +1041,7 @@ test_Logical =
       Laws.setSet,
       Laws.writeBitsHomomorphismLaws
       ],
-    testGroup "replicateByteString" [
+    testGroup "replicateByte" [
       Laws.replicateHomomorphismLaws,
       Laws.replicateIndex
       ]
