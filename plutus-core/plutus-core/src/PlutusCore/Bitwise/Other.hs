@@ -45,7 +45,7 @@ this, combined with Euclidean division, we can decompose any shift or
 rotation by `i` into two consecutive shifts and rotations:
 
 1. A 'large' shift or rotation, by `div i 8`; and
-2. A 'small' shift or rotation, by `rem i 8`.
+2. A 'small' shift or rotation, by `mod i 8`.
 
 While on paper, this seems much less efficient (as our stride is smaller),
 we also observe that the 'large' shift moves around whole bytes, while also
@@ -63,7 +63,7 @@ more efficient than anything we could do, as they rely on optimized C called
 via the runtime (meaning no FFI penalty). From our experiments, both with
 these operations, and others from CIP-122, we note that the cost of these is
 essentially constant up to about the size of 1-2 cache lines (64-128 bytes):
-since we anticipate smaller inputs as far more likely, this actually runs
+since we anticipate smaller inputs are far more likely, this actually runs
 _faster_ than our proposed sectioning approach, while being easier to read
 and write.
 
@@ -243,6 +243,9 @@ countSetBits bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
   where
     len :: Int
     !len = BS.length bs
+    -- We do this as two separate bindings, for similar reasons as for
+    -- `integerToByteString`: we take a surprising hit to performance when
+    -- using a pair, even though eliminating it should be possible here.
     bigStrides :: Int
     !bigStrides = len `quot` 8
     smallStrides :: Int
