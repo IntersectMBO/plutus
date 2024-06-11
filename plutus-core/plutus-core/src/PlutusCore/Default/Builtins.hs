@@ -1428,7 +1428,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             fstPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) = do
                 case uniPairAB of
                     DefaultUniPair uniA _ -> pure . fromValueOf uniA $ fst xy
-                    _                     -> undefined -- throwing _StructuralUnliftingError _
+                    _                     ->
+                        throwing _StructuralUnliftingError "Expected a pair but got something else"
             {-# INLINE fstPairDenotation #-}
         in makeBuiltinMeaning
             fstPairDenotation
@@ -1439,7 +1440,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             sndPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) = do
                 case uniPairAB of
                     DefaultUniPair _ uniB -> pure . fromValueOf uniB $ snd xy
-                    _                     -> undefined -- throwing _StructuralUnliftingError _
+                    _                     ->
+                        throwing _StructuralUnliftingError "Expected a pair but got something else"
             {-# INLINE sndPairDenotation #-}
         in makeBuiltinMeaning
             sndPairDenotation
@@ -1453,7 +1455,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     DefaultUniList _ -> pure $ case xs of
                         []    -> a
                         _ : _ -> b
-                    _ -> undefined -- throwing _StructuralUnliftingError _
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE chooseListDenotation #-}
         in makeBuiltinMeaning
             chooseListDenotation
@@ -1468,8 +1470,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 case uniListA of
                     DefaultUniList uniA' -> case uniA `geq` uniA' of
                         Just Refl -> pure . fromValueOf uniListA $ x : xs
-                        _         -> undefined -- throwing _StructuralUnliftingError _
-                    _ -> undefined -- throwing _StructuralUnliftingError _
+                        _         -> throwing _StructuralUnliftingError
+                            "The type of the value does not match the type of elements in the list"
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
         in makeBuiltinMeaning
             mkConsDenotation
@@ -1480,9 +1483,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             headListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
                 case uniListA of
                     DefaultUniList uniA -> case xs of
-                        []    -> fail "Empty list"
+                        []    -> fail "Expected a non-empty list but got an empty one"
                         x : _ -> pure $ fromValueOf uniA x
-                    _ -> undefined -- throwing _StructuralUnliftingError _
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE headListDenotation #-}
         in makeBuiltinMeaning
             headListDenotation
@@ -1493,9 +1496,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             tailListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
                 case uniListA of
                     DefaultUniList _ -> case xs of
-                        []      -> fail "Empty list"
+                        []      -> fail "Expected a non-empty list but got an empty one"
                         _ : xs' -> pure $ fromValueOf uniListA xs'
-                    _ -> undefined -- throwing _StructuralUnliftingError _
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE tailListDenotation #-}
         in makeBuiltinMeaning
             tailListDenotation
@@ -1506,7 +1509,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
                 case uniListA of
                     DefaultUniList _ -> pure $ null xs
-                    _                -> undefined -- throwing _StructuralUnliftingError _
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
             nullListDenotation

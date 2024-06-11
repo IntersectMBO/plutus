@@ -47,7 +47,7 @@ import Prettyprinter
 newtype UnliftingError = MkUnliftingError
     { unUnliftingError :: Text
     } deriving stock (Show, Eq)
-      deriving newtype (IsString, Semigroup, NFData)
+      deriving newtype (IsString, Semigroup, Monoid, NFData)
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingEvaluationError = MkUnliftingEvaluationError
