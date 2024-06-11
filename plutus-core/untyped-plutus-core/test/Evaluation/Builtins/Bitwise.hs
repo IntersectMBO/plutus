@@ -239,6 +239,12 @@ csbXor = property $ do
 shiftHomomorphism :: [TestTree]
 shiftHomomorphism = [
   testPropertyNamed "zero shift is identity" "zero_shift_id" idProp,
+  -- Because the homomorphism on shifts is more restrictive than on rotations (namely, it is for
+  -- naturals and their negative equivalents, not integers), we separate the composition property
+  -- into two: one dealing with non-negative, the other with non-positive. This helps a bit with
+  -- coverage, as otherwise, we wouldn't necessarily cover both paths equally well, as we'd have to
+  -- either discard mismatched signs (which are likely) or 'hack them in-place', which would skew
+  -- distributions.
   testPropertyNamed "non-negative addition of shifts is composition" "plus_shift_pos_comp" plusCompProp,
   testPropertyNamed "non-positive addition of shifts is composition" "plus_shift_neg_comp" minusCompProp
   ]
