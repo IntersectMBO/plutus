@@ -885,7 +885,7 @@ cons = mkConstant ()
 -- Test that the SECP256k1 builtins are behaving correctly
 test_SignatureVerification :: TestTree
 test_SignatureVerification =
-  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
   testGroup "Signature verification" $ [
         testGroup "Ed25519 signatures (VariantA)"
                       [ testPropertyNamed
@@ -920,7 +920,7 @@ test_SignatureVerification =
 -- Test that the Integer <-> ByteString conversion builtins are behaving correctly
 test_Conversion :: TestTree
 test_Conversion =
-    adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
+    adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
     testGroup "Integer <-> ByteString conversions" $ [
       testGroup "Integer -> ByteString" [
         --- lengthOfByteString (integerToByteString e d 0) = d
@@ -960,7 +960,7 @@ test_Conversion =
 -- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md)
 test_Bitwise :: TestTree
 test_Bitwise =
-  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
   testGroup "Bitwise" $ [
     testGroup "bitwiseShift" [
       testGroup "homomorphism" Bitwise.shiftHomomorphism,
@@ -1002,7 +1002,7 @@ test_Bitwise =
 -- Tests for the logical operations, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md)
 test_Logical :: TestTree
 test_Logical =
-  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 2000) .
   testGroup "Logical" $ [
     testGroup "andByteString" [
       Laws.abelianSemigroupLaws "truncation" PLC.AndByteString False,

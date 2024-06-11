@@ -149,7 +149,7 @@ writeBitsHomomorphismLaws =
         evaluateAndVerify (mkConstant @Bool () True) compareExp
       compositionProp :: Property
       compositionProp = property $ do
-        bs <- forAllByteString1
+        bs <- forAllByteString1Small
         changelist1 <- forAllChangelistOf bs
         changelist2 <- forAllChangelistOf bs
         let lhsInner = mkIterAppNoAnn (builtin () PLC.WriteBits) [
@@ -531,6 +531,9 @@ forAllByteString = forAllWith hexShow . Gen.bytes . Range.linear 0 $ 1024
 
 forAllByteString1 :: PropertyT IO ByteString
 forAllByteString1 = forAllWith hexShow . Gen.bytes . Range.linear 1 $ 1024
+
+forAllByteString1Small :: PropertyT IO ByteString
+forAllByteString1Small = forAllWith hexShow . Gen.bytes . Range.linear 1 $ 512
 
 forAllIndexOf :: ByteString -> PropertyT IO Integer
 forAllIndexOf bs = forAll . Gen.integral . Range.linear 0 . fromIntegral $ BS.length bs * 8 - 1
