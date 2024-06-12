@@ -178,9 +178,8 @@ instance ExMemoryUsage DefaultFun where
     memoryUsage _ = singletonRose 1
     {-# INLINE memoryUsage #-}
 
--- | Turn a function into another function that returns 'EvaluationFailure' when
--- its second argument is 0 or calls the original function otherwise and wraps
--- the result in 'EvaluationSuccess'.  Useful for correctly handling `div`,
+-- | Turn a function into another function that 'fail's when its second argument is @0@ or calls the
+-- original function otherwise and wraps the result in 'pure'. Useful for correctly handling `div`,
 -- `mod`, etc.
 nonZeroSecondArg
     :: (Integer -> Integer -> Integer) -> Integer -> Integer -> BuiltinResult Integer
@@ -200,9 +199,8 @@ nonZeroSecondArg _ !_ 0 = fail "Cannot divide by zero"
 nonZeroSecondArg f  x y = pure $ f x y
 {-# INLINE nonZeroSecondArg #-}
 
--- | Turn a function returning 'Either' into another function that emits an
--- error message and returns 'EvaluationFailure' in the 'Left' case and wraps
--- the result in 'EvaluationSuccess' in the 'Right' case.
+-- | Turn a function returning 'Either' into another function that 'fail's in the 'Left' case and
+-- wraps the result in 'pure' in the 'Right' case.
 eitherToBuiltinResult :: Show e => Either e r -> BuiltinResult r
 eitherToBuiltinResult = either (fail . show) pure
 {-# INLINE eitherToBuiltinResult #-}
@@ -271,7 +269,7 @@ it within the @ToBuiltinMeaning uni DefaultFun@ instance. The general pattern is
 
 Here's a specific example:
 
-    toBuiltinMeaning _semvar AddInteger =
+    toBuiltinMeaning _ AddInteger =
         let addIntegerDenotation :: Integer -> Integer -> Integer
             addIntegerDenotation = (+)
             {-# INLINE addIntegerDenotation #-}
@@ -395,29 +393,29 @@ There's a number of ways a builtin can fail:
 - as we've just seen a type conversion can fail due to an unsuccessful bounds check
 - if the builtin expects, say, a 'Text' argument, but gets fed an 'Integer' argument
 - if the builtin expects any constant, but gets fed a non-constant
-- if its denotation runs in the 'EvaluationResult' and an 'EvaluationFailure' gets returned
+- if its denotation runs in the 'BuiltinResult' monad and an 'evaluationFailure' gets returned
 
 Most of these are not a concern to the user defining a built-in function (conversions are handled
 within the builtin application machinery, type mismatches are on the type checker and the person
-writing the program etc), however explicitly returning 'EvaluationFailure' from a builtin is
+writing the program etc), however explicitly returning 'evaluationFailure' from a builtin is
 something that happens commonly.
 
 One simple example is a monomorphic function matching on a certain constructor and failing in all
 other cases:
 
     toBuiltinMeaning _ UnIData =
-        let unIDataDenotation :: Data -> EvaluationResult Integer
+        let unIDataDenotation :: Data -> BuiltinResult Integer
             unIDataDenotation = \case
-                I i -> EvaluationSuccess i
-                _   -> EvaluationFailure
+                I i -> pure i
+                _   -> evaluationFailure
             {-# INLINE unIDataDenotation #-}
         in makeBuiltinMeaning
             unIDataDenotation
             <costingFunction>
 
-The inferred type of the denotation is
+The type of the denotation is
 
-    Data -> EvaluationResult Integer
+    Data -> BuiltinResult Integer
 
 and the Plutus type of the builtin is
 
@@ -425,32 +423,31 @@ and the Plutus type of the builtin is
 
 because the error effect is implicit in Plutus.
 
-Returning @EvaluationResult a@ for a type variable @a@ is also fine, i.e. it doesn't matter whether
+Returning @BuiltinResult a@ for a type variable @a@ is also fine, i.e. it doesn't matter whether
 the denotation is monomorphic or polymorphic w.r.t. failing.
 
 But note that
 
-    'EvaluationResult' MUST BE EXPLICITLY USED FOR ANY FAILING BUILTIN AND THROWING AN EXCEPTION
+    'BuiltinResult' MUST BE EXPLICITLY USED FOR ANY FAILING BUILTIN AND THROWING AN EXCEPTION
     VIA 'error' OR 'throw' OR ELSE IS NOT ALLOWED AND CAN BE A HUGE VULNERABILITY. MAKE SURE THAT
     NONE OF THE FUNCTIONS THAT YOU USE TO DEFINE A BUILTIN THROW EXCEPTIONS
 
-An argument of a builtin can't have 'EvaluationResult' in its type -- only the result.
+An argument of a builtin can't have 'BuiltinResult' in its type -- only the result.
 
-5. A builtin can emit log messages. For that it needs to run in the 'Emitter' monad. The ergonomics
-are the same as with 'EvaluationResult': 'Emitter' can't appear in the type of an argument and
-polymorphism is fine. For example:
+5. A builtin can emit log messages. For that its denotation needs to run in the 'BuiltinResult' as
+in case of failing. The ergonomics are the same. For example:
 
     toBuiltinMeaning _ Trace =
-        let traceDenotation :: Text -> a -> Emitter a
+        let traceDenotation :: Text -> a -> BuiltinResult a
             traceDenotation text a = a <$ emit text
             {-# INLINE traceDenotation #-}
         in makeBuiltinMeaning
             traceDenotation
             <costingFunction>
 
-The inferred type of the denotation is
+The type of the denotation is
 
-    forall a. Text -> a -> Emitter a
+    forall a. Text -> a -> Builtin a
 
 and the Plutus type of the builtin is
 
@@ -458,10 +455,6 @@ and the Plutus type of the builtin is
 
 because just like with the error effect, whether a function logs anything or not is not reflected
 in its type.
-
-'makeBuiltinMeaning' allows one to nest 'EvaluationResult' inside of 'Emitter' and vice versa,
-but as always nesting monads inside of each other without using monad transformers doesn't have good
-ergonomics, since computations of such a type can't be chained with a simple @(>>=)@.
 
 This concludes the list of simple cases. Before we jump to the hard ones, we need to talk about how
 polymorphism gets elaborated, so read Note [Elaboration of polymorphism] next.
@@ -611,13 +604,13 @@ which elaborates to
 
     Text -> Opaque val Var0 -> Emitter (Opaque val Var0)
 
-Elaboration machinery is able to look under 'Emitter' and 'EvaluationResult' even if there's a type
-variable inside that does not appear anywhere else in the type signature, for example the inferred
-type of the denotation in
+Elaboration machinery is able to look under 'BuiltinResult' even if there's a type variable inside
+that does not appear anywhere else in the type signature, for example the inferred type of the
+denotation in
 
     toBuiltinMeaning _ ErrorPrime =
-        let errorPrimeDenotation :: EvaluationResult a
-            errorPrimeDenotation = EvaluationFailure
+        let errorPrimeDenotation :: BuiltinResult a
+            errorPrimeDenotation = evaluationFailure
             {-# INLINE errorPrimeDenotation #-}
         in makeBuiltinMeaning
             errorPrimeDenotation
@@ -625,11 +618,11 @@ type of the denotation in
 
 is
 
-    forall a. EvaluationResult a
+    forall a. BuiltinResult a
 
 which gets elaborated to
 
-    EvaluationResult (Opaque val Var0)
+    BuiltinResult (Opaque val Var0)
 
 from which the final Plutus type of the builtin is computed:
 
@@ -683,10 +676,10 @@ reason, wanted to have 'Opaque' in the type signature of the denotation, but sti
 argument as a 'Bool', we could do that:
 
     toBuiltinMeaning _ IdAssumeCheckBool =
-        let idAssumeCheckBoolDenotation :: Opaque val Bool -> EvaluationResult Bool
+        let idAssumeCheckBoolDenotation :: Opaque val Bool -> BuiltinResult Bool
             idAssumeCheckBoolDenotation val = asConstant val of
-                Right (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
-                _                                       -> EvaluationFailure
+                Right (Some (ValueOf DefaultUniBool b)) -> pure b
+                _                                       -> evaluationFailure
             {-# INLINE idAssumeCheckBoolDenotation #-}
         in makeBuiltinMeaning
             idAssumeCheckBoolDenotation
@@ -694,7 +687,7 @@ argument as a 'Bool', we could do that:
 
 Here in the denotation we unlift the given value as a constant, check that its type tag is
 'DefaultUniBool' and return the unlifted 'Bool'. If any of that fails, we return an explicit
-'EvaluationFailure'.
+'evaluationFailure'.
 
 This achieves almost the same as 'IdBool', which keeps all the bookkeeping behind the scenes, but
 there is a minor difference: in case of error its message is ignored. It would be easy to allow for
@@ -720,10 +713,10 @@ wrapper around a constant. 'SomeConstant' allows one to automatically unlift an 
 built-in function as a constant with all 'asConstant' business kept behind the scenes, for example:
 
     toBuiltinMeaning _ IdSomeConstantBool =
-        let idSomeConstantBoolDenotation :: SomeConstant uni Bool -> EvaluationResult Bool
+        let idSomeConstantBoolDenotation :: SomeConstant uni Bool -> BuiltinResult Bool
             idSomeConstantBoolDenotation = \case
-                SomeConstant (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
-                _                                              -> EvaluationFailure
+                SomeConstant (Some (ValueOf DefaultUniBool b)) -> pure b
+                _                                              -> evaluationFailure
             {-# INLINE idSomeConstantBoolDenotation #-}
         in makeBuiltinMeaning
             idSomeConstantBoolDenotation
@@ -744,25 +737,23 @@ However it's not always possible to use automatic unlifting, see next.
             nullListDenotation
             <costingFunction>
 
-we'll get an error, saying that a polymorphic built-in type can't be applied to
-a type variable.  It's not impossible to make it work, see Note [Unlifting a
-term as a value of a built-in type], but not in the general case, plus it has to
-be very inefficient.
+we'll get an error, saying that a polymorphic built-in type can't be applied to a type variable.
+It's not impossible to make it work, see Note [Unlifting a term as a value of a built-in type], but
+not in the general case, plus it has to be very inefficient.
 
 Instead we have to use 'SomeConstant' to automatically unlift the argument as a constant and then
 check that the value inside of it is a list (by matching on the type tag):
 
     toBuiltinMeaning _ NullList =
-        let nullListDenotation :: SomeConstant uni [a] -> EvaluationResult Bool
+        let nullListDenotation :: SomeConstant uni [a] -> BuiltinResult Bool
             nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
-                DefaultUniList _ <- pure uniListA
-                pure $ null xs
+                case uniListA of
+                    DefaultUniList _ -> pure $ null xs
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
             nullListDenotation
             <costingFunction>
-
-('EvaluationResult' has a 'MonadFail' instance allowing us to use the @<pat> <- pure <expr>@ idiom)
 
 As before, we have to match on the type tag, because there's no relation between @rep@ from
 @SomeConstant uni rep@ and the constant that the built-in function actually receives at runtime
@@ -773,10 +764,13 @@ in any way.
 Here's a similar built-in function:
 
     toBuiltinMeaning _ FstPair =
-        let fstPairDenotation :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val a)
+        let fstPairDenotation :: SomeConstant uni (a, b) -> BuiltinResult (Opaque val a)
             fstPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) = do
-                DefaultUniPair uniA _ <- pure uniPairAB  -- [1]
-                pure . fromValueOf uniA $ fst xy         -- [2]
+                case uniPairAB of
+                    DefaultUniPair uniA _ ->              -- [1]
+                        pure . fromValueOf uniA $ fst xy  -- [2]
+                    _ ->
+                        throwing _StructuralUnliftingError "Expected a pair but got something else"
             {-# INLINE fstPairDenotation #-}
         in makeBuiltinMeaning
             fstPairDenotation
@@ -790,15 +784,17 @@ Note that it's fine to mix automatic unlifting for polymorphism not related to b
 manual unlifting for arguments having non-monomorphized polymorphic built-in types, for example:
 
     toBuiltinMeaning _ ChooseList =
-        let chooseListDenotation :: SomeConstant uni [a] -> b -> b -> EvaluationResult b
+        let chooseListDenotation :: SomeConstant uni [a] -> b -> b -> BuiltinResult b
             chooseListDenotation (SomeConstant (Some (ValueOf uniListA xs))) a b = do
-              DefaultUniList _ <- pure uniListA
-              pure $ case xs of
-                  []    -> a
-                  _ : _ -> b
+                case uniListA of
+                    DefaultUniList _ -> pure $ case xs of
+                        []    -> a
+                        _ : _ -> b
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE chooseListDenotation #-}
         in makeBuiltinMeaning
             chooseListDenotation
+            (runCostingFunThreeArguments . paramChooseList)
             <costingFunction>
 
 Here @a@ appears inside @[]@, which is a polymorphic built-in type, and so we have to use
@@ -810,13 +806,17 @@ Our final example is this:
 
     toBuiltinMeaning _ MkCons =
         let mkConsDenotation
-                :: SomeConstant uni a -> SomeConstant uni [a] -> EvaluationResult (Opaque val [a])
+                :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             mkConsDenotation
               (SomeConstant (Some (ValueOf uniA x)))
               (SomeConstant (Some (ValueOf uniListA xs))) = do
-                  DefaultUniList uniA' <- pure uniListA  -- [1]
-                  Just Refl <- pure $ uniA `geq` uniA'   -- [2]
-                  pure . fromValueOf uniListA $ x : xs   -- [3]
+                case uniListA of
+                    DefaultUniList uniA' -> case uniA `geq` uniA' of       -- [1]
+                        Just Refl ->                                       -- [2]
+                            pure . fromValueOf uniListA $ x : xs           -- [3]
+                        _ -> throwing _StructuralUnliftingError
+                            "The type of the value does not match the type of elements in the list"
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
         in makeBuiltinMeaning
             mkConsDenotation
@@ -839,8 +839,8 @@ Plutus type of the builtin:
    get the (Plutus) kind of a builtin head and check two builtin heads for equality
 3. Plutus type normalization tears partially or fully instantiated built-in types (such as
    @[Integer]@) apart and creates a Plutus type application for each Haskell type application
-4. 'Emitter' and 'EvaluationResult' do not appear on the Plutus side, since the logging and failure
-   effects are implicit in Plutus as was discussed above
+4. 'BuiltinResult' does not appear on the Plutus side, since the logging and failure effects are
+   implicit in Plutus as was discussed above
 5. 'Opaque' and 'SomeConstant' both carry a Haskell @rep@ type argument representing some Plutus
    type to be used for Plutus type checking
 
@@ -852,10 +852,10 @@ actually does. Let's look at some examples.
 
     toBuiltinMeaning _ IdIntegerAsBool =
         let idIntegerAsBoolDenotation
-                :: SomeConstant uni Integer -> EvaluationResult (SomeConstant uni Integer)
+                :: SomeConstant uni Integer -> BuiltinResult (SomeConstant uni Integer)
             idIntegerAsBoolDenotation = \case
-                con@(SomeConstant (Some (ValueOf DefaultUniBool _))) -> EvaluationSuccess con
-                _                                                    -> EvaluationFailure
+                con@(SomeConstant (Some (ValueOf DefaultUniBool _))) -> pure con
+                _                                                    -> evaluationFailure
             {-# INLINE idIntegerAsBoolDenotation #-}
         in makeBuiltinMeaning
             idIntegerAsBoolDenotation
@@ -1066,7 +1066,7 @@ Finally,
 is representable (because we can require arguments to be constants carrying universes with them,
 which we can use to construct the resulting universe), but is still a lie, because instantiating
 that builtin with non-built-in types is possible and so the PLC type checker won't throw on such
-an instantiation, which will become 'EvalutionFailure' at runtime the moment unlifting of a
+an instantiation, which will become 'evalutionFailure' at runtime the moment unlifting of a
 non-constant is attempted when a constant is expected.
 
 So could we still get @nil@ or a safe version of @comma@ somehow? Well, we could have this
@@ -1415,7 +1415,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     -- Tracing
     toBuiltinMeaning _semvar Trace =
-        let traceDenotation :: Text -> a -> Emitter a
+        let traceDenotation :: Text -> a -> BuiltinResult a
             traceDenotation text a = a <$ emit text
             {-# INLINE traceDenotation #-}
         in makeBuiltinMeaning
@@ -1509,7 +1509,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
                 case uniListA of
                     DefaultUniList _ -> pure $ null xs
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _                ->
+                        throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
             nullListDenotation

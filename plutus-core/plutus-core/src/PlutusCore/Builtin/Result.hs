@@ -22,6 +22,7 @@ module PlutusCore.Builtin.Result
     , _StructuralUnliftingError
     , _OperationalUnliftingError
     , throwNotAConstant
+    , throwUnderTypeError
     , withLogs
     , throwing
     , throwing_
@@ -186,6 +187,10 @@ _OperationalUnliftingError = _BuiltinUnliftingEvaluationError . _OperationalEval
 throwNotAConstant :: MonadError BuiltinError m => m void
 throwNotAConstant = throwing _StructuralUnliftingError "Not a constant"
 {-# INLINE throwNotAConstant #-}
+
+throwUnderTypeError :: MonadError BuiltinError m => m void
+throwUnderTypeError = throwing _StructuralUnliftingError "Panic: 'TypeError' was bypassed"
+{-# INLINE throwUnderTypeError #-}
 
 -- | Prepend logs to a 'BuiltinResult' computation.
 withLogs :: DList Text -> BuiltinResult a -> BuiltinResult a

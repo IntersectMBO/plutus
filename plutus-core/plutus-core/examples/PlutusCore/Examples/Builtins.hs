@@ -24,6 +24,7 @@ import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetStream
+import PlutusCore.Evaluation.Result (evaluationFailure)
 import PlutusCore.Pretty
 
 import PlutusCore.StdLib.Data.ScottList qualified as Plc
@@ -277,31 +278,31 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             idAssumeCheckBoolPlc
             whatever
       where
-        idAssumeCheckBoolPlc :: Opaque val Bool -> EvaluationResult Bool
+        idAssumeCheckBoolPlc :: Opaque val Bool -> BuiltinResult Bool
         idAssumeCheckBoolPlc val =
             case asConstant val of
-                Right (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
-                _                                       -> EvaluationFailure
+                Right (Some (ValueOf DefaultUniBool b)) -> pure b
+                _                                       -> evaluationFailure
 
     toBuiltinMeaning _semvar IdSomeConstantBool =
         makeBuiltinMeaning
             idSomeConstantBoolPlc
             whatever
       where
-        idSomeConstantBoolPlc :: SomeConstant uni Bool -> EvaluationResult Bool
+        idSomeConstantBoolPlc :: SomeConstant uni Bool -> BuiltinResult Bool
         idSomeConstantBoolPlc = \case
-            SomeConstant (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
-            _                                              -> EvaluationFailure
+            SomeConstant (Some (ValueOf DefaultUniBool b)) -> pure b
+            _                                              -> evaluationFailure
 
     toBuiltinMeaning _semvar IdIntegerAsBool =
         makeBuiltinMeaning
             idIntegerAsBool
             whatever
       where
-        idIntegerAsBool :: SomeConstant uni Integer -> EvaluationResult (SomeConstant uni Integer)
+        idIntegerAsBool :: SomeConstant uni Integer -> BuiltinResult (SomeConstant uni Integer)
         idIntegerAsBool = \case
-            con@(SomeConstant (Some (ValueOf DefaultUniBool _))) -> EvaluationSuccess con
-            _                                                    -> EvaluationFailure
+            con@(SomeConstant (Some (ValueOf DefaultUniBool _))) -> pure con
+            _                                                    -> evaluationFailure
 
     toBuiltinMeaning _semvar IdFInteger =
         makeBuiltinMeaning
@@ -380,8 +381,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             whatever
       where
         unsafeCoerceElPlc
-            :: SomeConstant DefaultUni [a]
-            -> EvaluationResult (SomeConstant DefaultUni [b])
+            :: SomeConstant DefaultUni [a] -> BuiltinResult (SomeConstant DefaultUni [b])
         unsafeCoerceElPlc (SomeConstant (Some (ValueOf uniList xs))) = do
             DefaultUniList _ <- pure uniList
             pure $ fromValueOf uniList xs
@@ -398,7 +398,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
 
     toBuiltinMeaning _semvar ErrorPrime =
         makeBuiltinMeaning
-            EvaluationFailure
+            (evaluationFailure :: forall a. BuiltinResult a)
             whatever
 
     toBuiltinMeaning _semvar Comma =
@@ -422,7 +422,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             :: SomeConstant uni a
             -> SomeConstant uni b
             -> SomeConstant uni (a, b)
-            -> EvaluationResult (SomeConstant uni (a, b))
+            -> BuiltinResult (SomeConstant uni (a, b))
         biconstPairPlc
             (SomeConstant (Some (ValueOf uniA x)))
             (SomeConstant (Some (ValueOf uniB y)))
@@ -439,7 +439,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
       where
         swapPlc
             :: SomeConstant uni (a, b)
-            -> EvaluationResult (SomeConstant uni (b, a))
+            -> BuiltinResult (SomeConstant uni (b, a))
         swapPlc (SomeConstant (Some (ValueOf uniPairAB p))) = do
             DefaultUniPair uniA uniB <- pure uniPairAB
             pure $ fromValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
@@ -452,7 +452,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         -- The type reads as @[(a, Bool)] -> [(Bool, a)]@.
         swapElsPlc
             :: SomeConstant uni [SomeConstant uni (a, Bool)]
-            -> EvaluationResult (SomeConstant uni [SomeConstant uni (Bool, a)])
+            -> BuiltinResult (SomeConstant uni [SomeConstant uni (Bool, a)])
         swapElsPlc (SomeConstant (Some (ValueOf uniList xs))) = do
             DefaultUniList (DefaultUniPair uniA DefaultUniBool) <- pure uniList
             let uniList' = DefaultUniList $ DefaultUniPair DefaultUniBool uniA
@@ -462,10 +462,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     -- See Note [Builtin semantics variants]
     toBuiltinMeaning semvar ExtensionVersion =
         makeBuiltinMeaning
-            @(() -> EvaluationResult Integer)
-            (\(_ :: ()) -> EvaluationSuccess $ case semvar of
-                    ExtensionFunSemanticsVariantX -> 0
-                    ExtensionFunSemanticsVariantY -> 1)
+            @(() -> Integer)
+            (\_ -> case semvar of
+                ExtensionFunSemanticsVariantX -> 0
+                ExtensionFunSemanticsVariantY -> 1)
             whatever
 
     -- We want to know if the CEK machine releases individual budgets after accounting for them and
