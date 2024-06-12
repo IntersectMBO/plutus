@@ -522,8 +522,11 @@ fails fileName fun typeArgs termArgs = do
                             concatMap (\_ -> " <...>") termArgs
                 in testNestedNamedM mempty name $
                     testNestedNamedM mempty expectedToDisplay $
-                        nestedGoldenVsDoc fileName ".err" . vsep $
-                            map pretty logs ++ [prettyPlcReadableDef err]
+                        nestedGoldenVsDoc fileName ".err" . vsep $ concat
+                            [ [prettyPlcReadableDef err]
+                            , ["Logs were:" | not $ null logs]
+                            , map pretty logs
+                            ]
 
 -- | Test all integer related builtins
 test_Integer :: TestNested
