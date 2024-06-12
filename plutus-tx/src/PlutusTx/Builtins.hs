@@ -638,7 +638,7 @@ byteOrderToBool BigEndian    = True
 byteOrderToBool LittleEndian = False
 
 -- | Convert a 'BuiltinInteger' into a 'BuiltinByteString', as described in
--- [CIP-121](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-0121).
+-- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
 -- The first argument indicates the endianness of the conversion and the third
 -- argument is the integer to be converted, which must be non-negative.  The
 -- second argument must also be non-negative and it indicates the required width
@@ -656,7 +656,7 @@ integerToByteString :: ByteOrder -> Integer -> Integer -> BuiltinByteString
 integerToByteString endianness = BI.integerToByteString (toOpaque (byteOrderToBool endianness))
 
 -- | Convert a 'BuiltinByteString' to a 'BuiltinInteger', as described in
--- [CIP-121](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-0121).
+-- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
 -- The first argument indicates the endianness of the conversion and the second
 -- is the bytestring to be converted.  There is no limitation on the size of
 -- the bytestring.  The empty bytestring is converted to the integer 0.
@@ -667,26 +667,22 @@ byteStringToInteger endianness =
 
 -- Bitwise operations
 
--- | Shift a 'BuiltinByteString', as per [this
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
+-- | Shift a 'BuiltinByteString', as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
 {-# INLINEABLE shiftByteString #-}
 shiftByteString :: BuiltinByteString -> Integer -> BuiltinByteString
 shiftByteString = BI.shiftByteString
 
--- | Rotate a 'BuiltinByteString', as per [this
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
+-- | Rotate a 'BuiltinByteString', as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
 {-# INLINEABLE rotateByteString #-}
 rotateByteString :: BuiltinByteString -> Integer -> BuiltinByteString
 rotateByteString = BI.rotateByteString
 
--- | Count the set bits in a 'BuiltinByteString', as per [this
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
+-- | Count the set bits in a 'BuiltinByteString', as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
 {-# INLINEABLE countSetBits #-}
 countSetBits :: BuiltinByteString -> Integer
 countSetBits = BI.countSetBits
 
--- | Find the lowest index of a set bit in a 'BuiltinByteString', as per [this
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
+-- | Find the lowest index of a set bit in a 'BuiltinByteString', as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
 --
 -- If given a 'BuiltinByteString' which consists only of zero bytes (including the empty
 -- 'BuiltinByteString', this returns @-1@.
@@ -696,8 +692,8 @@ findFirstSetBit = BI.findFirstSetBit
 
 -- Logical operations
 
--- | Perform logical AND on two 'BuiltinByteString' arguments, as described
--- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bitwiselogicaland).
+-- | Perform logical AND on two 'BuiltinByteString' arguments, as described in
+-- [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bitwiselogicaland).
 --
 -- The first argument indicates whether padding semantics should be used or not;
 -- if 'False', truncation semantics will be used instead.
@@ -705,9 +701,9 @@ findFirstSetBit = BI.findFirstSetBit
 -- = See also
 --
 -- * [Padding and truncation
--- semantics](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#padding-versus-truncation-semantics)
+-- semantics](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#padding-versus-truncation-semantics)
 -- * [Bit indexing
--- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bit-indexing-scheme)
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
 {-# INLINEABLE andByteString #-}
 andByteString ::
   Bool ->
@@ -717,7 +713,7 @@ andByteString ::
 andByteString b = BI.andByteString (toOpaque b)
 
 -- | Perform logical OR on two 'BuiltinByteString' arguments, as described
--- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bitwiselogicalor).
+-- [here](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bitwiselogicalor).
 --
 -- The first argument indicates whether padding semantics should be used or not;
 -- if 'False', truncation semantics will be used instead.
@@ -725,9 +721,9 @@ andByteString b = BI.andByteString (toOpaque b)
 -- = See also
 --
 -- * [Padding and truncation
--- semantics](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#padding-versus-truncation-semantics)
+-- semantics](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#padding-versus-truncation-semantics)
 -- * [Bit indexing
--- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bit-indexing-scheme)
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
 {-# INLINEABLE orByteString #-}
 orByteString ::
   Bool ->
@@ -737,7 +733,7 @@ orByteString ::
 orByteString b = BI.orByteString (toOpaque b)
 
 -- | Perform logical XOR on two 'BuiltinByteString' arguments, as described
--- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bitwiselogicalxor).
+-- [here](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bitwiselogicalxor).
 --
 -- The first argument indicates whether padding semantics should be used or not;
 -- if 'False', truncation semantics will be used instead.
@@ -745,9 +741,9 @@ orByteString b = BI.orByteString (toOpaque b)
 -- = See also
 --
 -- * [Padding and truncation
--- semantics](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#padding-versus-truncation-semantics)
+-- semantics](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#padding-versus-truncation-semantics)
 -- * [Bit indexing
--- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bit-indexing-scheme)
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
 {-# INLINEABLE xorByteString #-}
 xorByteString ::
   Bool ->
@@ -757,12 +753,12 @@ xorByteString ::
 xorByteString b = BI.xorByteString (toOpaque b)
 
 -- | Perform logical complement on a 'BuiltinByteString', as described
--- [here](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bitwiselogicalcomplement).
+-- [here](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bitwiselogicalcomplement).
 --
 -- = See also
 --
 -- * [Bit indexing
--- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bit-indexing-scheme)
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
 {-# INLINEABLE complementByteString #-}
 complementByteString ::
   BuiltinByteString ->
@@ -778,9 +774,9 @@ complementByteString = BI.complementByteString
 -- = See also
 --
 -- * [Bit indexing
--- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bit-indexing-scheme)
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
 -- * [Operation
--- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#readbit)
+-- description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#readbit)
 {-# INLINEABLE readBit #-}
 readBit ::
   BuiltinByteString ->
@@ -797,9 +793,9 @@ readBit bs i = fromOpaque (BI.readBit bs i)
 -- = See also
 --
 -- * [Bit indexing
--- scheme](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#bit-indexing-scheme)
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
 -- * [Operation
--- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#writebits)
+-- description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#writebits)
 {-# INLINEABLE writeBits #-}
 writeBits ::
   BuiltinByteString ->
@@ -814,7 +810,7 @@ writeBits = BI.writeBits
 -- = See also
 --
 -- * [Operation
--- description](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md#replicateByteString)
+-- description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#replicateByteString)
 {-# INLINEABLE replicateByte #-}
 replicateByte ::
   Integer ->

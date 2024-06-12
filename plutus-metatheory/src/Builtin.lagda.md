@@ -535,7 +535,7 @@ postulate
 {-# COMPILE GHC KECCAK-256 = Hash.keccak_256 #-}
 {-# COMPILE GHC BLAKE2B-224 = Hash.blake2b_224 #-}
 
-{-# FOREIGN GHC import PlutusCore.Bitwise.Convert qualified as Convert #-}
+{-# FOREIGN GHC import PlutusCore.Bitwise qualified as Convert #-}
 {-# COMPILE GHC BStoI = Convert.byteStringToIntegerWrapper #-}
 {-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Convert.integerToByteStringWrapper e w n #-}
 

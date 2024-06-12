@@ -92,9 +92,7 @@ library
     PlutusCore.Analysis.Definitions
     PlutusCore.Annotation
     PlutusCore.Arity
-    PlutusCore.Bitwise.Convert
-    PlutusCore.Bitwise.Logical
-    PlutusCore.Bitwise.Other
+    PlutusCore.Bitwise
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
