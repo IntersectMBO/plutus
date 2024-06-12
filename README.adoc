@@ -42,7 +42,7 @@ After setting it up you should just be able to depend on the `plutus` packages a
 
 === User documentation
 
-The main documentation is located https://plutus.readthedocs.io/en/latest/[here].
+The main documentation is located https://intersectmbo.github.io/plutus/master/docs/[here].
 
 The latest documentation for the metatheory can be found https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.plutus-metatheory-site/latest/download/1[here].
 
