@@ -99,7 +99,7 @@ node.sock
 .pre-commit-config.yaml
 secrets/*/.gpg-id
 ghcid.txt
-combined_haddock*
+haddocks
 plutus-pab/test-node/testnet/db
 plutus-pab/test-node/alonzo-purple/db
 *.actual.json
