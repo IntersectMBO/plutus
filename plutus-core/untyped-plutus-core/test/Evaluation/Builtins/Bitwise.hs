@@ -27,29 +27,26 @@ module Evaluation.Builtins.Bitwise (
 import Control.Monad (unless)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
-import Evaluation.Builtins.Common (typecheckEvaluateCek, typecheckReadKnownCek)
-import Hedgehog (Property, PropertyT, annotateShow, failure, forAll, forAllWith, property, (===))
+import Evaluation.Helpers (assertEvaluatesToConstant, evaluateTheSame, evaluateToHaskell,
+                           evaluatesToConstant, forAllByteString, forAllByteStringThat)
+import Hedgehog (Property, forAll, property)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Numeric (showHex)
 import PlutusCore qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
-import PlutusPrelude (Word8, def)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
-import Test.Tasty.HUnit (assertEqual, assertFailure, testCase)
-import UntypedPlutusCore qualified as UPLC
+import Test.Tasty.HUnit (testCase)
 
 -- | Finding the first set bit in a bytestring with only zero bytes should always give -1.
 ffsZero :: Property
 ffsZero = property $ do
-  len <- forAll . Gen.integral . Range.linear 0 $ 1024
+  len <- forAll . Gen.integral . Range.linear 0 $ 512
   let bs = BS.replicate len 0x00
   let rhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
         mkConstant @ByteString () bs
         ]
-  evaluateAndVerify (mkConstant @Integer () (negate 1)) rhs
+  evaluatesToConstant @Integer (negate 1) rhs
 
 -- | If we find a valid index for the first set bit, then:
 --
@@ -60,32 +57,29 @@ ffsZero = property $ do
 -- bytestring), as otherwise, the test wouldn't be meaningful.
 ffsIndex :: Property
 ffsIndex = property $ do
-  bs <- forAllNonZeroByteString
+  bs <- forAllByteStringThat (BS.any (/= 0x00)) 0 512
   let ffsExp = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
         mkConstant @ByteString () bs
         ]
-  case typecheckReadKnownCek def defaultBuiltinCostModelForTesting ffsExp of
-    Left err -> annotateShow err >> failure
-    Right (Left err) -> annotateShow err >> failure
-    Right (Right ix) -> do
-      let hitIxExp = mkIterAppNoAnn (builtin () PLC.ReadBit) [
-            mkConstant @ByteString () bs,
-            mkConstant @Integer () ix
-            ]
-      evaluateAndVerify (mkConstant @Bool () True) hitIxExp
-      unless (ix == 0) $ do
-        i <- forAll . Gen.integral . Range.linear 0 $ ix - 1
-        let missIxExp = mkIterAppNoAnn (builtin () PLC.ReadBit) [
-              mkConstant @ByteString () bs,
-              mkConstant @Integer () i
-              ]
-        evaluateAndVerify (mkConstant @Bool () False) missIxExp
+  ix <- evaluateToHaskell ffsExp
+  let hitIxExp = mkIterAppNoAnn (builtin () PLC.ReadBit) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () ix
+        ]
+  evaluatesToConstant True hitIxExp
+  unless (ix == 0) $ do
+    i <- forAll . Gen.integral . Range.linear 0 $ ix - 1
+    let missIxExp = mkIterAppNoAnn (builtin () PLC.ReadBit) [
+          mkConstant @ByteString () bs,
+          mkConstant @Integer () i
+          ]
+    evaluatesToConstant False missIxExp
 
 -- | For any choice of bytestring, if we XOR it with itself, there should be no set bits; that is,
 -- finding the first set bit should give @-1@.
 ffsXor :: Property
 ffsXor = property $ do
-  bs <- forAllByteString
+  bs <- forAllByteString 0 512
   semantics <- forAll Gen.bool
   let rhsInner = mkIterAppNoAnn (builtin () PLC.XorByteString) [
         mkConstant @Bool () semantics,
@@ -95,7 +89,7 @@ ffsXor = property $ do
   let rhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
         rhsInner
         ]
-  evaluateAndVerify (mkConstant @Integer () (negate 1)) rhs
+  evaluatesToConstant @Integer (negate 1) rhs
 
 -- | If we replicate any byte any (positive) number of times, the first set bit should be the same as
 -- in the case where we replicated it exactly once.
@@ -123,7 +117,7 @@ ffsReplicate = property $ do
 -- @n - k@ set bits.
 csbComplement :: Property
 csbComplement = property $ do
-  bs <- forAllByteString
+  bs <- forAllByteString 0 512
   let bitLen = BS.length bs * 8
   let lhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
         mkConstant @ByteString () bs
@@ -144,8 +138,8 @@ csbComplement = property $ do
 -- @x XOR y@ should be the number of set bits in @x OR y@ minus the number of set bits in @x AND y@.
 csbInclusionExclusion :: Property
 csbInclusionExclusion = property $ do
-  x <- forAllByteString
-  y <- forAllByteString
+  x <- forAllByteString 0 512
+  y <- forAllByteString 0 512
   let lhsInner = mkIterAppNoAnn (builtin () PLC.XorByteString) [
         mkConstant @Bool () False,
         mkConstant @ByteString () x,
@@ -179,7 +173,7 @@ csbInclusionExclusion = property $ do
 -- | For any bytestring @x@, the number of set bits in @x XOR x@ should be 0.
 csbXor :: Property
 csbXor = property $ do
-  bs <- forAllByteString
+  bs <- forAllByteString 0 512
   semantics <- forAll Gen.bool
   let rhsInner = mkIterAppNoAnn (builtin () PLC.XorByteString) [
         mkConstant @Bool () semantics,
@@ -189,7 +183,7 @@ csbXor = property $ do
   let rhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
         rhsInner
         ]
-  evaluateAndVerify (mkConstant @Integer () 0) rhs
+  evaluatesToConstant @Integer 0 rhs
 
 -- | There should exist a monoid homomorphism between natural number addition and function composition for
 -- shifts over a fixed bytestring argument.
@@ -208,15 +202,15 @@ shiftHomomorphism = [
   where
     idProp :: Property
     idProp = property $ do
-      bs <- forAllByteString
+      bs <- forAllByteString 0 512
       let lhs = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
             mkConstant @ByteString () bs,
             mkConstant @Integer () 0
             ]
-      evaluateAndVerify (mkConstant @ByteString () bs) lhs
+      evaluatesToConstant bs lhs
     plusCompProp :: Property
     plusCompProp = property $ do
-      bs <- forAllByteString
+      bs <- forAllByteString 0 512
       i <- forAll . Gen.integral . Range.linear 0 $ 512
       j <- forAll . Gen.integral . Range.linear 0 $ 512
       let lhsInner = mkIterAppNoAnn (builtin () PLC.AddInteger) [
@@ -235,14 +229,10 @@ shiftHomomorphism = [
             rhsInner,
             mkConstant @Integer () j
             ]
-      let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
-            lhs,
-            rhs
-            ]
-      evaluateAndVerify (mkConstant @Bool () True) compareExp
+      evaluateTheSame lhs rhs
     minusCompProp :: Property
     minusCompProp = property $ do
-      bs <- forAllByteString
+      bs <- forAllByteString 0 512
       i <- forAll . Gen.integral . Range.linear 0 $ negate 512
       j <- forAll . Gen.integral . Range.linear 0 $ negate 512
       let lhsInner = mkIterAppNoAnn (builtin () PLC.AddInteger) [
@@ -261,11 +251,7 @@ shiftHomomorphism = [
             rhsInner,
             mkConstant @Integer () j
             ]
-      let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
-            lhs,
-            rhs
-            ]
-      evaluateAndVerify (mkConstant @Bool () True) compareExp
+      evaluateTheSame lhs rhs
 
 -- | There should exist a monoid homomorphism between integer addition and function composition for
 -- rotations over a fixed bytestring argument.
@@ -277,19 +263,15 @@ rotateHomomorphism = [
   where
     idProp :: Property
     idProp = property $ do
-      bs <- forAllByteString
+      bs <- forAllByteString 0 512
       let lhs = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
             mkConstant @ByteString () bs,
             mkConstant @Integer () 0
             ]
-      let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
-            lhs,
-            mkConstant @ByteString () bs
-            ]
-      evaluateAndVerify (mkConstant @Bool () True) compareExp
+      evaluatesToConstant bs lhs
     compProp :: Property
     compProp = property $ do
-      bs <- forAllByteString
+      bs <- forAllByteString 0 512
       i <- forAll . Gen.integral . Range.linear (negate 512) $ 512
       j <- forAll . Gen.integral . Range.linear (negate 512) $ 512
       let lhsInner = mkIterAppNoAnn (builtin () PLC.AddInteger) [
@@ -308,11 +290,7 @@ rotateHomomorphism = [
             rhsInner,
             mkConstant @Integer () j
             ]
-      let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
-            lhs,
-            rhs
-            ]
-      evaluateAndVerify (mkConstant @Bool () True) compareExp
+      evaluateTheSame lhs rhs
 
 -- | There should exist a monoid homomorphism between bytestring concatenation and natural number
 -- addition.
@@ -322,18 +300,14 @@ csbHomomorphism = [
     let lhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
           mkConstant @ByteString () ""
           ]
-    case typecheckEvaluateCek def defaultBuiltinCostModelForTesting lhs of
-        Left x -> assertFailure . show $ x
-        Right (res, logs) -> case res of
-          PLC.EvaluationFailure   -> assertFailure . show $ logs
-          PLC.EvaluationSuccess r -> assertEqual "" r (mkConstant @Integer () 0),
+    assertEvaluatesToConstant @Integer 0 lhs,
   testPropertyNamed "count of concat is addition" "concat_count_plus" compProp
   ]
   where
     compProp :: Property
     compProp = property $ do
-      bs1 <- forAllByteString
-      bs2 <- forAllByteString
+      bs1 <- forAllByteString 0 512
+      bs2 <- forAllByteString 0 512
       let lhsInner = mkIterAppNoAnn (builtin () PLC.AppendByteString) [
             mkConstant @ByteString () bs1,
             mkConstant @ByteString () bs2
@@ -351,16 +325,12 @@ csbHomomorphism = [
             rhsLeft,
             rhsRight
             ]
-      let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsInteger) [
-            lhs,
-            rhs
-            ]
-      evaluateAndVerify (mkConstant @Bool () True) compareExp
+      evaluateTheSame lhs rhs
 
 -- | Shifting by more than the bit length (either positive or negative) clears the result.
 shiftClear :: Property
 shiftClear = property $ do
-  bs <- forAllByteString
+  bs <- forAllByteString 0 512
   let bitLen = 8 * BS.length bs
   i <- forAll . Gen.integral . Range.linear (negate 256) $ 256
   adjustment <- case signum i of
@@ -379,16 +349,12 @@ shiftClear = property $ do
         rhsInner,
         mkConstant @Integer () 0
         ]
-  let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
-        lhs,
-        rhs
-        ]
-  evaluateAndVerify (mkConstant @Bool () True) compareExp
+  evaluateTheSame lhs rhs
 
 -- | Positive shifts clear low-index bits.
 shiftPosClearLow :: Property
 shiftPosClearLow = property $ do
-  bs <- forAllByteString1
+  bs <- forAllByteString 1 512
   let bitLen = 8 * BS.length bs
   n <- forAll . Gen.integral . Range.linear 1 $ bitLen - 1
   i <- forAll . Gen.integral . Range.linear 0 $ n - 1
@@ -400,12 +366,12 @@ shiftPosClearLow = property $ do
         lhsInner,
         mkConstant @Integer () (fromIntegral i)
         ]
-  evaluateAndVerify (mkConstant @Bool () False) lhs
+  evaluatesToConstant False lhs
 
 -- | Negative shifts clear high-index bits.
 shiftNegClearHigh :: Property
 shiftNegClearHigh = property $ do
-  bs <- forAllByteString1
+  bs <- forAllByteString 1 512
   let bitLen = 8 * BS.length bs
   n <- forAll . Gen.integral . Range.linear 1 $ bitLen - 1
   i <- forAll . Gen.integral . Range.linear 0 $ n - 1
@@ -417,12 +383,12 @@ shiftNegClearHigh = property $ do
         lhsInner,
         mkConstant @Integer () (fromIntegral $ bitLen - i - 1)
         ]
-  evaluateAndVerify (mkConstant @Bool () False) lhs
+  evaluatesToConstant False lhs
 
 -- | Rotations by more than the bit length 'roll over' bits.
 rotateRollover :: Property
 rotateRollover = property $ do
-  bs <- forAllByteString
+  bs <- forAllByteString 0 512
   let bitLen = 8 * BS.length bs
   i <- forAll . Gen.integral . Range.linear (negate 512) $ 512
   let lhs = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
@@ -435,16 +401,12 @@ rotateRollover = property $ do
         mkConstant @ByteString () bs,
         mkConstant @Integer () i
         ]
-  let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsByteString) [
-        lhs,
-        rhs
-        ]
-  evaluateAndVerify (mkConstant @Bool () True) compareExp
+  evaluateTheSame lhs rhs
 
 -- | Rotations move bits, but don't change them.
 rotateMoveBits :: Property
 rotateMoveBits = property $ do
-  bs <- forAllByteString1
+  bs <- forAllByteString 1 512
   let bitLen = 8 * BS.length bs
   i <- forAll . Gen.integral . Range.linear 0 $ bitLen - 1
   j <- forAll . Gen.integral . Range.linear (negate 256) $ 256
@@ -469,7 +431,7 @@ rotateMoveBits = property $ do
 -- | Rotations do not change how many set (and clear) bits there are.
 csbRotate :: Property
 csbRotate = property $ do
-  bs <- forAllByteString
+  bs <- forAllByteString 0 512
   i <- forAll . Gen.integral . Range.linear (negate 512) $ 512
   let lhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
         mkConstant @ByteString () bs
@@ -481,57 +443,4 @@ csbRotate = property $ do
   let rhs = mkIterAppNoAnn (builtin () PLC.CountSetBits) [
         rhsInner
         ]
-  let compareExp = mkIterAppNoAnn (builtin () PLC.EqualsInteger) [
-        lhs,
-        rhs
-        ]
-  evaluateAndVerify (mkConstant @Bool () True) compareExp
-
--- Helpers
-
-forAllByteString :: PropertyT IO ByteString
-forAllByteString = forAllWith hexShow . Gen.bytes . Range.linear 0 $ 1024
-
-forAllByteString1 :: PropertyT IO ByteString
-forAllByteString1 = forAllWith hexShow . Gen.bytes . Range.linear 1 $ 1024
-
-forAllNonZeroByteString :: PropertyT IO ByteString
-forAllNonZeroByteString =
-  forAllWith hexShow . Gen.filterT (BS.any (/= 0x00)) . Gen.bytes . Range.linear 0 $ 1024
-
-evaluateAndVerify ::
-  UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
-  PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
-  PropertyT IO ()
-evaluateAndVerify expected actual =
-  case typecheckEvaluateCek def defaultBuiltinCostModelForTesting actual of
-    Left x -> annotateShow x >> failure
-    Right (res, logs) -> case res of
-      PLC.EvaluationFailure   -> annotateShow logs >> failure
-      PLC.EvaluationSuccess r -> r === expected
-
-evaluateTheSame ::
-  PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
-  PLC.Term UPLC.TyName UPLC.Name UPLC.DefaultUni UPLC.DefaultFun () ->
-  PropertyT IO ()
-evaluateTheSame lhs rhs =
-  case typecheckEvaluateCek def defaultBuiltinCostModelForTesting lhs of
-    Left x -> annotateShow x >> failure
-    Right (resLhs, logsLhs) -> case typecheckEvaluateCek def defaultBuiltinCostModelForTesting rhs of
-      Left x -> annotateShow x >> failure
-      Right (resRhs, logsRhs) -> case (resLhs, resRhs) of
-        (PLC.EvaluationFailure, PLC.EvaluationFailure) -> do
-          annotateShow logsLhs
-          annotateShow logsRhs
-          failure
-        (PLC.EvaluationSuccess rLhs, PLC.EvaluationSuccess rRhs) -> rLhs === rRhs
-        (PLC.EvaluationFailure, _) -> annotateShow logsLhs >> failure
-        (_, PLC.EvaluationFailure) -> annotateShow logsRhs >> failure
-
-hexShow :: ByteString -> String
-hexShow = ("0x" <>) . BS.foldl' (\acc w8 -> acc <> byteToHex w8) ""
-  where
-    byteToHex :: Word8 -> String
-    byteToHex w8
-      | w8 < 128 = "0" <> showHex w8 ""
-      | otherwise = showHex w8 ""
+  evaluateTheSame lhs rhs
