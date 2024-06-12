@@ -36,8 +36,8 @@ This involves using Plutus Tx to write scripts, requiring some knowledge of the 
 This guide is also meant for certification companies, certification auditors, and people who need an accurate specification. 
 See, for example:
 
-- the [Cardano ledger specification](https://github.com/IntersectMBO/cardano-ledger#cardano-ledger),
-- the [Plutus Core specification](https://github.com/IntersectMBO/plutus#specifications-and-design), and
+- the [Cardano ledger specification](https://github.com/IntersectMBO/cardano-ledger#cardano-ledger)
+- the [Plutus Core specification](https://github.com/IntersectMBO/plutus#specifications-and-design)
 - the [public Plutus code libraries](https://intersectmbo.github.io/plutus/master/) generated using Haddock. 
 
 ## The Plutus repository
