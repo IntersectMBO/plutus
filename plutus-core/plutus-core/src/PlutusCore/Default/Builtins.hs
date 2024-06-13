@@ -195,7 +195,9 @@ nonZeroSecondArg
 --
 -- The bang is to communicate to GHC that the function is strict in both the arguments just in case
 -- it'd want to allocate a thunk for the first argument otherwise.
-nonZeroSecondArg _ !_ 0 = fail "Cannot divide by zero"
+nonZeroSecondArg _ !_ 0 =
+    -- See Note [Operational vs structural errors within builtins].
+    fail "Cannot divide by zero"
 nonZeroSecondArg f  x y = pure $ f x y
 {-# INLINE nonZeroSecondArg #-}
 
@@ -471,7 +473,7 @@ In Note [How to add a built-in function: simple cases] we defined the following 
             ifThenElseDenotation
             <costingFunction>
 
-whose inferred Haskell type is
+whose Haskell type is
 
     forall a. Bool -> a -> a -> a
 
@@ -570,11 +572,11 @@ It's of course allowed to have multiple type variables, e.g. in the following sn
             constDenotation
             <costingFunction>
 
-the Haskell type of 'const' gets inferred as
+the Haskell type of 'const' is
 
     forall a b. a -> b -> a
 
-and the elaboration machinery turns that into
+which the elaboration machinery turns into
 
     Opaque val Var0 -> Opaque val Var1 -> Opaque val Var0
 
@@ -589,24 +591,23 @@ the elaboration machinery wouldn't make a fuss about that.
 As a final simple example, consider
 
     toBuiltinMeaning _ Trace =
-        let traceDenotation :: Text -> a -> Emitter a
+        let traceDenotation :: Text -> a -> BuiltinResult a
             traceDenotation text a = a <$ emit text
             {-# INLINE traceDenotation #-}
         in makeBuiltinMeaning
             traceDenotation
             <costingFunction>
 
-from [How to add a built-in function: simple cases]. The inferred type of the denotation is
+from [How to add a built-in function: simple cases]. The type of the denotation is
 
-    forall a. Text -> a -> Emitter a
+    forall a. Text -> a -> BuiltinResult a
 
 which elaborates to
 
-    Text -> Opaque val Var0 -> Emitter (Opaque val Var0)
+    Text -> Opaque val Var0 -> BuiltinResult (Opaque val Var0)
 
 Elaboration machinery is able to look under 'BuiltinResult' even if there's a type variable inside
-that does not appear anywhere else in the type signature, for example the inferred type of the
-denotation in
+that does not appear anywhere else in the type signature, for example the type of the denotation in
 
     toBuiltinMeaning _ ErrorPrime =
         let errorPrimeDenotation :: BuiltinResult a
@@ -1093,6 +1094,12 @@ This was investigated in https://github.com/IntersectMBO/plutus/pull/4337 but we
 do it quite yet, even though it worked (the Plutus Tx part wasn't implemented).
 -}
 
+{- Note [Operational vs structural errors within builtins]
+See the Haddock of 'EvaluationError' to understand why we sometimes use 'fail' (to throw an
+"operational" evaluation error) and sometimes use @throwing _StructuralUnliftingError@ (to throw a
+"structural" evaluation error). Please respect the distinction when adding new built-in functions.
+-}
+
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
 
@@ -1254,6 +1261,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let indexByteStringDenotation :: BS.ByteString -> Int -> BuiltinResult Word8
             indexByteStringDenotation xs n = do
                 unless (n >= 0 && n < BS.length xs) $
+                    -- See Note [Operational vs structural errors within builtins].
                     -- The arguments are going to be printed in the "cause" part of the error
                     -- message, so we don't need to repeat them here.
                     fail "Index out of bounds"
@@ -1429,6 +1437,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 case uniPairAB of
                     DefaultUniPair uniA _ -> pure . fromValueOf uniA $ fst xy
                     _                     ->
+                        -- See Note [Operational vs structural errors within builtins].
                         throwing _StructuralUnliftingError "Expected a pair but got something else"
             {-# INLINE fstPairDenotation #-}
         in makeBuiltinMeaning
@@ -1441,6 +1450,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 case uniPairAB of
                     DefaultUniPair _ uniB -> pure . fromValueOf uniB $ snd xy
                     _                     ->
+                        -- See Note [Operational vs structural errors within builtins].
                         throwing _StructuralUnliftingError "Expected a pair but got something else"
             {-# INLINE sndPairDenotation #-}
         in makeBuiltinMeaning
@@ -1455,6 +1465,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     DefaultUniList _ -> pure $ case xs of
                         []    -> a
                         _ : _ -> b
+                    -- See Note [Operational vs structural errors within builtins].
                     _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE chooseListDenotation #-}
         in makeBuiltinMeaning
@@ -1462,11 +1473,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunThreeArguments . paramChooseList)
 
     toBuiltinMeaning _semvar MkCons =
+
         let mkConsDenotation
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             mkConsDenotation
               (SomeConstant (Some (ValueOf uniA x)))
               (SomeConstant (Some (ValueOf uniListA xs))) = do
+                -- See Note [Operational vs structural errors within builtins].
                 case uniListA of
                     DefaultUniList uniA' -> case uniA `geq` uniA' of
                         Just Refl -> pure . fromValueOf uniListA $ x : xs
@@ -1481,6 +1494,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar HeadList =
         let headListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val a)
             headListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
+                -- See Note [Operational vs structural errors within builtins].
                 case uniListA of
                     DefaultUniList uniA -> case xs of
                         []    -> fail "Expected a non-empty list but got an empty one"
@@ -1494,6 +1508,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar TailList =
         let tailListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             tailListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
+                -- See Note [Operational vs structural errors within builtins].
                 case uniListA of
                     DefaultUniList _ -> case xs of
                         []      -> fail "Expected a non-empty list but got an empty one"
@@ -1510,6 +1525,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 case uniListA of
                     DefaultUniList _ -> pure $ null xs
                     _                ->
+                        -- See Note [Operational vs structural errors within builtins].
                         throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
@@ -1575,6 +1591,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unConstrDataDenotation :: Data -> BuiltinResult (Integer, [Data])
             unConstrDataDenotation = \case
                 Constr i ds -> pure (i, ds)
+                -- See Note [Operational vs structural errors within builtins].
                 _           -> fail "Expected the Constr constructor but got a different one"
             {-# INLINE unConstrDataDenotation #-}
         in makeBuiltinMeaning
@@ -1585,6 +1602,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unMapDataDenotation :: Data -> BuiltinResult [(Data, Data)]
             unMapDataDenotation = \case
                 Map es -> pure es
+                -- See Note [Operational vs structural errors within builtins].
                 _      -> fail "Expected the Map constructor but got a different one"
             {-# INLINE unMapDataDenotation #-}
         in makeBuiltinMeaning
@@ -1595,6 +1613,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unListDataDenotation :: Data -> BuiltinResult [Data]
             unListDataDenotation = \case
                 List ds -> pure ds
+                -- See Note [Operational vs structural errors within builtins].
                 _       -> fail "Expected the List constructor but got a different one"
             {-# INLINE unListDataDenotation #-}
         in makeBuiltinMeaning
@@ -1605,6 +1624,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unIDataDenotation :: Data -> BuiltinResult Integer
             unIDataDenotation = \case
                 I i -> pure i
+                -- See Note [Operational vs structural errors within builtins].
                 _   -> fail "Expected the I constructor but got a different one"
             {-# INLINE unIDataDenotation #-}
         in makeBuiltinMeaning
@@ -1615,6 +1635,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unBDataDenotation :: Data -> BuiltinResult BS.ByteString
             unBDataDenotation = \case
                 B b -> pure b
+                -- See Note [Operational vs structural errors within builtins].
                 _   -> fail "Expected the B constructor but got a different one"
             {-# INLINE unBDataDenotation #-}
         in makeBuiltinMeaning

@@ -33,8 +33,8 @@ import Data.Bitraversable
    wrong. For example, 'Error' was executed, 'tailList' was applied to an empty list or evaluation
    ran out of gas.
 2. Structural ones -- these are errors that are indicative of the _structure_ of the program being
-   wrong. For example, a free variable was encountered during evaluation, or a non-function was
-   applied to an argument.
+   wrong. For example, a free variable was encountered during evaluation, a non-function was
+   applied to an argument or 'tailList' was applied to a non-list.
 
 On the chain both of these are just regular failures and we don't distinguish between them there:
 if a script fails, it fails, it doesn't matter what the reason was. However in the tests it does
