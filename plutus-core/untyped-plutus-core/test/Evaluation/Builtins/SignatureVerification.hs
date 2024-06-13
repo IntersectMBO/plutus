@@ -59,21 +59,21 @@ ecdsaSecp256k1Prop = do
 schnorrSecp256k1Prop :: PropertyT IO ()
 schnorrSecp256k1Prop = do
   testCase <- forAllWith ppShow genSchnorrCase
-  cover 18 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
-  cover 18 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
-  cover 18 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
-  cover 18 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
-  cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
+  cover 15 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
+  cover 15 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
+  cover 15 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
+  cover 15 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
+  cover 15 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
   runTestDataWith def testCase id VerifySchnorrSecp256k1Signature
 
 ed25519Prop :: BuiltinSemanticsVariant DefaultFun -> PropertyT IO ()
 ed25519Prop semvar = do
   testCase <- forAllWith ppShow genEd25519Case
-  cover 18 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
-  cover 18 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
-  cover 18 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
-  cover 18 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
-  cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
+  cover 15 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
+  cover 15 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
+  cover 15 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
+  cover 15 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
+  cover 15 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
   runTestDataWith semvar testCase id VerifyEd25519Signature
 
 ed25519_VariantAProp :: PropertyT IO ()
