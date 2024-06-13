@@ -84,12 +84,7 @@ data TxInfo = TxInfo
     , txInfoData            :: Map DatumHash Datum -- ^ The lookup table of datums attached to the transaction
                                                   -- /V1->V2/: changed from assoc list to a 'PlutusTx.AssocMap'
     , txInfoId              :: TxId  -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
-    } deriving stock (Generic, Haskell.Show, Haskell.Eq)
-
-instance Eq TxInfo where
-    {-# INLINABLE (==) #-}
-    TxInfo i ri o f m c w r s rs d tid == TxInfo i' ri' o' f' m' c' w' r' s' rs' d' tid' =
-        i == i' && ri == ri' && o == o' && f == f' && m == m' && c == c' && w == w' && r == r' && s == s' && rs == rs' && d == d' && tid == tid'
+    } deriving stock (Generic, Haskell.Show)
 
 instance Pretty TxInfo where
     pretty TxInfo{txInfoInputs, txInfoReferenceInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoRedeemers, txInfoData, txInfoId} =
@@ -113,11 +108,7 @@ data ScriptContext = ScriptContext
     { scriptContextTxInfo  :: TxInfo -- ^ information about the transaction the currently-executing script is included in
     , scriptContextPurpose :: ScriptPurpose -- ^ the purpose of the currently-executing script
     }
-    deriving stock (Generic, Haskell.Eq, Haskell.Show)
-
-instance Eq ScriptContext where
-    {-# INLINABLE (==) #-}
-    ScriptContext info purpose == ScriptContext info' purpose' = info == info' && purpose == purpose'
+    deriving stock (Generic, Haskell.Show)
 
 instance Pretty ScriptContext where
     pretty ScriptContext{scriptContextTxInfo, scriptContextPurpose} =
