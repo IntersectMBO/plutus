@@ -430,7 +430,10 @@ benchmark bls12-381-benchmarks
 library script-contexts-internal
   import:          lang, ghc-version-support
   hs-source-dirs:  script-contexts/src
-  exposed-modules: PlutusBenchmark.ScriptContexts
+  exposed-modules:
+    PlutusBenchmark.Data.ScriptContexts
+    PlutusBenchmark.ScriptContexts
+
   build-depends:
     , base               >=4.9   && <5
     , plutus-ledger-api  ^>=1.29
@@ -441,6 +444,23 @@ test-suite plutus-benchmark-script-contexts-tests
   import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  hs-source-dirs: script-contexts/test
+  other-modules:
+  build-depends:
+    , base                                            >=4.9   && <5
+    , plutus-benchmark-common
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.29
+    , plutus-tx:plutus-tx-testlib                     ^>=1.29
+    , script-contexts-internal
+    , tasty
+    , tasty-hunit
+    , text
+
+test-suite plutus-benchmark-script-contexts-data-tests
+  import:         lang, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Data/Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: script-contexts/test
   other-modules:
