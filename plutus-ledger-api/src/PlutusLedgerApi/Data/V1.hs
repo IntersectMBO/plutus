@@ -123,7 +123,6 @@ module PlutusLedgerApi.Data.V1 (
 import Data.SatInt
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget as PLC
-import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusLedgerApi.Common as Common hiding (deserialiseScript, evaluateScriptCounting,
                                          evaluateScriptRestricting)
 import PlutusLedgerApi.Common qualified as Common (deserialiseScript, evaluateScriptCounting,
@@ -140,11 +139,6 @@ import PlutusLedgerApi.V1.Interval hiding (singleton)
 import PlutusLedgerApi.V1.ParamName
 import PlutusLedgerApi.V1.Scripts as Scripts
 import PlutusLedgerApi.V1.Time
-import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), fromData, toData)
-import PlutusTx.Builtins.Internal (BuiltinData (..), builtinDataToData, dataToBuiltinData)
-import PlutusTx.Prelude (BuiltinByteString, fromBuiltin, toBuiltin)
-
-import Control.Monad.Except (MonadError)
 
 {- | An alias to the Plutus ledger language this module exposes at runtime.
  MAYBE: Use CPP '__FILE__' + some TH to automate this.
@@ -183,7 +177,7 @@ deserialiseScript ::
 deserialiseScript = Common.deserialiseScript thisLedgerLanguage
 
 {- | Evaluates a script, returning the minimum budget that the script would need
-to evaluate successfully. This will take as long as the script takes, if you need to
+to evaluate successfully. lalaThis will take as long as the script takes, if you need to
 limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
 also returns the used budget.
 -}
