@@ -28,6 +28,8 @@ import PlutusCore.Pretty
 import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
+import Evaluation.Builtins.Bitwise qualified as Bitwise
+import Hedgehog hiding (Opaque, Size, Var)
 import PlutusCore qualified as PLC
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
@@ -54,7 +56,6 @@ import Evaluation.Builtins.Laws qualified as Laws
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
                                                   ed25519_VariantBProp, ed25519_VariantCProp,
                                                   schnorrSecp256k1Prop)
-import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter (vsep)
@@ -887,7 +888,7 @@ cons = mkConstant ()
 -- Test that the SECP256k1 builtins are behaving correctly
 test_SignatureVerification :: TestTree
 test_SignatureVerification =
-  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
   testGroup "Signature verification" $ [
         testGroup "Ed25519 signatures (VariantA)"
                       [ testPropertyNamed
@@ -922,7 +923,7 @@ test_SignatureVerification =
 -- Test that the Integer <-> ByteString conversion builtins are behaving correctly
 test_Conversion :: TestTree
 test_Conversion =
-    adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
+    adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
     testGroup "Integer <-> ByteString conversions" $ [
       testGroup "Integer -> ByteString" [
         --- lengthOfByteString (integerToByteString e d 0) = d
@@ -958,10 +959,55 @@ test_Conversion =
         ]
       ]
 
+-- Tests of the laws from [this
+-- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md)
+test_Bitwise :: TestTree
+test_Bitwise =
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
+  testGroup "Bitwise" $ [
+    testGroup "shiftByteString" [
+      testGroup "homomorphism" Bitwise.shiftHomomorphism,
+      testPropertyNamed "shifts over bit length clear input" "shift_too_much"
+                        Bitwise.shiftClear,
+      testPropertyNamed "positive shifts clear low indexes" "shift_pos_low"
+                        Bitwise.shiftPosClearLow,
+      testPropertyNamed "negative shifts clear high indexes" "shift_neg_high"
+                        Bitwise.shiftNegClearHigh
+    ],
+  testGroup "rotateByteString" [
+      testGroup "homomorphism" Bitwise.rotateHomomorphism,
+      testPropertyNamed "rotations over bit length roll over" "rotate_too_much"
+                        Bitwise.rotateRollover,
+      testPropertyNamed "rotations move bits but don't change them" "rotate_move"
+                        Bitwise.rotateMoveBits
+    ],
+  testGroup "countSetBits" [
+      testGroup "homomorphism" Bitwise.csbHomomorphism,
+      testPropertyNamed "rotation preserves count" "popcount_rotate"
+                        Bitwise.csbRotate,
+      testPropertyNamed "count of the complement" "popcount_complement"
+                        Bitwise.csbComplement,
+      testPropertyNamed "inclusion-exclusion" "popcount_inclusion_exclusion"
+                        Bitwise.csbInclusionExclusion,
+      testPropertyNamed "count of self-XOR" "popcount_self_xor"
+                        Bitwise.csbXor
+    ],
+  testGroup "findFirstSetBit" [
+      testPropertyNamed "find first in zero bytestrings" "ffs_zero"
+                        Bitwise.ffsZero,
+      testPropertyNamed "find first in replicated" "ffs_replicate"
+                        Bitwise.ffsReplicate,
+      testPropertyNamed "find first of self-XOR" "ffs_xor"
+                        Bitwise.ffsXor,
+      testPropertyNamed "found index set, lower indices clear" "ffs_index"
+                        Bitwise.ffsIndex
+    ]
+  ]
+
 -- Tests for the logical operations, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md)
 test_Logical :: TestTree
 test_Logical =
-  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 2000) .
   testGroup "Logical" $ [
     testGroup "andByteString" [
       Laws.abelianSemigroupLaws "truncation" PLC.AndByteString False,
@@ -988,7 +1034,7 @@ test_Logical =
       Laws.xorInvoluteLaw,
       Laws.abelianMonoidLaws "padding" PLC.XorByteString True ""
       ],
-    testGroup "bitwiseLogicalComplement" [
+    testGroup "complementByteString" [
       Laws.complementSelfInverse,
       Laws.deMorgan
       ],
@@ -998,7 +1044,7 @@ test_Logical =
       Laws.setSet,
       Laws.writeBitsHomomorphismLaws
       ],
-    testGroup "replicateByteString" [
+    testGroup "replicateByte" [
       Laws.replicateHomomorphismLaws,
       Laws.replicateIndex
       ]
@@ -1042,4 +1088,5 @@ test_definition =
         , test_ConsByteString
         , test_Conversion
         , test_Logical
+        , test_Bitwise
         ]

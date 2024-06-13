@@ -32,8 +32,7 @@ import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import GHC.Generics (Generic)
-import PlutusCore.Bitwise.Convert qualified as Convert
-import PlutusCore.Bitwise.Logical qualified as Logical
+import PlutusCore.Bitwise qualified as Bitwise
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -694,7 +693,7 @@ integerToByteString
     -> BuiltinInteger
     -> BuiltinByteString
 integerToByteString (BuiltinBool endiannessArg) paddingArg input =
-  case Convert.integerToByteStringWrapper endiannessArg paddingArg input of
+  case Bitwise.integerToByteStringWrapper endiannessArg paddingArg input of
     BuiltinSuccess bs              -> BuiltinByteString bs
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
     BuiltinFailure logs err        -> traceAll (logs <> pure (display err)) $
@@ -706,7 +705,40 @@ byteStringToInteger
     -> BuiltinByteString
     -> BuiltinInteger
 byteStringToInteger (BuiltinBool statedEndianness) (BuiltinByteString input) =
-  Convert.byteStringToIntegerWrapper statedEndianness input
+  Bitwise.byteStringToIntegerWrapper statedEndianness input
+
+{-
+BITWISE
+-}
+
+{-# NOINLINE shiftByteString #-}
+shiftByteString ::
+  BuiltinByteString ->
+  BuiltinInteger ->
+  BuiltinByteString
+shiftByteString (BuiltinByteString bs) =
+  BuiltinByteString . Bitwise.shiftByteString bs . fromIntegral
+
+{-# NOINLINE rotateByteString #-}
+rotateByteString ::
+  BuiltinByteString ->
+  BuiltinInteger ->
+  BuiltinByteString
+rotateByteString (BuiltinByteString bs) =
+  BuiltinByteString . Bitwise.rotateByteString bs . fromIntegral
+
+{-# NOINLINE countSetBits #-}
+countSetBits ::
+  BuiltinByteString ->
+  BuiltinInteger
+countSetBits (BuiltinByteString bs) = fromIntegral . Bitwise.countSetBits $ bs
+
+{-# NOINLINE findFirstSetBit #-}
+findFirstSetBit ::
+  BuiltinByteString ->
+  BuiltinInteger
+findFirstSetBit (BuiltinByteString bs) =
+  fromIntegral . Bitwise.findFirstSetBit $ bs
 
 {-
 LOGICAL
@@ -719,7 +751,7 @@ andByteString ::
   BuiltinByteString ->
   BuiltinByteString
 andByteString (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
-  BuiltinByteString . Logical.andByteString isPaddingSemantics data1 $ data2
+  BuiltinByteString . Bitwise.andByteString isPaddingSemantics data1 $ data2
 
 {-# NOINLINE orByteString #-}
 orByteString ::
@@ -728,7 +760,7 @@ orByteString ::
   BuiltinByteString ->
   BuiltinByteString
 orByteString (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
-  BuiltinByteString . Logical.orByteString isPaddingSemantics data1 $ data2
+  BuiltinByteString . Bitwise.orByteString isPaddingSemantics data1 $ data2
 
 {-# NOINLINE xorByteString #-}
 xorByteString ::
@@ -737,14 +769,14 @@ xorByteString ::
   BuiltinByteString ->
   BuiltinByteString
 xorByteString (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
-  BuiltinByteString . Logical.xorByteString isPaddingSemantics data1 $ data2
+  BuiltinByteString . Bitwise.xorByteString isPaddingSemantics data1 $ data2
 
 {-# NOINLINE complementByteString #-}
 complementByteString ::
   BuiltinByteString ->
   BuiltinByteString
 complementByteString (BuiltinByteString bs) =
-  BuiltinByteString . Logical.complementByteString $ bs
+  BuiltinByteString . Bitwise.complementByteString $ bs
 
 {-# NOINLINE readBit #-}
 readBit ::
@@ -752,7 +784,7 @@ readBit ::
   BuiltinInteger ->
   BuiltinBool
 readBit (BuiltinByteString bs) i =
-  case Logical.readBit bs (fromIntegral i) of
+  case Bitwise.readBit bs (fromIntegral i) of
     BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
       Haskell.error "readBit errored."
     BuiltinSuccess b -> BuiltinBool b
@@ -765,19 +797,19 @@ writeBits ::
   BuiltinByteString
 writeBits (BuiltinByteString bs) (BuiltinList xs) =
   let unwrapped = fmap (\(BuiltinPair (i, BuiltinBool b)) -> (i, b)) xs in
-    case Logical.writeBits bs unwrapped of
+    case Bitwise.writeBits bs unwrapped of
       BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
         Haskell.error "writeBits errored."
       BuiltinSuccess bs' -> BuiltinByteString bs'
       BuiltinSuccessWithLogs logs bs' -> traceAll logs $ BuiltinByteString bs'
 
-{-# NOINLINE replicateByteString #-}
-replicateByteString ::
+{-# NOINLINE replicateByte #-}
+replicateByte ::
   BuiltinInteger ->
   BuiltinInteger ->
   BuiltinByteString
-replicateByteString n w8 =
-  case Logical.replicateByteString (fromIntegral n) (fromIntegral w8) of
+replicateByte n w8 =
+  case Bitwise.replicateByte (fromIntegral n) (fromIntegral w8) of
     BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
       Haskell.error "byteStringReplicate errored."
     BuiltinSuccess bs -> BuiltinByteString bs
