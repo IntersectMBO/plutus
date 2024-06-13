@@ -8,9 +8,9 @@ module UntypedPlutusCore.Transform.Cse (cse) where
 
 import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
+import UntypedPlutusCore.ASTSize (termASTSize)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
-import UntypedPlutusCore.Size (termSize)
 
 import Control.Arrow ((>>>))
 import Control.Lens (foldrOf, transformOf)
@@ -35,14 +35,10 @@ import PlutusCore.Arity (builtinArity)
 1. Simplifications
 -------------------------------------------------------------------------------
 
-This is a simplified (i.e., not fully optimal) implementation of CSE. The two simplifications
-we made are:
+This is a simplified (i.e., not fully optimal) implementation of CSE. One simplification
+we made is:
 
 - No alpha equivalence check, i.e., `\x -> x` and `\y -> y` are considered different expressions.
-- The builtin function arity information is approximate: rather than using the accurate arities,
-  we simply use the maximum number of arguments applied to a builtin function in the program
-  as the builtin function's arity. The arity information is used to determine whether a builtin
-  application is possibly saturated.
 
 -------------------------------------------------------------------------------
 2. How does it work?
@@ -58,10 +54,9 @@ We use the following example to explain how the implementation works:
                 ]
         )
 
-The implementation makes several passes on the given term. The first pass collects builtin
-arity information as described above.
+The implementation makes several passes on the given term.
 
-In the second pass, we assign a unique ID to each `LamAbs`, `Delay`, and each `Case` branch.
+In the first pass, we assign a unique ID to each `LamAbs`, `Delay`, and each `Case` branch.
 Then, we annotate each subterm with a path, consisting of IDs encountered from the root
 to that subterm (not including itself). The reason to do this is because `LamAbs`, `Delay`,
 and `Case` branches represent places where computation stops, i.e., subexpressions are not
@@ -72,7 +67,7 @@ three case branches are 2, 3, 4 (the actual numbers don't matter, as long as the
 The path for the first `1+(2+x)` and the first `2+x` is "0.1"; the path for the second
 `1+(2+x)` and the second `2+x` is "0.1.2"; the path for `4+x` is "0.1.4".
 
-In the third pass, we calculate a count for each `(term, path)` pair, where `term` is a
+In the second pass, we calculate a count for each `(term, path)` pair, where `term` is a
 non-workfree term, and `path` is its path. If the same term has two paths, and one is an
 ancestor (i.e., prefix) of the other, we increment the count for the ancestor path in both
 instances.
@@ -88,7 +83,7 @@ In the above example, the CSE candidates are `(2+x, "0.1")` and `(1+(2+x), "0.1"
 Note that `3+x` is not a CSE candidate, because it has two paths, and neither has a count
 greater than 1. `2+` is also not a CSE candidate, because it is workfree.
 
-The CSE candidates are then processed in descending order of their `termSize`s. For each CSE
+The CSE candidates are then processed in descending order of their `termASTSize`s. For each CSE
 candidate, we generate a fresh variable, create a LamAbs for it under its path, and substitute
 it for all occurrences in the original term whose paths are descendents (or self) of
 the candidate's path. The order is because a bigger expression may contain a small subexpression.
@@ -220,9 +215,9 @@ cse builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t
       commonSubexprs =
-        -- Processed the common subexpressions in descending order of `termSize`.
+        -- Processed the common subexpressions in descending order of `termASTSize`.
         -- See Note [CSE].
-        sortOn (Down . termSize)
+        sortOn (Down . termASTSize)
           . fmap snd3
           -- A subexpression is common if the count is greater than 1.
           . filter ((> 1) . thd3)
@@ -231,7 +226,7 @@ cse builtinSemanticsVariant t0 = do
           $ countOccs builtinSemanticsVariant annotated
   mkCseTerm commonSubexprs annotated
 
--- | The second pass. See Note [CSE].
+-- | The first pass. See Note [CSE].
 annotate :: Term name uni fun ann -> Term name uni fun (Path, ann)
 annotate = flip evalState 0 . flip runReaderT [] . go
   where
@@ -265,7 +260,7 @@ annotate = flip evalState 0 . flip runReaderT [] . go
                     local (freshId :) (go br)
                 )
 
--- | The third pass. See Note [CSE].
+-- | The second pass. See Note [CSE].
 countOccs ::
   forall name uni fun ann.
   (Hashable (Term name uni fun ()), ToBuiltinMeaning uni fun) =>

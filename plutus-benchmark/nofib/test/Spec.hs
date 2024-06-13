@@ -49,7 +49,7 @@ testClausify = testGroup "clausify"
                , testCase "formula5" $ mkClausifyTest Clausify.F5
                , runTestGhc
                      [ Tx.goldenPirReadable "clausify-F5" formula5example
-                     , Tx.goldenSize "clausify-F5" formula5example
+                     , Tx.goldenASTSize "clausify-F5" formula5example
                      , Tx.goldenBudget "clausify-F5" formula5example
                      , Tx.goldenEvalCekCatch "clausify-F5" [formula5example]
                      ]
@@ -72,7 +72,7 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , testCase "depth 100, 8x8" $ mkKnightsTest 100 8
               , runTestGhc
                     [ Tx.goldenPirReadable "knights10-4x4" knightsExample
-                    , Tx.goldenSize "knights10-4x4" knightsExample
+                    , Tx.goldenASTSize "knights10-4x4" knightsExample
                     , Tx.goldenBudget "knights10-4x4" knightsExample
                     , Tx.goldenEvalCekCatch "knights10-4x4" [knightsExample]
                     ]
@@ -95,7 +95,7 @@ testQueens = testGroup "queens"
                , testCase "Fc"    $ mkQueensTest 4 Queens.Fc
                , runTestGhc
                      [ Tx.goldenPirReadable "queens4-bt" queens4btExample
-                     , Tx.goldenSize "queens4-bt" queens4btExample
+                     , Tx.goldenASTSize "queens4-bt" queens4btExample
                      , Tx.goldenBudget "queens4-bt" queens4btExample
                      , Tx.goldenEvalCekCatch "queens4-bt" [queens4btExample]
                      ]
@@ -108,7 +108,7 @@ testQueens = testGroup "queens"
                , testCase "Fc"    $ mkQueensTest 5 Queens.Fc
                , runTestGhc
                      [ Tx.goldenPirReadable "queens5-fc" queens5fcExample
-                     , Tx.goldenSize "queens5-fc" queens5fcExample
+                     , Tx.goldenASTSize "queens5-fc" queens5fcExample
                      , Tx.goldenBudget "queens5-fc" queens5fcExample
                      , Tx.goldenEvalCekCatch "queens5-fc" [queens5fcExample]
                      ]

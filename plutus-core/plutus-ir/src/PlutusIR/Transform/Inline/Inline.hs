@@ -18,9 +18,9 @@ import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
 import PlutusIR
 import PlutusIR.Analysis.Builtins
-import PlutusIR.Analysis.Size (termSize)
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Analysis.VarInfo qualified as VarInfo
+import PlutusIR.ASTSize (termASTSize)
 import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
 import PlutusIR.MkPir (mkLet)
 import PlutusIR.Pass
@@ -284,7 +284,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                                 Just varInfo -> do
                                     maybeInlined <-
                                         callSiteInline
-                                            (termSize reconstructed)
+                                            (termASTSize reconstructed)
                                             varInfo
                                             args'
                                     pure $ fromMaybe reconstructed maybeInlined

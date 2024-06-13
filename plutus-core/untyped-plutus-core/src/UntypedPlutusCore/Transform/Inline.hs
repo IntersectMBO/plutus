@@ -33,13 +33,13 @@ import PlutusCore.Quote
 import PlutusCore.Rename (Dupable, dupable, liftDupable)
 import PlutusPrelude
 import UntypedPlutusCore.Analysis.Usages qualified as Usages
+import UntypedPlutusCore.ASTSize
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Core.Plated
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.MkUPlc
 import UntypedPlutusCore.Purity
 import UntypedPlutusCore.Rename ()
-import UntypedPlutusCore.Size
 import UntypedPlutusCore.Subst
 
 import Control.Lens hiding (Strict)
@@ -494,7 +494,7 @@ inlineSaturatedApp t
             Just fullyApplied -> do
               let
                 -- Inline only if the size is no bigger than not inlining.
-                sizeIsOk = termSize fullyApplied <= termSize t
+                sizeIsOk = termASTSize fullyApplied <= termASTSize t
                 rhs = varInfo ^. varRhs
                 -- Cost is always OK if the RHS is a LamAbs, but may not be otherwise.
                 costIsOk = costIsAcceptable rhs

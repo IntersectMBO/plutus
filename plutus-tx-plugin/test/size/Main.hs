@@ -19,47 +19,47 @@ main = defaultMain $ testGroup "Size regression tests"
   [ runTestNested ["test", "size", "Golden"]
       [ testNested "Rational"
           [ testNested "Eq"
-              [ goldenSize "equal" ratEq
-              , goldenSize "not-equal" ratNeq
+              [ goldenASTSize "equal" ratEq
+              , goldenASTSize "not-equal" ratNeq
               ]
           , testNested "Ord"
-              [ goldenSize "compare" ratCompare
-              , goldenSize "less-than-equal" ratLe
-              , goldenSize "greater-than-equal" ratGe
-              , goldenSize "less-than" ratLt
-              , goldenSize "greater-than" ratGt
-              , goldenSize "max" ratMax
-              , goldenSize "min" ratMin
+              [ goldenASTSize "compare" ratCompare
+              , goldenASTSize "less-than-equal" ratLe
+              , goldenASTSize "greater-than-equal" ratGe
+              , goldenASTSize "less-than" ratLt
+              , goldenASTSize "greater-than" ratGt
+              , goldenASTSize "max" ratMax
+              , goldenASTSize "min" ratMin
               ]
           , testNested "Additive"
-              [ goldenSize "plus" ratPlus
-              , goldenSize "zero" ratZero
-              , goldenSize "minus" ratMinus
-              , goldenSize "negate-specialized" ratNegate
+              [ goldenASTSize "plus" ratPlus
+              , goldenASTSize "zero" ratZero
+              , goldenASTSize "minus" ratMinus
+              , goldenASTSize "negate-specialized" ratNegate
               ]
           , testNested "Multiplicative"
-              [ goldenSize "times" ratTimes
-              , goldenSize "one" ratOne
-              , goldenSize "scale" ratScale
+              [ goldenASTSize "times" ratTimes
+              , goldenASTSize "one" ratOne
+              , goldenASTSize "scale" ratScale
               ]
           , testNested "Serialization"
-              [ goldenSize "toBuiltinData" ratToBuiltin
-              , goldenSize "fromBuiltinData" ratFromBuiltin
-              , goldenSize "unsafeFromBuiltinData" ratUnsafeFromBuiltin
+              [ goldenASTSize "toBuiltinData" ratToBuiltin
+              , goldenASTSize "fromBuiltinData" ratFromBuiltin
+              , goldenASTSize "unsafeFromBuiltinData" ratUnsafeFromBuiltin
               ]
           , testNested "Construction"
-              [ goldenSize "unsafeRatio" ratMkUnsafe
-              , goldenSize "ratio" ratMkSafe
-              , goldenSize "fromInteger" ratFromInteger
+              [ goldenASTSize "unsafeRatio" ratMkUnsafe
+              , goldenASTSize "ratio" ratMkSafe
+              , goldenASTSize "fromInteger" ratFromInteger
               ]
           , testNested "Other"
-              [ goldenSize "numerator" ratNumerator
-              , goldenSize "denominator" ratDenominator
-              , goldenSize "round" ratRound
-              , goldenSize "truncate" ratTruncate
-              , goldenSize "properFraction" ratProperFraction
-              , goldenSize "recip" ratRecip
-              , goldenSize "abs-specialized" ratAbs
+              [ goldenASTSize "numerator" ratNumerator
+              , goldenASTSize "denominator" ratDenominator
+              , goldenASTSize "round" ratRound
+              , goldenASTSize "truncate" ratTruncate
+              , goldenASTSize "properFraction" ratProperFraction
+              , goldenASTSize "recip" ratRecip
+              , goldenASTSize "abs-specialized" ratAbs
               ]
           ]
       ]

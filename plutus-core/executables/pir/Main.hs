@@ -219,11 +219,11 @@ runOptimisations (PirOptimiseOptions inp ifmt outp ofmt mode) = do
 ---------------- Analysis ----------------
 
 -- | a csv-outputtable record row of {name,unique,size}
-data RetentionRecord = RetentionRecord { name :: T.Text, unique :: Int, size :: PIR.Size}
+data RetentionRecord = RetentionRecord { name :: T.Text, unique :: Int, size :: PIR.ASTSize}
     deriving stock (Generic, Show)
     deriving anyclass Csv.ToNamedRecord
     deriving anyclass Csv.DefaultOrdered
-deriving newtype instance Csv.ToField PIR.Size
+deriving newtype instance Csv.ToField PIR.ASTSize
 
 loadPirAndAnalyse :: AnalyseOptions -> IO ()
 loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do

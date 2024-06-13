@@ -9,7 +9,7 @@
 
 module PlutusTx.Test (
   -- * Size tests
-  goldenSize,
+  goldenASTSize,
   fitsUnder,
 
   -- * Compilation testing

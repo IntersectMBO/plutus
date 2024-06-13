@@ -25,6 +25,7 @@ import PlutusTx.Coverage
 import PlutusTx.Lift.Instances ()
 import UntypedPlutusCore qualified as UPLC
 -- We do not use qualified import because the whole module contains off-chain code
+import Data.Either.Extras
 import PlutusPrelude
 import Prelude as Haskell
 
@@ -45,12 +46,15 @@ type role CompiledCodeIn representational representational nominal
 -- if you want to put it on the chain you must normalize the types first.
 data CompiledCodeIn uni fun a =
     -- | Serialized UPLC code and possibly serialized PIR code with metadata used for program coverage.
-    SerializedCode BS.ByteString (Maybe BS.ByteString) CoverageIndex
+    SerializedCode
+        BS.ByteString -- ^ UPLC.Program flat-encoded
+        (Maybe BS.ByteString) -- ^ PlutusIR.Program flat-encoded
+        (Maybe BS.ByteString) -- ^ CoverageIndex flat-encoded
     -- | Deserialized UPLC program, and possibly deserialized PIR program with metadata used for program coverage.
     | DeserializedCode
         (UPLC.Program UPLC.NamedDeBruijn uni fun SrcSpans)
         (Maybe (PIR.Program PLC.TyName PLC.Name uni fun SrcSpans))
-        CoverageIndex
+        (Maybe CoverageIndex)
 
 -- | 'CompiledCodeIn' instantiated with default built-in types and functions.
 type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
@@ -105,7 +109,7 @@ unsafeApplyCode fun arg = case applyCode fun arg of
 
 -- | The size of a 'CompiledCodeIn', in AST nodes.
 sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) => CompiledCodeIn uni fun a -> Integer
-sizePlc = UPLC.unSize . UPLC.programSize . getPlc
+sizePlc = UPLC.unASTSize . UPLC.programASTSize . getPlc
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.
@@ -149,7 +153,8 @@ getPirNoAnn
     => CompiledCodeIn uni fun a -> Maybe (PIR.Program PIR.TyName PIR.Name uni fun ())
 getPirNoAnn = fmap void . getPir
 
-getCovIdx :: CompiledCodeIn uni fun a -> CoverageIndex
+-- | Will throw an error if the `CoverageIndex` is present but cannot be deserialised.
+getCovIdx :: CompiledCodeIn uni fun a -> Maybe CoverageIndex
 getCovIdx wrapper = case wrapper of
-  SerializedCode _ _ idx   -> idx
+  SerializedCode _ _ idx   -> unsafeFromEither . unflat <$> idx
   DeserializedCode _ _ idx -> idx

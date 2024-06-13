@@ -638,7 +638,7 @@ stripTicks = \case
 
 -- | Helper to avoid doing too much construction of Core ourselves
 mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> BS.ByteString -> CompiledCode a
-mkCompiledCode plcBS pirBS ci = SerializedCode plcBS (Just pirBS) (fold . unflat $ ci)
+mkCompiledCode plcBS pirBS ci = SerializedCode plcBS (Just pirBS) (Just ci)
 
 -- | Make a 'NameInfo' mapping the given set of TH names to their
 -- 'GHC.TyThing's for later reference.

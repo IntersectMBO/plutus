@@ -119,15 +119,15 @@ module PlutusCore
     -- * Combining programs
     , applyProgram
     -- * Benchmarking
-    , termSize
-    , typeSize
-    , kindSize
-    , programSize
-    , serialisedSize
+    , termASTSize
+    , typeASTSize
+    , kindASTSize
+    , programASTSize
     ) where
 
 
 import PlutusCore.Annotation
+import PlutusCore.ASTSize
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.DeBruijn
@@ -142,7 +142,6 @@ import PlutusCore.Normalize
 import PlutusCore.Parser
 import PlutusCore.Quote
 import PlutusCore.Rename
-import PlutusCore.Size
 import PlutusCore.Subst
 import PlutusCore.TypeCheck as TypeCheck
 
