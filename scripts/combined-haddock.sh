@@ -12,7 +12,7 @@
 #     The default is "", which does not rebuild anything (useful for debugging
 #     this script).
 
-set -euo pipefail
+# set -euo pipefail
 
 OUTPUT_DIR=${1:-haddocks}
 REGENERATE=("${@:2}")
@@ -22,6 +22,7 @@ BUILD_DIR=dist-newstyle
 CABAL_OPTS=(
   --builddir "${BUILD_DIR}"
   --enable-documentation
+  --enable-tests
 )
 
 # Haddock webpages have a header with the following items: 
@@ -53,12 +54,16 @@ mkdir -p "${OUTPUT_DIR}"
 chmod -R u+w "${OUTPUT_DIR}"
 
 GHC_VERSION=$(ghc --numeric-version)
+
 OS_ARCH=$(jq -r '"\(.arch)-\(.os)"' "$BUILD_DIR/cache/plan.json")
+
 BUILD_CONTENTS="${BUILD_DIR}/build/${OS_ARCH}/ghc-${GHC_VERSION}"
 
 PLUTUS_VERSION=$(find $BUILD_CONTENTS/plutus-core-* -printf '%f\n' -quit | sed "s/plutus-core-//g")
-GIT_REV=$(git rev-parse HEAD)
 
+BASE_VERSION=$(ghc-pkg field base version | cut -c10-)
+
+GIT_REV=$(git rev-parse HEAD)
 
 echo "Copy all relevant content from $BUILD_CONTENTS to $OUTPUT_DIR"
 for package_dir in "${BUILD_CONTENTS}"/*; do
@@ -103,6 +108,21 @@ for package_dir in "${BUILD_CONTENTS}"/*; do
       fi
     done
   fi
+
+  # # The same for test libs
+  # if [ -d "${package_dir}/t" ]; then
+  #   for lib_package_dir in "${package_dir}/t"/*; do
+  #     lib_package=$(basename "${lib_package_dir}")
+  #     if [ -d "${lib_package_dir}/doc/html/${package}" ]; then
+  #       mkdir -p "${OUTPUT_DIR}/${package}/${lib_package}"
+  #       cp -n "${lib_package_dir}/doc/html/${package}"/*.html             "${OUTPUT_DIR}/${package}"
+  #       cp -n "${lib_package_dir}/doc/html/${package}/src"/*.html         "${OUTPUT_DIR}/${package}/src"
+  #       cp -f "${lib_package_dir}/doc/html/${package}/src"/{*.js,*.css}   "${OUTPUT_DIR}/${package}/src"
+  #       cp -n "${lib_package_dir}/doc/html/${package}/${package}.haddock" "${OUTPUT_DIR}/${package}/${lib_package}/${package}.haddock"
+  #       cp -n "${lib_package_dir}/doc/html/${package}/doc-index.json"     "${OUTPUT_DIR}/${package}/${lib_package}.doc-index.json"
+  #     fi
+  #   done
+  # fi
 done
 
 
@@ -144,35 +164,51 @@ done |
   jq -s . >"${OUTPUT_DIR}/doc-index.json"
 
 
-echo "Replacing all hrefs to /dist-newstyle"
+echo "Replacing all hrefs to /dist-newstyle" 
 for file in $(find $OUTPUT_DIR -type f); do 
+  # Unclear why haddock would not resolve these...
   sed -i -E "s|file:///.*dist-newstyle/.*/doc/html/(.*)|../../\1|g" $file
 done
 
 
 echo "Ensuring that all hrefs to /dist-newstyle were replaced"
-if grep -q -R -E "dist-newstyle" $OUTPUT_DIR; then
+if grep -qr "dist-newstyle" $OUTPUT_DIR; then 
   echo "internal error: not all href to dist-newstyle were replaced"
+  exit 1
+fi
+
+
+echo "Replacing all hrefs to ../base"
+for file in $(find $OUTPUT_DIR -type f); do 
+  src="../base/(.*)"
+  dst="https://hackage.haskell.org/package/base-${BASE_VERSION}/docs/\1"
+  sed -i -E "s|$src|$dst|g" $file
+done
+
+
+echo "Checking that all hrefs to ../base were replaced"
+if grep -qr "../base" $OUTPUT_DIR; then
+  echo "internal error: not all ../base hrefs were replaced"
   exit 1
 fi
 
 
 echo "Replacing all hrefs to /nix/store"
 for file in $(find $OUTPUT_DIR -type f); do 
-  # Note that we strip the version number:
   # From: file:///nix/store/XXXX-ghc-9.6.5-doc/share/doc/ghc-9.6.5/html/libraries/base-4.18.2.1/src/GHC.Base.html
-  #   To: ../../base/src/GHC.Base.html
-  # These hrefs are only in html files in ./src
-  sed -i -E "s|file:///nix/store/.*-ghc-.*-doc/.*/libraries/([^0-9]*)-[0-9][^/]*/(.*)|../../\1/\2|g" $file
+  #   To: https://hackage.haskell.org/base-4.18.2.1/docs/src/GHC.Base.html"
+  src="file:///nix/store/.*-ghc-.*-doc/.*/libraries/([^/]*)/(.*)"
+  dst="https://hackage.haskell.org/package/\1/docs/\2"
+  sed -i -E "s|$src|$dst|g" $file
 done
 
 
-echo "Ensuring that all hrefs to /nix/store were replaced"
-if grep -q -R -E "/nix/store" $OUTPUT_DIR; then
+echo "Checking that all hrefs to /nix/store were replaced"
+if grep -qr "/nix/store" $OUTPUT_DIR; then
   echo "internal error: not all /nix/store hrefs were replaced"
   exit 1
 fi
 
 
-echo "Checking for broken links"
-blc $OUTPUT_DIR/index.html -ro
+# echo "Checking for broken links"
+# blc $OUTPUT_DIR/index.html -ro

@@ -15,7 +15,7 @@ let
       src = ../.;
 
       shell = {
-        withHoogle = false;
+        withHoogle = true;
         # We would expect R to be pulled in automatically as it's a dependency of
         # plutus-core, but it appears it is not, so we need to be explicit about
         # the dependency on R here. Adding it as a buildInput will ensure it's

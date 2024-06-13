@@ -93,6 +93,6 @@ in
     editorconfig-checker.enable = true;
     nixpkgs-fmt.enable = true;
     optipng.enable = true;
-    hlint.enable = false;
+    hlint.enable = true;
   };
 }
