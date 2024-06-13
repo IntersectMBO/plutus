@@ -125,10 +125,13 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.EvaluationEvent
     PlutusLedgerApi.Test.Examples
     PlutusLedgerApi.Test.Scripts
+    PlutusLedgerApi.Test.V1.Data.EvaluationContext
     PlutusLedgerApi.Test.V1.Data.Value
     PlutusLedgerApi.Test.V1.EvaluationContext
     PlutusLedgerApi.Test.V1.Value
+    PlutusLedgerApi.Test.V2.Data.EvaluationContext
     PlutusLedgerApi.Test.V2.EvaluationContext
+    PlutusLedgerApi.Test.V3.Data.EvaluationContext
     PlutusLedgerApi.Test.V3.EvaluationContext
 
   build-depends:
@@ -157,6 +160,10 @@ test-suite plutus-ledger-api-test
     Spec.CBOR.DeserialiseFailureInfo
     Spec.ContextDecoding
     Spec.CostModelParams
+    Spec.Data.ContextDecoding
+    Spec.Data.CostModelParams
+    Spec.Data.Eval
+    Spec.Data.Versions
     Spec.Eval
     Spec.Interval
     Spec.ScriptDecodeError
