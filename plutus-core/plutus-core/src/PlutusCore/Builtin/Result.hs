@@ -225,3 +225,31 @@ instance Monad BuiltinResult where
 
     (>>) = (*>)
     {-# INLINE (>>) #-}
+
+-- | 'throwError' puts every operational unlifting error into the 'BuiltinFailure' logs. This is to
+-- compensate for the historical lack of error message content in operational errors (structural
+-- ones don't have this problem) in our evaluators (the CK and CEK machines). It would be better to
+-- fix the underlying issue and allow operational evaluation errors to carry some form of content,
+-- but for now we just fix the symptom in order for the end user to see the error message that they
+-- are supposed to see. The fix even makes some sense: what we do here is we emulate logging when
+-- the thrown unlifting error is an operational one, i.e. this is similar to what some builtins do
+-- manually (like when a crypto builtin fails and puts info about the failure into the logs).
+instance MonadError BuiltinError BuiltinResult where
+    throwError builtinErr = BuiltinFailure operationalLogs builtinErr where
+        operationalLogs = case builtinErr of
+            BuiltinUnliftingEvaluationError
+                (MkUnliftingEvaluationError
+                    (OperationalEvaluationError
+                        (MkUnliftingError operationalErr))) -> pure operationalErr
+            _ -> mempty
+
+    -- Throwing logs out is lame, but embedding them into the error would be weird, since that
+    -- would change the error. Not that any of that matters, we only implement this because it's a
+    -- method of 'MonadError' and we can't not implement it.
+    --
+    -- We could make it @MonadError (DList Text, BuiltinError)@, but logs are arbitrary and are not
+    -- necessarily an inherent part of an error, so preserving them is as questionable as not doing
+    -- so.
+    BuiltinFailure _ err `catchError` f = f err
+    res                  `catchError` _ = res
+    {-# INLINE catchError #-}

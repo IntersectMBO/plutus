@@ -236,7 +236,7 @@ data Committee = Committee
   , committeeQuorum  :: PlutusTx.Rational
   -- ^ Quorum of the committee that is necessary for a successful vote
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show)
 
 instance Pretty Committee where
   pretty Committee{..} =
@@ -321,7 +321,7 @@ data GovernanceAction
       Rational -- ^ New quorum
   | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
   | InfoAction
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show)
   deriving (Pretty) via (PrettyShow GovernanceAction)
 
 instance PlutusTx.Eq GovernanceAction where
@@ -349,7 +349,7 @@ data ProposalProcedure = ProposalProcedure
   , ppReturnAddr       :: V2.Credential
   , ppGovernanceAction :: GovernanceAction
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show)
 
 instance Pretty ProposalProcedure where
   pretty ProposalProcedure{..} =
@@ -379,7 +379,7 @@ data ScriptPurpose
       Haskell.Integer
       -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
       ProposalProcedure
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
 instance PlutusTx.Eq ScriptPurpose where
@@ -403,7 +403,7 @@ data TxInInfo = TxInInfo
   { txInInfoOutRef   :: V3.TxOutRef
   , txInInfoResolved :: V2.TxOut
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show)
 
 instance PlutusTx.Eq TxInInfo where
   TxInInfo ref res == TxInInfo ref' res' =
@@ -436,28 +436,7 @@ data TxInfo = TxInfo
   , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
   , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
-
-instance PlutusTx.Eq TxInfo where
-  {-# INLINEABLE (==) #-}
-  TxInfo a b c d e f g h i j k l m n o p
-    == TxInfo a' b' c' d' e' f' g' h' i' j' k' l' m' n' o' p' =
-      a PlutusTx.== a'
-        PlutusTx.&& b PlutusTx.== b'
-        PlutusTx.&& c PlutusTx.== c'
-        PlutusTx.&& d PlutusTx.== d'
-        PlutusTx.&& e PlutusTx.== e'
-        PlutusTx.&& f PlutusTx.== f'
-        PlutusTx.&& g PlutusTx.== g'
-        PlutusTx.&& h PlutusTx.== h'
-        PlutusTx.&& i PlutusTx.== i'
-        PlutusTx.&& j PlutusTx.== j'
-        PlutusTx.&& k PlutusTx.== k'
-        PlutusTx.&& l PlutusTx.== l'
-        PlutusTx.&& m PlutusTx.== m'
-        PlutusTx.&& n PlutusTx.== n'
-        PlutusTx.&& o PlutusTx.== o'
-        PlutusTx.&& p PlutusTx.== p'
+  deriving stock (Generic, Haskell.Show)
 
 -- | The context that the currently-executing script can access.
 data ScriptContext = ScriptContext
@@ -466,12 +445,7 @@ data ScriptContext = ScriptContext
   , scriptContextPurpose :: ScriptPurpose
   -- ^ the purpose of the currently-executing script
   }
-  deriving stock (Generic, Haskell.Eq, Haskell.Show)
-
-instance PlutusTx.Eq ScriptContext where
-  {-# INLINEABLE (==) #-}
-  ScriptContext a b == ScriptContext a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
+  deriving stock (Generic, Haskell.Show)
 
 {-# INLINEABLE findOwnInput #-}
 

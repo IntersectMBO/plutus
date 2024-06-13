@@ -140,8 +140,6 @@ import PlutusLedgerApi.V2.ParamName
 import PlutusCore.Data qualified as PLC
 import PlutusTx.Data.AssocMap (Map, unsafeFromList)
 
-import Control.Monad.Except (MonadError)
-
 {- | An alias to the Plutus ledger language this module exposes at runtime.
  MAYBE: Use CPP '__FILE__' + some TH to automate this.
 -}

@@ -23,6 +23,7 @@ import Data.Vector qualified as V
 import Flat
 import Flat.Decoder
 import Flat.Encoder
+import Flat.Encoder.Strict (sizeListWith)
 import Universe
 
 {-
@@ -90,17 +91,6 @@ structure of the format itself). The main thing to worry about is bytestrings, b
 encoding of bytestrings is a sequence of 255-byte chunks. This is okay, since user-controlled data will
 be broken up by the chunk metadata.
 -}
-
--- TODO: This is present upstream in newer versions of flat, remove once we get there.
--- | Compute the size needed for a list using the given size function for the elements.
--- Goes with 'encodeListWith'.
-sizeListWith :: (a -> NumBits -> NumBits) -> [a] -> NumBits -> NumBits
-sizeListWith sizer = go
-  where
-    -- Single bit to say stop
-    go [] sz     = sz + 1
-    -- Size for the rest plus size for the element, plus one for a tag to say keep going
-    go (x:xs) sz = go xs $ sizer x $ sz + 1
 
 -- | Using 4 bits to encode term tags.
 termTagWidth :: NumBits

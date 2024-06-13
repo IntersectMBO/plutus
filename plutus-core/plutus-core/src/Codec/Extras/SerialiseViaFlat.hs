@@ -1,13 +1,12 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-
-module Codec.CBOR.Extras (
-  SerialiseViaFlat (..),
-  decodeViaFlat,
-  DeserialiseFailureInfo (..),
-  DeserialiseFailureReason (..),
-  readDeserialiseFailureInfo,
-) where
+module Codec.Extras.SerialiseViaFlat
+    ( SerialiseViaFlat (..)
+    , decodeViaFlatWith
+    , DeserialiseFailureInfo (..)
+    , DeserialiseFailureReason (..)
+    , readDeserialiseFailureInfo
+    ) where
 
 import Codec.CBOR.Decoding qualified as CBOR
 import Codec.CBOR.Read qualified as CBOR
@@ -20,14 +19,14 @@ import Prettyprinter (Pretty (pretty), (<+>))
 {- | Newtype to provide 'Serialise' instances for types with a 'Flat' instance
   that just encodes the flat-serialized value as a CBOR bytestring
 -}
-newtype SerialiseViaFlat a = SerialiseViaFlat a
+newtype SerialiseViaFlat a = SerialiseViaFlat { unSerialiseViaFlat :: a }
 
 instance (Flat.Flat a) => Serialise (SerialiseViaFlat a) where
-  encode (SerialiseViaFlat a) = encode $ Flat.flat a
-  decode = SerialiseViaFlat <$> decodeViaFlat Flat.decode
+  encode = encode . Flat.flat . unSerialiseViaFlat
+  decode = SerialiseViaFlat <$> decodeViaFlatWith Flat.decode
 
-decodeViaFlat :: Flat.Get a -> CBOR.Decoder s a
-decodeViaFlat decoder = do
+decodeViaFlatWith :: Flat.Get a -> CBOR.Decoder s a
+decodeViaFlatWith decoder = do
   bs <- CBOR.decodeBytes
   -- lift any flat's failures to be cborg failures (MonadFail)
   fromRightM (fail . show) $ Flat.unflatWith decoder bs
@@ -45,16 +44,16 @@ readDeserialiseFailureInfo (CBOR.DeserialiseFailure byteOffset reason) =
   DeserialiseFailureInfo byteOffset $ interpretReason reason
  where
   -- Note that this is subject to change if `cborg` dependency changes.
-  -- Currently: cborg-0.2.9.0
+  -- Currently: cborg-0.2.10.0
   interpretReason :: String -> DeserialiseFailureReason
   interpretReason = \case
     -- Relevant Sources:
-    -- <https://github.com/well-typed/cborg/blob/cborg-0.2.9.0/cborg/src/Codec/CBOR/Read.hs#L226>
-    -- <https://github.com/well-typed/cborg/blob/cborg-0.2.9.0/cborg/src/Codec/CBOR/Read.hs#L1424>
-    -- <https://github.com/well-typed/cborg/blob/cborg-0.2.9.0/cborg/src/Codec/CBOR/Read.hs#L1441>
+    -- <https://github.com/well-typed/cborg/blob/cborg-0.2.10.0/cborg/src/Codec/CBOR/Read.hs#L226>
+    -- <https://github.com/well-typed/cborg/blob/cborg-0.2.10.0/cborg/src/Codec/CBOR/Read.hs#L1424>
+    -- <https://github.com/well-typed/cborg/blob/cborg-0.2.10.0/cborg/src/Codec/CBOR/Read.hs#L1441>
     "end of input" -> EndOfInput
     -- Relevant Sources:
-    -- <https://github.com/well-typed/cborg/blob/cborg-0.2.9.0/cborg/src/Codec/CBOR/Read.hs#L1051>
+    -- <https://github.com/well-typed/cborg/blob/cborg-0.2.10.0/cborg/src/Codec/CBOR/Read.hs#L1051>
     "expected bytes" -> ExpectedBytes
     msg -> OtherReason msg
 
@@ -80,8 +79,8 @@ data DeserialiseFailureReason
     EndOfInput
   | -- | The bytes inside the input are malformed.
     ExpectedBytes
-  | -- | A failure reason we (plutus) are not aware of, use whatever
-    -- message that `cborg` returns.
+  | -- | This is either a cbor failure that we (plutus) are not aware of,
+    -- or an underlying flat failure. We use whatever message `cborg` or flat returns.
     OtherReason String
   deriving stock (Eq, Show)
 

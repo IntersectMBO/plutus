@@ -30,6 +30,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Name.Unique
 
+import Control.Monad.Except (throwError)
 import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
@@ -229,8 +230,6 @@ instance (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res) 
             KnownMonotype val '[] res where
     knownMonotype = TypeSchemeResult
 
-    -- We need to lift the 'ReadKnownM' action into 'BuiltinResult',
-    -- hence 'liftReadKnownM'.
     toMonoF =
         either
             -- Unlifting has failed and we don't care about costing at this point, since we're about
@@ -245,7 +244,7 @@ instance (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res) 
             -- either a budgeting failure or a budgeting success with a cost and a 'BuiltinResult'
             -- computation inside, but that would slow things down a bit and the current strategy is
             -- reasonable enough.
-            (BuiltinCostedResult (ExBudgetLast mempty) . BuiltinFailure mempty)
+            (BuiltinCostedResult (ExBudgetLast mempty) . throwError)
             (\(x, cost) -> BuiltinCostedResult cost $ makeKnown x)
     {-# INLINE toMonoF #-}
 

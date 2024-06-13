@@ -1,4 +1,7 @@
-name: Combined Haddock
+# This workflow builds a combined haddock and publishes it to:
+#   https://intersectmbo.github.io/plutus/haddock/master
+#   https://intersectmbo.github.io/plutus/haddock/release/X.X.X.X
+name: "Combined Haddock"
 on:
   workflow_dispatch:
   push:
@@ -7,10 +10,24 @@ on:
       - release/**
 jobs:
   build-and-deploy-combined-haddock:
-    runs-on: [self-hosted, plutus-benchmark]
+    runs-on: [self-hosted, plutus-shared]
     permissions:
       contents: write
     environment:
       name: github-pages
     steps:
-      - run: exit 0 
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Haddock
+        run: | 
+          nix develop --accept-flake-config --command bash ./scripts/combined-haddock.sh
+
+      - name: Deploy Haddock
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          # This folder is generated in the step above
+          folder: combined_haddock_dst
+          target-folder: haddock/${{ github.ref_name }}
+          # combined_haddock_dst is ~400MB and keeping the entire history is unnecessary.
+          single-commit: true
