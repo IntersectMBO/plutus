@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
 {-# LANGUAGE RecordWildCards   #-}
 
 module PlutusLedgerApi.Test.EvaluationEvent (
@@ -30,7 +29,6 @@ import Data.List.NonEmpty (NonEmpty, toList)
 import Data.Text.Encoding qualified as Text
 import GHC.Generics (Generic)
 import Prettyprinter
-import PyF (fmt)
 
 
 data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
@@ -152,16 +150,14 @@ data TestFailure
 renderTestFailure :: TestFailure -> String
 renderTestFailure = \case
     InvalidResult err -> display err
-    MissingCostParametersFor lang -> [fmt|
-        Missing cost parameters for {show lang}.
-        Report this as a bug against the script dumper in plutus-apps.
-    |]
+    MissingCostParametersFor lang ->
+        "Missing cost parameters for " ++ show lang ++ ".\n"
+        ++ "Report this as a bug against the script dumper in plutus-apps."
 
 renderTestFailures :: NonEmpty TestFailure -> String
-renderTestFailures xs = [fmt|
-    Number of failed test cases: {length xs}
-    {unlines . fmap renderTestFailure $ toList xs}
-|]
+renderTestFailures testFailures =
+    "Number of failed test cases: " ++ show (length testFailures) ++ ".\n"
+    ++ unwords (map renderTestFailure (toList testFailures))
 
 -- | Re-evaluate an on-chain script evaluation event.
 checkEvaluationEvent ::

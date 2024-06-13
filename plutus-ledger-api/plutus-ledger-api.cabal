@@ -125,7 +125,7 @@ library plutus-ledger-api-testlib
 
   build-depends:
     , barbies
-    , base                                            >=4.9      && <5
+    , base                                            >=4.9   && <5
     , base16-bytestring
     , base64-bytestring
     , bytestring
@@ -134,7 +134,6 @@ library plutus-ledger-api-testlib
     , plutus-ledger-api                               ^>=1.29
     , plutus-tx                                       ^>=1.29
     , prettyprinter
-    , PyF                                             >=0.11.1.0
     , QuickCheck
     , serialise
     , text
