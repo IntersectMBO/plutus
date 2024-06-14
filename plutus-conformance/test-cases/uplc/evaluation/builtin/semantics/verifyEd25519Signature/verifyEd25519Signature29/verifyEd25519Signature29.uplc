@@ -1,4 +1,0 @@
-(program 0.0.0 [[[(builtin verifyEd25519Signature)
-	(con bytestring #9d084aa8b97a6b9bafa496dbc6f76f3306a116c9d917e681520a0f914369427e)]
-	(con bytestring #5cb6f9aa59b80eca14f6a68fb40cf07b794e75171fba96262c1c6adc)]
-	(con bytestring #f5875423781b66216cb5e8998de5d9ffc29d1d67107054ace3374503a9c3ef811577f269de81296744bd706f1ac478caf09b54cdf871b3f802bd57f9a6cb9101)])
