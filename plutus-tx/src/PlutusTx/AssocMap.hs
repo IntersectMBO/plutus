@@ -49,6 +49,8 @@ import PlutusTx.These
 
 import Control.DeepSeq (NFData)
 import Data.Data
+import Data.Function (on)
+import Data.Map.Strict qualified as HMap
 import GHC.Generics (Generic)
 import Language.Haskell.TH.Syntax as TH (Lift)
 import Prettyprinter (Pretty (..))
@@ -72,6 +74,14 @@ import Prettyprinter (Pretty (..))
 newtype Map k v = Map {unMap :: [(k, v)]}
   deriving stock (Generic, Haskell.Show, Data, TH.Lift)
   deriving newtype (NFData)
+
+instance (Haskell.Ord k, Haskell.Eq v) => Haskell.Eq (Map k v) where
+  Map l == Map r =
+    on (Haskell.==) HMap.fromList l r
+
+instance (Haskell.Ord k, Haskell.Ord v) => Haskell.Ord (Map k v) where
+  Map l <= Map r =
+    on (Haskell.<=) HMap.fromList l r
 
 -- | Hand-written instances to use the underlying 'Map' type in 'Data', and
 -- to be reasonably efficient.

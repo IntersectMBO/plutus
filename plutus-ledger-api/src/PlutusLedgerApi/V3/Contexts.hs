@@ -68,6 +68,7 @@ newtype ColdCommitteeCredential = ColdCommitteeCredential V2.Credential
   deriving (Pretty) via (PrettyShow ColdCommitteeCredential)
   deriving newtype
     ( Haskell.Eq
+    , Haskell.Ord
     , Haskell.Show
     , PlutusTx.Eq
     , PlutusTx.ToData
@@ -80,6 +81,7 @@ newtype HotCommitteeCredential = HotCommitteeCredential V2.Credential
   deriving (Pretty) via (PrettyShow HotCommitteeCredential)
   deriving newtype
     ( Haskell.Eq
+    , Haskell.Ord
     , Haskell.Show
     , PlutusTx.Eq
     , PlutusTx.ToData
@@ -92,6 +94,7 @@ newtype DRepCredential = DRepCredential V2.Credential
   deriving (Pretty) via (PrettyShow DRepCredential)
   deriving newtype
     ( Haskell.Eq
+    , Haskell.Ord
     , Haskell.Show
     , PlutusTx.Eq
     , PlutusTx.ToData
@@ -103,7 +106,7 @@ data DRep
   = DRep DRepCredential
   | DRepAlwaysAbstain
   | DRepAlwaysNoConfidence
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving (Pretty) via (PrettyShow DRep)
 
 instance PlutusTx.Eq DRep where
@@ -117,7 +120,7 @@ data Delegatee
   = DelegStake V2.PubKeyHash
   | DelegVote DRep
   | DelegStakeVote V2.PubKeyHash DRep
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving (Pretty) via (PrettyShow Delegatee)
 
 instance PlutusTx.Eq Delegatee where
@@ -155,7 +158,7 @@ data TxCert
   | -- | Authorize a Hot credential for a specific Committee member's cold credential
     TxCertAuthHotCommittee ColdCommitteeCredential HotCommitteeCredential
   | TxCertResignColdCommittee ColdCommitteeCredential
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving (Pretty) via (PrettyShow TxCert)
 
 instance PlutusTx.Eq TxCert where
@@ -184,7 +187,7 @@ data Voter
   = CommitteeVoter HotCommitteeCredential
   | DRepVoter DRepCredential
   | StakePoolVoter V2.PubKeyHash
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving (Pretty) via (PrettyShow Voter)
 
 instance PlutusTx.Eq Voter where
@@ -217,7 +220,7 @@ data GovernanceActionId = GovernanceActionId
   { gaidTxId        :: V3.TxId
   , gaidGovActionIx :: Haskell.Integer
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 instance Pretty GovernanceActionId where
   pretty GovernanceActionId{..} =
@@ -237,7 +240,7 @@ data Committee = Committee
   , committeeQuorum  :: PlutusTx.Rational
   -- ^ Quorum of the committee that is necessary for a successful vote
   }
-  deriving stock (Generic, Haskell.Show)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 instance Pretty Committee where
   pretty Committee{..} =
@@ -251,7 +254,7 @@ newtype Constitution = Constitution
   { constitutionScript :: Haskell.Maybe V2.ScriptHash
   }
   deriving stock (Generic)
-  deriving newtype (Haskell.Show, Haskell.Eq)
+  deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 instance Pretty Constitution where
   pretty (Constitution script) = "constitutionScript:" <+> pretty script
@@ -264,7 +267,7 @@ data ProtocolVersion = ProtocolVersion
   { pvMajor :: Haskell.Integer
   , pvMinor :: Haskell.Integer
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 instance Pretty ProtocolVersion where
   pretty ProtocolVersion{..} =
@@ -317,7 +320,7 @@ data GovernanceAction
       Rational -- ^ New quorum
   | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
   | InfoAction
-  deriving stock (Generic, Haskell.Show)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving (Pretty) via (PrettyShow GovernanceAction)
 
 -- | A proposal procedure. The optional anchor is omitted.
@@ -326,7 +329,7 @@ data ProposalProcedure = ProposalProcedure
   , ppReturnAddr       :: V2.Credential
   , ppGovernanceAction :: GovernanceAction
   }
-  deriving stock (Generic, Haskell.Show)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 instance Pretty ProposalProcedure where
   pretty ProposalProcedure{..} =
@@ -350,7 +353,7 @@ data ScriptPurpose
       Haskell.Integer
       -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
       ProposalProcedure
-  deriving stock (Generic, Haskell.Show)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
 -- | Like `ScriptPurpose` but with an optional datum for spending scripts.
@@ -367,7 +370,7 @@ data ScriptInfo
       Haskell.Integer
       -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
       ProposalProcedure
-  deriving stock (Generic, Haskell.Show)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow ScriptInfo)
 
 -- | An input of a pending transaction.
@@ -408,7 +411,7 @@ data TxInfo = TxInfo
   , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
   , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
   }
-  deriving stock (Generic, Haskell.Show)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
 instance Pretty TxInfo where
   pretty TxInfo{..} =
@@ -441,7 +444,7 @@ data ScriptContext = ScriptContext
   -- ^ the purpose of the currently-executing script, along with information associated
   -- with the purpose
   }
-  deriving stock (Generic, Haskell.Show)
+  deriving stock (Generic, Haskell.Eq, Haskell.Show)
 
 instance Pretty ScriptContext where
   pretty ScriptContext{..} =

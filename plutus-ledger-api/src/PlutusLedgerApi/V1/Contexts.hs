@@ -82,7 +82,7 @@ data ScriptPurpose
     | Spending TxOutRef
     | Rewarding StakingCredential
     | Certifying DCert
-    deriving stock (Generic, Haskell.Show, Haskell.Eq)
+    deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
     deriving Pretty via (PrettyShow ScriptPurpose)
 
 instance Eq ScriptPurpose where
