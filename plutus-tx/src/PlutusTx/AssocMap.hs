@@ -70,8 +70,8 @@ import Prettyprinter (Pretty (..))
 -- Take care when using 'fromBuiltinData' and 'unsafeFromBuiltinData', as neither function performs
 -- deduplication of the input collection and may create invalid 'Map's!
 newtype Map k v = Map {unMap :: [(k, v)]}
-  deriving stock (Generic, Haskell.Show, Data, TH.Lift)
-  deriving newtype (NFData)
+  deriving stock (Generic, Haskell.Eq, Haskell.Show, Data, TH.Lift)
+  deriving newtype (Eq, Ord, NFData)
 
 -- | Hand-written instances to use the underlying 'Map' type in 'Data', and
 -- to be reasonably efficient.

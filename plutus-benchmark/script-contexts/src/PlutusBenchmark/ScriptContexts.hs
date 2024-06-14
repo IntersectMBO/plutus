@@ -134,6 +134,24 @@ mkScriptContextEqualityDataCode sc =
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
 
+-- This example checks the script context for equality (with itself) when encoded
+-- as a normal (i.e. Scott-encoded) term, using the normal (i.e. typeclass-based) equality
+-- functions. This can be quite expensive for a large structure!
+{-# INLINABLE scriptContextEqualityTerm #-}
+scriptContextEqualityTerm :: ScriptContext -> PlutusTx.BuiltinData -> ()
+-- See Note [Redundant arguments to equality benchmarks]
+scriptContextEqualityTerm sc _ =
+  if sc PlutusTx.== sc
+  then ()
+  else PlutusTx.traceError "The argument is not equal to itself"
+
+mkScriptContextEqualityTermCode :: ScriptContext -> PlutusTx.CompiledCode ()
+mkScriptContextEqualityTermCode sc =
+  let d = PlutusTx.toBuiltinData sc
+  in $$(PlutusTx.compile [|| scriptContextEqualityTerm ||])
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
+
 -- This example is just the overhead from the previous two
 -- See Note [Redundant arguments to equality benchmarks]
 {-# INLINABLE scriptContextEqualityOverhead #-}

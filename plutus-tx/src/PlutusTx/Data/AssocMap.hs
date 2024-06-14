@@ -63,7 +63,7 @@ this implementation provides slow lookup and update operations because it is bas
 on a list representation.
 -}
 newtype Map k a = Map (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData))
-  deriving stock (Haskell.Show)
+  deriving stock (Haskell.Eq, Haskell.Show)
 
 instance P.ToData (Map k a) where
   {-# INLINEABLE toBuiltinData #-}
