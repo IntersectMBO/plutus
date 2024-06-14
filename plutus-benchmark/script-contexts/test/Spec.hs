@@ -85,10 +85,6 @@ testCheckScEquality = testGroup "checkScriptContextEquality"
                         mkScriptContextEqualityDataCode (mkScriptContext 20)
                    , Tx.goldenEvalCekCatch "checkScriptContextEqualityData-20" $
                         [mkScriptContextEqualityDataCode (mkScriptContext 20)]
-                   , Tx.goldenBudget "checkScriptContextEqualityTerm-20" $
-                        mkScriptContextEqualityTermCode (mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityTerm-20" $
-                        [mkScriptContextEqualityTermCode (mkScriptContext 20)]
                    , Tx.goldenBudget "checkScriptContextEqualityOverhead-20" $
                         mkScriptContextEqualityOverheadCode (mkScriptContext 20)
                    , Tx.goldenEvalCekCatch "checkScriptContextEqualityOverhead-20" $

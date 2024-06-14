@@ -86,11 +86,6 @@ data TxInfo = TxInfo
     , txInfoId              :: TxId  -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
     } deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
-instance Eq TxInfo where
-    {-# INLINABLE (==) #-}
-    TxInfo i ri o f m c w r s rs d tid == TxInfo i' ri' o' f' m' c' w' r' s' rs' d' tid' =
-        i == i' && ri == ri' && o == o' && f == f' && m == m' && c == c' && w == w' && r == r' && s == s' && rs == rs' && d == d' && tid == tid'
-
 instance Pretty TxInfo where
     pretty TxInfo{txInfoInputs, txInfoReferenceInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoRedeemers, txInfoData, txInfoId} =
         vsep
@@ -114,10 +109,6 @@ data ScriptContext = ScriptContext
     , scriptContextPurpose :: ScriptPurpose -- ^ the purpose of the currently-executing script
     }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
-
-instance Eq ScriptContext where
-    {-# INLINABLE (==) #-}
-    ScriptContext info purpose == ScriptContext info' purpose' = info == info' && purpose == purpose'
 
 instance Pretty ScriptContext where
     pretty ScriptContext{scriptContextTxInfo, scriptContextPurpose} =

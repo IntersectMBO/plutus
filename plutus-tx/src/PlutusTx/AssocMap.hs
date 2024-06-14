@@ -73,7 +73,7 @@ import Prettyprinter (Pretty (..))
 -- deduplication of the input collection and may create invalid 'Map's!
 newtype Map k v = Map {unMap :: [(k, v)]}
   deriving stock (Generic, Haskell.Show, Data, TH.Lift)
-  deriving newtype (Eq, Ord, NFData)
+  deriving newtype (NFData)
 
 instance (Haskell.Ord k, Haskell.Eq v) => Haskell.Eq (Map k v) where
   Map l == Map r =
