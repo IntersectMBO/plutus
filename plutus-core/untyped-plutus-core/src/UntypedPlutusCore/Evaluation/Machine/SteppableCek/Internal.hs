@@ -39,15 +39,14 @@ module UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
     )
 where
 
-import Control.Monad.Primitive
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusPrelude
-import Universe
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
                                                                  CekMachineCostsBase (..))
@@ -57,6 +56,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens hiding (Context)
 import Control.Monad
+import Control.Monad.Primitive
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.Semigroup (stimes)
@@ -64,6 +64,7 @@ import Data.Text (Text)
 import Data.Vector qualified as V
 import Data.Word (Word64)
 import GHC.TypeNats
+import Universe
 
 {- Note [Debuggable vs Original versions of CEK]
 
@@ -283,7 +284,7 @@ runCekDeBruijn
     -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
-        spendBudgetCek BStartup $ runIdentity $ cekStartupCost ?cekCosts
+        spendBudget BStartup $ runIdentity $ cekStartupCost ?cekCosts
         enterComputeCek NoFrame Env.empty term
 
 -- See Note [Compilation peculiarities].
@@ -442,8 +443,12 @@ evalBuiltinApp
     -> BuiltinRuntime (CekValue uni fun ann)
     -> CekM uni fun s (CekValue uni fun ann)
 evalBuiltinApp fun term runtime = case runtime of
-    BuiltinCostedResult budgets getX -> do
-        spendBudgetStreamCek (BBuiltinApp fun) budgets
+    BuiltinCostedResult budgets0 getX -> do
+        let exCat = BBuiltinApp fun
+            spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
+            spendBudgets (ExBudgetCons budget budgets) =
+                spendBudget exCat budget *> spendBudgets budgets
+        spendBudgets budgets0
         case getX of
             BuiltinSuccess x              -> pure x
             BuiltinSuccessWithLogs logs x -> ?cekEmitter logs $> x
@@ -453,11 +458,10 @@ evalBuiltinApp fun term runtime = case runtime of
     _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
-spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
-spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
+spendBudget :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
+spendBudget = unCekBudgetSpender ?cekBudgetSpender
 
 -- | Spend the budget that has been accumulated for a number of machine steps.
---
 spendAccumulatedBudget :: (GivenCekReqs uni fun ann s) => CekM uni fun s ()
 spendAccumulatedBudget = do
     let ctr = ?cekStepCounter
@@ -470,7 +474,7 @@ spendAccumulatedBudget = do
     -- See Note [Structure of the step counter]
     {-# INLINE spend #-}
     spend !i !w = unless (i == (fromIntegral $ natVal $ Proxy @TotalCountIndex)) $
-      let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
+      let kind = toEnum i in spendBudget (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
 
 -- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
 stepAndMaybeSpend :: (GivenCekReqs uni fun ann s) => StepKind -> CekM uni fun s ()

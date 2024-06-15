@@ -21,7 +21,7 @@ module Evaluation.Builtins.Conversion (
 
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import PlutusCore qualified as PLC
-import PlutusCore.Bitwise.Convert (integerToByteStringMaximumOutputLength)
+import PlutusCore.Bitwise (integerToByteStringMaximumOutputLength)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusPrelude (Word8, def)

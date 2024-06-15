@@ -212,8 +212,8 @@ program
                                                     [ (addInteger 7 n)
                                                     , #534556454e ])
                                                , (constr 0 []) ]) ]) ]) ])))
-                       (addInteger 3 n))
-                    (addInteger 4 n))
+                       (addInteger 4 n))
+                    (addInteger 3 n))
                  (\`$dToData` `$dToData` ->
                     (\go eta -> goList (go eta))
                       (fix1

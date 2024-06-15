@@ -283,7 +283,12 @@ builtinNames = [
     , 'Builtins.complementByteString
     , 'Builtins.readBit
     , 'Builtins.writeBits
-    , 'Builtins.replicateByteString
+    , 'Builtins.replicateByte
+
+    , 'Builtins.shiftByteString
+    , 'Builtins.rotateByteString
+    , 'Builtins.countSetBits
+    , 'Builtins.findFirstSetBit
     ]
 
 defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -448,7 +453,13 @@ defineBuiltinTerms = do
             PLC.ComplementByteString -> defineBuiltinInl 'Builtins.complementByteString
             PLC.ReadBit -> defineBuiltinInl 'Builtins.readBit
             PLC.WriteBits -> defineBuiltinInl 'Builtins.writeBits
-            PLC.ReplicateByteString -> defineBuiltinInl 'Builtins.replicateByteString
+            PLC.ReplicateByte -> defineBuiltinInl 'Builtins.replicateByte
+
+            -- Other bitwise ops
+            PLC.ShiftByteString -> defineBuiltinInl 'Builtins.shiftByteString
+            PLC.RotateByteString -> defineBuiltinInl 'Builtins.rotateByteString
+            PLC.CountSetBits -> defineBuiltinInl 'Builtins.countSetBits
+            PLC.FindFirstSetBit -> defineBuiltinInl 'Builtins.findFirstSetBit
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m ann

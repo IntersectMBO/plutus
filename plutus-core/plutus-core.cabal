@@ -92,8 +92,7 @@ library
     PlutusCore.Analysis.Definitions
     PlutusCore.Annotation
     PlutusCore.Arity
-    PlutusCore.Bitwise.Convert
-    PlutusCore.Bitwise.Logical
+    PlutusCore.Bitwise
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
@@ -417,6 +416,7 @@ test-suite untyped-plutus-core-test
     DeBruijn.Spec
     DeBruijn.UnDeBruijnify
     Evaluation.Builtins
+    Evaluation.Builtins.Bitwise
     Evaluation.Builtins.BLS12_381
     Evaluation.Builtins.BLS12_381.TestClasses
     Evaluation.Builtins.BLS12_381.Utils
@@ -430,6 +430,7 @@ test-suite untyped-plutus-core-test
     Evaluation.Debug
     Evaluation.FreeVars
     Evaluation.Golden
+    Evaluation.Helpers
     Evaluation.Machines
     Evaluation.Regressions
     Flat.Spec

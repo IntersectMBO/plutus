@@ -26,7 +26,7 @@ With Plutus you can:
 - Support basic multi-sig scripts.
 
 ## Getting started with Plutus Tx
-See [Getting started with Plutus Tx](using-plutus-tx/getting-started-plutus-tx.md) if you want to jump right in and start a project. 
+See [Getting started with Plutus Tx](getting-started-plutus-tx.md) if you want to jump right in and start a project. 
 
 ## Intended audience
 
