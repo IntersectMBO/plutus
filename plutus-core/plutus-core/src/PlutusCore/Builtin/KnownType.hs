@@ -248,9 +248,8 @@ typeMismatchError uniExp uniAct =
         , "expected: " ++ displayBy botRenderContext (SomeTypeIn uniExp)
         , "; actual: " ++ displayBy botRenderContext (SomeTypeIn uniAct)
         ]
--- Just for tidier Core to get generated, we don't care about performance here, since it's just a
--- failure message and evaluation is about to be shut anyway.
-{-# NOINLINE typeMismatchError #-}
+-- See Note [INLINE and OPAQUE on error-related definitions].
+{-# OPAQUE typeMismatchError #-}
 
 -- Normally it's a good idea for an exported abstraction not to be a type synonym, since a @newtype@
 -- is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we

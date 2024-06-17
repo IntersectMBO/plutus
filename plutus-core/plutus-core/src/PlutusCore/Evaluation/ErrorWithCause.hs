@@ -32,9 +32,11 @@ data ErrorWithCause err cause = ErrorWithCause
 
 instance Bifunctor ErrorWithCause where
     bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g <$> cause)
+    {-# INLINE bimap #-}
 
 instance AsEvaluationFailure err => AsEvaluationFailure (ErrorWithCause err cause) where
     _EvaluationFailure = iso _ewcError (flip ErrorWithCause Nothing) . _EvaluationFailure
+    {-# INLINE _EvaluationFailure #-}
 
 instance (Pretty err, Pretty cause) => Pretty (ErrorWithCause err cause) where
     pretty (ErrorWithCause e c) = pretty e <+> "caused by:" <+> pretty c
@@ -63,6 +65,7 @@ throwingWithCause
     :: forall exc e t term m x. (exc ~ ErrorWithCause e term, MonadError exc m)
     => AReview e t -> t -> Maybe term -> m x
 throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cause) t
+{-# INLINE throwingWithCause #-}
 
 -- | "Prismatically" throw a contentless error and its (optional) cause. 'throwingWithCause_' is to
 -- 'throwingWithCause' as 'throwing_' is to 'throwing'.
@@ -71,6 +74,7 @@ throwingWithCause_
     :: forall exc e term m x. (exc ~ ErrorWithCause e term, MonadError exc m)
     => AReview e () -> Maybe term -> m x
 throwingWithCause_ l = throwingWithCause l ()
+{-# INLINE throwingWithCause_ #-}
 
 -- | Attach a @cause@ to a 'BuiltinError' and throw that.
 -- Note that an evaluator might require the cause to be computed lazily for best performance on the
@@ -86,3 +90,4 @@ throwBuiltinErrorWithCause cause = \case
         throwingWithCause _UnliftingEvaluationError unlErr $ Just cause
     BuiltinEvaluationFailure ->
         throwingWithCause_ _EvaluationFailure $ Just cause
+{-# INLINE throwBuiltinErrorWithCause #-}

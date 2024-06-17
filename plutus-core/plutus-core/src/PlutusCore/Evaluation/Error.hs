@@ -30,7 +30,7 @@ import Data.Bitraversable
 {- | The type of errors that can occur during evaluation. There are two kinds of errors:
 
 1. Operational ones -- these are errors that are indicative of the _logic_ of the program being
-   wrong. For example, 'Error' was executed, 'tailList' was applied to an empty list or evaluation
+   wrong. For example, 'error' was executed, 'tailList' was applied to an empty list or evaluation
    ran out of gas.
 2. Structural ones -- these are errors that are indicative of the _structure_ of the program being
    wrong. For example, a free variable was encountered during evaluation, a non-function was
@@ -62,19 +62,23 @@ mtraverse makeClassyPrisms
 instance Bifunctor EvaluationError where
     bimap f _ (OperationalEvaluationError err) = OperationalEvaluationError $ f err
     bimap _ g (StructuralEvaluationError err)  = StructuralEvaluationError $ g err
+    {-# INLINE bimap #-}
 
 instance Bifoldable EvaluationError where
     bifoldMap f _ (OperationalEvaluationError err) = f err
     bifoldMap _ g (StructuralEvaluationError err)  = g err
+    {-# INLINE bifoldMap #-}
 
 instance Bitraversable EvaluationError where
     bitraverse f _ (OperationalEvaluationError err) = OperationalEvaluationError <$> f err
     bitraverse _ g (StructuralEvaluationError err)  = StructuralEvaluationError <$> g err
+    {-# INLINE bitraverse #-}
 
 -- | A raw evaluation failure is always an operational error.
 instance AsEvaluationFailure operational =>
         AsEvaluationFailure (EvaluationError operational structural) where
     _EvaluationFailure = _OperationalEvaluationError . _EvaluationFailure
+    {-# INLINE _EvaluationFailure #-}
 
 instance
         ( HasPrettyDefaults config ~ 'True
