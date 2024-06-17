@@ -29,8 +29,6 @@ in
     latex-documents = repoRoot.nix.latex-documents;
 
     hydraJobs.required = lib.iogx.mkHydraRequiredJob { };
-
-    combined-haddock = repoRoot.nix.combined-haddock;
   }
 
   {
