@@ -19,7 +19,7 @@
 # We we want is to have relative urls for the plutus packages and components, and links to 
 # hackage for all other packages. Finally we need to treat the cardano-crypt-class edge case separately.
 
-OUTPUT_DIR=${1:-haddocks}
+OUTPUT_DIR=${1:-haddock}
 
 REGENERATE=("${@:2}")
 
@@ -49,6 +49,8 @@ HADDOCK_OPTS=(
 )
 
 if (( "${#REGENERATE[@]}" > 0 )); then
+  rm -rf "${OUTPUT_DIR}"
+
   cabal freeze
   cabal build   "${CABAL_OPTS[@]}" "${REGENERATE[@]}"
   cabal haddock "${CABAL_OPTS[@]}" "${REGENERATE[@]}" "${HADDOCK_OPTS[@]}"
@@ -179,7 +181,7 @@ s|href=\"file:///nix/store/.{32}-ghc-${GHC_VERSION}-doc/share/doc/ghc-${GHC_VERS
 $(sed -E "s|\s*any\.([^=]*) ==([^,]*),|s\|href=\".*/\1/([^\"]+)\"\|href=\"https://hackage.haskell.org/package/\1-\2/docs/\\\1\"\|g|g" cabal.project.freeze | sed -E "/^[^s]/d")
 EOF
 # Note the embedded sed above: we refer to cabal.project.freeze to obtain all package versions.
-# Then for each package-version we write a separate sed substitution.
+# Then for each package-version we produce a different sed substitution.
 
 
 NUM_FILES=$(find "${OUTPUT_DIR}" -type f -name "*.html" | wc -l)
@@ -201,16 +203,8 @@ if grep -qr "dist-newstyle" "${OUTPUT_DIR}"; then
 fi
 
 
-echo "Checking that there are no hrefs to .cabal/store"
-if grep -qr "\.cabal/store" "${OUTPUT_DIR}"; then
-  echo "internal error: references to .cabal/store exist"
-  # exit 1
-fi
-
-
 # These are the currently broken links which incluce some non-sensical URLs and other edge-cases.
 BROKEN_LINKS=(
-  "file:///.*/haddocks/plutus-tx/PlutusTx.html                                                         file:///.*/plutus/plutus-core/src"
   "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 file:///.*/plutus-tx/Data-Aeson-Types-FromJSON.html"
   "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 file:///.*/plutus-tx/Data-Aeson-Types-ToJSON.html"
   "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 file:///.*/plutus-tx/Basement-Numerical-Subtractive.html"
@@ -256,7 +250,7 @@ BROKEN_LINKS=(
   "file:///.*/haddocks/plutus-core/PlutusCore-Pretty-Readable.html                                     file:///.*/plutus-core/Control-Lens-Internal-Iso.html"
   "file:///.*/haddocks/plutus-core/PlutusCore-Pretty-Readable.html                                     file:///.*/plutus-core/Control-Lens-Internal-Prism.html"
   "file:///.*/haddocks/plutus-core/PlutusIR-Analysis-Builtins.html                                     file:///.*/plutus-core/PLC.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Builtin-Meaning.html                                     https://hackage.haskell.org/package/ghc-9.6.5/docs/-/issues/7100)"
+  "file:///.*/haddocks/plutus-core/PlutusCore-Builtin-Meaning.html                                     https://hackage.haskell.org/package/ghc-9.6.5/docs/-/issues/7100"
   "file:///.*/haddocks/plutus-core/PlutusCore-Crypto-BLS12_381-G2.html                                 https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/Cardano-Crypto-EllipticCurve-BLS12_381-Internal.html"
   "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html     file:///.*/plutus-core/Cek-Internal.html"
   "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html     file:///.*/plutus-core/Control-Monad-Trans-Resource-Internal.html"
@@ -325,3 +319,11 @@ time linkchecker haddocks/index.html \
   --output failures \
   --file-output text \
   "${IGNORE_URL_OPTIONS[@]}"
+
+
+if [[ "$?" != "0" ]]; then 
+  echo "Found broken or unreachable 'href=' links in the files above (also see ./linkchecker-out.txt)"
+  echo 1 
+else 
+  echo "haddo
+fi 

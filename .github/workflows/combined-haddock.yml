@@ -21,7 +21,7 @@ jobs:
 
       - name: Build Haddock
         run: | 
-          nix develop --accept-flake-config --command bash ./scripts/combined-haddock.sh
+          nix develop --accept-flake-config --command bash ./scripts/combined-haddock.sh haddock all
 
       - name: Deploy Haddock
         uses: JamesIves/github-pages-deploy-action@v4
