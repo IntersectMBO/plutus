@@ -69,9 +69,9 @@ executable doc-doctests
     , containers
     , flat               ^>=0.6
     , lens
-    , plutus-core        ^>=1.29
-    , plutus-ledger-api  ^>=1.29
-    , plutus-tx          ^>=1.29
+    , plutus-core        ^>=1.30
+    , plutus-ledger-api  ^>=1.30
+    , plutus-tx          ^>=1.30
     , prettyprinter
     , random
     , serialise
@@ -96,10 +96,10 @@ executable quick-start
     , base               >=4.9   && <5
     , base16-bytestring
     , bytestring
-    , plutus-core        ^>=1.29
-    , plutus-ledger-api  ^>=1.29
-    , plutus-tx          ^>=1.29
-    , plutus-tx-plugin   ^>=1.29
+    , plutus-core        ^>=1.30
+    , plutus-ledger-api  ^>=1.30
+    , plutus-tx          ^>=1.30
+    , plutus-tx-plugin   ^>=1.30
 
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin

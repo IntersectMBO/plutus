@@ -1,4 +1,21 @@
 
+<a id='changelog-1.30.0.0'></a>
+# 1.30.0.0 — 2024-06-17
+
+## Added
+
+- Logical operations as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md).
+
+- Implementation and tests for primitive operations in [this
+  CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md)
+
+## Changed
+
+- References to CIP-87 have been corrected to refer to CIP-121.
+- Rename `ReplicateByteString` to `ReplicateByte` (and similarly for denotation)
+- Renamed decodeViaFlat to decodeViaFlatWith
+- Renamed AsSerialize to FlatViaSerialise
+
 <a id='changelog-1.29.0.0'></a>
 # 1.29.0.0 — 2024-06-04
 

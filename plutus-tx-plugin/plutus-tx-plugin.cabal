@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.29.0.0
+version:         1.30.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -83,8 +83,8 @@ library
     , flat                                  ^>=0.6
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.29
-    , plutus-tx                             ^>=1.29
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.30
+    , plutus-tx                             ^>=1.30
     , prettyprinter
     , PyF                                   >=0.11.1.0
     , template-haskell
@@ -109,7 +109,7 @@ executable gen-plugin-opts-doc
     , containers
     , lens
     , optparse-applicative
-    , plutus-tx-plugin      ^>=1.29
+    , plutus-tx-plugin      ^>=1.30
     , prettyprinter
     , PyF                   >=0.11.1.0
     , text
@@ -184,10 +184,10 @@ test-suite plutus-tx-plugin-tests
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.29
-    , plutus-tx-plugin                                ^>=1.29
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.30
+    , plutus-tx-plugin                                ^>=1.30
     , plutus-tx-test-util
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.29
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.30
     , serialise
     , tasty
     , tasty-golden
@@ -216,9 +216,9 @@ test-suite size
   hs-source-dirs:     test/size
   build-depends:
     , base                                            >=4.9   && <5.0
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.29
-    , plutus-tx-plugin                                ^>=1.29
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.29
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.30
+    , plutus-tx-plugin                                ^>=1.30
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.30
     , tagged
     , tasty
 
