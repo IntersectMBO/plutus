@@ -3,10 +3,10 @@
 # Build Haddock documentation for all packages in Plutus, including internal 
 # libraries.
 #
-# Usage: ./combined-haddocks.sh DIR [COMPS ...]
+# Usage: ./combined-haddock.sh DIR [COMPS ...]
 #
 #   DIR 
-#     Where to put the generated pages, the default is 'haddocks'.
+#     Where to put the generated pages, the default is 'haddock'.
 #
 #   COMPS 
 #     The components to re-build haddocks for, or 'all' to rebuild everything
@@ -49,15 +49,13 @@ HADDOCK_OPTS=(
 )
 
 if (( "${#REGENERATE[@]}" > 0 )); then
-  rm -rf "${OUTPUT_DIR}"
-
   cabal freeze
   cabal build   "${CABAL_OPTS[@]}" "${REGENERATE[@]}"
   cabal haddock "${CABAL_OPTS[@]}" "${REGENERATE[@]}" "${HADDOCK_OPTS[@]}"
 fi
 
-mkdir -p     "${OUTPUT_DIR}"
-chmod -R u+w "${OUTPUT_DIR}"
+rm    -rf "${OUTPUT_DIR}"
+mkdir -p  "${OUTPUT_DIR}"
 
 GHC_VERSION="$(ghc --numeric-version)"
 
