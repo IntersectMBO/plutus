@@ -49,6 +49,8 @@ in
     pkgs.fswatch
     pkgs.linkchecker
 
+    (pkgs.python311.withPackages (py: [ py.beautifulsoup4 ]))
+
     # Needed to make building things work, not for commands
     pkgs.zlib
     pkgs.cacert

@@ -81,14 +81,14 @@ let
         {
           packages = {
             # Packages we just don't want docs for
-            plutus-benchmark.doHaddock = false;
+            # plutus-benchmark.doHaddock = false;
 
             # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
-            plutus-tx-plugin.doHaddock = false;
+            # plutus-tx-plugin.doHaddock = false;
 
             # Something goes wrong with the custom setup
             # https://github.com/input-output-hk/haskell.nix/issues/2019
-            prettyprinter-configurable.doHaddock = false;
+            # prettyprinter-configurable.doHaddock = false;
 
             # In this case we can just propagate the native dependencies for the build of
             # the test executable, which are actually set up right (we have a

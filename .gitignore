@@ -35,6 +35,7 @@ cabal-dev
 cabal.sandbox.config
 cabal.config
 cabal.project.local
+cabal.project.freeze
 
 # Stack
 .stack-work
