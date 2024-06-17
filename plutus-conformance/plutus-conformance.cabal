@@ -48,7 +48,7 @@ library
     , base
     , directory
     , filepath
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.29
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.30
     , tasty
     , tasty-expected-failure
     , tasty-golden
@@ -71,7 +71,7 @@ test-suite haskell-conformance
   build-depends:
     , base                >=4.9   && <5
     , plutus-conformance
-    , plutus-core         ^>=1.29
+    , plutus-core         ^>=1.30
 
 test-suite haskell-steppable-conformance
   import:         lang
@@ -84,7 +84,7 @@ test-suite haskell-steppable-conformance
     , base                >=4.9   && <5
     , lens
     , plutus-conformance
-    , plutus-core         ^>=1.29
+    , plutus-core         ^>=1.30
 
 test-suite agda-conformance
   import:         lang
@@ -97,6 +97,6 @@ test-suite agda-conformance
     , aeson
     , base                >=4.9   && <5
     , plutus-conformance
-    , plutus-core         ^>=1.29
+    , plutus-core         ^>=1.30
     , plutus-metatheory
     , transformers

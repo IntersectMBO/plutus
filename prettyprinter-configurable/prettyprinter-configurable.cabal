@@ -1,6 +1,6 @@
 cabal-version:      2.4
 name:               prettyprinter-configurable
-version:            1.29.0.0
+version:            1.30.0.0
 synopsis:           Configurable pretty-printing
 homepage:
   https://github.com/input-output-hk/plutus/tree/master/prettyprinter-configurable/
@@ -76,7 +76,7 @@ test-suite prettyprinter-configurable-test
     , base                        >=4.9   && <5
     , megaparsec
     , parser-combinators
-    , prettyprinter-configurable  ^>=1.29
+    , prettyprinter-configurable  ^>=1.30
     , QuickCheck
     , quickcheck-text
     , tasty

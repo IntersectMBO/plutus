@@ -1,4 +1,26 @@
 
+<a id='changelog-1.30.0.0'></a>
+# 1.30.0.0 — 2024-06-17
+
+## Removed
+
+- Removed incorrect Ord and Eq instances from AssocMap and Data.AssocMap.
+
+## Added
+
+- Builtins corresponding to the logical operations from [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md).
+
+- Builtin wrappers for operations from [this
+  CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
+
+- Haskell `Eq` and `Ord` instances for `AssocMap` based on `Data.Map.Strict`.
+
+## Changed
+
+- References to CIP-0087 now correctly refer to CIP-121.
+
+- Rename `replicateByteString` to `replicateByte`
+
 <a id='changelog-1.29.0.0'></a>
 # 1.29.0.0 — 2024-06-04
 

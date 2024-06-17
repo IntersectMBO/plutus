@@ -1,4 +1,32 @@
 
+<a id='changelog-1.30.0.0'></a>
+# 1.30.0.0 — 2024-06-17
+
+## Added
+
+- Added a new `Value` type backed by `Data`. This is currently experimental and not yet used in the ledger API.
+
+- Exported the following from `PlutusLedgerApi.Common` in #6178:
+  + `ExCPU (..)`
+  + `ExMemory (..)`
+  + `SatInt (unSatInt)`
+  + `fromSatInt`
+  + `toOpaque,
+  + `fromOpaque`
+  + `BuiltinData (..)`
+  + `ToData (..)`
+  + `FromData (..)`
+  + `UnsafeFromData (..)`
+  + `toData`
+  + `fromData`
+  + `unsafeFromData`
+  + `dataToBuiltinData`
+  + `builtinDataToData`
+
+## Fixed
+
+- Fixed the `Pretty` instance for `ScriptContext` to display the redemeer as well.
+
 <a id='changelog-1.29.0.0'></a>
 # 1.29.0.0 — 2024-06-04
 
