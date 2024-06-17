@@ -27,7 +27,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           # This folder is generated in the step above
-          folder: combined_haddock_dst
+          folder: haddock
           target-folder: haddock/${{ github.ref_name }}
-          # combined_haddock_dst is ~400MB and keeping the entire history is unnecessary.
+          # haddock is ~400MB and keeping the entire history is unnecessary.
           single-commit: true

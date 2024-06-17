@@ -313,7 +313,7 @@ done
 
 
 echo "Running linkchecker"
-time linkchecker haddocks/index.html \
+time linkchecker "${OUTPUT_DIR}/index.html" \
   --check-extern \
   --no-warnings \
   --output failures \
@@ -323,5 +323,5 @@ time linkchecker haddocks/index.html \
 
 if [[ "$?" != "0" ]]; then 
   echo "Found broken or unreachable 'href=' links in the files above (also see ./linkchecker-out.txt)"
-  echo 1 
+  exit 1 
 fi 
