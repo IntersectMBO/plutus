@@ -600,13 +600,12 @@ replicateByte len w8
 {- Note [Shift and rotation implementation]
 
 Both shifts and rotations work similarly: they effectively impose a 'write
-offset' to bits in the data argument, then write those bits to the result
-with this offset applied. The difference between them is in what should be
-done if the resulting offset index would fall out of bounds: shifts just
-discard the data (and fill whatever remains with zeroes), while rotations
-'wrap around' modularly. This operation is bit parallel by definition, thus
-theoretically making it amenable to the techniques described in Note [Bit
-parallelism and loop sectioning].
+offset' to bits in the data argument, then write those bits to the result with
+this offset applied. The difference between them is in what should be done if
+the resulting offset index would fall out of bounds: shifts just discard the
+data (and fill whatever remains with zeroes), while rotations 'wrap around'
+modularly. This operation is bit parallel by definition, thus theoretically
+making it amenable to the techniques described in Note [Loop sectioning].
 
 However, the naive way of doing this runs into a problem: the byte ordering
 on Tier 1 platforms inside `Word64` means that consecutive bit indexes
