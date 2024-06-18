@@ -1,5 +1,4 @@
--- TODO: this module adds a copy of the 'Value' type in which the underlying maps are
--- 'Data.AssocMap'.
+-- TODO: this module adds a copy of the 'Value' type in which the underlying maps are 'Data.AssocMap'.
 -- !!WARNING!!: this is currently experimental so do not use in production code!
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass     #-}
