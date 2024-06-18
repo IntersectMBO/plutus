@@ -41,18 +41,18 @@ import Data.Data (Data)
 import Data.String (IsString (..))
 import GHC.Generics (Generic)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address (Network)
-import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..), TokenName)
+import PlutusLedgerApi.Data.V2 (CurrencySymbol, POSIXTime (..), TokenName)
 import PlutusTx.AsData (asData)
-import PlutusTx.AssocMap (Map)
+import PlutusTx.Data.AssocMap (Map)
 import PlutusTx.IsData (FromData, ToData, UnsafeFromData, makeIsDataIndexed, unstableMakeIsData)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude (Bool (..), BuiltinByteString, Eq (..), Integer, Ord ((<=), (>=)), any,
                          (&&))
 
-import PlutusLedgerApi.V1.Value qualified as Val
-import PlutusLedgerApi.V2 qualified as Ledger (Address (..), Credential (..), PubKeyHash (..),
-                                               ScriptHash (..), StakingCredential (..))
-import PlutusTx.AssocMap qualified as Map
+import PlutusLedgerApi.Data.V2 qualified as Ledger (Address (..), Credential (..), PubKeyHash (..),
+                                                    ScriptHash (..), StakingCredential (..))
+import PlutusLedgerApi.V1.Data.Value qualified as Val
+import PlutusTx.Data.AssocMap qualified as Map
 import Prelude qualified as Haskell
 
 deriving stock instance Data POSIXTime
@@ -114,7 +114,7 @@ type Accounts = Map (AccountId, Token) Integer
 -- | Values, as defined using Let ar e identified by name,
 --   and can be used by 'UseValue' construct.
 newtype ValueId = ValueId BuiltinByteString
-  deriving (IsString, Haskell.Show) via TokenName
+  deriving (IsString, Haskell.Show) -- via TokenName
   deriving stock (Haskell.Eq,Haskell.Ord,Generic,Data)
   deriving anyclass (Newtype)
   deriving newtype (Eq)

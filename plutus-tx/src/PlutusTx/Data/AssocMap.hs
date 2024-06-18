@@ -28,6 +28,7 @@ module PlutusTx.Data.AssocMap (
   map,
   mapThese,
   foldr,
+  concat,
   ) where
 
 import PlutusTx.Builtins qualified as P
@@ -35,7 +36,7 @@ import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData qualified as P
 import PlutusTx.Lift (makeLift)
 import PlutusTx.List qualified as List
-import PlutusTx.Prelude hiding (all, any, foldr, map, null, toList, uncons)
+import PlutusTx.Prelude hiding (all, any, concat, foldr, map, null, toList, uncons)
 import PlutusTx.Prelude qualified
 import PlutusTx.These
 import Prettyprinter (Pretty (..))
@@ -509,3 +510,16 @@ foldr f z (Map m) = go m
         )
 
 makeLift ''Map
+
+concat :: forall k a. Map k a -> Map k a -> Map k a
+concat (Map m1) (Map m2) = Map $ m1 `concat'` m2
+  where
+    concat' xs ys =
+      P.matchList
+        xs
+        (\() -> ys)
+        ( \hd tl ->
+            let k = BI.fst hd
+                v = BI.snd hd
+             in BI.mkCons (BI.mkPairData k v) (tl `concat'` ys)
+        )

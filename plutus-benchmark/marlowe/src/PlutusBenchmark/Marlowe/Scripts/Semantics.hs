@@ -53,16 +53,17 @@ import PlutusBenchmark.Marlowe.Core.V1.Semantics as Semantics (MarloweData (..),
                                                                computeTransaction, totalBalance)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
 import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidatorHash)
-import PlutusLedgerApi.V2 (Credential (..), Datum (Datum), DatumHash (DatumHash), Extended (..),
-                           Interval (..), LowerBound (..), POSIXTime (..), POSIXTimeRange,
-                           ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),
-                           ScriptHash (..), ScriptPurpose (Spending), SerialisedScript,
-                           TxInInfo (TxInInfo, txInInfoOutRef, txInInfoResolved),
-                           TxInfo (TxInfo, txInfoInputs, txInfoOutputs, txInfoValidRange),
-                           UpperBound (..), serialiseCompiledCode)
-import PlutusLedgerApi.V2.Contexts (findDatum, findDatumHash, txSignedBy, valueSpent)
-import PlutusLedgerApi.V2.Tx (OutputDatum (OutputDatumHash),
-                              TxOut (TxOut, txOutAddress, txOutDatum, txOutValue))
+import PlutusLedgerApi.Data.V2 (Credential (..), Datum (Datum), DatumHash (DatumHash),
+                                Extended (..), Interval (..), LowerBound (..), POSIXTime (..),
+                                POSIXTimeRange,
+                                ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),
+                                ScriptHash (..), ScriptPurpose (Spending), SerialisedScript,
+                                TxInInfo (TxInInfo, txInInfoOutRef, txInInfoResolved),
+                                TxInfo (TxInfo, txInfoInputs, txInfoOutputs, txInfoValidRange),
+                                UpperBound (..), serialiseCompiledCode)
+import PlutusLedgerApi.V2.Data.Contexts (findDatum, findDatumHash, txSignedBy, valueSpent)
+import PlutusLedgerApi.V2.Data.Tx (OutputDatum (OutputDatumHash),
+                                   TxOut (TxOut, txOutAddress, txOutDatum, txOutValue))
 import PlutusTx (CompiledCode, makeIsDataIndexed, makeLift, unsafeFromBuiltinData)
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude as PlutusTxPrelude (AdditiveGroup ((-)), AdditiveMonoid (zero),
@@ -70,18 +71,18 @@ import PlutusTx.Prelude as PlutusTxPrelude (AdditiveGroup ((-)), AdditiveMonoid 
                                             BuiltinData, BuiltinString, BuiltinUnit,
                                             Enum (fromEnum), Eq (..), Functor (fmap), Integer,
                                             Maybe (..), Ord ((>)), Semigroup ((<>)), all, any,
-                                            check, elem, filter, find, foldMap, null, otherwise,
-                                            snd, toBuiltin, ($), (&&), (.), (/=), (||))
+                                            check, elem, filter, find, foldMap, foldr, null,
+                                            otherwise, snd, toBuiltin, ($), (&&), (.), (/=), (||))
 
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
 import Data.ByteString.Short qualified as SBS
 import PlutusCore.Version (plcVersion100)
+import PlutusLedgerApi.Data.V2 qualified as Ledger (Address (Address))
 import PlutusLedgerApi.V1.Address qualified as Address (scriptHashAddress)
-import PlutusLedgerApi.V1.Value qualified as Val
-import PlutusLedgerApi.V2 qualified as Ledger (Address (Address))
+import PlutusLedgerApi.V1.Data.Value qualified as Val
 import PlutusTx qualified
-import PlutusTx.AssocMap qualified as AssocMap
+import PlutusTx.Data.AssocMap qualified as AssocMap
 import PlutusTx.Trace (traceError, traceIfFalse)
 import Prelude qualified as Haskell
 
@@ -180,7 +181,7 @@ mkMarloweValidator
 
                 -- Each party must receive as least as much value as the semantics specify.
                 -- [Marlowe-Cardano Specification: "Constraint 15. Sufficient payment."]
-                payoutsByParty = AssocMap.toList $ foldMap payoutByParty txOutPayments
+                payoutsByParty = foldMap payoutByParty txOutPayments
                 payoutsOk = payoutConstraints payoutsByParty
 
                 checkContinuation = case txOutContract of
@@ -268,15 +269,6 @@ mkMarloweValidator
       let
         positiveBalance :: (a, Integer) -> Bool
         positiveBalance (_, balance) = balance > 0
-        noDuplicates :: Eq k => AssocMap.Map k v -> Bool
-        noDuplicates am =
-          let
-            test [] = True           -- An empty list has no duplicates.
-            test (x : xs)            -- Look for a duplicate of the head in the tail.
-              | elem x xs = False    -- A duplicate is present.
-              | otherwise = test xs  -- Continue searching for a duplicate.
-          in
-            test $ AssocMap.keys am
       in
            -- [Marlowe-Cardano Specification: "Constraint 5. Input value from script".]
            -- and/or
@@ -285,9 +277,9 @@ mkMarloweValidator
            -- [Marlowe-Cardano Specification: "Constraint 13. Positive balances".]
         && traceIfFalse ("b"  <> tag) (all positiveBalance $ AssocMap.toList accounts)
            -- [Marlowe-Cardano Specification: "Constraint 19. No duplicates".]
-        && traceIfFalse ("ea" <> tag) (noDuplicates accounts)
-        && traceIfFalse ("ec" <> tag) (noDuplicates choices)
-        && traceIfFalse ("eb" <> tag) (noDuplicates boundValues)
+        && traceIfFalse ("ea" <> tag) (AssocMap.noDuplicateKeys accounts)
+        && traceIfFalse ("ec" <> tag) (AssocMap.noDuplicateKeys choices)
+        && traceIfFalse ("eb" <> tag) (AssocMap.noDuplicateKeys boundValues)
 
     -- Look up the Datum hash for specific data.
     findDatumHash' :: PlutusTx.ToData o => o -> Maybe DatumHash
@@ -353,13 +345,13 @@ mkMarloweValidator
     collectDeposits _ = zero
 
     -- Extract the payout to a party.
-    payoutByParty :: Payment -> AssocMap.Map Party Val.Value
+    payoutByParty :: Payment -> [(Party, Val.Value)]
     payoutByParty (Payment _ (Party party) (Token cur tok) amount)
-      | amount > 0 = AssocMap.singleton party $ Val.singleton cur tok amount
-      | otherwise  = AssocMap.empty  -- NOTE: Perhaps required because semantics may make zero payments
+      | amount > 0 = [(party, Val.singleton cur tok amount)]
+      | otherwise  = [] -- NOTE: Perhaps required because semantics may make zero payments
                                      -- (though this passes the test suite), but removing this function's
                                      -- guard reduces the validator size by 20 bytes.
-    payoutByParty (Payment _ (Account _) _ _ )       = AssocMap.empty
+    payoutByParty (Payment _ (Account _) _ _ )       = []
 
     -- Check outgoing payments.
     payoutConstraints :: [(Party, Val.Value)] -> Bool

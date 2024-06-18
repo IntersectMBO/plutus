@@ -102,7 +102,7 @@ module PlutusBenchmark.Marlowe.Core.V1.Semantics
 import Data.Data (Data)
 import GHC.Generics (Generic)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
-import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..))
+import PlutusLedgerApi.Data.V2 (CurrencySymbol, POSIXTime (..))
 import PlutusTx (FromData, ToData, UnsafeFromData)
 import PlutusTx.AsData (asData)
 import PlutusTx.IsData (makeIsDataIndexed)
@@ -112,9 +112,9 @@ import PlutusTx.Prelude (AdditiveGroup ((-)), AdditiveSemigroup ((+)), Bool (..)
                          Ord (max, min, (<), (<=), (>), (>=)), all, foldMap, foldr, fst, negate,
                          not, otherwise, reverse, snd, ($), (&&), (++), (||))
 
-import PlutusLedgerApi.V2 qualified as Val
-import PlutusTx.AssocMap qualified as Map
+import PlutusLedgerApi.Data.V2 qualified as Val
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Data.AssocMap qualified as Map
 import Prelude qualified as Haskell
 
 
@@ -322,6 +322,8 @@ evalObservation env state obs = let
 
 -- | Pick the first account with money in it.
 refundOne :: Accounts -> Maybe ((Party, Token, Integer), Accounts)
+-- TODO: this Map.toList cannot be avoided because there's no way to transform
+-- BuiltinData into BuiltinPair
 refundOne accounts = case Map.toList accounts of
     [] -> Nothing
     -- SCP-5126: The return value of this function differs from
@@ -688,7 +690,7 @@ totalBalance accounts = foldMap
 
 -- | Check that all accounts have positive balance.
 allBalancesArePositive :: State -> Bool
-allBalancesArePositive State{..} = all (\(_, balance) -> balance > 0) (Map.toList accounts)
+allBalancesArePositive State{..} = Map.all (> 0) accounts
 
 
 instance Eq Payment where
