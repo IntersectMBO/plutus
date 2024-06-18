@@ -8,8 +8,10 @@
 module PlutusTx.Data.AssocMap (
   Map,
   lookup,
+  lookup',
   member,
   insert,
+  insert',
   delete,
   singleton,
   empty,
@@ -28,6 +30,7 @@ module PlutusTx.Data.AssocMap (
   map,
   mapThese,
   foldr,
+  nil,
   ) where
 
 import PlutusTx.Builtins qualified as P
