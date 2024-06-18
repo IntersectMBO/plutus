@@ -10,6 +10,7 @@ import PlutusCore.Builtin.KnownType
 import PlutusCore.Evaluation.Machine.ExBudgetStream
 
 import Control.DeepSeq
+import Control.Monad.Except (throwError)
 import NoThunks.Class
 
 -- | A 'BuiltinRuntime' represents a possibly partial builtin application, including an empty
@@ -77,6 +78,11 @@ instance (Bounded fun, Enum fun) => NoThunks (BuiltinsRuntime fun val) where
     -- forcing it, see https://stackoverflow.com/q/63441862).
     wNoThunks ctx (BuiltinsRuntime env) = allNoThunks $ map (wNoThunks ctx . env) enumerate
     showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinsRuntime"
+
+builtinRuntimeFailure :: BuiltinError -> BuiltinRuntime val
+builtinRuntimeFailure = BuiltinCostedResult (ExBudgetLast mempty) . throwError
+-- See Note [INLINE and OPAQUE on error-related definitions].
+{-# OPAQUE builtinRuntimeFailure #-}
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin :: fun -> BuiltinsRuntime fun val -> BuiltinRuntime val

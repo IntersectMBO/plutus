@@ -248,9 +248,8 @@ typeMismatchError uniExp uniAct =
         , "expected: " ++ displayBy botRenderContext (SomeTypeIn uniExp)
         , "; actual: " ++ displayBy botRenderContext (SomeTypeIn uniAct)
         ]
--- Just for tidier Core to get generated, we don't care about performance here, since it's just a
--- failure message and evaluation is about to be shut anyway.
-{-# NOINLINE typeMismatchError #-}
+-- See Note [INLINE and OPAQUE on error-related definitions].
+{-# OPAQUE typeMismatchError #-}
 
 -- Normally it's a good idea for an exported abstraction not to be a type synonym, since a @newtype@
 -- is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we
@@ -322,11 +321,6 @@ readKnownSelf
 readKnownSelf val = fromRightM (throwBuiltinErrorWithCause val) $ readKnown val
 {-# INLINE readKnownSelf #-}
 
-instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
-    makeKnown EvaluationFailure     = evaluationFailure
-    makeKnown (EvaluationSuccess x) = makeKnown x
-    {-# INLINE makeKnown #-}
-
 instance MakeKnownIn uni val a => MakeKnownIn uni val (BuiltinResult a) where
     makeKnown res = res >>= makeKnown
     {-# INLINE makeKnown #-}
@@ -338,24 +332,38 @@ instance MakeKnownIn uni val a => MakeKnownIn uni val (BuiltinResult a) where
 -- I.e. it would essentially allow us to catch errors and handle them in a programmable way.
 -- We forbid this, because it complicates code and isn't supported by evaluation engines anyway.
 instance
-        ( TypeError ('Text "‘EvaluationResult’ cannot appear in the type of an argument")
+        ( TypeError ('Text "‘BuiltinResult’ cannot appear in the type of an argument")
         , uni ~ UniOf val
-        ) => ReadKnownIn uni val (EvaluationResult a) where
-    readKnown _ = throwing _StructuralUnliftingError "Panic: 'TypeError' was bypassed"
-    -- Just for 'readKnown' not to appear in the generated Core.
+        ) => ReadKnownIn uni val (BuiltinResult a) where
+    readKnown _ = throwUnderTypeError
     {-# INLINE readKnown #-}
 
-instance MakeKnownIn uni val a => MakeKnownIn uni val (Emitter a) where
-    makeKnown a = case runEmitter a of
-        (x, logs) -> withLogs logs $ makeKnown x
+instance
+        ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘EvaluationResult’")
+        , uni ~ UniOf val
+        ) => MakeKnownIn uni val (EvaluationResult a) where
+    makeKnown _ = throwUnderTypeError
     {-# INLINE makeKnown #-}
 
 instance
-        ( TypeError ('Text "‘Emitter’ cannot appear in the type of an argument")
+        ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘EvaluationResult’")
+        , uni ~ UniOf val
+        ) => ReadKnownIn uni val (EvaluationResult a) where
+    readKnown _ = throwUnderTypeError
+    {-# INLINE readKnown #-}
+
+instance
+        ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘Emitter’")
+        , uni ~ UniOf val
+        ) => MakeKnownIn uni val (Emitter a) where
+    makeKnown _ = throwUnderTypeError
+    {-# INLINE makeKnown #-}
+
+instance
+        ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘Emitter’")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (Emitter a) where
-    readKnown _ = throwing _StructuralUnliftingError "Panic: 'TypeError' was bypassed"
-    -- Just for 'readKnown' not to appear in the generated Core.
+    readKnown _ = throwUnderTypeError
     {-# INLINE readKnown #-}
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where

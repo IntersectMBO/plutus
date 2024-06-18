@@ -72,9 +72,11 @@ mtraverse makeClassyPrisms
 instance structural ~ MachineError fun =>
         AsMachineError (EvaluationError operational structural) fun where
     _MachineError = _StructuralEvaluationError
+    {-# INLINE _MachineError #-}
 
 instance AsUnliftingError (MachineError fun) where
     _UnliftingError = _UnliftingMachineError
+    {-# INLINE _UnliftingError #-}
 
 type EvaluationException operational structural =
     ErrorWithCause (EvaluationError operational structural)

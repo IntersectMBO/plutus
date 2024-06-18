@@ -74,6 +74,7 @@ instance AsEvaluationFailure (EvaluationResult a) where
     _EvaluationFailure = prism (const EvaluationFailure) $ \case
         a@EvaluationSuccess{} -> Left a
         EvaluationFailure     -> Right ()
+    {-# INLINE _EvaluationFailure #-}
 
 -- This and the next one are two instances that allow us to write the following:
 --

@@ -1,9 +1,11 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE RankNTypes             #-}
+{-# LANGUAGE StrictData             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 
 module PlutusCore.Builtin.Result
@@ -21,6 +23,7 @@ module PlutusCore.Builtin.Result
     , _StructuralUnliftingError
     , _OperationalUnliftingError
     , throwNotAConstant
+    , throwUnderTypeError
     , withLogs
     , throwing
     , throwing_
@@ -39,13 +42,14 @@ import Data.Bitraversable
 import Data.DList (DList)
 import Data.String (IsString)
 import Data.Text (Text)
+import Data.Text qualified as Text
 import Prettyprinter
 
 -- | The error message part of an 'UnliftingEvaluationError'.
 newtype UnliftingError = MkUnliftingError
     { unUnliftingError :: Text
     } deriving stock (Show, Eq)
-      deriving newtype (IsString, Semigroup, NFData)
+      deriving newtype (IsString, Semigroup, Monoid, NFData)
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingEvaluationError = MkUnliftingEvaluationError
@@ -55,7 +59,7 @@ newtype UnliftingEvaluationError = MkUnliftingEvaluationError
 
 -- | The type of errors that 'readKnown' and 'makeKnown' can return.
 data BuiltinError
-    = BuiltinUnliftingEvaluationError !UnliftingEvaluationError
+    = BuiltinUnliftingEvaluationError UnliftingEvaluationError
     | BuiltinEvaluationFailure
     deriving stock (Show, Eq)
 
@@ -143,6 +147,10 @@ instance MonadEmitter BuiltinResult where
     emit txt = BuiltinSuccessWithLogs (pure txt) ()
     {-# INLINE emit #-}
 
+instance MonadFail BuiltinResult where
+    fail err = BuiltinFailure (pure $ Text.pack err) BuiltinEvaluationFailure
+    {-# INLINE fail #-}
+
 instance Pretty UnliftingError where
     pretty (MkUnliftingError err) = fold
         [ "Could not unlift a value:", hardline
@@ -154,6 +162,21 @@ deriving newtype instance Pretty UnliftingEvaluationError
 instance Pretty BuiltinError where
     pretty (BuiltinUnliftingEvaluationError err) = "Builtin evaluation failure:" <+> pretty err
     pretty BuiltinEvaluationFailure              = "Builtin evaluation failure"
+
+{- Note [INLINE and OPAQUE on error-related definitions]
+We mark error-related definitions such as prisms like '_StructuralUnliftingError' and regular
+functions like 'throwNotAConstant' with @INLINE@, because this produces significantly less cluttered
+GHC Core. Not doing so results in 20+% larger Core for builtins.
+
+However in a few specific cases we use @OPAQUE@ instead to get tighter Core. @OPAQUE@ is the same as
+@NOINLINE@ except the former _actually_ prevents GHC from inlining the definition unlike the latter.
+See this for details: https://github.com/ghc-proposals/ghc-proposals/blob/5577fd008924de8d89cfa9855fa454512e7dcc75/proposals/0415-opaque-pragma.rst
+
+It's hard to predict where @OPAQUE@ instead of @INLINE@ will help to make GHC Core tidier, so it's
+mostly just looking into the Core and seeing where there's obvious duplication that can be removed.
+Such cases tend to be functions returning a value of a concrete error type (as opposed to a type
+variable).
+-}
 
 -- See Note [Ignoring context in OperationalEvaluationError].
 -- | Construct a prism focusing on the @*EvaluationFailure@ part of @err@ by taking
@@ -180,6 +203,10 @@ _OperationalUnliftingError = _BuiltinUnliftingEvaluationError . _OperationalEval
 throwNotAConstant :: MonadError BuiltinError m => m void
 throwNotAConstant = throwing _StructuralUnliftingError "Not a constant"
 {-# INLINE throwNotAConstant #-}
+
+throwUnderTypeError :: MonadError BuiltinError m => m void
+throwUnderTypeError = throwing _StructuralUnliftingError "Panic: 'TypeError' was bypassed"
+{-# INLINE throwUnderTypeError #-}
 
 -- | Prepend logs to a 'BuiltinResult' computation.
 withLogs :: DList Text -> BuiltinResult a -> BuiltinResult a
@@ -242,6 +269,7 @@ instance MonadError BuiltinError BuiltinResult where
                     (OperationalEvaluationError
                         (MkUnliftingError operationalErr))) -> pure operationalErr
             _ -> mempty
+    {-# INLINE throwError #-}
 
     -- Throwing logs out is lame, but embedding them into the error would be weird, since that
     -- would change the error. Not that any of that matters, we only implement this because it's a

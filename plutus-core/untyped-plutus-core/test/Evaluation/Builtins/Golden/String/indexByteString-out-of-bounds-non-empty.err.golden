@@ -1,3 +1,5 @@
 An error has occurred:
 The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
 Caused by: (indexByteString #68656c6c6f20776f726c64 12)
+Logs were:
+Index out of bounds
