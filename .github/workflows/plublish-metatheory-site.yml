@@ -11,16 +11,17 @@ on:
     inputs:
       version:
         description: |
-          The release version tag. For example if $version == "1.29.0.0" then  
-          the current contents of the branch tagged "1.29.0.0" will be deployed to 
+          The release version tag. For example if $version == "1.29.0.0" then the 
+          current contents of the branch tagged "1.29.0.0" will be deployed to: 
             https://intersectmbo.github.io/plutus/docs/metatheory/$version
         required: true
         type: string
+
       latest: 
         description: |
-          If true, then the $version branch will also be deployed to
+          If true, then the $version branch will also be deployed to:
             https://intersectmbo.github.io/plutus/docs/metatheory/latest
-          You want to set this to true unless you are deploying old versions.
+          You want to leave this to true unless you are deploying old versions.
         type: boolean
         required: true 
         default: true
@@ -35,21 +36,23 @@ jobs:
       name: github-pages
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@main
+        with:
+          ref: ${{ inputs.version }}
 
-      - name: Build Derivation
+      - name: Build Site
         run: nix build .#plutus-metatheory-site --out-link _site
 
       - name: Deploy Site
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@main
         with:
           folder: _site
-          target-folder: docs/metatheory/v${{ inputs.version }}
+          target-folder: docs/metatheory/${{ inputs.version }}
           single-commit: true
         
       - name: Deploy Latest
         if: ${{ inputs.latest == true }}
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@main
         with:
           folder: _site
           target-folder: docs/metatheory/latest

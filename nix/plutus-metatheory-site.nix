@@ -52,7 +52,7 @@ let
       find "$out" -name "*.html" | xargs sed -i -E \
         's|href=\"file:///nix/store/.{32}-plutus-metatheory-site/([^\"]+)\"|href=\"\1\"|g'
 
-      if ! linkchecker "$out/index.html" --output failures --check-extern; then
+      if ! linkchecker "$out/index.html" --output failures; then
         echo "Broken links found and printed above"
         exit 1
       fi
