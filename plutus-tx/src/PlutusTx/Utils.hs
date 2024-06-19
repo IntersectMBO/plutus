@@ -14,7 +14,7 @@ mustBeReplaced placeholder =
       \core-to-plc plugin during compilation."
 
 -- | Delay evalaution of the expression inside the 'Delay' constructor.
-newtype Delay a = Delay (forall b. a)
+data Delay a = Delay ~(forall b. a)
 
 -- | Force the evaluation of the expression delayed by the 'Delay'.
 force :: Delay a -> a
