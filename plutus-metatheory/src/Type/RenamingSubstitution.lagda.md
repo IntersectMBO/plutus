@@ -239,7 +239,7 @@ ren-comp-VecList (xs ∷ xss) = cong₂ _∷_ (ren-comp-List xs) (ren-comp-VecLi
 
 A type substitution is a mapping of type variables to types. Much of this section
 mirrors functions in the Type section above, so the explainations and design intent
-are the same. There are [Fusion Proofs](markdown-header-fusion-proofs) below.
+are the same. There are [Fusion Proofs](#fusion-proofs) below.
 
 ```
 Sub : Ctx⋆ → Ctx⋆ → Set

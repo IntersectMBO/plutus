@@ -1,0 +1,57 @@
+# This workflow publishes the Agda metatheory site to:
+#   https://intersectmbo.github.io/plutus/docs/metatheory/$version
+# Where $version should be a release version tag.
+# Optionally the $version branch can also be deployed to:
+#   https://intersectmbo.github.io/plutus/docs/metatheory/latest  
+
+name: docs
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: |
+          The release version tag. For example if $version == "1.29.0.0" then  
+          the current contents of the branch tagged "1.29.0.0" will be deployed to 
+            https://intersectmbo.github.io/plutus/docs/metatheory/$version
+        required: true
+        type: string
+      latest: 
+        description: |
+          If true, then the $version branch will also be deployed to
+            https://intersectmbo.github.io/plutus/docs/metatheory/latest
+          You want to set this to true unless you are deploying old versions.
+        type: boolean
+        required: true 
+        default: true
+
+jobs:
+  deplopy-adga-metatheory-site:
+    name: "📚 Deplopy Adga Metatheory Site"
+    runs-on: [self-hosted, plutus-shared]
+    permissions:
+      contents: write
+    environment:
+      name: github-pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Derivation
+        run: nix build .#plutus-metatheory-site --out-link _site
+
+      - name: Deploy Site
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: _site
+          target-folder: docs/metatheory/v${{ inputs.version }}
+          single-commit: true
+        
+      - name: Deploy Latest
+        if: ${{ inputs.latest == true }}
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: _site
+          target-folder: docs/metatheory/latest
+          single-commit: true
+
