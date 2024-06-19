@@ -330,26 +330,20 @@ unionVal (Value l) (Value r) =
 -- | Combine two 'Value' maps with the argument function.
 -- Assumes the well-definedness of the two maps.
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
-unionWith f ls rs =
-    let
-        combined = unionVal ls rs
-        unThese k' = case k' of
-            This a    -> f a 0
-            That b    -> f 0 b
-            These a b -> f a b
-    in Value (Map.map (Map.map unThese) combined)
+unionWith f v1 = Value . unionWith' f v1
 
-unionVal'
-    :: (Integer -> Integer -> Integer)
+unionWith'
+    :: (PlutusTx.ToData a)
+    => (Integer -> Integer -> a)
     -> Value
     -> Value
-    -> Value
-unionVal'
+    -> Map.Map CurrencySymbol (Map.Map TokenName a)
+unionWith'
     f
     (Map.toBuiltinList . getValue -> ls)
     (Map.toBuiltinList . getValue -> rs)
   =
-    Value . Map.unsafeFromBuiltinList $ res ls rs
+    Map.unsafeFromBuiltinList $ res ls rs
   where
     goLeft
         :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
@@ -540,12 +534,7 @@ checkPred f l r =
 --   supplying 0 where a key is only present in one of them.
 checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
 checkBinRel f l r =
-    let
-        unThese k' = case k' of
-            This a    -> f a 0
-            That b    -> f 0 b
-            These a b -> f a b
-    in checkPred unThese l r
+    Map.all (Map.all id) (unionWith' f l r)
 
 {-# INLINABLE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation
