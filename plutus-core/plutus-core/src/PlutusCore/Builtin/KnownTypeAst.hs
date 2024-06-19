@@ -31,7 +31,6 @@ module PlutusCore.Builtin.KnownTypeAst
     , Delete
     ) where
 
-import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.KnownKind
 import PlutusCore.Builtin.Polymorphism
 import PlutusCore.Builtin.Result
@@ -229,13 +228,6 @@ instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (BuiltinResult a) 
     type IsBuiltin _ (BuiltinResult a) = 'False
     type ToHoles _ (BuiltinResult a) = '[TypeHole a]
     type ToBinds uni acc (BuiltinResult a) = ToBinds uni acc a
-    typeAst = toTypeAst $ Proxy @a
-    {-# INLINE typeAst #-}
-
-instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (Emitter a) where
-    type IsBuiltin _ (Emitter a) = 'False
-    type ToHoles _ (Emitter a) = '[TypeHole a]
-    type ToBinds uni acc (Emitter a) = ToBinds uni acc a
     typeAst = toTypeAst $ Proxy @a
     {-# INLINE typeAst #-}
 

@@ -3,8 +3,7 @@
 
 module PlutusCore.Crypto.Utils (failWithMessage, byteStringAsHex) where
 
-import PlutusCore.Builtin.Emitter (emit)
-import PlutusCore.Builtin.Result (BuiltinResult)
+import PlutusCore.Builtin.Result (BuiltinResult, emit)
 import PlutusCore.Evaluation.Result (evaluationFailure)
 
 import Data.ByteString (ByteString, foldr')

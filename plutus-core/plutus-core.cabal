@@ -96,7 +96,6 @@ library
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
-    PlutusCore.Builtin.Emitter
     PlutusCore.Check.Normal
     PlutusCore.Check.Scoping
     PlutusCore.Check.Uniques
