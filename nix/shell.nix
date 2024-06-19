@@ -47,6 +47,7 @@ in
     pkgs.gawk
     pkgs.scriv
     pkgs.fswatch
+    pkgs.linkchecker
 
     # Needed to make building things work, not for commands
     pkgs.zlib

@@ -35,6 +35,7 @@ cabal-dev
 cabal.sandbox.config
 cabal.config
 cabal.project.local
+cabal.project.freeze
 
 # Stack
 .stack-work
@@ -99,7 +100,8 @@ node.sock
 .pre-commit-config.yaml
 secrets/*/.gpg-id
 ghcid.txt
-combined_haddock*
+haddock
+linkchecker-out.txt
 plutus-pab/test-node/testnet/db
 plutus-pab/test-node/alonzo-purple/db
 *.actual.json
