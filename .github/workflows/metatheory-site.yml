@@ -13,14 +13,14 @@ on:
         description: |
           The release version tag. For example if $version == "1.29.0.0" then the 
           current contents of the branch tagged "1.29.0.0" will be deployed to: 
-            https://intersectmbo.github.io/plutus/docs/metatheory/$version
+            https://intersectmbo.github.io/plutus/metatheory/$version
         required: true
         type: string
 
       latest: 
         description: |
           If true, then the $version branch will also be deployed to:
-            https://intersectmbo.github.io/plutus/docs/metatheory/latest
+            https://intersectmbo.github.io/plutus/metatheory/latest
           You want to leave this to true unless you are deploying old versions.
         type: boolean
         required: true 
@@ -47,7 +47,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@latest
         with:
           folder: _site
-          target-folder: docs/metatheory/${{ inputs.version }}
+          target-folder: metatheory/${{ inputs.version }}
           single-commit: true
         
       - name: Deploy Latest
@@ -55,6 +55,6 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@latest
         with:
           folder: _site
-          target-folder: docs/metatheory/latest
+          target-folder: metatheory/latest
           single-commit: true
 
