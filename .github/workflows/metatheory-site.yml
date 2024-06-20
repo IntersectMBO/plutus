@@ -43,7 +43,8 @@ jobs:
       - name: Build Site
         run: | 
           nix build --accept-flake-config .#plutus-metatheory-site
-          cp -RL ./result/* ./_site
+          mkdir _site
+          cp -RL result/* _site
 
       - name: Deploy Site
         uses: JamesIves/github-pages-deploy-action@v4.6.1
