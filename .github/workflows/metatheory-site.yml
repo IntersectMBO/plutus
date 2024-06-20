@@ -41,10 +41,9 @@ jobs:
           ref: ${{ inputs.version }}
 
       - name: Build Site
-        run: nix build --accept-flake-config .#plutus-metatheory-site
-
-      - name: Copy Result
-        run: cp -r ./result ./_site
+        run: | 
+          nix build --accept-flake-config .#plutus-metatheory-site
+          cp -RL ./result/* ./_site
 
       - name: Deploy Site
         uses: JamesIves/github-pages-deploy-action@v4.6.1
