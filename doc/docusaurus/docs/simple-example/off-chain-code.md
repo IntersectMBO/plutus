@@ -8,7 +8,7 @@ Since the main purpose of this example is to introduce Plutus Tx and Plutus Core
 
 In addition to the on-chain code, one typically needs the accompanying off-chain code and services to perform tasks like building transactions, submitting transactions, deploying smart contracts, querying for available UTXOs on the chain, etc.
 
-<!-- Correct the inaccurate info below about Plutus Apps -->
+<!-- TODO Correct the inaccurate info below about Plutus Apps -->
 
 A full suite of solutions is [in development](https://plutus-apps.readthedocs.io/en/latest/plutus/explanations/plutus-tools-component-descriptions.html).
 See the [plutus-apps](https://github.com/IntersectMBO/plutus-apps) repo and its accompanying [Plutus tools SDK user guide](https://plutus-apps.readthedocs.io/en/latest/) for more details.

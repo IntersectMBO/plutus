@@ -415,7 +415,7 @@ The amount of time it's worth spending doing this is probably much more than you
 
 PRs should target `master` unless there is a very good reason not to.
 The only PRs to release branches should be backport PRs which should consist only of cherry-picks of commits from master (and any fixups that are needed).
-For more details, see link:./doc/read-the-docs-site/RELEASE{outfilesuffix}[Plutus Release Process].
+For more details, see link:./RELEASE{outfilesuffix}[Plutus Release Process].
 
 ==== What changes to include, and pull request sizes
 
@@ -605,12 +605,10 @@ If your PR contains a dozen drive-by refactorings, it's unlikely to be merged as
 
 === Continuous integration
 
-We have a few sources of CI checks at the moment:
+We have two sources of CI checks at the moment:
 
 - Hydra
-- ReadTheDocs
 - Github Actions
-- Buildkite
 
 The CI will report statuses on your PRs with links to the logs in case of failure.
 Pull requests cannot be merged without at least the Hydra CI check being green.
@@ -632,16 +630,11 @@ These will be automatically retried, but if you're in a hurry Michael has permis
 Nondeterministic failures are very annoying.
 Michael also has permissions to restart failed builds.
 
-==== ReadTheDocs
+==== Docusaurus
 
-The documentation site is built on ReadTheDocs.
-It will build a preview for each PR which is linked from the PR status.
-It's useful to take a look if you're changing any of the documentation.
+The documentation site is built with Docusaurus.
 
-Enter the development shell using `nix develop`.
-If you get a segfault, run `GC_DONT_GC=1 nix develop` instead.
-
-Then you can run `serve-docs` to host a local instance at http://0.0.0.0:8002 (Haddock is at http://0.0.0.0:8002/haddock).
+Refer to the [README.md](doc/docusaurus/README.md) for more information.
 
 ==== Github Actions
 

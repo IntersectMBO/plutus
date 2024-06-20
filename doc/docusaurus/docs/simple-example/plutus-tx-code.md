@@ -7,7 +7,7 @@ sidebar_position: 20
 Recall that Plutus Tx is a subset of Haskell. 
 It is the source language one uses to write Plutus validators. 
 A Plutus Tx program is compiled into Plutus Core, which is interpreted on-chain. 
-The full Plutus Tx code for the auction smart contract can be found at [AuctionValidator.hs](https://github.com/IntersectMBO/plutus/blob/master/doc/read-the-docs-site/tutorials/AuctionValidator.hs).
+The full Plutus Tx code for the auction smart contract can be found at [AuctionValidator.hs](https://github.com/IntersectMBO/plutus-tx-template/blob/main/app/AuctionValidator.hs).
 
 <!-- will need to update the link and file location for the new docs platform implementation -->
 
