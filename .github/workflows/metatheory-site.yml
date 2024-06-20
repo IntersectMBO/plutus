@@ -36,7 +36,7 @@ jobs:
       name: github-pages
     steps:
       - name: Checkout
-        uses: actions/checkout@latest
+        uses: actions/checkout@main
         with:
           ref: ${{ inputs.version }}
 
