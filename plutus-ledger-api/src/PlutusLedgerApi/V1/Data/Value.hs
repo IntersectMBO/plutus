@@ -483,6 +483,16 @@ unionWith'
                                 BI.mkCons (BI.mkPairData curSymb (BI.mkMap $ pt rightTokensMap)) (goRight tl)
             )
 
+    safeAppendInner xs1 xs2 =
+      B.matchList
+        xs1
+        (\() -> xs2)
+        ( \hd tl ->
+            let k = BI.fst hd
+                v = BI.snd hd
+             in Map.insert' k v (safeAppendInner tl xs2)
+        )
+
     safeAppend xs1 xs2 =
       B.matchList
         xs1
@@ -490,7 +500,14 @@ unionWith'
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
-             in Map.insert' k v (safeAppend tl xs2)
+             in
+                case Map.lookup' k xs2 of
+                    Just v' ->
+                        let vNew =
+                                BI.mkMap
+                                $ safeAppendInner (BI.unsafeDataAsMap v) (BI.unsafeDataAsMap v')
+                         in Map.insert' k vNew (safeAppend tl xs2)
+                    Nothing -> Map.insert' k v (safeAppend tl xs2)
         )
 
     res l r = goLeft l `safeAppend` goRight r
