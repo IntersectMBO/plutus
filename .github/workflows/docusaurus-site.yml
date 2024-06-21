@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
-    name: Publish 
+  deploy:
+    name: Deploy 
     runs-on: [self-hosted, plutus-shared]
     permissions:
       contents: write
