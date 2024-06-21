@@ -41,7 +41,7 @@ jobs:
 
       - name: Build Site
         run: | 
-          nix develop --command ./scripts/combined-haddock.sh _haddock all
+          nix develop --accept-flake-config --command ./scripts/combined-haddock.sh _haddock all
 
       - name: Deploy Site
         uses: JamesIves/github-pages-deploy-action@v4.6.1

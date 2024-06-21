@@ -20,7 +20,7 @@ jobs:
 
       - name: Build Site 
         working-directory: doc/docusaurus
-        run: nix develop --command bash -c 'yarn && yarn build'
+        run: nix develop --accept-flake-config--command bash -c 'yarn && yarn build'
 
       - name: Deploy Site 
         uses: JamesIves/github-pages-deploy-action@v4.6.1
