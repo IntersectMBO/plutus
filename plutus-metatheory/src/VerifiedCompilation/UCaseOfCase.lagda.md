@@ -12,20 +12,20 @@ module VerifiedCompilation.UCaseOfCase where
 
 ```
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
-open import VerifiedCompilation.UntypedViews using (Pred)
+open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
+open import Relation.Unary as Unary using (Decidable)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
 open import Untyped.CEK using (BApp; fullyAppliedBuiltin; BUILTIN; stepper; State; Stack)
 open import Evaluator.Base using (maxsteps)
 open import Builtin using (Builtin; ifThenElse)
-open import Data.List using (List; [_])
-open import Utils as U using (Maybe; nothing; just; Either)
-open import RawU using (TmCon; tmCon; decTag; TyTag; ⟦_⟧tag; decTagCon; tmCon2TagCon)
 open import Data.Product using (_×_; proj₁; proj₂; _,_)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Data.Nat using (ℕ)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; isEquivalence; cong)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
+open import Relation.Nullary.Product using (_×-dec_)
+open import Data.Product using (_,_)
 ```
 ## Translation Relation
 
@@ -37,7 +37,7 @@ to traverse the ASTs.
 
 ```
 data _⊢̂_⊳̂_ (X : Set) : (X ⊢) → (X ⊢) → Set where
-   caseofcase : ∀ {b : X ⊢} {tn tn' fn fn' : ℕ} {alts alts' tt ft tt' ft' : List (X ⊢)}
+   caseofcase : ∀ (b : X ⊢) (tn tn' fn fn' : ℕ) {alts alts' tt ft tt' ft' : List (X ⊢)}
                 → Pointwise (X ⊢̂_⊳̂_) alts alts' -- recursive translation for the other case patterns 
                 → Pointwise (X ⊢̂_⊳̂_) tt tt' -- recursive translation for the true branch 
                 → Pointwise (X ⊢̂_⊳̂_) ft ft' -- recursive translation for the false branch
@@ -45,26 +45,7 @@ data _⊢̂_⊳̂_ (X : Set) : (X ⊢) → (X ⊢) → Set where
                 → X ⊢̂
                        (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
                        ⊳̂ (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
-   var : ∀ {x : X} → X ⊢̂ (` x) ⊳̂ (` x)
-   ƛ   : ∀ {x x' : Maybe X ⊢}
-           → Maybe X ⊢̂ x ⊳̂ x'
-           ----------------------
-           →  X ⊢̂ ƛ x ⊳̂ ƛ x' 
-   app : ∀ {f t f' t' : X ⊢} → (X ⊢̂ f ⊳̂ f') → (X ⊢̂ t ⊳̂ t') → (X ⊢̂ (f · t) ⊳̂ (f' · t'))
-   force : ∀ {t t' : X ⊢} → X ⊢̂ t ⊳̂ t' → X ⊢̂ force t ⊳̂ force t'  
-   delay : ∀ {t t' : X ⊢} → X ⊢̂ t ⊳̂ t' → X ⊢̂ delay t ⊳̂ delay t'  
-   con : ∀ {tc : TmCon} → X ⊢̂ con tc ⊳̂ con tc
-   constr : ∀ {xs xs' : List (X ⊢)} { n : ℕ }
-                → Pointwise (X ⊢̂_⊳̂_) xs xs'
-                ------------------------
-                → X ⊢̂ constr n xs ⊳̂ constr n xs' 
-   case :  ∀ {p p' : X ⊢} {alts alts' : List (X ⊢)}
-                → Pointwise (X ⊢̂_⊳̂_) alts alts' -- recursive translation for the other case patterns
-                → X ⊢̂ p ⊳̂ p'
-                ------------------------
-                → X ⊢̂ case p alts ⊳̂ case p' alts' 
-   builtin : ∀ {b : Builtin} → X ⊢̂ builtin b ⊳̂ builtin b
-   error : X ⊢̂ error ⊳̂ error
+
 ```
 
 ## Decision Procedure
@@ -76,10 +57,34 @@ expect anything else to be unaltered.
 This translation matches on exactly one, very specific pattern. Using parameterised Views we can
 detect that case.
 ```
-data CoCCasePattern : Pred where
-  isCoCCasePattern : ∀ {b : X ⊢} {tn fn : ℕ} {alts tt ft : List (X ⊢)} → (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
-isCoCCase? : {X : Set} → Dec (CoCCasePattern)
-isCoCCase? t = ?
+data CoCCase (X : Set) : Pred X where
+  isCoCCase : ∀ (b : X ⊢) (tn fn : ℕ)  (tt ft alts : List (X ⊢)) → CoCCase X (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
+isCoCCase? : {X : Set} → Decidable (CoCCase X)
+isCoCCase? t with (isCase? (isApp? (isApp? (isApp? (isForce? (isBuiltin?)) isTerm?) (isConstr? (allTerms?))) (isConstr? (allTerms?))) (allTerms?)) t
+... | yes (iscase (isapp (isapp (isapp (isforce (isbuiltin ite)) (isterm b)) (isconstr tn (allterms tt))) (isconstr fn (allterms ft))) (allterms alts)) with ite ≟ ifThenElse
+... | yes refl = yes (isCoCCase b tn fn tt ft alts)
+... | no ¬≡b = no λ { (isCoCCase .b .tn .fn .tt .ft .alts) → ¬≡b refl }
+isCoCCase? t  | no ¬CoCCase = no λ { (isCoCCase b tn fn alts tt ft) → ¬CoCCase (iscase
+                                                                                 (isapp
+                                                                                  (isapp (isapp (isforce (isbuiltin ifThenElse)) (isterm b))
+                                                                                   (isconstr tn (allterms alts)))
+                                                                                  (isconstr fn (allterms tt)))
+                                                                                 (allterms ft)) }
+
+data CoCForce (X : Set) : Pred X where
+  isCoCForce : (b : (X ⊢)) (tn fn : ℕ) (tt' ft' alts' : List (X ⊢)) → CoCForce X (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
+isCoCForce? : {X : Set} {{ _ : DecEq X}} → Decidable (CoCForce X)
+isCoCForce? t with (isForce? (isApp? (isApp? (isApp? (isForce? isBuiltin?) isTerm?) (isDelay? (isCase? (isConstr? allTerms?) allTerms?))) (isDelay? (isCase? (isConstr? allTerms?) allTerms?)))) t
+... | no ¬CoCForce = no λ { (isCoCForce b tn fn tt' ft' alts') → ¬CoCForce
+                                                                  (isforce
+                                                                   (isapp
+                                                                    (isapp (isapp (isforce (isbuiltin ifThenElse)) (isterm b))
+                                                                     (isdelay (iscase (isconstr tn (allterms tt')) (allterms alts'))))
+                                                                    (isdelay (iscase (isconstr fn (allterms ft')) (allterms alts')))))}
+... | yes (isforce (isapp (isapp (isapp (isforce (isbuiltin ite)) (isterm b)) (isdelay (iscase (isconstr tn (allterms tt')) (allterms alts'))) ) (isdelay (iscase (isconstr fn (allterms ft')) (allterms alts''))))) with ite ≟ ifThenElse | alts' ≟ alts''
+... | no ¬ite  | _ = no λ { (isCoCForce .b .tn .fn .tt' .ft' .alts') → ¬ite refl }
+... | _          | no ¬alts = no λ { (isCoCForce .b .tn .fn .tt' .ft' .alts') → ¬alts refl }
+... | yes refl | yes refl = yes (isCoCForce b tn fn tt' ft' alts')
 ```
 
 
@@ -126,30 +131,16 @@ _⊢̂_⊳̂?_ error error = yes error
 ```
 If we have `case` translated to `force` we need to be sure that it matches exactly the Case of Case pattern
 ```
-_⊢̂_⊳̂?_ ast ast' with isCoC? ast ast'
-_⊢̂_⊳̂?_ .(case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
-               .(force ((((force (builtin ifThenElse)) · b') · (delay (case (constr tn' tt') alts'))) · (delay (case (constr fn' ft') alts'')))) | yes (isCoC b tn tt fn ft b'  tn' tt' alts' fn' ft' alts'')
-        with b ≟ b' | tn ≟ tn'   | fn ≟ fn'   | alts' ≟ alts''  | decPointwise _⊢̂_⊳̂?_ alts alts' | decPointwise _⊢̂_⊳̂?_ tt tt' | decPointwise _⊢̂_⊳̂?_ ft ft'
-...         | no ¬b≟b' | _            | _            | _                | _                | _              | _              = no λ { (caseofcase _ _ _ ) → ¬b≟b' refl } 
-...         | yes refl   | no tn≠tn' | _            | _                | _                | _              | _              = no λ { (caseofcase _ _ _ ) →  tn≠tn' refl } 
-...         | yes refl   | yes refl   | no fn≠fn' | _                | _                | _              | _              = no  λ { (caseofcase _ _ _ ) → fn≠fn' refl }
-...         | yes refl   | yes refl   | yes refl   | no ¬alts      | _                | _              | _              = no λ { (caseofcase _ _ _ ) → ¬alts refl }
-...         | yes refl   | yes refl   | yes refl   | yes refl       | no ¬pw-alts | _              | _              = no λ { (caseofcase x _ _ ) → ¬pw-alts x }
-...         | yes refl   | yes refl   | yes refl   | yes refl       | yes pw-alts | no tt≠tt'     | _              = no λ { (caseofcase _ x _ ) → tt≠tt' x }
-...         | yes refl   | yes refl   | yes refl   | yes refl       | yes pw-alts | yes ps-tt   | no ft≠ft'     = no λ { (caseofcase _ _ x ) → ft≠ft' x }
-...         | yes refl   | yes refl   | yes refl   | yes refl       | yes pw-alts | yes pw-tt  | yes pw-ft   = yes (caseofcase pw-alts pw-tt pw-ft)
-{-
--}
-{-
-_⊢̂_⊳̂?_ .((case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
-               (force ((((force (builtin ifThenElse)) · b') · (delay (case (constr tn' tt') alts'))) · (delay (case (constr fn' ft') alts''))))) | isCoC b b' tn tn' fn fn' alts alts' alts'' tt ft tt' ft'
-               = ?
-                                                            
--}
-```
-No other structure changing patterns should be allowed
-```
-_⊢̂_⊳̂?_ _ _ = no {!!} -- λ ()
+_⊢̂_⊳̂?_ ast ast' with isCoCCase? ast ×-dec isCoCForce? ast'
+... | no ¬CoC  = no {!!}
+... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b' tn' fn' tt' ft' alts') with b ≟ b' | tn ≟ tn' | fn ≟ fn'  | decPointwise _⊢̂_⊳̂?_ alts alts' | decPointwise _⊢̂_⊳̂?_ tt tt' | decPointwise _⊢̂_⊳̂?_ ft ft'
+...         | no ¬b≟b' | _            | _            | _                | _              | _              = no λ { (caseofcase _ _ _ _ _ _ _ _ ) → ¬b≟b' refl } 
+...         | yes refl   | no tn≠tn' | _            | _                | _              | _              = no λ { (caseofcase _ _ _ _ _ _ _ _ ) →  tn≠tn' refl } 
+...         | yes refl   | yes refl   | no fn≠fn' | _                | _              | _              = no  λ { (caseofcase _ _ _ _ _ _ _ _ ) → fn≠fn' refl }
+...         | yes refl   | yes refl   | yes refl   | no ¬pw-alts | _              | _              = no λ { (caseofcase _ _ _ _ _ x _ _ ) → ¬pw-alts x }
+...         | yes refl   | yes refl   | yes refl   | yes pw-alts | no tt≠tt'     | _              = no λ { (caseofcase _ _ _ _ _ _ x _ ) → tt≠tt' x }
+...         | yes refl   | yes refl   | yes refl   | yes pw-alts | yes ps-tt   | no ft≠ft'     = no λ { (caseofcase _ _ _ _ _ _ _ x) → ft≠ft' x }
+...         | yes refl   | yes refl   | yes refl   | yes pw-alts | yes pw-tt  | yes pw-ft   = yes (caseofcase b tn fn fn fn pw-alts pw-tt pw-ft)
 
 ```
 
