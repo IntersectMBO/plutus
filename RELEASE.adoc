@@ -98,6 +98,11 @@ Another example is if a security audit is done on `rc1`, and the changes in `rc2
 - This will automatically open a PR in `plutus-tx-template` with auto-merge enabled
 - Ensure that CI is green and the PR gets merged
 
+10. Publish the updated Metatheory site
+- Navigate to the https://github.com/IntersectMBO/plutus/actions/workflows/metatheory-site.yml[Metatheory Site Action] on GitHub
+- Click the `Run workflow` button on the right, enter the new release version and confirm
+- Ensure that the action completes successfully
+
 === Patch Releases
 
 Suppose we are releasing version `x.y.z.w`.
