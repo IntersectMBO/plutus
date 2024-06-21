@@ -1,14 +1,14 @@
 # This workflow builds and publishes the Docusaurus site to:
 # https://intersectmbo.github.io/plutus/docs
 
-name: "🦕 Docusaurus Site" 
+name: "🦕 Deploy Docusaurus Site" 
 
 on:
   workflow_dispatch:
 
 jobs:
-  publish:
-    name: Publish 
+  deploy:
+    name: Deploy 
     runs-on: [self-hosted, plutus-shared]
     permissions:
       contents: write
@@ -20,7 +20,7 @@ jobs:
 
       - name: Build Site 
         working-directory: doc/docusaurus
-        run: nix develop --command bash -c 'yarn && yarn build'
+        run: nix develop --accept-flake-config --command bash -c 'yarn && yarn build'
 
       - name: Deploy Site 
         uses: JamesIves/github-pages-deploy-action@v4.6.1

@@ -4,31 +4,38 @@
 # Optionally the $version branch can also be deployed to:
 #   https://intersectmbo.github.io/plutus/metatheory/latest  
 
-name: "🔮 Metatheory Site"
+name: "🔮 Deploy Metatheory Site"
 
 on:
   workflow_dispatch:
     inputs:
-      version:
+      ref:
         description: |
-          The release version tag. For example if $version == "1.29.0.0" then the 
-          current contents of the branch tagged "1.29.0.0" will be deployed to: 
-          https://intersectmbo.github.io/plutus/metatheory/$version
+          The $ref to build off of, e.g. "1.29.0.0", "master", or any other valid git ref.
+          When making a release, this is usually the version tag, e.g. "1.29.0.0", and will be
+          equal to the $destination input below. When back-porting this could be a commit sha instead.
         required: true
         type: string
 
+      destination:
+        description: |
+          The $destination folder, e.g. when "1.29.0.0" the metatheory will be deploy to:
+          https://intersectmbo.github.io/plutus/metatheory/1.29.0.0
+        required: true
+        type: string
+  
       latest: 
         description: |
-          If true, then the $version branch will also be deployed to:
+          If true, then the metatheory site will also be deploy to:
           https://intersectmbo.github.io/plutus/metatheory/latest.
-          You want to leave this to true unless you are deploying old versions.
+          You want to leave this to true unless you are deploying old versions or back-porting.
         type: boolean
         required: true 
         default: true
 
 jobs:
-  publish:
-    name: Publish
+  deploy:
+    name: Deploy
     runs-on: [self-hosted, plutus-shared]
     permissions:
       contents: write
@@ -38,7 +45,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
         with:
-          ref: ${{ inputs.version }}
+          ref: ${{ inputs.ref }}
 
       - name: Build Site
         run: | 
@@ -50,7 +57,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4.6.1
         with:
           folder: _site
-          target-folder: metatheory/${{ inputs.version }}
+          target-folder: metatheory/${{ inputs.destination }}
           single-commit: true
         
       - name: Deploy Latest
