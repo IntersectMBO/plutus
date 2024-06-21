@@ -3,7 +3,7 @@
 # And optionally to:
 # https://intersectmbo.github.io/plutus/haddock/latest
 
-name: "📜 Haddock Site"
+name: "📜 Deploy Haddock Site"
 
 on:
   workflow_dispatch:
