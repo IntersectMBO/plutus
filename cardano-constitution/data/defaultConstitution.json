@@ -1,0 +1,860 @@
+{
+  "0": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 30,
+        "$comment": "txFeePerByte must not be lower than 30 (0.000030 ada)"
+      },
+      {
+        "maxValue": 1000,
+        "$comment": "txFeePerByte must not exceed 1,000 (0.001 ada)"
+      },
+      {
+        "minValue": 0,
+        "$comment": "txFeePerByte must not be negative"
+      }
+    ],
+    "$comment": "txFeePerByte"
+  },
+
+  "1": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 100000,
+        "$comment": "txFeeFixed must not be lower than 100,000 (0.1 ada)"
+      },
+      {
+        "maxValue": 10000000,
+        "$comment": "txFeeFixed must not exceed 10,000,000 (10 ada)"
+      },
+      {
+        "minValue": 0,
+        "$comment": "txFeeFixed must not be negative"
+      }
+    ],
+    "$comment": "txFeeFixed"
+  },
+
+  "10": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "maxValue": { "numerator": 5, "denominator": 1000 },
+        "$comment": "monetaryExpansion must not exceed 0.005"
+      },
+      {
+        "minValue": { "numerator": 1, "denominator": 1000 },
+        "$comment": "monetaryExpansion must not be lower than 0.001"
+      },
+      {
+        "minValue": { "numerator": 0, "denominator": 1000 },
+        "$comment": "monetaryExpansion must not be negative"
+      }
+    ],
+    "$comment": "monetaryExpansion"
+  },
+
+  "11": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 10, "denominator": 100 },
+        "$comment": "treasuryCut must not be lower than 0.1 (10%)"
+      },
+      {
+        "maxValue": { "numerator": 30, "denominator": 100 },
+        "$comment": "treasuryCut must not exceed 0.3 (30%)"
+      },
+      {
+        "minValue": { "numerator": 0, "denominator": 100 },
+        "$comment": "treasuryCut must not be negative"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "treasuryCut must not exceed 1.0 (100%)"
+      }
+    ],
+    "$comment": "treasuryCut"
+  },
+
+  "16": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 0,
+        "$comment": "minPoolCost must not be negative" },
+      {
+        "maxValue": 500000000,
+        "$comment": "minPoolCost must not be set above 500,000,000 (500 ada)"
+      }
+    ],
+    "$comment": "minPoolCost"
+  },
+
+  "17": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 3000,
+        "$comment": "utxoCostPerByte must not be lower than 3,000  (0.003 ada)"
+      },
+      {
+        "maxValue": 6500,
+        "$comment": "utxoCostPerByte must not exceed 6,500 (0.0065 ada)"
+      },
+      {
+        "notEqual": 0,
+        "$comment": "utxoCostPerByte must not be zero"
+      },
+      {
+        "minValue": 0,
+        "$comment": "utxoCostPerByte must not be negative"
+      }
+    ],
+    "$comment": "utxoCostPerByte"
+  },
+
+  "19[0]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "maxValue": { "numerator": 2000, "denominator": 10000 },
+        "$comment": "executionUnitPrices[priceMemory] must not exceed 2,000 / 10,000"
+      },
+      {
+        "minValue": { "numerator": 400, "denominator": 10000 },
+        "$comment": "executionUnitPrices[priceMemory] must not be lower than 400 / 10,000"
+      }
+    ],
+    "$comment": "executionUnitPrices[priceMemory]"
+  },
+
+  "19[1]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "maxValue": { "numerator": 2000, "denominator": 10000000 },
+        "$comment": "executionUnitPrices[priceSteps] must not exceed 2,000 / 10,000,000"
+      },
+      {
+        "minValue": { "numerator": 500, "denominator": 10000000 },
+        "$comment": "executionUnitPrices[priceSteps] must not be lower than 500 / 10,000,000"
+      }
+    ],
+    "$comment": "executionUnitPrices[priceSteps]"
+  },
+
+  "2": {
+    "type": "integer",
+    "predicates": [
+      {
+        "maxValue": 122880,
+        "$comment": "maxBlockBodySize must not exceed 122,880 Bytes (120KB)"
+      },
+      {
+        "minValue": 24576,
+        "$comment": "maxBlockBodySize must not be lower than 24,576 Bytes (24KB)"
+      }
+    ],
+    "$comment": "maxBlockBodySize"
+  },
+
+  "20[0]": {
+    "type": "integer",
+    "predicates": [
+      {
+        "maxValue": 40000000,
+        "$comment": "maxTxExecutionUnits[memory] must not exceed 40,000,000 units"
+      },
+      {
+        "minValue": 0,
+        "$comment": "maxTxExecutionUnits[memory] must not be negative"
+      }
+
+    ],
+    "$comment": "maxTxExecutionUnits[memory]"
+  },
+
+  "20[1]": {
+    "type": "integer",
+    "predicates": [
+      {
+        "maxValue": 15000000000,
+        "$comment": "maxTxExecutionUnits[steps] must not exceed 15,000,000,000 (15Bn) units"
+      },
+      {
+        "minValue": 0,
+        "$comment": "maxTxExecutionUnits[steps] must not be negative"
+      }
+
+    ],
+    "$comment": "maxTxExecutionUnits[steps]"
+  },
+
+  "21[0]": {
+    "type": "integer",
+    "predicates": [
+      {
+        "maxValue": 120000000,
+        "$comment": "maxBlockExecutionUnits[memory] must not exceed 120,000,000 units"
+      },
+      {
+        "minValue": 0,
+        "$comment": "maxBlockExecutionUnits[memory] must not be negative"
+      }
+    ],
+    "$comment": "maxBlockExecutionUnits[memory]"
+  },
+
+  "21[1]": {
+    "type": "integer",
+    "predicates": [
+      {
+        "maxValue": 40000000000,
+        "$comment": "maxBlockExecutionUnits[steps] must not exceed 40,000,000,000 (40Bn) units"
+      },
+      {
+        "minValue": 0,
+        "$comment": "maxBlockExecutionUnits[steps] must not be negative"
+      }
+    ],
+    "$comment": "maxBlockExecutionUnits[steps]"
+  },
+
+  "22": {
+    "type": "integer",
+    "predicates": [
+      {
+        "maxValue": 12288,
+        "$comment": "maxValueSize must not exceed 12,288 Bytes (12KB)"
+      },
+      {
+        "minValue": 0,
+        "$comment": "maxValueSize must not be negative"
+      }
+
+    ],
+    "$comment": "maxValueSize"
+  },
+
+  "23": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 100,
+        "$comment": "collateralPercentage must not be lower than 100"
+      },
+      {
+        "maxValue": 200,
+        "$comment": "collateralPercentage must not exceed 200"
+      },
+      {
+        "minValue": 0,
+        "$comment": "collateralPercentage must not be negative"
+      },
+      {
+        "notEqual": 0,
+        "$comment": "collateralPercentage must not be zero"
+      }
+
+    ],
+    "$comment": "collateralPercentage"
+  },
+
+  "24": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 1,
+        "$comment": "maxCollateralInputs must not be reduced below 1"
+      }
+    ],
+    "$comment": "maxCollateralInputs"
+  },
+
+  "25[0]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 51, "denominator": 100 },
+        "$comment": "No confidence action thresholds must be in the range 51%-75%"
+      },
+      {
+        "maxValue": { "numerator": 75, "denominator": 100 },
+        "$comment": "No confidence action thresholds must be in the range 51%-75%"
+      }
+    ],
+    "$comment": "poolVotingThresholds[motionNoConfidence]"
+  },
+
+  "25[1]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 65, "denominator": 100 },
+        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+      },
+      {
+        "maxValue": { "numerator": 90, "denominator": 100 },
+        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+      }
+    ],
+    "$comment": "poolVotingThresholds[committeeNormal]"
+  },
+
+  "25[2]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 65, "denominator": 100 },
+        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+      },
+      {
+        "maxValue": { "numerator": 90, "denominator": 100 },
+        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+      }
+    ],
+    "$comment": "poolVotingThresholds[committeeNoConfidence]"
+  },
+
+  "25[3]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 51, "denominator": 100 },
+        "$comment": "Hard fork action thresholds must be in the range 51%-80%"
+      },
+      {
+        "maxValue": { "numerator": 80, "denominator": 100 },
+        "$comment": "Hard fork action thresholds must be in the range 51%-80%"
+      }
+    ],
+    "$comment": "poolVotingThresholds[hardForkInitiation]"
+  },
+
+  "25[4]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      }
+    ],
+    "$comment": "poolVotingThresholds[ppSecurityGroup]"
+  },
+
+  "26[0]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 51, "denominator": 100 },
+        "$comment": "No confidence action thresholds must be in the range 51%-75%"
+      },
+      {
+        "maxValue": { "numerator": 75, "denominator": 100 },
+        "$comment": "No confidence action thresholds must be in the range 51%-75%"
+      }
+    ],
+    "$comment": "dRepVotingThresholds[motionNoConfidence]"
+  },
+
+  "26[1]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 65, "denominator": 100 },
+        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+      },
+      {
+        "maxValue": { "numerator": 90, "denominator": 100 },
+        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+      }
+    ],
+    "$comment": "dRepVotingThresholds[committeeNormal]"
+  },
+
+  "26[2]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 65, "denominator": 100 },
+        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+      },
+      {
+        "maxValue": { "numerator": 90, "denominator": 100 },
+        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+      }
+    ],
+    "$comment": "dRepVotingThresholds[committeeNoConfidence]"
+  },
+
+  "26[3]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 65, "denominator": 100 },
+        "$comment": "Update Constitution of proposal policy action thresholds must be in the range 65%-90%"
+      },
+      {
+        "maxValue": { "numerator": 90, "denominator": 100 },
+        "$comment": "Update Constitution of proposal policy action thresholds must be in the range 65%-90%"
+      }
+    ],
+    "$comment": "dRepVotingThresholds[updateToConstitution]"
+  },
+
+  "26[4]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 51, "denominator": 100 },
+        "$comment": "Hard fork action thresholds must be in the range 51%-80%"
+      },
+      {
+        "maxValue": { "numerator": 80, "denominator": 100 },
+        "$comment": "Hard fork action thresholds must be in the range 51%-80%"
+      }
+    ],
+    "$comment": "dRepVotingThresholds[hardForkInitiation]"
+  },
+
+  "26[5]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 51, "denominator": 100 },
+        "$comment": "Economic, network and technical parameter thresholds must be in the range 51%-75%"
+      },
+      {
+        "maxValue": { "numerator": 75, "denominator": 100 },
+        "$comment": "Economic, network and technical parameter thresholds must be in the range 51%-75%"
+      }
+    ],
+    "$comment": "dRepVotingThresholds[ppNetworkGroup]"
+  },
+
+  "26[6]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 51, "denominator": 100 },
+        "$comment": "Economic, network and technical parameter thresholds must be in the range 51%-75%"
+      },
+      {
+        "maxValue": { "numerator": 75, "denominator": 100 },
+        "$comment": "Economic, network and technical parameter thresholds must be in the range 51%-75%"
+      }
+    ],
+    "$comment": "dRepVotingThresholds[ppEconomicGroup]"
+  },
+
+  "26[7]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 51, "denominator": 100 },
+        "$comment": "Economic, network and technical parameter thresholds must be in the range 51%-75%"
+      },
+      {
+        "maxValue": { "numerator": 75, "denominator": 100 },
+        "$comment": "Economic, network and technical parameter thresholds must be in the range 51%-75%"
+      }
+    ],
+    "$comment": "dRepVotingThresholds[ppTechnicalGroup]"
+  },
+
+  "26[8]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "minValue": { "numerator": 75, "denominator": 100 },
+        "$comment": "Governance parameter thresholds must be in the range 75%-90%"
+      },
+      {
+        "maxValue": { "numerator": 90, "denominator": 100 },
+        "$comment": "Governance parameter thresholds must be in the range 75%-90%"
+      }
+    ],
+    "$comment": "dRepVotingThresholds[ppGovGroup]"
+  },
+
+  "26[9]": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 50, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      },
+      {
+        "maxValue": { "numerator": 100, "denominator": 100 },
+        "$comment": "All thresholds must be in the range 50%-100%"
+      }
+    ],
+    "$comment": "dRepVotingThresholds[treasuryWithdrawal]"
+  },
+
+  "27": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 0,
+        "$comment": "committeeMinSize must not be negative"
+      },
+      {
+        "minValue": 3,
+        "$comment": "committeeMinSize must not be lower than 3"
+      },
+      {
+        "maxValue": 10,
+        "$comment": "committeeMinSize must not exceed than 10"
+      }
+    ],
+    "$comment": "committeeMinSize"
+  },
+
+  "28": {
+    "type": "integer",
+    "predicates": [
+      {
+        "notEqual": 0,
+        "$comment": "committeeMaxTermLimit must not be zero"
+      },
+      {
+        "minValue": 0,
+        "$comment": "committeeMaxTermLimit must not negative"
+      },
+      {
+        "minValue": 18,
+        "$comment": "committeeMaxTermLimit must not be less than 18 epochs (90 days, or approximately 3 months)"
+      },
+      {
+        "maxValue": 293,
+        "$comment": "committeeMaxTermLimit must not be more than 293 epochs (approximately 4 years)"
+      }
+    ],
+    "$comment": "committeeMaxTermLimit"
+  },
+
+  "29": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 1,
+        "$comment": "govActionLifetime must not be lower than 1 epoch (5 days)"
+      },
+      {
+        "maxValue": 15,
+        "$comment": "govActionLifetime must not exceed than 15 epochs (75 days)"
+      }
+    ],
+    "$comment": "govActionLifetime"
+  },
+
+  "3": {
+    "type": "integer",
+    "predicates": [
+      {
+        "maxValue": 32768,
+        "$comment": "maxTxSize must not exceed 32,768 Bytes (32KB)"
+      },
+      {
+        "minValue": 0,
+        "$comment": "maxTxSize must not be negative"
+      }
+    ],
+    "$comment": "maxTxSize"
+  },
+
+  "30": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 0,
+        "$comment": "govDeposit must not be negative"
+      },
+      {
+        "minValue": 1000000,
+        "$comment": "govDeposit must not be lower than 1,000,000 (1 ada)"
+      },
+      {
+        "maxValue": 10000000000000,
+        "$comment": "govDeposit must not exceed 10,000,000,000,000 (10 Million ada)"
+      }
+    ],
+    "$comment": "govDeposit"
+  },
+
+  "31": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 0,
+        "$comment": "dRepDeposit must not be negative"
+      },
+      {
+        "minValue": 1000000,
+        "$comment": "dRepDeposit must not be lower than 1,000,000 (1 ada)"
+      },
+      {
+        "maxValue": 100000000000,
+        "$comment": "dRepDeposit must not exceed 100,000,000,000 (100,000 ada)"
+      }
+    ],
+    "$comment": "dRepDeposit"
+  },
+
+  "32": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 13,
+        "$comment": "dRepActivity must not be lower than 13 epochs (2 months)"
+      },
+      {
+        "maxValue": 37,
+        "$comment": "dRepActivity must not exceed 37 epochs (6 months)"
+      },
+      {
+        "minValue": 0,
+        "$comment": "dRepActivity must not be negative"
+      }
+    ],
+    "$comment": "dRepActivity"
+  },
+
+  "33": {
+    "type": "integer",
+    "predicates": [
+      {
+        "maxValue": 1000,
+        "$comment": "minFeeRefScriptCoinsPerByte must not exceed 1,000 (0.001 ada)"
+      },
+      {
+        "minValue": 0,
+        "$comment": "minFeeRefScriptCoinsPerByte must not be negative"
+      }
+    ],
+    "$comment": "minFeeRefScriptCoinsPerByte"
+  },
+
+  "4": {
+    "type": "integer",
+    "predicates": [
+      {
+        "maxValue": 5000,
+        "$comment": "maxBlockHeaderSize must not be set below 250"
+      },
+      {
+        "minValue": 0,
+        "$comment": "maxBlockHeaderSize must not be negative"
+      }
+    ],
+    "$comment": "maxBlockHeaderSize"
+  },
+
+  "5": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 1000000,
+        "$comment": "stakeAddressDeposit must not be lower than 1,000,000 (1 ada)"
+      },
+      {
+        "maxValue": 5000000,
+        "$comment": "stakeAddressDeposit must not exceed 5,000,000 (5 ada)"
+      },
+      {
+        "minValue": 0,
+        "$comment": "stakeAddressDeposit must not be negative"
+      }
+    ],
+    "$comment": "stakeAddressDeposit"
+  },
+
+  "6": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 250000000,
+        "$comment": "stakePoolDeposit must not be lower than 250,000,000 (250 ada)"
+      },
+      {
+        "maxValue": 500000000,
+        "$comment": "stakePoolDeposit must not exceed 500,000,000 (500 ada)"
+      },
+      {
+        "minValue": 0,
+        "$comment": "stakePoolDeposit must not be negative"
+      }
+    ],
+    "$comment": "stakePoolDeposit"
+  },
+
+  "7": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 0,
+        "$comment": "poolRetireMaxEpoch must not be negative"
+      }
+    ],
+    "$comment": "poolRetireMaxEpoch"
+  },
+
+  "8": {
+    "type": "integer",
+    "predicates": [
+      {
+        "minValue": 250,
+        "$comment": "stakePoolTargetNum must not be lower than 250"
+      },
+      {
+        "maxValue": 2000,
+        "$comment": "stakePoolTargetNum must not be set above 2,000"
+      },
+      {
+        "minValue": 0,
+        "$comment": "stakePoolTargetNum must not be negative"
+      },
+      {
+        "notEqual": 0,
+        "$comment": "stakePoolTargetNum must not be zero"
+      }
+    ],
+    "$comment": "stakePoolTargetNum"
+  },
+
+  "9": {
+    "type": "unit_interval",
+    "predicates": [
+      {
+        "minValue": { "numerator": 1, "denominator": 10 },
+        "$comment": "poolPledgeInfluence must not be set below 0.1"
+      },
+      {
+        "maxValue": { "numerator": 10, "denominator": 10 },
+        "$comment": "poolPledgeInfluence must not exceed 1.0"
+      },
+      {
+        "minValue": { "numerator": 0, "denominator": 10 },
+        "$comment": "poolPledgeInfluence must not be negative"
+      }
+    ],
+    "$comment": "poolPledgeInfluence"
+  },
+
+  "18": {
+        "type": "any",
+        "$comment": "costmodels for all plutus versions"
+  }
+}

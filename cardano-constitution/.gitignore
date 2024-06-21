@@ -1,0 +1,8 @@
+/.vim/
+/proto/
+/certification/data/
+single-param.json
+multi-param.json
+output.json
+*.ignore.*
+*.tix
