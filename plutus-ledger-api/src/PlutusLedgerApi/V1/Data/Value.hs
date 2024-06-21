@@ -332,6 +332,54 @@ unionVal (Value l) (Value r) =
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
 unionWith f v1 = Value . unionWith' f v1
 
+mergeSort
+    :: (Integer -> Integer -> Integer)
+    -> [(Bool, CurrencySymbol, TokenName, Integer)]
+    -> [(Bool, CurrencySymbol, TokenName, Integer)]
+mergeSort f l = mergeAll (sequences l)
+  where
+    cmp (_, a1, b1, _) (_, a2, b2, _) = (a1, b1) `Ord.compare` (a2, b2)
+
+    sequences (a:b:xs)
+      | a `cmp` b == GT = descending b [a]  xs
+      | otherwise       = ascending  b (a:) xs
+    sequences xs = [xs]
+
+    descending a as (b:bs)
+      | a `cmp` b == GT = descending b (a:as) bs
+    descending a as bs  = (a:as): sequences bs
+
+    ascending a as (b:bs)
+      | a `cmp` b /= GT = ascending b (\ys -> as (a:ys)) bs
+    ascending a as bs   = let x = as [a]
+                          in x : sequences bs
+
+    mergeAll [x] = x
+    mergeAll xs  = mergeAll (mergePairs xs)
+
+    mergePairs (a:b:xs) = let x = merge a b
+                          in x : mergePairs xs
+    mergePairs xs       = (fmap . fmap) (\(flag, c, t, v) -> if flag then (flag, c, t, f v 0) else (flag, c, t, f 0 v)) xs
+
+    merge as@(a@(flaga, ca, ta, va):as') bs@(b@(flagb, cb, tb, vb):bs')
+      | a `cmp` b == LT =
+        case flaga of
+            True  -> (flaga, ca, ta, f va 0) : merge as' bs
+            False -> (flaga, ca, ta, f 0 va) : merge as' bs
+      | a `cmp` b == EQ =
+        case (flaga, flagb) of
+            (True, False) -> (flaga, ca, ta, f va vb) : merge as' bs
+            (False, True) -> (flaga, ca, ta, f vb va) : merge as' bs
+      | otherwise       =
+        case flagb of
+            True  -> (flagb, cb, tb, f vb 0) : merge as  bs'
+            False -> (flagb, cb, tb, f 0 vb) : merge as  bs'
+    merge [] bs         = fmap (\(flag, c, t, v) -> if flag then (flag, c, t, f v 0) else (flag, c, t, f 0 v)) bs
+    merge as []         = fmap (\(flag, c, t, v) -> if flag then (flag, c, t, f v 0) else (flag, c, t, f 0 v)) as
+
+
+
+
 unionWith'
     :: (PlutusTx.ToData a)
     => (Integer -> Integer -> a)
