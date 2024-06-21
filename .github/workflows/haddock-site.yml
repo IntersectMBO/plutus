@@ -8,23 +8,30 @@ name: "📜 Deploy Haddock Site"
 on:
   workflow_dispatch:
     inputs:
-      version:
+      ref:
         description: |
-          The release version tag. For example if $version == "1.29.0.0" then the 
-          current contents of the branch tagged "1.29.0.0" will be deployed to: 
-          https://intersectmbo.github.io/plutus/haddock/$version
+          The $ref to build off of, e.g. "1.29.0.0", "master", or any other valid git ref.
+          When making a release, this is usually the version tag, e.g. "1.29.0.0", and will be
+          equal to the $destination input below. When back-porting this could be a commit sha instead.
         required: true
         type: string
 
+      destination:
+        description: |
+          The $destination folder, e.g. when "1.29.0.0" the haddock will be deploy to:
+          https://intersectmbo.github.io/plutus/haddock/1.29.0.0
+        required: true
+        type: string
+  
       latest: 
         description: |
-          If true, then the $version branch will also be deployed to:
+          If true, then the haddock site will also be deploy to:
           https://intersectmbo.github.io/plutus/haddock/latest.
-          You want to leave this to true unless you are deploying old versions.
+          You want to leave this to true unless you are deploying old versions or back-porting.
         type: boolean
         required: true 
         default: true
-  
+
 jobs:
   deploy:
     name: Deploy
@@ -37,7 +44,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
         with:
-          ref: ${{ inputs.version }}
+          ref: ${{ inputs.ref }}
 
       - name: Build Site
         run: | 
@@ -47,7 +54,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4.6.1
         with:
           folder: _haddock
-          target-folder: haddock/${{ inputs.version }}
+          target-folder: haddock/${{ inputs.destination }}
           single-commit: true
  
       - name: Deploy Site (latest)
