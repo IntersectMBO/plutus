@@ -8,7 +8,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this feature request.
-        Please check the existing issues and [Plutus Docs](https://plutus.readthedocs.io/en/latest/) before raising.
+        Please check the existing issues and [Plutus Docs](https://intersectmbo.github.io/plutus/docs) before raising.
   - type: textarea
     id: description
     attributes:

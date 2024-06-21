@@ -26,16 +26,6 @@ This command generates static content into the `build` directory and can be serv
 
 ### Deployment
 
-Using SSH:
+Go to the [docusaurus-site.yml](https://github.com/IntersectMBO/plutus/actions/workflows/docusaurus-site.yml) workflow and click `Run workflow` on the right.
 
-```
-$ USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```
-$ GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+This will build and publish the website to the `gh-pages` branch at https://intersectmbo.github.io/plutus/docs.

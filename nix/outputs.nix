@@ -34,8 +34,6 @@ in
   {
     packages.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
     packages.pre-commit-check = ghc96.pre-commit-check;
-    packages.read-the-docs-site = ghc96.read-the-docs-site;
-    packages.combined-haddock = ghc96.combined-haddock;
   }
 
   (lib.optionalAttrs (system == "x86_64-linux" || system == "x86_64-darwin")
@@ -50,9 +48,7 @@ in
   (lib.optionalAttrs (system == "x86_64-linux")
     {
       hydraJobs.latex-documents = repoRoot.nix.latex-documents;
-      hydraJobs.read-the-docs-site = ghc96.read-the-docs-site;
       hydraJobs.pre-commit-check = ghc96.pre-commit-check;
-      hydraJobs.combined-haddock = ghc96.combined-haddock;
 
       hydraJobs.mingwW64.ghc96 = ghc96-mingwW64.hydraJobs;
 
