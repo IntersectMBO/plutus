@@ -185,17 +185,17 @@ We still need to think about the types. In general, we need:
 
 For example, consider 'data Maybe a = Nothing | Just a'. Then:
 - The type corresponding to the datatype is:
-  Maybe = \(t :: *) . sop [] [a]
+  Maybe = \(a :: *) . sop [] [a]
 - The type of the constructors are:
-  Just : forall (t :: *) . a -> Maybe a
-  Nothing : forall (t :: *) . Maybe a
+  Nothing : forall (a :: *) . Maybe a
+  Just    : forall (a :: *) . a -> Maybe a
 - The terms for the constructors are:
-  Just = /\(t :: *) \(x :: t) . constr (Maybe t) 1 x
-  Nothing = /\(t :: *) . constr 0 (Maybe t)
+  Nothing =           /\(a :: *) . constr 0 (Maybe a)
+  Just    = /\(a :: *) \(x :: a) . constr 1 (Maybe a) x
 - The type of the destructor is:
-  match_Maybe :: forall (t :: *) . Maybe t -> forall (out_Maybe :: *) . out_Maybe -> (t -> out_Maybe) -> out_Maybe
+  match_Maybe :: forall (a :: *) . Maybe a -> forall (out_Maybe :: *) . out_Maybe -> (a -> out_Maybe) -> out_Maybe
 - The term for the destructor is:
-  match_Maybe = /\(t :: *) \(x : Maybe t) /\(out_Maybe :: *) \(case_Nothing :: out_Maybe) (case_Just :: t -> out_Maybe) .
+  match_Maybe = /\(a :: *) \(x : Maybe a) /\(out_Maybe :: *) \(case_Nothing :: out_Maybe) (case_Just :: a -> out_Maybe) .
     case out_Maybe x case_Nothing case_Just
 
 -- General case
