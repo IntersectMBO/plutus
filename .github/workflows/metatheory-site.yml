@@ -4,7 +4,7 @@
 # Optionally the $version branch can also be deployed to:
 #   https://intersectmbo.github.io/plutus/metatheory/latest  
 
-name: "🔮 Metatheory Site"
+name: "🔮 Deploy Metatheory Site"
 
 on:
   workflow_dispatch:
