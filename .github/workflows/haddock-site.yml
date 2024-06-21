@@ -41,8 +41,6 @@ jobs:
 
       - name: Build Site
         run: | 
-          git fetch origin master
-          git checkout master ./scripts/combined-haddock.sh
           nix develop --accept-flake-config --command ./scripts/combined-haddock.sh _haddock all
 
       - name: Deploy Site
