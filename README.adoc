@@ -42,9 +42,11 @@ After setting it up you should just be able to depend on the `plutus` packages a
 
 === User documentation
 
-The main documentation is located https://intersectmbo.github.io/plutus/master/docs/[here].
+The main documentation is located https://intersectmbo.github.io/plutus/docs/[here].
 
-The latest documentation for the metatheory can be found https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.plutus-metatheory-site/latest/download/1[here].
+The haddock documentation is located https://intersectmbo.github.io/plutus/haddock/[here].
+
+The documentation for the metatheory can be found https://intersectmbo.github.io/plutus/metatheory/[here].
 
 === Talks
 
