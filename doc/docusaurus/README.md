@@ -4,7 +4,7 @@ This website is built using [Docusaurus](https://docusaurus.io/), a modern stati
 
 ### Development 
 
-Follow the [nix setup guide](https://github.com/input-output-hk/iogx/blob/main/doc/nix-setup-guide.md) (this is reccomended) or alternatively use your local `yarn` installation.
+Follow the [nix setup guide](https://github.com/input-output-hk/iogx/blob/main/doc/nix-setup-guide.md) (this is recommended) or alternatively use your local `yarn` installation.
 
 If using nix and while inside this directory, run `nix develop` to enter the shell.
 
