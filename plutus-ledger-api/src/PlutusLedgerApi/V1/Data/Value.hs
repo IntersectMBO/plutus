@@ -314,23 +314,68 @@ assetClassValue (AssetClass (c, t)) i = singleton c t i
 assetClassValueOf :: Value -> AssetClass -> Integer
 assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
 
-{-# INLINABLE unionVal #-}
--- | Combine two 'Value' maps, assumes the well-definedness of the two maps.
-unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (These Integer Integer))
-unionVal (Value l) (Value r) =
-    let
-        combined = Map.union l r
-        unThese k = case k of
-            This a    -> Map.map This a
-            That b    -> Map.map That b
-            These a b -> Map.union a b
-    in Map.map unThese combined
-
 {-# INLINABLE unionWith #-}
 -- | Combine two 'Value' maps with the argument function.
 -- Assumes the well-definedness of the two maps.
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
-unionWith f v1 = Value . unionWith' f v1
+unionWith f v1 v2 = -- Value . unionWith' f v1
+    let v1' = toMergeList True v1
+        v2' = toMergeList False v2
+        merged = mergeSort f (v1' ++ v2')
+     in fromMergeList merged
+
+toMergeList :: Bool -> Value -> [(Bool, CurrencySymbol, TokenName, Integer)]
+toMergeList flag (Map.toBuiltinList . getValue -> m) =
+    go m
+  where
+    go l =
+        B.matchList
+            l
+            (\() -> [])
+            (\hd tl ->
+                let c = unsafeFromBuiltinData . BI.fst $ hd
+                    innerL = BI.unsafeDataAsMap . BI.snd $ hd
+                    flattenInner l' =
+                        B.matchList
+                            l'
+                            (\() -> [])
+                            (\hd' tl' ->
+                                let t = unsafeFromBuiltinData . BI.fst $ hd'
+                                    v = unsafeFromBuiltinData . BI.snd $ hd'
+                                 in
+                                    (flag, c, t, v) : flattenInner tl'
+                            )
+                 in
+                    flattenInner innerL ++ go tl
+            )
+
+-- pre-condition: the merge list is sorted and indexed by c and t
+fromMergeList :: [(Bool, CurrencySymbol, TokenName, Integer)] -> Value
+fromMergeList = foldr go (Value Map.empty)
+  where
+    go :: (Bool, CurrencySymbol, TokenName, Integer) -> Value -> Value
+    go (_, c1, t1, v1) (B.uncons . Map.toBuiltinList . getValue -> Nothing) =
+        Value $ Map.singleton c1 (Map.singleton t1 v1)
+    go (_, c1, t1, v1) (B.uncons . Map.toBuiltinList . getValue -> Just (p, rest)) =
+        let c2 = unsafeFromBuiltinData . BI.fst $ p
+            l = BI.unsafeDataAsMap . BI.snd $ p
+            t1B = PlutusTx.toBuiltinData t1
+            v1B = PlutusTx.toBuiltinData v1
+            c1B = PlutusTx.toBuiltinData c1
+         in
+            if c1 == c2
+                then
+                    Value
+                    $ Map.unsafeFromBuiltinList
+                    $ BI.mkCons (BI.mkPairData c1B (BI.mkMap $ BI.mkCons (BI.mkPairData t1B v1B) l)) rest
+                else
+                    Value
+                    $ Map.unsafeFromBuiltinList
+                    $ BI.mkCons
+                        (BI.mkPairData c1B (BI.mkMap $ BI.mkCons (BI.mkPairData t1B v1B) Map.nil))
+                        (BI.mkCons p rest)
+
+{-# INLINABLE mergeSort #-}
 
 mergeSort
     :: (Integer -> Integer -> Integer)
@@ -583,23 +628,20 @@ flattenValue v = goOuter [] (Map.toList $ getValue v)
 isZero :: Value -> Bool
 isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 
-{-# INLINABLE checkPred #-}
--- | Checks whether a predicate holds for all the values in a 'Value'
--- union. Assumes the well-definedness of the two underlying 'Map's.
-checkPred :: (These Integer Integer -> Bool) -> Value -> Value -> Bool
-checkPred f l r =
-    let
-      inner :: Map.Map TokenName (These Integer Integer) -> Bool
-      inner = Map.all f
-    in
-      Map.all inner (unionVal l r)
-
 {-# INLINABLE checkBinRel #-}
 -- | Check whether a binary relation holds for value pairs of two 'Value' maps,
 --   supplying 0 where a key is only present in one of them.
 checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
 checkBinRel f l r =
-    Map.all (Map.all id) (unionWith' f l r)
+    let l' = toMergeList True l
+        r' = toMergeList False r
+        f' i1 i2 =
+            if f i1 i2
+                then 1
+                else 0
+        merged = mergeSort f' (l' ++ r')
+     in all (\(_, _, _, v) -> v == 1) merged
+
 
 {-# INLINABLE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation
