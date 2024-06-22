@@ -24,6 +24,7 @@ module PlutusCore.Builtin.Result
     , _OperationalUnliftingError
     , throwNotAConstant
     , throwUnderTypeError
+    , emit
     , withLogs
     , throwing
     , throwing_
@@ -31,7 +32,6 @@ module PlutusCore.Builtin.Result
 
 import PlutusPrelude
 
-import PlutusCore.Builtin.Emitter
 import PlutusCore.Evaluation.Error
 import PlutusCore.Evaluation.Result
 
@@ -64,15 +64,15 @@ data BuiltinError
     deriving stock (Show, Eq)
 
 -- | The monad that 'makeKnown' runs in.
--- Equivalent to @ExceptT BuiltinError Emitter@, except optimized in two ways:
+-- Equivalent to @ExceptT BuiltinError (Writer (DList Text))@, except optimized in two ways:
 --
 -- 1. everything is strict
 -- 2. has the 'BuiltinSuccess' constructor that is used for returning a value with no logs
 --    attached, which is the most common case for us, so it helps a lot not to construct and
 --    deconstruct a redundant tuple
 --
--- Moving from @ExceptT BuiltinError Emitter@ to this data type gave us a speedup of 8% of total
--- evaluation time.
+-- Moving from @ExceptT BuiltinError (Writer (DList Text))@ to this data type gave us a speedup of
+-- 8% of total evaluation time.
 --
 -- Logs are represented as a 'DList', because we don't particularly care about the efficiency of
 -- logging, since there's no logging on the chain and builtins don't emit much anyway. Otherwise
@@ -143,10 +143,6 @@ instance AsEvaluationFailure (BuiltinResult a) where
     _EvaluationFailure = _BuiltinFailure . iso (\_ -> ()) (\_ -> pure evaluationFailure)
     {-# INLINE _EvaluationFailure #-}
 
-instance MonadEmitter BuiltinResult where
-    emit txt = BuiltinSuccessWithLogs (pure txt) ()
-    {-# INLINE emit #-}
-
 instance MonadFail BuiltinResult where
     fail err = BuiltinFailure (pure $ Text.pack err) BuiltinEvaluationFailure
     {-# INLINE fail #-}
@@ -207,6 +203,11 @@ throwNotAConstant = throwing _StructuralUnliftingError "Not a constant"
 throwUnderTypeError :: MonadError BuiltinError m => m void
 throwUnderTypeError = throwing _StructuralUnliftingError "Panic: 'TypeError' was bypassed"
 {-# INLINE throwUnderTypeError #-}
+
+-- | Add a log line to the logs.
+emit :: Text -> BuiltinResult ()
+emit txt = BuiltinSuccessWithLogs (pure txt) ()
+{-# INLINE emit #-}
 
 -- | Prepend logs to a 'BuiltinResult' computation.
 withLogs :: DList Text -> BuiltinResult a -> BuiltinResult a

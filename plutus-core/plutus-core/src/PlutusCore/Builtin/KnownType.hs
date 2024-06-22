@@ -33,7 +33,6 @@ module PlutusCore.Builtin.KnownType
 
 import PlutusPrelude
 
-import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.Polymorphism
 import PlutusCore.Builtin.Result
@@ -349,20 +348,6 @@ instance
         ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘EvaluationResult’")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (EvaluationResult a) where
-    readKnown _ = throwUnderTypeError
-    {-# INLINE readKnown #-}
-
-instance
-        ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘Emitter’")
-        , uni ~ UniOf val
-        ) => MakeKnownIn uni val (Emitter a) where
-    makeKnown _ = throwUnderTypeError
-    {-# INLINE makeKnown #-}
-
-instance
-        ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘Emitter’")
-        , uni ~ UniOf val
-        ) => ReadKnownIn uni val (Emitter a) where
     readKnown _ = throwUnderTypeError
     {-# INLINE readKnown #-}
 
