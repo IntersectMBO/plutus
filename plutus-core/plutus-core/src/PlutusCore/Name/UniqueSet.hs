@@ -23,9 +23,9 @@ module PlutusCore.Name.UniqueSet (
 import Control.Lens (Getting, view)
 import Control.Lens.Getter (views)
 import Data.Coerce (Coercible, coerce)
-import Data.Foldable (foldl')
 import Data.IntSet qualified as IS
 import Data.IntSet.Lens qualified as IS
+import Data.List as List (foldl')
 import PlutusCore.Name.Unique (HasUnique (..), Unique (Unique))
 
 {- | A set containing 'Unique's. Since 'Unique' is equivalent to 'Int'
@@ -59,7 +59,7 @@ fromFoldable ::
   (i -> UniqueSet unique -> UniqueSet unique) ->
   f i ->
   UniqueSet unique
-fromFoldable ins = foldl' (flip ins) mempty
+fromFoldable ins = List.foldl' (flip ins) mempty
 
 -- | Convert a 'Foldable' with uniques into a 'UniqueSet'.
 fromUniques :: (Foldable f) => (Coercible Unique unique) => f unique -> UniqueSet unique

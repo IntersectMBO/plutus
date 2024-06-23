@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                      #-}
 {-# LANGUAGE DefaultSignatures        #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE FunctionalDependencies   #-}
@@ -22,6 +23,10 @@ import Data.String (IsString (..))
 import Data.Text qualified as Text
 import GHC.Magic qualified as Magic
 import Prelude qualified as Haskell (String)
+#if MIN_VERSION_base(4,20,0)
+import Prelude (type (~))
+#endif
+
 
 {- Note [noinline hack]
 For some functions we have two conflicting desires:
