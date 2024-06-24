@@ -1,4 +1,4 @@
-# This job checks for broken links in the various non-source-code files.
+# This job checks for broken links in the various files.
   
 name: "🔗 Broken Links"
 

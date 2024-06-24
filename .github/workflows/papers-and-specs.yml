@@ -1,8 +1,11 @@
+# This job builds various papers and deploys them to:
+# https://intersectmbo.github.io/plutus/resources
 
 name: "📝 Papers & Specs"
 
 on:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -27,7 +30,7 @@ jobs:
           cp -R $(nix build .#latex-documents.x86_64-linux.eutxo-paper) _resources
           cp -R $(nix build .#latex-documents.x86_64-linux.utxoma-paper) _resources
           cp -R $(nix build .#latex-documents.x86_64-linux.plutus-report) _resources
-          
+
       - name: Deploy Site (latest)
         uses: JamesIves/github-pages-deploy-action@v4.6.1
         with:
