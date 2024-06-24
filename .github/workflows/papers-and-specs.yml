@@ -29,12 +29,11 @@ jobs:
             system-f-in-agda-paper
             eutxo-paper
             utxoma-paper
-            plutus-report
           )
           mkdir -p _resources
           for target in "${TARGETS[@]}"; do 
-            nix build --no-warn-dirty --accept-flake-config .#latex-documents.x86_64-linux.${target}
-            cp ./result/*.pdf _resources
+            nix build --no-warn-dirty --accept-flake-config .#latex-documents.x86_64-darwin.${target}
+            cp -fr ./result/*.pdf _resources
           done 
 
       - name: Publish Papers
