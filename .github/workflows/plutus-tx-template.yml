@@ -5,30 +5,29 @@
 # Finally, it double-checks that everything still builds correctly using cabal
 # inside the devx shell.
 
-name: Plutus Tx Template
+name: "🏛️ PlutusTx Template"
 
 on:
   pull_request:
 
 jobs:
-  plutus-tx-template:
+  build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest]
     steps:
-
-      - name: Checkout plutus-tx-template
-        uses: actions/checkout@v4.1.4
+      - name: Checkout plutus-tx-template Repo
+        uses: actions/checkout@main
         with: 
           repository: IntersectMBO/plutus-tx-template
           path: plutus-tx-template 
 
-      - name: Checkout plutus
-        uses: actions/checkout@v4.1.4
+      - name: Checkout plutus Repo
+        uses: actions/checkout@main
         with: 
           path: plutus-tx-template/plutus
   
-      - name: Write cabal.project.local
-        uses: DamianReeves/write-file-action@v1.3
+      - name: Overwrite cabal.project.local
+        uses: DamianReeves/write-file-action@master
         with:
           path: plutus-tx-template/cabal.project.local
           write-mode: overwrite
@@ -50,7 +49,6 @@ jobs:
       - name: Build Project With Docker
         run: |
           cd plutus-tx-template 
-          ls -la 
           docker run \
             -v ./.:/workspaces/plutus-tx-template \
             -w /workspaces/plutus-tx-template \
