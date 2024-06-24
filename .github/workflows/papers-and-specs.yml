@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
 
-      - name: Build Site
+      - name: Build Papers
         run: | 
           TARGETS=(
             plutus-report
@@ -34,10 +34,10 @@ jobs:
           mkdir -p _resources
           for target in "${TARGETS[@]}"; do 
             nix build --no-warn-dirty --accept-flake-config .#latex-documents.x86_64-linux.${target}
-            cp ./result/* _resources
+            cp ./result/*.pdf _resources
           done 
 
-      - name: Deploy Site (latest)
+      - name: Publish Papers
         uses: JamesIves/github-pages-deploy-action@v4.6.1
         with:
           folder: _resources
