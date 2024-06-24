@@ -55,17 +55,17 @@ The documentation for the metatheory can be found https://intersectmbo.github.io
 
 === Specifications and design
 
-- https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.plutus-report/latest/download/1[Plutus Technical Report (draft)]: a technical report and design document for the project.
-- https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.plutus-core-spec/latest/download/1[Plutus Core Specification]: the formal specification of the core language.
-- https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.extended-utxo-spec/latest/download/1[Extended UTXO Model]: a design document for the core changes to the Cardano ledger.
+- https://intersectmbo.github.io/plutus/resources/plutus-report.pdf[Plutus Technical Report (draft)]: a technical report and design document for the project.
+- https://intersectmbo.github.io/plutus/resources/plutus-core-spec.pdf[Plutus Core Specification]: the formal specification of the core language.
+- https://intersectmbo.github.io/plutus/resources/extended-utxo-spec.pdf[Extended UTXO Model]: a design document for the core changes to the Cardano ledger.
 
 === Academic papers
 
-- https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.unraveling-recursion-paper/latest/download/1[Unraveling Recursion]: a description of some of the compilation strategies used in Plutus IR (https://doi.org/10.1007/978-3-030-33636-3_15[published version]).
-- https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.system-f-in-agda-paper/latest/download/1[System F in Agda]: a formal model of System F in Agda (https://doi.org/10.1007/978-3-030-33636-3_10[published version]).
-- https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.eutxo-paper/latest/download/1[The Extended UTXO Model]: a full presentation of the EUTXO ledger extension (https://doi.org/10.1007/978-3-030-54455-3_37[published version]).
-- https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.utxoma-paper/latest/download/1[UTXOma: UTXO with Multi-Asset Support]: a full presentation of the multi-asset ledger extension (https://doi.org/10.1007/978-3-030-61467-6_8[published version]).
-- https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.eutxoma-paper/latest/download/1[Native Custom Tokens in the Extended UTXO Model]: a discussion of the interaction of the multi-asset support with EUTXO (https://doi.org/10.1007/978-3-030-61467-6_7[published version]).
+- https://intersectmbo.github.io/plutus/resources/unraveling-recursion-paper.pdf[Unraveling Recursion]: a description of some of the compilation strategies used in Plutus IR (https://doi.org/10.1007/978-3-030-33636-3_15[published version]).
+- https://intersectmbo.github.io/plutus/resources/system-f-in-agda-paper.pdf[System F in Agda]: a formal model of System F in Agda (https://doi.org/10.1007/978-3-030-33636-3_10[published version]).
+- https://intersectmbo.github.io/plutus/resources/eutxo-paper.pdf[The Extended UTXO Model]: a full presentation of the EUTXO ledger extension (https://doi.org/10.1007/978-3-030-54455-3_37[published version]).
+- https://intersectmbo.github.io/plutus/resources/utxoma-paper.pdf[UTXOma: UTXO with Multi-Asset Support]: a full presentation of the multi-asset ledger extension (https://doi.org/10.1007/978-3-030-61467-6_8[published version]).
+- https://intersectmbo.github.io/plutus/resources/eutxoma-paper.pdf[Native Custom Tokens in the Extended UTXO Model]: a discussion of the interaction of the multi-asset support with EUTXO (https://doi.org/10.1007/978-3-030-61467-6_7[published version]).
 - https://arxiv.org/abs/2201.04919[Translation Certification for Smart Contracts]:  a certifier of Plutus IR compiler passes written in Coq.
 
 == Licensing

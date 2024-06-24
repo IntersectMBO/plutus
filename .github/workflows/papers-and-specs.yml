@@ -1,0 +1,36 @@
+
+name: "📝 Papers & Specs"
+
+on:
+  pull_request:
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: [self-hosted, plutus-shared]
+    permissions:
+      contents: write
+    environment:
+      name: github-pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Build Site
+        run: | 
+          mkdir -p _resources
+          cp -R $(nix build .#latex-documents.x86_64-linux.plutus-report) _resources
+          cp -R $(nix build .#latex-documents.x86_64-linux.plutus-core-spec) _resources
+          cp -R $(nix build .#latex-documents.x86_64-linux.extended-utxo-spec) _resources
+          cp -R $(nix build .#latex-documents.x86_64-linux.unraveling-recursion-paper) _resources
+          cp -R $(nix build .#latex-documents.x86_64-linux.system-f-in-agda-paper) _resources
+          cp -R $(nix build .#latex-documents.x86_64-linux.eutxo-paper) _resources
+          cp -R $(nix build .#latex-documents.x86_64-linux.utxoma-paper) _resources
+          cp -R $(nix build .#latex-documents.x86_64-linux.plutus-report) _resources
+          
+      - name: Deploy Site (latest)
+        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        with:
+          folder: _resources
+          target-folder: resources
+          single-commit: true
