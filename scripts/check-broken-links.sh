@@ -16,6 +16,7 @@ FAILED=0
 
 for file in "${TARGETS[@]}"; do 
     grep -oE "\b(https?://|www\.)[^\[\(\)\"]+\b" "${file}" | linkchecker --no-warnings --recursion-level 0 --output failures --check-extern --stdin
+    echo "Checking ${file}"
     if [ $? -ne 0 ]; then 
         echo "${file} has broken links, see output above"
         FAILED=1
