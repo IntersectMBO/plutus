@@ -1,10 +1,9 @@
-# This workflow publishes the Agda metatheory site to:
-#   https://intersectmbo.github.io/plutus/metatheory/$version
-# Where $version should be a release version tag.
-# Optionally the $version branch can also be deployed to:
-#   https://intersectmbo.github.io/plutus/metatheory/latest  
+# This workflow builds and publishes the metatheory site to:
+# https://intersectmbo.github.io/plutus/metatheory/$version
+# And optionally to:
+# https://intersectmbo.github.io/plutus/metatheory/latest
 
-name: "🔮 Deploy Metatheory Site"
+name: "🔮 Metatheory Site"
 
 on:
   workflow_dispatch:
