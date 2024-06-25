@@ -15,6 +15,7 @@ jobs:
   run:
     name: Run
     runs-on: [self-hosted, plutus-benchmark]
+    timeout-minutes: 14400
     steps:
       - name: Checkout
         uses: actions/checkout@main
