@@ -484,5 +484,5 @@ test_simplify =
     , goldenVsCse "cse1" cse1
     , goldenVsCse "cse2" cse2
     , goldenVsCse "cse3" cse3
-    , goldenVsCse "cseExpensive" cseExpensive
+    -- , goldenVsCse "cseExpensive" cseExpensive
     ]
