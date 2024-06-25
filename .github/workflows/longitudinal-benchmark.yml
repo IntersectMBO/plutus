@@ -40,7 +40,7 @@ jobs:
         run: git config core.hooksPath no-hooks
 
       - name: Deploy Results
-        uses: benchmark-action/github-action-benchmark@main
+        uses: benchmark-action/github-action-benchmark@master
         with:
           name: Plutus Benchmarks
           tool: 'customSmallerIsBetter'
