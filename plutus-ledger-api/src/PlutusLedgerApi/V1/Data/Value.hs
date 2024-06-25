@@ -319,12 +319,12 @@ assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
 -- Assumes the well-definedness of the two maps.
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
 unionWith f v1 v2 = -- Value . unionWith' f v1
-    let v1' = toMergeList True v1
-        v2' = toMergeList False v2
-        merged = mergeSort f (v1' ++ v2')
+    let v1' = toMergeList FromLeft v1
+        v2' = toMergeList FromRight v2
+        merged = processMerge f $ mergeSort (v1' ++ v2')
      in fromMergeList merged
 
-toMergeList :: Bool -> Value -> [(Bool, CurrencySymbol, TokenName, Integer)]
+toMergeList :: MergeFlag -> Value -> [(MergeFlag, CurrencySymbol, TokenName, Integer)]
 toMergeList flag (Map.toBuiltinList . getValue -> m) =
     go m
   where
@@ -350,10 +350,10 @@ toMergeList flag (Map.toBuiltinList . getValue -> m) =
             )
 
 -- pre-condition: the merge list is sorted and indexed by c and t
-fromMergeList :: [(Bool, CurrencySymbol, TokenName, Integer)] -> Value
+fromMergeList :: [(MergeFlag, CurrencySymbol, TokenName, Integer)] -> Value
 fromMergeList = foldr go (Value Map.empty)
   where
-    go :: (Bool, CurrencySymbol, TokenName, Integer) -> Value -> Value
+    go :: (MergeFlag, CurrencySymbol, TokenName, Integer) -> Value -> Value
     go (_, c1, t1, v1) (B.uncons . Map.toBuiltinList . getValue -> Nothing) =
         Value $ Map.singleton c1 (Map.singleton t1 v1)
     go (_, c1, t1, v1) (B.uncons . Map.toBuiltinList . getValue -> Just (p, rest)) =
@@ -375,235 +375,282 @@ fromMergeList = foldr go (Value Map.empty)
                         (BI.mkPairData c1B (BI.mkMap $ BI.mkCons (BI.mkPairData t1B v1B) Map.nil))
                         (BI.mkCons p rest)
 
+
+data MergeFlag = FromLeft | FromRight | Merged
+
+instance PlutusTx.Show MergeFlag where
+    {-# INLINABLE show #-}
+    show FromLeft  = "FromLeft"
+    show FromRight = "FromRight"
+    show Merged    = "Merged"
+
+
+-- TODO: whenever the two elems are equal, merge them with f; the last pass above will take care of the others
+-- we only know that there aren't any other equal elems _after_ mergeSort has run
 {-# INLINABLE mergeSort #-}
+mergeSort :: [(MergeFlag, CurrencySymbol, TokenName, Integer)] -> [(MergeFlag, CurrencySymbol, TokenName, Integer)]
+mergeSort =
+    PlutusTx.sortBy (\(_, a1, b1, _) (_, a2, b2, _) -> (a1, b1) `Ord.compare` (a2, b2))
 
-mergeSort
-    :: (Integer -> Integer -> Integer)
-    -> [(Bool, CurrencySymbol, TokenName, Integer)]
-    -> [(Bool, CurrencySymbol, TokenName, Integer)]
-mergeSort f l = mergeAll (sequences l)
-  where
-    cmp (_, a1, b1, _) (_, a2, b2, _) = (a1, b1) `Ord.compare` (a2, b2)
+{-# INLINABLE processMerge #-}
+processMerge :: (Integer -> Integer -> a) -> [(MergeFlag, CurrencySymbol, TokenName, Integer)] -> [(MergeFlag, CurrencySymbol, TokenName, a)]
+processMerge f [] = []
+processMerge f [x@(flag, c, t, v)] =
+    case flag of
+        FromLeft  -> [(Merged, c, t, f v 0)]
+        FromRight -> [(Merged, c, t, f 0 v)]
+processMerge f (x1@(flag1, c1, t1, v1) : x2@(flag2, c2, t2, v2) : xs) =
+    if (c1 == c2) PlutusTx.&& (t1 == t2)
+        then
+            (Merged, c1, t1, f v1 v2) : processMerge f xs
+        else
+            case flag1 of
+                FromLeft  -> (Merged, c1, t1, f v1 0) : processMerge f (x2 : xs)
+                FromRight -> (Merged, c1, t1, f 0 v1) : processMerge f (x2 : xs)
 
-    sequences (a:b:xs)
-      | a `cmp` b == GT = descending b [a]  xs
-      | otherwise       = ascending  b (a:) xs
-    sequences xs = [xs]
-
-    descending a as (b:bs)
-      | a `cmp` b == GT = descending b (a:as) bs
-    descending a as bs  = (a:as): sequences bs
-
-    ascending a as (b:bs)
-      | a `cmp` b /= GT = ascending b (\ys -> as (a:ys)) bs
-    ascending a as bs   = let x = as [a]
-                          in x : sequences bs
-
-    mergeAll [x] = x
-    mergeAll xs  = mergeAll (mergePairs xs)
-
-    mergePairs (a:b:xs) = let x = merge a b
-                          in x : mergePairs xs
-    mergePairs xs       = (fmap . fmap) (\(flag, c, t, v) -> if flag then (flag, c, t, f v 0) else (flag, c, t, f 0 v)) xs
-
-    merge as@(a@(flaga, ca, ta, va):as') bs@(b@(flagb, cb, tb, vb):bs')
-      | a `cmp` b == LT =
-        case flaga of
-            True  -> (flaga, ca, ta, f va 0) : merge as' bs
-            False -> (flaga, ca, ta, f 0 va) : merge as' bs
-      | a `cmp` b == EQ =
-        case (flaga, flagb) of
-            (True, False) -> (flaga, ca, ta, f va vb) : merge as' bs
-            (False, True) -> (flaga, ca, ta, f vb va) : merge as' bs
-      | otherwise       =
-        case flagb of
-            True  -> (flagb, cb, tb, f vb 0) : merge as  bs'
-            False -> (flagb, cb, tb, f 0 vb) : merge as  bs'
-    merge [] bs         = fmap (\(flag, c, t, v) -> if flag then (flag, c, t, f v 0) else (flag, c, t, f 0 v)) bs
-    merge as []         = fmap (\(flag, c, t, v) -> if flag then (flag, c, t, f v 0) else (flag, c, t, f 0 v)) as
-
-
-
-
-unionWith'
-    :: (PlutusTx.ToData a)
-    => (Integer -> Integer -> a)
-    -> Value
-    -> Value
-    -> Map.Map CurrencySymbol (Map.Map TokenName a)
-unionWith'
-    f
-    (Map.toBuiltinList . getValue -> ls)
-    (Map.toBuiltinList . getValue -> rs)
-  =
-    Map.unsafeFromBuiltinList $ res ls rs
-  where
-    goLeft
-        :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
-        -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
-    goLeft leftMap =
-        B.matchList
-            leftMap
-            (\() -> Map.nil)
-            (\hd tl ->
-                let curSymb = BI.fst hd
-                    leftTokens = BI.snd hd
-                    leftTokensMap = BI.unsafeDataAsMap leftTokens
-                 in
-                    case Map.lookup' curSymb rs of
-                        Just rightTokens ->
-                            let rightTokensMap = BI.unsafeDataAsMap rightTokens
-                                pt lTs =
-                                    B.matchList
-                                        lTs
-                                        (\() -> Map.nil)
-                                        (\hd' tl' ->
-                                            let tok = BI.fst hd'
-                                                leftAmt = BI.snd hd'
-                                             in
-                                                case Map.lookup' tok rightTokensMap of
-                                                    Just rightAmt ->
-                                                        BI.mkCons
-                                                            (BI.mkPairData
-                                                                tok
-                                                                ( PlutusTx.toBuiltinData
-                                                                $ f
-                                                                    (PlutusTx.unsafeFromBuiltinData leftAmt)
-                                                                    (PlutusTx.unsafeFromBuiltinData rightAmt)
-                                                                )
-                                                            )
-                                                            (pt tl')
-                                                    Nothing ->
-                                                        BI.mkCons
-                                                            (BI.mkPairData
-                                                                tok
-                                                                ( PlutusTx.toBuiltinData
-                                                                $ f (PlutusTx.unsafeFromBuiltinData leftAmt) 0
-                                                                )
-                                                            )
-                                                            (pt tl')
-                                        )
-                             in
-                                BI.mkCons (BI.mkPairData curSymb (BI.mkMap $ pt leftTokensMap)) (goLeft tl)
-                        Nothing ->
-                            let pt lTs =
-                                    B.matchList
-                                        lTs
-                                        (\() -> Map.nil)
-                                        (\hd' tl' ->
-                                            let tok = BI.fst hd'
-                                                leftAmt = BI.snd hd'
-                                             in
-                                                BI.mkCons
-                                                    (BI.mkPairData
-                                                        tok
-                                                        ( PlutusTx.toBuiltinData
-                                                        $ f (PlutusTx.unsafeFromBuiltinData leftAmt) 0
-                                                        )
-                                                    )
-                                                    (pt tl')
-                                        )
-                             in
-                                BI.mkCons (BI.mkPairData curSymb (BI.mkMap $ pt leftTokensMap)) (goLeft tl)
-            )
-
-    goRight
-        :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
-        -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
-    goRight rightMap =
-        B.matchList
-            rightMap
-            (\() -> Map.nil)
-            (\hd tl ->
-                let curSymb = BI.fst hd
-                    rightTokens = BI.snd hd
-                    rightTokensMap = BI.unsafeDataAsMap rightTokens
-                 in
-                    case Map.lookup' curSymb ls of
-                        Just leftTokens ->
-                            let leftTokensMap = BI.unsafeDataAsMap leftTokens
-                                pt lTs =
-                                    B.matchList
-                                        lTs
-                                        (\() -> Map.nil)
-                                        (\hd' tl' ->
-                                            let tok = BI.fst hd'
-                                                rightAmt = BI.snd hd'
-                                             in
-                                                case Map.lookup' tok leftTokensMap of
-                                                    Just leftAmt ->
-                                                        BI.mkCons
-                                                            (BI.mkPairData
-                                                                tok
-                                                                ( PlutusTx.toBuiltinData
-                                                                $ f
-                                                                    (PlutusTx.unsafeFromBuiltinData leftAmt)
-                                                                    (PlutusTx.unsafeFromBuiltinData rightAmt)
-                                                                )
-                                                            )
-                                                            (pt tl')
-                                                    Nothing ->
-                                                        BI.mkCons
-                                                            (BI.mkPairData
-                                                                tok
-                                                                ( PlutusTx.toBuiltinData
-                                                                $ f 0 (PlutusTx.unsafeFromBuiltinData rightAmt)
-                                                                )
-                                                            )
-                                                            (pt tl')
-                                        )
-                             in
-                                BI.mkCons (BI.mkPairData curSymb (BI.mkMap $ pt rightTokensMap)) (goRight tl)
-                        Nothing ->
-                            let pt lTs =
-                                    B.matchList
-                                        lTs
-                                        (\() -> Map.nil)
-                                        (\hd' tl' ->
-                                            let tok = BI.fst hd'
-                                                rightAmt = BI.snd hd'
-                                             in
-                                                BI.mkCons
-                                                    (BI.mkPairData
-                                                        tok
-                                                        ( PlutusTx.toBuiltinData
-                                                        $ f 0 (PlutusTx.unsafeFromBuiltinData rightAmt)
-                                                        )
-                                                    )
-                                                    (pt tl')
-                                        )
-                             in
-                                BI.mkCons (BI.mkPairData curSymb (BI.mkMap $ pt rightTokensMap)) (goRight tl)
-            )
-
-    safeAppendInner xs1 xs2 =
-      B.matchList
-        xs1
-        (\() -> xs2)
-        ( \hd tl ->
-            let k = BI.fst hd
-                v = BI.snd hd
-             in Map.insert' k v (safeAppendInner tl xs2)
-        )
-
-    safeAppend xs1 xs2 =
-      B.matchList
-        xs1
-        (\() -> xs2)
-        ( \hd tl ->
-            let k = BI.fst hd
-                v = BI.snd hd
-             in
-                case Map.lookup' k xs2 of
-                    Just v' ->
-                        let vNew =
-                                BI.mkMap
-                                $ safeAppendInner (BI.unsafeDataAsMap v) (BI.unsafeDataAsMap v')
-                         in Map.insert' k vNew (safeAppend tl xs2)
-                    Nothing -> Map.insert' k v (safeAppend tl xs2)
-        )
-
-    res l r = goLeft l `safeAppend` goRight r
+-- mergeSort
+--     :: (Integer -> Integer -> Integer)
+--     -> [(MergeFlag, CurrencySymbol, TokenName, Integer)]
+--     -> [(MergeFlag, CurrencySymbol, TokenName, Integer)]
+-- mergeSort f l = mergeAll (sequences l)
+--   where
+--     cmp (_, a1, b1, _) (_, a2, b2, _) = (a1, b1) `Ord.compare` (a2, b2)
+--
+--     sequences (a:b:xs)
+--       | a `cmp` b == GT = descending b [a]  xs
+--       | otherwise       = ascending  b (a:) xs
+--     sequences xs = [xs]
+--
+--     descending a as (b:bs)
+--       | a `cmp` b == GT = descending b (a:as) bs
+--     descending a as bs  = (a:as): sequences bs
+--
+--     ascending a as (b:bs)
+--       | a `cmp` b /= GT = ascending b (\ys -> as (a:ys)) bs
+--     ascending a as bs   = let x = as [a]
+--                           in x : sequences bs
+--
+--     mergeAll [x] = x
+--     mergeAll xs  = mergeAll (mergePairs xs)
+--
+--     mergePairs (a:b:xs) = let x = merge a b
+--                           in x : mergePairs xs
+--     mergePairs xs       = xs
+--
+--     merge as@(a@(flaga, ca, ta, va):as') bs@(b@(flagb, cb, tb, vb):bs')
+--       | a `cmp` b == LT = a : merge as' bs
+--         -- case flaga of
+--         --     FromLeft  -> (Merged, ca, ta, f va 0) : merge as' bs
+--         --     FromRight -> (Merged, ca, ta, f 0 va) : merge as' bs
+--         --     Merged    -> a : merge as' bs
+--       | a `cmp` b == EQ =
+--         case (flaga, flagb) of
+--             (FromLeft, FromRight) -> (Merged, ca, ta, f va vb) : merge as' bs
+--             (FromRight, FromLeft) -> (Merged, ca, ta, f vb va) : merge as' bs
+--       | otherwise       = b : merge as bs'
+--         -- case flagb of
+--         --     FromLeft  -> (Merged, cb, tb, f vb 0) : merge as  bs'
+--         --     FromRight -> (Merged, cb, tb, f 0 vb) : merge as  bs'
+--         --     Merged    -> b : merge as bs'
+--     merge [] bs         =
+--         fmap (\o@(flag, c, t, v) ->
+--             case flag of
+--                 FromLeft  -> (Merged, c, t, f v 0)
+--                 FromRight -> (Merged, c, t, f 0 v)
+--                 Merged    -> o
+--             )
+--             bs
+--     merge as []         =
+--         fmap (\o@(flag, c, t, v) ->
+--             case flag of
+--                 FromLeft  -> (Merged, c, t, f v 0)
+--                 FromRight -> (Merged, c, t, f 0 v)
+--                 Merged    -> o
+--             )
+--             as
+--
+--
+--
+--
+-- unionWith'
+--     :: (PlutusTx.ToData a)
+--     => (Integer -> Integer -> a)
+--     -> Value
+--     -> Value
+--     -> Map.Map CurrencySymbol (Map.Map TokenName a)
+-- unionWith'
+--     f
+--     (Map.toBuiltinList . getValue -> ls)
+--     (Map.toBuiltinList . getValue -> rs)
+--   =
+--     Map.unsafeFromBuiltinList $ res ls rs
+--   where
+--     goLeft
+--         :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
+--         -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
+--     goLeft leftMap =
+--         B.matchList
+--             leftMap
+--             (\() -> Map.nil)
+--             (\hd tl ->
+--                 let curSymb = BI.fst hd
+--                     leftTokens = BI.snd hd
+--                     leftTokensMap = BI.unsafeDataAsMap leftTokens
+--                  in
+--                     case Map.lookup' curSymb rs of
+--                         Just rightTokens ->
+--                             let rightTokensMap = BI.unsafeDataAsMap rightTokens
+--                                 pt lTs =
+--                                     B.matchList
+--                                         lTs
+--                                         (\() -> Map.nil)
+--                                         (\hd' tl' ->
+--                                             let tok = BI.fst hd'
+--                                                 leftAmt = BI.snd hd'
+--                                              in
+--                                                 case Map.lookup' tok rightTokensMap of
+--                                                     Just rightAmt ->
+--                                                         BI.mkCons
+--                                                             (BI.mkPairData
+--                                                                 tok
+--                                                                 ( PlutusTx.toBuiltinData
+--                                                                 $ f
+--                                                                     (PlutusTx.unsafeFromBuiltinData leftAmt)
+--                                                                     (PlutusTx.unsafeFromBuiltinData rightAmt)
+--                                                                 )
+--                                                             )
+--                                                             (pt tl')
+--                                                     Nothing ->
+--                                                         BI.mkCons
+--                                                             (BI.mkPairData
+--                                                                 tok
+--                                                                 ( PlutusTx.toBuiltinData
+--                                                                 $ f (PlutusTx.unsafeFromBuiltinData leftAmt) 0
+--                                                                 )
+--                                                             )
+--                                                             (pt tl')
+--                                         )
+--                              in
+--                                 BI.mkCons (BI.mkPairData curSymb (BI.mkMap $ pt leftTokensMap)) (goLeft tl)
+--                         Nothing ->
+--                             let pt lTs =
+--                                     B.matchList
+--                                         lTs
+--                                         (\() -> Map.nil)
+--                                         (\hd' tl' ->
+--                                             let tok = BI.fst hd'
+--                                                 leftAmt = BI.snd hd'
+--                                              in
+--                                                 BI.mkCons
+--                                                     (BI.mkPairData
+--                                                         tok
+--                                                         ( PlutusTx.toBuiltinData
+--                                                         $ f (PlutusTx.unsafeFromBuiltinData leftAmt) 0
+--                                                         )
+--                                                     )
+--                                                     (pt tl')
+--                                         )
+--                              in
+--                                 BI.mkCons (BI.mkPairData curSymb (BI.mkMap $ pt leftTokensMap)) (goLeft tl)
+--             )
+--
+--     goRight
+--         :: BuiltinList (BuiltinPair BuiltinData BuiltinData)
+--         -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
+--     goRight rightMap =
+--         B.matchList
+--             rightMap
+--             (\() -> Map.nil)
+--             (\hd tl ->
+--                 let curSymb = BI.fst hd
+--                     rightTokens = BI.snd hd
+--                     rightTokensMap = BI.unsafeDataAsMap rightTokens
+--                  in
+--                     case Map.lookup' curSymb ls of
+--                         Just leftTokens ->
+--                             let leftTokensMap = BI.unsafeDataAsMap leftTokens
+--                                 pt lTs =
+--                                     B.matchList
+--                                         lTs
+--                                         (\() -> Map.nil)
+--                                         (\hd' tl' ->
+--                                             let tok = BI.fst hd'
+--                                                 rightAmt = BI.snd hd'
+--                                              in
+--                                                 case Map.lookup' tok leftTokensMap of
+--                                                     Just leftAmt ->
+--                                                         BI.mkCons
+--                                                             (BI.mkPairData
+--                                                                 tok
+--                                                                 ( PlutusTx.toBuiltinData
+--                                                                 $ f
+--                                                                     (PlutusTx.unsafeFromBuiltinData leftAmt)
+--                                                                     (PlutusTx.unsafeFromBuiltinData rightAmt)
+--                                                                 )
+--                                                             )
+--                                                             (pt tl')
+--                                                     Nothing ->
+--                                                         BI.mkCons
+--                                                             (BI.mkPairData
+--                                                                 tok
+--                                                                 ( PlutusTx.toBuiltinData
+--                                                                 $ f 0 (PlutusTx.unsafeFromBuiltinData rightAmt)
+--                                                                 )
+--                                                             )
+--                                                             (pt tl')
+--                                         )
+--                              in
+--                                 BI.mkCons (BI.mkPairData curSymb (BI.mkMap $ pt rightTokensMap)) (goRight tl)
+--                         Nothing ->
+--                             let pt lTs =
+--                                     B.matchList
+--                                         lTs
+--                                         (\() -> Map.nil)
+--                                         (\hd' tl' ->
+--                                             let tok = BI.fst hd'
+--                                                 rightAmt = BI.snd hd'
+--                                              in
+--                                                 BI.mkCons
+--                                                     (BI.mkPairData
+--                                                         tok
+--                                                         ( PlutusTx.toBuiltinData
+--                                                         $ f 0 (PlutusTx.unsafeFromBuiltinData rightAmt)
+--                                                         )
+--                                                     )
+--                                                     (pt tl')
+--                                         )
+--                              in
+--                                 BI.mkCons (BI.mkPairData curSymb (BI.mkMap $ pt rightTokensMap)) (goRight tl)
+--             )
+--
+--     safeAppendInner xs1 xs2 =
+--       B.matchList
+--         xs1
+--         (\() -> xs2)
+--         ( \hd tl ->
+--             let k = BI.fst hd
+--                 v = BI.snd hd
+--              in Map.insert' k v (safeAppendInner tl xs2)
+--         )
+--
+--     safeAppend xs1 xs2 =
+--       B.matchList
+--         xs1
+--         (\() -> xs2)
+--         ( \hd tl ->
+--             let k = BI.fst hd
+--                 v = BI.snd hd
+--              in
+--                 case Map.lookup' k xs2 of
+--                     Just v' ->
+--                         let vNew =
+--                                 BI.mkMap
+--                                 $ safeAppendInner (BI.unsafeDataAsMap v) (BI.unsafeDataAsMap v')
+--                          in Map.insert' k vNew (safeAppend tl xs2)
+--                     Nothing -> Map.insert' k v (safeAppend tl xs2)
+--         )
+--
+--     res l r = goLeft l `safeAppend` goRight r
 
 {-# INLINABLE flattenValue #-}
 -- | Convert a 'Value' to a simple list, keeping only the non-zero amounts.
@@ -633,14 +680,10 @@ isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 --   supplying 0 where a key is only present in one of them.
 checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
 checkBinRel f l r =
-    let l' = toMergeList True l
-        r' = toMergeList False r
-        f' i1 i2 =
-            if f i1 i2
-                then 1
-                else 0
-        merged = mergeSort f' (l' ++ r')
-     in all (\(_, _, _, v) -> v == 1) merged
+    let l' = toMergeList FromLeft l
+        r' = toMergeList FromRight r
+        merged = processMerge f $ mergeSort (l' ++ r')
+     in all (\(_, _, _, v) -> v) merged
 
 
 {-# INLINABLE geq #-}
