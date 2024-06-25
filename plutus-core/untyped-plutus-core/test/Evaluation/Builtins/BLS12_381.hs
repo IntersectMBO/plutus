@@ -203,7 +203,7 @@ test_scalarMul_repeated_addition =
             repeatedAdd :: Integer -> PlcTerm -> PlcTerm
             repeatedAdd n t =
                 if n>=0
-                then foldl' (addTerm @g) (zeroTerm @g) $ genericReplicate n t
+                then List.foldl' (addTerm @g) (zeroTerm @g) $ genericReplicate n t
                 else repeatedAdd (-n) (negTerm @g t)
 
 -- (m + n|G|)p = mp for all group elements p and integers m and n.

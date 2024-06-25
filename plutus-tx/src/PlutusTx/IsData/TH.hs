@@ -12,7 +12,7 @@ module PlutusTx.IsData.TH (
   mkUnsafeConstrPartsMatchPattern,
 ) where
 
-import Data.Foldable (foldl')
+import Data.Foldable as Foldable (foldl')
 import Data.Functor ((<&>))
 import Data.Traversable (for)
 
@@ -91,7 +91,7 @@ reconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructorField
     argNames <- for argTys $ \_ -> TH.newName "arg"
 
     -- Build the constructor application, assuming that all the arguments are in scope
-    let app = foldl' (\h v -> [| $h $(TH.varE v) |]) (TH.conE name) argNames
+    let app = Foldable.foldl' (\h v -> [| $h $(TH.varE v) |]) (TH.conE name) argNames
 
     TH.match (mkConstrPartsMatchPattern (fromIntegral index) argNames) (TH.normalB [| Just $app |]) []
 

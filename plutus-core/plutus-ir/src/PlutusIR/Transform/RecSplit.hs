@@ -15,7 +15,7 @@ import Algebra.Graph.NonEmpty.AdjacencyMap qualified as AMN
 import Algebra.Graph.ToGraph (isAcyclic)
 import Control.Lens
 import Data.Either
-import Data.Foldable (foldl')
+import Data.Foldable qualified as Foldable (foldl')
 import Data.List (nub)
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as M
@@ -106,7 +106,7 @@ recSplitStep = \case
                 (if isAcyclic scc then NonRec else Rec)
                 (M.elems . M.restrictKeys bindingsTable $ AMN.vertexSet scc)
                 acc
-        in foldl' genLetFromScc t hereSccs
+        in Foldable.foldl' genLetFromScc t hereSccs
     t  -> t
 
 {-|

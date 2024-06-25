@@ -18,7 +18,7 @@ import Control.Monad (join, void)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, local)
 import Control.Monad.Trans.State.Strict (State, evalState, get, put)
-import Data.Foldable (Foldable (foldl'))
+import Data.Foldable as Foldable (foldl')
 import Data.Hashable (Hashable)
 import Data.HashMap.Strict (HashMap)
 import Data.HashMap.Strict qualified as Map
@@ -346,7 +346,7 @@ mkCseTerm ::
   m (Term Name uni fun ann)
 mkCseTerm ts t = do
   cs <- traverse mkCseCandidate ts
-  pure . fmap snd $ foldl' (flip applyCse) t cs
+  pure . fmap snd $ Foldable.foldl' (flip applyCse) t cs
 
 applyCse ::
   forall uni fun ann.
