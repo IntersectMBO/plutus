@@ -139,6 +139,9 @@ let
             plutus-core.components.tests.plutus-ir-test.postInstall = ''
               wrapProgram $out/bin/plutus-ir-test --set PATH ${lib.makeBinPath [ pkgs.diffutils ]}
             '';
+
+            # We want to build it but not run the tests in CI.
+            cardano-constitution.doCheck = false;
           };
         }
 
