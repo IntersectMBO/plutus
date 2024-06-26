@@ -12,6 +12,7 @@ module Main (main) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
+import PlutusCore.Compiler.Types (initUPLCSimplifierTrace)
 import PlutusCore.Data (Data)
 import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
@@ -32,6 +33,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import Control.DeepSeq (force)
 import Control.Monad.Except (runExcept)
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad.State (evalStateT)
 import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
@@ -261,7 +263,8 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
     renamed <- PLC.rename prog
     let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
         defaultBuiltinSemanticsVariant = def
-    UPLC.simplifyProgram UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
+    flip evalStateT initUPLCSimplifierTrace
+      $ UPLC.simplifyProgram UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
   writeProgram outp ofmt mode simplified
 
 ---------------- Script application ----------------

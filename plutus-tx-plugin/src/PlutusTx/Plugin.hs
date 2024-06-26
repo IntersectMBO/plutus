@@ -88,6 +88,8 @@ import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
 import Data.Type.Bool qualified as PlutusTx.Bool
 import GHC.Num.Integer qualified
+import PlutusCore.Compiler.Types (UPLCSimplifierTrace (UPLCSimplifierTrace),
+                                  initUPLCSimplifierTrace)
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
@@ -567,10 +569,17 @@ runCompiler moduleName opts expr = do
     when (opts ^. posDoTypecheck) . void $
         liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-    uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
+    (uplcP, UPLCSimplifierTrace uplcSimplTrace) <-
+        flip runStateT initUPLCSimplifierTrace
+        $ flip runReaderT plcOpts $ PLC.compileProgram plcP
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
-    let rawAgdaProg = AgdaFFI.convP $ void dbP
-        test = Agda.runCertifier [rawAgdaProg]
+    -- TODO: just use liftExept like above
+    let processAgdaAST t =
+            case UPLC.deBruijnTerm t of
+              Right res                            -> res
+              Left (err :: UPLC.FreeVariableError) -> error $ show err
+        rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
+        test = Agda.runCertifier rawAgdaTrace
     -- test out running the certifier
     -- liftIO test
     when (opts ^. posDumpUPlc) . liftIO $

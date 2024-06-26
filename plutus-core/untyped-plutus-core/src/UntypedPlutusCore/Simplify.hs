@@ -22,12 +22,16 @@ import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
 
 import Control.Monad
+import Control.Monad.State.Class (MonadState)
+import Control.Monad.State.Class qualified as State
 import Data.List
 import Data.Typeable
 
 simplifyProgram ::
     forall name uni fun m a.
-    (Compiling m uni fun name a) =>
+    (Compiling m uni fun name a
+    , MonadState (UPLCSimplifierTrace name uni fun a) m
+    ) =>
     SimplifyOpts name a ->
     BuiltinSemanticsVariant fun ->
     Program name uni fun a ->
@@ -37,7 +41,9 @@ simplifyProgram opts builtinSemanticsVariant (Program a v t) =
 
 simplifyTerm ::
     forall name uni fun m a.
-    (Compiling m uni fun name a) =>
+    ( Compiling m uni fun name a
+    , MonadState (UPLCSimplifierTrace name uni fun a) m
+    ) =>
     SimplifyOpts name a ->
     BuiltinSemanticsVariant fun ->
     Term name uni fun a ->
@@ -59,14 +65,17 @@ simplifyTerm opts builtinSemanticsVariant =
     simplifyStep _ =
       floatDelay
         >=> pure . forceDelay
-        >=> pure . caseOfCase'
+        >=> caseOfCase'
         >=> pure . caseReduce
         >=> inline (_soInlineConstants opts) (_soInlineHints opts) builtinSemanticsVariant
 
-    caseOfCase' :: Term name uni fun a -> Term name uni fun a
-    caseOfCase' = case eqT @fun @DefaultFun of
-      Just Refl -> caseOfCase
-      Nothing   -> id
+    caseOfCase' :: Term name uni fun a -> m (Term name uni fun a)
+    caseOfCase' pre = case eqT @fun @DefaultFun of
+      Just Refl -> do
+        let post = caseOfCase pre
+        State.modify' $ \s -> s { caseOfCaseTrace = caseOfCaseTrace s ++ [post] }
+        pure post
+      Nothing   -> pure pre
 
     cseStep :: Int -> Term name uni fun a -> m (Term name uni fun a)
     cseStep _ =
