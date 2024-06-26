@@ -1,12 +1,18 @@
-name: Benchmark
+# This workflows checks for comments in PRs. If the comment has this format: 
+# /benchmark NAME
+# Then this action will run the benchmark with the given NAME, first agains 
+# the current branch and then comparing the results against the master branch.
+
+name: "🚀 Manual Benchmark"
+
 on:
   issue_comment:
     types: [created]
 
 jobs:
-  benchmark:
+  run:
+    name: Run
     runs-on: [self-hosted, plutus-benchmark]
-    
     permissions:
       pull-requests: write
   
@@ -16,13 +22,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@main
         with:
           # We need at least one commit before master to compare against
           fetch-depth: 5
 
-      - name: React with Rocket 
-        uses: actions/github-script@v7
+      - name: React With Rocket 
+        uses: actions/github-script@main
         with:
           script: |
             github.rest.reactions.createForIssueComment({
@@ -34,7 +40,7 @@ jobs:
 
       - name: Extract Benchmark Name
         id: extract-benchmark
-        uses: actions/github-script@v7
+        uses: actions/github-script@main
         with:
           script: |
             const regex = /^\/benchmark\s*(.*?)\s*$/;
@@ -45,9 +51,9 @@ jobs:
             else
               core.setFailed(`Unable to extract benchmark name from ${comment}`);
 
-      - name: Extract Comment Branch 
+      - name: Extract Branch Name
         id: extract-branch
-        uses: actions/github-script@v7
+        uses: actions/github-script@main
         with:
           script: | 
             async function isPullRequest() {
@@ -90,8 +96,8 @@ jobs:
               core.setFailed(`Error: ${error}`);
             } 
 
-      - name: Publish Link To Action Run
-        uses: actions/github-script@v7
+      - name: Publish GH Action Link
+        uses: actions/github-script@main
         with:
           script: | 
             async function getJobUrl() {
@@ -105,7 +111,7 @@ jobs:
               body: `Click [here](${await getJobUrl()}) to check the status of your benchmark.`
             });
 
-      - name: Run
+      - name: Run Benchmark
         run: |
           nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
         env:
@@ -115,7 +121,7 @@ jobs:
 
 
       - name: Publish Results
-        uses: actions/github-script@v7
+        uses: actions/github-script@main
         with:
           script: | 
             const fs = require("fs");

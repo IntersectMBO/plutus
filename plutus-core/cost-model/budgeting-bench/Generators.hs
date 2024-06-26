@@ -10,7 +10,7 @@ import Control.Monad
 import Data.Bits
 import Data.ByteString (ByteString)
 import Data.Int (Int64)
-import Data.List (foldl')
+import Data.List as List (foldl')
 import Data.Text (Text)
 import Data.Word (Word64)
 
@@ -133,7 +133,7 @@ genBigInteger :: Int -> Gen Integer
 genBigInteger n = do
   body :: [Word64] <- vectorOf (n-1) arbitrary
   first :: Int64 <- arbitrary
-  pure $ foldl' go (fromIntegral first) body
+  pure $ List.foldl' go (fromIntegral first) body
       where go :: Integer -> Word64 -> Integer
             go acc w = acc `shiftL` 64 + fromIntegral w
 

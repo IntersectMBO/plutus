@@ -1,21 +1,21 @@
-# Whenever a new issue is opened, this workflow adds the "status: needs triage" 
-# label, unless the issue already has one of the "Internal" labels.
+# Whenever a new issue is opened, this job adds the "status: needs triage" 
+# label, unless the issue already has one of the INTERNAL_LABELS.
+  
+name: "🏷️ Triage Label"
 
-name: Add Triage Label
 on:
   issues:
-    types:
-      - reopened
-      - opened
+    types: [ opened, reopened ]
 
 jobs:
-  add-triage-label:
-    runs-on: ubuntu-latest
+  add:
+    name: Add
+    runs-on: [ubuntu-latest]
     permissions:
       issues: write
     steps:
-      - name: Run
-        uses: actions/github-script@v7
+      - name: Add Label
+        uses: actions/github-script@main
         with:
           script: | 
             const INTERNAL_LABELS = ["Internal", "status: triaged"];
@@ -51,7 +51,3 @@ jobs:
               core.setFailed(`Error: ${error}`);
             } 
 
-
-
-
-            

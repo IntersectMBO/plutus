@@ -1,10 +1,12 @@
-name: Nightly Test Suite
+# This workflow runs the nightly plutus-core-test and plutus-ir-test test suite.
+
+name: "🌘 Nightly Testsuite"
 
 on:
   schedule:
-    - cron: 0 0 * * * # daily at midnight
+    - cron: 0 0 * * * # Daily at midnight
 
-  workflow_dispatch: # or manually dispatch the job
+  workflow_dispatch: # Or manually dispatch the job
     inputs:
       hedgehog-tests:
         description: Numer of tests to run (--hedgehog-tests XXXXX)
@@ -15,19 +17,20 @@ env:
   HEDGEHOG_TESTS: ${{ github.event.inputs.hedgehog-tests || 100000 }}
 
 jobs:
-  nightly-test-suite:
-    runs-on: [self-hosted, plutus-shared]
+  run:
+    name: Run
+    runs-on: [self-hosted, plutus-benchmark]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@main
 
-      - name: plutus-core-nightly
+      - name: Run Plutus Core Test
         run: | 
           pushd plutus-core
           nix run --no-warn-dirty --accept-flake-config .#plutus-core-test -- --hedgehog-tests $HEDGEHOG_TESTS
           popd
 
-      - name: plutus-ir-nightly
+      - name: Run Plutus IR Test
         run: |
           pushd plutus-core
           nix run --no-warn-dirty --accept-flake-config .#plutus-ir-test -- --hedgehog-tests $HEDGEHOG_TESTS

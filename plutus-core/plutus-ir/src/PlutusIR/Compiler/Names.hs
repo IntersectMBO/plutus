@@ -5,7 +5,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Name.Unique (isQuotedIdentifierChar)
 import PlutusCore.Quote
 
-import Data.List
+import Data.List qualified as List
 import Data.Text qualified as T
 
 {- Note [PLC names]
@@ -53,7 +53,7 @@ safeName kind t =
         toReplace = case kind of
             TypeName -> typeReplacements
             TermName -> termReplacements
-        replaced = foldl' (\acc (old, new) -> T.replace old new acc) t toReplace
+        replaced = List.foldl' (\acc (old, new) -> T.replace old new acc) t toReplace
         -- strip out disallowed characters
         stripped = T.filter isQuotedIdentifierChar replaced
      in if T.null stripped then "bad_name" else stripped

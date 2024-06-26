@@ -1,0 +1,47 @@
+# This job builds various papers and deploys them to:
+# https://intersectmbo.github.io/plutus/resources
+
+name: "📝 Papers & Specs"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: [self-hosted, plutus-shared]
+    permissions:
+      contents: write
+    environment:
+      name: github-pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Build Papers
+        run: | 
+          TARGETS=(
+            plutus-report
+            plutus-core-spec
+            extended-utxo-spec
+            unraveling-recursion-paper
+            system-f-in-agda-paper
+            eutxo-paper
+            utxoma-paper
+            eutxoma-paper
+          )
+          mkdir -p _resources
+          for target in "${TARGETS[@]}"; do 
+            nix build --no-warn-dirty --accept-flake-config .#latex-documents.x86_64-linux.${target}
+            cp -fr ./result/*.pdf _resources/${target}.pdf
+          done 
+
+      - name: Publish Papers
+        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        with:
+          folder: _resources
+          target-folder: resources
+          single-commit: true

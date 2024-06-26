@@ -1,0 +1,31 @@
+# This workflow runs the cost model benchmark and uploads the results as a 
+# GitHub artifact.
+
+name: "💰 Cost Model Benchmark" 
+
+on:
+  workflow_dispatch:
+    inputs:
+      entra-bench-args:
+        description: 'extra argument(s) to pass to the cost-model-budgeting-bench command'
+        default: ''
+        type: string
+
+jobs:
+  run:
+    name: Run
+    runs-on: [self-hosted, plutus-benchmark]
+    timeout-minutes: 14400
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Run Benchmark
+        run: nix --accept-flake-config run .#cost-model-budgeting-bench -- --csv results.csv ${{ inputs.entra-bench-args }}
+
+      - name: Upload Results
+        uses: actions/upload-artifact@main
+        with:
+          name: results
+          path: results.csv
+          if-no-files-found: error

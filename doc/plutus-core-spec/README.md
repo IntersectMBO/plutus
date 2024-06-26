@@ -2,7 +2,7 @@ This directory contains a draft of a version of the Plutus Core specification
 updated so that the language is parametric over a collection of built-in types
 and functions.  It also updates the specification to reflect the fact that
 built-in functions can now be partially applied.  ~Click
-[here](https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.plutus-core-spec/latest/download/1)
+[here](https://intersectmbo.github.io/plutus/resources/plutus-core-spec.pdf)
 to open a PDF of the most recent version of the specification in the main branch
 of this repository.~  The link given in the previous sentence currently appears to be broken: would-be readers should build the PDF themselves.  On a Linux system, `make` in the main source directory should do this.
 

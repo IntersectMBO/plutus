@@ -1,23 +1,32 @@
-name: Check Changelog
+# This job enforces that: either some changelog.d/** files were added by the 
+# PR, or the PR has the "No Changelog Required" label.  
+  
+name: "🏷️ Changelog Label"
+
 on:
   pull_request:
-    types: [ opened, synchronize, labeled, unlabeled ]
+    types: [ opened, reopened, synchronize, labeled, unlabeled ]
+
 jobs:
-  check-changelog:
+
+  check:
+    name: Check
     runs-on: [ubuntu-latest]
+    permissions:
+      issues: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@main
 
-      - name: Find Changed Files in changelog.d
+      - name: Find Changed Files
         id: changed-files
-        uses: tj-actions/changed-files@v44
+        uses: tj-actions/changed-files@main
         with:
           files: '**/changelog.d/**'
 
-      - name: Enforce New File or 'No Changelog Required' Label
-        uses: actions/github-script@v7
-        # don't require changelogs for draft PRs
+      - name: Enforce Label
+        uses: actions/github-script@main
+        # Don't require changelogs for draft PRs
         if: github.event.pull_request.draft == false
         with:
           script: | 

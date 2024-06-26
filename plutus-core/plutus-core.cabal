@@ -290,7 +290,7 @@ library
     , bytestring
     , bytestring-strict-builder
     , cardano-crypto
-    , cardano-crypto-class        ^>=2.1.2
+    , cardano-crypto-class        ^>=2.1
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1
