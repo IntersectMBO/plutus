@@ -72,7 +72,6 @@ library
     build-depends: integer-gmp
 
   exposed-modules:
-    FFIExperiment
     Opts
     Raw
     Untyped

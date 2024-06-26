@@ -84,6 +84,7 @@ library
     , lens
     , mtl
     , plutus-core:{plutus-core, plutus-ir}  ^>=1.30
+    , plutus-metatheory
     , plutus-tx                             ^>=1.30
     , prettyprinter
     , PyF                                   >=0.11.1.0

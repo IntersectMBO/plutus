@@ -11,14 +11,12 @@ module FFIExperiment where
 ```
 import Data.Bool.Base using (Bool; true; false; T; _∧_; _∨_; not)
 open import Data.Nat using (ℕ; zero; suc)
-open import Utils.Nullary using (Dec; yes; no; ¬_)
+open import Relation.Nullary using (Dec; yes; no; ¬_)
 import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitness)
 import Relation.Nullary.Negation using (¬?)
 import Relation.Nullary.Product using (_×-dec_)
 import Relation.Nullary.Sum using (_⊎-dec_)
 import Relation.Binary using (Decidable)
-
-{-# FOREIGN GHC import FFIExperiment as F #-}
 ```
 
 ## Less than or equal
@@ -51,4 +49,3 @@ suc m ≤? zero                =  no ¬s≤z
 suc m ≤? suc n with m ≤? n
 ...               | yes m≤n  =  yes (s≤s m≤n)
 ...               | no ¬m≤n  =  no (¬s≤s ¬m≤n)
-{-# COMPILE GHC _≤?_ as decisionProcedure1 #-}
