@@ -23,6 +23,9 @@ open import RawU using (Untyped)
 open import Data.String using (String;_++_)
 open import Agda.Builtin.IO using (IO)
 open import Agda.Builtin.Unit using (⊤;tt)
+open import Function.Base using (id; _∘_ ; _∘′_; const; flip)
+open Monad {{...}}
+import IO.Primitive as IO using (return;_>>=_)
 
 ```
 
@@ -64,15 +67,15 @@ suc m ≤? suc n with m ≤? n
 
 postulate
   something : {X : Set} → List (X ⊢) → Dec (X ⊢)
+  serializeProof : {X : Set} → Dec (X ⊢) → String
 
-parseASTs : {X : Set} → List Untyped → List (Maybe X ⊢)
-parseASTs [] = [] 
+parseASTs : {X : Set} → List Untyped → Maybe (List (Maybe X ⊢))
+parseASTs [] = nothing
 parseASTs (x ∷ xs) with toWellScoped x 
-...        | inj₁ _ = [] 
-...        | inj₂ t = t ∷ parseASTs xs
-
-test : {X : Set} → List Untyped → Dec (Maybe X ⊢)
-test us = something (parseASTs us)
+...                | inj₁ _ = nothing
+...                | inj₂ t with parseASTs xs
+...                         | nothing = nothing
+...                         | just ts = just (t ∷ ts)
 
 postulate
   putStrLn : String → IO ⊤
@@ -80,6 +83,24 @@ postulate
 {-# FOREIGN GHC import qualified Data.Text.IO as TextIO #-}
 {-# COMPILE GHC putStrLn = TextIO.putStrLn #-}
 
+postulate
+  exitFailure : IO ⊤
+  exitSuccess : IO ⊤
+
+{-# FOREIGN GHC import System.Exit #-}
+{-# COMPILE GHC exitSuccess = exitSuccess #-}
+{-# COMPILE GHC exitFailure = exitFailure #-}
+
+instance
+  IOMonad : Monad IO
+  IOMonad = record { return = IO.return; _>>=_ = IO._>>=_ }
+
 runCertifier : List Untyped → IO ⊤
-runCertifier us = putStrLn "TODO"
+runCertifier _ = exitSuccess
+-- TODO: this currently doesn't compile because it doesn't know the concrete type of X I think
+-- runCertifier us with parseASTs us
+-- ...             | nothing = putStrLn "Parse error" >> exitFailure
+-- ...             | just asts =
+--                     let result = (serializeProof ∘ something) asts
+--                      in putStrLn "TODO"
 {-# COMPILE GHC runCertifier as runCertifier #-}
