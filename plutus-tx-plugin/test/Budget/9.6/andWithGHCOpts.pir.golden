@@ -4,9 +4,9 @@
       False : Bool
   in
   \(x : integer) (y : integer) ->
-    ifThenElse
+    Bool_match
+      (ifThenElse {Bool} (lessThanInteger x 3) True False)
       {all dead. Bool}
-      (lessThanInteger x 3)
       (/\dead -> ifThenElse {Bool} (lessThanInteger y 3) True False)
       (/\dead -> False)
       {all dead. dead})

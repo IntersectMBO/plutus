@@ -35,8 +35,11 @@ program
         (fix1
            (\go n ->
               force
-                (force ifThenElse
-                   (lessThanEqualsInteger n 0)
-                   (delay (constr 0 []))
-                   (delay (constr 1 [0, (go (subtractInteger n 1))]))))))
+                (force
+                   (force ifThenElse
+                      (lessThanEqualsInteger n 0)
+                      (delay (delay (constr 0 [])))
+                      (delay
+                         (delay
+                            (constr 1 [0, (go (subtractInteger n 1))]))))))))
      (\f -> (\s -> s s) (\s -> f (\x -> s s x))))

@@ -9,8 +9,9 @@ program
              , (\x xs ->
                   delay
                     (force
-                       (force ifThenElse
-                          (lessThanEqualsInteger 1 x)
-                          (delay (constr 1 []))
-                          (delay (s s xs))))) ]))
+                       (force
+                          (force ifThenElse
+                             (lessThanEqualsInteger 1 x)
+                             (delay (delay (constr 1 [])))
+                             (delay (delay (s s xs))))))) ]))
      (constr 0 []))

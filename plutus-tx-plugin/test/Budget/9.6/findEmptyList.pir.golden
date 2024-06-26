@@ -7,6 +7,9 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
 in
 letrec
   !go : List integer -> Maybe integer
@@ -18,17 +21,12 @@ letrec
           (/\dead -> Nothing {integer})
           (\(x : integer) (xs : List integer) ->
              /\dead ->
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (lessThanEqualsInteger 1 x) False True)
                  {all dead. Maybe integer}
-                 (lessThanEqualsInteger 1 x)
-                 (/\dead -> go xs)
                  (/\dead -> Just {integer} x)
+                 (/\dead -> go xs)
                  {all dead. dead})
           {all dead. dead}
-in
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
 in
 go (Nil {integer})

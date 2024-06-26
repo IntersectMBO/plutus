@@ -34,10 +34,11 @@ program
                               (constr 1 [])))
                       ((\d ->
                           force
-                            (force ifThenElse
-                               (equalsInteger 0 cse)
-                               (delay (unIData d))
-                               (delay error)))
+                            (force
+                               (force ifThenElse
+                                  (equalsInteger 0 cse)
+                                  (delay (delay (unIData d)))
+                                  (delay (delay error)))))
                          (force headList
                             (force tailList
                                (force tailList
@@ -45,27 +46,30 @@ program
                                      (force (force sndPair) cse)))))))
                    ((\d ->
                        force
-                         (force ifThenElse
-                            (equalsInteger 0 cse)
-                            (delay (unIData d))
-                            (delay error)))
+                         (force
+                            (force ifThenElse
+                               (equalsInteger 0 cse)
+                               (delay (delay (unIData d)))
+                               (delay (delay error)))))
                       (force headList
                          (force tailList
                             (force tailList (force (force sndPair) cse))))))
                 ((\d ->
                     force
-                      (force ifThenElse
-                         (equalsInteger 0 cse)
-                         (delay (unIData d))
-                         (delay error)))
+                      (force
+                         (force ifThenElse
+                            (equalsInteger 0 cse)
+                            (delay (delay (unIData d)))
+                            (delay (delay error)))))
                    (force headList
                       (force tailList (force (force sndPair) cse)))))
              ((\d ->
                  force
-                   (force ifThenElse
-                      (equalsInteger 0 cse)
-                      (delay (unIData d))
-                      (delay error)))
+                   (force
+                      (force ifThenElse
+                         (equalsInteger 0 cse)
+                         (delay (delay (unIData d)))
+                         (delay (delay error)))))
                 (force headList (force (force sndPair) cse))))
           (force (force fstPair) cse))
        (unConstrData d))

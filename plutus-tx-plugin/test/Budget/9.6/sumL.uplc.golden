@@ -6,15 +6,17 @@ program
            (fix1
               (\`$fEnumBool_$cenumFromTo` x lim ->
                  force
-                   (force ifThenElse
-                      (lessThanEqualsInteger x lim)
-                      (delay
-                         (constr 1
-                            [ x
-                            , (`$fEnumBool_$cenumFromTo`
-                                 (addInteger 1 x)
-                                 lim) ]))
-                      (delay (constr 0 []))))
+                   (force
+                      (force ifThenElse
+                         (lessThanEqualsInteger x lim)
+                         (delay
+                            (delay
+                               (constr 1
+                                  [ x
+                                  , (`$fEnumBool_$cenumFromTo`
+                                       (addInteger 1 x)
+                                       lim) ])))
+                         (delay (delay (constr 0 []))))))
               1
               1000))
         (fix1

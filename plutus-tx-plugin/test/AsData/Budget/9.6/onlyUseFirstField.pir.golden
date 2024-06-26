@@ -7,9 +7,13 @@ in
   let
     !tup : pair integer (list data) = unConstrData d
   in
-  ifThenElse
+  Bool_match
+    (ifThenElse
+       {Bool}
+       (equalsInteger 0 (fstPair {integer} {list data} tup))
+       True
+       False)
     {all dead. integer}
-    (equalsInteger 0 (fstPair {integer} {list data} tup))
     (/\dead ->
        let
          !l : list data = sndPair {integer} {list data} tup
