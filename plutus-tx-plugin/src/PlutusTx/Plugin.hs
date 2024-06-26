@@ -571,6 +571,8 @@ runCompiler moduleName opts expr = do
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
     let rawAgdaProg = AgdaFFI.convP $ void dbP
         test = Agda.runCertifier [rawAgdaProg]
+    -- test out running the certifier
+    -- liftIO test
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat
             (UPLC.UnrestrictedProgram $ void dbP)
