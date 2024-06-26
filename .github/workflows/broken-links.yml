@@ -1,0 +1,33 @@
+# This job checks for broken links in the various files.
+  
+name: "🔗 Broken Links"
+
+on:
+  schedule:
+    - cron: 0 0 * * * # Daily at midnight
+  workflow_dispatch: # Or manually dispatch the job
+  pull_request:
+    paths:
+      - .github/ISSUE_TEMPLATE/bug_report.yml
+      - .github/ISSUE_TEMPLATE/feature_request.yml
+      - .github/PULL_REQUEST_TEMPLATE.md
+      - .github/SECURITY.md
+      - CODE_OF_CONDUCT.md
+      - CONTRIBUTING.adoc
+      - LICENSE
+      - NOTICE
+      - README.adoc
+      - RELEASE.adoc
+      - STYLEGUIDE.adoc
+      
+jobs:
+  check:
+    name: Check
+    runs-on: [plutus-shared, self-hosted]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Run Linkchecker
+        run: |
+          nix develop --no-warn-dirty --accept-flake-config --command ./scripts/check-broken-links.sh
