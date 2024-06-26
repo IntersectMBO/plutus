@@ -17,6 +17,13 @@ import Relation.Nullary.Negation using (¬?)
 import Relation.Nullary.Product using (_×-dec_)
 import Relation.Nullary.Sum using (_⊎-dec_)
 import Relation.Binary using (Decidable)
+open import Untyped
+open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;DATA;List;[];_∷_)
+open import RawU using (Untyped)
+open import Data.String using (String;_++_)
+open import Agda.Builtin.IO using (IO)
+open import Agda.Builtin.Unit using (⊤;tt)
+
 ```
 
 ## Less than or equal
@@ -49,3 +56,30 @@ suc m ≤? zero                =  no ¬s≤z
 suc m ≤? suc n with m ≤? n
 ...               | yes m≤n  =  yes (s≤s m≤n)
 ...               | no ¬m≤n  =  no (¬s≤s ¬m≤n)
+
+```
+
+## Compiler certification component
+```
+
+postulate
+  something : {X : Set} → List (X ⊢) → Dec (X ⊢)
+
+parseASTs : {X : Set} → List Untyped → List (Maybe X ⊢)
+parseASTs [] = [] 
+parseASTs (x ∷ xs) with toWellScoped x 
+...        | inj₁ _ = [] 
+...        | inj₂ t = t ∷ parseASTs xs
+
+test : {X : Set} → List Untyped → Dec (Maybe X ⊢)
+test us = something (parseASTs us)
+
+postulate
+  putStrLn : String → IO ⊤
+
+{-# FOREIGN GHC import qualified Data.Text.IO as TextIO #-}
+{-# COMPILE GHC putStrLn = TextIO.putStrLn #-}
+
+runCertifier : List Untyped → IO ⊤
+runCertifier us = putStrLn "TODO"
+{-# COMPILE GHC runCertifier as runCertifier #-}

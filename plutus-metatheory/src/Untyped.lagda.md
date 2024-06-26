@@ -10,9 +10,6 @@ module Untyped where
 ## Imports
 
 ```
-open import Agda.Builtin.IO using (IO)
-open import Agda.Builtin.Unit using (⊤;tt)
-
 open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;DATA;List;[];_∷_)
 open Monad {{...}}
 import Data.List as L
@@ -193,38 +190,12 @@ decUTm (UForce t) (UForce t') = decUTm t t'
 decUTm _ _ = false
 ```
 
-## TODO
+## Haskell UPLC to Agda UPLC
 ```
-postulate
-  putStrLn : String → IO ⊤
-
-{-# FOREIGN GHC import qualified Data.Text.IO as TextIO #-}
-{-# COMPILE GHC putStrLn = TextIO.putStrLn #-}
-
 buildDebruijnEncoding : {X : Set} → ℕ → Either ScopeError (Maybe X)
 buildDebruijnEncoding x = extG' (λ _ → inj₁ deBError) x
 
 toWellScoped : {X : Set} → Untyped → Either ScopeError (Maybe X ⊢)
 toWellScoped = scopeCheckU buildDebruijnEncoding 
-
-g : {X : Set} → Untyped → Maybe (Maybe X ⊢)
-g x with toWellScoped x
-...     | inj₁ e = nothing 
-...     | inj₂ t = just t
-
-f : {X : Set} → List Untyped -> List (Maybe X ⊢)
-f [] = [] 
-f (x ∷ xs) with g x 
-...        | nothing = [] 
-...        | just t = t ∷ f xs
-
--- run : List Untyped → IO ⊤
--- run us = 
---   (putStrLn ∘ show) (L.foldr (λ u acc → ugly u ++ acc ) "" (f us))
-
-
--- f : List Untyped → IO ⊤
--- f us = 
---   putStrLn (show (L.map (toWellScoped) us))
 
 ```

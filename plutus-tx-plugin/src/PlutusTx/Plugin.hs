@@ -66,8 +66,8 @@ import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusTx.Options
 
-import MAlonzo.Code.Untyped qualified as Meta
-import Untyped qualified as Meta
+import MAlonzo.Code.FFIExperiment qualified as Agda
+import Untyped qualified as AgdaFFI
 
 import Language.Haskell.TH.Syntax as TH hiding (lift)
 
@@ -569,8 +569,8 @@ runCompiler moduleName opts expr = do
 
     uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
-    let rawAgdaProg = Meta.convP $ void dbP
-        test = Meta.agda1 rawAgdaProg rawAgdaProg
+    let rawAgdaProg = AgdaFFI.convP $ void dbP
+        test = Agda.runCertifier [rawAgdaProg]
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat
             (UPLC.UnrestrictedProgram $ void dbP)
@@ -578,7 +578,7 @@ runCompiler moduleName opts expr = do
             (moduleName ++ ".uplc-flat")
     -- Discard the Provenance information at this point, just keep the SrcSpans
     -- TODO: keep it and do something useful with it
-    Debug.trace (show test) $ pure (fmap getSrcSpans spirP, fmap getSrcSpans dbP)
+    pure (fmap getSrcSpans spirP, fmap getSrcSpans dbP)
   where
       -- ugly trick to take out the concrete plc.error and in case of error, map it / rethrow it
       --  using our 'CompileError'
