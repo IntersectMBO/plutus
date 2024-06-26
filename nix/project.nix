@@ -62,6 +62,7 @@ let
         (lib.mkIf isCrossCompiling {
           packages = {
             # Things that need plutus-tx-plugin
+            docusaurus-examples.package.buildable = false;
             plutus-benchmark.package.buildable = false;
             plutus-tx-plugin.package.buildable = false;
             plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.buildable = lib.mkForce false;

@@ -1,41 +1,53 @@
 -- BLOCK1
 -- BEGIN pragmas
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE GADTs                #-}
-{-# LANGUAGE KindSignatures       #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE RecordWildCards      #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE StandaloneDeriving   #-}
-{-# LANGUAGE Strict               #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns         #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE ImportQualifiedPost   #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE Strict                #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
+
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-full-laziness #-}
+{-# OPTIONS_GHC -fno-spec-constr #-}
+{-# OPTIONS_GHC -fno-specialise #-}
+{-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-unbox-strict-fields #-}
+{-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
 
 -- END pragmas
 
-module Cip57Blueprint where
+module Main where
 
 -- BLOCK2
 -- BEGIN imports
 import PlutusTx.Blueprint
 
-import Data.ByteString (ByteString)
-import Data.Kind (Type)
-import Data.List.NonEmpty (NonEmpty)
-import Data.Set (Set)
+import PlutusTx.Prelude
+
 import Data.Set qualified as Set
-import Data.Text (Text)
 import GHC.Generics (Generic)
-import PlutusLedgerApi.V3 (BuiltinData, ScriptContext, UnsafeFromData (..))
+import Paths_docusaurus_examples (getDataFileName)
+import PlutusLedgerApi.V3 (Datum (..), Redeemer (..), ScriptContext (..),
+                           ScriptInfo (SpendingScript), UnsafeFromData (..))
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
-import PlutusTx.Lift (makeLift)
-import PlutusTx.Prelude (check)
+import Prelude (FilePath, IO)
 
 -- END imports
 -- BLOCK3
@@ -64,8 +76,6 @@ data MyParams = MkMyParams
   , myInteger :: Integer
   }
 
-$(makeLift ''MyParams)
-
 -- END interface types
 -- BLOCK6
 -- BEGIN makeIsDataSchemaIndexed MyParams
@@ -91,19 +101,22 @@ deriving anyclass instance (AsDefinitionId MyRedeemer)
 -- BLOCK9
 -- BEGIN validator
 
-typedValidator :: MyParams -> MyDatum -> MyRedeemer -> ScriptContext -> Bool
-typedValidator MkMyParams{..} datum redeemer _scriptContext =
+typedValidator :: MyParams -> MyDatum -> MyRedeemer -> Bool
+typedValidator MkMyParams{..} datum redeemer =
   case redeemer of
     R1 -> myBool
     R2 -> myInteger == datum
 
-untypedValidator :: MyParams -> BuiltinData -> BuiltinData -> BuiltinData -> ()
-untypedValidator params datum redeemer scriptContext =
-  check $ typedValidator params datum' redeemer' scriptContext'
- where
-  datum' = unsafeFromBuiltinData datum
-  redeemer' = unsafeFromBuiltinData redeemer
-  scriptContext' = unsafeFromBuiltinData scriptContext
+untypedValidator :: MyParams -> BuiltinData -> BuiltinUnit
+untypedValidator params scriptContext =
+  check
+    $ case unsafeFromBuiltinData scriptContext of
+      ScriptContext
+        _txInfo
+        (Redeemer redeemer)
+        (SpendingScript _ (Just (Datum datum))) ->
+          typedValidator params (unsafeFromBuiltinData datum) (unsafeFromBuiltinData redeemer)
+      _ -> False
 
 -- END validator
 -- BLOCK10
@@ -176,3 +189,5 @@ writeBlueprintToFile path = writeBlueprint path myContractBlueprint
 
 -- END write blueprint to file
 
+main :: IO ()
+main = writeBlueprintToFile =<< getDataFileName "plutus.json"
