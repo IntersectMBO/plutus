@@ -72,6 +72,7 @@ library
     build-depends: integer-gmp
 
   exposed-modules:
+    FFIExperiment
     Opts
     Raw
     Untyped
@@ -217,6 +218,7 @@ library
     MAlonzo.Code.Evaluator.Base
     MAlonzo.Code.Evaluator.Program
     MAlonzo.Code.Evaluator.Term
+    MAlonzo.Code.FFIExperiment
     MAlonzo.Code.Function.Base
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
@@ -446,6 +448,7 @@ library
     MAlonzo.Code.Evaluator.Base
     MAlonzo.Code.Evaluator.Program
     MAlonzo.Code.Evaluator.Term
+    MAlonzo.Code.FFIExperiment
     MAlonzo.Code.Function.Base
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
