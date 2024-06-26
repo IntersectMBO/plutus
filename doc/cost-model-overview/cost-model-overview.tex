@@ -61,8 +61,10 @@ We have a \textit{cost model} which assigns CPU and memory costs to every PLC
 script.  CPU costs are measured in units called \texttt{ExCPU}: one
 \texttt{ExCPU} unit is notionally equivalent to one picosecond of CPU time on a
 dedicated benchmarking machine.  Memory usage is measured in \texttt{ExMemory}
-units, with one unit being equal to 8 bytes, or one 64-bit word.
-
+units, with one unit being equal to 8 bytes, or one 64-bit word.  Every built-in
+type has a size measure which calculates the number of \texttt{ExMemory} units
+required to hold a given value of the type, and these measures are also used to
+find the sizes of inputs to built-in functions.
 
 \subsection{CPU costing}  We assign a constant CPU and memory cost to each of
 the basic lambda-calculus operations of the Plutus Core evaluator (which we
