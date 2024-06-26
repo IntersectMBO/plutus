@@ -4,8 +4,10 @@
 name: "📝 Papers & Specs"
 
 on:
-  pull_request:
   workflow_dispatch:
+  push:
+    branches:
+      - master
 
 jobs:
   deploy:
