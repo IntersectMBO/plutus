@@ -1,0 +1,384 @@
+\documentclass[a4paper]{article}
+
+\usepackage{amsmath}
+\usepackage{amstext}
+\usepackage{graphicx}
+\usepackage{nopageno}
+\usepackage{verbatim}
+\usepackage{makecell}
+\usepackage{textgreek}
+\usepackage{float}
+\usepackage{url}
+
+\newcommand\mul{\texttt{multiplyInteger}}
+\renewcommand\div{\texttt{divideInteger}}
+
+\title{An overview of the Plutus Core cost model}
+
+\date{26th June 2024}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Plutus Core (PLC) is the on-chain language of the Cardano blockchain.  It is a
+low-level language which is used for purposes such as transaction validation,
+enabling the use of \textit{smart contracts} on Cardano.  Scripts will generally
+be written in some higher-level language and then compiled into Plutus Core.
+Plutus Core scripts are assigned costs which depend on their execution time and
+memory consumption, and a user must pay a charge based on the script cost in
+order to have their script executed on the chain.  These charges have two
+purposes:
+
+\begin{itemize}
+\item To make sure that users pay for the computational resources which they consume.
+\item To deter the use of overly-expensive scripts (and in particular, ones
+  which run forever) in order to avoid denial-of-service attacks on the chain.
+\end{itemize}
+
+\noindent This document provides an outline of the costing mechanism and the
+parameters that it depends upon.
+
+
+\section{The Plutus Core Cost Model}
+Plutus Core is essentially the untyped lambda calculus augmented with some
+``built-in'' types (\texttt{integer}, \texttt{bool}, \ldots) and ``built-in''
+functions (``builtins'' for short) which carry out integer arithmetic,
+cryptographic calculations, and so on.  There are currently 10 basic
+lambda-calculus operations (\texttt{var}, \texttt{lam}, \texttt{apply},
+\texttt{force}, \texttt{delay}, \texttt{constant}, \texttt{builtin},
+\texttt{error}, \texttt{constr}, and \texttt{case}) and 75 built-in
+functions, most of which are underlain by Haskell or C library functions.
+
+For a full description of the language and the built-in functions, see the
+Plutus Core specification.\footnote{This can be built from source at
+\url{https://github.com/IntersectMBO/plutus/tree/master/doc/plutus-core-spec}; a
+prebuilt version of the specification is available as a PDF at
+\url{https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.plutus-core-spec/latest/download/1}.}
+
+
+We have a \textit{cost model} which assigns CPU and memory costs to every PLC
+script.  CPU costs are measured in units called \texttt{ExCPU}: one
+\texttt{ExCPU} unit is notionally equivalent to one picosecond of CPU time on a
+dedicated benchmarking machine.  Memory usage is measured in \texttt{ExMemory}
+units, with one unit being equal to 8 bytes, or one 64-bit word.
+
+
+\subsection{CPU costing}  We assign a constant CPU and memory cost to each of
+the basic lambda-calculus operations of the Plutus Core evaluator (which we
+sometimes call \textit{machine steps}).  Currently all of the basic operations
+have the same cost.  There is also a (very small) startup cost for the
+evaluator.  Built-in functions are more complicated: each has two associated
+\textit{costing functions} (one for CPU and one for memory) which assign a cost
+to calling the function based on the size of its arguments.  For example the CPU
+cost of calling \texttt{addInteger} is a linear function of the maximum of the
+sizes of its arguments, since in the worst case we have to traverse the entirety
+of both arguments in order to calculate the output. The basic ``shape'' of a CPU
+costing function (constant, linear in the size of one of the function's
+arguments, linear in the sum of the sizes of two of the function's arguments,
+etc.) is arrived at from an understanding of the expected behaviour of the
+function and also by running benchmarks and examining the results to check that
+nothing unexpected is happening.  Values for the coefficients of the costing
+function are obtained by running microbenchmarks (\textit{budgeting benchmarks})
+on our reference machine.  These run the builtins with inputs of varying sizes
+and record the execution time, and then we use the R statistical system to fit a
+function of the expected shape to the data and infer the coefficients which give
+the best fit (and we check that we do get a good fit to the expected ``shape''):
+the coefficients are then stored in a JSON file which is used by the Plutus Core
+evaluator to construct suitable Haskell versions of the costing functions.
+
+Experiments on our reference machine indicate that CPU costs obtained from the
+cost model predict the actual execution times of scripts reasonably well,
+underestimating actual times by a maximum of about 5\% and overestimating by a
+maximum of about 15\% (which is to be expected since our costing functions are
+based on worst-case behaviour).  Other machines will have different CPU speeds
+and different architectures, but experiments show that actual times are still
+roughly proportional to the CPU cost assigned by the cost model.
+
+\subsection{Memory costing}
+Memory costs for built-in functions are measured using costing functions similar
+to the ones for CPU consumption, but the costing functions measure only the size
+of the \textit{output} of a function and do not attempt to take any account of
+memory allocated during the execution of the builtin.  No inference is
+performed: we obtain memory costing functions simply by looking at the
+definition of the function.  We also make no attempt to account for garbage
+collection in the Haskell heap during script evaluation.  This is a very crude
+measure of memory usage (for example, a cryptographic signature verification
+function might perform a lengthy computation using lots of memory in the C heap,
+but we only take account of the memory used by its boolean return value, so the
+memory cost will be 1 \texttt{ExMemory} unit).  However, we can't really do any
+better than this: actual memory usage will be highly system dependent and may
+vary with memory pressure due to other applications running at the same time.
+Our memory model produces an upper bound for the maximum amount of
+non-garbage-collectable memory that a Plutus Core program might allocate during
+its execution.  The memory cost of a program mostly serves as a guard against
+runaway memory allocation, and we regard CPU costing as our primary measure of
+cost.
+
+\subsection{Cost models and cost model parameters}
+A Plutus Core \textit{cost model} consists of CPU and memory costs for all of
+the basic Plutus Core operations together with CPU and memory costing functions
+for all of the built-in functions.  The specific cost model used when a script
+is evaluated on the chain may depend on the Plutus language version and the
+protocol version.  This allows us to account for factors such as improvements in
+the efficiency of the evaluator, and also to maintain backwards compatiiblity
+and ensure that the evaluation costs of scripts already on the chain remain
+unchanged, which is important when the history of the chain is replayed.
+
+A specific set of values for the machine step costs and the coefficients of the
+costing functions is referred to as a set of \textit{cost model parameters}
+(although \textit{cost model coefficients} might be a better name).  The Cardano
+ledger protocol parameters contain cost model parameters for each Plutus
+language version and each protocol version, and these are supplied to the Plutus
+Core evaluator before a script is evaluated to ensure that the execution costs
+are calculated appropriately.
+
+\subsection{Measuring costs during script execution}  Plutus Core scripts
+are deterministic: it is always known in advance exactly what the arguments of a
+script will be when it is executed on the chain, and hence it is also known
+exactly how the execution will proceed.  This means that an overall cost can be
+assigned to a program by running it and adding up the total costs of the machine
+steps and the builtin calls.  This is done by running the Plutus Core evaluator
+in \textit{counting mode}.  When a program is run on the chain the submitter
+supplies an expected CPU and memory budget (which they pay for in Ada).  To
+prevent denial of service it is necessary to check that the submitter has not
+lied about the budget, and this is done by running the evaluator in
+\textit{restricting mode}: it is supplied with the claimed budget and this is
+decremented as evaluation proceeds, with an error occurring if either the CPU or
+memory component ever become negative.  The cost of evaluating a built-in
+function is calculated before it is called so that we never call a function if
+its execution will be too expensive.
+
+%% This is what necessitates the whole apparatus of costing functions: we can't
+%% instrument all of our builtins to calculate costs as they proceed, and we can't
+%% monitor execution dynamically: once we hand over control to a library function
+%% we just have to wait until it returns, so we have to be confident in advance
+%% that it is safe to call it.
+
+There are per-script limits for CPU and memory usage of scripts on the chain.
+These are the \texttt{steps} and \texttt{memory} components of the
+\texttt{maxTxExecution\-Units} protocol parameter and in Protocol Version 8 they
+have values of 10,000,000,000 \texttt{ExCPU} and 14,000,000 \texttt{ExMemory}
+respectively.  There are also per-block bounds in
+\texttt{maxBlock\-Exe\-cutionUnits} on total CPU usage (20,000,000,000
+\texttt{ExCPU}, twice the maximum script CPU usage) and total memory usage
+(62,000,000 \texttt{ExMemory}, about 4.4 times the maximum script memory usage).
+Another relevant protocol parameter is \texttt{executionUnitPrices} which
+relates abstract costs to real-world Ada costs: in protocol version 8 this
+specifies monetary costs of $7.21\times10^{-5}$ Ada per \texttt{ExCPU} unit and
+$5.77\times10^{-2}$ Ada per \texttt{ExMemory} unit.
+
+
+\section{Costing functions for Plutus Core builtins}
+Tables~\ref{table:costing-functions-1} and~\ref{table:costing-functions-2} show
+the forms of the CPU and memory costing functions which will be available on
+Cardano for PlutusV3 and protocol version 9.  The symbols $x, y, z, \ldots$
+refer to the arguments of the costing functions, which are the \textit{sizes} of
+the actual arguments; occasionally we will need to refer to the actual
+\textit{value} of an argument, and in that case we use the symbols $\mathbf{x}, \mathbf{y},
+\mathbf{z}, \ldots$.
+
+Symbols such as $a, b, c, \ldots$ refer to the coefficients of the costing
+functions.  Concrete values for these coefficients are stored in the Cardano
+protocol parameters: see Section~\ref{sec:cost-model-parameters} for more on
+this.
+
+\newcommand\const{\ensuremath{\text{constant}}}
+\newcommand\linx{\ensuremath{a+bx}}
+\newcommand\liny{\ensuremath{a+by}}
+\newcommand\linz{\ensuremath{a+bz}}
+\newcommand\linplus{\ensuremath{a+b(x+y)}}
+\newcommand\linmul{\ensuremath{a+bxy}}
+\newcommand\linmax{\ensuremath{a+b\cdot\max(x,y)}}
+\newcommand\linmin{\ensuremath{a+b\cdot\min(x,y)}}
+\newcommand\linsub{\ensuremath{a+b\cdot\max(x-y,c)}}
+
+\newcommand\quadr[1]{\ensuremath{c_{0} + c_{1}{#1} + c_{2}{#1}^2}}
+\newcommand\quadrxy{See Note 1}
+
+\begin{table}[H]
+  \centering
+  \small
+%%  \hspace*{-10mm}
+    \begin{tabular}{|l|c|c|c|}
+      \hline
+      Function & Arity & CPU & Memory\\
+        \hline
+        \verb|addInteger|                      & 2 & \linmax & \linmax \\
+        \verb|appendByteString|                & 2 & \linplus & \linplus \\
+        \verb|appendString|                    & 2 & \linplus & \linplus \\
+        \verb|bData|                           & 1 & \const &  \const \\
+        \verb|blake2b_224|                     & 1 & \linx & \const \\
+        \verb|blake2b_256|                     & 1 & \linx & \const \\
+        \verb|bls12_381_G1_add|                & 2 & \const & \const \\
+        \verb|bls12_381_G1_compress|           & 1 & \const & \const \\
+        \verb|bls12_381_G1_equal|              & 2 & \const & \const \\
+        \verb|bls12_381_G1_hashToGroup|        & 2 & \linx & \const \\
+        \verb|bls12_381_G1_neg|                & 1 & \const & \const \\
+        \verb|bls12_381_G1_scalarMul|          & 2 & \linx & \const \\
+        \verb|bls12_381_G1_uncompress|         & 1 & \const & \const \\
+        \verb|bls12_381_G2_add|                & 2 & \const & \const \\
+        \verb|bls12_381_G2_compress|           & 1 & \const & \const \\
+        \verb|bls12_381_G2_equal|              & 2 & \const & \const \\
+        \verb|bls12_381_G2_hashToGroup|        & 2 & \linx & \const \\
+        \verb|bls12_381_G2_neg|                & 1 & \const & \const \\
+        \verb|bls12_381_G2_scalarMul|          & 2 & \linx & \const \\
+        \verb|bls12_381_G2_uncompress|         & 1 & \const & \const \\
+        \verb|bls12_381_finalVerify|           & 2 & \const & \const \\
+        \verb|bls12_381_millerLoop|            & 2 & \const & \const \\
+        \verb|bls12_381_mulMlResult|           & 2 & \const & \const \\
+        \verb|byteStringToInteger|             & 2 & \quadr{y} & \liny \\
+        \verb|chooseData|                      & 6 & \const & \const \\
+        \verb|chooseList|                      & 3 & \const & \const \\
+        \verb|chooseUnit|                      & 2 & \const & \const \\
+        \verb|consByteString|                  & 2 & \liny & \linplus \\
+        \verb|constrData|                      & 2 & \const & \const \\
+        \verb|decodeUtf8|                      & 1 & \linx & \linx \\
+        \verb|divideInteger|                   & 2 & \quadrxy & \linsub \\
+        \verb|encodeUtf8|                      & 1 & \linx & \linx \\
+        \verb|equalsByteString|                & 2 & $\begin{cases} \linx &\text{if $x=y$}\\ c & \text{if $x \ne y$}\end{cases}$ & \const \\
+        \verb|equalsData|                      & 2 & \linmin & \const \\
+        \hline
+    \end{tabular}
+    \caption{Costing functions for Plutus Core built-in functions (1)}
+    \label{table:costing-functions-1}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \small
+  \hspace*{-10mm}
+  \begin{tabular}{|l|c|c|c|}
+      \hline
+      Function & Arity & CPU & Memory\\
+      \hline
+        \verb|equalsInteger|                   & 2 & \linmin & \const \\
+        \verb|equalsString|                    & 2 & $\begin{cases} \linx & \text{if $x=y$}\\ c
+                                                       & \text{if $x \ne y$} \end{cases}$  & \const \\
+        \verb|fstPair|                         & 1 & \const & \const \\
+        \verb|headList|                        & 1 & \const & \const \\
+        \verb|iData|                           & 1 & \const & \const \\
+        \verb|ifThenElse|                      & 3 & \const & \const \\
+        \verb|indexByteString|                 & 2 & \const & \const \\
+        \verb|integerToByteString|             & 3 & $\quadr{z}$ & $ \begin{cases} z & \text{if $\mathbf{y}=0$}\\
+                                                         \lceil(\mathbf{\left|y\right|}-1)/8\rceil+1 & \text{if $\mathbf{y} \ne 0$}\end{cases}$ \\
+        \verb|keccak_256|                      & 1 & \linx &  \const \\
+        \verb|lengthOfByteString|              & 1 & \const & \const \\
+        \verb|lessThanByteString|              & 2 & \linmin & \const \\
+        \verb|lessThanEqualsByteString|        & 2 & \linmin & \const \\
+        \verb|lessThanEqualsInteger|           & 2 & \linmin & \const \\
+        \verb|lessThanInteger|                 & 2 & \linmin & \const \\
+        \verb|listData|                        & 1 & \const & \const \\
+        \verb|mapData|                         & 1 & \const & \const \\
+        \verb|mkCons|                          & 2 & \const & \const \\
+        \verb|mkNilData|                       & 1 & \const & \const \\
+        \verb|mkNilPairData|                   & 1 & \const & \const \\
+        \verb|mkPairData|                      & 2 & \const & \const \\
+        \verb|modInteger|                      & 2 & \quadrxy & \liny  \\
+        \verb|multiplyInteger|                 & 2 & \linmul & \linplus \\
+        \verb|nullList|                        & 1 & \const & \const \\
+        \verb|quotientInteger|                 & 2 & \quadrxy & \linsub \\
+        \verb|remainderInteger|                & 2 & \quadrxy & \liny \\
+        \verb|serialiseData|                   & 1 & \linx & \linx \\
+        \verb|sha2_256|                        & 1 & \linx & \const \\
+        \verb|sha3_256|                        & 1 & \linx & \const \\
+        \verb|sliceByteString|                 & 3 & \linz & \linz \\
+        \verb|sndPair|                         & 1 & \const & \const \\
+        \verb|subtractInteger|                 & 2 & \linmax & \linmax \\
+        \verb|tailList|                        & 1 & \const & \const \\
+        \verb|trace|                           & 2 & \const & \const \\
+        \verb|unBData|                         & 1 & \const & \const \\
+        \verb|unConstrData|                    & 1 & \const & \const \\
+        \verb|unIData|                         & 1 & \const & \const \\
+        \verb|unListData|                      & 1 & \const & \const \\
+        \verb|unMapData|                       & 1 & \const & \const \\
+        \verb|verifyEcdsaSecp256k1Signature|   & 3 & \const & \const \\
+        \verb|verifyEd25519Signature|          & 3 & \liny & \const \\
+        \verb|verifySchnorrSecp256k1Signature| & 3 & \liny & \const \\
+        \hline
+\end{tabular}
+    \caption{Costing functions for Plutus Core built-in functions (2)}
+    \label{table:costing-functions-2}
+\end{table}
+
+\paragraph{Note 1.}
+The CPU costing functions for the four integer division functions
+(\verb|divideInteger|, \verb|modInteger|, \verb|quotientInteger| and
+\verb|remainderInteger|) are rather complicated.  For $x<y$ the cost is constant
+since essentially no work has to be done; however for $x \geq y$ the cost is a
+quadratic function of the sizes of the two inputs with a lower bound to ensure
+that the cost is never negative:
+
+$$
+\text{CPU cost} = \begin{cases}
+  \const & \text{if $x<y$} \\
+  \max(d, c_{00} + c_{10}x + c_{01}y + c_{20}x^2 + c_{11}xy + c_{02}y^2) & \text{if $x \geq y$}.
+\end{cases}
+$$
+
+\subsection{Cost model parameters in the protocol parameters}
+\label{sec:cost-model-parameters}
+In the protocol parameters the cost model parameters take the form of a list of
+named constants which correspond to the coefficients $a, b, c, \ldots$ in
+Tables~\ref{table:costing-functions-1} and~\ref{table:costing-functions-2}
+above.  An excerpt from the cost model parameters for protocol version 9 is
+shown in Figure~\ref{fig:cost-model-parameters-extract}.  The tags are obtained
+from the names of the builtins and the various coefficients of the costing
+functions.  We won't spell out the full details of how the tags are obtained,
+but reference to Tables~\ref{table:costing-functions-1}
+and~\ref{table:costing-functions-2} should make this fairly clear.  For
+instance,
+\begin{itemize}
+\item For integer arguments $X$ of size $x$ and $Y$ of size $y$, the cost of
+  calling the \texttt{addInteger} function to add $X$ to $Y$ will be
+  $420\cdot\max(x,y) + 100788$ \texttt{ExCPU} units and $\max(x,y)+1$
+  \texttt{ExMemory} units.
+\item For bytestring arguments $X$ of size $x$ and $Y$ of size $y$, the cost of
+  calling the \texttt{appendByteString} function to append $Y$ to $X$ will be
+  $173(x+y)+1000$ \texttt{ExCPU} units and $x+y+1$ \texttt{ExMemory} units.
+\item The CPU cost of calling the \texttt{bData} function on a bytestring will
+  be a constant $11183$ \texttt{ExCPU} units and $32$ \texttt{ExMemory} units,
+  irrespective of the size of the input.
+\item For string arguments $X$ of size $x$ and $Y$ of size $y$, the CPU cost of
+  calling the \texttt{equalsString} function to check if $X$ and $Y$ are equal
+  will be $1000 + 60594x$ \texttt{ExCPU} units if $x=y$ and 39184 \texttt{ExCPU}
+  units if $x \neq y$; the memory cost will be a constant 1 \texttt{ExMemory}
+  unit.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering \footnotesize
+  \begin{verbatim}
+           "costModels": {
+               ...
+               "PlutusScriptV3": {
+                   "addInteger-cpu-arguments-intercept": 100788,
+                   "addInteger-cpu-arguments-slope": 420,
+                   "addInteger-memory-arguments-intercept": 1,
+                   "addInteger-memory-arguments-slope": 1,
+                   "appendByteString-cpu-arguments-intercept": 1000,
+                   "appendByteString-cpu-arguments-slope": 173,
+                   "appendByteString-memory-arguments-intercept": 0,
+                   "appendByteString-memory-arguments-slope": 1,
+                   "appendString-cpu-arguments-intercept": 1000,
+                   "appendString-cpu-arguments-slope": 59957,
+                   "appendString-memory-arguments-intercept": 4,
+                   "appendString-memory-arguments-slope": 1,
+                   "bData-cpu-arguments": 11183,
+                   "bData-memory-arguments": 32,
+                   ...
+                   "equalsString-cpu-arguments-constant": 39184,
+                   "equalsString-cpu-arguments-intercept": 1000,
+                   "equalsString-cpu-arguments-slope": 60594,
+                   "equalsString-memory-arguments": 1,
+                   ...
+               }
+               ...
+           }
+\end{verbatim}
+  \caption{Extract from cost model parameters}
+  \label{fig:cost-model-parameters-extract}
+\end{figure}
+
+
+\end{document}
