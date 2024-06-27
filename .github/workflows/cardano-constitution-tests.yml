@@ -1,0 +1,21 @@
+# This workflow runs the nighlty cardano-constitution tests 
+
+name: "🗽 Cardano Constitution Tests"
+
+on:
+  workflow_dispatch: 
+  schedule:
+    - cron: 0 2 * * * # Daily at 2am
+
+jobs:
+  run:
+    name: Run
+    runs-on: [self-hosted, plutus-benchmark]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Run Tests
+        run: | 
+          pushd plutus-core
+          nix run --no-warn-dirty --accept-flake-config .#cardano-constitution-test
