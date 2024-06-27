@@ -19,7 +19,7 @@ on:
 jobs:
   Send:
     runs-on: [ubuntu-latest]
-    if: contains(fromJson('["success", "failure", "null", "skipped", "cancelled", "action_required", "neutral", "timed_out"]'), github.event.workflow_job.conclusion)
+    # if: contains(fromJson('["success", "failure", "null", "skipped", "cancelled", "action_required", "neutral", "timed_out"]'), github.event.workflow_job.conclusion)
     steps:
       - name: Prepare Slack Message
         uses: actions/github-script@main
