@@ -2,6 +2,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+-- CSE is very unstable and produces different output, likely depending on the version of either
+-- @unordered-containers@ or @hashable@.
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 
 module AsData.Budget.Spec where
 
