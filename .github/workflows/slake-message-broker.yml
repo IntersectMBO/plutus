@@ -1,0 +1,57 @@
+# This workflow is triggered whenever any of the workflows listed in on.workflow_run.workflows 
+# has been cancelled or has failed, and will send a message to the specified Slack channel ids.
+
+name: "📮 Slack Message Broker"
+
+on:
+  workflow_run:
+    types: [completed, requested, in_progress]
+    workflows: 
+      - "🗽 Cardano Constitution Tests"
+      - "💰 Cost Model Benchmark"
+      - "🦕 Docusaurus Site" 
+      - "📜 Haddock Site"
+      - "🩺 Longitudinal Benchmark"
+      - "🔮 Metatheory Site"
+      - "🌘 Nightly Testsuite"
+      - "📝 Papers & Specs"
+
+jobs:
+  Send:
+    runs-on: [ubuntu-latest]
+    if: contains(fromJson('["success", "failure", "null", "skipped", "cancelled", "action_required", "neutral", "timed_out"]'), github.event.workflow_job.conclusion)
+    steps:
+      - name: Prepare Slack Message
+        uses: actions/github-script@main
+        id: prepare-slack-message
+        with:
+          script: | 
+            const name = "${{ github.event.workflow_job.name }}";
+            const url = "${{ github.event.workflow_job.html_url }}";
+            const status = "${{ github.event.workflow_job.status }}";
+            const action = "${{ github.event.action }}";
+            const conclusion = "${{ github.event.workflow_job.conclusion }}";
+            const message = `Workflow ${name} - ${status} - ${action}: ${conclusion} 👉🏻 <${url}|view logs>`;
+            core.setOutput("message", message); 
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@main
+        env:
+            SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
+        with:
+          channel-id: C07A1GSNZEE
+          payload: |
+            {
+              "text": "${{ steps.prepare-slack-message.outputs.message }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ steps.prepare-slack-message.outputs.message }}" 
+                  }
+                }
+              ]
+            }
+
+
