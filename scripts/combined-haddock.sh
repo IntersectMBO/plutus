@@ -138,7 +138,7 @@ haddock \
 
 
 echo "Assembling top-level doc-index.json"
-for file in $(find "${OUTPUT_DIR}" -name "*.doc-index.json"); do
+for file in $(find "${OUTPUT_DIR}" -name "*doc-index.json"); do
   project=$(basename "$(dirname "$file")");
   jq ".[] | .link = \"${project}/\(.link)\"" "${file}"
 done | 
