@@ -26,40 +26,7 @@ open import Agda.Builtin.Unit using (⊤;tt)
 open import Function.Base using (id; _∘_ ; _∘′_; const; flip)
 open Monad {{...}}
 import IO.Primitive as IO using (return;_>>=_)
-
-```
-
-## Less than or equal
-```
-infix 4 _≤_
-
-data _≤_ : ℕ → ℕ → Set where
-
-  z≤n : ∀ {n : ℕ}
-      --------
-    → zero ≤ n
-
-  s≤s : ∀ {m n : ℕ}
-    → m ≤ n
-      -------------
-    → suc m ≤ suc n
-```
-
-## Nat example
-```
-¬s≤z : ∀ {m : ℕ} → ¬ (suc m ≤ zero)
-¬s≤z ()
-
-¬s≤s : ∀ {m n : ℕ} → ¬ (m ≤ n) → ¬ (suc m ≤ suc n)
-¬s≤s ¬m≤n (s≤s m≤n) = ¬m≤n m≤n
-
-_≤?_ : ∀ (m n : ℕ) → Dec (m ≤ n)
-zero  ≤? n                   =  yes z≤n
-suc m ≤? zero                =  no ¬s≤z
-suc m ≤? suc n with m ≤? n
-...               | yes m≤n  =  yes (s≤s m≤n)
-...               | no ¬m≤n  =  no (¬s≤s ¬m≤n)
-
+import Data.List as L
 ```
 
 ## Compiler certification component
@@ -95,8 +62,16 @@ instance
   IOMonad : Monad IO
   IOMonad = record { return = IO.return; _>>=_ = IO._>>=_ }
 
+postulate
+  showUntyped : Untyped → String
+{-# FOREIGN GHC import qualified Data.Text as Text #-}
+{-# COMPILE GHC showUntyped = Text.pack . show #-}
+
+-- TODO: this just prints the ASTs to test if the translation works
 runCertifier : List Untyped → IO ⊤
-runCertifier _ = exitSuccess
+runCertifier x =
+  let result = L.foldr (λ t acc -> showUntyped t ++ "\n" ++ acc) "" (U.toList x) 
+   in putStrLn result
 -- TODO: this currently doesn't compile because it doesn't know the concrete type of X I think
 -- runCertifier us with parseASTs us
 -- ...             | nothing = putStrLn "Parse error" >> exitFailure
