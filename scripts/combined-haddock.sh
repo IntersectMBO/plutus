@@ -203,6 +203,8 @@ fi
 
 # These are the currently broken links which incluce some non-sensical URLs and other edge-cases.
 BROKEN_LINKS=(
+  "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 https://hackage.haskell.org/package/hashable-1.4.6.0/docs/Data-Hashable-Class.html"
+  "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 https://hackage.haskell.org/package/random-1.2.1.2/docs/System-Random-Internal.html"
   "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 file:///.*/plutus-tx/Data-Aeson-Types-FromJSON.html"
   "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 file:///.*/plutus-tx/Data-Aeson-Types-ToJSON.html"
   "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 file:///.*/plutus-tx/Basement-Numerical-Subtractive.html"
