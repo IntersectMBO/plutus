@@ -31,7 +31,7 @@ jobs:
             const status = "${{ github.event.workflow_run.status }}";
             const action = "${{ github.event.action }}";
             const conclusion = "${{ github.event.workflow_run.conclusion }}";
-            const message = `Workflow "${name}" ${action}: ${status} | ${conclusion} | <${url}|view logs> 🪵`;
+            const message = `Workflow "${name}" \`${action}\`: \`${status}\`, \`${conclusion}\`, <${url}|View Logs>`;
             core.setOutput("message", message); 
 
       - name: Notify Slack
