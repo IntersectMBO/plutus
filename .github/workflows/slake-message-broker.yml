@@ -35,7 +35,7 @@ jobs:
             core.setOutput("message", message); 
 
       - name: Notify Slack
-        uses: slackapi/slack-github-action@main
+        uses: slackapi/slack-github-action@v1.26.0
         env:
             SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
         with:
