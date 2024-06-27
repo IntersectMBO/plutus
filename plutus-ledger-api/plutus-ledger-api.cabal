@@ -192,11 +192,14 @@ test-suite plutus-ledger-api-plugin-test
     Spec.ReturnUnit.V1
     Spec.ReturnUnit.V2
     Spec.ReturnUnit.V3
+    Spec.ScriptSize
     Spec.Value
 
   build-depends:
     , base                                                              >=4.9   && <5
+    , bytestring
     , containers
+    , lens
     , mtl
     , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.30
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.30
