@@ -19,19 +19,19 @@ on:
 jobs:
   Send:
     runs-on: [ubuntu-latest]
-    # if: contains(fromJson('["success", "failure", "null", "skipped", "cancelled", "action_required", "neutral", "timed_out"]'), github.event.workflow_job.conclusion)
+    # if: contains(fromJson('["success", "failure", "null", "skipped", "cancelled", "action_required", "neutral", "timed_out"]'), github.event.workflow_run.conclusion)
     steps:
       - name: Prepare Slack Message
         uses: actions/github-script@main
         id: prepare-slack-message
         with:
           script: | 
-            const name = "${{ github.event.workflow_job.name }}";
-            const url = "${{ github.event.workflow_job.html_url }}";
-            const status = "${{ github.event.workflow_job.status }}";
+            const name = "${{ github.event.workflow_run.name }}";
+            const url = "${{ github.event.workflow_run.html_url }}";
+            const status = "${{ github.event.workflow_run.status }}";
             const action = "${{ github.event.action }}";
-            const conclusion = "${{ github.event.workflow_job.conclusion }}";
-            const message = `Workflow ${name} - ${status} - ${action}: ${conclusion} 👉🏻 <${url}|view logs>`;
+            const conclusion = "${{ github.event.workflow_run.conclusion }}";
+            const message = `Workflow "${name}" ${action}: ${status} | ${conclusion} | <${url}|view logs> 🪵`;
             core.setOutput("message", message); 
 
       - name: Notify Slack
