@@ -2,13 +2,15 @@ program
   1.1.0
   ((\x y ->
       force
-        (force ifThenElse
-           (lessThanInteger x 3)
-           (delay
-              (force ifThenElse
-                 (lessThanInteger y 3)
-                 (constr 0 [])
-                 (constr 1 [])))
-           (delay (constr 1 []))))
+        (force
+           (force ifThenElse
+              (lessThanInteger x 3)
+              (delay
+                 (delay
+                    (force ifThenElse
+                       (lessThanInteger y 3)
+                       (constr 0 [])
+                       (constr 1 []))))
+              (delay (delay (constr 1 []))))))
      4
      4)

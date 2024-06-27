@@ -48,9 +48,13 @@ in
                  let
                    !hd : pair data data = headList {pair data data} xs
                  in
-                 ifThenElse
+                 Bool_match
+                   (ifThenElse
+                      {Bool}
+                      (equalsData k (fstPair {data} {data} hd))
+                      True
+                      False)
                    {all dead. Maybe data}
-                   (equalsData k (fstPair {data} {data} hd))
                    (/\dead ->
                       let
                         !ds : list (pair data data)

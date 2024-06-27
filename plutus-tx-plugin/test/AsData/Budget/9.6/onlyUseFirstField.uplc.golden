@@ -3,23 +3,26 @@ program
   (\d ->
      (\tup ->
         force
-          (force ifThenElse
-             (equalsInteger 0 (force (force fstPair) tup))
-             (delay
-                ((\l ->
-                    (\l ->
-                       (\l ->
-                          (\ds ->
-                             (\ds ->
+          (force
+             (force ifThenElse
+                (equalsInteger 0 (force (force fstPair) tup))
+                (delay
+                   (delay
+                      ((\l ->
+                          (\l ->
+                             (\l ->
                                 (\ds ->
-                                   (\ds -> ds)
-                                     (unIData
-                                        (force headList (force tailList l))))
+                                   (\ds ->
+                                      (\ds ->
+                                         (\ds -> ds)
+                                           (unIData
+                                              (force headList
+                                                 (force tailList l))))
+                                        (unIData (force headList l)))
+                                     (unIData (force headList l)))
                                   (unIData (force headList l)))
-                               (unIData (force headList l)))
-                            (unIData (force headList l)))
-                         (force tailList l))
-                      (force tailList l))
-                   (force (force sndPair) tup)))
-             (delay error)))
+                               (force tailList l))
+                            (force tailList l))
+                         (force (force sndPair) tup))))
+                (delay (delay error)))))
        (unConstrData d))

@@ -50,10 +50,11 @@ program
                                (\i ->
                                   (\d ->
                                      force
-                                       (force ifThenElse
-                                          (equalsInteger 0 i)
-                                          (delay (unIData d))
-                                          (delay error)))
+                                       (force
+                                          (force ifThenElse
+                                             (equalsInteger 0 i)
+                                             (delay (delay (unIData d)))
+                                             (delay (delay error)))))
                                     (force headList
                                        (force tailList
                                           (force tailList
@@ -67,10 +68,11 @@ program
                          (\i ->
                             (\d ->
                                force
-                                 (force ifThenElse
-                                    (equalsInteger 0 i)
-                                    (delay (unIData d))
-                                    (delay error)))
+                                 (force
+                                    (force ifThenElse
+                                       (equalsInteger 0 i)
+                                       (delay (delay (unIData d)))
+                                       (delay (delay error)))))
                               (force headList
                                  (force tailList
                                     (force tailList
@@ -83,10 +85,11 @@ program
                    (\i ->
                       (\d ->
                          force
-                           (force ifThenElse
-                              (equalsInteger 0 i)
-                              (delay (unIData d))
-                              (delay error)))
+                           (force
+                              (force ifThenElse
+                                 (equalsInteger 0 i)
+                                 (delay (delay (unIData d)))
+                                 (delay (delay error)))))
                         (force headList
                            (force tailList (force (force sndPair) tup))))
                      (force (force fstPair) tup))
@@ -97,10 +100,11 @@ program
              (\i ->
                 (\d ->
                    force
-                     (force ifThenElse
-                        (equalsInteger 0 i)
-                        (delay (unIData d))
-                        (delay error)))
+                     (force
+                        (force ifThenElse
+                           (equalsInteger 0 i)
+                           (delay (delay (unIData d)))
+                           (delay (delay error)))))
                   (force headList (force (force sndPair) tup)))
                (force (force fstPair) tup))
             (unConstrData ds)))

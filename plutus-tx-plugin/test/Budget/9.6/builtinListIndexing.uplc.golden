@@ -10,10 +10,11 @@ program
                 (\hd ->
                    (\tl ->
                       force
-                        (force ifThenElse
-                           (equalsInteger 0 i)
-                           (delay hd)
-                           (delay (s s tl (subtractInteger i 1)))))
+                        (force
+                           (force ifThenElse
+                              (equalsInteger 0 i)
+                              (delay (delay hd))
+                              (delay (delay (s s tl (subtractInteger i 1)))))))
                      (force tailList xs))
                   (force headList xs))
              (constr 0 [])

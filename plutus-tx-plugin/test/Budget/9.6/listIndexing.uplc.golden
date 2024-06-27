@@ -10,10 +10,12 @@ program
                 , (\x xs ->
                      delay
                        (force
-                          (force ifThenElse
-                             (equalsInteger 0 ds)
-                             (delay x)
-                             (delay
-                                ((\x -> s s x)
-                                   (subtractInteger ds 1)
-                                   xs))))) ]))))
+                          (force
+                             (force ifThenElse
+                                (equalsInteger 0 ds)
+                                (delay (delay x))
+                                (delay
+                                   (delay
+                                      ((\x -> s s x)
+                                         (subtractInteger ds 1)
+                                         xs))))))) ]))))

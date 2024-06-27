@@ -1,3 +1,8 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
 letrec
   data (List :: * -> *) a | List_match where
     Nil : List a
@@ -13,18 +18,15 @@ letrec
           (/\dead -> error {data})
           (\(x : data) (xs : List data) ->
              /\dead ->
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 0 ds) True False)
                  {all dead. data}
-                 (equalsInteger 0 ds)
                  (/\dead -> x)
                  (/\dead -> go (subtractInteger ds 1) xs)
                  {all dead. dead})
           {all dead. dead}
 in
 let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   data Unit | Unit_match where
     Unit : Unit
 in

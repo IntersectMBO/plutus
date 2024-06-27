@@ -16,14 +16,14 @@
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. Bool}
-            (equalsInteger 0 index)
             (/\dead -> False)
             (/\dead ->
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
                  {all dead. Bool}
-                 (equalsInteger 1 index)
                  (/\dead -> True)
                  (/\dead -> traceError {Bool} "PT1")
                  {all dead. dead})
@@ -41,20 +41,20 @@
               !index : integer = fstPair {integer} {list data} tup
               !args : list data = sndPair {integer} {list data} tup
             in
-            ifThenElse
+            Bool_match
+              (ifThenElse {Bool} (equalsInteger 0 index) True False)
               {all dead. Extended a}
-              (equalsInteger 0 index)
               (/\dead -> NegInf {a})
               (/\dead ->
-                 ifThenElse
+                 Bool_match
+                   (ifThenElse {Bool} (equalsInteger 1 index) True False)
                    {all dead. Extended a}
-                   (equalsInteger 1 index)
                    (/\dead ->
                       Finite {a} (`$dUnsafeFromData` (headList {data} args)))
                    (/\dead ->
-                      ifThenElse
+                      Bool_match
+                        (ifThenElse {Bool} (equalsInteger 2 index) True False)
                         {all dead. Extended a}
-                        (equalsInteger 2 index)
                         (/\dead -> PosInf {a})
                         (/\dead -> traceError {Extended a} "PT1")
                         {all dead. dead})
@@ -70,9 +70,9 @@
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. GovernanceActionId}
-            (equalsInteger 0 index)
             (/\dead ->
                GovernanceActionId
                  (unBData (headList {data} args))
@@ -116,14 +116,14 @@
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. Credential}
-            (equalsInteger 0 index)
             (/\dead -> PubKeyCredential (unBData (headList {data} args)))
             (/\dead ->
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
                  {all dead. Credential}
-                 (equalsInteger 1 index)
                  (/\dead -> ScriptCredential (unBData (headList {data} args)))
                  (/\dead -> traceError {Credential} "PT1")
                  {all dead. dead})
@@ -140,14 +140,14 @@
               !index : integer = fstPair {integer} {list data} tup
               !args : list data = sndPair {integer} {list data} tup
             in
-            ifThenElse
+            Bool_match
+              (ifThenElse {Bool} (equalsInteger 1 index) True False)
               {all dead. Maybe a}
-              (equalsInteger 1 index)
               (/\dead -> Nothing {a})
               (/\dead ->
-                 ifThenElse
+                 Bool_match
+                   (ifThenElse {Bool} (equalsInteger 0 index) True False)
                    {all dead. Maybe a}
-                   (equalsInteger 0 index)
                    (/\dead ->
                       Just {a} (`$dUnsafeFromData` (headList {data} args)))
                    (/\dead -> traceError {Maybe a} "PT1")
@@ -217,9 +217,9 @@
   letrec
     !euclid : integer -> integer -> integer
       = \(x : integer) (y : integer) ->
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 y) True False)
             {all dead. integer}
-            (equalsInteger 0 y)
             (/\dead -> x)
             (/\dead -> euclid y (modInteger x y))
             {all dead. dead}
@@ -227,14 +227,14 @@
   letrec
     !unsafeRatio : integer -> integer -> Rational
       = \(n : integer) (d : integer) ->
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 d) True False)
             {all dead. Rational}
-            (equalsInteger 0 d)
             (/\dead -> traceError {Rational} "PT3")
             (/\dead ->
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (lessThanInteger d 0) True False)
                  {all dead. Rational}
-                 (lessThanInteger d 0)
                  (/\dead ->
                     unsafeRatio (subtractInteger 0 n) (subtractInteger 0 d))
                  (/\dead ->
@@ -254,9 +254,9 @@
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. ProposalProcedure}
-            (equalsInteger 0 index)
             (/\dead ->
                let
                  !l : list data = tailList {data} args
@@ -271,9 +271,9 @@
                    !index : integer = fstPair {integer} {list data} tup
                    !args : list data = sndPair {integer} {list data} tup
                  in
-                 ifThenElse
+                 Bool_match
+                   (ifThenElse {Bool} (equalsInteger 0 index) True False)
                    {all dead. GovernanceAction}
-                   (equalsInteger 0 index)
                    (/\dead ->
                       let
                         !l : list data = tailList {data} args
@@ -289,9 +289,9 @@
                            unBData
                            (headList {data} (tailList {data} l))))
                    (/\dead ->
-                      ifThenElse
+                      Bool_match
+                        (ifThenElse {Bool} (equalsInteger 1 index) True False)
                         {all dead. GovernanceAction}
-                        (equalsInteger 1 index)
                         (/\dead ->
                            HardForkInitiation
                              (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
@@ -307,9 +307,13 @@
                                !args : list data
                                  = sndPair {integer} {list data} tup
                              in
-                             ifThenElse
+                             Bool_match
+                               (ifThenElse
+                                  {Bool}
+                                  (equalsInteger 0 index)
+                                  True
+                                  False)
                                {all dead. ProtocolVersion}
-                               (equalsInteger 0 index)
                                (/\dead ->
                                   ProtocolVersion
                                     (unIData (headList {data} args))
@@ -320,9 +324,13 @@
                                (/\dead -> traceError {ProtocolVersion} "PT1")
                                {all dead. dead}))
                         (/\dead ->
-                           ifThenElse
+                           Bool_match
+                             (ifThenElse
+                                {Bool}
+                                (equalsInteger 2 index)
+                                True
+                                False)
                              {all dead. GovernanceAction}
-                             (equalsInteger 2 index)
                              (/\dead ->
                                 TreasuryWithdrawals
                                   (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
@@ -336,9 +344,13 @@
                                      unBData
                                      (headList {data} (tailList {data} args))))
                              (/\dead ->
-                                ifThenElse
+                                Bool_match
+                                  (ifThenElse
+                                     {Bool}
+                                     (equalsInteger 3 index)
+                                     True
+                                     False)
                                   {all dead. GovernanceAction}
-                                  (equalsInteger 3 index)
                                   (/\dead ->
                                      NoConfidence
                                        (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
@@ -346,9 +358,13 @@
                                           `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
                                           (headList {data} args)))
                                   (/\dead ->
-                                     ifThenElse
+                                     Bool_match
+                                       (ifThenElse
+                                          {Bool}
+                                          (equalsInteger 4 index)
+                                          True
+                                          False)
                                        {all dead. GovernanceAction}
-                                       (equalsInteger 4 index)
                                        (/\dead ->
                                           let
                                             !l : list data
@@ -393,10 +409,14 @@
                                                       {list data}
                                                       tup
                                               in
-                                              ifThenElse
+                                              Bool_match
+                                                (ifThenElse
+                                                   {Bool}
+                                                   (equalsInteger 0 index)
+                                                   True
+                                                   False)
                                                 {all dead.
                                                    Tuple2 integer integer}
-                                                (equalsInteger 0 index)
                                                 (/\dead ->
                                                    Tuple2
                                                      {integer}
@@ -418,9 +438,13 @@
                                               (\(a : integer) (b : integer) ->
                                                  unsafeRatio a b)))
                                        (/\dead ->
-                                          ifThenElse
+                                          Bool_match
+                                            (ifThenElse
+                                               {Bool}
+                                               (equalsInteger 5 index)
+                                               True
+                                               False)
                                             {all dead. GovernanceAction}
-                                            (equalsInteger 5 index)
                                             (/\dead ->
                                                NewConstitution
                                                  (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
@@ -447,9 +471,13 @@
                                                          {list data}
                                                          tup
                                                  in
-                                                 ifThenElse
+                                                 Bool_match
+                                                   (ifThenElse
+                                                      {Bool}
+                                                      (equalsInteger 0 index)
+                                                      True
+                                                      False)
                                                    {all dead. Maybe bytestring}
-                                                   (equalsInteger 0 index)
                                                    (/\dead ->
                                                       `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                                         {bytestring}
@@ -461,9 +489,13 @@
                                                         "PT1")
                                                    {all dead. dead}))
                                             (/\dead ->
-                                               ifThenElse
+                                               Bool_match
+                                                 (ifThenElse
+                                                    {Bool}
+                                                    (equalsInteger 6 index)
+                                                    True
+                                                    False)
                                                  {all dead. GovernanceAction}
-                                                 (equalsInteger 6 index)
                                                  (/\dead -> InfoAction)
                                                  (/\dead ->
                                                     traceError
@@ -489,22 +521,22 @@
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. DRep}
-            (equalsInteger 0 index)
             (/\dead ->
                DRep
                  (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                     (headList {data} args)))
             (/\dead ->
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
                  {all dead. DRep}
-                 (equalsInteger 1 index)
                  (/\dead -> DRepAlwaysAbstain)
                  (/\dead ->
-                    ifThenElse
+                    Bool_match
+                      (ifThenElse {Bool} (equalsInteger 2 index) True False)
                       {all dead. DRep}
-                      (equalsInteger 2 index)
                       (/\dead -> DRepAlwaysNoConfidence)
                       (/\dead -> traceError {DRep} "PT1")
                       {all dead. dead})
@@ -521,22 +553,22 @@
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. Delegatee}
-            (equalsInteger 0 index)
             (/\dead -> DelegStake (unBData (headList {data} args)))
             (/\dead ->
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
                  {all dead. Delegatee}
-                 (equalsInteger 1 index)
                  (/\dead ->
                     DelegVote
                       (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData`
                          (headList {data} args)))
                  (/\dead ->
-                    ifThenElse
+                    Bool_match
+                      (ifThenElse {Bool} (equalsInteger 2 index) True False)
                       {all dead. Delegatee}
-                      (equalsInteger 2 index)
                       (/\dead ->
                          DelegStakeVote
                            (unBData (headList {data} args))
@@ -566,9 +598,9 @@
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. TxCert}
-            (equalsInteger 0 index)
             (/\dead ->
                TxCertRegStaking
                  (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
@@ -578,9 +610,9 @@
                     unIData
                     (headList {data} (tailList {data} args))))
             (/\dead ->
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
                  {all dead. TxCert}
-                 (equalsInteger 1 index)
                  (/\dead ->
                     TxCertUnRegStaking
                       (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
@@ -590,9 +622,9 @@
                          unIData
                          (headList {data} (tailList {data} args))))
                  (/\dead ->
-                    ifThenElse
+                    Bool_match
+                      (ifThenElse {Bool} (equalsInteger 2 index) True False)
                       {all dead. TxCert}
-                      (equalsInteger 2 index)
                       (/\dead ->
                          TxCertDelegStaking
                            (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
@@ -600,9 +632,13 @@
                            (`$fUnsafeFromDataDelegatee_$cunsafeFromBuiltinData`
                               (headList {data} (tailList {data} args))))
                       (/\dead ->
-                         ifThenElse
+                         Bool_match
+                           (ifThenElse
+                              {Bool}
+                              (equalsInteger 3 index)
+                              True
+                              False)
                            {all dead. TxCert}
-                           (equalsInteger 3 index)
                            (/\dead ->
                               let
                                 !l : list data = tailList {data} args
@@ -614,9 +650,13 @@
                                    (headList {data} l))
                                 (unIData (headList {data} (tailList {data} l))))
                            (/\dead ->
-                              ifThenElse
+                              Bool_match
+                                (ifThenElse
+                                   {Bool}
+                                   (equalsInteger 4 index)
+                                   True
+                                   False)
                                 {all dead. TxCert}
-                                (equalsInteger 4 index)
                                 (/\dead ->
                                    TxCertRegDRep
                                      (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
@@ -626,17 +666,25 @@
                                            {data}
                                            (tailList {data} args))))
                                 (/\dead ->
-                                   ifThenElse
+                                   Bool_match
+                                     (ifThenElse
+                                        {Bool}
+                                        (equalsInteger 5 index)
+                                        True
+                                        False)
                                      {all dead. TxCert}
-                                     (equalsInteger 5 index)
                                      (/\dead ->
                                         TxCertUpdateDRep
                                           (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                              (headList {data} args)))
                                      (/\dead ->
-                                        ifThenElse
+                                        Bool_match
+                                          (ifThenElse
+                                             {Bool}
+                                             (equalsInteger 6 index)
+                                             True
+                                             False)
                                           {all dead. TxCert}
-                                          (equalsInteger 6 index)
                                           (/\dead ->
                                              TxCertUnRegDRep
                                                (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
@@ -646,9 +694,13 @@
                                                      {data}
                                                      (tailList {data} args))))
                                           (/\dead ->
-                                             ifThenElse
+                                             Bool_match
+                                               (ifThenElse
+                                                  {Bool}
+                                                  (equalsInteger 7 index)
+                                                  True
+                                                  False)
                                                {all dead. TxCert}
-                                               (equalsInteger 7 index)
                                                (/\dead ->
                                                   TxCertPoolRegister
                                                     (unBData
@@ -660,9 +712,13 @@
                                                              {data}
                                                              args))))
                                                (/\dead ->
-                                                  ifThenElse
+                                                  Bool_match
+                                                    (ifThenElse
+                                                       {Bool}
+                                                       (equalsInteger 8 index)
+                                                       True
+                                                       False)
                                                     {all dead. TxCert}
-                                                    (equalsInteger 8 index)
                                                     (/\dead ->
                                                        TxCertPoolRetire
                                                          (unBData
@@ -676,9 +732,15 @@
                                                                   {data}
                                                                   args))))
                                                     (/\dead ->
-                                                       ifThenElse
+                                                       Bool_match
+                                                         (ifThenElse
+                                                            {Bool}
+                                                            (equalsInteger
+                                                               9
+                                                               index)
+                                                            True
+                                                            False)
                                                          {all dead. TxCert}
-                                                         (equalsInteger 9 index)
                                                          (/\dead ->
                                                             TxCertAuthHotCommittee
                                                               (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
@@ -692,11 +754,15 @@
                                                                        {data}
                                                                        args))))
                                                          (/\dead ->
-                                                            ifThenElse
+                                                            Bool_match
+                                                              (ifThenElse
+                                                                 {Bool}
+                                                                 (equalsInteger
+                                                                    10
+                                                                    index)
+                                                                 True
+                                                                 False)
                                                               {all dead. TxCert}
-                                                              (equalsInteger
-                                                                 10
-                                                                 index)
                                                               (/\dead ->
                                                                  TxCertResignColdCommittee
                                                                    (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
@@ -729,25 +795,25 @@
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. Voter}
-            (equalsInteger 0 index)
             (/\dead ->
                CommitteeVoter
                  (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                     (headList {data} args)))
             (/\dead ->
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
                  {all dead. Voter}
-                 (equalsInteger 1 index)
                  (/\dead ->
                     DRepVoter
                       (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                          (headList {data} args)))
                  (/\dead ->
-                    ifThenElse
+                    Bool_match
+                      (ifThenElse {Bool} (equalsInteger 2 index) True False)
                       {all dead. Voter}
-                      (equalsInteger 2 index)
                       (/\dead ->
                          StakePoolVoter (unBData (headList {data} args)))
                       (/\dead -> traceError {Voter} "PT1")
@@ -763,9 +829,9 @@
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. TxOutRef}
-            (equalsInteger 0 index)
             (/\dead ->
                TxOutRef
                  (unBData (headList {data} args))
@@ -805,9 +871,9 @@
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. TxOut}
-            (equalsInteger 0 index)
             (/\dead ->
                let
                  !l : list data = tailList {data} args
@@ -820,9 +886,9 @@
                    !index : integer = fstPair {integer} {list data} tup
                    !args : list data = sndPair {integer} {list data} tup
                  in
-                 ifThenElse
+                 Bool_match
+                   (ifThenElse {Bool} (equalsInteger 0 index) True False)
                    {all dead. Address}
-                   (equalsInteger 0 index)
                    (/\dead ->
                       Address
                         (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
@@ -837,17 +903,25 @@
                                 !args : list data
                                   = sndPair {integer} {list data} tup
                               in
-                              ifThenElse
+                              Bool_match
+                                (ifThenElse
+                                   {Bool}
+                                   (equalsInteger 0 index)
+                                   True
+                                   False)
                                 {all dead. StakingCredential}
-                                (equalsInteger 0 index)
                                 (/\dead ->
                                    StakingHash
                                      (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                         (headList {data} args)))
                                 (/\dead ->
-                                   ifThenElse
+                                   Bool_match
+                                     (ifThenElse
+                                        {Bool}
+                                        (equalsInteger 1 index)
+                                        True
+                                        False)
                                      {all dead. StakingCredential}
-                                     (equalsInteger 1 index)
                                      (/\dead ->
                                         let
                                           !l : list data = tailList {data} args
@@ -878,20 +952,24 @@
                    !index : integer = fstPair {integer} {list data} tup
                    !args : list data = sndPair {integer} {list data} tup
                  in
-                 ifThenElse
+                 Bool_match
+                   (ifThenElse {Bool} (equalsInteger 0 index) True False)
                    {all dead. OutputDatum}
-                   (equalsInteger 0 index)
                    (/\dead -> NoOutputDatum)
                    (/\dead ->
-                      ifThenElse
+                      Bool_match
+                        (ifThenElse {Bool} (equalsInteger 1 index) True False)
                         {all dead. OutputDatum}
-                        (equalsInteger 1 index)
                         (/\dead ->
                            OutputDatumHash (unBData (headList {data} args)))
                         (/\dead ->
-                           ifThenElse
+                           Bool_match
+                             (ifThenElse
+                                {Bool}
+                                (equalsInteger 2 index)
+                                True
+                                False)
                              {all dead. OutputDatum}
-                             (equalsInteger 2 index)
                              (/\dead -> OutputDatum (headList {data} args))
                              (/\dead -> traceError {OutputDatum} "PT1")
                              {all dead. dead})
@@ -912,9 +990,9 @@
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. TxInInfo}
-            (equalsInteger 0 index)
             (/\dead ->
                TxInInfo
                  (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
@@ -982,9 +1060,9 @@
           !index : integer = fstPair {integer} {list data} tup
           !args : list data = sndPair {integer} {list data} tup
         in
-        ifThenElse
+        Bool_match
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
           {all dead. ScriptContext}
-          (equalsInteger 0 index)
           (/\dead ->
              let
                !l : list data = tailList {data} args
@@ -996,9 +1074,9 @@
                  !index : integer = fstPair {integer} {list data} tup
                  !args : list data = sndPair {integer} {list data} tup
                in
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
                  {all dead. TxInfo}
-                 (equalsInteger 0 index)
                  (/\dead ->
                     let
                       !l : list data = tailList {data} args
@@ -1052,9 +1130,9 @@
                         !index : integer = fstPair {integer} {list data} tup
                         !args : list data = sndPair {integer} {list data} tup
                       in
-                      ifThenElse
+                      Bool_match
+                        (ifThenElse {Bool} (equalsInteger 0 index) True False)
                         {all dead. Interval integer}
-                        (equalsInteger 0 index)
                         (/\dead ->
                            Interval
                              {integer}
@@ -1066,9 +1144,13 @@
                                !args : list data
                                  = sndPair {integer} {list data} tup
                              in
-                             ifThenElse
+                             Bool_match
+                               (ifThenElse
+                                  {Bool}
+                                  (equalsInteger 0 index)
+                                  True
+                                  False)
                                {all dead. LowerBound integer}
-                               (equalsInteger 0 index)
                                (/\dead ->
                                   LowerBound
                                     {integer}
@@ -1091,9 +1173,13 @@
                                !args : list data
                                  = sndPair {integer} {list data} tup
                              in
-                             ifThenElse
+                             Bool_match
+                               (ifThenElse
+                                  {Bool}
+                                  (equalsInteger 0 index)
+                                  True
+                                  False)
                                {all dead. UpperBound integer}
-                               (equalsInteger 0 index)
                                (/\dead ->
                                   UpperBound
                                     {integer}
@@ -1124,31 +1210,47 @@
                               !args : list data
                                 = sndPair {integer} {list data} tup
                             in
-                            ifThenElse
+                            Bool_match
+                              (ifThenElse
+                                 {Bool}
+                                 (equalsInteger 0 index)
+                                 True
+                                 False)
                               {all dead. ScriptPurpose}
-                              (equalsInteger 0 index)
                               (/\dead ->
                                  Minting (unBData (headList {data} args)))
                               (/\dead ->
-                                 ifThenElse
+                                 Bool_match
+                                   (ifThenElse
+                                      {Bool}
+                                      (equalsInteger 1 index)
+                                      True
+                                      False)
                                    {all dead. ScriptPurpose}
-                                   (equalsInteger 1 index)
                                    (/\dead ->
                                       Spending
                                         (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
                                            (headList {data} args)))
                                    (/\dead ->
-                                      ifThenElse
+                                      Bool_match
+                                        (ifThenElse
+                                           {Bool}
+                                           (equalsInteger 2 index)
+                                           True
+                                           False)
                                         {all dead. ScriptPurpose}
-                                        (equalsInteger 2 index)
                                         (/\dead ->
                                            Rewarding
                                              (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                                 (headList {data} args)))
                                         (/\dead ->
-                                           ifThenElse
+                                           Bool_match
+                                             (ifThenElse
+                                                {Bool}
+                                                (equalsInteger 3 index)
+                                                True
+                                                False)
                                              {all dead. ScriptPurpose}
-                                             (equalsInteger 3 index)
                                              (/\dead ->
                                                 Certifying
                                                   (unIData
@@ -1160,9 +1262,13 @@
                                                            {data}
                                                            args))))
                                              (/\dead ->
-                                                ifThenElse
+                                                Bool_match
+                                                  (ifThenElse
+                                                     {Bool}
+                                                     (equalsInteger 4 index)
+                                                     True
+                                                     False)
                                                   {all dead. ScriptPurpose}
-                                                  (equalsInteger 4 index)
                                                   (/\dead ->
                                                      Voting
                                                        (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
@@ -1170,9 +1276,15 @@
                                                              {data}
                                                              args)))
                                                   (/\dead ->
-                                                     ifThenElse
+                                                     Bool_match
+                                                       (ifThenElse
+                                                          {Bool}
+                                                          (equalsInteger
+                                                             5
+                                                             index)
+                                                          True
+                                                          False)
                                                        {all dead. ScriptPurpose}
-                                                       (equalsInteger 5 index)
                                                        (/\dead ->
                                                           Proposing
                                                             (unIData
@@ -1221,19 +1333,31 @@
                                  !args : list data
                                    = sndPair {integer} {list data} tup
                                in
-                               ifThenElse
+                               Bool_match
+                                 (ifThenElse
+                                    {Bool}
+                                    (equalsInteger 0 index)
+                                    True
+                                    False)
                                  {all dead. Vote}
-                                 (equalsInteger 0 index)
                                  (/\dead -> VoteNo)
                                  (/\dead ->
-                                    ifThenElse
+                                    Bool_match
+                                      (ifThenElse
+                                         {Bool}
+                                         (equalsInteger 1 index)
+                                         True
+                                         False)
                                       {all dead. Vote}
-                                      (equalsInteger 1 index)
                                       (/\dead -> VoteYes)
                                       (/\dead ->
-                                         ifThenElse
+                                         Bool_match
+                                           (ifThenElse
+                                              {Bool}
+                                              (equalsInteger 2 index)
+                                              True
+                                              False)
                                            {all dead. Vote}
-                                           (equalsInteger 2 index)
                                            (/\dead -> Abstain)
                                            (/\dead -> traceError {Vote} "PT1")
                                            {all dead. dead})
@@ -1261,14 +1385,14 @@
                  !index : integer = fstPair {integer} {list data} tup
                  !args : list data = sndPair {integer} {list data} tup
                in
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
                  {all dead. ScriptInfo}
-                 (equalsInteger 0 index)
                  (/\dead -> MintingScript (unBData (headList {data} args)))
                  (/\dead ->
-                    ifThenElse
+                    Bool_match
+                      (ifThenElse {Bool} (equalsInteger 1 index) True False)
                       {all dead. ScriptInfo}
-                      (equalsInteger 1 index)
                       (/\dead ->
                          SpendingScript
                            (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
@@ -1278,17 +1402,25 @@
                               `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
                               (headList {data} (tailList {data} args))))
                       (/\dead ->
-                         ifThenElse
+                         Bool_match
+                           (ifThenElse
+                              {Bool}
+                              (equalsInteger 2 index)
+                              True
+                              False)
                            {all dead. ScriptInfo}
-                           (equalsInteger 2 index)
                            (/\dead ->
                               RewardingScript
                                 (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                    (headList {data} args)))
                            (/\dead ->
-                              ifThenElse
+                              Bool_match
+                                (ifThenElse
+                                   {Bool}
+                                   (equalsInteger 3 index)
+                                   True
+                                   False)
                                 {all dead. ScriptInfo}
-                                (equalsInteger 3 index)
                                 (/\dead ->
                                    CertifyingScript
                                      (unIData (headList {data} args))
@@ -1297,17 +1429,25 @@
                                            {data}
                                            (tailList {data} args))))
                                 (/\dead ->
-                                   ifThenElse
+                                   Bool_match
+                                     (ifThenElse
+                                        {Bool}
+                                        (equalsInteger 4 index)
+                                        True
+                                        False)
                                      {all dead. ScriptInfo}
-                                     (equalsInteger 4 index)
                                      (/\dead ->
                                         VotingScript
                                           (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
                                              (headList {data} args)))
                                      (/\dead ->
-                                        ifThenElse
+                                        Bool_match
+                                          (ifThenElse
+                                             {Bool}
+                                             (equalsInteger 5 index)
+                                             True
+                                             False)
                                           {all dead. ScriptInfo}
-                                          (equalsInteger 5 index)
                                           (/\dead ->
                                              ProposingScript
                                                (unIData (headList {data} args))

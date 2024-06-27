@@ -44,22 +44,25 @@ program
        (delay
           ((\tup ->
               force
-                (force ifThenElse
-                   (equalsInteger 0 (force (force fstPair) tup))
-                   (delay
-                      ((\l ->
-                          (\l ->
-                             (\l ->
-                                (\z w ->
-                                   constr 0
-                                     [ (unIData (force headList l))
-                                     , (unIData (force headList l))
-                                     , z
-                                     , w ])
-                                  (unIData (force headList l))
-                                  (unIData (force headList (force tailList l))))
-                               (force tailList l))
-                            (force tailList l))
-                         (force (force sndPair) tup)))
-                   (delay (case error [error]))))
+                (force
+                   (force ifThenElse
+                      (equalsInteger 0 (force (force fstPair) tup))
+                      (delay
+                         (delay
+                            ((\l ->
+                                (\l ->
+                                   (\l ->
+                                      (\z w ->
+                                         constr 0
+                                           [ (unIData (force headList l))
+                                           , (unIData (force headList l))
+                                           , z
+                                           , w ])
+                                        (unIData (force headList l))
+                                        (unIData
+                                           (force headList (force tailList l))))
+                                     (force tailList l))
+                                  (force tailList l))
+                               (force (force sndPair) tup))))
+                      (delay (delay (case error [error]))))))
              (unConstrData d))))

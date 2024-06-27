@@ -15,20 +15,22 @@ letrec
              /\dead -> let !ds : integer = go xs in x)
           {all dead. dead}
 in
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
 letrec
   !go : integer -> List integer
     = \(n : integer) ->
-        ifThenElse
+        Bool_match
+          (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
           {all dead. List integer}
-          (lessThanEqualsInteger n 0)
           (/\dead -> Nil {integer})
           (/\dead -> Cons {integer} 1 (go (subtractInteger n 1)))
           {all dead. dead}
 in
 let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   !ls : List integer = go 1000
 in
 go ls

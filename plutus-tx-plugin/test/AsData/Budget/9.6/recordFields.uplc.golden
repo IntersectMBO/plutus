@@ -55,19 +55,22 @@ program
        (\scrut cont fail ->
           (\tup ->
              force
-               (force ifThenElse
-                  (equalsInteger 0 (force (force fstPair) tup))
-                  (delay
-                     ((\l ->
-                         (\l ->
-                            (\l ->
-                               cont
-                                 (unIData (force headList l))
-                                 (unIData (force headList l))
-                                 (unIData (force headList l))
-                                 (unIData (force headList (force tailList l))))
-                              (force tailList l))
-                           (force tailList l))
-                        (force (force sndPair) tup)))
-                  (delay (fail ()))))
+               (force
+                  (force ifThenElse
+                     (equalsInteger 0 (force (force fstPair) tup))
+                     (delay
+                        (delay
+                           ((\l ->
+                               (\l ->
+                                  (\l ->
+                                     cont
+                                       (unIData (force headList l))
+                                       (unIData (force headList l))
+                                       (unIData (force headList l))
+                                       (unIData
+                                          (force headList (force tailList l))))
+                                    (force tailList l))
+                                 (force tailList l))
+                              (force (force sndPair) tup))))
+                     (delay (delay (fail ()))))))
             (unConstrData scrut)))

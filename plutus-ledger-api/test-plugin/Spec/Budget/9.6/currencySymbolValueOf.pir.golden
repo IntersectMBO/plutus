@@ -68,9 +68,9 @@ in
                    {integer}
                    (\(c' : bytestring)
                      (i : (\k v -> List (Tuple2 k v)) bytestring integer) ->
-                      ifThenElse
+                      Bool_match
+                        (ifThenElse {Bool} (equalsByteString c' cur) True False)
                         {all dead. integer}
-                        (equalsByteString c' cur)
                         (/\dead -> go i)
                         (/\dead -> go xs')
                         {all dead. dead}))

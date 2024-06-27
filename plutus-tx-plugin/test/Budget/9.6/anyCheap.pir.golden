@@ -18,11 +18,11 @@ letrec
           (/\dead -> False)
           (\(x : integer) (xs : List integer) ->
              /\dead ->
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (lessThanEqualsInteger 10 x) False True)
                  {all dead. Bool}
-                 (lessThanEqualsInteger 10 x)
-                 (/\dead -> go xs)
                  (/\dead -> True)
+                 (/\dead -> go xs)
                  {all dead. dead})
           {all dead. dead}
 in

@@ -48,20 +48,20 @@ let
             !index : integer = fstPair {integer} {list data} tup
             !args : list data = sndPair {integer} {list data} tup
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. These a b}
-            (equalsInteger 0 index)
             (/\dead -> This {a} {b} (`$dUnsafeFromData` (headList {data} args)))
             (/\dead ->
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
                  {all dead. These a b}
-                 (equalsInteger 1 index)
                  (/\dead ->
                     That {a} {b} (`$dUnsafeFromData` (headList {data} args)))
                  (/\dead ->
-                    ifThenElse
+                    Bool_match
+                      (ifThenElse {Bool} (equalsInteger 2 index) True False)
                       {all dead. These a b}
-                      (equalsInteger 2 index)
                       (/\dead ->
                          These
                            {a}
@@ -145,9 +145,13 @@ letrec
                             !tl : list (pair data data)
                               = tailList {pair data data} xs
                           in
-                          ifThenElse
+                          Bool_match
+                            (ifThenElse
+                               {Bool}
+                               (equalsData k (fstPair {data} {data} hd))
+                               True
+                               False)
                             {all dead. list (pair data data)}
-                            (equalsData k (fstPair {data} {data} hd))
                             (/\dead ->
                                mkCons {pair data data} (mkPairData k v) tl)
                             (/\dead -> mkCons {pair data data} hd (go tl))
@@ -178,9 +182,13 @@ let
                      let
                        !hd : pair data data = headList {pair data data} xs
                      in
-                     ifThenElse
+                     Bool_match
+                       (ifThenElse
+                          {Bool}
+                          (equalsData k (fstPair {data} {data} hd))
+                          True
+                          False)
                        {all dead. Maybe data}
-                       (equalsData k (fstPair {data} {data} hd))
                        (/\dead ->
                           let
                             !ds : list (pair data data)
@@ -447,11 +455,15 @@ let
                                                 acc
                                                 (tailList {pair data data} l))
                                            (/\dead ->
-                                              ifThenElse
+                                              Bool_match
+                                                (ifThenElse
+                                                   {Bool}
+                                                   (equalsData
+                                                      (fstPair {data} {data} hd)
+                                                      d)
+                                                   True
+                                                   False)
                                                 {all dead. Bool}
-                                                (equalsData
-                                                   (fstPair {data} {data} hd)
-                                                   d)
                                                 (/\dead ->
                                                    Bool_match
                                                      (eqV v v)
@@ -480,9 +492,13 @@ let
                                            {all dead. dead})
                                       Unit
                             in
-                            ifThenElse
+                            Bool_match
+                              (ifThenElse
+                                 {Bool}
+                                 (equalsData d (fstPair {data} {data} hd))
+                                 True
+                                 False)
                               {all dead. Bool}
-                              (equalsData d (fstPair {data} {data} hd))
                               (/\dead ->
                                  Bool_match
                                    (eqV v (sndPair {data} {data} hd))

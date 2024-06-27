@@ -23,14 +23,18 @@
           (\(x : integer) (y : integer) ->
              ifThenElse {Bool} (equalsInteger x y) True False)
           (\(eta : integer) (eta : integer) ->
-             ifThenElse
+             Bool_match
+               (ifThenElse {Bool} (equalsInteger eta eta) True False)
                {all dead. Ordering}
-               (equalsInteger eta eta)
                (/\dead -> EQ)
                (/\dead ->
-                  ifThenElse
+                  Bool_match
+                    (ifThenElse
+                       {Bool}
+                       (lessThanEqualsInteger eta eta)
+                       True
+                       False)
                     {all dead. Ordering}
-                    (lessThanEqualsInteger eta eta)
                     (/\dead -> LT)
                     (/\dead -> GT)
                     {all dead. dead})
@@ -44,16 +48,16 @@
           (\(x : integer) (y : integer) ->
              ifThenElse {Bool} (lessThanInteger x y) False True)
           (\(x : integer) (y : integer) ->
-             ifThenElse
+             Bool_match
+               (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
                {all dead. integer}
-               (lessThanEqualsInteger x y)
                (/\dead -> y)
                (/\dead -> x)
                {all dead. dead})
           (\(x : integer) (y : integer) ->
-             ifThenElse
+             Bool_match
+               (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
                {all dead. integer}
-               (lessThanEqualsInteger x y)
                (/\dead -> x)
                (/\dead -> y)
                {all dead. dead})
