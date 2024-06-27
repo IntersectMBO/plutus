@@ -31,9 +31,12 @@ import Data.List as L
 
 ## Compiler certification component
 ```
-
 postulate
-  something : {X : Set} → List (X ⊢) → Dec (X ⊢)
+  -- This should actually return a Dec of some type representing
+  -- a trace of ASTs which are in the transition relation one-by-one
+  something : {X : Set} → List (X ⊢) → Dec (X ⊢ )
+  -- This should take the result from the above and transform it
+  -- into a string which could potentially be loaded back into Agda
   serializeProof : {X : Set} → Dec (X ⊢) → String
 
 parseASTs : {X : Set} → List Untyped → Maybe (List (Maybe X ⊢))
@@ -45,6 +48,8 @@ parseASTs (x ∷ xs) with toWellScoped x
 ...                         | just ts = just (t ∷ ts)
 
 postulate
+  -- we will probably want hPutStrLn instead, to write to a file
+  -- handle
   putStrLn : String → IO ⊤
 
 {-# FOREIGN GHC import qualified Data.Text.IO as TextIO #-}
@@ -67,7 +72,7 @@ postulate
 {-# FOREIGN GHC import qualified Data.Text as Text #-}
 {-# COMPILE GHC showUntyped = Text.pack . show #-}
 
--- TODO: this just prints the ASTs to test if the translation works
+-- TODO: this just prints the ASTs to test if the Haskell -> Agda FFI works
 runCertifier : List Untyped → IO ⊤
 runCertifier x =
   let result = L.foldr (λ t acc -> showUntyped t ++ "\n" ++ acc) "" (U.toList x) 
