@@ -127,3 +127,13 @@ test-suite cardano-constitution-test
     , tasty-hunit
     , tasty-json
     , tasty-quickcheck
+
+executable create-json-envelope
+  import:         lang, ghc-version-support, os-support
+  hs-source-dirs: create-json-envelope
+  main-is:        Main.hs
+  build-depends:
+    , base
+    , cardano-api           ^>=8.48
+    , cardano-constitution
+    , plutus-ledger-api

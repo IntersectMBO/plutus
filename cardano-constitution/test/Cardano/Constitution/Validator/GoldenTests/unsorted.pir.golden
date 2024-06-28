@@ -139,14 +139,14 @@
              go ds
      !`$fOrdInteger_$ccompare` : integer -> integer -> Ordering
        = \(eta : integer) (eta : integer) ->
-           ifThenElse
+           Bool_match
+             (ifThenElse {Bool} (equalsInteger eta eta) True False)
              {all dead. Ordering}
-             (equalsInteger eta eta)
              (/\dead -> EQ)
              (/\dead ->
-                ifThenElse
+                Bool_match
+                  (ifThenElse {Bool} (lessThanEqualsInteger eta eta) True False)
                   {all dead. Ordering}
-                  (lessThanEqualsInteger eta eta)
                   (/\dead -> LT)
                   (/\dead -> GT)
                   {all dead. dead})
@@ -174,9 +174,9 @@
    letrec
      !euclid : integer -> integer -> integer
        = \(x : integer) (y : integer) ->
-           ifThenElse
+           Bool_match
+             (ifThenElse {Bool} (equalsInteger 0 y) True False)
              {all dead. integer}
-             (equalsInteger 0 y)
              (/\dead -> x)
              (/\dead -> euclid y (modInteger x y))
              {all dead. dead}
@@ -184,14 +184,14 @@
    letrec
      !unsafeRatio : integer -> integer -> Rational
        = \(n : integer) (d : integer) ->
-           ifThenElse
+           Bool_match
+             (ifThenElse {Bool} (equalsInteger 0 d) True False)
              {all dead. Rational}
-             (equalsInteger 0 d)
              (/\dead -> error {Rational})
              (/\dead ->
-                ifThenElse
+                Bool_match
+                  (ifThenElse {Bool} (lessThanInteger d 0) True False)
                   {all dead. Rational}
-                  (lessThanInteger d 0)
                   (/\dead ->
                      unsafeRatio (subtractInteger 0 n) (subtractInteger 0 d))
                   (/\dead ->
@@ -252,16 +252,24 @@
                        (\(x : integer) (y : integer) ->
                           ifThenElse {Bool} (lessThanInteger x y) False True)
                        (\(x : integer) (y : integer) ->
-                          ifThenElse
+                          Bool_match
+                            (ifThenElse
+                               {Bool}
+                               (lessThanEqualsInteger x y)
+                               True
+                               False)
                             {all dead. integer}
-                            (lessThanEqualsInteger x y)
                             (/\dead -> y)
                             (/\dead -> x)
                             {all dead. dead})
                        (\(x : integer) (y : integer) ->
-                          ifThenElse
+                          Bool_match
+                            (ifThenElse
+                               {Bool}
+                               (lessThanEqualsInteger x y)
+                               True
+                               False)
                             {all dead. integer}
-                            (lessThanEqualsInteger x y)
                             (/\dead -> x)
                             (/\dead -> y)
                             {all dead. dead}))
@@ -284,9 +292,13 @@
                                  ds
                                  {Bool}
                                  (\(n' : integer) (d' : integer) ->
-                                    ifThenElse
+                                    Bool_match
+                                      (ifThenElse
+                                         {Bool}
+                                         (equalsInteger n n')
+                                         True
+                                         False)
                                       {all dead. Bool}
-                                      (equalsInteger n n')
                                       (/\dead ->
                                          ifThenElse
                                            {Bool}
@@ -5191,9 +5203,13 @@
                                       ds
                                       {ParamValue}
                                       (\(k' : integer) (i : ParamValue) ->
-                                         ifThenElse
+                                         Bool_match
+                                           (ifThenElse
+                                              {Bool}
+                                              (equalsInteger k k')
+                                              True
+                                              False)
                                            {all dead. ParamValue}
-                                           (equalsInteger k k')
                                            (/\dead -> i)
                                            (/\dead -> go xs')
                                            {all dead. dead}))
@@ -5231,11 +5247,15 @@
                                             (unConstrData ds))))
                              ~si : pair integer (list data) = unConstrData ds
                            in
-                           ifThenElse
+                           Bool_match
+                             (ifThenElse
+                                {Bool}
+                                (equalsInteger
+                                   5
+                                   (fstPair {integer} {list data} si))
+                                True
+                                False)
                              {all dead. data}
-                             (equalsInteger
-                                5
-                                (fstPair {integer} {list data} si))
                              (/\dead ->
                                 headList
                                   {data}
@@ -5247,9 +5267,9 @@
          ~ds : pair integer (list data) = unConstrData ds
          !x : integer = fstPair {integer} {list data} ds
        in
-       ifThenElse
+       Bool_match
+         (ifThenElse {Bool} (equalsInteger 0 x) True False)
          {all dead. Maybe (List (Tuple2 data data))}
-         (equalsInteger 0 x)
          (/\dead ->
             Just
               {List (Tuple2 data data)}
@@ -5259,9 +5279,9 @@
                        {data}
                        (tailList {data} (sndPair {integer} {list data} ds))))))
          (/\dead ->
-            ifThenElse
+            Bool_match
+              (ifThenElse {Bool} (equalsInteger 2 x) True False)
               {all dead. Maybe (List (Tuple2 data data))}
-              (equalsInteger 2 x)
               (/\dead -> Nothing {List (Tuple2 data data)})
               (/\dead -> error {Maybe (List (Tuple2 data data))})
               {all dead. dead})

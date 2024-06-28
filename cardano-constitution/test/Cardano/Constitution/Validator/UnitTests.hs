@@ -18,7 +18,6 @@ import Helpers.TestBuilders
 import PlutusLedgerApi.V3 as V3
 import PlutusLedgerApi.V3.ArbitraryContexts qualified as V3
 import PlutusTx.Builtins as Tx (lengthOfByteString, serialiseData)
-import PlutusTx.IsData.Class
 import PlutusTx.NonCanonicalRational
 import PlutusTx.Ratio as Tx
 import Test.Tasty
