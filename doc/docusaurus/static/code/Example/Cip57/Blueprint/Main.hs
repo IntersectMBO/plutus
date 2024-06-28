@@ -87,15 +87,15 @@ $(makeIsDataSchemaIndexed ''MyRedeemer [('R1, 0), ('R2, 1)])
 -- BLOCK7
 -- BEGIN generic instances
 
-deriving stock instance (Generic MyParams)
-deriving stock instance (Generic MyRedeemer)
+deriving stock instance Generic MyParams
+deriving stock instance Generic MyRedeemer
 
 -- END generic instances
 -- BLOCK8
 -- BEGIN AsDefinitionId instances
 
-deriving anyclass instance (AsDefinitionId MyParams)
-deriving anyclass instance (AsDefinitionId MyRedeemer)
+deriving anyclass instance AsDefinitionId MyParams
+deriving anyclass instance AsDefinitionId MyRedeemer
 
 -- END AsDefinitionId instances
 -- BLOCK9
