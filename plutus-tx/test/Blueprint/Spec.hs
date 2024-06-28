@@ -21,7 +21,7 @@ import PlutusTx.Blueprint.Definition (AsDefinitionId, Definitions, Unroll, Unrol
                                       Unrollable (..))
 import PlutusTx.Blueprint.Schema (Schema (..))
 import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo)
-import PlutusTx.Builtins (BuiltinData)
+import PlutusTx.Builtins.Internal (BuiltinData, BuiltinList, BuiltinPair, BuiltinUnit)
 import PlutusTx.IsData ()
 
 ----------------------------------------------------------------------------------------------------
@@ -74,6 +74,9 @@ testUnrollNop = Refl
 testUnrollBaz :: Unroll Baz :~: [Baz, Integer]
 testUnrollBaz = Refl
 
+testUnrollListBaz :: Unroll [Baz] :~: [Baz, Integer]
+testUnrollListBaz = Refl
+
 testUnrollZap :: Unroll Zap :~: [Zap, Nop, Integer, Bool]
 testUnrollZap = Refl
 
@@ -91,3 +94,22 @@ definitions = unroll @(UnrollAll '[Foo])
 
 testUnrollDat :: Unroll Dat :~: '[Dat, BuiltinData]
 testUnrollDat = Refl
+
+testUnrollList :: Unroll [Bool] :~: '[Bool]
+testUnrollList = Refl
+
+testUnrollNestedLists :: Unroll [[[Bool]]] :~: '[Bool]
+testUnrollNestedLists = Refl
+
+testUnrollPair :: Unroll (Integer, Bool) :~: '[Bool, Integer]
+testUnrollPair = Refl
+
+testUnrollBuiltinPair :: Unroll (BuiltinPair Integer Bool) :~: '[Bool, Integer]
+testUnrollBuiltinPair = Refl
+
+testUnrollBuiltinList
+  :: Unroll (BuiltinList (BuiltinPair Bool BuiltinUnit)) :~: '[BuiltinUnit, Bool]
+testUnrollBuiltinList = Refl
+
+testUnrollMaybe :: Unroll (Maybe Bool) :~: '[Bool]
+testUnrollMaybe = Refl
