@@ -143,7 +143,7 @@ deBruijnTyWithM h = go
         TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
         TySOP ann tyls -> TySOP ann <$> (traverse . traverse) go tyls
         -- boring non-recursive cases
-        TyBuiltin ann con -> pure $ TyBuiltin ann con
+        TyBuiltin ann someUni -> pure $ TyBuiltin ann someUni
 
 deBruijnTermWithM
     :: forall m uni fun ann. (MonadReader LevelInfo m)
@@ -207,7 +207,7 @@ unDeBruijnTyWithM h = go
       TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
       TySOP ann tyls -> TySOP ann <$> (traverse . traverse) go tyls
       -- boring non-recursive cases
-      TyBuiltin ann con -> pure $ TyBuiltin ann con
+      TyBuiltin ann someUni -> pure $ TyBuiltin ann someUni
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWithM

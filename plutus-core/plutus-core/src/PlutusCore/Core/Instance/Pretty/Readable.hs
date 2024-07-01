@@ -126,7 +126,7 @@ instance (PrettyReadableBy configName tyname, PrettyParens (SomeTypeIn uni)) =>
         TyIFix _ pat arg -> iterAppDocM $ \_ prettyArg -> "ifix" :| map prettyArg [pat, arg]
         (viewTyForall -> Just (args, body)) -> iterTyForallPrettyM args body
         TyForall {} -> error "Panic: 'TyForall' is not covered by 'viewTyForall'"
-        TyBuiltin _ builtin -> lmap _pcrRenderContext $ prettyM builtin
+        TyBuiltin _ someUni -> lmap _pcrRenderContext $ prettyM someUni
         (viewTyLam -> Just (args, body)) -> iterLamAbsPrettyM args body
         TyLam {} -> error "Panic: 'TyLam' is not covered by 'viewTyLam'"
         TySOP _ tls -> iterAppDocM $ \_ prettyArg -> "sop" :| fmap prettyArg tls

@@ -124,7 +124,7 @@ normalTypes = runQuote $ do
         normal = integer
         nonNormal = TyApp () (TyLam () aN (Type ()) neutral) normal
     pure $ testGroup "normal types" [
-          testCase "var" $ Normal.isNormalType neutral @?= True
+          testCase "var" $ Normal.isNormalType @DefaultUni neutral @?= True
 
         , testCase "funNormal" $ Normal.isNormalType (TyFun () normal normal) @?= True
         , testCase "funNotNormal" $ Normal.isNormalType (TyFun () normal nonNormal) @?= False

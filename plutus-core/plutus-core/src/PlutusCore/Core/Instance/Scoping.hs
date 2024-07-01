@@ -47,7 +47,7 @@ instance tyname ~ TyName => EstablishScoping (Type tyname uni) where
     establishScoping (TyVar _ nameDup) = do
         name <- freshenTyName nameDup
         pure $ TyVar (registerFree name) name
-    establishScoping (TyBuiltin _ fun) = pure $ TyBuiltin NotAName fun
+    establishScoping (TyBuiltin _ someUni) = pure $ TyBuiltin NotAName someUni
     establishScoping (TySOP _ tyls) =
         TySOP NotAName <$> (traverse . traverse) establishScoping tyls
 
