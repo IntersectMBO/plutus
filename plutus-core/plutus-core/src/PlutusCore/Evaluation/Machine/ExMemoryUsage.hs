@@ -231,8 +231,24 @@ instance ExMemoryUsage Bool where
     memoryUsage _ = singletonRose 1
     {-# INLINE memoryUsage #-}
 
+-- | Add two 'CostRose's. We don't make this into a 'Semigroup' instance, because there exist
+-- different ways to add two 'CostRose's (e.g. we could optimize the case when one of the roses
+-- contains only one element or we can make the function lazy in the second argument). Here we chose
+-- the version that is most efficient when the first argument is a statically known constant (we
+-- didn't do any benchmarking though, so it may not be the most efficient one) as we need this
+-- below.
+addConstantRose :: CostRose -> CostRose -> CostRose
+addConstantRose (CostRose cost1 forest1) (CostRose cost2 forest2) =
+    CostRose (cost1 + cost2) (forest1 ++ forest2)
+{-# INLINE addConstantRose #-}
+
 instance ExMemoryUsage a => ExMemoryUsage [a] where
-    memoryUsage = CostRose 0 . map memoryUsage
+    memoryUsage = CostRose nilCost . map (addConstantRose consRose . memoryUsage) where
+        -- As per https://wiki.haskell.org/GHC/Memory_Footprint
+        nilCost = 1
+        {-# INLINE nilCost #-}
+        consRose = singletonRose 3
+        {-# INLINE consRose #-}
     {-# INLINE memoryUsage #-}
 
 {- Another naive traversal for size.  This accounts for the number of nodes in
@@ -253,28 +269,16 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
 -}
 instance ExMemoryUsage Data where
     memoryUsage = sizeData where
-        -- The cost of each node of the 'Data' object (in addition to the cost of its content).
-        nodeMem = singletonRose 4
-        {-# INLINE nodeMem #-}
+        dataNodeRose = singletonRose 4
+        {-# INLINE dataNodeRose #-}
 
-        -- Add two 'CostRose's. We don't make this into a 'Semigroup' instance, because there exist
-        -- different ways to add two 'CostRose's (e.g. we could optimize the case when one of the
-        -- roses contains only one element or we can make the function lazy in the second argument).
-        -- Here we chose the version that is most efficient when the first argument is @nodeMem@ (we
-        -- didn't do any benchmarking though, so it may not be the most efficient one) -- we don't
-        -- have any other cases.
-        combine (CostRose cost1 forest1) (CostRose cost2 forest2) =
-            CostRose (cost1 + cost2) (forest1 ++ forest2)
-        {-# INLINE combine #-}
-
-        sizeData d = combine nodeMem $ case d of
+        sizeData d = addConstantRose dataNodeRose $ case d of
             -- TODO: include the size of the tag, but not just yet.  See SCP-3677.
             Constr _ l -> CostRose 0 $ l <&> sizeData
             Map l      -> CostRose 0 $ l >>= \(d1, d2) -> [d1, d2] <&> sizeData
             List l     -> CostRose 0 $ l <&> sizeData
             I n        -> memoryUsage n
             B b        -> memoryUsage b
-
 
 {- Note [Costing constant-size types]
 The memory usage of each of the BLS12-381 types is constant, so we may be able
