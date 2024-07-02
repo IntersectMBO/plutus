@@ -312,6 +312,13 @@ for failure in "${BROKEN_LINKS[@]}"; do
 done
 
 
+echo "Looking for linkchecker"
+if ! command -v linkchecker &> /dev/null; then
+  echo "linkchecker not found"
+  exit 0
+done 
+
+
 echo "Running linkchecker"
 time linkchecker "${OUTPUT_DIR}/index.html" \
   --check-extern \
