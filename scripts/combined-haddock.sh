@@ -316,7 +316,7 @@ echo "Looking for linkchecker"
 if ! command -v linkchecker &> /dev/null; then
   echo "linkchecker not found"
   exit 0
-done 
+fi 
 
 
 echo "Running linkchecker"
