@@ -213,8 +213,7 @@ time linkchecker "${OUTPUT_DIR}/index.html" \
   --check-extern \
   --no-warnings \
   --output failures \
-  --file-output text \
-  "${IGNORE_URL_OPTIONS[@]}"
+  --file-output text 
 
 
 if [[ "$?" != "0" ]]; then 
