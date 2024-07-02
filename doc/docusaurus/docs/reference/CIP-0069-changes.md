@@ -1,5 +1,5 @@
 ---
-sidebar_position: 27
+sidebar_position: 26
 ---
 
 # Understanding CIP-0069 changes
