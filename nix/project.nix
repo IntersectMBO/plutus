@@ -31,6 +31,7 @@ let
         }];
         ghc810.compiler-nix-name = "ghc810";
         ghc98.compiler-nix-name = "ghc98";
+        ghc910.compiler-nix-name = "ghc910";
       };
 
       inputMap = { "https://chap.intersectmbo.org/" = inputs.iogx.inputs.CHaP; };
