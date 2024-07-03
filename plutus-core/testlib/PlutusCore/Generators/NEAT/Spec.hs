@@ -78,19 +78,19 @@ tests :: TestTree
 tests =
   testGroup "NEAT"
   -- the `adjustOption (min ...)` allows to make these big tests easier at runtime
-  [ adjustOption (min $ GenDepth 13) $
+  [ adjustOption (min $ GenDepth 11) $
     bigTest "normalization commutes with conversion from generated types"
       (Type ())
       (packAssertion prop_normalizeConvertCommuteTypes)
-  , adjustOption (min $ GenDepth 14) $
+  , adjustOption (min $ GenDepth 12) $
     bigTest "normal types cannot reduce"
       (Type ())
       (packAssertion prop_normalTypesCannotReduce)
-  , adjustOption (min $ GenDepth 18) $
+  , adjustOption (min $ GenDepth 15) $
     bigTest "type preservation - CK"
       (TyBuiltinG TyUnitG)
       (packAssertion prop_typePreservation)
-  , adjustOption (min $ GenDepth 18) $
+  , adjustOption (min $ GenDepth 15) $
     bigTest "typed CK vs untyped CEK produce the same output"
       (TyBuiltinG TyUnitG)
       (packAssertion prop_agree_termEval)

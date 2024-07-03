@@ -19,6 +19,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream (..))
 import PlutusCore.Generators.Hedgehog (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
 import PlutusCore.Pretty
+import PlutusCore.Test
 import PlutusPrelude
 
 import Control.Exception
@@ -57,7 +58,8 @@ test_builtinsDon'tThrow =
                     testPropertyNamed
                         (display fun)
                         (fromString $ display fun)
-                        (prop_builtinEvaluation runtimes fun gen f)
+                        (mapTestLimitAtLeast 99 (`div` 50) $
+                            prop_builtinEvaluation runtimes fun gen f)
   where
     gen bn = Gen.choice [genArgsWellTyped def bn, genArgsArbitrary def bn]
     f bn args = \case

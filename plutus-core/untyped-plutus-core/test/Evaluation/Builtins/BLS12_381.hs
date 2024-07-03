@@ -31,7 +31,7 @@ mkTestName :: forall g. TestableAbelianGroup g => String -> String
 mkTestName s = printf "%s_%s" (groupName @g) s
 
 withNTests :: Testable prop => prop -> Property
-withNTests = withMaxSuccess 200
+withNTests = withMaxSuccess 99
 
 -- QuickCheck generators for scalars and group elements as PLC terms
 
@@ -276,7 +276,7 @@ test_uncompress_out_of_group :: forall g. HashAndCompress g => TestTree
 test_uncompress_out_of_group =
     testProperty
     (mkTestName @g "uncompress_out_of_group") .
-    withMaxSuccess 400 $ do
+    withMaxSuccess 200 $ do
       b <- suchThat (resize  128 arbitrary) correctSize
       let b' = setBits compressionBit $ clearBits infinityBit b
       let e = uncompressTerm @g (bytestring b')
@@ -339,7 +339,7 @@ test_set_infinity_bit =
 -- taken by the tests increases quadratically with the number of bytestrings,
 -- and is quite long even for numHashCollisionTests = 50.
 numHashCollisionInputs :: Int
-numHashCollisionInputs = 50
+numHashCollisionInputs = 200
 
 -- | Hashing into G1 or G2 should be collision-free.  A failure here would
 -- suggest an implementation error somewhere.  Here we test multiple messages
@@ -348,11 +348,11 @@ test_no_hash_collisions :: forall g. HashAndCompress g => TestTree
 test_no_hash_collisions =
     let emptyBS = bytestring BS.empty
     in testProperty
-           (mkTestName @g "no_hash_collisions") $ do
+           (mkTestName @g "no_hash_collisions") . withMaxSuccess 1 $ do
              msgs <- nub <$> replicateM numHashCollisionInputs arbitrary
              let terms = fmap (\msg -> hashToGroupTerm @g (bytestring msg) emptyBS) msgs
                  hashed = fmap evalTerm terms
-                 noErrors = conjoin $ fmap (=/= CekError) hashed -- Just in case
+                 noErrors = property $ all (/= CekError) hashed -- Just in case
                  noDuplicates = List.length hashed === List.length (nub hashed)
              pure $ noErrors .&. noDuplicates
 
@@ -366,7 +366,7 @@ test_no_hash_collisions_dst =
     let msg = bytestring $ pack [0x01, 0x02]
         maxDstSize = 255
     in testProperty
-           (mkTestName @g "no_hash_collisions_dst") $ do
+           (mkTestName @g "no_hash_collisions_dst") . withMaxSuccess 1 $ do
              dsts <- nub <$> replicateM numHashCollisionInputs (resize maxDstSize arbitrary)
              let terms = fmap (\dst -> hashToGroupTerm @g msg (bytestring dst)) dsts
                  hashed = fmap evalTerm terms

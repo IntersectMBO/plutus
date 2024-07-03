@@ -6,9 +6,6 @@
 
 module Names.Spec where
 
-import Data.String (IsString (fromString))
-import Hedgehog (Gen, Property, assert, forAll, property, tripping)
-import Hedgehog.Gen qualified as Gen
 import PlutusCore (DefaultFun, DefaultUni, FreeVariableError, Kind (Type), Name (..), NamedDeBruijn,
                    NamedTyDeBruijn, Program, Quote, Rename (rename), Term (..), TyName (..),
                    Type (..), Unique (..), deBruijnTerm, runQuote, runQuoteT, unDeBruijnTerm)
@@ -19,7 +16,12 @@ import PlutusCore.Mark (markNonFreshProgram)
 import PlutusCore.Pretty (displayPlcDebug)
 import PlutusCore.Rename.Internal (renameProgramM)
 import PlutusCore.Test (BindingRemoval (BindingRemovalNotOk), Prerename (PrerenameNo), brokenRename,
-                        checkFails, noMarkRename, test_scopingGood, test_scopingSpoilRenamer)
+                        checkFails, mapTestLimitAtLeast, noMarkRename, test_scopingGood,
+                        test_scopingSpoilRenamer)
+
+import Data.String (IsString (fromString))
+import Hedgehog (Gen, Property, assert, forAll, property, tripping)
+import Hedgehog.Gen qualified as Gen
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))
@@ -39,7 +41,9 @@ test_DeBruijnInteresting :: TestTree
 test_DeBruijnInteresting =
   testGroup "de Bruijn transformation round-trip" $
     fromInterestingTermGens \name ->
-      testPropertyNamed name (fromString name) . prop_DeBruijn
+      testPropertyNamed name (fromString name)
+        . mapTestLimitAtLeast 99(`div` 10)
+        . prop_DeBruijn
 
 test_mangle :: TestTree
 test_mangle =

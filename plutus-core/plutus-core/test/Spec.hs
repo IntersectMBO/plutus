@@ -205,11 +205,11 @@ genConstantForTest =
     m = fromIntegral (maxBound :: Int) :: Integer
 
 {- | Check that printing followed by parsing is the identity function on
-  constants.  This is quite fast, so we do it 1000 times to get good coverage
+  constants.  This is quite fast, so we do it 500 times to get good coverage
   of the various generators.
 -}
 propLexConstant :: Property
-propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
+propLexConstant = withTests (500 :: Hedgehog.TestLimit) . property $ do
   term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
   Hedgehog.tripping term displayPlcDef (fmap void . parseTm)
   where

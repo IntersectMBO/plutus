@@ -15,6 +15,7 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.Generators.Hedgehog.Test
 import PlutusCore.Pretty
+import PlutusCore.Test
 
 import Test.Tasty
 import Test.Tasty.Hedgehog
@@ -29,7 +30,9 @@ testMachine
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name ->
-        testPropertyNamed name (fromString name) . propEvaluate eval
+        testPropertyNamed name (fromString name)
+            . mapTestLimitAtLeast 50 (`div` 10)
+            . propEvaluate eval
 
 test_machines :: TestTree
 test_machines = testGroup

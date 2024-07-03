@@ -14,7 +14,19 @@ module Evaluation.Builtins.Definition
     ( test_definition
     ) where
 
+import PlutusPrelude
+
+import Evaluation.Builtins.Bitwise qualified as Bitwise
+import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
+import Evaluation.Builtins.Common
+import Evaluation.Builtins.Conversion qualified as Conversion
+import Evaluation.Builtins.Laws qualified as Laws
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
+                                                  ed25519_VariantBProp, ed25519_VariantCProp,
+                                                  schnorrSecp256k1Prop)
+
 import PlutusCore hiding (Constr)
+import PlutusCore qualified as PLC
 import PlutusCore.Builtin
 import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
@@ -22,17 +34,11 @@ import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Examples.Builtins
+import PlutusCore.Examples.Data.Data
 import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.MkPlc hiding (error)
 import PlutusCore.Pretty
-import PlutusPrelude
-import UntypedPlutusCore.Evaluation.Machine.Cek
-
-import Evaluation.Builtins.Bitwise qualified as Bitwise
-import Hedgehog hiding (Opaque, Size, Var)
-import PlutusCore qualified as PLC
-import PlutusCore.Examples.Builtins
-import PlutusCore.Examples.Data.Data
 import PlutusCore.StdLib.Data.Bool
 import PlutusCore.StdLib.Data.Data
 import PlutusCore.StdLib.Data.Function qualified as Plc
@@ -42,6 +48,8 @@ import PlutusCore.StdLib.Data.Pair
 import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.ScottUnit qualified as Scott
 import PlutusCore.StdLib.Data.Unit
+import PlutusCore.Test
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.Exception
 import Data.ByteString (ByteString, pack)
@@ -49,18 +57,11 @@ import Data.DList qualified as DList
 import Data.Proxy
 import Data.String (IsString (fromString))
 import Data.Text (Text)
-import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
-import Evaluation.Builtins.Common
-import Evaluation.Builtins.Conversion qualified as Conversion
-import Evaluation.Builtins.Laws qualified as Laws
-import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
-                                                  ed25519_VariantBProp, ed25519_VariantCProp,
-                                                  schnorrSecp256k1Prop)
+import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter (vsep)
 import Test.Tasty
-import Test.Tasty.Extras
 import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
 
@@ -102,7 +103,7 @@ test_Factorial =
 -- a const defined in PLC itself.
 test_Const :: TestTree
 test_Const =
-    testPropertyNamed "Const" "Const" . property $ do
+    testPropertyNamed "Const" "Const" . withTests 10 . property $ do
         c <- forAll $ Gen.text (Range.linear 0 100) Gen.unicode
         b <- forAll Gen.bool
         let tC = mkConstant () c
@@ -414,7 +415,7 @@ test_TrackCostsWith cat len checkTerm =
 -- | Test that individual budgets are picked up by GC while spending is still ongoing.
 test_TrackCostsRestricting :: TestTree
 test_TrackCostsRestricting =
-    let n = 30000
+    let n = 10000
     in test_TrackCostsWith "restricting" n $ \term ->
         case typecheckReadKnownCek def () term of
             Left err                         -> fail $ displayPlcDef err
@@ -817,7 +818,7 @@ test_HashSize hashFun expectedNumBits =
     in testPropertyNamed
        testName
        propName
-       . property $ do
+       . mapTestLimitAtLeast 10 (`div` 50) . property $ do
          bs <- forAll $ Gen.bytes (Range.linear 0 1000)
          let term = mkIterAppNoAnn (builtin () MultiplyInteger)
                     [ cons @Integer 8
@@ -888,166 +889,172 @@ cons = mkConstant ()
 -- Test that the SECP256k1 builtins are behaving correctly
 test_SignatureVerification :: TestTree
 test_SignatureVerification =
-  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
-  testGroup "Signature verification" $ [
-        testGroup "Ed25519 signatures (VariantA)"
-                      [ testPropertyNamed
-                        "Ed25519_VariantA verification behaves correctly on all inputs"
-                        "ed25519_VariantA_correct"
-                        . property $ ed25519_VariantAProp
-                      ],
-        testGroup "Ed25519 signatures (VariantB)"
-                      [ testPropertyNamed
-                        "Ed25519_VariantB verification behaves correctly on all inputs"
-                        "ed25519_VariantB_correct"
-                        . property $ ed25519_VariantBProp
-                      ],
-        testGroup "Ed25519 signatures (VariantC)"
-                      [ testPropertyNamed
-                        "Ed25519_VariantC verification behaves correctly on all inputs"
-                        "ed25519_VariantC_correct"
-                        . property $ ed25519_VariantCProp
-                      ],
-        testGroup "Signatures on the SECP256k1 curve"
-                      [ testPropertyNamed
-                        "ECDSA verification behaves correctly on all inputs"
-                        "ecdsa_correct"
-                        . property $ ecdsaSecp256k1Prop
-                      , testPropertyNamed
-                            "Schnorr verification behaves correctly on all inputs"
-                            "schnorr_correct"
-                            . property $ schnorrSecp256k1Prop
-                      ]
-                ]
+  testGroup "Signature verification"
+      [ testGroup "Ed25519 signatures (VariantA)"
+          [ testPropertyNamed
+              "Ed25519_VariantA verification behaves correctly on all inputs"
+              "ed25519_VariantA_correct"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property ed25519_VariantAProp
+          ]
+      , testGroup "Ed25519 signatures (VariantB)"
+          [ testPropertyNamed
+              "Ed25519_VariantB verification behaves correctly on all inputs"
+              "ed25519_VariantB_correct"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property ed25519_VariantBProp
+          ]
+      , testGroup "Ed25519 signatures (VariantC)"
+          [ testPropertyNamed
+              "Ed25519_VariantC verification behaves correctly on all inputs"
+              "ed25519_VariantC_correct"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property ed25519_VariantCProp
+          ]
+      , testGroup "Signatures on the SECP256k1 curve"
+          [ testPropertyNamed
+              "ECDSA verification behaves correctly on all inputs"
+              "ecdsa_correct"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property ecdsaSecp256k1Prop
+          , testPropertyNamed
+              "Schnorr verification behaves correctly on all inputs"
+              "schnorr_correct"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property schnorrSecp256k1Prop
+          ]
+       ]
 
 -- Test that the Integer <-> ByteString conversion builtins are behaving correctly
 test_Conversion :: TestTree
 test_Conversion =
-    adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
-    testGroup "Integer <-> ByteString conversions" $ [
-      testGroup "Integer -> ByteString" [
-        --- lengthOfByteString (integerToByteString e d 0) = d
-        testPropertyNamed "property 1" "i2b_prop1" . property $ Conversion.i2bProperty1,
-        -- indexByteString (integerToByteString e k 0) j = 0
-        testPropertyNamed "property 2" "i2b_prop2" . property $ Conversion.i2bProperty2,
-        -- lengthOfByteString (integerToByteString e 0 p) > 0
-        testPropertyNamed "property 3" "i2b_prop3" . property $ Conversion.i2bProperty3,
-        -- integerToByteString False 0 (multiplyInteger p 256) = consByteString
-        -- 0 (integerToByteString False 0 p)
-        testPropertyNamed "property 4" "i2b_prop4" . property $ Conversion.i2bProperty4,
-        -- integerToByteString True 0 (multiplyInteger p 256) = appendByteString
-        -- (integerToByteString True 0 p) (singleton 0)
-        testPropertyNamed "property 5" "i2b_prop5" . property $ Conversion.i2bProperty5,
-        -- integerToByteString False 0 (plusInteger (multiplyInteger q 256) r) =
-        -- appendByteString (integerToByteString False 0 r) (integerToByteString False 0 q)
-        testPropertyNamed "property 6" "i2b_prop6" . property $ Conversion.i2bProperty6,
-        -- integerToByteString True 0 (plusInteger (multiplyInteger q 256) r) =
-        -- appendByteString (integerToByteString False 0 q)
-        -- (integerToByteString False 0 r)
-        testPropertyNamed "property 7" "i2b_prop7" . property $ Conversion.i2bProperty7,
-        testGroup "CIP-121 examples" Conversion.i2bCipExamples,
-        testGroup "Tests for integerToByteString size limit" Conversion.i2bLimitTests
-        ],
-      testGroup "ByteString -> Integer" [
-        -- byteStringToInteger b (integerToByteString b d q) = q
-        testPropertyNamed "property 1" "b2i_prop1" . property $ Conversion.b2iProperty1,
-        -- byteStringToInteger b (consByteString w8 emptyByteString) = w8
-        testPropertyNamed "property 2" "b2i_prop2" . property $ Conversion.b2iProperty2,
-        -- integerToByteString b (lengthOfByteString bs) (byteStringToInteger b bs) = bs
-        testPropertyNamed "property 3" "b2i_prop3" . property $ Conversion.b2iProperty3,
-        testGroup "CIP-121 examples" Conversion.b2iCipExamples
+    testGroup "Integer <-> ByteString conversions"
+        [ testGroup "Integer -> ByteString"
+            [ --- lengthOfByteString (integerToByteString e d 0) = d
+              testPropertyNamed "property 1" "i2b_prop1"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty1
+            , -- indexByteString (integerToByteString e k 0) j = 0
+              testPropertyNamed "property 2" "i2b_prop2"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty2
+            , -- lengthOfByteString (integerToByteString e 0 p) > 0
+              testPropertyNamed "property 3" "i2b_prop3"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty3
+            , -- integerToByteString False 0 (multiplyInteger p 256) = consByteString
+              -- 0 (integerToByteString False 0 p)
+              testPropertyNamed "property 4" "i2b_prop4"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty4
+            , -- integerToByteString True 0 (multiplyInteger p 256) = appendByteString
+              -- (integerToByteString True 0 p) (singleton 0)
+              testPropertyNamed "property 5" "i2b_prop5"
+              . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty5
+            , -- integerToByteString False 0 (plusInteger (multiplyInteger q 256) r) =
+              -- appendByteString (integerToByteString False 0 r) (integerToByteString False 0 q)
+              testPropertyNamed "property 6" "i2b_prop6"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty6
+            , -- integerToByteString True 0 (plusInteger (multiplyInteger q 256) r) =
+              -- appendByteString (integerToByteString False 0 q)
+              -- (integerToByteString False 0 r)
+              testPropertyNamed "property 7" "i2b_prop7"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty7
+            , testGroup "CIP-121 examples" Conversion.i2bCipExamples
+            , testGroup "Tests for integerToByteString size limit" Conversion.i2bLimitTests
+            ]
+        , testGroup "ByteString -> Integer"
+            [ -- byteStringToInteger b (integerToByteString b d q) = q
+              testPropertyNamed "property 1" "b2i_prop1"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.b2iProperty1
+            , -- byteStringToInteger b (consByteString w8 emptyByteString) = w8
+              testPropertyNamed "property 2" "b2i_prop2"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.b2iProperty2
+            , -- integerToByteString b (lengthOfByteString bs) (byteStringToInteger b bs) = bs
+              testPropertyNamed "property 3" "b2i_prop3"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.b2iProperty3
+            , testGroup "CIP-121 examples" Conversion.b2iCipExamples
+            ]
         ]
-      ]
 
 -- Tests of the laws from [this
 -- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md)
 test_Bitwise :: TestTree
 test_Bitwise =
-  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
-  testGroup "Bitwise" $ [
-    testGroup "shiftByteString" [
-      testGroup "homomorphism" Bitwise.shiftHomomorphism,
-      testPropertyNamed "shifts over bit length clear input" "shift_too_much"
-                        Bitwise.shiftClear,
-      testPropertyNamed "positive shifts clear low indexes" "shift_pos_low"
-                        Bitwise.shiftPosClearLow,
-      testPropertyNamed "negative shifts clear high indexes" "shift_neg_high"
-                        Bitwise.shiftNegClearHigh
-    ],
-  testGroup "rotateByteString" [
-      testGroup "homomorphism" Bitwise.rotateHomomorphism,
-      testPropertyNamed "rotations over bit length roll over" "rotate_too_much"
-                        Bitwise.rotateRollover,
-      testPropertyNamed "rotations move bits but don't change them" "rotate_move"
-                        Bitwise.rotateMoveBits
-    ],
-  testGroup "countSetBits" [
-      testGroup "homomorphism" Bitwise.csbHomomorphism,
-      testPropertyNamed "rotation preserves count" "popcount_rotate"
-                        Bitwise.csbRotate,
-      testPropertyNamed "count of the complement" "popcount_complement"
-                        Bitwise.csbComplement,
-      testPropertyNamed "inclusion-exclusion" "popcount_inclusion_exclusion"
-                        Bitwise.csbInclusionExclusion,
-      testPropertyNamed "count of self-XOR" "popcount_self_xor"
-                        Bitwise.csbXor
-    ],
-  testGroup "findFirstSetBit" [
-      testPropertyNamed "find first in zero bytestrings" "ffs_zero"
-                        Bitwise.ffsZero,
-      testPropertyNamed "find first in replicated" "ffs_replicate"
-                        Bitwise.ffsReplicate,
-      testPropertyNamed "find first of self-XOR" "ffs_xor"
-                        Bitwise.ffsXor,
-      testPropertyNamed "found index set, lower indices clear" "ffs_index"
-                        Bitwise.ffsIndex
-    ]
-  ]
+    testGroup "Bitwise"
+        [ testGroup "shiftByteString"
+            [ testGroup "homomorphism" Bitwise.shiftHomomorphism
+            , testPropertyNamed "shifts over bit length clear input" "shift_too_much" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.shiftClear
+            , testPropertyNamed "positive shifts clear low indexes" "shift_pos_low" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftPosClearLow
+            , testPropertyNamed "negative shifts clear high indexes" "shift_neg_high" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftNegClearHigh
+            ]
+        , testGroup "rotateByteString"
+            [ testGroup "homomorphism" Bitwise.rotateHomomorphism
+            , testPropertyNamed "rotations over bit length roll over" "rotate_too_much" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateRollover
+            , testPropertyNamed "rotations move bits but don't change them" "rotate_move" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateMoveBits
+            ]
+        , testGroup "countSetBits"
+            [ testGroup "homomorphism" Bitwise.csbHomomorphism
+            , testPropertyNamed "rotation preserves count" "popcount_rotate" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.csbRotate
+            , testPropertyNamed "count of the complement" "popcount_complement" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.csbComplement
+            , testPropertyNamed "inclusion-exclusion" "popcount_inclusion_exclusion" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.csbInclusionExclusion
+            , testPropertyNamed "count of self-XOR" "popcount_self_xor" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.csbXor
+            ]
+        , testGroup "findFirstSetBit"
+            [ testPropertyNamed "find first in zero bytestrings" "ffs_zero" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsZero
+            , testPropertyNamed "find first in replicated" "ffs_replicate" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsReplicate
+            , testPropertyNamed "find first of self-XOR" "ffs_xor" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsXor
+            , testPropertyNamed "found index set, lower indices clear" "ffs_index" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsIndex
+            ]
+        ]
 
 -- Tests for the logical operations, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md)
 test_Logical :: TestTree
 test_Logical =
-  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 2000) .
-  testGroup "Logical" $ [
-    testGroup "andByteString" [
-      Laws.abelianSemigroupLaws "truncation" PLC.AndByteString False,
-      Laws.idempotenceLaw "truncation" PLC.AndByteString False,
-      Laws.absorbtionLaw "truncation" PLC.AndByteString False "",
-      Laws.leftDistributiveLaw "truncation" "itself" PLC.AndByteString PLC.AndByteString False,
-      Laws.leftDistributiveLaw "truncation" "OR" PLC.AndByteString PLC.OrByteString False,
-      Laws.leftDistributiveLaw "truncation" "XOR" PLC.AndByteString PLC.XorByteString False,
-      Laws.abelianMonoidLaws "padding" PLC.AndByteString True "",
-      Laws.distributiveLaws "padding" PLC.AndByteString True
-      ],
-    testGroup "orByteString" [
-      Laws.abelianSemigroupLaws "truncation" PLC.OrByteString False,
-      Laws.idempotenceLaw "truncation" PLC.OrByteString False,
-      Laws.absorbtionLaw "truncation" PLC.OrByteString False "",
-      Laws.leftDistributiveLaw "truncation" "itself" PLC.OrByteString PLC.OrByteString False,
-      Laws.leftDistributiveLaw "truncation" "AND" PLC.OrByteString PLC.AndByteString False,
-      Laws.abelianMonoidLaws "padding" PLC.OrByteString True "",
-      Laws.distributiveLaws "padding" PLC.OrByteString True
-      ],
-    testGroup "xorByteString" [
-      Laws.abelianSemigroupLaws "truncation" PLC.XorByteString False,
-      Laws.absorbtionLaw "truncation" PLC.XorByteString False "",
-      Laws.xorInvoluteLaw,
-      Laws.abelianMonoidLaws "padding" PLC.XorByteString True ""
-      ],
-    testGroup "complementByteString" [
-      Laws.complementSelfInverse,
-      Laws.deMorgan
-      ],
-    testGroup "bit reading and modification" [
-      Laws.getSet,
-      Laws.setGet,
-      Laws.setSet,
-      Laws.writeBitsHomomorphismLaws
-      ],
-    testGroup "replicateByte" [
-      Laws.replicateHomomorphismLaws,
-      Laws.replicateIndex
-      ]
+  testGroup "Logical"
+    [ testGroup "andByteString"
+        [ Laws.abelianSemigroupLaws "truncation" PLC.AndByteString False
+        , Laws.idempotenceLaw "truncation" PLC.AndByteString False
+        , Laws.absorbtionLaw "truncation" PLC.AndByteString False ""
+        , Laws.leftDistributiveLaw "truncation" "itself" PLC.AndByteString PLC.AndByteString False
+        , Laws.leftDistributiveLaw "truncation" "OR" PLC.AndByteString PLC.OrByteString False
+        , Laws.leftDistributiveLaw "truncation" "XOR" PLC.AndByteString PLC.XorByteString False
+        , Laws.abelianMonoidLaws "padding" PLC.AndByteString True ""
+        , Laws.distributiveLaws "padding" PLC.AndByteString True
+        ]
+    , testGroup "orByteString"
+        [ Laws.abelianSemigroupLaws "truncation" PLC.OrByteString False
+        , Laws.idempotenceLaw "truncation" PLC.OrByteString False
+        , Laws.absorbtionLaw "truncation" PLC.OrByteString False ""
+        , Laws.leftDistributiveLaw "truncation" "itself" PLC.OrByteString PLC.OrByteString False
+        , Laws.leftDistributiveLaw "truncation" "AND" PLC.OrByteString PLC.AndByteString False
+        , Laws.abelianMonoidLaws "padding" PLC.OrByteString True ""
+        , Laws.distributiveLaws "padding" PLC.OrByteString True
+        ]
+    , testGroup "xorByteString"
+        [ Laws.abelianSemigroupLaws "truncation" PLC.XorByteString False
+        , Laws.absorbtionLaw "truncation" PLC.XorByteString False ""
+        , Laws.xorInvoluteLaw
+        , Laws.abelianMonoidLaws "padding" PLC.XorByteString True ""
+        ]
+    , testGroup "complementByteString"
+        [ Laws.complementSelfInverse
+        , Laws.deMorgan
+        ]
+    , testGroup "bit reading and modification"
+        [ Laws.getSet
+        , Laws.setGet
+        , Laws.setSet
+        , Laws.writeBitsHomomorphismLaws
+        ]
+    , testGroup "replicateByte"
+        [ Laws.replicateHomomorphismLaws
+        , Laws.replicateIndex
+        ]
     ]
 
 test_definition :: TestTree

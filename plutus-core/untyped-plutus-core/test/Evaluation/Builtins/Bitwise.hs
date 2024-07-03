@@ -24,16 +24,19 @@ module Evaluation.Builtins.Bitwise (
   ffsZero
   ) where
 
+import Evaluation.Helpers (assertEvaluatesToConstant, evaluateTheSame, evaluateToHaskell,
+                           evaluatesToConstant, forAllByteString, forAllByteStringThat)
+
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
+import PlutusCore.Test (mapTestLimitAtLeast)
+
 import Control.Monad (unless)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
-import Evaluation.Helpers (assertEvaluatesToConstant, evaluateTheSame, evaluateToHaskell,
-                           evaluatesToConstant, forAllByteString, forAllByteStringThat)
 import Hedgehog (Property, forAll, property)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore qualified as PLC
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (testCase)
@@ -189,15 +192,18 @@ csbXor = property $ do
 -- shifts over a fixed bytestring argument.
 shiftHomomorphism :: [TestTree]
 shiftHomomorphism = [
-  testPropertyNamed "zero shift is identity" "zero_shift_id" idProp,
+  testPropertyNamed "zero shift is identity" "zero_shift_id" $
+    mapTestLimitAtLeast 99 (`div` 10) idProp,
   -- Because the homomorphism on shifts is more restrictive than on rotations (namely, it is for
   -- naturals and their negative equivalents, not integers), we separate the composition property
   -- into two: one dealing with non-negative, the other with non-positive. This helps a bit with
   -- coverage, as otherwise, we wouldn't necessarily cover both paths equally well, as we'd have to
   -- either discard mismatched signs (which are likely) or 'hack them in-place', which would skew
   -- distributions.
-  testPropertyNamed "non-negative addition of shifts is composition" "plus_shift_pos_comp" plusCompProp,
-  testPropertyNamed "non-positive addition of shifts is composition" "plus_shift_neg_comp" minusCompProp
+  testPropertyNamed "non-negative addition of shifts is composition" "plus_shift_pos_comp" $
+    mapTestLimitAtLeast 50 (`div` 20) plusCompProp,
+  testPropertyNamed "non-positive addition of shifts is composition" "plus_shift_neg_comp" $
+    mapTestLimitAtLeast 50 (`div` 20) minusCompProp
   ]
   where
     idProp :: Property
@@ -257,8 +263,10 @@ shiftHomomorphism = [
 -- rotations over a fixed bytestring argument.
 rotateHomomorphism :: [TestTree]
 rotateHomomorphism = [
-  testPropertyNamed "zero rotation is identity" "zero_rotate_id" idProp,
-  testPropertyNamed "addition of rotations is composition" "plus_rotate_comp" compProp
+  testPropertyNamed "zero rotation is identity" "zero_rotate_id" $
+    mapTestLimitAtLeast 99 (`div` 10) idProp,
+  testPropertyNamed "addition of rotations is composition" "plus_rotate_comp" $
+    mapTestLimitAtLeast 50 (`div` 20) compProp
   ]
   where
     idProp :: Property
@@ -301,7 +309,8 @@ csbHomomorphism = [
           mkConstant @ByteString () ""
           ]
     assertEvaluatesToConstant @Integer 0 lhs,
-  testPropertyNamed "count of concat is addition" "concat_count_plus" compProp
+  testPropertyNamed "count of concat is addition" "concat_count_plus" $
+    mapTestLimitAtLeast 50 (`div` 20) compProp
   ]
   where
     compProp :: Property

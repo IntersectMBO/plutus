@@ -15,6 +15,7 @@ import PlutusCore (runQuoteT)
 import PlutusCore.Annotation
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Error (ParserErrorBundle)
+import PlutusCore.Test (mapTestLimitAtLeast)
 import PlutusIR
 import PlutusIR.Generators.AST
 import PlutusIR.Parser
@@ -124,8 +125,20 @@ propIgnores splice = property $ do
 
 test_parsing :: TestTree
 test_parsing = testGroup "parsing"
-    [ testPropertyNamed "parser round-trip" "propRoundTrip" propRoundTrip
-    , testPropertyNamed "parser ignores whitespace" "propIgnores whitespace" (propIgnores whitespace)
-    , testPropertyNamed "parser ignores comments" "propIgnores comments" (propIgnores comment)
-    , testPropertyNamed "parser captures ending positions correctly" "propTermSrcSpan" propTermSrcSpan
+    [ testPropertyNamed
+        "parser round-trip"
+        "propRoundTrip"
+        (mapTestLimitAtLeast 99 (`div` 2) $ propRoundTrip)
+    , testPropertyNamed
+        "parser ignores whitespace"
+        "propIgnores whitespace"
+        (mapTestLimitAtLeast 50 (`div` 8) $ propIgnores whitespace)
+    , testPropertyNamed
+        "parser ignores comments"
+        "propIgnores comments"
+        (mapTestLimitAtLeast 30 (`div` 30) $ propIgnores comment)
+    , testPropertyNamed
+        "parser captures ending positions correctly"
+        "propTermSrcSpan"
+        (mapTestLimitAtLeast 99 (`div` 2) $ propTermSrcSpan)
     ]

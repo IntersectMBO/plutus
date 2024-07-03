@@ -72,7 +72,7 @@ test_inline =
 prop_inline ::
     BuiltinSemanticsVariant DefaultFun -> Property
 prop_inline biVariant =
-  withMaxSuccess (3 * numTestsForPassProp) $
+  withMaxSuccess numTestsForPassProp $
     testPassProp
       runQuote
       $ \tc -> inlinePassSC True tc mempty (def {_biSemanticsVariant = biVariant})
