@@ -26,6 +26,7 @@ open Eq using (_≡_; refl; isEquivalence; cong)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Relation.Nullary.Product using (_×-dec_)
 open import Data.Product using (_,_)
+open import Data.List using (List; _∷_; [])
 ```
 ## Translation Relation
 
@@ -57,9 +58,9 @@ expect anything else to be unaltered.
 This translation matches on exactly one, very specific pattern. Using parameterised Views we can
 detect that case.
 ```
-data CoCCase (X : Set) : Pred X where
-  isCoCCase : ∀ (b : X ⊢) (tn fn : ℕ)  (tt ft alts : List (X ⊢)) → CoCCase X (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
-isCoCCase? : {X : Set} → Decidable (CoCCase X)
+data CoCCase {X : Set} : Pred where
+  isCoCCase : ∀ (b : X ⊢) (tn fn : ℕ)  (tt ft alts : List (X ⊢)) → CoCCase {X} (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
+isCoCCase? : {X : Set} → Decidable (CoCCase {X})
 isCoCCase? t with (isCase? (isApp? (isApp? (isApp? (isForce? (isBuiltin?)) isTerm?) (isConstr? (allTerms?))) (isConstr? (allTerms?))) (allTerms?)) t
 ... | yes (iscase (isapp (isapp (isapp (isforce (isbuiltin ite)) (isterm b)) (isconstr tn (allterms tt))) (isconstr fn (allterms ft))) (allterms alts)) with ite ≟ ifThenElse
 ... | yes refl = yes (isCoCCase b tn fn tt ft alts)
@@ -92,6 +93,7 @@ This must traverse the ASTs applying the constructors from the transition relati
 the structure is unchanged we still need to check the sub-components.
 
 ```
+{-
 _⊢̂_⊳̂?_ : {X : Set} {{ _ : DecEq X }} → (ast : X ⊢) → (ast' : X ⊢) → Dec (X ⊢̂ ast ⊳̂ ast')
 ```
 First, handle all the cases where both sides of the translation are the same structure. Only the Case of Case
@@ -141,6 +143,7 @@ _⊢̂_⊳̂?_ ast ast' with isCoCCase? ast ×-dec isCoCForce? ast'
 ...         | yes refl   | yes refl   | yes refl   | yes pw-alts | no tt≠tt'     | _              = no λ { (caseofcase _ _ _ _ _ _ x _ ) → tt≠tt' x }
 ...         | yes refl   | yes refl   | yes refl   | yes pw-alts | yes ps-tt   | no ft≠ft'     = no λ { (caseofcase _ _ _ _ _ _ _ x) → ft≠ft' x }
 ...         | yes refl   | yes refl   | yes refl   | yes pw-alts | yes pw-tt  | yes pw-ft   = yes (caseofcase b tn fn fn fn pw-alts pw-tt pw-ft)
+-}
 
 ```
 
