@@ -41,8 +41,8 @@ ListPred = {X : Set} → List (X ⊢) → Set
 --Decidable : Pred → Set
 --Decidable P = {X : Set} (t : X ⊢) → Dec (P t)
 
-data isVar { X : Set } : Pred where
-  isvar : (v : X) → isVar (` v)
+data isVar : Pred where
+  isvar : { X : Set } (v : X) → isVar (` v)
 isVar? : {X : Set} → Decidable (isVar {X})
 isVar? (` x) = yes (isvar x)
 isVar? (ƛ x) = no λ ()
@@ -55,9 +55,9 @@ isVar? (case x ts) = no (λ ())
 isVar? (builtin b) = no (λ ())
 isVar? error = no (λ ())
 
-data isLambda {X : Set} (P : Pred) : Pred where
-  islambda : {t : ((Maybe X) ⊢)} → P t → isLambda {X} P (ƛ t)
-isLambda? : {X : Set} → {P : Pred} → (Decidable P) → Decidable (isLambda {X} P)
+data isLambda (P : Pred) : Pred where
+  islambda : {X : Set} {t : ((Maybe X) ⊢)} → P t → isLambda P (ƛ t)
+isLambda? : {X : Set} {P : Pred} → ({X : Set} → Decidable (P {X})) → Decidable (isLambda P {X})
 isLambda? isP? (` x) = no λ ()
 isLambda? isP? (ƛ t) with isP? t
 ...                                | no ¬p = no λ { (islambda x) → ¬p x}
@@ -71,138 +71,138 @@ isLambda? isP? (case t ts) = no (λ ())
 isLambda? isP? (_⊢.builtin b) = no (λ ())
 isLambda? isP? _⊢.error = no (λ ())
 
-data isApp {X : Set} (P Q : Pred) : Pred where
-  isapp : {l r : (X ⊢)} → P l → Q r → isApp P Q (l · r)
-isApp? : {X : Set} → {P Q : Pred} → Decidable (P {X}) → Decidable (Q {X}) → Decidable (isApp P Q)
-isApp? isP? isQ? (` x) = no (λ ())
-isApp? isP? isQ? (ƛ t) = no (λ ())
-isApp? isP? isQ? (t · t₁) with (isP? t) ×-dec (isQ? t₁)
-...                                    | no ¬p = no λ { (isapp x x₁) → ¬p (x , x₁)} 
-...                                    | yes (p , q) = yes (isapp p q)
-isApp? isP? isQ? (force t) = no (λ ())
-isApp? isP? isQ? (delay t) = no (λ ())
-isApp? isP? isQ? (con x) = no (λ ())
-isApp? isP? isQ? (constr i xs) = no (λ ())
-isApp? isP? isQ? (case t ts) = no (λ ())
-isApp? isP? isQ? (builtin b) = no (λ ())
-isApp? isP? isQ? error = no (λ ())
+-- data isApp (P Q : Pred) : Pred where
+--   isapp : {X : Set} {l r : (X ⊢)} → P l → Q r → isApp P Q (l · r)
+-- isApp? : {X : Set} → {P Q : Pred} → Decidable (P {X}) → Decidable (Q {X}) → Decidable (isApp P Q)
+-- isApp? isP? isQ? (` x) = no (λ ())
+-- isApp? isP? isQ? (ƛ t) = no (λ ())
+-- isApp? isP? isQ? (t · t₁) with (isP? t) ×-dec (isQ? t₁)
+-- ...                                    | no ¬p = no λ { (isapp x x₁) → ¬p (x , x₁)}
+-- ...                                    | yes (p , q) = yes (isapp p q)
+-- isApp? isP? isQ? (force t) = no (λ ())
+-- isApp? isP? isQ? (delay t) = no (λ ())
+-- isApp? isP? isQ? (con x) = no (λ ())
+-- isApp? isP? isQ? (constr i xs) = no (λ ())
+-- isApp? isP? isQ? (case t ts) = no (λ ())
+-- isApp? isP? isQ? (builtin b) = no (λ ())
+-- isApp? isP? isQ? error = no (λ ())
 
-data isForce {X : Set} (P : Pred) : Pred where
-  isforce : {t : (X ⊢)} → P t → isForce P (force t)
-isForce? : {X : Set} → {P : Pred} → Decidable (P {X}) → Decidable (isForce P)
-isForce? isP? (` x) = no (λ ())
-isForce? isP? (ƛ t) = no (λ ())
-isForce? isP? (t · t₁) = no (λ ())
-isForce? isP? (force t) with isP? t
-...                                  | no ¬p = no λ { (isforce x) → ¬p x} 
-...                                  | yes p = yes (isforce p)
-isForce? isP? (delay t) = no (λ ())
-isForce? isP? (con x) = no (λ ())
-isForce? isP? (constr i xs) = no (λ ())
-isForce? isP? (case t ts) = no (λ ())
-isForce? isP? (builtin b) = no (λ ())
-isForce? isP? error = no (λ ())
+-- data isForce {X : Set} (P : Pred) : Pred where
+--   isforce : {t : (X ⊢)} → P t → isForce P (force t)
+-- isForce? : {X : Set} → {P : Pred} → Decidable (P {X}) → Decidable (isForce P)
+-- isForce? isP? (` x) = no (λ ())
+-- isForce? isP? (ƛ t) = no (λ ())
+-- isForce? isP? (t · t₁) = no (λ ())
+-- isForce? isP? (force t) with isP? t
+-- ...                                  | no ¬p = no λ { (isforce x) → ¬p x}
+-- ...                                  | yes p = yes (isforce p)
+-- isForce? isP? (delay t) = no (λ ())
+-- isForce? isP? (con x) = no (λ ())
+-- isForce? isP? (constr i xs) = no (λ ())
+-- isForce? isP? (case t ts) = no (λ ())
+-- isForce? isP? (builtin b) = no (λ ())
+-- isForce? isP? error = no (λ ())
 
 
-data isDelay {X : Set} (P : Pred) : Pred where
-  isdelay : {t : (X ⊢)} → P t → isDelay P (delay t)
-isDelay? : {X : Set} → {P : Pred} → Decidable (P {X}) → Decidable (isDelay P)
-isDelay? isP? (` x) = no (λ ())
-isDelay? isP? (ƛ t) = no (λ ())
-isDelay? isP? (t · t₁) = no (λ ())
-isDelay? isP? (force t) = no (λ ())
-isDelay? isP? (delay t) with isP? t
-...                                  | yes p = yes (isdelay p)
-...                                  | no ¬p = no λ { (isdelay x) → ¬p x }
-isDelay? isP? (con x) = no (λ ())
-isDelay? isP? (constr i xs) = no (λ ())
-isDelay? isP? (case t ts) = no (λ ())
-isDelay? isP? (builtin b) = no (λ ())
-isDelay? isP? error = no (λ ())
+-- data isDelay {X : Set} (P : Pred) : Pred where
+--   isdelay : {t : (X ⊢)} → P t → isDelay P (delay t)
+-- isDelay? : {X : Set} → {P : Pred} → Decidable (P {X}) → Decidable (isDelay P)
+-- isDelay? isP? (` x) = no (λ ())
+-- isDelay? isP? (ƛ t) = no (λ ())
+-- isDelay? isP? (t · t₁) = no (λ ())
+-- isDelay? isP? (force t) = no (λ ())
+-- isDelay? isP? (delay t) with isP? t
+-- ...                                  | yes p = yes (isdelay p)
+-- ...                                  | no ¬p = no λ { (isdelay x) → ¬p x }
+-- isDelay? isP? (con x) = no (λ ())
+-- isDelay? isP? (constr i xs) = no (λ ())
+-- isDelay? isP? (case t ts) = no (λ ())
+-- isDelay? isP? (builtin b) = no (λ ())
+-- isDelay? isP? error = no (λ ())
 
-data isCon {X : Set} : Pred where
-  iscon : (t : TmCon)  → isCon {X} {X} (con t)
-isCon? : {X : Set} → Decidable (isCon {X})
-isCon? (` x) = no (λ ())
-isCon? (ƛ t) = no (λ ())
-isCon? (t · t₁) = no (λ ())
-isCon? (force t) = no (λ ())
-isCon? (delay t) = no (λ ())
-isCon? (con c) = yes (iscon c)
-isCon? (constr i xs) = no (λ ())
-isCon? (case t ts) = no (λ ())
-isCon? (builtin b) = no (λ ())
-isCon? error = no (λ ())
+-- data isCon {X : Set} : Pred where
+--   iscon : (t : TmCon)  → isCon {X} {X} (con t)
+-- isCon? : {X : Set} → Decidable (isCon {X})
+-- isCon? (` x) = no (λ ())
+-- isCon? (ƛ t) = no (λ ())
+-- isCon? (t · t₁) = no (λ ())
+-- isCon? (force t) = no (λ ())
+-- isCon? (delay t) = no (λ ())
+-- isCon? (con c) = yes (iscon c)
+-- isCon? (constr i xs) = no (λ ())
+-- isCon? (case t ts) = no (λ ())
+-- isCon? (builtin b) = no (λ ())
+-- isCon? error = no (λ ())
 
-data isConstr {X : Set} (Qs : ListPred) : Pred where
-  isconstr : (i : ℕ) → {xs : List (X ⊢)} → Qs xs → isConstr Qs (constr i xs)
-isConstr? : {X : Set} → {Qs : ListPred} → Decidable (Qs {X}) → Decidable (isConstr Qs)
-isConstr? isQs? (` x) = no (λ())
-isConstr? isQs? (ƛ t) = no (λ())
-isConstr? isQs? (t · t₁) = no (λ())
-isConstr? isQs? (force t) = no (λ())
-isConstr? isQs? (delay t) = no (λ())
-isConstr? isQs? (con x) = no (λ())
-isConstr? isQs? (constr i xs) with isQs? xs
-...                                           | no ¬q = no λ { (isconstr i₁ q) → ¬q q }
-...                                           | yes q = yes (isconstr i q) 
-isConstr? isQs? (case t ts) = no (λ())
-isConstr? isQs? (builtin b) = no (λ())
-isConstr? isQs? error = no (λ())
+-- data isConstr {X : Set} (Qs : ListPred) : Pred where
+--   isconstr : (i : ℕ) → {xs : List (X ⊢)} → Qs xs → isConstr Qs (constr i xs)
+-- isConstr? : {X : Set} → {Qs : ListPred} → Decidable (Qs {X}) → Decidable (isConstr Qs)
+-- isConstr? isQs? (` x) = no (λ())
+-- isConstr? isQs? (ƛ t) = no (λ())
+-- isConstr? isQs? (t · t₁) = no (λ())
+-- isConstr? isQs? (force t) = no (λ())
+-- isConstr? isQs? (delay t) = no (λ())
+-- isConstr? isQs? (con x) = no (λ())
+-- isConstr? isQs? (constr i xs) with isQs? xs
+-- ...                                           | no ¬q = no λ { (isconstr i₁ q) → ¬q q }
+-- ...                                           | yes q = yes (isconstr i q)
+-- isConstr? isQs? (case t ts) = no (λ())
+-- isConstr? isQs? (builtin b) = no (λ())
+-- isConstr? isQs? error = no (λ())
 
-data isCase {X : Set} (P : Pred) (Qs : ListPred) : Pred where
-  iscase :  {t : (X ⊢)} → {ts : List (X ⊢)} → P t → Qs ts → isCase P Qs (case t ts)
-isCase? : {X : Set} → {P : Pred} → {Qs : ListPred} → Decidable (P {X}) → Decidable (Qs {X}) → Decidable (isCase P Qs) 
-isCase? isP? isQs? (` x) = no (λ ()) 
-isCase? isP? isQs? (ƛ t) = no (λ ()) 
-isCase? isP? isQs? (t · t₁) = no (λ ()) 
+data isCase (P : Pred) (Qs : ListPred) : Pred where
+  iscase : {X : Set} {t : (X ⊢)} → {ts : List (X ⊢)} → P t → Qs ts → isCase P Qs (case t ts)
+isCase? : {X : Set} → {P : Pred} → {Qs : ListPred} → ({X : Set} → Decidable (P {X})) → ({X : Set} → Decidable (Qs {X})) → Decidable (isCase P Qs {X})
+isCase? isP? isQs? (` x) = no (λ ())
+isCase? isP? isQs? (ƛ t) = no (λ ())
+isCase? isP? isQs? (t · t₁) = no (λ ())
 isCase? isP? isQs? (force t) = no (λ ())
 isCase? isP? isQs? (delay t) = no (λ ())
 isCase? isP? isQs? (con x) = no (λ ())
 isCase? isP? isQs? (constr i xs) = no (λ ())
 isCase? isP? isQs? (case t ts) with (isP? t) ×-dec (isQs? ts)
-...                                            | no ¬pqs = no λ { (iscase p qs) → ¬pqs (p , qs)} 
+...                                            | no ¬pqs = no λ { (iscase p qs) → ¬pqs (p , qs)}
 ...                                            | yes (p , qs) = yes (iscase p qs)
-isCase? isP? isQs? (builtin b) = no (λ ()) 
-isCase? isP? isQs? error = no (λ ()) 
+isCase? isP? isQs? (builtin b) = no (λ ())
+isCase? isP? isQs? error = no (λ ())
 
-data isBuiltin {X : Set} : Pred where
-  isbuiltin : (b : Builtin) → isBuiltin {X} {X} (builtin b)
-isBuiltin? : {X : Set} → Decidable (isBuiltin {X})
-isBuiltin? (` x) = no (λ ())
-isBuiltin? (ƛ t) = no (λ ())
-isBuiltin? (t · t₁) = no (λ ())
-isBuiltin? (force t) = no (λ ())
-isBuiltin? (delay t) = no (λ ())
-isBuiltin? (con x) = no (λ ())
-isBuiltin? (constr i xs) = no (λ ())
-isBuiltin? (case t ts) = no (λ ())
-isBuiltin? (builtin b) = yes (isbuiltin b)
-isBuiltin? error = no (λ ())
+-- data isBuiltin {X : Set} : Pred where
+--   isbuiltin : (b : Builtin) → isBuiltin {X} {X} (builtin b)
+-- isBuiltin? : {X : Set} → Decidable (isBuiltin {X})
+-- isBuiltin? (` x) = no (λ ())
+-- isBuiltin? (ƛ t) = no (λ ())
+-- isBuiltin? (t · t₁) = no (λ ())
+-- isBuiltin? (force t) = no (λ ())
+-- isBuiltin? (delay t) = no (λ ())
+-- isBuiltin? (con x) = no (λ ())
+-- isBuiltin? (constr i xs) = no (λ ())
+-- isBuiltin? (case t ts) = no (λ ())
+-- isBuiltin? (builtin b) = yes (isbuiltin b)
+-- isBuiltin? error = no (λ ())
 
-data isError {X : Set} : Pred where
-  iserror : isError {X} {X} error
-isError? : {X : Set} → Decidable (isError {X})
-isError? (` x) = no (λ ())
-isError? (ƛ t) = no (λ ())
-isError? (t · t₁) = no (λ ())
-isError? (force t) = no (λ ())
-isError? (delay t) = no (λ ())
-isError? (con x) = no (λ ())
-isError? (constr i xs) = no (λ ())
-isError? (case t ts) = no (λ ())
-isError? (builtin b) = no (λ ())
-isError? error = yes iserror
+-- data isError {X : Set} : Pred where
+--   iserror : isError {X} {X} error
+-- isError? : {X : Set} → Decidable (isError {X})
+-- isError? (` x) = no (λ ())
+-- isError? (ƛ t) = no (λ ())
+-- isError? (t · t₁) = no (λ ())
+-- isError? (force t) = no (λ ())
+-- isError? (delay t) = no (λ ())
+-- isError? (con x) = no (λ ())
+-- isError? (constr i xs) = no (λ ())
+-- isError? (case t ts) = no (λ ())
+-- isError? (builtin b) = no (λ ())
+-- isError? error = yes iserror
 ```
 Some basic views that will match any Term, to be used for "wildcard" parts of the pattern.
 ```
-data isTerm {X : Set} : Pred where
-  isterm : (t : X ⊢) → isTerm t
+data isTerm : Pred where
+  isterm : {X : Set} (t : X ⊢) → isTerm t
 isTerm? : {X : Set} → Decidable (isTerm {X})
 isTerm? t = yes (isterm t)
 
-data allTerms {X : Set} : ListPred where
-  allterms : (ts : List (X ⊢)) → allTerms ts
+data allTerms : ListPred where
+  allterms : {X : Set} (ts : List (X ⊢)) → allTerms ts
 allTerms? : {X : Set} → Decidable (allTerms {X})
 allTerms? ts = yes (allterms ts)
 ```
@@ -210,10 +210,11 @@ allTerms? ts = yes (allterms ts)
 ```
 open import Data.List.Relation.Unary.All using (all?)
 
-data TestPat {X : Set} : Pred where
-  tp :  (t : X ⊢) (ts ts₂ : List (X ⊢)) → TestPat {X} (case (case t ts) ts₂)
-isTestPat? : {X : Set} → Decidable (TestPat {X} {X})
-isTestPat? {X} v with (isCase? {X} {isCase {X} (isTerm {X}) (allTerms {X})} {allTerms {X}} (isCase? {X} {isTerm {X}} {allTerms {X}} (isTerm? {X}) allTerms?) allTerms?) v
+
+data TestPat : Pred where
+  tp : {X : Set} (t : X ⊢) (ts ts₂ : List (X ⊢)) → TestPat {X} (case (case t ts) ts₂)
+isTestPat? : {X : Set} → Decidable (TestPat {X})
+isTestPat? v with isCase? (isCase? isTerm? allTerms?) allTerms? v
 ... | yes (iscase (iscase (isterm t) (allterms ts)) (allterms ts₁)) = yes (tp t ts ts₁)
 ... | no ¬tp = no λ { (tp t ts ts₂) → ¬tp (iscase (iscase (isterm t) (allterms ts)) (allterms ts₂)) }
 
