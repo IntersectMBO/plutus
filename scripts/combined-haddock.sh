@@ -62,7 +62,7 @@ if [[ "$?" != "0" ]]; then
 fi 
 
 
-# rm    -rf "${OUTPUT_DIR}"
+rm    -rf "${OUTPUT_DIR}"
 mkdir -p  "${OUTPUT_DIR}"
 
 GHC_VERSION="$(ghc --numeric-version)"
