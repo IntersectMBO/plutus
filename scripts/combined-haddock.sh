@@ -49,10 +49,18 @@ HADDOCK_OPTS=(
 )
 
 if (( "${#REGENERATE[@]}" > 0 )); then
+  cabal update
   cabal freeze
   cabal build   "${CABAL_OPTS[@]}" "${REGENERATE[@]}"
   cabal haddock "${CABAL_OPTS[@]}" "${REGENERATE[@]}" "${HADDOCK_OPTS[@]}"
 fi
+
+
+if [[ "$?" != "0" ]]; then 
+  echo "Failed to build haddock for plutus."
+  exit 1
+fi 
+
 
 rm    -rf "${OUTPUT_DIR}"
 mkdir -p  "${OUTPUT_DIR}"
