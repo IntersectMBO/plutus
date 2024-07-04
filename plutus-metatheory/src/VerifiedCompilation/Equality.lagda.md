@@ -61,8 +61,7 @@ of another list of AST elements by showing the `n`th element of one is a transla
 `n`th element of the other, pointwise. 
 
 ```
--- postulate
-decPointwise : { A B : Set } { _~_ : A → B → Set } → Binary.Decidable _~_ → Binary.Decidable (Pointwise _~_)
+decPointwise : {l₁ l₂ : Level} { A B : Set l₁ } { _~_ : A → B → Set l₂} → Binary.Decidable _~_ → Binary.Decidable (Pointwise _~_)
 decPointwise dec [] [] = yes Pointwise.[]
 decPointwise dec [] (x ∷ ys) = no (λ ())
 decPointwise dec (x ∷ xs) [] = no (λ ())

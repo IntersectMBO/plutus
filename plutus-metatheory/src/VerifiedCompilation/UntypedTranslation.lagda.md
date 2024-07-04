@@ -115,7 +115,9 @@ translation? isP? isQ? (delay ast) (` x) | no ¬pq = no λ { (istranslation _ _ 
 translation? isP? isQ? (delay ast) (ƛ ast') | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (delay ast) (ast' · ast'') | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (delay ast) (force ast') | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
-translation? isP? isQ? (delay ast) (delay ast') | no ¬pq = {!!}
+translation? isP? isQ? (delay ast) (delay ast') | no ¬pq with translation? isP? isQ? ast ast'
+... | yes p = yes (delay p)
+... | no ¬p = no λ { (istranslation .(delay ast) .(delay ast') x x₁) → ¬pq (x , x₁) ; (delay ppp) → ¬p ppp } 
 translation? isP? isQ? (delay ast) (con x) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (delay ast) (constr i xs) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (delay ast) (case ast' ts) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
@@ -127,7 +129,9 @@ translation? isP? isQ? (con x) (ƛ ast') | no ¬pq = no λ { (istranslation _ _ 
 translation? isP? isQ? (con x) (ast' · ast'') | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (con x) (force ast') | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (con x) (delay ast') | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
-translation? isP? isQ? (con x) (con x₁) | no ¬pq = {!!}
+translation? isP? isQ? (con x) (con x₁) | no ¬pq with x ≟ x₁
+... | yes refl = yes con
+... | no ¬p = no λ { (istranslation .(con x) .(con x₁) x₂ x₃) → ¬pq (x₂ , x₃) ; con → ¬p refl }
 translation? isP? isQ? (con x) (constr i xs) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (con x) (case ast' ts) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (con x) (builtin b) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
@@ -139,7 +143,9 @@ translation? isP? isQ? (constr i xs) (ast' · ast'') | no ¬pq = no λ { (istran
 translation? isP? isQ? (constr i xs) (force ast') | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (constr i xs) (delay ast') | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (constr i xs) (con x) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
-translation? isP? isQ? (constr i xs) (constr i₁ xs₁) | no ¬pq = {!!}
+translation? isP? isQ? (constr i xs) (constr i₁ xs₁) | no ¬pq with (i ≟ i₁) ×-dec (decPointwise (translation? isP? isQ?) xs xs₁)
+... | yes (refl , pxs) = yes (constr pxs)
+... | no ¬ixs = no λ { (istranslation .(constr i xs) .(constr i₁ xs₁) x x₁) → ¬pq (x , x₁) ; (constr x) → ¬ixs (refl , x) }
 translation? isP? isQ? (constr i xs) (case ast' ts) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (constr i xs) (builtin b) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (constr i xs) error | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
@@ -151,7 +157,9 @@ translation? isP? isQ? (case ast ts) (force ast') | no ¬pq = no λ { (istransla
 translation? isP? isQ? (case ast ts) (delay ast') | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (case ast ts) (con x) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (case ast ts) (constr i xs) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
-translation? isP? isQ? (case ast ts) (case ast' ts₁) | no ¬pq = {!!}
+translation? isP? isQ? (case ast ts) (case ast' ts₁) | no ¬pq with (translation? isP? isQ? ast ast') ×-dec (decPointwise (translation? isP? isQ?) ts ts₁)
+... | yes ( pa , pts ) = yes (case pts pa)
+... | no ¬papts = no λ { (istranslation .(case ast ts) .(case ast' ts₁) x x₁) → ¬pq (x , x₁) ; (case x xxx) → ¬papts (xxx , x) }
 translation? isP? isQ? (case ast ts) (builtin b) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (case ast ts) error | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 
@@ -163,7 +171,9 @@ translation? isP? isQ? (builtin b) (delay ast') | no ¬pq = no λ { (istranslati
 translation? isP? isQ? (builtin b) (con x) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (builtin b) (constr i xs) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 translation? isP? isQ? (builtin b) (case ast' ts) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
-translation? isP? isQ? (builtin b) (builtin b₁) | no ¬pq = {!!}
+translation? isP? isQ? (builtin b) (builtin b₁) | no ¬pq with b ≟ b₁
+... | yes refl = yes builtin
+... | no ¬b=b₁ = no λ { (istranslation .(builtin b) .(builtin b₁) x x₁) → ¬pq (x , x₁) ; builtin → ¬b=b₁ refl }
 translation? isP? isQ? (builtin b) error | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
 
 translation? isP? isQ? error (` x) | no ¬pq = no λ { (istranslation _ _ x₁ x₂) → ¬pq (x₁ , x₂) }
