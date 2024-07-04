@@ -21,7 +21,7 @@ const CsvTable = ({
 
     async function loadCode() {
       // Fetch the raw csv from the file
-      const res = await fetch(`/plutus/master/docs/csv/${file}`);
+      const res = await fetch(`/docs/csv/${file}`);
       const rawData = await res.text();
 
       // If the component is unmounted, don't set the state

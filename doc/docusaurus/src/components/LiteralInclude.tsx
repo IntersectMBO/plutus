@@ -26,7 +26,7 @@ const LiteralInclude = ({
 
     async function loadCode() {
       // Fetch the raw code from the file
-      const res = await fetch(`/plutus/master/docs/code/${file}`);
+      const res = await fetch(`/docs/code/${file}`);
       const rawCode = await res.text();
 
       // If the component is unmounted, don't set the state
