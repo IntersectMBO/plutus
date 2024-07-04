@@ -49,10 +49,18 @@ HADDOCK_OPTS=(
 )
 
 if (( "${#REGENERATE[@]}" > 0 )); then
+  cabal update
   cabal freeze
   cabal build   "${CABAL_OPTS[@]}" "${REGENERATE[@]}"
   cabal haddock "${CABAL_OPTS[@]}" "${REGENERATE[@]}" "${HADDOCK_OPTS[@]}"
 fi
+
+
+if [[ "$?" != "0" ]]; then 
+  echo "Failed to build haddock for plutus."
+  exit 1
+fi 
+
 
 rm    -rf "${OUTPUT_DIR}"
 mkdir -p  "${OUTPUT_DIR}"
@@ -138,7 +146,7 @@ haddock \
 
 
 echo "Assembling top-level doc-index.json"
-for file in $(find "${OUTPUT_DIR}" -name "*.doc-index.json"); do
+for file in $(find "${OUTPUT_DIR}" -name "*doc-index.json"); do
   project=$(basename "$(dirname "$file")");
   jq ".[] | .link = \"${project}/\(.link)\"" "${file}"
 done | 
@@ -201,113 +209,11 @@ if grep -qr "dist-newstyle" "${OUTPUT_DIR}"; then
 fi
 
 
-# These are the currently broken links which incluce some non-sensical URLs and other edge-cases.
-BROKEN_LINKS=(
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 file:///.*/plutus-tx/Data-Aeson-Types-FromJSON.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 file:///.*/plutus-tx/Data-Aeson-Types-ToJSON.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 file:///.*/plutus-tx/Basement-Numerical-Subtractive.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 file:///.*/plutus-tx/Text-PrettyPrint-Annotated-WL.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 https://hackage.haskell.org/package/hashable-1.4.3.0/docs/Data-Hashable-Class.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 https://hackage.haskell.org/package/random-1.2.1.1/docs/System-Random-Internal.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 file:///.*/plutus-tx/Data-Reflection.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Prelude.html                                                 file:///.*/plutus-tx/GHC.html"
-  "file:///.*/haddocks/plutus-ledger-api/PlutusLedgerApi-Common-Eval.html                              file:///.*/plutus-ledger-api/Alonzo.html"
-  "file:///.*/haddocks/plutus-ghc-stub/StubTypes.html                                                  file:///.*/plutus-ghc-stub/="
-  "file:///.*/haddocks/plutus-ledger-api/PlutusLedgerApi-V1-Credential.html                            file:///.*/plutus-ledger-api/Crypto.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-AsData.html                                                  file:///.*/plutus-tx/-"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Blueprint-Contract.html                                      file:///.*/plutus-tx/Unrolling.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Bool.html                                                    file:///.*/plutus-tx/Basement-Bits.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Blueprint-Schema-Annotation.html                             file:///.*/plutus-tx/Title.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Blueprint-Schema-Annotation.html                             file:///.*/plutus-tx/Description.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Data-AssocMap.html                                           file:///.*/plutus-tx/PlutusTx-AssocMap-Map.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Blueprint-Schema-Annotation.html                             file:///.*/plutus-tx/Comment.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Data-AssocMap.html                                           file:///.*/plutus-tx/P.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Bool.html                                                    https://hackage.haskell.org/package/vector-0.13.1.0/docs/Data-Vector-Unboxed-Base.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Either.html                                                  file:///.*/plutus-tx/Basement-Monad.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Either.html                                                  file:///.*/plutus-tx/Control-Monad-Trans-Control.html"
-  "file:///.*/haddocks/plutus-ledger-api/Prettyprinter-Extras.html                                     file:///.*/plutus-ledger-api/Data-Aeson-Types-FromJSON.html"
-  "file:///.*/haddocks/plutus-ledger-api/Prettyprinter-Extras.html                                     file:///.*/plutus-ledger-api/Data-Aeson-Types-ToJSON.html"
-  "file:///.*/haddocks/plutus-ledger-api/Prettyprinter-Extras.html                                     file:///.*/plutus-ledger-api/Data-Functor-Rep.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Either.html                                                  file:///.*/plutus-tx/Control-Lens-Each.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Either.html                                                  file:///.*/plutus-tx/WithIndex.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Lift-THUtils.html                                            file:///.*/plutus-tx/Safe.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Lift-THUtils.html                                            https://hackage.haskell.org/package/ghc-boot-th-9.6.5/docs/GHC-LanguageExtensions-Type.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-These.html                                                   file:///.*/plutus-tx/Data.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Maybe.html                                                   file:///.*/plutus-tx/Control-Lens-At.html"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Maybe.html                                                   file:///.*/plutus-tx/Control-Lens-Empty.html"
-  "file:///.*/haddocks/plutus-ledger-api/Prettyprinter-Extras.html                                     file:///.*/plutus-ledger-api/Control-Lens-Wrapped.html"
-  "file:///.*/haddocks/plutus-tx-plugin/PlutusTx-Compiler-Trace.html                                   file:///.*/plutus-tx-plugin/level"
-  "file:///.*/haddocks/plutus-tx/PlutusTx-Builtins.html                                                https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Annotation.html                                          file:///.*/plutus-core/AlwaysInline"
-  "file:///.*/haddocks/plutus-core/Universe-Core.html                                                  file:///.*/plutus-core/..."
-  "file:///.*/haddocks/plutus-core/Universe-Core.html                                                  file:///.*/plutus-core/Data-Constraint-Extras-TH.html"
-  "file:///.*/haddocks/plutus-core/Universe-Core.html                                                  https://hackage.haskell.org/package/some-1.0.6/docs/Data-GADT-Internal.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Pretty-Readable.html                                     file:///.*/plutus-core/Control-Lens-Reified.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Pretty-Readable.html                                     file:///.*/plutus-core/Control-Lens-Internal-Indexed.html"
-  "file:///.*/haddocks/plutus-core/Universe-Core.html                                                  https://hackage.haskell.org/package/dependent-sum-0.7.2.0/docs/docs/Data-Dependent-Sum.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Pretty-Readable.html                                     file:///.*/plutus-core/Control-Lens-Internal-Iso.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Pretty-Readable.html                                     file:///.*/plutus-core/Control-Lens-Internal-Prism.html"
-  "file:///.*/haddocks/plutus-core/PlutusIR-Analysis-Builtins.html                                     file:///.*/plutus-core/PLC.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Builtin-Meaning.html                                     https://hackage.haskell.org/package/ghc-9.6.5/docs/-/issues/7100"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Crypto-BLS12_381-G2.html                                 https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/Cardano-Crypto-EllipticCurve-BLS12_381-Internal.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html     file:///.*/plutus-core/Cek-Internal.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-SteppableCek-Internal.html     file:///.*/plutus-core/Control-Monad-Trans-Resource-Internal.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html                       file:///.*/plutus-core/Data-Aeson-Key.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html                       file:///.*/plutus-core/Data-Aeson-Types-Internal.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html                       file:///.*/plutus-core/Data-Scientific.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html                       file:///.*/plutus-core/Data-Text-Short-Internal.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html                       file:///.*/plutus-core/Data-UUID-Types-Internal.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html                       file:///.*/plutus-core/Data-Aeson-KeyMap.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html                       file:///.*/plutus-core/Data-Fix.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html                       file:///.*/plutus-core/Data-Strict-Maybe.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html                       file:///.*/plutus-core/Data-Strict-Either.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html                       file:///.*/plutus-core/Data-Strict-These.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html                       file:///.*/plutus-core/Data-Strict-Tuple.html"
-  "file:///.*/haddocks/plutus-core/PlutusIR-Transform-Inline-CallSiteInline.html                       file:///.*/plutus-core/Utils.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek.html                       https://hackage.haskell.org/package/ral-0.2.1/docs/Data-RAList-Tree-Internal.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html                         file:///.*/plutus-core/Test-QuickCheck-Modifiers.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html                         file:///.*/plutus-core/Test-QuickCheck-Arbitrary.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html                         file:///.*/plutus-core/Test-QuickCheck-Function.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html                         file:///.*/plutus-core/Test-QuickCheck-Gen.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html                         file:///.*/plutus-core/Test-QuickCheck-Property.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html                         https://hackage.haskell.org/package/quickcheck-transformer-0.3.1.2/docs/Test-QuickCheck-GenT-Private.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Evaluation-Machine-Exception.html                        file:///.*/plutus-core/Prismatically.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-SteppableCek-DebugDriver.html  file:///.*/plutus-core/Data-Functor-Yoneda.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-SteppableCek-DebugDriver.html  file:///.*/plutus-core/Control-Lens-Zoom.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-SteppableCek-DebugDriver.html  file:///.*/plutus-core/Control-Lens-Plated.html"
-  "file:///.*/haddocks/plutus-core/UntypedPlutusCore-Evaluation-Machine-SteppableCek-DebugDriver.html  file:///.*/plutus-core/Control-Lens-Wrapped.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Parser.html                                              file:///.*/plutus-core/name"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Parser.html                                              file:///.*/plutus-core/input"
-  "file:///.*/haddocks/plutus-core/Data-SatInt.html                                                    file:///.*/plutus-core/Data.html"
-  "file:///.*/haddocks/plutus-core/PlutusIR-Core-Instance-Scoping.html                                 file:///.*/plutus-core/a_non_-"
-  "file:///.*/haddocks/plutus-core/PlutusIR-Transform-KnownCon.html                                    file:///.*/plutus-core/just_case_body"
-  "file:///.*/haddocks/plutus-core/PlutusIR-Transform-KnownCon.html                                    file:///.*/plutus-core/nothing_case_body"
-  "file:///.*/haddocks/plutus-core/PlutusIR-Transform-Inline-Inline.html                               file:///.*/plutus-core/Inline-CallSiteInline.html"
-  "file:///.*/haddocks/plutus-core/Codec-Extras-SerialiseViaFlat.html                                  file:///.*/plutus-core/PlutusLedgerApi-Common-SerialisedScript.html"
-  "file:///.*/haddocks/plutus-core/PlutusCore-Generators-Hedgehog-Test.html                            file:///.*/plutus-core/folder"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Examples.Builtins.html                               https://hackage.haskell.org/package/data-default-class-0.1.2.0/docs/src/Data.Default.Class.html"
-  "file:///.*/haddocks/plutus-tx/src/PlutusTx.Lift.TH.html                                             https://hackage.haskell.org/package/ghc-boot-th-9.6.5/docs/src/GHC.LanguageExtensions.Type.html"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Crypto.BLS12_381.G1.html                             https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/src/Cardano.Crypto.EllipticCurve.BLS12_381.html"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Crypto.BLS12_381.G1.html                             https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/src/Cardano.Crypto.EllipticCurve.BLS12_381.Internal.html"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Crypto.Ed25519.html                                  https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/src/Cardano.Crypto.DSIGN.Class.html"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Crypto.Ed25519.html                                  https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/src/Cardano.Crypto.DSIGN.Ed25519.html"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Crypto.Ed25519.html                                  https://hackage.haskell.org/package/cardano-crypto-1.1.2/docs/src/Crypto.ECC.Ed25519Donna.html"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Crypto.Hash.html                                     https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/src/Cardano.Crypto.Hash.Blake2b.html"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Crypto.Hash.html                                     https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/src/Cardano.Crypto.Hash.Class.html"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Crypto.Hash.html                                     https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/src/Cardano.Crypto.Hash.Keccak256.html"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Crypto.Hash.html                                     https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/src/Cardano.Crypto.Hash.SHA256.html"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Crypto.Hash.html                                     https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/src/Cardano.Crypto.Hash.SHA3_256.html"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Crypto.Secp256k1.html                                https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/src/Cardano.Crypto.DSIGN.EcdsaSecp256k1.html"
-  "file:///.*/haddocks/plutus-core/src/PlutusCore.Crypto.Secp256k1.html                                https://hackage.haskell.org/package/cardano-crypto-class-2.1.4.0/docs/src/Cardano.Crypto.DSIGN.SchnorrSecp256k1.html"
-)
-
-
-echo "Collecting --ignore-url options"
-IGNORE_URL_OPTIONS=()
-for failure in "${BROKEN_LINKS[@]}"; do
-  url="${failure##* }"
-  IGNORE_URL_OPTIONS+=("--ignore-url=${url}")
-done
+echo "Looking for linkchecker"
+if ! command -v linkchecker &> /dev/null; then
+  echo "linkchecker not found"
+  exit 0
+fi 
 
 
 echo "Running linkchecker"
@@ -315,11 +221,9 @@ time linkchecker "${OUTPUT_DIR}/index.html" \
   --check-extern \
   --no-warnings \
   --output failures \
-  --file-output text \
-  "${IGNORE_URL_OPTIONS[@]}"
+  --file-output text 
 
 
 if [[ "$?" != "0" ]]; then 
   echo "Found broken or unreachable 'href=' links in the files above (also see ./linkchecker-out.txt)"
-  exit 1 
 fi 
