@@ -62,7 +62,7 @@ if [[ "$?" != "0" ]]; then
 fi 
 
 
-rm    -rf "${OUTPUT_DIR}"
+# rm    -rf "${OUTPUT_DIR}"
 mkdir -p  "${OUTPUT_DIR}"
 
 GHC_VERSION="$(ghc --numeric-version)"
@@ -74,6 +74,8 @@ BUILD_CONTENTS="${BUILD_DIR}/build/${OS_ARCH}/ghc-${GHC_VERSION}"
 PLUTUS_VERSION="$(find ${BUILD_CONTENTS}/plutus-core-* -printf '%f\n' -quit | sed "s/plutus-core-//g")"
 
 GIT_REV="$(git rev-parse HEAD)"
+
+GIT_REV_SHORT="$(git rev-parse --short HEAD)"
 
 
 # Here we merge each package's internal libraries into a single folder, for example:
@@ -125,6 +127,9 @@ done
 
 echo "Writing the prologue"
 cat << EOF > "${BUILD_DIR}/haddock.prologue"
+
+Last updated on $(date +"%F") with [IntersectMBO/plutus@\`$GIT_REV_SHORT\`](https://github.com/IntersectMBO/plutus/tree/$GIT_REV)
+
 == Handy module entrypoints
 
   * "PlutusTx": Compiling Haskell to PLC (Plutus Core; on-chain code).
@@ -227,3 +232,22 @@ time linkchecker "${OUTPUT_DIR}/index.html" \
 if [[ "$?" != "0" ]]; then 
   echo "Found broken or unreachable 'href=' links in the files above (also see ./linkchecker-out.txt)"
 fi 
+
+
+
+GIT_REV="$(git rev-parse HEAD)"
+
+GIT_REV_SHORT="$(git rev-parse --short HEAD)"
+
+
+cat << EOF > "haddockss.md"
+
+Last updated on $(date +"%d %b %Y") [IntersectMBO/plutus@\`$GIT_REV_SHORT\`](https://github.com/IntersectMBO/plutus/tree/$GIT_REV)
+
+== Handy module entrypoints
+
+  * "PlutusTx": Compiling Haskell to PLC (Plutus Core; on-chain code).
+  * "PlutusTx.Prelude": Haskell prelude replacement compatible with PLC.
+  * "PlutusCore": Programming language in which scripts on the Cardano blockchain are written.
+  * "UntypedPlutusCore": On-chain Plutus code.
+EOF
