@@ -41,8 +41,8 @@ ListPred = {X : Set} → List (X ⊢) → Set
 --Decidable : Pred → Set
 --Decidable P = {X : Set} (t : X ⊢) → Dec (P t)
 
-data isVar : Pred where
-  isvar : { X : Set } (v : X) → isVar (` v)
+data isVar { X : Set } : (X ⊢) → Set where
+  isvar : (v : X) → isVar (` v)
 isVar? : {X : Set} → Decidable (isVar {X})
 isVar? (` x) = yes (isvar x)
 isVar? (ƛ x) = no λ ()
@@ -55,8 +55,8 @@ isVar? (case x ts) = no (λ ())
 isVar? (builtin b) = no (λ ())
 isVar? error = no (λ ())
 
-data isLambda (P : Pred) : Pred where
-  islambda : {X : Set} {t : ((Maybe X) ⊢)} → P t → isLambda P (ƛ t)
+data isLambda (P : Pred) { X : Set } : (X ⊢) → Set where
+  islambda : {t : ((Maybe X) ⊢)} → P t → isLambda P (ƛ t)
 isLambda? : {X : Set} {P : Pred} → ({X : Set} → Decidable (P {X})) → Decidable (isLambda P {X})
 isLambda? isP? (` x) = no λ ()
 isLambda? isP? (ƛ t) with isP? t
@@ -150,8 +150,8 @@ isLambda? isP? _⊢.error = no (λ ())
 -- isConstr? isQs? (builtin b) = no (λ())
 -- isConstr? isQs? error = no (λ())
 
-data isCase (P : Pred) (Qs : ListPred) : Pred where
-  iscase : {X : Set} {t : (X ⊢)} → {ts : List (X ⊢)} → P t → Qs ts → isCase P Qs (case t ts)
+data isCase (P : Pred) (Qs : ListPred) { X : Set } : (X ⊢) → Set where
+  iscase : {t : (X ⊢)} → {ts : List (X ⊢)} → P t → Qs ts → isCase P Qs (case t ts)
 isCase? : {X : Set} → {P : Pred} → {Qs : ListPred} → ({X : Set} → Decidable (P {X})) → ({X : Set} → Decidable (Qs {X})) → Decidable (isCase P Qs {X})
 isCase? isP? isQs? (` x) = no (λ ())
 isCase? isP? isQs? (ƛ t) = no (λ ())
@@ -196,13 +196,13 @@ isCase? isP? isQs? error = no (λ ())
 ```
 Some basic views that will match any Term, to be used for "wildcard" parts of the pattern.
 ```
-data isTerm : Pred where
-  isterm : {X : Set} (t : X ⊢) → isTerm t
+data isTerm { X : Set } : (X ⊢) → Set where
+  isterm : (t : X ⊢) → isTerm t
 isTerm? : {X : Set} → Decidable (isTerm {X})
 isTerm? t = yes (isterm t)
 
-data allTerms : ListPred where
-  allterms : {X : Set} (ts : List (X ⊢)) → allTerms ts
+data allTerms { X : Set } : List (X ⊢) → Set where
+  allterms : (ts : List (X ⊢)) → allTerms ts
 allTerms? : {X : Set} → Decidable (allTerms {X})
 allTerms? ts = yes (allterms ts)
 ```
@@ -211,8 +211,8 @@ allTerms? ts = yes (allterms ts)
 open import Data.List.Relation.Unary.All using (all?)
 
 
-data TestPat : Pred where
-  tp : {X : Set} (t : X ⊢) (ts ts₂ : List (X ⊢)) → TestPat {X} (case (case t ts) ts₂)
+data TestPat {X : Set} : (X ⊢) → Set where
+  tp : (t : X ⊢) (ts ts₂ : List (X ⊢)) → TestPat {X} (case (case t ts) ts₂)
 isTestPat? : {X : Set} → Decidable (TestPat {X})
 isTestPat? v with isCase? (isCase? isTerm? allTerms?) allTerms? v
 ... | yes (iscase (iscase (isterm t) (allterms ts)) (allterms ts₁)) = yes (tp t ts ts₁)
