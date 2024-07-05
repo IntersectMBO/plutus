@@ -27,6 +27,7 @@ packages: cardano-constitution
           plutus-tx
           plutus-tx-plugin
           plutus-tx-test-util
+          plutus-script-evaluation-test
           prettyprinter-configurable
           stubs/plutus-ghc-stub
           doc/docusaurus/docusaurus-examples.cabal

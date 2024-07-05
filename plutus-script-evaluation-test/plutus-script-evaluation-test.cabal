@@ -1,0 +1,78 @@
+cabal-version: 3.0
+name:          plutus-script-evaluation-test
+version:       0.1.0.0
+
+common lang
+  default-language:   Haskell2010
+  default-extensions:
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    ExplicitForAll
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    LambdaCase
+    NamedFieldPuns
+    ScopedTypeVariables
+    StandaloneDeriving
+
+  ghc-options:
+    -O2 -Wall -Widentities -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wmissing-import-lists
+    -Wnoncanonical-monad-instances -Wredundant-constraints
+    -Wunused-packages
+
+library testlib
+  import:          lang
+  hs-source-dirs:  testlib
+  exposed-modules:
+    Plutus.Script.Evaluation.Dump
+    Plutus.Script.Evaluation.Options
+    Plutus.Script.Evaluation.Types
+
+  build-depends:
+    , async
+    , base                                                              >=4.9 && <5
+    , base16-bytestring
+    , cardano-api
+    , cardano-binary
+    , cardano-ledger-alonzo
+    , cardano-ledger-core
+    , cardano-streaming
+    , containers
+    , extra
+    , filepath
+    , optparse-applicative
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}
+    , PyF
+    , serialise
+    , streaming
+    , text
+    , transformers
+
+executable dump-script-events
+  import:         lang
+  hs-source-dirs: dump-script-events
+  main-is:        Main.hs
+  build-depends:
+    , base                                                              >=4.9 && <5
+    , base16-bytestring
+    , cardano-api
+    , cardano-binary
+    , cardano-ledger-alonzo
+    , cardano-ledger-core
+    , cardano-streaming
+    , extra
+    , filepath
+    , optparse-applicative
+    , plutus-core
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}
+    , PyF
+    , serialise
+    , streaming
+    , testlib
+    , text
+    , time
+    , transformers

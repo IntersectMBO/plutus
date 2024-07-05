@@ -1,0 +1,46 @@
+# A nightly job that runs a cardano node and dumps Plutus script evaluation events
+
+name: Script Evaluation Dump
+on:
+  schedule:
+    - cron: 0 0 * * * # midnight every day
+  workflow_dispatch:
+
+concurrency:
+  group: script-evaluation-dump
+  # We only want at most one evaluation test running at a time
+  cancel-in-progress: true
+
+jobs:
+  script-evaluation-dump:
+    runs-on: [ubuntu-latest]
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.3.0
+        with:
+          ref: zliu41/dump-1.35.4
+
+      - name: Quick Install Nix
+        uses: nixbuild/nix-quick-install-action@v22
+        with:
+          # 2.14.1 seems to have issues, see https://github.com/nixbuild/nix-quick-install-action/issues/29
+          nix_version: '2.13.3'
+          nix_conf: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - name: Create Dump
+        run: |
+          nix develop --command "./scripts/create-dump.sh"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_ENDPOINT_URL: https://s3.devx.iog.io
+          NODE_DIR: ../mainnet
+          S3_DUMP_DIR: s3://plutus/mainnet-script-dump-1-35-4/
+          DUMP_DIR: ../mainnet-script-dump
+          CHECKPOINT_DIR: ../mainnet-script-dump-checkpoint
+          S3_CHECKPOINT_DIR: s3://plutus/mainnet-script-dump-1-35-4-checkpoint/
