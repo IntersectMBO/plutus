@@ -1,5 +1,5 @@
 # This workflow is triggered whenever any of the workflows listed in on.workflow_run.workflows 
-# has been cancelled or has failed, and will send a message to the specified Slack channel ids.
+# has been cancelled or has failed, and will send a message to the plutus-ci channel.
 
 name: "📮 Slack Message Broker"
 
@@ -54,7 +54,7 @@ jobs:
         env:
             SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
         with:
-          channel-id: C07A1GSNZEE
+          channel-id: C07A1GSNZEE # plutus-ci
           payload: |
             {
               "text": "${{ steps.prepare-slack-message.outputs.message }}",
