@@ -68,9 +68,9 @@ isLambda? isP? (case t ts) = no (λ ())
 isLambda? isP? (_⊢.builtin b) = no (λ ())
 isLambda? isP? _⊢.error = no (λ ())
 
-data isApp {X : Set} (P Q : Pred) : (X ⊢) → Set where
+data isApp (P Q : Pred) {X : Set}  : (X ⊢) → Set where
   isapp : {l r : (X ⊢)} → P l → Q r → isApp P Q (l · r)
-isApp? : {X : Set} → {P Q : Pred} → Decidable (P {X}) → Decidable (Q {X}) → Decidable (isApp P Q)
+isApp? : {X : Set} → {P Q : Pred} → ({X : Set} → Decidable (P {X})) → ({X : Set} → Decidable (Q {X})) → Decidable (isApp P Q {X})
 isApp? isP? isQ? (` x) = no (λ ())
 isApp? isP? isQ? (ƛ t) = no (λ ())
 isApp? isP? isQ? (t · t₁) with (isP? t) ×-dec (isQ? t₁)
@@ -84,9 +84,9 @@ isApp? isP? isQ? (case t ts) = no (λ ())
 isApp? isP? isQ? (builtin b) = no (λ ())
 isApp? isP? isQ? error = no (λ ())
 
-data isForce {X : Set} (P : Pred) : (X ⊢) → Set where
+data isForce (P : Pred) {X : Set} : (X ⊢) → Set where
   isforce : {t : (X ⊢)} → P t → isForce P (force t)
-isForce? : {X : Set} → {P : Pred} → Decidable (P {X}) → Decidable (isForce P)
+isForce? : {X : Set} → {P : Pred} → ({X : Set} → Decidable (P {X})) → Decidable (isForce P {X})
 isForce? isP? (` x) = no (λ ())
 isForce? isP? (ƛ t) = no (λ ())
 isForce? isP? (t · t₁) = no (λ ())
@@ -101,9 +101,9 @@ isForce? isP? (builtin b) = no (λ ())
 isForce? isP? error = no (λ ())
 
 
-data isDelay {X : Set} (P : Pred) : (X ⊢) → Set where
+data isDelay (P : Pred) {X : Set} : (X ⊢) → Set where
   isdelay : {t : (X ⊢)} → P t → isDelay P (delay t)
-isDelay? : {X : Set} → {P : Pred} → Decidable (P {X}) → Decidable (isDelay P)
+isDelay? : {X : Set} → {P : Pred} → ({X : Set} → Decidable (P {X})) → Decidable (isDelay P {X})
 isDelay? isP? (` x) = no (λ ())
 isDelay? isP? (ƛ t) = no (λ ())
 isDelay? isP? (t · t₁) = no (λ ())
@@ -131,9 +131,9 @@ isCon? (case t ts) = no (λ ())
 isCon? (builtin b) = no (λ ())
 isCon? error = no (λ ())
 
-data isConstr {X : Set} (Qs : ListPred) : (X ⊢) → Set where
+data isConstr (Qs : ListPred) {X : Set} : (X ⊢) → Set where
   isconstr : (i : ℕ) → {xs : List (X ⊢)} → Qs xs → isConstr Qs (constr i xs)
-isConstr? : {X : Set} → {Qs : ListPred} → Decidable (Qs {X}) → Decidable (isConstr Qs)
+isConstr? : {X : Set} → {Qs : ListPred} → ({X : Set} → Decidable (Qs {X})) → Decidable (isConstr Qs {X})
 isConstr? isQs? (` x) = no (λ())
 isConstr? isQs? (ƛ t) = no (λ())
 isConstr? isQs? (t · t₁) = no (λ())

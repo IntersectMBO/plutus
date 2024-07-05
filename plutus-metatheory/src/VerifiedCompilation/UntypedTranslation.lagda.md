@@ -63,7 +63,9 @@ For the decision procedure we have the rather dissapointing 110 lines to demonst
 having determine that we aren't in the translation pattern, we are in fact, still not in the translation pattern
 for each pair of term types. 
 ```
-translation? : {X' : Set} {{ _ : DecEq X'}} →  {P Q : Pred} → (∀ {X} → Unary.Decidable (P {X})) → (∀ {X} → Unary.Decidable (Q {X})) → Binary.Decidable (Translation P Q {X'}) 
+-- Yes, I know, but for now...
+{-# TERMINATING #-}
+translation? : {X' : Set} {{ _ : DecEq X'}} →  {P Q : Pred} → ({X : Set} → Unary.Decidable (P {X})) → ({X : Set} → Unary.Decidable (Q {X})) → Binary.Decidable (Translation P Q {X'}) 
 translation? isP? isQ? ast ast' with (isP? ast) ×-dec (isQ? ast')
 ... | yes (p , q) = yes (istranslation ast ast' p q)
 translation? isP? isQ? (` x) ast' | no ¬pq with (` x) ≟ ast'

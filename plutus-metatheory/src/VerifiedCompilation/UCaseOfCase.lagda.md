@@ -11,8 +11,10 @@ module VerifiedCompilation.UCaseOfCase where
 ## Imports
 
 ```
-open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
+open import VerifiedCompilation.Equality using (DecEq; _≟_; DecEq-⊢; decEq-⊢)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
+open import VerifiedCompilation.UntypedTranslation using (translation?)
+
 open import Relation.Unary as Unary using (Decidable)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
 open import Untyped.CEK using (BApp; fullyAppliedBuiltin; BUILTIN; stepper; State; Stack)
@@ -37,15 +39,15 @@ This translation relation has a constructor for the specific case, and then indu
 to traverse the ASTs.
 
 ```
-data _⊢̂_⊳̂_ (X : Set) : (X ⊢) → (X ⊢) → Set where
+data CaseOfCase {X : Set} : (X ⊢) → (X ⊢) → Set where
    caseofcase : ∀ (b : X ⊢) (tn tn' fn fn' : ℕ) {alts alts' tt ft tt' ft' : List (X ⊢)}
-                → Pointwise (X ⊢̂_⊳̂_) alts alts' -- recursive translation for the other case patterns 
-                → Pointwise (X ⊢̂_⊳̂_) tt tt' -- recursive translation for the true branch 
-                → Pointwise (X ⊢̂_⊳̂_) ft ft' -- recursive translation for the false branch
+                → Pointwise CaseOfCase alts alts' -- recursive translation for the other case patterns 
+                → Pointwise CaseOfCase tt tt' -- recursive translation for the true branch 
+                → Pointwise CaseOfCase ft ft' -- recursive translation for the false branch
                 ----------------------
-                → X ⊢̂
+                → CaseOfCase
                        (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
-                       ⊳̂ (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
+                       (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
 
 ```
 
@@ -58,8 +60,8 @@ expect anything else to be unaltered.
 This translation matches on exactly one, very specific pattern. Using parameterised Views we can
 detect that case.
 ```
-data CoCCase {X : Set} : Pred where
-  isCoCCase : ∀ (b : X ⊢) (tn fn : ℕ)  (tt ft alts : List (X ⊢)) → CoCCase {X} (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
+data CoCCase {X : Set} : (X ⊢) → Set where
+  isCoCCase : (b : X ⊢) (tn fn : ℕ)  (tt ft alts : List (X ⊢)) → CoCCase (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
 isCoCCase? : {X : Set} → Decidable (CoCCase {X})
 isCoCCase? t with (isCase? (isApp? (isApp? (isApp? (isForce? (isBuiltin?)) isTerm?) (isConstr? (allTerms?))) (isConstr? (allTerms?))) (allTerms?)) t
 ... | yes (iscase (isapp (isapp (isapp (isforce (isbuiltin ite)) (isterm b)) (isconstr tn (allterms tt))) (isconstr fn (allterms ft))) (allterms alts)) with ite ≟ ifThenElse
@@ -72,9 +74,9 @@ isCoCCase? t  | no ¬CoCCase = no λ { (isCoCCase b tn fn alts tt ft) → ¬CoCC
                                                                                   (isconstr fn (allterms tt)))
                                                                                  (allterms ft)) }
 
-data CoCForce (X : Set) : Pred X where
-  isCoCForce : (b : (X ⊢)) (tn fn : ℕ) (tt' ft' alts' : List (X ⊢)) → CoCForce X (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
-isCoCForce? : {X : Set} {{ _ : DecEq X}} → Decidable (CoCForce X)
+data CoCForce {X : Set} :  (X ⊢) → Set where
+  isCoCForce : (b : (X ⊢)) (tn fn : ℕ) (tt' ft' alts' : List (X ⊢)) → CoCForce (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
+isCoCForce? : {X : Set} {{ _ : DecEq X }} → Decidable (CoCForce {X})
 isCoCForce? t with (isForce? (isApp? (isApp? (isApp? (isForce? isBuiltin?) isTerm?) (isDelay? (isCase? (isConstr? allTerms?) allTerms?))) (isDelay? (isCase? (isConstr? allTerms?) allTerms?)))) t
 ... | no ¬CoCForce = no λ { (isCoCForce b tn fn tt' ft' alts') → ¬CoCForce
                                                                   (isforce
@@ -93,12 +95,17 @@ This must traverse the ASTs applying the constructors from the transition relati
 the structure is unchanged we still need to check the sub-components.
 
 ```
-{-
-_⊢̂_⊳̂?_ : {X : Set} {{ _ : DecEq X }} → (ast : X ⊢) → (ast' : X ⊢) → Dec (X ⊢̂ ast ⊳̂ ast')
+
+isCaseOfCase? : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Dec (CaseOfCase {X} ast ast')
+isCaseOfCase? ast ast' with translation? isCoCCase? isCoCForce? ast ast'
+... | yes p = ?
+... | no ¬p = ?
+
 ```
 First, handle all the cases where both sides of the translation are the same structure. Only the Case of Case
 pattern should change the structure.
 ```
+{-
 _⊢̂_⊳̂?_ (` x) (` y) with x ≟ y
 ...                         | yes refl = yes var
 ...                         | no ¬p = no (λ { (var) → ¬p refl })
@@ -130,9 +137,11 @@ _⊢̂_⊳̂?_ (builtin b) (builtin b') with b ≟ b'
 ...                                          | no ¬b=b = no λ { (builtin) → ¬b=b refl }
 ...                                          | yes refl = yes builtin
 _⊢̂_⊳̂?_ error error = yes error
+-}
 ```
 If we have `case` translated to `force` we need to be sure that it matches exactly the Case of Case pattern
 ```
+{-
 _⊢̂_⊳̂?_ ast ast' with isCoCCase? ast ×-dec isCoCForce? ast'
 ... | no ¬CoC  = no {!!}
 ... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b' tn' fn' tt' ft' alts') with b ≟ b' | tn ≟ tn' | fn ≟ fn'  | decPointwise _⊢̂_⊳̂?_ alts alts' | decPointwise _⊢̂_⊳̂?_ tt tt' | decPointwise _⊢̂_⊳̂?_ ft ft'

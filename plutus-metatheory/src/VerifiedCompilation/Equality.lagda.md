@@ -30,22 +30,26 @@ open import Level using (Level)
 open import Builtin using (Builtin; decBuiltin)
 open import Builtin.Signature using (_⊢♯)
 import Data.Nat.Properties using (_≟_)
-record DecEq (A : Set) : Set where
-  field _≟_ : DecidableEquality A
-open DecEq {{...}} public
 open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; builtin; error)
 import Relation.Unary as Unary using (Decidable)
 import Relation.Binary.Definitions as Binary using (Decidable)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Data.Product using (_,_)
+open import Relation.Nullary.Product using (_×-dec_)
 open import Utils as U using (Maybe; nothing; just; Either)
+import Data.List.Properties as LP using (≡-dec)
+
+record DecEq (A : Set) : Set where
+  field _≟_ : DecidableEquality A
+open DecEq {{...}} public
 
 postulate
    -- This is fairly straightforward to define but it depends on
    -- DecidableEquality over various Agda builtin types, which is
    -- easy to do but should be in the standard library *somewhere*??
    dec-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
-   decEq-⊢ : ∀{X} {{_ : DecEq X}} → DecidableEquality (X ⊢)
    decEq-TmCon : DecidableEquality TmCon
+
 {-
 decEq-TmCon (tmCon t1 v1) (tmCon t2 v2) with decTag t1 t2 | dec-⟦_⟧tag v1 v2
 ...                                                                 | no ¬p   | _         = no {!!}
@@ -77,6 +81,8 @@ Creating Instance declarations for various Decidable Equality functions to be us
 when creating translation decision procedures.
 
 ```
+decEq-⊢ : ∀{X} {{_ : DecEq X}} → DecidableEquality (X ⊢)
+
 instance
   DecEq-Maybe : ∀{A} {{_ : DecEq A}} → DecEq (Maybe A)
   DecEq-Maybe ._≟_ = M.≡-dec _≟_
@@ -91,15 +97,134 @@ instance
   DecEq-⊢ : ∀{X} {{_ : DecEq X}} → DecEq (X ⊢)
   DecEq-⊢ ._≟_ = decEq-⊢
 
-  DecEq-List⊢ : ∀{X} {{_ : DecEq X}} → DecEq (List (X ⊢))
-  DecEq-List⊢ ._≟_ xs ys with decPointwise decEq-⊢ xs ys
-  ...                           | yes pw = yes (Pointwise-≡⇒≡ pw)
-  ...                           | no ¬pw = no λ x → ¬pw (≡⇒Pointwise-≡ x)
+  DecEq-List-⊢ : ∀{X} {{_ : DecEq X}} → DecEq (List (X ⊢))
+  DecEq-List-⊢ ._≟_ = LP.≡-dec decEq-⊢
 
   DecEq-Builtin : DecEq Builtin
   DecEq-Builtin ._≟_ = decBuiltin
 
   DecEq-ℕ : DecEq ℕ
   DecEq-ℕ ._≟_ = Data.Nat.Properties._≟_
+
+-- FIXME: this shouldn't be needed? It is the mutual recursion with list equality that requires it. 
+{-# TERMINATING #-}
+decEq-⊢ (` x) (` x₁) with x ≟ x₁
+... | yes refl = yes refl
+... | no ¬p = no λ { refl → ¬p refl }
+decEq-⊢ (` x) (ƛ t₁) = no (λ ())
+decEq-⊢ (` x) (t₁ · t₂) = no (λ ())
+decEq-⊢ (` x) (force t₁) = no (λ ())
+decEq-⊢ (` x) (delay t₁) = no (λ ())
+decEq-⊢ (` x) (con x₁) = no (λ ())
+decEq-⊢ (` x) (constr i xs) = no (λ ())
+decEq-⊢ (` x) (case t₁ ts) = no (λ ())
+decEq-⊢ (` x) (builtin b) = no (λ ())
+decEq-⊢ (` x) error = no (λ ())
+decEq-⊢ (ƛ t) (` x) = no (λ ())
+decEq-⊢ (ƛ t) (ƛ t₁) with t ≟ t₁
+... | yes p = yes (cong ƛ p)
+... | no ¬p = no λ { refl → ¬p refl }
+decEq-⊢ (ƛ t) (t₁ · t₂) = no (λ ())
+decEq-⊢ (ƛ t) (force t₁) = no (λ ())
+decEq-⊢ (ƛ t) (delay t₁) = no (λ ())
+decEq-⊢ (ƛ t) (con x) = no (λ ())
+decEq-⊢ (ƛ t) (constr i xs) = no (λ ())
+decEq-⊢ (ƛ t) (case t₁ ts) = no (λ ())
+decEq-⊢ (ƛ t) (builtin b) = no (λ ())
+decEq-⊢ (ƛ t) error = no (λ ())
+decEq-⊢ (t · t₂) (` x) = no (λ ())
+decEq-⊢ (t · t₂) (ƛ t₁) = no (λ ())
+decEq-⊢ (t · t₂) (t₁ · t₃) with (t ≟ t₁) ×-dec (t₂ ≟ t₃)
+... | yes ( refl , refl )  = yes refl
+... | no ¬p = no λ { refl → ¬p (refl , refl) }
+decEq-⊢ (t · t₂) (force t₁) = no (λ ())
+decEq-⊢ (t · t₂) (delay t₁) = no (λ ())
+decEq-⊢ (t · t₂) (con x) = no (λ ())
+decEq-⊢ (t · t₂) (constr i xs) = no (λ ())
+decEq-⊢ (t · t₂) (case t₁ ts) = no (λ ())
+decEq-⊢ (t · t₂) (builtin b) = no (λ ())
+decEq-⊢ (t · t₂) error = no (λ ())
+decEq-⊢ (force t) (` x) = no (λ ())
+decEq-⊢ (force t) (ƛ t₁) = no (λ ())
+decEq-⊢ (force t) (t₁ · t₂) = no (λ ())
+decEq-⊢ (force t) (force t₁) with t ≟ t₁
+... | yes refl = yes refl
+... | no ¬p = no λ { refl → ¬p refl }
+decEq-⊢ (force t) (delay t₁) = no (λ ())
+decEq-⊢ (force t) (con x) = no (λ ())
+decEq-⊢ (force t) (constr i xs) = no (λ ())
+decEq-⊢ (force t) (case t₁ ts) = no (λ ())
+decEq-⊢ (force t) (builtin b) = no (λ ())
+decEq-⊢ (force t) error = no (λ ())
+decEq-⊢ (delay t) (` x) = no (λ ())
+decEq-⊢ (delay t) (ƛ t₁) = no (λ ())
+decEq-⊢ (delay t) (t₁ · t₂) = no (λ ())
+decEq-⊢ (delay t) (force t₁) = no (λ ())
+decEq-⊢ (delay t) (delay t₁) with t ≟ t₁
+... | yes refl = yes refl
+... | no ¬p = no λ { refl → ¬p refl }
+decEq-⊢ (delay t) (con x) = no (λ ())
+decEq-⊢ (delay t) (constr i xs) = no (λ ())
+decEq-⊢ (delay t) (case t₁ ts) = no (λ ())
+decEq-⊢ (delay t) (builtin b) = no (λ ())
+decEq-⊢ (delay t) error = no (λ ())
+decEq-⊢ (con x) (` x₁) = no (λ ())
+decEq-⊢ (con x) (ƛ t₁) = no (λ ())
+decEq-⊢ (con x) (t₁ · t₂) = no (λ ())
+decEq-⊢ (con x) (force t₁) = no (λ ())
+decEq-⊢ (con x) (delay t₁) = no (λ ())
+decEq-⊢ (con x) (con x₁) with x ≟ x₁
+... | yes refl = yes refl
+... | no ¬p = no λ { refl → ¬p refl }
+decEq-⊢ (con x) (constr i xs) = no (λ ())
+decEq-⊢ (con x) (case t₁ ts) = no (λ ())
+decEq-⊢ (con x) (builtin b) = no (λ ())
+decEq-⊢ (con x) error = no (λ ())
+decEq-⊢ (constr i xs) (` x) = no (λ ())
+decEq-⊢ (constr i xs) (ƛ t₁) = no (λ ())
+decEq-⊢ (constr i xs) (t₁ · t₂) = no (λ ())
+decEq-⊢ (constr i xs) (force t₁) = no (λ ())
+decEq-⊢ (constr i xs) (delay t₁) = no (λ ())
+decEq-⊢ (constr i xs) (con x) = no (λ ())
+decEq-⊢ (constr i xs) (constr i₁ xs₁) with (i ≟ i₁) ×-dec  (xs ≟ xs₁)
+... | yes (refl , refl) = yes refl
+... | no ¬pq = no λ { refl → ¬pq (refl , refl) } 
+decEq-⊢ (constr i xs) (case t₁ ts) = no (λ ())
+decEq-⊢ (constr i xs) (builtin b) = no (λ ())
+decEq-⊢ (constr i xs) error = no (λ ())
+decEq-⊢ (case t ts) (` x) = no (λ ())
+decEq-⊢ (case t ts) (ƛ t₁) = no (λ ())
+decEq-⊢ (case t ts) (t₁ · t₂) = no (λ ())
+decEq-⊢ (case t ts) (force t₁) = no (λ ())
+decEq-⊢ (case t ts) (delay t₁) = no (λ ())
+decEq-⊢ (case t ts) (con x) = no (λ ())
+decEq-⊢ (case t ts) (constr i xs) = no (λ ())
+decEq-⊢ (case t ts) (case t₁ ts₁) with (decEq-⊢ t t₁) ×-dec (ts ≟ ts₁)
+... | yes (refl , refl) = yes refl
+... | no ¬pq = no λ { refl → ¬pq (refl , refl) } 
+decEq-⊢ (case t ts) (builtin b) = no (λ ())
+decEq-⊢ (case t ts) error = no (λ ())
+decEq-⊢ (builtin b) (` x) = no (λ ())
+decEq-⊢ (builtin b) (ƛ t₁) = no (λ ())
+decEq-⊢ (builtin b) (t₁ · t₂) = no (λ ())
+decEq-⊢ (builtin b) (force t₁) = no (λ ())
+decEq-⊢ (builtin b) (delay t₁) = no (λ ())
+decEq-⊢ (builtin b) (con x) = no (λ ())
+decEq-⊢ (builtin b) (constr i xs) = no (λ ())
+decEq-⊢ (builtin b) (case t₁ ts) = no (λ ())
+decEq-⊢ (builtin b) (builtin b₁) with b ≟ b₁
+... | yes refl = yes refl
+... | no ¬p = no λ { refl → ¬p refl }
+decEq-⊢ (builtin b) error = no (λ ())
+decEq-⊢ error (` x) = no (λ ())
+decEq-⊢ error (ƛ t₁) = no (λ ())
+decEq-⊢ error (t₁ · t₂) = no (λ ())
+decEq-⊢ error (force t₁) = no (λ ())
+decEq-⊢ error (delay t₁) = no (λ ())
+decEq-⊢ error (con x) = no (λ ())
+decEq-⊢ error (constr i xs) = no (λ ())
+decEq-⊢ error (case t₁ ts) = no (λ ())
+decEq-⊢ error (builtin b) = no (λ ())
+decEq-⊢ error error = yes refl
 
 ```
