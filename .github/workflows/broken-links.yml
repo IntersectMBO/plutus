@@ -1,5 +1,9 @@
-# This job checks for broken links in the various files.
-  
+# This job checks for broken links in the various places:
+# - The live haddock site
+# - The live metatheory site
+# - The live docusaurus site
+# - Anchors and URLs in various files in the repo
+
 name: "🔗 Broken Links"
 
 on:
@@ -21,8 +25,8 @@ on:
       - STYLEGUIDE.adoc
       
 jobs:
-  check:
-    name: Check
+  repo-files:
+    name: Repo Files
     runs-on: [plutus-shared, self-hosted]
     steps:
       - name: Checkout
@@ -31,3 +35,20 @@ jobs:
       - name: Run Linkchecker
         run: |
           nix develop --no-warn-dirty --accept-flake-config --command ./scripts/check-broken-links.sh
+
+
+  haddock-site:
+    name: Haddock Site
+    runs-on: [plutus-shared, self-hosted]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Run Linkchecker
+        env: 
+          IGNORE_URLS: 
+        run: |
+          nix develop --no-warn-dirty --accept-flake-config --command ./scripts/check-broken-links.sh
+
+  
+
