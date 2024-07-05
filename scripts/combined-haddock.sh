@@ -75,6 +75,8 @@ PLUTUS_VERSION="$(find ${BUILD_CONTENTS}/plutus-core-* -printf '%f\n' -quit | se
 
 GIT_REV="$(git rev-parse HEAD)"
 
+GIT_REV_SHORT="$(git rev-parse --short HEAD)"
+
 
 # Here we merge each package's internal libraries into a single folder, for example:
 # Merge:
@@ -125,6 +127,9 @@ done
 
 echo "Writing the prologue"
 cat << EOF > "${BUILD_DIR}/haddock.prologue"
+
+Last updated on $(date +"%F") from [IntersectMBO/plutus@\`$GIT_REV_SHORT\`](https://github.com/IntersectMBO/plutus/tree/$GIT_REV)
+
 == Handy module entrypoints
 
   * "PlutusTx": Compiling Haskell to PLC (Plutus Core; on-chain code).
