@@ -24,7 +24,8 @@ const config: Config = {
   projectName: "docusaurus", // Usually your repo name.
 
   onBrokenLinks: "throw",
-  onBrokenMarkdownLinks: "warn",
+  onBrokenAnchors: "throw",
+  onBrokenMarkdownLinks: "throw",
 
   plugins: [
     [

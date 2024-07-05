@@ -26,7 +26,6 @@ jobs:
 
       - name: Enforce Label
         uses: actions/github-script@main
-        # Don't require changelogs for draft PRs
         if: github.event.pull_request.draft == false
         with:
           script: | 

@@ -15,7 +15,7 @@ jobs:
   run:
     name: Run
     runs-on: [self-hosted, plutus-benchmark]
-    timeout-minutes: 14400
+    timeout-minutes: 1800 # (30 hours) These benchmarks take over 10 hours to run.
     steps:
       - name: Checkout
         uses: actions/checkout@main

@@ -128,7 +128,7 @@ done
 echo "Writing the prologue"
 cat << EOF > "${BUILD_DIR}/haddock.prologue"
 
-Last updated on $(date +"%F") from [IntersectMBO/plutus@\`$GIT_REV_SHORT\`](https://github.com/IntersectMBO/plutus/tree/$GIT_REV)
+Last updated on $(date +"%Y %b %d") from [IntersectMBO/plutus@$GIT_REV_SHORT](https://github.com/IntersectMBO/plutus/tree/$GIT_REV)
 
 == Handy module entrypoints
 
