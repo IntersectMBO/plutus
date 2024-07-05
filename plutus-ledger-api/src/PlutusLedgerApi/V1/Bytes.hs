@@ -1,7 +1,9 @@
--- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE DerivingVia     #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE BlockArguments    #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 
 {-# OPTIONS_GHC -Wno-orphans            #-}
 
@@ -15,17 +17,21 @@ module PlutusLedgerApi.V1.Bytes
     ) where
 
 import Control.DeepSeq (NFData)
-import Control.Exception
+import Control.Exception (Exception)
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Internal (c2w, w2c)
 import Data.Either.Extras (unsafeFromEither)
+import Data.Function ((&))
 import Data.String (IsString (..))
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as TE
+import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import GHC.Generics (Generic)
-import PlutusTx
+import PlutusTx (FromData, ToData, UnsafeFromData, makeLift)
+import PlutusTx.Blueprint (HasBlueprintDefinition, HasBlueprintSchema (..), SchemaInfo (title),
+                           withSchemaInfo)
 import PlutusTx.Prelude qualified as P
 import Prettyprinter.Extras (Pretty, PrettyShow (..))
 
@@ -36,7 +42,9 @@ data LedgerBytesError =
     deriving stock (Show)
     deriving anyclass (Exception)
 
-{- | Convert a hex-encoded (Base16) `ByteString` to a `LedgerBytes`. May return an error (`LedgerBytesError`). -}
+{- | Convert a hex-encoded (Base16) `ByteString` to a `LedgerBytes`.
+     May return an error (`LedgerBytesError`).
+-}
 fromHex :: BS.ByteString -> Either LedgerBytesError LedgerBytes
 fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral
     where
@@ -63,15 +71,24 @@ fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral
     -- parses a bytestring such as @a6b4@ into an actual bytestring
     asBSLiteral :: BS.ByteString -> Either LedgerBytesError BS.ByteString
     asBSLiteral = withBytes asBytes
-        where
-          withBytes :: ([Word8] -> Either LedgerBytesError [Word8]) -> BS.ByteString -> Either LedgerBytesError BS.ByteString
-          withBytes f = fmap BS.pack . f . BS.unpack
+     where
+      withBytes ::
+        ([Word8] -> Either LedgerBytesError [Word8]) ->
+        BS.ByteString ->
+        Either LedgerBytesError BS.ByteString
+      withBytes f = fmap BS.pack . f . BS.unpack
 
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: P.BuiltinByteString }
-    deriving stock (Eq, Ord, Generic)
+    deriving stock (Eq, Ord, Generic, Typeable)
     deriving newtype (P.Eq, P.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (NFData)
+    deriving anyclass (NFData, HasBlueprintDefinition)
     deriving Pretty via (PrettyShow LedgerBytes)
+
+instance HasBlueprintSchema LedgerBytes referencedTypes where
+  {-# INLINEABLE schema #-}
+  schema =
+    schema @P.BuiltinByteString
+      & withSchemaInfo \info -> info{title = Just "LedgerBytes"}
 
 -- | Lift a Haskell bytestring to the Plutus abstraction 'LedgerBytes'
 fromBytes :: BS.ByteString -> LedgerBytes
@@ -84,7 +101,8 @@ bytes = P.fromBuiltin . getLedgerBytes
 {- | Read in arbitrary 'LedgerBytes' as a \"string\" (of characters).
 
 This is mostly used together with GHC's /OverloadedStrings/ extension
-to specify at the source code any 'LedgerBytes' constants, by utilizing Haskell's double-quoted string syntax.
+to specify at the source code any 'LedgerBytes' constants,
+by utilizing Haskell's double-quoted string syntax.
 
 IMPORTANT: the 'LedgerBytes' are expected to be already hex-encoded (base16); otherwise,
 'LedgerBytesError' will be raised as an 'GHC.Exception.Exception'.
@@ -102,4 +120,7 @@ decode with UTF-8 to a `Text`. -}
 encodeByteString :: BS.ByteString -> Text.Text
 encodeByteString = TE.decodeUtf8 . Base16.encode
 
-makeLift ''LedgerBytes
+----------------------------------------------------------------------------------------------------
+-- TH Splices --------------------------------------------------------------------------------------
+
+$(makeLift ''LedgerBytes)

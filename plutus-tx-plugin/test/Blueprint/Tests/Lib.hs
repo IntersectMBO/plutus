@@ -11,6 +11,8 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
 
@@ -26,12 +28,14 @@ import Control.Monad.Reader (asks)
 import Data.ByteString (ByteString)
 import Data.ByteString.Lazy qualified as LBS
 import Data.Kind (Type)
+import Data.Type.Equality ((:~:) (Refl))
 import Data.Void (Void)
 import Flat qualified
 import GHC.Generics (Generic)
 import PlutusTx.AsData (asData)
-import PlutusTx.Blueprint.Class (HasSchema (..))
-import PlutusTx.Blueprint.Definition (AsDefinitionId, definitionRef)
+import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), Unrolled, definitionIdFromTypeK,
+                                      definitionRef)
 import PlutusTx.Blueprint.Schema (Schema (..), emptyBytesSchema)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaComment (..), SchemaDescription (..),
                                              SchemaInfo (..), SchemaTitle (..), emptySchemaInfo)
@@ -57,21 +61,36 @@ data Params = MkParams
   { myUnit              :: ()
   , myBool              :: Bool
   , myInteger           :: Integer
+  , myListOfInts        :: [Integer]
   , myBuiltinData       :: BuiltinData
   , myBuiltinByteString :: BuiltinByteString
   }
   deriving stock (Generic)
-  deriving anyclass (AsDefinitionId)
+  deriving anyclass (HasBlueprintDefinition)
 
 $(makeLift ''Params)
 $(makeIsDataSchemaIndexed ''Params [('MkParams, 0)])
 
+unrolledParams
+  :: Unrolled Params
+    :~: [ Params
+        , Bool
+        , ()
+        , [Integer]
+        , Integer
+        , BuiltinData
+        , BuiltinByteString
+        ]
+unrolledParams = Refl
+
 newtype Bytes (phantom :: Type) = MkAcmeBytes BuiltinByteString
-  deriving stock (Generic)
-  deriving anyclass (AsDefinitionId)
   deriving newtype (ToData, FromData, UnsafeFromData)
 
-instance HasSchema (Bytes phantom) ts where
+instance (HasBlueprintDefinition phantom) => HasBlueprintDefinition (Bytes phantom) where
+  type Unroll (Bytes phantom) = '[Bytes phantom]
+  definitionId = definitionIdFromTypeK @(Type -> Type) @Bytes <> definitionId @phantom
+
+instance HasBlueprintSchema (Bytes phantom) ts where
   schema = SchemaBytes emptySchemaInfo{title = Just "SchemaBytes"} emptyBytesSchema
 
 {-# ANN MkDatumPayload (SchemaComment "MkDatumPayload") #-}
@@ -81,7 +100,10 @@ data DatumPayload = MkDatumPayload
   , myAwesomeDatum2 :: Bytes Void
   }
   deriving stock (Generic)
-  deriving anyclass (AsDefinitionId)
+  deriving anyclass (HasBlueprintDefinition)
+
+unrolledDatumPayload :: Unrolled DatumPayload :~: [DatumPayload, Integer, Bytes Void]
+unrolledDatumPayload = Refl
 
 {-# ANN type Datum (SchemaTitle "Acme Datum") #-}
 {-# ANN type Datum (SchemaDescription "A datum that contains something awesome") #-}
@@ -96,7 +118,10 @@ data DatumPayload = MkDatumPayload
 
 data Datum = DatumLeft | DatumRight DatumPayload
   deriving stock (Generic)
-  deriving anyclass (AsDefinitionId)
+  deriving anyclass (HasBlueprintDefinition)
+
+unrolledDatum :: Unrolled Datum :~: [Datum, Bytes Void, Integer, DatumPayload]
+unrolledDatum = Refl
 
 {-# ANN type Redeemer (SchemaTitle "Acme Redeemer") #-}
 {-# ANN type Redeemer (SchemaDescription "A redeemer that does something awesome") #-}
@@ -120,6 +145,7 @@ validatorScript1 =
         { myUnit = ()
         , myBool = True
         , myInteger = fromIntegral (maxBound @Int) + 1
+        , myListOfInts = [1, 2, 3]
         , myBuiltinData = toBuiltinData (3 :: Integer)
         , myBuiltinByteString = emptyByteString
         }
@@ -129,14 +155,14 @@ validatorScript1 =
 
 newtype Param2a = MkParam2a Bool
   deriving stock (Generic)
-  deriving anyclass (AsDefinitionId)
+  deriving anyclass (HasBlueprintDefinition)
 
 $(makeLift ''Param2a)
 $(makeIsDataSchemaIndexed ''Param2a [('MkParam2a, 0)])
 
 newtype Param2b = MkParam2b Bool
   deriving stock (Generic)
-  deriving anyclass (AsDefinitionId)
+  deriving anyclass (HasBlueprintDefinition)
 
 $(makeLift ''Param2b)
 $(makeIsDataSchemaIndexed ''Param2b [('MkParam2b, 0)])

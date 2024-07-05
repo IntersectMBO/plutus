@@ -1,13 +1,14 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE ViewPatterns       #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DeriveDataTypeable   #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE ViewPatterns         #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 -- Prevent unboxing, which the plugin can't deal with
@@ -15,6 +16,10 @@
 {-# OPTIONS_GHC -fno-spec-constr #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# LANGUAGE BlockArguments       #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE UndecidableInstances #-}
 -- We need -fexpose-all-unfoldings to compile the Marlowe validator
 -- with GHC 9.6.2.
 -- TODO. Look into this more closely: see https://github.com/IntersectMBO/plutus/issues/6172.
@@ -61,7 +66,8 @@ import Prelude qualified as Haskell
 
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
-import Data.Data (Data)
+import Data.Data (Data, Typeable)
+import Data.Function ((&))
 import Data.String (IsString (fromString))
 import Data.Text (Text)
 import Data.Text qualified as Text
@@ -70,6 +76,13 @@ import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
+import PlutusTx.Blueprint (emptySchemaInfo)
+import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), definitionIdFromType,
+                                      definitionRef)
+import PlutusTx.Blueprint.Schema (MapSchema (..), PairSchema (..), Schema (..), emptyIntegerSchema,
+                                  withSchemaInfo)
+import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..))
 import PlutusTx.Lift (makeLift)
 import PlutusTx.List qualified
 import PlutusTx.Ord qualified as Ord
@@ -88,15 +101,33 @@ This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
  [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
-newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
-    deriving
-        (IsString        -- ^ from hex encoding
-        , Haskell.Show   -- ^ using hex encoding
-        , Pretty         -- ^ using hex encoding
-        ) via LedgerBytes
-    deriving stock (Generic, Data)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (NFData)
+newtype CurrencySymbol = CurrencySymbol {unCurrencySymbol :: PlutusTx.BuiltinByteString}
+  deriving stock (Generic, Data)
+  deriving anyclass (NFData, HasBlueprintDefinition)
+  deriving newtype
+    ( Haskell.Eq
+    , Haskell.Ord
+    , Eq
+    , Ord
+    , PlutusTx.ToData
+    , PlutusTx.FromData
+    , PlutusTx.UnsafeFromData
+    )
+  deriving
+    ( -- | from hex encoding
+      IsString
+    , -- | using hex encoding
+      Haskell.Show
+    , -- | using hex encoding
+      Pretty
+    )
+    via LedgerBytes
+
+instance HasBlueprintSchema CurrencySymbol referencedTypes where
+  {-# INLINABLE schema #-}
+  schema = schema @PlutusTx.BuiltinByteString
+    & withSchemaInfo \info ->
+      info { title = Just "CurrencySymbol" }
 
 {-# INLINABLE currencySymbol #-}
 -- | Creates `CurrencySymbol` from raw `ByteString`.
@@ -112,15 +143,29 @@ This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
  [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
-newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
-    deriving stock (Generic, Data)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (NFData)
-    deriving Pretty via (PrettyShow TokenName)
+newtype TokenName = TokenName {unTokenName :: PlutusTx.BuiltinByteString}
+  deriving stock (Generic, Data)
+  deriving newtype
+    ( Haskell.Eq
+    , Haskell.Ord
+    , Eq
+    , Ord
+    , PlutusTx.ToData
+    , PlutusTx.FromData
+    , PlutusTx.UnsafeFromData
+    )
+  deriving anyclass (NFData, HasBlueprintDefinition)
+  deriving (Pretty) via (PrettyShow TokenName)
 
 -- | UTF-8 encoding. Doesn't verify length.
 instance IsString TokenName where
     fromString = fromText . Text.pack
+
+instance HasBlueprintSchema TokenName referencedTypes where
+  {-# INLINABLE schema #-}
+  schema = schema @PlutusTx.BuiltinByteString
+    & withSchemaInfo \info ->
+      info { title = Just "TokenName" }
 
 {-# INLINABLE tokenName #-}
 -- | Creates `TokenName` from raw `BS.ByteString`.
@@ -162,11 +207,29 @@ adaToken :: TokenName
 adaToken = TokenName emptyByteString
 
 -- | An asset class, identified by a `CurrencySymbol` and a `TokenName`.
-newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
-    deriving stock (Generic, Data)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Show, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (NFData)
-    deriving Pretty via (PrettyShow (CurrencySymbol, TokenName))
+newtype AssetClass = AssetClass {unAssetClass :: (CurrencySymbol, TokenName)}
+  deriving stock (Generic, Data)
+  deriving newtype
+    ( Haskell.Eq
+    , Haskell.Ord
+    , Haskell.Show
+    , Eq
+    , Ord
+    , PlutusTx.ToData
+    , PlutusTx.FromData
+    , PlutusTx.UnsafeFromData
+    )
+  deriving anyclass (NFData, HasBlueprintDefinition)
+  deriving (Pretty) via (PrettyShow (CurrencySymbol, TokenName))
+
+instance HasBlueprintSchema AssetClass referencedTypes where
+  {-# INLINEABLE schema #-}
+  schema =
+    SchemaBuiltInPair emptySchemaInfo $
+      MkPairSchema
+        { left = schema @CurrencySymbol
+        , right = schema @TokenName
+        }
 
 {-# INLINABLE assetClass #-}
 -- | The curried version of 'AssetClass' constructor
@@ -214,10 +277,33 @@ There is no 'Ord Value' instance since 'Value' is only a partial order, so 'comp
 do the right thing in some cases.
  -}
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
-    deriving stock (Generic, Data, Haskell.Show)
+    deriving stock (Generic, Data, Typeable, Haskell.Show)
     deriving anyclass (NFData)
     deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving Pretty via (PrettyShow Value)
+
+instance HasBlueprintDefinition Value where
+  type Unroll Value = '[Value, CurrencySymbol, TokenName, Integer]
+  definitionId = definitionIdFromType @Value
+
+instance HasBlueprintSchema Value referencedTypes where
+  {-# INLINABLE schema #-}
+  schema =
+    SchemaMap
+      emptySchemaInfo
+        { title = Just "Value" }
+      MkMapSchema
+        { keySchema = definitionRef @CurrencySymbol
+        , valueSchema =
+            SchemaMap emptySchemaInfo MkMapSchema
+              { keySchema = definitionRef @TokenName
+              , valueSchema = definitionRef @Integer
+              , minItems = Nothing
+              , maxItems = Nothing
+              }
+        , minItems = Nothing
+        , maxItems = Nothing
+        }
 
 instance Haskell.Eq Value where
     (==) = eq
@@ -508,8 +594,9 @@ eq :: Value -> Value -> Bool
 eq (Value currs1) (Value currs2) = eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
 
 newtype Lovelace = Lovelace { getLovelace :: Integer }
-  deriving stock (Generic)
+  deriving stock (Generic, Typeable)
   deriving (Pretty) via (PrettyShow Lovelace)
+  deriving anyclass (HasBlueprintDefinition)
   deriving newtype
     ( Haskell.Eq
     , Haskell.Ord
@@ -528,8 +615,17 @@ newtype Lovelace = Lovelace { getLovelace :: Integer }
     , PlutusTx.Show
     )
 
-makeLift ''CurrencySymbol
-makeLift ''TokenName
-makeLift ''AssetClass
-makeLift ''Value
-makeLift ''Lovelace
+instance HasBlueprintSchema Lovelace referencedTypes where
+  {-# INLINABLE schema #-}
+  schema = SchemaInteger info emptyIntegerSchema
+   where
+    info = emptySchemaInfo { title = Just "Lovelace" }
+
+----------------------------------------------------------------------------------------------------
+-- TH Splices --------------------------------------------------------------------------------------
+
+$(makeLift ''CurrencySymbol)
+$(makeLift ''TokenName)
+$(makeLift ''AssetClass)
+$(makeLift ''Value)
+$(makeLift ''Lovelace)

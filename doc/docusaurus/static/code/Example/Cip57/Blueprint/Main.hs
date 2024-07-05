@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE ImportQualifiedPost   #-}
@@ -19,16 +20,15 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
-
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
+{-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-spec-constr #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
-{-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 {-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
+{-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
 
 -- END pragmas
@@ -43,13 +43,17 @@ import PlutusTx.Prelude
 
 import Data.Set qualified as Set
 import GHC.Generics (Generic)
-import Paths_docusaurus_examples (getDataFileName)
-import PlutusLedgerApi.V3 (Datum (..), Redeemer (..), ScriptContext (..),
-                           ScriptInfo (SpendingScript), UnsafeFromData (..))
+import PlutusLedgerApi.V1.DCert qualified as V1
+import PlutusLedgerApi.V1.Time qualified as V1
+import PlutusLedgerApi.V1.Tx qualified as V1
+import PlutusLedgerApi.V3 qualified as V3
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
-import Prelude (FilePath, IO)
 
 -- END imports
+
+import Paths_docusaurus_examples (getDataFileName)
+import Prelude (FilePath, IO)
+
 -- BLOCK3
 -- BEGIN MyParams annotations
 
@@ -60,8 +64,9 @@ import Prelude (FilePath, IO)
 -- BLOCK4
 -- BEGIN MyRedeemer annotations
 
-{-# ANN R1 (SchemaComment "Left redeemer") #-}
-{-# ANN R2 (SchemaComment "Right redeemer") #-}
+{-# ANN R0 (SchemaComment "Redeemer 0") #-}
+{-# ANN R1 (SchemaComment "Redeemer 1") #-}
+{-# ANN R2 (SchemaComment "Redeemer 2") #-}
 
 -- END MyRedeemer annotations
 -- BLOCK5
@@ -69,11 +74,34 @@ import Prelude (FilePath, IO)
 
 type MyDatum = Integer
 
-data MyRedeemer = R1 | R2
+data MyRedeemer = R0 | R1 V3.Lovelace | R2 V3.Value
 
 data MyParams = MkMyParams
-  { myBool    :: Bool
-  , myInteger :: Integer
+  { myBool          :: Bool
+  , myInteger       :: Integer
+  , myDCert         :: V1.DCert
+  , myScriptTag     :: V1.ScriptTag
+  , myRedeemerPtr   :: V1.RedeemerPtr
+  , myDiffMillis    :: V1.DiffMilliSeconds
+  , myTxId          :: V3.TxId
+  , myTokenName     :: V3.TokenName
+  , myAddress       :: V3.Address
+  , myPubKey        :: V3.PubKeyHash
+  , myPOSIXTime     :: V3.POSIXTime
+  , myLedgerBytes   :: V3.LedgerBytes
+  , myCredential    :: V3.Credential
+  , myDatum         :: V3.Datum
+  , myLovelace      :: V3.Lovelace
+  , myInterval      :: V3.Interval Integer
+  , myScriptHash    :: V3.ScriptHash
+  , myRedeemer      :: V3.Redeemer
+  , myRedeemerHash  :: V3.RedeemerHash
+  , myDatum_        :: V3.Datum
+  , myDatumHash     :: V3.DatumHash
+  , myTxInInfo      :: V3.TxInInfo
+  , myTxInfo        :: V3.TxInfo
+  , myScriptPurpose :: V3.ScriptPurpose
+  , myScriptContext :: V3.ScriptContext
   }
 
 -- END interface types
@@ -81,7 +109,7 @@ data MyParams = MkMyParams
 -- BEGIN makeIsDataSchemaIndexed MyParams
 
 $(makeIsDataSchemaIndexed ''MyParams [('MkMyParams, 0)])
-$(makeIsDataSchemaIndexed ''MyRedeemer [('R1, 0), ('R2, 1)])
+$(makeIsDataSchemaIndexed ''MyRedeemer [('R0, 0), ('R1, 1), ('R2, 2)])
 
 -- END makeIsDataSchemaIndexed MyParams
 -- BLOCK7
@@ -92,30 +120,34 @@ deriving stock instance Generic MyRedeemer
 
 -- END generic instances
 -- BLOCK8
--- BEGIN AsDefinitionId instances
+-- BEGIN HasBlueprintDefinition instances
 
-deriving anyclass instance AsDefinitionId MyParams
-deriving anyclass instance AsDefinitionId MyRedeemer
+deriving anyclass instance HasBlueprintDefinition MyParams
+deriving anyclass instance HasBlueprintDefinition MyRedeemer
 
--- END AsDefinitionId instances
+-- END HasBlueprintDefinition instances
 -- BLOCK9
 -- BEGIN validator
 
 typedValidator :: MyParams -> MyDatum -> MyRedeemer -> Bool
 typedValidator MkMyParams{..} datum redeemer =
   case redeemer of
-    R1 -> myBool
-    R2 -> myInteger == datum
+    R0   -> myBool
+    R1{} -> myBool
+    R2{} -> myInteger == datum
 
 untypedValidator :: MyParams -> BuiltinData -> BuiltinUnit
 untypedValidator params scriptContext =
   check
-    $ case unsafeFromBuiltinData scriptContext of
-      ScriptContext
+    $ case V3.unsafeFromBuiltinData scriptContext of
+      V3.ScriptContext
         _txInfo
-        (Redeemer redeemer)
-        (SpendingScript _ (Just (Datum datum))) ->
-          typedValidator params (unsafeFromBuiltinData datum) (unsafeFromBuiltinData redeemer)
+        (V3.Redeemer redeemer)
+        (V3.SpendingScript _ (Just (V3.Datum datum))) ->
+          typedValidator
+            params
+            (V3.unsafeFromBuiltinData datum)
+            (V3.unsafeFromBuiltinData redeemer)
       _ -> False
 
 -- END validator

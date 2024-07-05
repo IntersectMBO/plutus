@@ -1,10 +1,14 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -37,29 +41,33 @@ module PlutusLedgerApi.V2.Contexts
     , ownCurrencySymbol
     ) where
 
-import GHC.Generics (Generic)
-import PlutusTx
-import PlutusTx.AssocMap hiding (filter, mapMaybe)
 import PlutusTx.Prelude hiding (toList)
-import Prettyprinter (Pretty (..), nest, vsep, (<+>))
+import Prelude qualified as Haskell
 
+import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Address (Address (..))
 import PlutusLedgerApi.V1.Contexts (ScriptPurpose (..))
 import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash (..))
 import PlutusLedgerApi.V1.DCert (DCert (..))
-import PlutusLedgerApi.V1.Scripts
+import PlutusLedgerApi.V1.Scripts (Datum, DatumHash, Redeemer)
 import PlutusLedgerApi.V1.Time (POSIXTimeRange)
 import PlutusLedgerApi.V1.Value (CurrencySymbol, Value)
 import PlutusLedgerApi.V2.Tx (TxId (..), TxOut (..), TxOutRef (..))
-
-import Prelude qualified as Haskell
+import PlutusTx.AssocMap (Map, lookup, toList)
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition)
+import PlutusTx.Blueprint.Definition.Derive (definitionRef)
+import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
+import PlutusTx.Lift (makeLift)
+import Prettyprinter (Pretty (..), nest, vsep, (<+>))
 
 -- | An input of a pending transaction.
 data TxInInfo = TxInInfo
     { txInInfoOutRef   :: TxOutRef
     , txInInfoResolved :: TxOut
-    } deriving stock (Generic, Haskell.Show, Haskell.Eq)
+    }
+    deriving stock (Generic, Haskell.Show, Haskell.Eq)
+    deriving anyclass (HasBlueprintDefinition)
 
 instance Eq TxInInfo where
     TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
@@ -84,7 +92,9 @@ data TxInfo = TxInfo
     , txInfoData            :: Map DatumHash Datum -- ^ The lookup table of datums attached to the transaction
                                                   -- /V1->V2/: changed from assoc list to a 'PlutusTx.AssocMap'
     , txInfoId              :: TxId  -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
-    } deriving stock (Generic, Haskell.Show, Haskell.Eq)
+    }
+    deriving stock (Generic, Haskell.Show, Haskell.Eq)
+    deriving anyclass (HasBlueprintDefinition)
 
 instance Pretty TxInfo where
     pretty TxInfo{txInfoInputs, txInfoReferenceInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoRedeemers, txInfoData, txInfoId} =
@@ -212,11 +222,13 @@ spendsOutput p h i =
 
     in any spendsOutRef (txInfoInputs p)
 
-makeLift ''TxInInfo
-makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
+----------------------------------------------------------------------------------------------------
+-- TH Splices --------------------------------------------------------------------------------------
 
-makeLift ''TxInfo
-makeIsDataIndexed ''TxInfo [('TxInfo,0)]
+$(makeLift ''TxInInfo)
+$(makeLift ''TxInfo)
+$(makeLift ''ScriptContext)
 
-makeLift ''ScriptContext
-makeIsDataIndexed ''ScriptContext [('ScriptContext,0)]
+$(makeIsDataSchemaIndexed ''TxInInfo [('TxInInfo, 0)])
+$(makeIsDataSchemaIndexed ''TxInfo [('TxInfo, 0)])
+$(makeIsDataSchemaIndexed ''ScriptContext [('ScriptContext, 0)])

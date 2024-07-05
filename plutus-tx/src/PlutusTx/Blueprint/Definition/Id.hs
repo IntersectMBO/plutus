@@ -1,61 +1,61 @@
-{-# LANGUAGE AllowAmbiguousTypes  #-}
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DefaultSignatures    #-}
-{-# LANGUAGE DeriveDataTypeable   #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE PolyKinds            #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DeriveDataTypeable  #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE PolyKinds           #-}
+{-# LANGUAGE TypeApplications    #-}
 
-module PlutusTx.Blueprint.Definition.Id (
-  DefinitionId,
-  definitionIdToText,
-  AsDefinitionId (..),
-) where
+module PlutusTx.Blueprint.Definition.Id
+  ( DefinitionId
+  , definitionIdFromType
+  , definitionIdFromTypeK
+  , definitionIdToText
+  , definitionIdUnit
+  , definitionIdList
+  , definitionIdTuple2
+  , definitionIdTuple3
+  ) where
 
 import Prelude
 
 import Data.Aeson (ToJSON, ToJSONKey)
 import Data.Data (Data)
-import Data.Text (Text)
-import Data.Text qualified as Text
-import Data.Typeable (Proxy (..), Typeable, typeRep)
+import Data.Kind (Type)
+import Data.Proxy (Proxy (..))
+import Data.Text (Text, pack)
+import Data.Typeable (Typeable, typeRep)
 import GHC.Generics (Generic)
-import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinData, BuiltinList, BuiltinString)
 
 -- | A reference to a Schema definition.
 newtype DefinitionId = MkDefinitionId {definitionIdToText :: Text}
   deriving stock (Show, Generic, Data)
   deriving newtype (Eq, Ord, ToJSON, ToJSONKey)
 
-class AsDefinitionId a where
-  definitionId :: DefinitionId
+instance Semigroup DefinitionId where
+  (<>) l r = MkDefinitionId $ definitionIdToText l <> "_" <> definitionIdToText r
 
-  -- | Derive a 'DefinitionId' for a type.
-  default definitionId :: (Typeable a) => DefinitionId
-  definitionId =
-    MkDefinitionId . Text.replace " " "_" . Text.pack . show $ typeRep (Proxy :: Proxy a)
+-- | Creates a 'DefinitionId' from a type with a kind 'Type'.
+definitionIdFromType :: forall (t :: Type). (Typeable t) => DefinitionId
+definitionIdFromType = MkDefinitionId . pack . show . typeRep $ Proxy @t
 
-instance AsDefinitionId () where
-  definitionId = MkDefinitionId "Unit"
+{- | Creates a 'DefinitionId' from a type with a kind other than 'Type'.
+Example:
+> definitionIdFromTypeK @(Type -> Type) @Maybe
+-}
+definitionIdFromTypeK :: forall k (t :: k). (Typeable (t :: k)) => DefinitionId
+definitionIdFromTypeK = MkDefinitionId . pack . show . typeRep $ Proxy @(t :: k)
 
-instance AsDefinitionId Bool
+-- Special cases that we want to be alphanumeric instead of symbolic,
+-- E.g. "Unit" instead of "()", "List" instead of "[]" etc.
 
-instance AsDefinitionId Integer
+definitionIdUnit :: DefinitionId
+definitionIdUnit = MkDefinitionId "Unit"
 
-instance AsDefinitionId BuiltinData where
-  definitionId = MkDefinitionId "Data"
+definitionIdList :: DefinitionId
+definitionIdList = MkDefinitionId "List"
 
-instance AsDefinitionId BuiltinString where
-  definitionId = MkDefinitionId "String"
+definitionIdTuple2 :: DefinitionId
+definitionIdTuple2 = MkDefinitionId "Tuple2"
 
-instance AsDefinitionId BuiltinByteString where
-  definitionId = MkDefinitionId "ByteString"
-
-instance (AsDefinitionId a) => AsDefinitionId (BuiltinList a) where
-  definitionId = MkDefinitionId $ "List_" <> definitionIdToText (definitionId @a)
+definitionIdTuple3 :: DefinitionId
+definitionIdTuple3 = MkDefinitionId "Tuple3"
