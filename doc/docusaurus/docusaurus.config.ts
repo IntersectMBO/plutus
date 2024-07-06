@@ -65,7 +65,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            "https://github.com/IntersectMBO/plutus/edit/master/docusaurus",
+            "https://github.com/IntersectMBO/plutus/edit/master/doc/docusaurus",
         },
         theme: {
           customCss: "./src/css/custom.css",
