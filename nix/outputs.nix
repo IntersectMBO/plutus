@@ -10,7 +10,6 @@ let
   ghc98 = project.variants.ghc98;
   ghc810 = project.variants.ghc810;
   ghc910 = project.variants.ghc910;
-
 in
 
 [
