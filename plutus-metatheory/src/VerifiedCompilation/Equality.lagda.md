@@ -9,8 +9,9 @@ module VerifiedCompilation.Equality where
 
 ## Decidable Equivalence
 
-We need to determine if two terms refer to the same variable, so we need decidable
-equivalence on variables, which are really de Brujin numbers encoded using Maybe.
+There are various points in the Translation definitions where we need to compare terms
+for equality. It is almost always the case that an unchanged term is a valid translation; in
+many of the translations there are parts that must remain untouched. 
 
 ```
 import Relation.Binary.PropositionalEquality as Eq
@@ -49,18 +50,11 @@ postulate
    -- easy to do but should be in the standard library *somewhere*??
    dec-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
    decEq-TmCon : DecidableEquality TmCon
-
-{-
-decEq-TmCon (tmCon t1 v1) (tmCon t2 v2) with decTag t1 t2 | dec-⟦_⟧tag v1 v2
-...                                                                 | no ¬p   | _         = no {!!}
-...                                                                 | yes refl | no ¬p  = {!!}
-...                                                                 | yes refl | yes p  = yes {!!}
--}
    
 ```
 # Pointwise Decisions
 
-At some points we will want to show that one list of AST elements is a valid translation
+We often need to show that one list of AST elements is a valid translation
 of another list of AST elements by showing the `n`th element of one is a translation of the
 `n`th element of the other, pointwise. 
 
@@ -106,7 +100,8 @@ instance
   DecEq-ℕ : DecEq ℕ
   DecEq-ℕ ._≟_ = Data.Nat.Properties._≟_
 
--- FIXME: this shouldn't be needed? It is the mutual recursion with list equality that requires it. 
+-- This terminating declaration shouldn't be needed?
+-- It is the mutual recursion with list equality that requires it. 
 {-# TERMINATING #-}
 decEq-⊢ (` x) (` x₁) with x ≟ x₁
 ... | yes refl = yes refl
