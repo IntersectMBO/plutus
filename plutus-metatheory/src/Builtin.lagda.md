@@ -201,7 +201,7 @@ and constructs a signature
 
 sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
 
-    ```
+```
     ArgSet : Set
     ArgSet = Σ (ℕ × ℕ) (λ { (n⋆ ,, n♯) → Args n⋆ n♯}) 
 
@@ -219,11 +219,11 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     infix 8 _]⟶_
     _]⟶_ : (p : ArgSet) → ArgTy p → Sig
     _]⟶_ ((n⋆ ,, n♯) ,, as) res = sig n⋆ n♯ as res
-    ```
+```
 
     The signature of each builtin
 
-    ```
+```
     signature : Builtin → Sig
     signature addInteger                      = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑ 
     signature subtractInteger                 = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑

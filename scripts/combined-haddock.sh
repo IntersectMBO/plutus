@@ -222,7 +222,7 @@ fi
 
 
 echo "Running linkchecker"
-time linkchecker "${OUTPUT_DIR}/index.html" \
+time linkchecker --no-status "${OUTPUT_DIR}/index.html" \
   --check-extern \
   --no-warnings \
   --output failures \

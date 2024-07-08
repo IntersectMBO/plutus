@@ -2,8 +2,8 @@
 # It will collect and aggreate the benchmark output, format it and feed it to the
 # github-action-benchmark action.
 #
-# The benchmark charts are live at https://intersectmbo.github.io/plutus/dev/bench
-# The benchmark data is available at https://intersectmbo.github.io/plutus/dev/bench/data.js
+# The benchmark charts are live at https://plutus.cardano.intersectmbo.org/dev/bench
+# The benchmark data is available at https://plutus.cardano.intersectmbo.org/dev/bench/data.js
 #
 # This is a performance regression check that is run on every push master.
 

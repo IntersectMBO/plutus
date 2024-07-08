@@ -1,9 +1,9 @@
 # This workflow builds and publishes the Haddock site to:
-# https://intersectmbo.github.io/plutus/haddock/$version
+# https://plutus.cardano.intersectmbo.org/haddock/$version
 # And optionally to:
-# https://intersectmbo.github.io/plutus/haddock/latest
+# https://plutus.cardano.intersectmbo.org/haddock/latest
 # On push to master, this workflows publishes to:
-# https://intersectmbo.github.io/plutus/haddock/master
+# https://plutus.cardano.intersectmbo.org/haddock/master
 
 name: "📜 Haddock Site"
 
@@ -25,14 +25,14 @@ on:
       destination:
         description: |
           The $destination folder, e.g. when "1.29.0.0" the haddock will be deploy to:
-          https://intersectmbo.github.io/plutus/haddock/1.29.0.0
+          https://plutus.cardano.intersectmbo.org/haddock/1.29.0.0
         required: true
         type: string
   
       latest: 
         description: |
           If true, then the haddock site will also be deploy to:
-          https://intersectmbo.github.io/plutus/haddock/latest.
+          https://plutus.cardano.intersectmbo.org/haddock/latest.
           You want to leave this to true unless you are deploying old versions or back-porting.
         type: boolean
         required: true 
@@ -75,3 +75,12 @@ jobs:
           folder: _haddock
           target-folder: haddock/latest
           single-commit: true
+
+      - name: Check Broken Links
+        run: |
+          URL="https://plutus.cardano.intersectmbo.org/haddock/${{ inputs.destination || github.ref_name }}"
+          linkchecker --no-status --no-warnings --check-extern --output failures "${URL}"
+          if [ $? -ne 0 ]; then 
+            echo "${URL}" has broken links, see output above"
+            exit 1 
+          fi 

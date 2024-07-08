@@ -1,5 +1,5 @@
 # This workflow builds and publishes the Docusaurus site to:
-# https://intersectmbo.github.io/plutus/docs
+# https://plutus.cardano.intersectmbo.org/docs
 
 name: "🦕 Docusaurus Site" 
 
@@ -31,4 +31,13 @@ jobs:
           folder: doc/docusaurus/build
           target-folder: docs
           single-commit: true
-
+      
+      - name: Check Broken Links
+        run: |
+          URL="https://plutus.cardano.intersectmbo.org/docs"
+          linkchecker --no-status --no-warnings --check-extern --output failures "${URL}"
+          if [ $? -ne 0 ]; then 
+            echo "${URL}" has broken links, see output above"
+            exit 1 
+          fi 
+  

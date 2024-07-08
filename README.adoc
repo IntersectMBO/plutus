@@ -42,11 +42,11 @@ After setting it up you should just be able to depend on the `plutus` packages a
 
 === User documentation
 
-The main documentation is located https://intersectmbo.github.io/plutus/docs/[here].
+The main documentation is located https://plutus.cardano.intersectmbo.org/docs/[here].
 
-The haddock documentation is located https://intersectmbo.github.io/plutus/haddock/latest[here].
+The haddock documentation is located https://plutus.cardano.intersectmbo.org/haddock/latest[here].
 
-The documentation for the metatheory can be found https://intersectmbo.github.io/plutus/metatheory/latest[here].
+The documentation for the metatheory can be found https://plutus.cardano.intersectmbo.org/metatheory[here].
 
 === Talks
 
@@ -55,17 +55,17 @@ The documentation for the metatheory can be found https://intersectmbo.github.io
 
 === Specifications and design
 
-- https://intersectmbo.github.io/plutus/resources/plutus-report.pdf[Plutus Technical Report (draft)]: a technical report and design document for the project.
-- https://intersectmbo.github.io/plutus/resources/plutus-core-spec.pdf[Plutus Core Specification]: the formal specification of the core language.
-- https://intersectmbo.github.io/plutus/resources/extended-utxo-spec.pdf[Extended UTXO Model]: a design document for the core changes to the Cardano ledger.
+- https://plutus.cardano.intersectmbo.org/resources/plutus-report.pdf[Plutus Technical Report (draft)]: a technical report and design document for the project.
+- https://plutus.cardano.intersectmbo.org/resources/plutus-core-spec.pdf[Plutus Core Specification]: the formal specification of the core language.
+- https://plutus.cardano.intersectmbo.org/resources/extended-utxo-spec.pdf[Extended UTXO Model]: a design document for the core changes to the Cardano ledger.
 
 === Academic papers
 
-- https://intersectmbo.github.io/plutus/resources/unraveling-recursion-paper.pdf[Unraveling Recursion]: a description of some of the compilation strategies used in Plutus IR (https://doi.org/10.1007/978-3-030-33636-3_15[published version]).
-- https://intersectmbo.github.io/plutus/resources/system-f-in-agda-paper.pdf[System F in Agda]: a formal model of System F in Agda (https://doi.org/10.1007/978-3-030-33636-3_10[published version]).
-- https://intersectmbo.github.io/plutus/resources/eutxo-paper.pdf[The Extended UTXO Model]: a full presentation of the EUTXO ledger extension (https://doi.org/10.1007/978-3-030-54455-3_37[published version]).
-- https://intersectmbo.github.io/plutus/resources/utxoma-paper.pdf[UTXOma: UTXO with Multi-Asset Support]: a full presentation of the multi-asset ledger extension (https://doi.org/10.1007/978-3-030-61467-6_8[published version]).
-- https://intersectmbo.github.io/plutus/resources/eutxoma-paper.pdf[Native Custom Tokens in the Extended UTXO Model]: a discussion of the interaction of the multi-asset support with EUTXO (https://doi.org/10.1007/978-3-030-61467-6_7[published version]).
+- https://plutus.cardano.intersectmbo.org/resources/unraveling-recursion-paper.pdf[Unraveling Recursion]: a description of some of the compilation strategies used in Plutus IR (https://doi.org/10.1007/978-3-030-33636-3_15[published version]).
+- https://plutus.cardano.intersectmbo.org/resources/system-f-in-agda-paper.pdf[System F in Agda]: a formal model of System F in Agda (https://doi.org/10.1007/978-3-030-33636-3_10[published version]).
+- https://plutus.cardano.intersectmbo.org/resources/eutxo-paper.pdf[The Extended UTXO Model]: a full presentation of the EUTXO ledger extension (https://doi.org/10.1007/978-3-030-54455-3_37[published version]).
+- https://plutus.cardano.intersectmbo.org/resources/utxoma-paper.pdf[UTXOma: UTXO with Multi-Asset Support]: a full presentation of the multi-asset ledger extension (https://doi.org/10.1007/978-3-030-61467-6_8[published version]).
+- https://plutus.cardano.intersectmbo.org/resources/eutxoma-paper.pdf[Native Custom Tokens in the Extended UTXO Model]: a discussion of the interaction of the multi-asset support with EUTXO (https://doi.org/10.1007/978-3-030-61467-6_7[published version]).
 - https://arxiv.org/abs/2201.04919[Translation Certification for Smart Contracts]:  a certifier of Plutus IR compiler passes written in Coq.
 
 == Licensing

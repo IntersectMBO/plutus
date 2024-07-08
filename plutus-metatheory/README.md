@@ -100,7 +100,7 @@ $ jekyll build -s html -d html/_site
 
 ## Detailed Description
 
-See the [table of contents](https://input-output-hk.github.io/plutus-metatheory/) for an explanation of the structure of the formalisation and links to the code.
+See the [table of contents](https://plutus.cardano.intersectmbo.org/metatheory/) for an explanation of the structure of the formalisation and links to the code.
 
 **The below information is deprecated and is in the process of being
 replaced by the table of contents document.**
@@ -119,51 +119,51 @@ Then, two different implementations of the term language:
 ## Types
 
 Types are defined in the
-[Type](https://input-output-hk.github.io/plutus-metatheory/Type.html)
+[Type](https://plutus.cardano.intersectmbo.org/metatheory/Type.html)
 module. They are intrinsically kinded so it is impossible to apply a
 type operator to arguments of the wrong kind.
 
 The type module is further subdivided into submodules:
 
-1. [Type.RenamingSubstitution](https://input-output-hk.github.io/plutus-metatheory/Type.RenamingSubstitution.html)
+1. [Type.RenamingSubstitution](https://plutus.cardano.intersectmbo.org/metatheory/Type.RenamingSubstitution.html)
 contains the operations of renaming and substitution for types and
 their proofs of correctness. These are necessary to, for example,
 define the beta rule for types in the equational theory and reduction
 relation (described below).
 
-2. [Type.Equality](https://input-output-hk.github.io/plutus-metatheory/Type.Equality.html) contains the beta-equational
+2. [Type.Equality](https://plutus.cardano.intersectmbo.org/metatheory/Type.Equality.html) contains the beta-equational
 theory of types. This is essentially a specification for the
 computational behaviour of types.
 
-3. [Type.Reduction](https://input-output-hk.github.io/plutus-metatheory/Type.Reduction.html) contains the small step
+3. [Type.Reduction](https://plutus.cardano.intersectmbo.org/metatheory/Type.Reduction.html) contains the small step
 reduction relation, the progress/preservation results for types, and
 an evaluator for types. This result is not used later in the
 development but is in the spec.
 
-4. [Type.BetaNormal](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNormal.html) contains beta normal forms
+4. [Type.BetaNormal](https://plutus.cardano.intersectmbo.org/metatheory/Type.BetaNormal.html) contains beta normal forms
 for types as a separate syntax. Beta normal forms contain no
 beta-redexes and guaranteed not to compute any further.
 
-5. [Type.BetaNBE](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE.html) contains a beta normaliser for
+5. [Type.BetaNBE](https://plutus.cardano.intersectmbo.org/metatheory/Type.BetaNBE.html) contains a beta normaliser for
 types, it is defined in the style of "normalization-by-evaluation"
 (NBE) and is guaranteed to terminate. Further submodules define the
 correctness proofs for the normalizer and associated operations.
 
-   1. [Type.BetaNBE.Soundness](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE.Soundness.html) contains a
+   1. [Type.BetaNBE.Soundness](https://plutus.cardano.intersectmbo.org/metatheory/Type.BetaNBE.Soundness.html) contains a
       proof that normalizer preserves the meaning of the types. Formally it
       states that if we normalize a type then the resultant normal form is
       equal (in the equational theory) to the type we started with.
  
-   2. [Type.BetaNBE.Completeness](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE.Completeness.html)
+   2. [Type.BetaNBE.Completeness](https://plutus.cardano.intersectmbo.org/metatheory/Type.BetaNBE.Completeness.html)
       contains a proof that the if we were to normalize two types that are
       equal in the equation theory then we will end up with identical normal
       forms.
  
-   3. [Type.BetaNBE.Stability](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE.Stability.html) contains a
+   3. [Type.BetaNBE.Stability](https://plutus.cardano.intersectmbo.org/metatheory/Type.BetaNBE.Stability.html) contains a
       proof that normalization will preserve syntactic structure of terms
       already in normal form.
  
-   4. [Type.BetaNBE.RenamingSubsitution](https://input-output-hk.github.io/plutus-metatheory/Type.BetaNBE.RenamingSubstitution.html)
+   4. [Type.BetaNBE.RenamingSubsitution](https://plutus.cardano.intersectmbo.org/metatheory/Type.BetaNBE.RenamingSubstitution.html)
       contains a version of substitution that works on normal forms and
       ensures that the result is in normal form. This works by embedding
       normal forms back into syntax, performing a syntactic substitution and
@@ -183,18 +183,18 @@ level programs computing.
 
 There are builtin types of integers and bytestrings.
 
-1. [Builtin.Constant.Type](https://input-output-hk.github.io/plutus-metatheory/Builtin.Constant.Type.html)
+1. [Builtin.Constant.Type](https://plutus.cardano.intersectmbo.org/metatheory/Builtin.Constant.Type.html)
 contains the enumeration of the type constants.
-2. [Builtin.Constant.Term](https://input-output-hk.github.io/plutus-metatheory/Builtin.Constant.Term.html)
+2. [Builtin.Constant.Term](https://plutus.cardano.intersectmbo.org/metatheory/Builtin.Constant.Term.html)
 contains the enumeration of the term constants at the bottom.
-3. [Builtin.Signature](https://input-output-hk.github.io/plutus-metatheory/Builtin.Signature.html)
+3. [Builtin.Signature](https://plutus.cardano.intersectmbo.org/metatheory/Builtin.Signature.html)
 contains the list of builtin operations and their type signatures. In
 the specification this information is contained in the large builtin
 table.
 
 The rest of the Builtin machinery: telescopes, and the semantics of
 builtins are contained in
-[Declarative.Term.Reduction](https://input-output-hk.github.io/plutus-metatheory/Declarative.Term.Reduction.html).
+[Declarative.Term.Reduction](https://plutus.cardano.intersectmbo.org/metatheory/Declarative.Term.Reduction.html).
 
 ## Terms indexed by syntactic types
 
@@ -214,32 +214,32 @@ constructor. They fail if they encounter it. Nevertheless this is
 sufficient to handle examples which do not require computing the types
 before applying beta-reductions. Such as Church/Scott Numerals.
 
-1. The [Declarative.Term](https://input-output-hk.github.io/plutus-metatheory/Declarative.Term.html)
+1. The [Declarative.Term](https://plutus.cardano.intersectmbo.org/metatheory/Declarative.Term.html)
 module contains the definition of terms. This module has two further submodules:
 
-   1. [Declarative.Term.RenamingSubstitution](https://input-output-hk.github.io/plutus-metatheory/Declarative.Term.RenamingSubstitution.html)
+   1. [Declarative.Term.RenamingSubstitution](https://plutus.cardano.intersectmbo.org/metatheory/Declarative.Term.RenamingSubstitution.html)
       contains the definitions of substitution for terms that is necessary to
       specify the beta-rules in the reduction relation. This definition and
       those it depends on, in turn, depend on the definitions and correctness
       proofs of the corresponding type level operations.
 
-   2. [Declarative.Term.Reduction](https://input-output-hk.github.io/plutus-metatheory/Declarative.Term.Reduction.html)
+   2. [Declarative.Term.Reduction](https://plutus.cardano.intersectmbo.org/metatheory/Declarative.Term.Reduction.html)
       This file contains the reduction relation for terms (also known
       as the small step operational semantics) and the progress proof.
       Preservation is inherent. Note: this version of
       progress doesn't handle type conversions in terms.
 
-2. [Declarative.Evaluation](https://input-output-hk.github.io/plutus-metatheory/Declarative.Evaluation.html)
+2. [Declarative.Evaluation](https://plutus.cardano.intersectmbo.org/metatheory/Declarative.Evaluation.html)
 contains the evaluator the terms. It takes a *gas* argument which is
 the number of steps of reduction that are allowed. It returns both a
 result and trace of reduction steps or *out of gas*. Note: this
 version of evaluation doesn't handle type conversions in terms.
 
-3. [Declarative.Examples](https://input-output-hk.github.io/plutus-metatheory/Declarative.Examples.html)
+3. [Declarative.Examples](https://plutus.cardano.intersectmbo.org/metatheory/Declarative.Examples.html)
 contains some examples of Church and Scott Numerals. Currently it is
 very memory intensive to type check this file and/or run examples.
 
-4. [Erasure](https://input-output-hk.github.io/plutus-metatheory/Declarative.Erasure.html)
+4. [Erasure](https://plutus.cardano.intersectmbo.org/metatheory/Declarative.Erasure.html)
 
 ## Terms indexed by normal types
 
@@ -252,10 +252,10 @@ deal with conversions in the syntax. This allows us to define
 progress, preservation, and evaluation for the full language of System
 F omega with iso-recursive types and sized integers and bytestrings.
 
-1. The [Algorithmic.Term](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Term.html)
+1. The [Algorithmic.Term](https://plutus.cardano.intersectmbo.org/metatheory/Algorithmic.Term.html)
 module contains the definition of terms. This module has two further submodules:
 
-   1. [Algorithmic.Term.RenamingSubstitution](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Term.RenamingSubstitution.html)
+   1. [Algorithmic.Term.RenamingSubstitution](https://plutus.cardano.intersectmbo.org/metatheory/Algorithmic.Term.RenamingSubstitution.html)
       contains the definitions of substitution for terms that is
       necessary to specify the beta-rules in the reduction
       relation. This definition and those it depends on, in turn,
@@ -264,32 +264,32 @@ module contains the definition of terms. This module has two further submodules:
       includes depeneding on the correctness proof of the beta
       normalizer for types.
 
-   2. [Algorithmic.Term.Reduction](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Term.Reduction.html)
+   2. [Algorithmic.Term.Reduction](https://plutus.cardano.intersectmbo.org/metatheory/Algorithmic.Term.Reduction.html)
       This file contains the reduction relation for terms (also known
       as the small step operational semantics) and the progress proof.
       Preservation is, again, inherent.
 
-2. [Algorithmic.Evaluation](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Evaluation.html)
+2. [Algorithmic.Evaluation](https://plutus.cardano.intersectmbo.org/metatheory/Algorithmic.Evaluation.html)
 contains the evaluator the terms. It takes a *gas* argument which is
 the number of steps of reduction that are allowed. It returns both a
 result and trace of reduction steps or *out of gas*.
 
-3. [Algorithmic.Examples](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Examples.html)
+3. [Algorithmic.Examples](https://plutus.cardano.intersectmbo.org/metatheory/Algorithmic.Examples.html)
 contains some examples of Church and Scott Numerals. Currently it is
 very memory intensive to type check this file and/or run examples.
 
 We also need to show that the algorithmic version of the type system is sound and complete.
 
-4. [Algorithmic.Soundness](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Soundness.html)
+4. [Algorithmic.Soundness](https://plutus.cardano.intersectmbo.org/metatheory/Algorithmic.Soundness.html)
 
 Programmatically this corresponds to taking a term with normal type
 and converting it back to a term with a syntactic type. This
 introduces conversions into the term anywhere there a substitution
 occurs in a type.
 
-4. [Algorithmic.Completeness](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Completeness.html)
+4. [Algorithmic.Completeness](https://plutus.cardano.intersectmbo.org/metatheory/Algorithmic.Completeness.html)
 
-5. [Erasure](https://input-output-hk.github.io/plutus-metatheory/Algorithmic.Erasure.html) contains erasure to untyped lambda calculus.
+5. [Erasure](https://plutus.cardano.intersectmbo.org/metatheory/Algorithmic.Erasure.html) contains erasure to untyped lambda calculus.
 
 Programmatically this correponds to taking a term with a syntactic
 type that may contain conversions and normalising its type by
@@ -297,37 +297,37 @@ collapsing all the conversions.
 
 # Extrinsically typed version
 
-1. [Syntax](https://input-output-hk.github.io/plutus-metatheory/Scoped.html)
+1. [Syntax](https://plutus.cardano.intersectmbo.org/metatheory/Scoped.html)
 contains the intrinsically scoped but extrinsically typed terms, and
 intrinsically scoped but extrinscically kinded types.
 
 2. [Renaming and
-Substitution](https://input-output-hk.github.io/plutus-metatheory/Scoped.RenamingSubstitution.html)
+Substitution](https://plutus.cardano.intersectmbo.org/metatheory/Scoped.RenamingSubstitution.html)
 contains the operations of renaming and substitution for extrinsically
 typed terms, and extrinsically kinded types.
 
-3. [Reduction](https://input-output-hk.github.io/plutus-metatheory/Scoped.Reduction.html) contains the reduction rules, progress and evaluation.
+3. [Reduction](https://plutus.cardano.intersectmbo.org/metatheory/Scoped.Reduction.html) contains the reduction rules, progress and evaluation.
 
-4. [Extrication](https://input-output-hk.github.io/plutus-metatheory/Scoped.Extrication.html)
+4. [Extrication](https://plutus.cardano.intersectmbo.org/metatheory/Scoped.Extrication.html)
 contains the operations to convert from intrinsically typed to
 extrinscally typed syntax.
 
-5. [Erasure](https://input-output-hk.github.io/plutus-metatheory/Scoped.Erasure.html)
+5. [Erasure](https://plutus.cardano.intersectmbo.org/metatheory/Scoped.Erasure.html)
 contains operations to erase the types yielding untyped terms.
   
   1. [Renaming and
-  Substitution](https://input-output-hk.github.io/plutus-metatheory/Scoped.Erasure.RenamingSubstitution.html)
+  Substitution](https://plutus.cardano.intersectmbo.org/metatheory/Scoped.Erasure.RenamingSubstitution.html)
   contains operations to erase the types in extrinsic renamings and
   substitutions yielding untyped renamings and substitutions.
 
 # Untyped version
 
-1. [Syntax](https://input-output-hk.github.io/plutus-metatheory/Untyped.html)
+1. [Syntax](https://plutus.cardano.intersectmbo.org/metatheory/Untyped.html)
 contains intrinsically scoped but untyped lambda calculus extended
 with builtins.
 
 2. [Renaming and
-Substitution](https://input-output-hk.github.io/plutus-metatheory/Untyped.RenamingSubstitution.html)
+Substitution](https://plutus.cardano.intersectmbo.org/metatheory/Untyped.RenamingSubstitution.html)
 contains operations for untyped renaming and substitution.
 
-3. [Reduction](https://input-output-hk.github.io/plutus-metatheory/Untyped.Reduction.html) contains the untyped reduction rules.
+3. [Reduction](https://plutus.cardano.intersectmbo.org/metatheory/Untyped.Reduction.html) contains the untyped reduction rules.
