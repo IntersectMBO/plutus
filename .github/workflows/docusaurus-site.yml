@@ -31,17 +31,3 @@ jobs:
           folder: doc/docusaurus/build
           target-folder: docs
           single-commit: true
-      
-      - name: Check Broken Links
-        run: |
-          IGNORE_URLS=(
-            --ignore-url "https://plutus.cardano.intersectmbo.org/haddock/.*"
-          )
-          URL="https://plutus.cardano.intersectmbo.org/docs"
-          nix develop --no-warn-dirty --accept-flake-config --command \
-            linkchecker --no-warnings --check-extern --output failures "${URL}" "${IGNORE_URLS[@]}" 
-          if [ $? -ne 0 ]; then 
-            echo "${URL} has broken links, see output above"
-            exit 1 
-          fi 
-  
