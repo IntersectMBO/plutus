@@ -53,7 +53,7 @@ variable
 As we are going to push renamings through types we need to be able to push them
 under a binder. To do this safely the newly bound variable should remain untouched and
 other renamings should be shifted by one to accommodate this. (Note: this is
-called `lift⋆` in the [paper](https://intersectmbo.github.io/plutus/resources/plutus-core-spec.pdf#page=8) ).
+called `lift⋆` in the [paper](https://plutus.cardano.intersectmbo.org/resources/plutus-core-spec.pdf#page=8) ).
 
 ```
 ext : Ren Φ Ψ
@@ -252,7 +252,7 @@ variable
   σ σ' : Sub Φ Ψ
 ```
 
-Extending a type substitution — used when going under a binder. (This is called `lifts` in the [paper](https://intersectmbo.github.io/plutus/resources/plutus-core-spec.pdf#page=8) ).
+Extending a type substitution — used when going under a binder. (This is called `lifts` in the [paper](https://plutus.cardano.intersectmbo.org/resources/plutus-core-spec.pdf#page=8) ).
 
 ```
 exts : Sub Φ Ψ

@@ -8,14 +8,10 @@ const config: Config = {
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
-  url: "https://intersectmbo.github.io",
+  url: "https://plutus.cardano.intersectmbo.org",
 
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  // WARNING: normally this would be /plutus/docs/, because 
-  // https://intersectmbo.github.io is a GitHub Pages URL.
-  // However we setup a redirect from intersectmbo.github.io/plutus 
-  // to plutus.cardano.intersectmbo.org, so /docs/ is used here instead.
   baseUrl: "/docs/",
 
   // GitHub pages deployment config.

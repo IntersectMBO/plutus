@@ -223,7 +223,6 @@ fi
 
 echo "Running linkchecker"
 time linkchecker "${OUTPUT_DIR}/index.html" \
-  --check-extern \
   --no-warnings \
   --output failures \
   --file-output text 

@@ -1,9 +1,5 @@
 # This workflow builds and publishes the metatheory site to:
-# https://intersectmbo.github.io/plutus/metatheory/$version
-# And optionally to:
-# https://intersectmbo.github.io/plutus/metatheory/latest
-# On push to master, this workflows publishes to:
-# https://intersectmbo.github.io/plutus/metatheory/master
+# https://plutus.cardano.intersectmbo.org/metatheory
 
 name: "🔮 Metatheory Site"
 
@@ -11,32 +7,6 @@ on:
   push: 
     branches: 
       - master 
-      
-  workflow_dispatch:
-    inputs:
-      ref:
-        description: |
-          The $ref to build off of, e.g. "1.29.0.0", "master", or any other valid git ref.
-          When making a release, this is usually the version tag, e.g. "1.29.0.0", and will be
-          equal to the $destination input below. When back-porting this could be a commit sha instead.
-        required: true
-        type: string
-
-      destination:
-        description: |
-          The $destination folder, e.g. when "1.29.0.0" the metatheory will be deploy to:
-          https://intersectmbo.github.io/plutus/metatheory/1.29.0.0
-        required: true
-        type: string
-  
-      latest: 
-        description: |
-          If true, then the metatheory site will also be deploy to:
-          https://intersectmbo.github.io/plutus/metatheory/latest.
-          You want to leave this to true unless you are deploying old versions or back-porting.
-        type: boolean
-        required: true 
-        default: true
 
 jobs:
   deploy:
@@ -49,8 +19,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@main
-        with:
-          ref: ${{ inputs.ref || github.ref_name }}
 
       - name: Build Site
         run: | 
@@ -62,14 +30,14 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4.6.3
         with:
           folder: _site
-          target-folder: metatheory/${{ inputs.destination || github.ref_name }}
-          single-commit: true
-        
-      - name: Deploy Latest
-        if: ${{ inputs.latest == true }}
-        uses: JamesIves/github-pages-deploy-action@v4.6.3
-        with:
-          folder: _site
-          target-folder: metatheory/latest
+          target-folder: metatheory
           single-commit: true
 
+      - name: Check Broken Links
+        run: |
+          URL="https://plutus.cardano.intersectmbo.org/metatheory"
+          linkchecker --no-warnings --check-extern --output failures "${URL}"
+          if [ $? -ne 0 ]; then 
+            echo "${URL}" has broken links, see output above"
+            exit 1 
+          fi 
