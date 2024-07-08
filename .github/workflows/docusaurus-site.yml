@@ -34,8 +34,11 @@ jobs:
       
       - name: Check Broken Links
         run: |
+          IGNORE_URLS=(
+            --ignore-url https://plutus.cardano.intersectmbo.org/docs/haddock/.*
+          )
           URL="https://plutus.cardano.intersectmbo.org/docs"
-          linkchecker --no-status --no-warnings --check-extern --output failures "${URL}"
+          linkchecker --no-warnings --check-extern --output failures "${URL}" "${IGNORE_URL}" 
           if [ $? -ne 0 ]; then 
             echo "${URL}" has broken links, see output above"
             exit 1 

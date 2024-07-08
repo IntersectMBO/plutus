@@ -16,7 +16,7 @@ grep_links() {
 }
 
 check_links() {
-    linkchecker --no-status --no-warnings --recursion-level 0 --output failures --check-extern "${IGNORE_URLS[@]}" --stdin 
+    linkchecker --no-warnings --recursion-level 0 --output failures --check-extern "${IGNORE_URLS[@]}" --stdin 
 }
 
 for file in $(find "${TARGETS[@]}"); do 
