@@ -26,7 +26,7 @@ jobs:
         run: nix develop --no-warn-dirty --accept-flake-config --command bash -c 'yarn && yarn build'
 
       - name: Deploy Site 
-        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        uses: JamesIves/github-pages-deploy-action@v4.6.3
         with:
           folder: doc/docusaurus/build
           target-folder: docs
