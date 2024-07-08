@@ -8,7 +8,6 @@ const config: Config = {
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
-  // This will end be used inside meta and link tags in each page's <head>.
   url: "https://plutus.cardano.intersectmbo.org",
 
   // Set the /<baseUrl>/ pathname under which your site is served
