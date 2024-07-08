@@ -36,8 +36,9 @@ jobs:
       - name: Check Broken Links
         run: |
           URL="https://plutus.cardano.intersectmbo.org/metatheory"
-          linkchecker --no-warnings --check-extern --output failures "${URL}"
+          nix develop --no-warn-dirty --accept-flake-config --command \
+            linkchecker --no-warnings --check-extern --output failures "${URL}"
           if [ $? -ne 0 ]; then 
-            echo "${URL}" has broken links, see output above"
+            echo "${URL} has broken links, see output above"
             exit 1 
           fi 
