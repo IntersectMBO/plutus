@@ -31,7 +31,7 @@ It is *not* responsible for such things as deciding whether it can spend a diffe
 Consider it a pure function that returns `Bool`. 
 Checking transaction validity is done by the ledger rules, and updating the state of a smart contract is done by constructing the transaction to produce a new script UTXO with an updated datum.
 
-<!-- talking about "predicatable transaction fees" -->
+<!-- talking about "predictable transaction fees" -->
 
 The immutability of UTXOs leads to the extremely useful property of completely predictable transaction fees. 
 The Plutus script in a transaction can be run off-chain to determine the fee before submitting the transaction onto the blockchain. 

@@ -17,7 +17,7 @@ All of these elements are used in combination to write Plutus Core scripts that 
 
 To develop and deploy a smart contract, you also need off-chain code for building transactions, submitting transactions, deploying smart contracts, querying for available UTXOs on the chain, and so on. You may also want a front-end interface for your smart contract for a better user experience. 
 
-Plutus allows all programming to be done from a [single Haskell library](https://intersectmbo.github.io/plutus/haddock/latest). This lets developers build secure applications, forge new assets, and create smart contracts in a predictable, deterministic environment with the highest level of assurance. Furthemore, developers don’t have to run a full Cardano node to test their work. 
+Plutus allows all programming to be done from a [single Haskell library](https://intersectmbo.github.io/plutus/haddock/latest). This lets developers build secure applications, forge new assets, and create smart contracts in a predictable, deterministic environment with the highest level of assurance. Furthermore, developers don’t have to run a full Cardano node to test their work. 
 
 With Plutus you can:
 
