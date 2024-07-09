@@ -11,6 +11,7 @@ runs:
   using: "composite"
   steps:
     - name: Check
+      shell: sh
       run: |
         IGNORE_URLS=()
         for url in ${{ inputs.ignore-urls }}; do
@@ -26,3 +27,5 @@ runs:
           echo "${URL} has broken links, see output above"
           exit 1 
         fi 
+
+      
