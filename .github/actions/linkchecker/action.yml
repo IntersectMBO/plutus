@@ -1,11 +1,11 @@
 name: Linkchecker
-description: Checks for given url for broken links
+description: Checks the given url for broken links
 inputs:
   url:
     description: The URL to check for broken links
     required: true
   ignore-urls:
-    description: List of space-separated URL regex patters
+    description: List of space-separated URL regex patters to ignore
     default: ""
 runs:
   using: "composite"
