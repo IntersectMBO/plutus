@@ -1,0 +1,28 @@
+name: Linkchecker
+description: Checks for given url for broken links
+inputs:
+  url:
+    description: The URL to check for broken links
+    required: true
+  ignore-urls:
+    description: List of space-separated URL regex patters
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - name: Check
+      run: |
+        IGNORE_URLS=()
+        for url in ${{ inputs.ignore-urls }}; do
+          IGNORE_URLS+=("--ignore-url=${url}")
+        done
+
+        URL="${{ inputs.url }}"
+
+        nix develop --no-warn-dirty --accept-flake-config --command \
+          linkchecker --no-warnings --check-extern --output failures "${URL}" "${IGNORE_URLS[@]}" 
+
+        if [ $? -ne 0 ]; then 
+          echo "${URL} has broken links, see output above"
+          exit 1 
+        fi 
