@@ -35,7 +35,8 @@ jobs:
       - name: Check Broken Links
         run: |
           IGNORE_URLS=(
-            --ignore-url "https://plutus.cardano.intersectmbo.org/haddock/.*"
+            "--ignore-url https://plutus.cardano.intersectmbo.org/haddock/.*" # The haddock site is checked separately
+            "--ignore-url https://iohk.io/en/blog/posts/.*" # These are throttled and return 403
           )
           URL="https://plutus.cardano.intersectmbo.org/docs"
           nix develop --no-warn-dirty --accept-flake-config --command \

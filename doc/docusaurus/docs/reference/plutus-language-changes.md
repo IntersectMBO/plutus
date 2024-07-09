@@ -26,7 +26,6 @@ The `ScriptContext` was extended to include the following information:
 
 ## Examples
 
-- [Plutus V2 functionalities](https://github.com/IntersectMBO/cardano-node/blob/master/doc/reference/plutus/babbage-script-example.md)
 - [How to use reference inputs](https://github.com/perturbing/vasil-tests/blob/main/reference-inputs-cip-31.md)
 - [How to use inline datums](https://github.com/perturbing/vasil-tests/blob/main/inline-datums-cip-32.md)
 - [How to reference scripts](https://github.com/perturbing/vasil-tests/blob/main/referencing-scripts-cip-33.md)
