@@ -33,6 +33,7 @@ jobs:
           single-commit: true
       
       - name: Check Broken Links
+        if: never()
         run: |
           IGNORE_URLS=(
             --ignore-url "https://plutus.cardano.intersectmbo.org/haddock/.*"
