@@ -212,22 +212,3 @@ if grep -qr "dist-newstyle" "${OUTPUT_DIR}"; then
   echo "internal error: not all href to dist-newstyle were replaced"
   exit 1
 fi
-
-
-echo "Looking for linkchecker"
-if ! command -v linkchecker &> /dev/null; then
-  echo "linkchecker not found"
-  exit 0
-fi 
-
-
-echo "Running linkchecker"
-time linkchecker "${OUTPUT_DIR}/index.html" \
-  --no-warnings \
-  --output failures \
-  --file-output text 
-
-
-if [[ "$?" != "0" ]]; then 
-  echo "Found broken or unreachable 'href=' links in the files above (also see ./linkchecker-out.txt)"
-fi 
