@@ -78,14 +78,14 @@ main = D.defaultMainWithHooks userHooks
     userHooks = D.simpleUserHooks { D.hookedPreProcessors = preProcessors }
 #if MIN_VERSION_Cabal(3,12,1)
     preProcessors :: [D.PPSuffixHandler]
-    preProcessors = [("md", agdaPreProcessor),
-                     ("lagda",agdaPreProcessor),
-                     ("lagda.md",agdaPreProcessor)]
-#else
-    preProcessors :: [D.PPSuffixHandler]
     preProcessors = [(D.Suffix "md", agdaPreProcessor),
                      (D.Suffix "lagda",agdaPreProcessor),
                      (D.Suffix "lagda.md",agdaPreProcessor)]
+#else
+    preProcessors :: [D.PPSuffixHandler]
+    preProcessors = [("md", agdaPreProcessor),
+                     ("lagda",agdaPreProcessor),
+                     ("lagda.md",agdaPreProcessor)]
 #endif
 
 agdaPreProcessor :: D.BuildInfo -> D.LocalBuildInfo -> D.ComponentLocalBuildInfo -> D.PreProcessor
