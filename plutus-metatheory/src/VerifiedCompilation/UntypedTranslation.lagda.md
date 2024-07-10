@@ -65,7 +65,7 @@ for each pair of term types.
 ```
 -- Yes, I know, but for now...
 {-# TERMINATING #-}
-translation? : {X' : Set} {{ _ : DecEq X'}} →  {P Q : Pred} → ({X : Set} → Unary.Decidable (P {X})) → ({X : Set} → Unary.Decidable (Q {X})) → Binary.Decidable (Translation P Q {X'}) 
+translation? : {X' : Set} {{ _ : DecEq X'}} →  {P Q : Pred} → ({X : Set} {{_ : DecEq X}} → Unary.Decidable (P {X})) → ({X : Set} {{_ : DecEq X}} → Unary.Decidable (Q {X})) → Binary.Decidable (Translation P Q {X'}) 
 translation? isP? isQ? ast ast' with (isP? ast) ×-dec (isQ? ast')
 ... | yes (p , q) = yes (istranslation ast ast' p q)
 translation? isP? isQ? (` x) ast' | no ¬pq with (` x) ≟ ast'
