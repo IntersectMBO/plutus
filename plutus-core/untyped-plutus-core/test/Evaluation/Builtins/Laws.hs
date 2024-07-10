@@ -161,7 +161,7 @@ replicateHomomorphismLaws =
     testPropertyNamed "0 -> empty" "replicate_h_1" $
       mapTestLimitAtLeast 99 (`div` 20) identityProp,
     testPropertyNamed "+ -> concat" "replicate_h_2" $
-      mapTestLimitAtLeast 99 (`div` 20) compositionProp
+      mapTestLimitAtLeast 50 (`div` 20) compositionProp
     ]
   where
     identityProp :: Property

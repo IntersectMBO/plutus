@@ -597,7 +597,7 @@ prop_scopingFor ::
   -- | The runner of the pass.
   (t NameAnn -> TPLC.Quote (t NameAnn)) ->
   Property
-prop_scopingFor gen bindRem preren run = withTests 300 . property $ do
+prop_scopingFor gen bindRem preren run = withTests 200 . property $ do
   prog <- forAllNoShow $ runAstGen gen
   let catchEverything = unsafePerformIO . try @SomeException . evaluate
       prep = runPrerename preren

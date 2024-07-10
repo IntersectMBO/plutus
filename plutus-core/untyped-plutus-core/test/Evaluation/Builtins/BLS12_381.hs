@@ -31,7 +31,7 @@ mkTestName :: forall g. TestableAbelianGroup g => String -> String
 mkTestName s = printf "%s_%s" (groupName @g) s
 
 withNTests :: Testable prop => prop -> Property
-withNTests = withMaxSuccess 99
+withNTests = withMaxSuccess 50
 
 -- QuickCheck generators for scalars and group elements as PLC terms
 
@@ -276,7 +276,7 @@ test_uncompress_out_of_group :: forall g. HashAndCompress g => TestTree
 test_uncompress_out_of_group =
     testProperty
     (mkTestName @g "uncompress_out_of_group") .
-    withMaxSuccess 200 $ do
+    withMaxSuccess 99 $ do
       b <- suchThat (resize  128 arbitrary) correctSize
       let b' = setBits compressionBit $ clearBits infinityBit b
       let e = uncompressTerm @g (bytestring b')

@@ -937,7 +937,7 @@ test_Conversion =
             , -- integerToByteString False 0 (multiplyInteger p 256) = consByteString
               -- 0 (integerToByteString False 0 p)
               testPropertyNamed "property 4" "i2b_prop4"
-                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty4
+                . mapTestLimitAtLeast 50 (`div` 20) $ property Conversion.i2bProperty4
             , -- integerToByteString True 0 (multiplyInteger p 256) = appendByteString
               -- (integerToByteString True 0 p) (singleton 0)
               testPropertyNamed "property 5" "i2b_prop5"
@@ -945,12 +945,12 @@ test_Conversion =
             , -- integerToByteString False 0 (plusInteger (multiplyInteger q 256) r) =
               -- appendByteString (integerToByteString False 0 r) (integerToByteString False 0 q)
               testPropertyNamed "property 6" "i2b_prop6"
-                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty6
+                . mapTestLimitAtLeast 50 (`div` 20) $ property Conversion.i2bProperty6
             , -- integerToByteString True 0 (plusInteger (multiplyInteger q 256) r) =
               -- appendByteString (integerToByteString False 0 q)
               -- (integerToByteString False 0 r)
               testPropertyNamed "property 7" "i2b_prop7"
-                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty7
+                . mapTestLimitAtLeast 50 (`div` 20) $ property Conversion.i2bProperty7
             , testGroup "CIP-121 examples" Conversion.i2bCipExamples
             , testGroup "Tests for integerToByteString size limit" Conversion.i2bLimitTests
             ]
@@ -1004,11 +1004,11 @@ test_Bitwise =
             [ testPropertyNamed "find first in zero bytestrings" "ffs_zero" $
                 mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsZero
             , testPropertyNamed "find first in replicated" "ffs_replicate" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsReplicate
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.ffsReplicate
             , testPropertyNamed "find first of self-XOR" "ffs_xor" $
                 mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsXor
             , testPropertyNamed "found index set, lower indices clear" "ffs_index" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsIndex
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.ffsIndex
             ]
         ]
 

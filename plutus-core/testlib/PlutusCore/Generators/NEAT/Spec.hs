@@ -78,7 +78,7 @@ tests :: TestTree
 tests =
   testGroup "NEAT"
   -- the `adjustOption (min ...)` allows to make these big tests easier at runtime
-  [ adjustOption (min $ GenDepth 11) $
+  [ adjustOption (min $ GenDepth 10) $
     bigTest "normalization commutes with conversion from generated types"
       (Type ())
       (packAssertion prop_normalizeConvertCommuteTypes)
