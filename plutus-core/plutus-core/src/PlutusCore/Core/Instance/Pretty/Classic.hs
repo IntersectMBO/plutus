@@ -24,7 +24,7 @@ import Universe
 
 instance Pretty ann => PrettyBy (PrettyConfigClassic configName) (Kind ann) where
     prettyBy config = \case
-        Type ann           ->
+        Type ann ->
             parens (sep (consAnnIf config ann
                 ["type"]))
         KindArrow ann k k' ->
@@ -34,13 +34,13 @@ instance Pretty ann => PrettyBy (PrettyConfigClassic configName) (Kind ann) wher
 instance (PrettyClassicBy configName tyname, PrettyParens (SomeTypeIn uni), Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Type tyname uni ann) where
     prettyBy config = \case
-        TyApp ann t t'     ->
+        TyApp ann t t' ->
             brackets' (sep (consAnnIf config ann
                 [prettyBy config t, prettyBy config t']))
-        TyVar ann n        ->
+        TyVar ann n ->
             sep (consAnnIf config ann
                 [prettyBy config n])
-        TyFun ann t t'     ->
+        TyFun ann t t' ->
             sexp "fun" (consAnnIf config ann
                 [prettyBy config t, prettyBy config t'])
         TyIFix ann pat arg ->
@@ -49,12 +49,12 @@ instance (PrettyClassicBy configName tyname, PrettyParens (SomeTypeIn uni), Pret
         TyForall ann n k t ->
             sexp "all" (consAnnIf config ann
                 [prettyBy config n, prettyBy config k, prettyBy config t])
-        TyBuiltin ann n    ->
-            sexp "con" (consAnnIf config ann [prettyBy juxtRenderContext n])
-        TyLam ann n k t    ->
+        TyBuiltin ann someUni ->
+            sexp "con" (consAnnIf config ann [prettyBy juxtRenderContext someUni])
+        TyLam ann n k t ->
             sexp "lam" (consAnnIf config ann
                 [prettyBy config n, prettyBy config k, prettyBy config t])
-        TySOP ann tyls    ->
+        TySOP ann tyls ->
             sexp "sop" (consAnnIf config ann (fmap prettyTyl tyls))
             where
               prettyTyl tyl = brackets (sep (fmap (prettyBy config) tyl))

@@ -2,8 +2,13 @@
 
 module PlutusCore.Generators.QuickCheck.TypesTests where
 
+import PlutusCore.Check.Normal
+import PlutusCore.Core
 import PlutusCore.Generators.QuickCheck
+import PlutusCore.Normalize
+import PlutusCore.Quote
 
+import Control.Monad
 import Data.Bifunctor
 import Data.Either
 import Data.Map.Strict qualified as Map
@@ -64,3 +69,10 @@ prop_fixKind = withMaxSuccess 30000 $
     | k' <- shrink k
     , let ty' = fixKind ctx ty k'
     ]
+
+-- | Check that 'normalizeType' returns a normal type.
+prop_normalizedTypeIsNormal :: Property
+prop_normalizedTypeIsNormal = withMaxSuccess 10000 $
+  forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (_, ty) ->
+    unless (isNormalType . unNormalized . runQuote $ normalizeType ty) $
+      Left "'normalizeType' returned a non-normal type"

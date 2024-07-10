@@ -82,7 +82,7 @@ convT (TyApp _ _A _B)               = RTyApp (convT _A) (convT _B)
 convT (TyBuiltin ann (SomeTypeIn (DefaultUniApply f x))) =
      RTyApp (convT (TyBuiltin ann (SomeTypeIn f)))
             (convT (TyBuiltin ann (SomeTypeIn x)))
-convT (TyBuiltin _ b)               = convTyCon b
+convT (TyBuiltin _ someUni)         = convTyCon someUni
 convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
 convT (TySOP _ xss)                 = RTySOP (map (map convT) xss)
 

@@ -66,7 +66,7 @@ findHelp ctx =
 mkHelp :: Map Name (Type TyName DefaultUni ())
        -> Type TyName DefaultUni ()
        -> Term TyName Name DefaultUni DefaultFun ()
-mkHelp _ (TyBuiltin _ b)          = minimalBuiltin b
+mkHelp _ (TyBuiltin _ someUni)    = minimalBuiltin someUni
 mkHelp (findHelp -> Just help) ty = TyInst () (Var () help) ty
 mkHelp _ ty                       = Error () ty
 
@@ -90,7 +90,7 @@ fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm0 =
       Apply _ (Apply _ (TyInst _ (Builtin _ Trace) _) s) tm ->
         let (ty', tm') = fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm
         in (ty', Apply () (Apply () (TyInst () (Builtin () Trace) ty') s) tm')
-      _ | TyBuiltin _ b <- tyNew -> (tyNew, minimalBuiltin b)
+      _ | TyBuiltin _ someUni <- tyNew -> (tyNew, minimalBuiltin someUni)
         | otherwise -> (tyNew, mkHelp ctxNew tyNew)
     Right ty -> (ty, tm0)
 
