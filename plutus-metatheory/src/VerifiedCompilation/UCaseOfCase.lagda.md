@@ -118,60 +118,6 @@ isCaseOfCase? ast ast' | no ¬p = no λ { (caseofcase b tn fn alts alts' tt ft t
                                                                                           delay (case (constr tn tt') alts'))
                                                                                          · delay (case (constr fn ft') alts')))
                                                                                        (isCoCCase b tn fn tt ft alts) (isCoCForce b tn fn tt' ft' alts')) }
-
-```
-First, handle all the cases where both sides of the translation are the same structure. Only the Case of Case
-pattern should change the structure.
-```
-{-
-_⊢̂_⊳̂?_ (` x) (` y) with x ≟ y
-...                         | yes refl = yes var
-...                         | no ¬p = no (λ { (var) → ¬p refl })
-_⊢̂_⊳̂?_ (ƛ ast) (ƛ ast') with _⊢̂_⊳̂?_ ast ast'
-...                                  | yes p = yes (ƛ p)
-...                                  | no ¬p = no (λ { (ƛ x) → ¬p x })
-_⊢̂_⊳̂?_ (ast · ast₁) (ast' · ast'₁) with _⊢̂_⊳̂?_ ast ast' | _⊢̂_⊳̂?_ ast₁ ast'₁
-...                                              | yes p1                 | yes p2 = yes (app p1 p2)
-...                                              | yes p1                 | no ¬p2 = no λ { (app a a₁) → ¬p2 a₁ }
-...                                              | no ¬p1                 | _         = no λ { (app a a₁) → ¬p1 a }
-_⊢̂_⊳̂?_ (force ast) (force ast') with _⊢̂_⊳̂?_ ast ast' 
-...                                  | yes p = yes (force p)
-...                                  | no ¬p = no λ { (force a) → ¬p a }
-_⊢̂_⊳̂?_ (delay ast) (delay ast') with _⊢̂_⊳̂?_ ast ast'
-...                                  | yes p = yes (delay p)
-...                                  | no ¬p = no λ { (delay a) → ¬p a}
-_⊢̂_⊳̂?_ (con tm) (con tm') with tm ≟ tm'
-...                                  | yes refl = yes con
-...                                  | no ¬p = no λ { (con) → ¬p refl }
-_⊢̂_⊳̂?_ (constr i ast) (constr i' ast') with i ≟ i' | decPointwise _⊢̂_⊳̂?_ ast ast'
-...                                                       | no ¬i≟i  | _       = no λ { (constr pw) → ¬i≟i refl }
-...                                                       | yes refl | no ¬p = no λ { (constr pw) → ¬p pw }
-...                                                       | yes refl | yes p = yes (constr p)
-_⊢̂_⊳̂?_ (case p ast) (case p' ast') with _⊢̂_⊳̂?_ p p' | decPointwise _⊢̂_⊳̂?_ ast ast'
-...                                                       | no ¬p⊳p'  | _       = no λ { (case pp pw) → ¬p⊳p' pw }
-...                                                       | _             | no ¬p = no λ { (case pp pw) → ¬p pp }
-...                                                       | yes p⊳p'   | yes pw = yes (case pw p⊳p')
-_⊢̂_⊳̂?_ (builtin b) (builtin b') with b ≟ b'
-...                                          | no ¬b=b = no λ { (builtin) → ¬b=b refl }
-...                                          | yes refl = yes builtin
-_⊢̂_⊳̂?_ error error = yes error
--}
-```
-If we have `case` translated to `force` we need to be sure that it matches exactly the Case of Case pattern
-```
-{-
-_⊢̂_⊳̂?_ ast ast' with isCoCCase? ast ×-dec isCoCForce? ast'
-... | no ¬CoC  = no {!!}
-... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b' tn' fn' tt' ft' alts') with b ≟ b' | tn ≟ tn' | fn ≟ fn'  | decPointwise _⊢̂_⊳̂?_ alts alts' | decPointwise _⊢̂_⊳̂?_ tt tt' | decPointwise _⊢̂_⊳̂?_ ft ft'
-...         | no ¬b≟b' | _            | _            | _                | _              | _              = no λ { (caseofcase _ _ _ _ _ _ _ _ ) → ¬b≟b' refl } 
-...         | yes refl   | no tn≠tn' | _            | _                | _              | _              = no λ { (caseofcase _ _ _ _ _ _ _ _ ) →  tn≠tn' refl } 
-...         | yes refl   | yes refl   | no fn≠fn' | _                | _              | _              = no  λ { (caseofcase _ _ _ _ _ _ _ _ ) → fn≠fn' refl }
-...         | yes refl   | yes refl   | yes refl   | no ¬pw-alts | _              | _              = no λ { (caseofcase _ _ _ _ _ x _ _ ) → ¬pw-alts x }
-...         | yes refl   | yes refl   | yes refl   | yes pw-alts | no tt≠tt'     | _              = no λ { (caseofcase _ _ _ _ _ _ x _ ) → tt≠tt' x }
-...         | yes refl   | yes refl   | yes refl   | yes pw-alts | yes ps-tt   | no ft≠ft'     = no λ { (caseofcase _ _ _ _ _ _ _ x) → ft≠ft' x }
-...         | yes refl   | yes refl   | yes refl   | yes pw-alts | yes pw-tt  | yes pw-ft   = yes (caseofcase b tn fn fn fn pw-alts pw-tt pw-ft)
--}
-
 ```
 
 ## Semantic Equivalence
