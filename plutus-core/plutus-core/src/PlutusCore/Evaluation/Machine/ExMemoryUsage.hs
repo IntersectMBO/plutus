@@ -214,15 +214,25 @@ instance ExMemoryUsage BS.ByteString where
     {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage T.Text where
-    -- This is slow and inaccurate, but matches the version that was originally deployed.
-    -- We may try and improve this in future so long as the new version matches this exactly.
-    memoryUsage text = memoryUsage $ T.unpack text
+    -- This says that @Text@ allocates 1 'CostingInteger' worth of memory (i.e. 8 bytes) per
+    -- character, which is a conservative overestimate (i.e. is safe) regardless of whether @Text@
+    -- is UTF16-based (like it used to when we implemented this instance) or UTF8-based (like it is
+    -- now).
+    --
+    -- Note that the @ExMemoryUsage Char@ instance does not affect this one, this is for performance
+    -- reasons, since @T.length@ is O(1) unlike @sum . map (memoryUsage @Char) . T.unpack@. We used
+    -- to have the latter, but changed it to the former for easy performance gains.
+    --
+    -- We may want to make this a bit less of an overestimate in future just not to overcharge
+    -- users.
+    memoryUsage = singletonRose . fromIntegral . T.length
     {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
     memoryUsage _ = singletonRose 1
     {-# INLINE memoryUsage #-}
 
+-- If you ever change this, also change @ExMemoryUsage T.Text@.
 instance ExMemoryUsage Char where
     memoryUsage _ = singletonRose 1
     {-# INLINE memoryUsage #-}
@@ -273,7 +283,7 @@ instance ExMemoryUsage Data where
         {-# INLINE dataNodeRose #-}
 
         sizeData d = addConstantRose dataNodeRose $ case d of
-            -- TODO: include the size of the tag, but not just yet.  See SCP-3677.
+            -- TODO: include the size of the tag, but not just yet. See PLT-1176.
             Constr _ l -> CostRose 0 $ l <&> sizeData
             Map l      -> CostRose 0 $ l >>= \(d1, d2) -> [d1, d2] <&> sizeData
             List l     -> CostRose 0 $ l <&> sizeData
