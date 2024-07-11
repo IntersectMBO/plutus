@@ -35,8 +35,19 @@ open import Data.List using (List; _∷_; [])
 This compiler stage only applies to the very specific case where an `IfThenElse` builtin exists in a `case` expression.
 It moves the `IfThenElse` outside and creates two `case` expressions with each of the possible lists of cases. 
 
-[ FIXME: This will actually just be an instance of Translation for the predicates below? ]
+This will just be an instance of the `Translation` relation once we define the "before" and "after" patterns.
 
+```
+data CoCCase {X : Set} : (X ⊢) → Set where
+  isCoCCase : (b : X ⊢) (tn fn : ℕ)  (tt ft alts : List (X ⊢)) → CoCCase (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
+
+data CoCForce {X : Set} :  (X ⊢) → Set where
+  isCoCForce : (b : (X ⊢)) (tn fn : ℕ) (tt' ft' alts' : List (X ⊢)) → CoCForce (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
+
+UntypedCaseOfCase : {X : Set} {{ _ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+UntypedCaseOfCase = Translation CoCCase CoCForce
+
+```
 ## Decision Procedure
 
 Since this compiler phase is just a syntax re-arrangement in a very particular situation, we can
@@ -46,8 +57,6 @@ expect anything else to be unaltered.
 This translation matches on exactly one, very specific pattern. Using parameterised Views we can
 detect that case.
 ```
-data CoCCase {X : Set} : (X ⊢) → Set where
-  isCoCCase : (b : X ⊢) (tn fn : ℕ)  (tt ft alts : List (X ⊢)) → CoCCase (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
 isCoCCase? : {X : Set} → Decidable (CoCCase {X})
 isCoCCase? t with (isCase? (isApp? (isApp? (isApp? (isForce? (isBuiltin?)) isTerm?) (isConstr? (allTerms?))) (isConstr? (allTerms?))) (allTerms?)) t
 ... | yes (iscase (isapp (isapp (isapp (isforce (isbuiltin ite)) (isterm b)) (isconstr tn (allterms tt))) (isconstr fn (allterms ft))) (allterms alts)) with ite ≟ ifThenElse
@@ -60,8 +69,6 @@ isCoCCase? t  | no ¬CoCCase = no λ { (isCoCCase b tn fn alts tt ft) → ¬CoCC
                                                                                   (isconstr fn (allterms tt)))
                                                                                  (allterms ft)) }
 
-data CoCForce {X : Set} :  (X ⊢) → Set where
-  isCoCForce : (b : (X ⊢)) (tn fn : ℕ) (tt' ft' alts' : List (X ⊢)) → CoCForce (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
 isCoCForce? : {X : Set} {{ _ : DecEq X }} → Decidable (CoCForce {X})
 isCoCForce? t with (isForce? (isApp? (isApp? (isApp? (isForce? isBuiltin?) isTerm?) (isDelay? (isCase? (isConstr? allTerms?) allTerms?))) (isDelay? (isCase? (isConstr? allTerms?) allTerms?)))) t
 ... | no ¬CoCForce = no λ { (isCoCForce b tn fn tt' ft' alts') → ¬CoCForce
@@ -73,6 +80,7 @@ isCoCForce? t with (isForce? (isApp? (isApp? (isApp? (isForce? isBuiltin?) isTer
 ... | yes (isforce (isapp (isapp (isapp (isforce (isbuiltin ite)) (isterm b)) (isdelay (iscase (isconstr tn (allterms tt')) (allterms alts'))) ) (isdelay (iscase (isconstr fn (allterms ft')) (allterms alts''))))) with ite ≟ ifThenElse ×-dec  alts' ≟ alts''
 ... | yes (refl , refl) = yes (isCoCForce b tn fn tt' ft' alts')
 ... | no ¬p = no λ { (isCoCForce .b .tn .fn .tt' .ft' .alts') → ¬p (refl , refl) }
+
 ```
 This must traverse the ASTs applying the constructors from the transition relation, so where
 the structure is unchanged we still need to check the sub-components. The general `UntypedTranslation`
@@ -83,54 +91,8 @@ just becomes an instance of `Translation` and the decision procedure can be prod
 `translation?` procedure and the specific `isCoCCase?` and `isCoCForce?`. 
 
 ```
-
-UntypedCaseOfCase : {X : Set} {{ _ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
-UntypedCaseOfCase = Translation CoCCase CoCForce
-
 isUntypedCaseOfCase? : {X : Set} {{ _ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Dec (UntypedCaseOfCase ast ast')
 isUntypedCaseOfCase? = translation? isCoCCase? isCoCForce?
-
-
-```
-[ FIXME: This is now redundant? ]
-
-```
-data CaseOfCase {X : Set} : (X ⊢) → (X ⊢) → Set where
-   caseofcase : ∀ (b : X ⊢) (tn fn : ℕ) (alts alts' tt ft tt' ft' : List (X ⊢))
-                → Pointwise CaseOfCase alts alts' -- recursive translation for the other case patterns 
-                → Pointwise CaseOfCase tt tt' -- recursive translation for the true branch 
-                → Pointwise CaseOfCase ft ft' -- recursive translation for the false branch
-                ----------------------
-                → CaseOfCase
-                       (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
-                       (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
-
-{-# TERMINATING #-}
-isCaseOfCase? : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Dec (CaseOfCase {X} ast ast')
-isCaseOfCase? ast ast' with translation? isCoCCase? isCoCForce? ast ast'
-... | yes (VerifiedCompilation.UntypedTranslation.istranslation .ast .ast' (isCoCCase b tn fn tt ft alts) (isCoCForce b₁ tn₁ fn₁ tt' ft' alts')) with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁) ×-dec (decPointwise isCaseOfCase? alts alts') ×-dec (decPointwise isCaseOfCase? tt tt') ×-dec (decPointwise isCaseOfCase? ft ft') 
-...          | yes (refl , refl , refl , pw₁ , pw₂ , pw₃) = yes (caseofcase b tn fn alts alts' tt ft tt' ft' pw₁ pw₂ pw₃)
-...          | no ¬b≟b₁ = no λ { (caseofcase .b .tn .fn .alts .alts' .tt .ft .tt' .ft' x x₁ x₂) → ¬b≟b₁ (refl , refl , refl , x , x₁ , x₂) }
-isCaseOfCase? .(` _) .(` _) | yes VerifiedCompilation.UntypedTranslation.var = no (λ ())
-isCaseOfCase? .(ƛ _) .(ƛ _) | yes (VerifiedCompilation.UntypedTranslation.ƛ xxx) = no (λ ())
-isCaseOfCase? .(_ · _) .(_ · _) | yes (VerifiedCompilation.UntypedTranslation.app xxx xxx₁) = no (λ ())
-isCaseOfCase? .(force _) .(force _) | yes (VerifiedCompilation.UntypedTranslation.force xxx) = no (λ ())
-isCaseOfCase? .(delay _) .(delay _) | yes (VerifiedCompilation.UntypedTranslation.delay xxx) = no (λ ())
-isCaseOfCase? .(con _) .(con _) | yes VerifiedCompilation.UntypedTranslation.con = no (λ ())
-isCaseOfCase? .(constr _ _) .(constr _ _) | yes (VerifiedCompilation.UntypedTranslation.constr x) = no (λ ())
-isCaseOfCase? .(case _ _) .(case _ _) | yes (VerifiedCompilation.UntypedTranslation.case x xxx) = no (λ ())
-isCaseOfCase? .(builtin _) .(builtin _) | yes VerifiedCompilation.UntypedTranslation.builtin = no (λ ())
-isCaseOfCase? .error .error | yes VerifiedCompilation.UntypedTranslation.error = no (λ ())
-isCaseOfCase? ast ast' | no ¬p = no λ { (caseofcase b tn fn alts alts' tt ft tt' ft' x x₁ x₂) → ¬p
-                                                                                      (VerifiedCompilation.UntypedTranslation.istranslation
-                                                                                       (case
-                                                                                        (((force (builtin ifThenElse) · b) · constr tn tt) · constr fn ft)
-                                                                                        alts)
-                                                                                       (force
-                                                                                        (((force (builtin ifThenElse) · b) ·
-                                                                                          delay (case (constr tn tt') alts'))
-                                                                                         · delay (case (constr fn ft') alts')))
-                                                                                       (isCoCCase b tn fn tt ft alts) (isCoCForce b tn fn tt' ft' alts')) }
 
 ```
 
