@@ -22,21 +22,35 @@ data ModelComponent = Cpu | Memory
 
 ---------------- Printing cost models  ----------------
 
+-- Print a monomial like 5*x or 11*max(x,y)
+stringOfMonomial :: Integer -> String -> String
+stringOfMonomial s v =
+  if s == 1 then unparen v  -- Just so we don't get things like 5 + (x+y).
+  else if s == -1 then "-" ++ v
+       else printf "%d*%s" s v
+            -- Print the slope even if it's zero, so we know the
+            -- function's not constant.
+  where unparen w =
+          if w /= "" && head w == '(' && last w == ')'
+          then tail $ init w
+          else w
+
 -- | Print a linear function in readable form.  The string argument is
 -- supposed to represent the input to the function: x, y, y+z, etc.
 renderLinearFunction :: LinearFunction -> String -> String
 renderLinearFunction (LinearFunction intercept slope) var =
     if intercept == 0 then stringOfMonomial slope var
     else printf "%d + %s" intercept (stringOfMonomial slope var)
-        where stringOfMonomial s v =
-                  if s == 1 then unparen v  -- Just so we don't get things like 5 + (x+y).
-                  else if s == -1 then "-" ++ v
-                  else printf "%d*%s" s v
-                  -- Print the slope even if it's zero, so we know the
-                  -- function's not constant.
-              unparen v = if v /= "" && head v == '(' && last v == ')'
-                          then tail $ init v
-                          else v
+
+renderTwoVariableLinearFunction :: TwoVariableLinearFunction -> String -> String -> String
+renderTwoVariableLinearFunction (TwoVariableLinearFunction intercept slope1 slope2) var1 var2 =
+    if intercept == 0
+    then stringOfMonomial slope1 var1 ++ " + " ++ stringOfMonomial slope2 var2
+    else printf "%d + %s + %s"
+      intercept
+      (stringOfMonomial slope1 var1)
+      (stringOfMonomial slope2 var2)
+
 renderOneVariableQuadraticFunction
   :: OneVariableQuadraticFunction
   -> String
@@ -55,6 +69,16 @@ renderTwoVariableQuadraticFunction
     printf "max(%d, %d + %d*%s + %d*%s + %d*%s^2 + %d*%s*%s + %d*%s^2)"
     minVal c00 c10 var1 c01 var2 c20 var1 c11 var1 var2 c02 var2
 
+-- FIXME.  This is arguably slightly incorrect because some of the arguments are
+-- wrapped in newtypes that change the memory usage instance of their content
+-- and this isn't reflected in the output.  We're able to fix this for
+-- LiteralInYOrLinearInZ since we can tell from the constructor that the second
+-- argument is wrapped, but this doesn't work for `replicateByte`, where the
+-- replication count is wrapped in NumBytesCostedAsNumWords and we don't see that
+-- here.  We should really print "x bytes" instead of just "x", but to fix that
+-- we'd need access to the signatures of the builtins here as well.  Maybe it
+-- could be argued that the user should be aware of the wrappings and interpret
+-- the output accordingly, but it would be helpful to make it explicit.
 renderModel :: Model -> [String]
 renderModel =
     \case
@@ -69,23 +93,23 @@ renderModel =
      QuadraticInY          f   -> [ renderOneVariableQuadraticFunction f "y" ]
      QuadraticInZ          f   -> [ renderOneVariableQuadraticFunction f "z" ]
      QuadraticInXAndY      f   -> [ renderTwoVariableQuadraticFunction f "x" "y" ]
+     LinearInMaxYZ         f   -> [ renderLinearFunction f "max(y,z)" ]
+     LinearInYAndZ         f   -> [ renderTwoVariableLinearFunction f "y" "z" ]
      LiteralInYOrLinearInZ f -> [ "if y==0"
                                   , printf "then %s" $ renderLinearFunction f "z"
                                   , printf "else y bytes"
                                 ]  -- This is only used for the memory usage of
                                    -- `integerToByteString` at the moment, so
                                    -- this makes sense.
-     SubtractedSizes       l c -> [ "if x>y"
-                                  , printf "then %s" $ renderLinearFunction l "(x-y)"
-                                  , printf "else %d" c
-                               ]
-     ConstAboveDiagonal    c m -> [ "if x>y"
-                                  , printf "then %s" $ intercalate "\n" (renderModel m)
-                                  , printf "else %d" c
+     SubtractedSizes       l c -> [ renderLinearFunction l $ printf "max(x-y,%d)" c
                                   ]
-     ConstBelowDiagonal    c m -> [ "if x<y"
-                                  , printf "then %s" $ intercalate "\n" (renderModel m)
-                                  , printf "else %d" c
+     ConstAboveDiagonal    c m -> [ "if x<y"
+                                  , printf "then %d" c
+                                  , printf "else %s" $ intercalate "\n" (renderModel m)
+                                  ]
+     ConstBelowDiagonal    c m -> [ "if x>y"
+                                  , printf "then %d" c
+                                  , printf "else %s" $ intercalate "\n" (renderModel m)
                                   ]
      ConstOffDiagonal      c m -> [ "if x==y"
                                   , printf "then %s" $ intercalate "\n" (renderModel m)

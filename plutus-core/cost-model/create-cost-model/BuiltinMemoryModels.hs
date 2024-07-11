@@ -69,16 +69,16 @@ builtinMemoryModels :: BuiltinCostModelBase Id
 builtinMemoryModels = BuiltinCostModelBase
   { paramAddInteger                      = Id $ ModelTwoArgumentsMaxSize $ OneVariableLinearFunction 1 1
   , paramSubtractInteger                 = Id $ ModelTwoArgumentsMaxSize $ OneVariableLinearFunction 1 1
-  , paramMultiplyInteger                 = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
+  , paramMultiplyInteger                 = Id $ ModelTwoArgumentsAddedSizes $ identityFunction
   , paramDivideInteger                   = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
   , paramQuotientInteger                 = Id $ ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
-  , paramRemainderInteger                = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 0 1
-  , paramModInteger                      = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 0 1
+  , paramRemainderInteger                = Id $ ModelTwoArgumentsLinearInY $ identityFunction
+  , paramModInteger                      = Id $ ModelTwoArgumentsLinearInY $ identityFunction
   , paramEqualsInteger                   = Id $ boolMemModel
   , paramLessThanInteger                 = Id $ boolMemModel
   , paramLessThanEqualsInteger           = Id $ boolMemModel
-  , paramAppendByteString                = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
-  , paramConsByteString                  = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 0 1
+  , paramAppendByteString                = Id $ ModelTwoArgumentsAddedSizes $ identityFunction
+  , paramConsByteString                  = Id $ ModelTwoArgumentsAddedSizes $ identityFunction
     -- sliceByteString doesn't actually allocate a new bytestring: it creates an
     -- object containing a pointer into the original, together with a length.
   , paramSliceByteString                 = Id $ ModelThreeArgumentsLinearInZ $ OneVariableLinearFunction 4 0
@@ -148,6 +148,26 @@ builtinMemoryModels = BuiltinCostModelBase
   -- integerToByteString e w n allocates a bytestring of length w if w is
   -- nonzero and a bytestring just big enough to contain n otherwise, so we need
   -- a special memory costing function to handle that.
-  , paramIntegerToByteString             = Id $ ModelThreeArgumentsLiteralInYOrLinearInZ $ OneVariableLinearFunction 0 1
-  , paramByteStringToInteger             = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 0 1
+  , paramIntegerToByteString             = Id $ ModelThreeArgumentsLiteralInYOrLinearInZ identityFunction
+  , paramByteStringToInteger             = Id $ ModelTwoArgumentsLinearInY identityFunction
+  -- andByteString b y z etc. return something whose length is min(length(y),length(z)) if b is
+  -- False, max (...) otherwise.  For the time being we conservatively assume max in all cases.
+  , paramAndByteString                   = Id $ ModelThreeArgumentsLinearInMaxYZ identityFunction
+  , paramOrByteString                    = Id $ ModelThreeArgumentsLinearInMaxYZ identityFunction
+  , paramXorByteString                   = Id $ ModelThreeArgumentsLinearInMaxYZ identityFunction
+  , paramComplementByteString            = Id $ ModelOneArgumentLinearInX identityFunction
+  , paramReadBit                         = Id $ ModelTwoArgumentsConstantCost 1
+  , paramWriteBits                       = Id $ ModelTwoArgumentsLinearInX identityFunction
+  -- The empty bytestring has memory usage 1, so we add an extra memory unit here to make sure that
+  -- the memory cost of `replicateByte` is always nonzero. That means that we're charging one unit
+  -- ore than we perhaps should for nonempty bytestrings, but that's negligible (plus there's some
+  -- overhead for bytesrings anyway).  Note also that `replicateByte`'s argument is costed as a
+  -- literal size.
+  , paramReplicateByte                   = Id $ ModelTwoArgumentsLinearInX $ OneVariableLinearFunction 1 1
+  , paramShiftByteString                 = Id $ ModelTwoArgumentsLinearInX identityFunction
+  , paramRotateByteString                = Id $ ModelTwoArgumentsLinearInX identityFunction
+  , paramCountSetBits                    = Id $ ModelOneArgumentConstantCost 1
+  , paramFindFirstSetBit                 = Id $ ModelOneArgumentConstantCost 1
   }
+  where identityFunction = OneVariableLinearFunction 0 1
+

@@ -131,7 +131,18 @@ arity <- function(name) {
         "Keccak_256" = 1,
         "Blake2b_224" = 1,
         "IntegerToByteString" = 3,
-        "ByteStringToInteger" = 2
+        "ByteStringToInteger" = 2,
+        "AndByteString" = 3,
+        "OrByteString" = 3,
+        "XorByteString" = 3,
+        "ComplementByteString" = 1,
+        "ReadBit" = 2,
+        "WriteBits" = 2,
+        "ReplicateByte" = 2,
+        "ShiftByteString" = 2,
+        "RotateByteString" = 2,
+        "CountSetBits" = 1,
+        "FindFirstSetBit" = 1
         )
 }
 
@@ -742,7 +753,30 @@ modelFun <- function(path) {
         mk.result(m, "quadratic_in_y")
     }
 
-    ##### Models to be returned to Haskell #####
+    andByteStringModel <- {
+        fname <- "AndByteString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ y_mem + z_mem, filtered)
+        mk.result(m, "linear_in_y_and_z")
+    }
+    orByteStringModel         <- andByteStringModel
+    xorByteStringModel        <- andByteStringModel
+
+    complementByteStringModel <- linearInX ("ComplementByteString")
+    readBitModel              <- constantModel ("ReadBit")
+    writeBitsModel            <- linearInY ("WriteBits")
+    ## ^ The Y value here is the length of the list because we use ListCostedByLength in the
+    ## relevant costing benchmark.
+    replicateByteModel        <- linearInX ("ReplicateByte")
+    shiftByteStringModel      <- linearInX ("ShiftByteString")
+    rotateByteStringModel     <- linearInX ("RotateByteString")
+    countSetBitsModel         <- linearInX ("CountSetBits")
+    findFirstSetBitModel      <- linearInX ("FindFirstSetBit")
+
+
+##### Models to be returned to Haskell #####
 
     models.for.adjustment <-
         list (
@@ -816,7 +850,18 @@ modelFun <- function(path) {
         bls12_381_mulMlResultModel           = bls12_381_mulMlResultModel,
         bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel,
         integerToByteStringModel             = integerToByteStringModel,
-        byteStringToIntegerModel             = byteStringToIntegerModel
+        byteStringToIntegerModel             = byteStringToIntegerModel,
+        andByteStringModel                   = andByteStringModel,
+        orByteStringModel                    = orByteStringModel,
+        xorByteStringModel                   = xorByteStringModel,
+        complementByteStringModel            = complementByteStringModel,
+        readBitModel                         = readBitModel,
+        writeBitsModel                       = writeBitsModel,
+        replicateByteModel                   = replicateByteModel,
+        shiftByteStringModel                 = shiftByteStringModel,
+        rotateByteStringModel                = rotateByteStringModel,
+        countSetBitsModel                    = countSetBitsModel,
+        findFirstSetBitModel                 = findFirstSetBitModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

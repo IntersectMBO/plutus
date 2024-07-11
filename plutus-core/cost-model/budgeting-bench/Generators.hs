@@ -81,12 +81,12 @@ makeSizedByteStrings seed l = map (makeSizedByteString seed) l
 
 
 -- TODO: don't use Hedgehog's 'sample' below: it silently resizes the generator
--- to size 30, so listOfSizedByteStrings and listOfByteStrings are biased
+-- to size 30, so listOfByteStringsOfLength and listOfByteStrings are biased
 -- towards low byte values.
 
 -- Create a list containing m bytestrings of length n (also terrible)
-listOfSizedByteStrings :: Int -> Int -> [ByteString]
-listOfSizedByteStrings m n =
+listOfByteStringsOfLength :: Int -> Int -> [ByteString]
+listOfByteStringsOfLength m n =
     unsafePerformIO . G.sample $ G.list (R.singleton m) (G.bytes (R.singleton n))
 
 -- Create a list containing m bytestrings of random lengths

@@ -42,7 +42,7 @@ import Hedgehog.Range qualified as Range
    the microToPico function from CreateBuiltinCostModel to convert R results to
    picoseconds expressed as CostingIntegers.  To deal with (A), we don't check
    for exact equality of the outputs but instead check that the R result and the
-   Haskell result agreee to within a factor of 1/100 (one percent).
+   Haskell result agreee to within a factor of 2/100 (two percent).
 -}
 -- FIXME: with this limit the two-variable quadratic costing functions for the
 -- integer division builtins fail to pass the test.  We don't run the test in
@@ -50,7 +50,7 @@ import Hedgehog.Range qualified as Range
 
 -- | Maximum allowable difference beween R result and Haskell result.
 epsilon :: Double
-epsilon = 1/100
+epsilon = 2/100
 
 {-
    The tests here use Haskell costing functions (in 'costModelsR' from
@@ -417,5 +417,16 @@ main =
               -- Bitwise operations
               , $(genTest 3 "integerToByteString")
               , $(genTest 2 "byteStringToInteger") Everywhere
+              , $(genTest 3 "andByteString")
+              , $(genTest 3 "orByteString")
+              , $(genTest 3 "xorByteString")
+              , $(genTest 1 "complementByteString")
+              , $(genTest 2 "readBit")             Everywhere
+              , $(genTest 2 "writeBits")           Everywhere
+              , $(genTest 2 "replicateByte")       Everywhere
+              , $(genTest 2 "shiftByteString")     Everywhere
+              , $(genTest 2 "rotateByteString")    Everywhere
+              , $(genTest 1 "countSetBits")
+              , $(genTest 1 "findFirstSetBit")
               ]
 

@@ -29,7 +29,8 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (LiteralByteSize)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally, ListCostedByLength,
+                                                    NumBytesCostedAsNumWords)
 import PlutusCore.Generators.Hedgehog.AST hiding (genConstant)
 
 import Data.ByteString qualified as BS
@@ -81,7 +82,9 @@ genConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @Integer) = SomeGen genInteger
     | Just HRefl <- eqTypeRep tr (typeRep @Int) = SomeGen genInteger
     | Just HRefl <- eqTypeRep tr (typeRep @Word8) = SomeGen genInteger
-    | Just HRefl <- eqTypeRep tr (typeRep @LiteralByteSize) = SomeGen genInteger
+    | Just HRefl <- eqTypeRep tr (typeRep @NumBytesCostedAsNumWords) = SomeGen genInteger
+    | Just HRefl <- eqTypeRep tr (typeRep @IntegerCostedLiterally) = SomeGen genInteger
+    -- FIXME: do we have to worry about ListCostedByLength here?
     | Just HRefl <- eqTypeRep tr (typeRep @Bool) = SomeGen Gen.bool
     | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = SomeGen genByteString
     | Just HRefl <- eqTypeRep tr (typeRep @Text) = SomeGen genText
@@ -100,6 +103,10 @@ genConstant tr
     , Just HRefl <- eqTypeRep trList (typeRep @[]) =
         case genConstant trElem of
             SomeGen genElem -> SomeGen $ Gen.list (Range.linear 0 10) genElem
+    | trList' `App` trElem <- tr
+    , Just HRefl <- eqTypeRep trList' (typeRep @ListCostedByLength) =
+        case genConstant trElem of
+          SomeGen genElem -> SomeGen $ Gen.list (Range.linear 0 10) genElem
     | trSomeConstant `App` _ `App` trEl <- tr
     , Just HRefl <- eqTypeRep trSomeConstant (typeRep @SomeConstant) =
         genConstant trEl

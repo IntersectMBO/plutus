@@ -809,7 +809,7 @@ replicateByte ::
   BuiltinInteger ->
   BuiltinByteString
 replicateByte n w8 =
-  case Bitwise.replicateByte (fromIntegral n) (fromIntegral w8) of
+  case Bitwise.replicateByte n (fromIntegral w8) of
     BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
       Haskell.error "byteStringReplicate errored."
     BuiltinSuccess bs -> BuiltinByteString bs
