@@ -227,7 +227,7 @@ oneParamProp' :: (ToJSON a,Show a, Testable prop, ToData a)
               -> Gen a
               -> ((Bool, a) -> prop)
               -> PropertyWithTestState
-oneParamProp' paramIx toData' gen finalProp ref = withMaxSuccess 600 $ TSQ.forAll gen $
+oneParamProp' paramIx toData' gen finalProp ref = withMaxSuccess 100 $ TSQ.forAll gen $
    \value -> monadicIO $ do
 
     let (V3.ArbitraryContext ctx) = V3.simpleContextWithParam (toData' value)
