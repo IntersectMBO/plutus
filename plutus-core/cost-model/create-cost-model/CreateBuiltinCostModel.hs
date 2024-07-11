@@ -410,7 +410,7 @@ readCF3 e = do
     "linear_in_y"                 -> ModelThreeArgumentsLinearInY             <$> readOneVariableLinearFunction "y_mem" e
     "linear_in_z"                 -> ModelThreeArgumentsLinearInZ             <$> readOneVariableLinearFunction "z_mem" e
     "quadratic_in_z"              -> ModelThreeArgumentsQuadraticInZ          <$> readOneVariableQuadraticFunction "z_mem" e
-    "linear_in_y_and_z"         -> ModelThreeArgumentsLinearInYAndZ         <$> readTwoVariableLinearFunction "y_mem" "z_mem" e
+    "linear_in_y_and_z"           -> ModelThreeArgumentsLinearInYAndZ         <$> readTwoVariableLinearFunction "y_mem" "z_mem" e
     "literal_in_y_or_linear_in_z" -> ModelThreeArgumentsLiteralInYOrLinearInZ <$> error "literal"
     _                             -> error $ "Unknown three-variable model type: " ++ ty
 
