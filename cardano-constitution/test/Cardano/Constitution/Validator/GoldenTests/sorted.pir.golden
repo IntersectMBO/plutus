@@ -5186,13 +5186,13 @@
                                                                                                                {integer}
                                                                                                                {ParamValue}
                                                                                                                33
-                                                                                                               (ParamInteger
+                                                                                                               (ParamRational
                                                                                                                   ((let
                                                                                                                        a
                                                                                                                          = Tuple2
                                                                                                                              PredKey
                                                                                                                              (List
-                                                                                                                                integer)
+                                                                                                                                Rational)
                                                                                                                      in
                                                                                                                      \(g :
                                                                                                                          all b.
@@ -5220,7 +5220,7 @@
                                                                                                                             Tuple2
                                                                                                                               PredKey
                                                                                                                               (List
-                                                                                                                                 integer) ->
+                                                                                                                                 Rational) ->
                                                                                                                             a ->
                                                                                                                             a)
                                                                                                                          (n :
@@ -5229,64 +5229,68 @@
                                                                                                                             (Tuple2
                                                                                                                                {PredKey}
                                                                                                                                {List
-                                                                                                                                  integer}
+                                                                                                                                  Rational}
                                                                                                                                MinValue
                                                                                                                                ((let
                                                                                                                                     a
                                                                                                                                       = List
-                                                                                                                                          integer
+                                                                                                                                          Rational
                                                                                                                                   in
                                                                                                                                   \(c :
-                                                                                                                                      integer ->
+                                                                                                                                      Rational ->
                                                                                                                                       a ->
                                                                                                                                       a)
                                                                                                                                    (n :
                                                                                                                                       a) ->
                                                                                                                                     c
-                                                                                                                                      0
+                                                                                                                                      (unsafeRatio
+                                                                                                                                         0
+                                                                                                                                         1)
                                                                                                                                       n)
                                                                                                                                   (\(ds :
-                                                                                                                                       integer)
+                                                                                                                                       Rational)
                                                                                                                                     (ds :
                                                                                                                                        List
-                                                                                                                                         integer) ->
+                                                                                                                                         Rational) ->
                                                                                                                                      Cons
-                                                                                                                                       {integer}
+                                                                                                                                       {Rational}
                                                                                                                                        ds
                                                                                                                                        ds)
                                                                                                                                   (Nil
-                                                                                                                                     {integer})))
+                                                                                                                                     {Rational})))
                                                                                                                             (c
                                                                                                                                (Tuple2
                                                                                                                                   {PredKey}
                                                                                                                                   {List
-                                                                                                                                     integer}
+                                                                                                                                     Rational}
                                                                                                                                   MaxValue
                                                                                                                                   ((let
                                                                                                                                        a
                                                                                                                                          = List
-                                                                                                                                             integer
+                                                                                                                                             Rational
                                                                                                                                      in
                                                                                                                                      \(c :
-                                                                                                                                         integer ->
+                                                                                                                                         Rational ->
                                                                                                                                          a ->
                                                                                                                                          a)
                                                                                                                                       (n :
                                                                                                                                          a) ->
                                                                                                                                        c
-                                                                                                                                         1000
+                                                                                                                                         (unsafeRatio
+                                                                                                                                            1000
+                                                                                                                                            1)
                                                                                                                                          n)
                                                                                                                                      (\(ds :
-                                                                                                                                          integer)
+                                                                                                                                          Rational)
                                                                                                                                        (ds :
                                                                                                                                           List
-                                                                                                                                            integer) ->
+                                                                                                                                            Rational) ->
                                                                                                                                         Cons
-                                                                                                                                          {integer}
+                                                                                                                                          {Rational}
                                                                                                                                           ds
                                                                                                                                           ds)
                                                                                                                                      (Nil
-                                                                                                                                        {integer})))
+                                                                                                                                        {Rational})))
                                                                                                                                n)))))
                                                                                                             n)))))))))))))))))))))))))))))))
    in

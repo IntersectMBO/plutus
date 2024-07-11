@@ -733,14 +733,14 @@
   },
 
   "33": {
-    "type": "integer",
+    "type": "unit_interval",
     "predicates": [
       {
-        "maxValue": 1000,
+        "maxValue": { "numerator": 1000, "denominator": 1 },
         "$comment": "minFeeRefScriptCoinsPerByte must not exceed 1,000 (0.001 ada)"
       },
       {
-        "minValue": 0,
+        "minValue": { "numerator": 0, "denominator": 1 },
         "$comment": "minFeeRefScriptCoinsPerByte must not be negative"
       }
     ],
