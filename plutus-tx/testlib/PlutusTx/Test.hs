@@ -52,6 +52,7 @@ import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test
 import PlutusIR.Analysis.Builtins as PIR
+import PlutusIR.Core.Instance.Pretty.Readable (prettyPirReadableSimple)
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
 import PlutusIR.Transform.RewriteRules as PIR
@@ -122,7 +123,7 @@ goldenPir ::
   String ->
   CompiledCodeIn uni fun a ->
   TestNested
-goldenPir name value = nestedGoldenVsDoc name ".pir" $ pretty $ getPirNoAnn value
+goldenPir name value = nestedGoldenVsDoc name ".pir" $ prettyPirReadableSimple $ getPirNoAnn value
 
 -- | Does not print uniques.
 goldenPirReadable ::
@@ -132,7 +133,7 @@ goldenPirReadable ::
   TestNested
 goldenPirReadable name value =
   nestedGoldenVsDoc name ".pir"
-    . maybe "PIR not found in CompiledCode" (pretty . AsReadable . view progTerm)
+    . maybe "PIR not found in CompiledCode" (prettyPirReadableSimple . view progTerm)
     $ getPirNoAnn value
 
 goldenPirBy ::
@@ -143,25 +144,24 @@ goldenPirBy ::
   TestNested
 goldenPirBy config name value =
   nestedGoldenVsDoc name ".pir" $
-    pretty $
-      AttachPrettyConfig config $
-        getPir value
+    prettyBy config $ getPir value
 
 -- Evaluation testing
 
 -- TODO: rationalize with the functions exported from PlcTestUtils
 goldenEvalCek :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
 goldenEvalCek name values =
-  nestedGoldenVsDocM name ".eval" $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
+  nestedGoldenVsDocM name ".eval" $ prettyPlcClassicSimple <$> rethrow (runPlcCek values)
 
 goldenEvalCekCatch :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
 goldenEvalCekCatch name values =
   nestedGoldenVsDocM name ".eval" $
-    either (pretty . show) prettyPlcClassicDebug <$> runExceptT (runPlcCek values)
+    either (pretty . show) prettyPlcClassicSimple <$> runExceptT (runPlcCek values)
 
 goldenEvalCekLog :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
 goldenEvalCekLog name values =
-  nestedGoldenVsDocM name ".eval" $ pretty . view _1 <$> (rethrow $ runPlcCekTrace values)
+  nestedGoldenVsDocM name ".eval" $
+    prettyPlcClassicSimple . view _1 <$> (rethrow $ runPlcCekTrace values)
 
 -- Helpers
 

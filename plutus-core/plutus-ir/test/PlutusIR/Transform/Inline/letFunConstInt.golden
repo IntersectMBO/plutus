@@ -1,4 +1,1 @@
-[
-  [ (lam x (con integer) (lam y (con integer) x)) (con integer 3) ]
-  (con integer 4)
-]
+(\(x : integer) (y : integer) -> x) 3 4

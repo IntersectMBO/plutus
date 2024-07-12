@@ -2,6 +2,6 @@
 Expected a term of type
   '(fun k l)' for some 'k' and 'l'
 But found one of type
-  '(all a_2 (type) (fun (con bool) (fun a_2 (fun a_2 a_2))))'
+  '(all a (type) (fun (con bool) (fun a (fun a a))))'
 Namely,
   '(builtin ifThenElse)')

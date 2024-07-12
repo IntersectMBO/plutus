@@ -1,26 +1,7 @@
-(lam
-  x
-  (con integer)
-  (lam
-    y
-    (con integer)
-    (let
-      (nonrec)
-      (datatypebind
-        (datatype
-          (tyvardecl Bool (type))
-
-          Bool_match
-          (vardecl True Bool) (vardecl False Bool)
-        )
-      )
-      [
-        [
-          [ { (builtin ifThenElse) Bool } [ [ (builtin equalsInteger) x ] y ] ]
-          True
-        ]
-        False
-      ]
-    )
-  )
-)
+\(x : integer) (y : integer) ->
+  let
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
+  in
+  ifThenElse {Bool} (equalsInteger x y) True False

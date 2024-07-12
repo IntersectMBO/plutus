@@ -7,16 +7,20 @@
 module Names.Spec where
 
 import Data.String (IsString (fromString))
+import Data.Text qualified as Text
 import Hedgehog (Gen, Property, assert, forAll, property, tripping)
 import Hedgehog.Gen qualified as Gen
 import PlutusCore (DefaultFun, DefaultUni, FreeVariableError, Kind (Type), Name (..), NamedDeBruijn,
                    NamedTyDeBruijn, Program, Quote, Rename (rename), Term (..), TyName (..),
                    Type (..), Unique (..), deBruijnTerm, runQuote, runQuoteT, unDeBruijnTerm)
+import PlutusCore qualified
 import PlutusCore.Generators.Hedgehog (TermOf (..), forAllNoShowT, forAllPretty, generalizeT)
-import PlutusCore.Generators.Hedgehog.AST as AST (genProgram, genTerm, mangleNames, runAstGen)
+import PlutusCore.Generators.Hedgehog.AST as AST (genName, genProgram, genTerm, mangleNames,
+                                                  runAstGen)
 import PlutusCore.Generators.Hedgehog.Interesting (fromInterestingTermGens)
 import PlutusCore.Mark (markNonFreshProgram)
-import PlutusCore.Pretty (displayPlcDebug)
+import PlutusCore.Parser qualified as Parser
+import PlutusCore.Pretty (display, displayPlcSimple)
 import PlutusCore.Rename.Internal (renameProgramM)
 import PlutusCore.Test (BindingRemoval (BindingRemovalNotOk), Prerename (PrerenameNo), brokenRename,
                         checkFails, noMarkRename, test_scopingGood, test_scopingSpoilRenamer)
@@ -129,9 +133,9 @@ test_rebindShadowedVariable = testCase "rebindShadowedVariable" do
 
     err =
       concat
-        [ displayPlcDebug l2
+        [ displayPlcSimple l2
         , " and "
-        , displayPlcDebug r2
+        , displayPlcSimple r2
         , " are supposed not to be equal, but they are equal"
         ]
 
@@ -177,6 +181,22 @@ test_rebindCapturedVariable = testCase "rebindCapturedVariable" do
 
   [typeL1, typeL2] @?= [typeR1, typeR2]
 
+test_printing_parsing_roundtrip :: TestTree
+test_printing_parsing_roundtrip =
+  testPropertyNamed
+    "Printing/parsing roundtrip"
+    "name_print_parse_roundtrip"
+    prop_printing_parsing_roundtrip
+
+prop_printing_parsing_roundtrip :: Property
+prop_printing_parsing_roundtrip = property $ generalizeT do
+  name <- forAllPretty $ runAstGen genName
+  tripping name display parse
+  where
+    parse :: String -> Either (PlutusCore.Error DefaultUni DefaultFun ()) Name
+    parse str = runQuoteT do
+      Parser.parse Parser.name "test_printing_parsing_roundtrip" (Text.pack str)
+
 test_names :: TestTree
 test_names =
   testGroup
@@ -191,4 +211,5 @@ test_names =
     , test_alphaEquality
     , test_rebindShadowedVariable
     , test_rebindCapturedVariable
+    , test_printing_parsing_roundtrip
     ]

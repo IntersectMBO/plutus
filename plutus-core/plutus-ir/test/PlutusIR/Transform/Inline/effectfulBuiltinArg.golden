@@ -1,29 +1,4 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl x (con integer))
-    [
-      [ { (builtin trace) (con integer) } (con string "msg2") ] (con integer 1)
-    ]
-  )
-  [
-    [
-      [
-        { (builtin ifThenElse) (con integer) }
-        [
-          [
-            (builtin equalsInteger)
-            [
-              [ { (builtin trace) (con integer) } (con string "msg1") ]
-              (con integer 0)
-            ]
-          ]
-          x
-        ]
-      ]
-      (con integer 9)
-    ]
-    (con integer 10)
-  ]
-)
+let
+  !x : integer = trace {integer} "msg2" 1
+in
+ifThenElse {integer} (equalsInteger (trace {integer} "msg1" 0) x) 9 10

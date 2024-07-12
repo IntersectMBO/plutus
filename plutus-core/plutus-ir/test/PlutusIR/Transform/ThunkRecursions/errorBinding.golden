@@ -1,6 +1,8 @@
-(let
-  (rec)
-  (termbind (nonstrict) (vardecl x (con integer)) (error (con integer)))
-  (termbind (nonstrict) (vardecl y (con integer)) x)
-  (let (nonrec) (termbind (strict) (vardecl x (con integer)) x) (con integer 1))
-)
+letrec
+  ~x : integer = error {integer}
+  ~y : integer = x
+in
+let
+  !x : integer = x
+in
+1

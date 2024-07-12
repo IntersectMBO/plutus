@@ -1,26 +1,11 @@
-(lam
-  n
-  (con integer)
-  [
+\(n : integer) ->
+  (let
+      int = integer
+    in
     (let
-      (nonrec)
-      (typebind (tyvardecl int (type)) (con integer))
-      {
-        {
-          (let
-            (nonrec)
-            (termbind
-              (strict)
-              (vardecl const (all a (type) (all b (type) (fun a (fun b a)))))
-              (abs a (type) (abs b (type) (lam x a (lam y b x))))
-            )
-            const
-          )
-          (con integer)
-        }
-        int
-      }
-    )
-    (con integer 1)
-  ]
-)
+        !const : all a b. a -> b -> a = /\a b -> \(x : a) (y : b) -> x
+      in
+      const)
+      {integer}
+      {int})
+    1

@@ -35,7 +35,7 @@ import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusCore.Pretty (prettyPlcClassicDebug)
+import PlutusCore.Pretty (prettyPlcClassicSimple)
 import PlutusTx (getPlcNoAnn)
 import PlutusTx.Code (CompiledCode, sizePlc)
 import PlutusTx.Prelude hiding (fmap, mappend, traverse_, (<$), (<$>), (<*>), (<>))
@@ -311,7 +311,7 @@ main :: IO ()
 main = do
   execParser (info (helper <*> options) (fullDesc <> progDesc description <> footerDoc (Just footerInfo))) >>= \case
     RunPLC pa ->
-        print . prettyPlcClassicDebug . evaluateWithCek . getTerm $ pa
+        print . prettyPlcClassicSimple . evaluateWithCek . getTerm $ pa
     RunHaskell pa ->
         case pa of
           Clausify formula        -> print $ Clausify.runClausify formula
@@ -322,7 +322,7 @@ main = do
           Primetest n             -> if n<0 then Hs.error "Positive number expected"
                                      else print $ Prime.runPrimalityTest n
     DumpPLC pa ->
-        traverse_ putStrLn $ unindent . prettyPlcClassicDebug . UPLC.Program () PLC.latestVersion . getTerm $ pa
+        traverse_ putStrLn $ unindent . prettyPlcClassicSimple . UPLC.Program () PLC.latestVersion . getTerm $ pa
             where unindent d = map (dropWhile isSpace) $ (Hs.lines . Hs.show $ d)
     DumpFlatNamed pa ->
         writeFlatNamed . UPLC.Program () PLC.latestVersion . getTerm $ pa

@@ -1,1 +1,1 @@
-(abs a (type) (lam x a x))
+/\a -> \(x : a) -> x

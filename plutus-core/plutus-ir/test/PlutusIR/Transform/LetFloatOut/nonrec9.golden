@@ -1,10 +1,5 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl a (con integer))
-    [ [ (builtin addInteger) (con integer 1) ] (con integer 1) ]
-  )
-  (termbind (nonstrict) (vardecl b (con integer)) a)
-  b
-)
+let
+  !a : integer = addInteger 1 1
+  ~b : integer = a
+in
+b

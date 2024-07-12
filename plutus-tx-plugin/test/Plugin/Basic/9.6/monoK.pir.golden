@@ -1,12 +1,3 @@
-(program
+program
   1.1.0
-  (lam
-    ds
-    (con integer)
-    (let
-      (nonrec)
-      (termbind (strict) (vardecl ds (con integer)) ds)
-      (lam ds (con integer) ds)
-    )
-  )
-)
+  (\(ds : integer) -> let !ds : integer = ds in \(ds : integer) -> ds)

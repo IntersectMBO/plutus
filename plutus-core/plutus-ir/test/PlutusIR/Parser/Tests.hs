@@ -53,24 +53,30 @@ separator :: Char -> Bool
 separator c = c `elem` separators || isSpace c
 
 aroundSeparators :: MonadGen m => m String -> String -> m String
-aroundSeparators = go False
+aroundSeparators = go False False
   where
     -- Quoted names may contain separators, but they are part of the name, so
     -- we cannot scramble inside quoted names.
-    go inQuotedName splice = \case
+    go inQuotedName inUnique splice = \case
         [] -> pure []
         [s] -> (s:) <$> splice
+        ('`' : '-' : l) | inQuotedName -> do
+          let (digits, notDigits) = break isDigit l
+          rest <- go (not inQuotedName) True splice notDigits
+          pure $ "`-" ++ digits ++ rest
         ('`' : l) -> do
             s <- splice
-            rest <- go (not inQuotedName) splice l
-            pure $ if inQuotedName then '`' : s ++ rest else s ++ '`' : rest
+            rest <- go (not inQuotedName) inUnique splice l
+            pure $ if inQuotedName
+              then '`' : s ++ rest
+              else s ++ '`' : rest
         (a : b : l)
-            | not (inQuotedName) && separator b -> do
+            | not inQuotedName && separator b -> do
                 s1 <- splice
                 s2 <- splice
-                rest <- go inQuotedName splice l
+                rest <- go inQuotedName inUnique splice l
                 pure $ a : s1 ++ b : s2 ++ rest
-            | otherwise -> (a :) <$> go inQuotedName splice (b : l)
+            | otherwise -> (a :) <$> go inQuotedName inUnique splice (b : l)
 
 genScrambledWith :: MonadGen m => m String -> m (String, String)
 genScrambledWith splice = do
@@ -118,8 +124,8 @@ propIgnores splice = property $ do
     (original, scrambled) <- forAll (genScrambledWith splice)
     let displayProgram :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan -> String
         displayProgram = display
-        parse1 = displayProgram <$> (parseProg $ T.pack original)
-        parse2 = displayProgram <$> (parseProg $ T.pack scrambled)
+        parse1 = displayProgram <$> parseProg (T.pack original)
+        parse2 = displayProgram <$> parseProg (T.pack scrambled)
     parse1 === parse2
 
 test_parsing :: TestTree

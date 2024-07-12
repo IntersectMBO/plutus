@@ -16,7 +16,7 @@ test_retainedSize :: TestTree
 test_retainedSize =
     runTestNested ["plutus-ir", "test", "PlutusIR", "Analysis", "RetainedSize"] $
         map
-            (goldenPir renameAndAnnotate pTerm)
+            (goldenPirUnique renameAndAnnotate pTerm)
             [ "typeLet"
             , "termLet"
             , "strictLet"
@@ -38,7 +38,7 @@ test_retainedSize =
             , "recBindingComplex"
             ]
   where
-    displayAnnsConfig = PLC.PrettyConfigClassic PLC.defPrettyConfigName True
+    displayAnnsConfig = PLC.PrettyConfigClassic PLC.prettyConfigNameSimple True
     renameAndAnnotate =
         PLC.AttachPrettyConfig displayAnnsConfig
             . RetainedSize.annotateWithRetainedSize def

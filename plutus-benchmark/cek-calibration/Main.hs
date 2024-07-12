@@ -82,7 +82,7 @@ writePlc p =
         traverseOf UPLC.progTerm UPLC.unDeBruijnTerm p
     of
       Left e   -> throw e
-      Right p' -> Haskell.print . PP.prettyPlcClassicDebug $ p'
+      Right p' -> Haskell.print . PP.prettyPlcClassicSimple $ p'
 
 
 main1 :: Haskell.IO ()

@@ -1,17 +1,7 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl serialiseData (fun (con data) (con bytestring)))
-      (builtin serialiseData)
-    )
-    (termbind
-      (nonstrict)
-      (vardecl serialiseData (fun (con data) (con bytestring)))
-      serialiseData
-    )
-    serialiseData
-  )
-)
+    !serialiseData : data -> bytestring = serialiseData
+    ~serialiseData : data -> bytestring = serialiseData
+  in
+  serialiseData)

@@ -1,30 +1,17 @@
-(program
+program
   1.1.0
-  (let
-    (rec)
-    (datatypebind
-      (datatype
-        (tyvardecl List (fun (type) (type)))
-        (tyvardecl a (type))
-        List_match
-        (vardecl Nil [ List a ])
-        (vardecl Cons (fun a (fun [ List a ] [ List a ])))
-      )
-    )
-    (lam
+  (letrec
+    data (List :: * -> *) a | List_match where
+      Nil : List a
+      Cons : a -> List a -> List a
+  in
+  \(ds : List integer) ->
+    let
+      !ds : List integer = ds
+    in
+    List_match
+      {integer}
       ds
-      [ List (con integer) ]
-      (let
-        (nonrec)
-        (termbind (strict) (vardecl ds [ List (con integer) ]) ds)
-        [
-          [
-            { [ { List_match (con integer) } ds ] (con integer) }
-            (con integer 0)
-          ]
-          (lam x (con integer) (lam ds [ List (con integer) ] x))
-        ]
-      )
-    )
-  )
-)
+      {integer}
+      0
+      (\(x : integer) (ds : List integer) -> x))

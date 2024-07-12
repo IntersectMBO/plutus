@@ -91,6 +91,7 @@ import Hedgehog.Internal.Property
 import Hedgehog.Internal.Region
 import Hedgehog.Internal.Report
 import Hedgehog.Internal.Runner
+import PlutusCore.Pretty qualified as PP
 
 -- | Map the 'TestLimit' of a 'Property' with a given function.
 mapTestLimit :: (TestLimit -> TestLimit) -> Property -> Property
@@ -210,7 +211,7 @@ instance (PrettyBy config err)
 
 instance (PrettyPlc err)
   => Show (EvaluationExceptionWithLogsAndBudget err) where
-    show = render . prettyPlcReadableDebug
+    show = render . prettyPlcReadableSimple
 
 instance (PrettyPlc err, Exception err)
   => Exception (EvaluationExceptionWithLogsAndBudget err)
@@ -301,14 +302,19 @@ runUPlcProfile' values = do
     Right _  -> pure logs
 
 ppCatch :: (PrettyPlc a) => ExceptT SomeException IO a -> IO (Doc ann)
-ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value
+ppCatch value = either (PP.prettyClassic . show) prettyPlcReadableSimple <$> runExceptT value
 
 ppCatch' :: ExceptT SomeException IO (Doc ann) -> IO (Doc ann)
-ppCatch' value = either (PP.pretty . show) id <$> runExceptT value
+ppCatch' value = either (PP.prettyClassic . show) id <$> runExceptT value
 
-ppCatchReadable :: (PrettyBy (PrettyConfigReadable PrettyConfigName) a)
+ppCatchReadable
+  :: forall a ann
+   . PrettyBy (PrettyConfigReadable PrettyConfigName) a
   => ExceptT SomeException IO a -> IO (Doc ann)
-ppCatchReadable value = either (PP.pretty . show) (pretty . AsReadable) <$> runExceptT value
+ppCatchReadable value =
+  let pprint :: forall t. PrettyBy (PrettyConfigReadable PrettyConfigName) t => t -> Doc ann
+      pprint = prettyBy (topPrettyConfigReadable prettyConfigNameSimple def)
+   in either (pprint . show) pprint <$> runExceptT value
 
 goldenTPlcWith ::
   (ToTPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
@@ -376,58 +382,29 @@ goldenTEval ::
 goldenTEval name values =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ runTPlc values
 
-goldenUEval ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
-  String ->
-  [a] ->
-  TestNested
-goldenUEval name values =
-  nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlc values
+goldenUEval :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => String -> [a] -> TestNested
+goldenUEval name values = nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlc values
 
-goldenUEvalLogs ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
-  String ->
-  [a] ->
-  TestNested
-goldenUEvalLogs name values =
-  nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcLogs values
+goldenUEvalLogs :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => String -> [a] -> TestNested
+goldenUEvalLogs name values = nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcLogs values
 
 -- | This is mostly useful for profiling a test that is normally
 -- tested with one of the other functions, as it's a drop-in
 -- replacement and you can then pass the output into `traceToStacks`.
-goldenUEvalProfile ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
-  String ->
-  [a] ->
-  TestNested
-goldenUEvalProfile name values =
-  nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcProfile values
+goldenUEvalProfile :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => String -> [a] -> TestNested
+goldenUEvalProfile name values = nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcProfile values
 
-goldenUEvalBudget ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun)
-  => String
-  -> [a]
-  -> TestNested
-goldenUEvalBudget name values =
-  nestedGoldenVsDocM name ".budget" $ ppCatch $ runUPlcBudget values
+goldenUEvalBudget :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => String -> [a] -> TestNested
+goldenUEvalBudget name values = nestedGoldenVsDocM name ".budget" $ ppCatch $ runUPlcBudget values
 
-goldenSize ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
-  String ->
-  a ->
-  TestNested
+goldenSize :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => String -> a -> TestNested
 goldenSize name value =
-  nestedGoldenVsDocM name ".size" $
-    pure . pretty . UPLC.programSize =<< rethrow (toUPlc value)
+  nestedGoldenVsDocM name ".size" $ pure . pretty . UPLC.programSize =<< rethrow (toUPlc value)
 
 -- | This is mostly useful for profiling a test that is normally
 -- tested with one of the other functions, as it's a drop-in
 -- replacement and you can then pass the output into `traceToStacks`.
-goldenUEvalProfile' ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
-  String ->
-  [a] ->
-  TestNested
+goldenUEvalProfile' :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => String -> [a] -> TestNested
 goldenUEvalProfile' name values =
   nestedGoldenVsDocM name ".eval" $ ppCatch' $
     fmap (\ts -> PP.vsep (fmap pretty ts)) $ runUPlcProfile' values
@@ -597,7 +574,7 @@ prop_scopingFor gen bindRem preren run = withTests 1000 . property $ do
       prep = runPrerename preren
   case catchEverything $ checkRespectsScoping bindRem prep (TPLC.runQuote . run) prog of
     Left exc         -> fail $ displayException exc
-    Right (Left err) -> fail $ displayPlcDef err
+    Right (Left err) -> fail $ displayPlc err
     Right (Right ()) -> success
 
 -- | Test that a pass does not break global uniqueness.

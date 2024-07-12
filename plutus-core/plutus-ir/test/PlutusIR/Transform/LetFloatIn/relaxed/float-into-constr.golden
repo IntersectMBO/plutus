@@ -1,15 +1,4 @@
-(constr
-  (sop [(con integer) (con integer) (con integer)])
+constr
+  (sop [integer, integer, integer])
   0
-  (con integer 1)
-  (let
-    (nonrec)
-    (termbind
-      (nonstrict)
-      (vardecl y (con integer))
-      [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
-    )
-    y
-  )
-  (con integer 2)
-)
+  [1, (let ~y : integer = addInteger 1 2 in y), 2]

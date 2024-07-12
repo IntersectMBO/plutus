@@ -106,8 +106,7 @@ data Named a = Named
 
 instance (HasPrettyConfigName config) => PrettyBy config Name where
   prettyBy config (Name txt (Unique uniq))
-    -- See Note [Pretty-printing names with uniques]
-    | showsUnique = pretty . toPrintedName $ txt <> "_" <> render (pretty uniq)
+    | showsUnique = pretty $ toPrintedName txt <> "-" <> render (pretty uniq)
     | otherwise = pretty $ toPrintedName txt
     where
       PrettyConfigName showsUnique = toPrettyConfigName config
@@ -182,14 +181,3 @@ instance HasUnique TyName TypeUnique
 -- | A lens focused on the 'Unique' of a name.
 theUnique :: (HasUnique name unique) => Lens' name Unique
 theUnique = unique . coerced
-
-{- Note [Pretty-printing names with uniques]
-
-Our parser can't currently parse unqiues properly. As a hacky workaround, when pretty-printing,
-we print the uniques as part of the names. That is, if the name proper is @++@ and the
-unique is 123, then it is printed as @`++_123`@, rather than @`++`_123@.
-
-This way, when it is parsed back, the entire @`++_123`@ becomes the name proper. This works:
-a program would be alpha-equivalent after being pretty-printed and then parsed back. But we
-should still fix this and do it properly.
--}
