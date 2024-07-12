@@ -118,13 +118,20 @@ parseParamValue = \case
       parseTypedParamValue = withObject "RawParamValue" $ \o -> do
           String ty <- o .: typeKey
           case ty of
-              "integer"       -> RawParamInteger <$> (o .: predicatesKey)
+              "integer"              -> RawParamInteger <$> (o .: predicatesKey)
+              "coin"                 -> RawParamInteger <$> (o .: predicatesKey)
+              "uint.size4"           -> RawParamInteger <$> (o .: predicatesKey)
+              "uint.size2"           -> RawParamInteger <$> (o .: predicatesKey)
+              "uint"                 -> RawParamInteger <$> (o .: predicatesKey) -- For ex units
+              "epoch_interval"       -> RawParamInteger <$> (o .: predicatesKey) -- Rename of uint.size4
               -- NOTE: even if the Tx.Ratio.Rational constructor is not exposed, the 2 arguments to the constructor
               -- will be normalized (co-primed) when Tx.lift is called on them.
               -- SO there is no speed benefit to statically co-prime them ourselves for efficiency.
-              "unit_interval" -> RawParamRational <$> (o .: predicatesKey)
-              "any"           -> pure RawParamAny
-              _               -> fail "invalid type tag"
+              "unit_interval"        -> RawParamRational <$> (o .: predicatesKey)
+              "nonnegative_interval" -> RawParamRational <$> (o .: predicatesKey)
+              "costMdls"             -> pure RawParamAny
+              "any"                  -> pure RawParamAny
+              _                      -> fail "invalid type tag"
 
 -- | It is like an `mappend` when both inputs are ParamList's.
 mergeParamValues :: MonadFail m => RawParamValue -> RawParamValue -> m RawParamValue
