@@ -667,22 +667,26 @@ byteStringToInteger endianness =
 
 -- Bitwise operations
 
--- | Shift a 'BuiltinByteString', as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+-- | Shift a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 {-# INLINEABLE shiftByteString #-}
 shiftByteString :: BuiltinByteString -> Integer -> BuiltinByteString
 shiftByteString = BI.shiftByteString
 
--- | Rotate a 'BuiltinByteString', as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+-- | Rotate a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 {-# INLINEABLE rotateByteString #-}
 rotateByteString :: BuiltinByteString -> Integer -> BuiltinByteString
 rotateByteString = BI.rotateByteString
 
--- | Count the set bits in a 'BuiltinByteString', as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+-- | Count the set bits in a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 {-# INLINEABLE countSetBits #-}
 countSetBits :: BuiltinByteString -> Integer
 countSetBits = BI.countSetBits
 
--- | Find the lowest index of a set bit in a 'BuiltinByteString', as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+-- | Find the lowest index of a set bit in a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 --
 -- If given a 'BuiltinByteString' which consists only of zero bytes (including the empty
 -- 'BuiltinByteString', this returns @-1@.
