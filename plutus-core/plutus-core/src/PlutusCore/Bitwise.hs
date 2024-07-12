@@ -659,7 +659,7 @@ benefit: if the requested rotation or shift happens to be an exact multiple
 of 8, we can be _much_ faster, as Step 2 becomes unnecessary in that case.
 -}
 
--- | Shifts, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Shifts, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 shiftByteString :: ByteString -> Int -> ByteString
 shiftByteString bs bitMove
   | BS.null bs = bs
@@ -731,7 +731,7 @@ shiftByteString bs bitMove
         !(lastByte :: Word8) <- peekByteOff dstPtr (copyLen - 1)
         pokeByteOff dstPtr (copyLen - 1) (lastByte `Bits.unsafeShiftL` smallShift)
 
--- | Rotations, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Rotations, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 rotateByteString :: ByteString -> Int -> ByteString
 rotateByteString bs bitMove
   | BS.null bs = bs
@@ -811,7 +811,7 @@ rotateByteString bs bitMove
                 Bits..|. (firstOverflowBits `Bits.unsafeShiftR` invSmallRotate)
         pokeByteOff dstPtr (len - 1) newLastByte
 
--- | Counting the number of set bits, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Counting the number of set bits, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 countSetBits :: ByteString -> Int
 countSetBits bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
   -- See Note [Loop sectioning] for details of why we
@@ -845,7 +845,7 @@ countSetBits bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
           !w8 <- peekElemOff smallSrcPtr smallIx
           goSmall smallSrcPtr (acc + Bits.popCount w8) (smallIx + 1)
 
--- | Finding the first set bit's index, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Finding the first set bit's index, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 findFirstSetBit :: ByteString -> Int
 findFirstSetBit bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
   let bigSrcPtr :: Ptr Word64 = castPtr srcPtr

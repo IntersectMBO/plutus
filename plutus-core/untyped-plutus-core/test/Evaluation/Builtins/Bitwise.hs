@@ -3,8 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
--- | Tests for [this
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md)
+-- | Tests for [CIP-0123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 module Evaluation.Builtins.Bitwise (
   shiftHomomorphism,
   rotateHomomorphism,
