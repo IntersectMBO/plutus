@@ -202,10 +202,6 @@
                   {all dead. dead})
              {all dead. dead}
    in
-   let
-     data Unit | Unit_match where
-       Unit : Unit
-   in
    letrec
      data ParamValue | ParamValue_match where
        ParamAny : ParamValue
@@ -214,6 +210,10 @@
        ParamList : List ParamValue -> ParamValue
        ParamRational :
          (\v -> List (Tuple2 PredKey (List v))) Rational -> ParamValue
+   in
+   let
+     data Unit | Unit_match where
+       Unit : Unit
    in
    letrec
      !validateParamValue : ParamValue -> data -> Bool

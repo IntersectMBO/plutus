@@ -9,7 +9,6 @@ module Cardano.Constitution.Validator.Common
     ( withChangedParams
     , ChangedParams
     , ConstitutionValidator
-    , lookupUnsafe
     , validateParamValue
     ) where
 
@@ -37,7 +36,7 @@ withChangedParams fun (scriptContextToValidGovAction -> validGovAction) =
     case validGovAction of
         Just cparams ->  if fun cparams
             then BI.unitval
-            else BI.trace "ChangedParams failed to validate" (B.error ())
+            else traceError "ChangedParams failed to validate"
         Nothing -> BI.unitval -- this is a treasury withdrawal, we just accept it
 
 {-# INLINABLE validateParamValue #-}
@@ -89,7 +88,7 @@ scriptContextToValidGovAction = scriptContextToScriptInfo
     scriptInfoToProposalProcedure (BI.unsafeDataAsConstr -> si) =
         if BI.fst si `B.equalsInteger` 5 -- Constructor Index of `ProposingScript`
         then BI.head (BI.tail (BI.snd si))
-        else B.trace "Not a ProposalProcedure. This should not ever happen, because ledger should guard before, against it." (B.error ())
+        else traceError "Not a ProposalProcedure. This should not ever happen, because ledger should guard before, against it."
 
     proposalProcedureToGovernanceAction :: BuiltinData -> BuiltinData
     proposalProcedureToGovernanceAction = BI.unsafeDataAsConstr
@@ -104,14 +103,4 @@ scriptContextToValidGovAction = scriptContextToScriptInfo
         | govActionConstr `B.equalsInteger` 0 = Just (B.unsafeDataAsMap (BI.head (BI.tail (BI.snd govAction))))
         -- Constructor Index of `TreasuryWithdrawals` is 2
         | govActionConstr `B.equalsInteger` 2 = Nothing -- means treasurywithdrawal
-        | otherwise = B.trace "Not a ChangedParams or TreasuryWithdrawals. This should not ever happen, because ledger should guard before, against it." (B.error ())
-
-{-# INLINEABLE lookupUnsafe #-}
--- | An unsafe version of PlutusTx.AssocMap.lookup, specialised to Integer keys
-lookupUnsafe :: Integer -> [(Integer, v)] -> v
-lookupUnsafe k = go
- where
-   go [] = B.trace "Unsorted lookup failed" (B.error ())
-   go ((k', i) : xs') = if k `B.equalsInteger` k'
-                        then i
-                        else go xs'
+        | otherwise = traceError "Not a ChangedParams or TreasuryWithdrawals. This should not ever happen, because ledger should guard before, against it."

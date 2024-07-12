@@ -137,6 +137,9 @@
                        {all dead. dead}
              in
              go ds
+     !equalsInteger : integer -> integer -> Bool
+       = \(x : integer) (y : integer) ->
+           ifThenElse {Bool} (equalsInteger x y) True False
      !`$fOrdInteger_$ccompare` : integer -> integer -> Ordering
        = \(eta : integer) (eta : integer) ->
            Bool_match
@@ -202,10 +205,6 @@
                   {all dead. dead})
              {all dead. dead}
    in
-   let
-     data Unit | Unit_match where
-       Unit : Unit
-   in
    letrec
      data ParamValue | ParamValue_match where
        ParamAny : ParamValue
@@ -214,6 +213,10 @@
        ParamList : List ParamValue -> ParamValue
        ParamRational :
          (\v -> List (Tuple2 PredKey (List v))) Rational -> ParamValue
+   in
+   let
+     data Unit | Unit_match where
+       Unit : Unit
    in
    letrec
      !validateParamValue : ParamValue -> data -> Bool
@@ -232,8 +235,7 @@
                     {integer}
                     (CConsOrd
                        {integer}
-                       (\(x : integer) (y : integer) ->
-                          ifThenElse {Bool} (equalsInteger x y) True False)
+                       equalsInteger
                        `$fOrdInteger_$ccompare`
                        (\(x : integer) (y : integer) ->
                           ifThenElse {Bool} (lessThanInteger x y) True False)
@@ -5187,39 +5189,36 @@
                 {Bool}
                 (\(ds : data) (actualValueData : data) ->
                    validateParamValue
-                     (let
-                       !k : integer = unIData ds
-                     in
-                     letrec
-                       !go : List (Tuple2 integer ParamValue) -> ParamValue
-                         = \(ds : List (Tuple2 integer ParamValue)) ->
-                             List_match
-                               {Tuple2 integer ParamValue}
-                               ds
-                               {all dead. ParamValue}
-                               (/\dead -> error {ParamValue})
-                               (\(ds : Tuple2 integer ParamValue)
-                                 (xs' : List (Tuple2 integer ParamValue)) ->
-                                  /\dead ->
-                                    Tuple2_match
-                                      {integer}
-                                      {ParamValue}
-                                      ds
-                                      {ParamValue}
-                                      (\(k' : integer) (i : ParamValue) ->
-                                         Bool_match
-                                           (ifThenElse
-                                              {Bool}
+                     ((let
+                          !k : integer = unIData ds
+                        in
+                        letrec
+                          !go : List (Tuple2 integer ParamValue) -> ParamValue
+                            = \(ds : List (Tuple2 integer ParamValue)) ->
+                                List_match
+                                  {Tuple2 integer ParamValue}
+                                  ds
+                                  {all dead. ParamValue}
+                                  (/\dead -> error {ParamValue})
+                                  (\(ds : Tuple2 integer ParamValue)
+                                    (xs' : List (Tuple2 integer ParamValue)) ->
+                                     /\dead ->
+                                       Tuple2_match
+                                         {integer}
+                                         {ParamValue}
+                                         ds
+                                         {ParamValue}
+                                         (\(k' : integer) (i : ParamValue) ->
+                                            Bool_match
                                               (equalsInteger k k')
-                                              True
-                                              False)
-                                           {all dead. ParamValue}
-                                           (/\dead -> i)
-                                           (/\dead -> go xs')
-                                           {all dead. dead}))
-                               {all dead. dead}
-                     in
-                     go cfg)
+                                              {all dead. ParamValue}
+                                              (/\dead -> i)
+                                              (/\dead -> go xs')
+                                              {all dead. dead}))
+                                  {all dead. dead}
+                        in
+                        go)
+                        cfg)
                      actualValueData))
    in
    \(ds : data) ->

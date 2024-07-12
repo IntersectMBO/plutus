@@ -11,6 +11,7 @@ import PlutusTx as Tx
 import PlutusTx.Builtins as B
 import PlutusTx.Builtins.Internal as BI
 import PlutusTx.Ratio as Tx
+import PlutusTx.Trace (traceError)
 
 -- We agreed to have a different BuiltinData encoding for Rationals for the ConstitutionScript,
 -- other than the canonical encoding for datatypes.
@@ -31,5 +32,5 @@ instance UnsafeFromData NonCanonicalRational where
         let bl' = BI.tail bl
         in BI.ifThenElse (BI.null (BI.tail bl'))
             (\() -> NonCanonicalRational (Tx.unsafeRatio (B.unsafeDataAsI (BI.head bl)) (B.unsafeDataAsI (BI.head bl'))))
-            (\() -> BI.trace "A Rational had too many list components" (B.error ()))
+            (\() -> traceError "A Rational had too many list components")
            ()
