@@ -41,9 +41,9 @@ This will just be an instance of the `Translation` relation once we define the "
 ```
 data CoC : Relation where
   isCoC : {X : Set} → (b : X ⊢) (tn fn : ℕ)  (tt tt' ft ft' alts alts' : List (X ⊢)) →
-             Pointwise CoC alts alts' →
-             Pointwise CoC tt tt' →
-             Pointwise CoC ft ft' →
+             Pointwise (Translation CoC) alts alts' →
+             Pointwise (Translation CoC) tt tt' →
+             Pointwise (Translation CoC) ft ft' →
              CoC
                (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
                (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
@@ -91,12 +91,13 @@ isCoCForce? t with (isForce? (isApp? (isApp? (isApp? (isForce? isBuiltin?) isTer
 ... | yes (refl , refl) = yes (isCoCForce b tn fn tt' ft' alts')
 ... | no ¬p = no λ { (isCoCForce .b .tn .fn .tt' .ft' .alts') → ¬p (refl , refl) }
 
+isUntypedCaseOfCase? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation CoC {X})
 {-# TERMINATING #-}
 isCoC? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (CoC {X})
 isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
 ... | no ¬cf = no λ { (isCoC b tn fn tt tt' ft ft' alts alts' x x₁ x₂) → ¬cf
                                                                           (isCoCCase b tn fn tt ft alts , isCoCForce b tn fn tt' ft' alts') }
-... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁) ×-dec (decPointwise isCoC? tt tt') ×-dec (decPointwise isCoC? ft ft') ×-dec (decPointwise isCoC? alts alts')
+... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁) ×-dec (decPointwise isUntypedCaseOfCase? tt tt') ×-dec (decPointwise isUntypedCaseOfCase? ft ft') ×-dec (decPointwise isUntypedCaseOfCase? alts alts')
 ... | yes (refl , refl , refl , ttpw , ftpw , altpw) = yes (isCoC b tn fn tt tt' ft ft' alts alts' altpw ttpw ftpw)
 ... | no ¬p = no λ { (isCoC .b .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p (refl , refl , refl , x₁ , x₂ , x) }
 
@@ -110,8 +111,7 @@ just becomes an instance of `Translation` and the decision procedure can be prod
 `translation?` procedure and the specific `isCoCCase?` and `isCoCForce?`. 
 
 ```
-isUntypedCaseOfCase : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation CoC {X})
-isUntypedCaseOfCase {X} ast ast' = translation? {X} isCoC? ast ast'
+isUntypedCaseOfCase? {X} ast ast' = translation? {X} isCoC? ast ast'
 ```
 
 ## Semantic Equivalence
