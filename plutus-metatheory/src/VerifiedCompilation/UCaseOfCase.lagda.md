@@ -91,7 +91,14 @@ isCoCForce? t with (isForce? (isApp? (isApp? (isApp? (isForce? isBuiltin?) isTer
 ... | yes (refl , refl) = yes (isCoCForce b tn fn tt' ft' alts')
 ... | no ¬p = no λ { (isCoCForce .b .tn .fn .tt' .ft' .alts') → ¬p (refl , refl) }
 
+```
+We can now create the final decision procedure. Because the translation can be applied recursivley we need
+the individual pattern decision `isCoC?` and the overall translation decision `isUntypedCaseOfCase?` to be mutually
+recursive, so the `isUntypedCaseOfCase?` type declaration comes first, with the implementation later.
+
+```
 isUntypedCaseOfCase? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation CoC {X})
+
 {-# TERMINATING #-}
 isCoC? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (CoC {X})
 isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
@@ -101,16 +108,6 @@ isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
 ... | yes (refl , refl , refl , ttpw , ftpw , altpw) = yes (isCoC b tn fn tt tt' ft ft' alts alts' altpw ttpw ftpw)
 ... | no ¬p = no λ { (isCoC .b .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p (refl , refl , refl , x₁ , x₂ , x) }
 
-```
-This must traverse the ASTs applying the constructors from the transition relation, so where
-the structure is unchanged we still need to check the sub-components. The general `UntypedTranslation`
-module contains the `Translation` datatype, which is parameterised by "before" and "after" predicates.
-
-For this phase, the `CoCCase` and `CoCForce` patterns define the "before" and "after" respectively, so this
-just becomes an instance of `Translation` and the decision procedure can be produced using the generalised
-`translation?` procedure and the specific `isCoCCase?` and `isCoCForce?`. 
-
-```
 isUntypedCaseOfCase? {X} ast ast' = translation? {X} isCoC? ast ast'
 ```
 
