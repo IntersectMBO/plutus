@@ -13,9 +13,10 @@ module VerifiedCompilation.UCaseOfCase where
 ```
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
-open import VerifiedCompilation.UntypedTranslation using (Translation; translation?)
+open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
 
-open import Relation.Unary as Unary using (Decidable)
+import Relation.Binary as Binary using (Decidable)
+import Relation.Unary as Unary using (Decidable)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
 open import Untyped.CEK using (BApp; fullyAppliedBuiltin; BUILTIN; stepper; State; Stack)
 open import Evaluator.Base using (maxsteps)
@@ -38,14 +39,17 @@ It moves the `IfThenElse` outside and creates two `case` expressions with each o
 This will just be an instance of the `Translation` relation once we define the "before" and "after" patterns.
 
 ```
-data CoCCase {X : Set} : (X ⊢) → Set where
-  isCoCCase : (b : X ⊢) (tn fn : ℕ)  (tt ft alts : List (X ⊢)) → CoCCase (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
-
-data CoCForce {X : Set} :  (X ⊢) → Set where
-  isCoCForce : (b : (X ⊢)) (tn fn : ℕ) (tt' ft' alts' : List (X ⊢)) → CoCForce (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
+data CoC : Relation where
+  isCoC : {X : Set } → (b : X ⊢) (tn fn : ℕ)  (tt tt' ft ft' alts alts' : List (X ⊢)) →
+             Pointwise CoC alts alts' →
+             Pointwise CoC tt tt' →
+             Pointwise CoC ft ft' →
+             CoC
+               (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
+               (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
 
 UntypedCaseOfCase : {X : Set} {{ _ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
-UntypedCaseOfCase = Translation CoCCase CoCForce
+UntypedCaseOfCase = Translation CoC
 
 ```
 ## Decision Procedure
@@ -55,9 +59,13 @@ match on that situation in the before and after ASTs and apply the translation r
 expect anything else to be unaltered.
 
 This translation matches on exactly one, very specific pattern. Using parameterised Views we can
-detect that case.
+detect that case. We create two "views" for the two patterns - we will tie together the variables in the
+later function `isCoC?`.
 ```
-isCoCCase? : {X : Set} → Decidable (CoCCase {X})
+
+data CoCCase {X : Set} : (X ⊢) → Set where
+  isCoCCase : (b : X ⊢) (tn fn : ℕ)  (tt ft alts : List (X ⊢)) → CoCCase (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
+isCoCCase? : {X : Set} → Unary.Decidable (CoCCase {X})
 isCoCCase? t with (isCase? (isApp? (isApp? (isApp? (isForce? (isBuiltin?)) isTerm?) (isConstr? (allTerms?))) (isConstr? (allTerms?))) (allTerms?)) t
 ... | yes (iscase (isapp (isapp (isapp (isforce (isbuiltin ite)) (isterm b)) (isconstr tn (allterms tt))) (isconstr fn (allterms ft))) (allterms alts)) with ite ≟ ifThenElse
 ... | yes refl = yes (isCoCCase b tn fn tt ft alts)
@@ -68,8 +76,10 @@ isCoCCase? t  | no ¬CoCCase = no λ { (isCoCCase b tn fn alts tt ft) → ¬CoCC
                                                                                    (isconstr tn (allterms alts)))
                                                                                   (isconstr fn (allterms tt)))
                                                                                  (allterms ft)) }
-
-isCoCForce? : {X : Set} {{ _ : DecEq X }} → Decidable (CoCForce {X})
+                                                                                 
+data CoCForce {X : Set} :  (X ⊢) → Set where
+  isCoCForce : (b : (X ⊢)) (tn fn : ℕ) (tt' ft' alts' : List (X ⊢)) → CoCForce (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
+isCoCForce? : {X : Set} {{ _ : DecEq X }} → Unary.Decidable (CoCForce {X})
 isCoCForce? t with (isForce? (isApp? (isApp? (isApp? (isForce? isBuiltin?) isTerm?) (isDelay? (isCase? (isConstr? allTerms?) allTerms?))) (isDelay? (isCase? (isConstr? allTerms?) allTerms?)))) t
 ... | no ¬CoCForce = no λ { (isCoCForce b tn fn tt' ft' alts') → ¬CoCForce
                                                                   (isforce
@@ -81,6 +91,15 @@ isCoCForce? t with (isForce? (isApp? (isApp? (isApp? (isForce? isBuiltin?) isTer
 ... | yes (refl , refl) = yes (isCoCForce b tn fn tt' ft' alts')
 ... | no ¬p = no λ { (isCoCForce .b .tn .fn .tt' .ft' .alts') → ¬p (refl , refl) }
 
+{-# TERMINATING #-}
+isCoC? : {X : Set} {{ _ : DecEq X}} → Binary.Decidable (CoC {X})
+isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
+... | no ¬cf = no λ { (isCoC b tn fn tt tt' ft ft' alts alts' x x₁ x₂) → ¬cf
+                                                                          (isCoCCase b tn fn tt ft alts , isCoCForce b tn fn tt' ft' alts') }
+... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁) ×-dec (decPointwise isCoC? tt tt') ×-dec (decPointwise isCoC? ft ft') ×-dec (decPointwise isCoC? alts alts')
+... | yes (refl , refl , refl , ttpw , ftpw , altpw) = yes (isCoC b tn fn tt tt' ft ft' alts alts' altpw ttpw ftpw)
+... | no ¬p = no λ { (isCoC .b .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p (refl , refl , refl , x₁ , x₂ , x) }
+
 ```
 This must traverse the ASTs applying the constructors from the transition relation, so where
 the structure is unchanged we still need to check the sub-components. The general `UntypedTranslation`
@@ -91,9 +110,8 @@ just becomes an instance of `Translation` and the decision procedure can be prod
 `translation?` procedure and the specific `isCoCCase?` and `isCoCForce?`. 
 
 ```
-isUntypedCaseOfCase? : {X : Set} {{ _ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Dec (UntypedCaseOfCase ast ast')
-isUntypedCaseOfCase? = translation? isCoCCase? isCoCForce?
-
+isUntypedCaseOfCase : {X : Set} {{ _ : DecEq X}} → Binary.Decidable (Translation CoC {X})
+isUntypedCaseOfCase {X} ast ast' = translation? {X} isCoC? ast ast'
 ```
 
 ## Semantic Equivalence

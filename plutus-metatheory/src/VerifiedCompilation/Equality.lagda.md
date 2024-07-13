@@ -39,18 +39,38 @@ open import Data.Product using (_,_)
 open import Relation.Nullary.Product using (_×-dec_)
 open import Utils as U using (Maybe; nothing; just; Either)
 import Data.List.Properties as LP using (≡-dec)
+open import Builtin.Constant.AtomicType using (decAtomicTyCon)
 
+```
+Instances of `DecEq` will provide a Decidable Equality procedure for their type. 
+
+```
 record DecEq (A : Set) : Set where
   field _≟_ : DecidableEquality A
 open DecEq {{...}} public
+```
+Several of the decision procedures depend on other `DecEq` instances, so it is useful
+to give them types and bind them to instance declarations first and then use them in the
+implementations further down.
 
+```
+decEq-TmCon : DecidableEquality TmCon
 postulate
-   -- This is fairly straightforward to define but it depends on
-   -- DecidableEquality over various Agda builtin types, which is
-   -- easy to do but should be in the standard library *somewhere*??
-   dec-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
-   decEq-TmCon : DecidableEquality TmCon
-   
+  decEq-TyTag : DecidableEquality TyTag
+  decEq-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
+
+```
+The equality of the semantics of constants will depend on the equality of
+the underlying types, so this can leverage the standard library decision
+procedures. 
+
+```
+{-
+decEq-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
+decEq-⟦ _⊢♯.atomic x ⟧tag v v₁ = {!!}
+decEq-⟦ _⊢♯.list t ⟧tag = {!!}
+decEq-⟦ _⊢♯.pair t t₁ ⟧tag = {!!}
+-}
 ```
 # Pointwise Decisions
 
@@ -100,6 +120,40 @@ instance
   DecEq-ℕ : DecEq ℕ
   DecEq-ℕ ._≟_ = Data.Nat.Properties._≟_
 
+  DecEq-TyTag : DecEq TyTag
+  DecEq-TyTag ._≟_ = decEq-TyTag
+
+```
+Type Tags (`TyTag`) are ... [ FIXME: what are they?? ]
+```
+{-
+decEq-TyTag (_⊢♯.atomic x) (_⊢♯.atomic x₁) with (decAtomicTyCon x x₁)
+... | yes refl = yes refl
+... | no ¬x=x₁ = no λ { refl → ¬x=x₁ refl }
+decEq-TyTag (_⊢♯.atomic x) (_⊢♯.list t') = no (λ ())
+decEq-TyTag (_⊢♯.atomic x) (_⊢♯.pair t' t'') = no (λ ())
+decEq-TyTag (_⊢♯.list t) (_⊢♯.atomic x) = no (λ ())
+decEq-TyTag (_⊢♯.list t) (_⊢♯.list t') = {!!}
+decEq-TyTag (_⊢♯.list t) (_⊢♯.pair t' t'') = no (λ ())
+decEq-TyTag (_⊢♯.pair t t₁) (_⊢♯.atomic x) = no (λ ())
+decEq-TyTag (_⊢♯.pair t t₁) (_⊢♯.list t') = no (λ ())
+decEq-TyTag (_⊢♯.pair t t₁) (_⊢♯.pair t' t'') = {!!}
+-}
+```
+The `TmCon` type inserts constants into Terms, so it is built from the
+type tag and semantics equality decision procedures. 
+
+```
+decEq-TmCon (tmCon t x) (tmCon t₁ x₁) with t ≟ t₁
+... | no ¬t=t₁ = no λ { refl → ¬t=t₁ refl }
+... | yes refl with decEq-⟦ t ⟧tag x x₁
+... | yes refl = yes refl
+... | no ¬x=x₁ = no λ { refl → ¬x=x₁ refl } 
+
+```
+The Decidable Equality of terms needs to use the other instances, so we can present
+that now. 
+```
 -- This terminating declaration shouldn't be needed?
 -- It is the mutual recursion with list equality that requires it. 
 {-# TERMINATING #-}
