@@ -92,7 +92,7 @@ isCoCForce? t with (isForce? (isApp? (isApp? (isApp? (isForce? isBuiltin?) isTer
 ... | no ¬p = no λ { (isCoCForce .b .tn .fn .tt' .ft' .alts') → ¬p (refl , refl) }
 
 ```
-We can now create the final decision procedure. Because the translation can be applied recursivley we need
+We can now create the final decision procedure. Because the translation can be applied recursively we need
 the individual pattern decision `isCoC?` and the overall translation decision `isUntypedCaseOfCase?` to be mutually
 recursive, so the `isUntypedCaseOfCase?` type declaration comes first, with the implementation later.
 
