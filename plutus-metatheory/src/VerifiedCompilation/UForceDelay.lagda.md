@@ -23,9 +23,7 @@ open Eq using (_≡_; refl)
 open import Data.Empty using (⊥)
 
 ```
-
 ## Translation Relation
-
 ```
 data FD : Relation where
   forcedelay : {X : Set} → (x x' : X ⊢) → Translation FD x x' → FD (force (delay x)) x'
@@ -52,9 +50,6 @@ isForceDelay? = translation? isFD?
 ## An Example
 
 ```
-instance
-  EmptyEq : DecEq ⊥
-  EmptyEq = record { _≟_ = λ () }
 ex : ⊥ ⊢
 ex = force (delay (force (delay (error))))
 

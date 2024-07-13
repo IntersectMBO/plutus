@@ -102,6 +102,9 @@ instance
   DecEq-Maybe ._≟_ = M.≡-dec _≟_
     where import Data.Maybe.Properties as M
 
+  EmptyEq : DecEq ⊥
+  EmptyEq = record { _≟_ = λ () }
+
   DecAtomicTyCon : DecEq AtomicTyCon
   DecAtomicTyCon ._≟_ = decAtomicTyCon
 
