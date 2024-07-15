@@ -86,6 +86,7 @@ showDec : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Dec (Translation UCC.
 showDec {X} (yes refl) = "Yes" 
 showDec {X} (no ¬refl) = "No"
 
+-- TODO: just checks whether the head of the list passes the decision procedure check 
 runCertifier : List Untyped → IO ⊤
 runCertifier [] = putStrLn "No ASTs"
 runCertifier (x ∷ xs) with toWellScoped' x
@@ -93,14 +94,4 @@ runCertifier (x ∷ xs) with toWellScoped' x
 ...                | inj₂ t =
                       let result = UCC.isUntypedCaseOfCase? t t
                        in putStrLn (showDec result)
-
--- runCertifier x =
---   let result = L.foldr (λ t acc -> showUntyped t ++ "\n" ++ acc) "" (U.toList x) 
---    in putStrLn result
--- TODO: this currently doesn't compile because it doesn't know the concrete type of X I think
--- runCertifier us with parseASTs us
--- ...             | nothing = putStrLn "Parse error" >> exitFailure
--- ...             | just asts =
---                     let result = (serializeProof ∘ something) asts
---                      in putStrLn "TODO"
 {-# COMPILE GHC runCertifier as runCertifier #-}
