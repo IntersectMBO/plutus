@@ -84,7 +84,6 @@ genConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @Word8) = SomeGen genInteger
     | Just HRefl <- eqTypeRep tr (typeRep @NumBytesCostedAsNumWords) = SomeGen genInteger
     | Just HRefl <- eqTypeRep tr (typeRep @IntegerCostedLiterally) = SomeGen genInteger
-    -- FIXME: do we have to worry about ListCostedByLength here?
     | Just HRefl <- eqTypeRep tr (typeRep @Bool) = SomeGen Gen.bool
     | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = SomeGen genByteString
     | Just HRefl <- eqTypeRep tr (typeRep @Text) = SomeGen genText
