@@ -14,6 +14,9 @@ in
 
 [
   {
+
+    __debug = { inherit repoRoot; };
+
     inherit (project) cabalProject;
 
     devShells.default = ghc96.devShell;
