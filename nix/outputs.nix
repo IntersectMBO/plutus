@@ -15,7 +15,7 @@ in
 [
   {
 
-    __debug = { inherit repoRoot; };
+    __debug = { inherit repoRoot pkgs; };
 
     inherit (project) cabalProject;
 
