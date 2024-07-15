@@ -1,0 +1,90 @@
+cabal-version: 2.4
+name:          cardano-streaming
+version:       1.2.0.0
+author:        Andrea Bedini
+maintainer:    andrea.bedini@iohk.io
+
+common lang
+  default-language:   Haskell2010
+  default-extensions:
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    ExplicitForAll
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    LambdaCase
+    NamedFieldPuns
+    ScopedTypeVariables
+    StandaloneDeriving
+
+  ghc-options:
+    -Wall -Widentities -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wmissing-import-lists
+    -Wnoncanonical-monad-instances -Wredundant-constraints
+    -Wunused-packages
+
+library
+  import:          lang
+  hs-source-dirs:  src
+  exposed-modules:
+    Cardano.Streaming
+    Cardano.Streaming.Callbacks
+    Cardano.Streaming.Helpers
+
+  --------------------------
+  -- Other IOG dependencies
+  --------------------------
+  build-depends:
+    , cardano-api
+    , ouroboros-network-protocols
+
+  ------------------------
+  -- Non-IOG dependencies
+  ------------------------
+  build-depends:
+    , async
+    , base                         >=4.9 && <5
+    , cardano-api
+    , cardano-crypto-wrapper
+    , cardano-ledger-byron
+    , cardano-ledger-shelley
+    , cardano-slotting
+    , containers
+    , ouroboros-consensus
+    , ouroboros-consensus-cardano
+    , streaming
+    , strict-sop-core
+    , transformers
+    , typed-protocols
+
+executable cardano-streaming-example-1
+  import:         lang
+  hs-source-dirs: examples
+  main-is:        Example1.hs
+  other-modules:
+    Common
+    Orphans
+
+  --------------------
+  -- Local components
+  --------------------
+  build-depends:  cardano-streaming
+
+  --------------------------
+  -- Other IOG dependencies
+  --------------------------
+  build-depends:  cardano-api
+
+  ------------------------
+  -- Non-IOG dependencies
+  ------------------------
+  build-depends:
+    , aeson
+    , base                  >=4.9 && <5
+    , bytestring
+    , optparse-applicative
+    , streaming
+    , text
