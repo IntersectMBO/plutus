@@ -3,8 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
--- | Tests for [this
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md)
+-- | Tests for [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123)
 module Evaluation.Builtins.Bitwise (
   shiftHomomorphism,
   rotateHomomorphism,
@@ -21,7 +20,8 @@ module Evaluation.Builtins.Bitwise (
   ffsReplicate,
   ffsXor,
   ffsIndex,
-  ffsZero
+  ffsZero,
+  shiftMinBound
   ) where
 
 import Control.Monad (unless)
@@ -37,6 +37,17 @@ import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (testCase)
+
+-- | If given 'Int' 'minBound' as an argument, shifts behave sensibly.
+shiftMinBound :: Property
+shiftMinBound = property $ do
+  bs <- forAllByteString 0 512
+  let len = BS.length bs
+  let shiftExp = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () . fromIntegral $ (minBound :: Int)
+        ]
+  evaluatesToConstant @ByteString (BS.replicate len 0x00) shiftExp
 
 -- | Finding the first set bit in a bytestring with only zero bytes should always give -1.
 ffsZero :: Property

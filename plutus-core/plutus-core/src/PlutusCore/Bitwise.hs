@@ -656,6 +656,9 @@ shiftByteString :: ByteString -> Int -> ByteString
 shiftByteString bs bitMove
   | BS.null bs = bs
   | bitMove == 0 = bs
+  -- Needed to guard against overflow when given minBound for Int as a bit move
+  | abs (fromIntegral bitMove) >= (fromIntegral bitLen :: Integer) =
+      BS.replicate len 0x00
   | otherwise = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
       BSI.create len $ \dstPtr -> do
         -- To simplify our calculations, we work only with absolute values,
