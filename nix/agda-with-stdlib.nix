@@ -27,4 +27,5 @@ let
 
 in
 
-repoRoot.nix.agda-packages.agda.withPackages [ stdlib ]
+# repoRoot.nix.agda-packages.agda.withPackages [ stdlib ]
+repoRoot.nix.agda-packages.agda.withPackages [ repoRoot.nix.agda-packages.standard-library ]
