@@ -581,7 +581,7 @@ runCompiler moduleName opts expr = do
         rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
         test = Agda.runCertifier rawAgdaTrace
     -- test out running the certifier
-    -- liftIO test
+    liftIO test
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat
             (UPLC.UnrestrictedProgram $ void dbP)

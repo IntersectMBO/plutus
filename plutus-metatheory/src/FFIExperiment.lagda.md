@@ -27,6 +27,12 @@ open import Function.Base using (id; _∘_ ; _∘′_; const; flip)
 open Monad {{...}}
 import IO.Primitive as IO using (return;_>>=_)
 import Data.List as L
+import VerifiedCompilation.UCaseOfCase as UCC
+open import Data.Empty using (⊥)
+open import Scoped using (ScopeError;deBError)
+open import VerifiedCompilation.Equality using (DecEq)
+import Relation.Binary as Binary using (Decidable)
+open import VerifiedCompilation.UntypedTranslation using (Translation)
 ```
 
 ## Compiler certification component
@@ -72,11 +78,25 @@ postulate
 {-# FOREIGN GHC import qualified Data.Text as Text #-}
 {-# COMPILE GHC showUntyped = Text.pack . show #-}
 
--- TODO: this just prints the ASTs to test if the Haskell -> Agda FFI works
+toWellScoped' : Untyped → Either ScopeError (Maybe ⊥ ⊢)
+toWellScoped' = toWellScoped
+
+-- TODO: unparse proof
+showDec : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Dec (Translation UCC.CoC ast ast') → String
+showDec {X} (yes refl) = "Yes" 
+showDec {X} (no ¬refl) = "No"
+
 runCertifier : List Untyped → IO ⊤
-runCertifier x =
-  let result = L.foldr (λ t acc -> showUntyped t ++ "\n" ++ acc) "" (U.toList x) 
-   in putStrLn result
+runCertifier [] = putStrLn "No ASTs"
+runCertifier (x ∷ xs) with toWellScoped' x
+...                | inj₁ _ = putStrLn "Can't parse AST"
+...                | inj₂ t =
+                      let result = UCC.isUntypedCaseOfCase? t t
+                       in putStrLn (showDec result)
+
+-- runCertifier x =
+--   let result = L.foldr (λ t acc -> showUntyped t ++ "\n" ++ acc) "" (U.toList x) 
+--    in putStrLn result
 -- TODO: this currently doesn't compile because it doesn't know the concrete type of X I think
 -- runCertifier us with parseASTs us
 -- ...             | nothing = putStrLn "Parse error" >> exitFailure
