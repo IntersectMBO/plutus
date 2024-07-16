@@ -27,7 +27,7 @@ module PlutusIR.Core.Type
   , termAnn
   , bindingAnn
   , progAnn
-  , progVersion
+  , progVer
   , progTerm
   ) where
 
@@ -194,10 +194,10 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
   typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
 
 data Program tyname name uni fun ann = Program
-  { _progAnn     :: ann
-  , _progVersion :: Version
+  { _progAnn  :: ann
+  , _progVer  :: Version
   -- ^ The version of the program. This corresponds to the underlying Plutus Core version.
-  , _progTerm    :: Term tyname name uni fun ann
+  , _progTerm :: Term tyname name uni fun ann
   }
   deriving stock (Functor, Generic)
 makeLenses ''Program
@@ -237,22 +237,22 @@ applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
 
 termAnn :: Term tyname name uni fun a -> a
 termAnn = \case
-  Let a _ _ _ -> a
-  Var a _ -> a
-  TyAbs a _ _ _ -> a
+  Let a _ _ _    -> a
+  Var a _        -> a
+  TyAbs a _ _ _  -> a
   LamAbs a _ _ _ -> a
-  Apply a _ _ -> a
-  Constant a _ -> a
-  Builtin a _ -> a
-  TyInst a _ _ -> a
-  Error a _ -> a
-  IWrap a _ _ _ -> a
-  Unwrap a _ -> a
+  Apply a _ _    -> a
+  Constant a _   -> a
+  Builtin a _    -> a
+  TyInst a _ _   -> a
+  Error a _      -> a
+  IWrap a _ _ _  -> a
+  Unwrap a _     -> a
   Constr a _ _ _ -> a
-  Case a _ _ _ -> a
+  Case a _ _ _   -> a
 
 bindingAnn :: Binding tyname name uni fun a -> a
 bindingAnn = \case
   TermBind a _ _ _ -> a
-  TypeBind a _ _ -> a
+  TypeBind a _ _   -> a
   DatatypeBind a _ -> a

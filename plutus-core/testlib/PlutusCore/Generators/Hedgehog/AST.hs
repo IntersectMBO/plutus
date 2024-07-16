@@ -4,6 +4,7 @@
 
 module PlutusCore.Generators.Hedgehog.AST
     ( simpleRecursive
+    , discardIfAnyConstant
     , AstGen
     , runAstGen
     , genVersion
@@ -22,10 +23,12 @@ module PlutusCore.Generators.Hedgehog.AST
 import PlutusPrelude
 
 import PlutusCore
+import PlutusCore.Core.Plated (termConstantsDeep)
+import PlutusCore.Generators.QuickCheck.Builtin ()
 import PlutusCore.Name.Unique (isQuotedIdentifierChar)
 import PlutusCore.Subst
 
-import Control.Lens (coerced)
+import Control.Lens (andOf, coerced, to)
 import Control.Monad.Morph (hoist)
 import Control.Monad.Reader
 import Data.Set (Set)
@@ -34,6 +37,8 @@ import Data.Set.Lens (setOf)
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Hedgehog hiding (Size, Var)
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Gen.QuickCheck (arbitrary)
 import Hedgehog.Internal.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
@@ -54,6 +59,13 @@ runAstGen :: MonadGen m => AstGen a -> m a
 runAstGen a = do
     names <- genNames
     Gen.fromGenT $ hoist (return . flip runReader names) a
+
+discardIfAnyConstant
+  :: MonadGen m
+  => (Some (ValueOf uni) -> Bool)
+  -> m (Program tyname name uni fun ann)
+  -> m (Program tyname name uni fun ann)
+discardIfAnyConstant p = Gen.filterT . andOf $ progTerm . termConstantsDeep . to (not . p)
 
 -- The parser will reject uses of new constructs if the version is not high enough
 -- In order to keep our lives simple, we just generate a version that is always high
@@ -101,20 +113,12 @@ genBuiltin :: (Bounded fun, Enum fun) => AstGen fun
 genBuiltin = Gen.element [minBound .. maxBound]
 
 genConstant :: AstGen (Some (ValueOf DefaultUni))
-genConstant = Gen.choice
-    [ pure (someValue ())
-    , someValue @Integer <$> Gen.integral_ (Range.linear (-10000000) 10000000)
-    , someValue <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
-    ]
+-- The @QuickCheck@ generator is a good one, so we reuse it in @hedgehog@ via @hedgehog-quickcheck@.
+genConstant = arbitrary
 
 genSomeTypeIn :: AstGen (SomeTypeIn DefaultUni)
-genSomeTypeIn = Gen.frequency
-    [ (1, pure $ SomeTypeIn DefaultUniInteger)
-    , (1, pure $ SomeTypeIn DefaultUniByteString)
-    , (1, pure $ SomeTypeIn DefaultUniString)
-    , (1, pure $ SomeTypeIn DefaultUniUnit)
-    , (1, pure $ SomeTypeIn DefaultUniBool)
-    ]
+-- The @QuickCheck@ generator is a good one, so we reuse it in @hedgehog@ via @hedgehog-quickcheck@.
+genSomeTypeIn = arbitrary
 
 genType :: AstGen (Type TyName DefaultUni ())
 genType = simpleRecursive nonRecursive recursive where

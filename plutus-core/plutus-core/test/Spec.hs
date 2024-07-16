@@ -140,7 +140,8 @@ instance (Eq a) => Eq (TextualProgram a) where
 
 propFlat :: Property
 propFlat = property $ do
-  prog <- forAllPretty $ runAstGen (genProgram @DefaultFun)
+  prog <- forAllPretty . runAstGen $
+    discardIfAnyConstant (not . isSerialisable) $ genProgram @DefaultFun
   Hedgehog.tripping prog Flat.flat Flat.unflat
 
 {- The following tests check that (A) the parser can
@@ -222,7 +223,8 @@ text, hopefully returning the same thing.
 -}
 propParser :: Property
 propParser = property $ do
-  prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
+  prog <- TextualProgram <$>
+    forAllPretty (runAstGen $ discardIfAnyConstant (not . isSerialisable) genProgram)
   Hedgehog.tripping
     prog
     (displayPlc . unTextualProgram)

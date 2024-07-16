@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE PolyKinds              #-}
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeFamilies           #-}
@@ -14,6 +15,7 @@ module PlutusCore.Test (
   withAtLeastTests,
   mapTestLimitAtLeast,
   checkFails,
+  isSerialisable,
   ToTPlc (..),
   ToUPlc (..),
   pureTry,
@@ -54,23 +56,24 @@ module PlutusCore.Test (
   module TastyExtras,
 ) where
 
-import Test.Tasty.Extras as TastyExtras
-
 import PlutusPrelude
-
-import PlutusCore.Generators.Hedgehog.AST
-import PlutusCore.Generators.Hedgehog.Utils
 
 import PlutusCore qualified as TPLC
 import PlutusCore.Annotation
 import PlutusCore.Check.Scoping
 import PlutusCore.Compiler qualified as TPLC
 import PlutusCore.DeBruijn
+import PlutusCore.Default (noMoreTypeFunctions)
 import PlutusCore.Evaluation.Machine.Ck qualified as TPLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as TPLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
+import PlutusCore.Generators.Hedgehog.AST
+import PlutusCore.Generators.Hedgehog.Utils
 import PlutusCore.Pretty
+import PlutusCore.Pretty qualified as PP
 import PlutusCore.Rename.Monad qualified as TPLC
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Control.Exception
 import Control.Lens
@@ -79,22 +82,21 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.Either.Extras
 import Data.Hashable
+import Data.Kind qualified as GHC
 import Data.Text (Text)
 import Hedgehog
-import Prettyprinter qualified as PP
-import System.IO.Unsafe
-import Test.Tasty hiding (after)
-import Test.Tasty.Hedgehog
-import Test.Tasty.HUnit
-import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
-
 import Hedgehog.Internal.Config
 import Hedgehog.Internal.Property
 import Hedgehog.Internal.Region
 import Hedgehog.Internal.Report
 import Hedgehog.Internal.Runner
-import PlutusCore.Pretty qualified as PP
+import Prettyprinter qualified as PP
+import System.IO.Unsafe
+import Test.Tasty hiding (after)
+import Test.Tasty.Extras as TastyExtras
+import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
+import Universe
 
 -- | Map the 'TestLimit' of a 'Property' with a given function.
 mapTestLimit :: (TestLimit -> TestLimit) -> Property -> Property
@@ -138,6 +140,29 @@ checkFails :: Property -> IO ()
 -- 'withAtLeastTests' gives the property that is supposed to fail some room in order for it to
 -- reach a failing test case.
 checkFails = checkQuiet . withAtLeastTests 1000 >=> \res -> res @?= False
+
+-- | Check whether the given constant can be serialised. Useful for tests of the
+-- parser\/deserializer where we need to filter out unprintable\/unserialisable terms. Technically,
+-- G1, G2 elements etc can be printed but not serialised, but here for simplicity we just assume
+-- that all unserialisable terms are unprintable too.
+isSerialisable :: Some (ValueOf TPLC.DefaultUni) -> Bool
+isSerialisable (Some (ValueOf uni0 x0)) = go uni0 x0 where
+    go :: TPLC.DefaultUni (TPLC.Esc a) -> a -> Bool
+    go TPLC.DefaultUniInteger _ = True
+    go TPLC.DefaultUniByteString _ = True
+    go TPLC.DefaultUniString _ = True
+    go TPLC.DefaultUniUnit _ = True
+    go TPLC.DefaultUniBool _ = True
+    go (TPLC.DefaultUniProtoList `TPLC.DefaultUniApply` uniA) xs =
+        all (go uniA) xs
+    go (TPLC.DefaultUniProtoPair `TPLC.DefaultUniApply` uniA `TPLC.DefaultUniApply` uniB) (x, y) =
+        go uniA x && go uniB y
+    go (f `TPLC.DefaultUniApply` _ `TPLC.DefaultUniApply` _ `TPLC.DefaultUniApply` _) _ =
+        noMoreTypeFunctions f
+    go TPLC.DefaultUniData _ = True
+    go TPLC.DefaultUniBLS12_381_G1_Element _ = False
+    go TPLC.DefaultUniBLS12_381_G2_Element _ = False
+    go TPLC.DefaultUniBLS12_381_MlResult _ = False
 
 {- | Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
 from the process should be caught.
@@ -457,7 +482,7 @@ noMarkRename ::
 noMarkRename renM = TPLC.runRenameT . unNoMarkRenameT . renM
 
 -- | A version of 'RenameT' that does not perform any renaming at all.
-newtype NoRenameT ren m a = NoRenameT
+newtype NoRenameT (ren :: GHC.Type) m a = NoRenameT
   { unNoRenameT :: m a
   }
   deriving newtype

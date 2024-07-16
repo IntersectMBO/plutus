@@ -37,6 +37,7 @@ import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
 import PlutusCore.Generators.Hedgehog.Interesting
+import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.MkPlc hiding (error)
 import PlutusCore.Pretty
 import PlutusCore.StdLib.Data.Bool
@@ -52,8 +53,10 @@ import PlutusCore.Test
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.Exception
+import Data.Bifunctor (bimap)
 import Data.ByteString (ByteString, pack)
 import Data.DList qualified as DList
+import Data.List (find)
 import Data.Proxy
 import Data.String (IsString (fromString))
 import Data.Text (Text)
@@ -64,6 +67,7 @@ import Prettyprinter (vsep)
 import Test.Tasty
 import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck qualified as QC
 
 type DefaultFunExt = Either DefaultFun ExtensionFun
 
@@ -85,6 +89,24 @@ defaultBuiltinCostModelExt = (defaultBuiltinCostModelForTesting, ())
    tightly so that it's guaranteed that the two things refer to the same
    semantics variant?
 -}
+
+test_IntegerDistribution :: TestTree
+test_IntegerDistribution =
+    QC.testProperty "distribution of 'Integer' constants" . QC.withMaxSuccess 10000 $
+        \(AsArbitraryBuiltin (i :: Integer)) ->
+            let magnitudes = magnitudesPositive nextInterestingBound highInterestingBound
+                (low, high) =
+                    maybe (error $ "Panic: unknown integer") (bimap (* signum i) (* signum i)) $
+                      find ((>= abs i) . snd) magnitudes
+                bounds = map snd magnitudes
+                isInteresting = i `elem` ([-1, 0, 1] ++ bounds ++ map succ bounds)
+            in (if i /= 0
+                        then QC.label $ "(" ++ show low ++ ", " ++ show high ++ ")"
+                        else QC.property)
+                ((if isInteresting
+                        then QC.label $ show i
+                        else QC.property)
+                    True)
 
 -- | Check that the 'Factorial' builtin computes to the same thing as factorial defined in PLC
 -- itself.
@@ -1063,7 +1085,8 @@ test_Logical =
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
-        [ test_Factorial
+        [ test_IntegerDistribution
+        , test_Factorial
         , test_ForallFortyTwo
         , test_Const
         , test_Id
