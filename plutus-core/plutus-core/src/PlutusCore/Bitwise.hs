@@ -11,6 +11,7 @@ module PlutusCore.Bitwise (
   integerToByteStringWrapper,
   byteStringToIntegerWrapper,
   shiftByteStringWrapper,
+  rotateByteStringWrapper,
   -- * Implementation details
   IntegerToByteStringError (..),
   integerToByteStringMaximumOutputLength,
@@ -600,7 +601,7 @@ replicateByte len w8
 
 -- | Wrapper for calling 'shiftByteString' safely. Specifically, we avoid various edge cases:
 --
--- * Empty 'ByteString`s and zero moves don't do anything
+-- * Empty 'ByteString's and zero moves don't do anything
 -- * Bit moves whose absolute value is larger than the bit length produce all-zeroes
 --
 -- This also ensures we don't accidentally hit integer overflow issues.
@@ -613,6 +614,25 @@ shiftByteStringWrapper bs bitMove
                   in if abs bitMove >= bitLen
                      then BS.replicate len 0x00
                      else shiftByteString bs (fromIntegral bitMove)
+
+-- | Wrapper for calling 'rotateByteString' safely. Specifically, we avoid various edge cases:
+--
+-- * Empty 'ByteString's and zero moves don't do anything
+-- * Bit moves whose absolute value is larger than the bit length gets modulo reduced
+--
+-- Furthermore, we can convert all rotations into positive rotations, by noting that a rotation by @b@
+-- is the same as a rotation by @b `mod` bitLen@, where @bitLen` is the length of the 'ByteString'
+-- argument in bits. This value is always non-negative, and if we get 0, we have nothing to do. This
+-- reduction also helps us avoid integer overflow issues.
+rotateByteStringWrapper :: ByteString -> Integer -> ByteString
+rotateByteStringWrapper bs bitMove
+  | BS.null bs = bs
+  | otherwise = let bitLen = fromIntegral $ 8 * BS.length bs
+                    -- This is guaranteed non-negative
+                    reducedBitMove = bitMove `mod` bitLen
+                  in if reducedBitMove == 0
+                     then bs
+                     else rotateByteString bs (fromIntegral reducedBitMove)
 
 {- Note [Shift and rotation implementation]
 
@@ -739,71 +759,27 @@ shiftByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcP
 
 -- | Rotations, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
 rotateByteString :: ByteString -> Int -> ByteString
-rotateByteString bs bitMove
-  | BS.null bs = bs
-  | otherwise =
-      -- To save ourselves some trouble, we work only with absolute rotations
-      -- (letting argument sign handle dispatch to dedicated 'directional'
-      -- functions, like for shifts), and also simplify rotations larger than
-      -- the bit length to the equivalent value modulo the bit length, as
-      -- they're equivalent.
-      --
-      -- We have to be a little careful here, as abs minBound == minBound for Int.
-      let !reducedMagnitude = if bitMove == minBound
-                              then fromIntegral $ abs (fromIntegral bitMove) `rem` bitLenInteger
-                              else abs bitMove `rem` bitLen
-       in if reducedMagnitude == 0
-            then bs
-            else unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
-              BSI.create len $ \dstPtr -> do
-                let (bigRotation, smallRotation) = reducedMagnitude `quotRem` 8
-                case signum bitMove of
-                  (-1) -> negativeRotate (castPtr srcPtr) dstPtr bigRotation smallRotation
-                  _    -> positiveRotate (castPtr srcPtr) dstPtr bigRotation smallRotation
+rotateByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
+  BSI.create len $ \dstPtr -> do
+    -- The move is guaranteed positive and reduced already. Thus, unlike for
+    -- shifts, we don't need two variants for different directions.
+    let (bigRotation, smallRotation) = bitMove `quotRem` 8
+    go (castPtr srcPtr) dstPtr bigRotation smallRotation
   where
     len :: Int
     !len = BS.length bs
-    bitLen :: Int
-    !bitLen = len * 8
-    bitLenInteger :: Integer
-    bitLenInteger = fromIntegral bitLen
-    negativeRotate :: Ptr Word8 -> Ptr Word8 -> Int -> Int -> IO ()
-    negativeRotate srcPtr dstPtr bigRotate smallRotate = do
+    go :: Ptr Word8 -> Ptr Word8 -> Int -> Int -> IO ()
+    go srcPtr dstPtr bigRotate smallRotate = do
       -- Two partial copies are needed here, unlike with shifts, because
       -- there's no point zeroing our data, since it'll all be overwritten
       -- with stuff from the input anyway.
-      let copyStartDstPtr = plusPtr dstPtr bigRotate
-      let copyStartLen = len - bigRotate
-      copyBytes copyStartDstPtr srcPtr copyStartLen
-      let copyEndSrcPtr = plusPtr srcPtr copyStartLen
-      copyBytes dstPtr copyEndSrcPtr bigRotate
-      when (smallRotate > 0) $ do
-        -- This works similarly as for shifts.
-        let invSmallRotate = 8 - smallRotate
-        let !mask = 0xFF `Bits.unsafeShiftR` invSmallRotate
-        !(cloneLastByte :: Word8) <- peekByteOff dstPtr (len - 1)
-        for_ [len - 1, len - 2 .. 1] $ \byteIx -> do
-          !(currentByte :: Word8) <- peekByteOff dstPtr byteIx
-          !(prevByte :: Word8) <- peekByteOff dstPtr (byteIx - 1)
-          let !prevOverflowBits = prevByte Bits..&. mask
-          let !newCurrentByte =
-                (currentByte `Bits.unsafeShiftR` smallRotate)
-                  Bits..|. (prevOverflowBits `Bits.unsafeShiftL` invSmallRotate)
-          pokeByteOff dstPtr byteIx newCurrentByte
-        !(firstByte :: Word8) <- peekByteOff dstPtr 0
-        let !lastByteOverflow = cloneLastByte Bits..&. mask
-        let !newLastByte =
-              (firstByte `Bits.unsafeShiftR` smallRotate)
-                Bits..|. (lastByteOverflow `Bits.unsafeShiftL` invSmallRotate)
-        pokeByteOff dstPtr 0 newLastByte
-    positiveRotate :: Ptr Word8 -> Ptr Word8 -> Int -> Int -> IO ()
-    positiveRotate srcPtr dstPtr bigRotate smallRotate = do
       let copyStartSrcPtr = plusPtr srcPtr bigRotate
       let copyStartLen = len - bigRotate
       copyBytes dstPtr copyStartSrcPtr copyStartLen
       let copyEndDstPtr = plusPtr dstPtr copyStartLen
       copyBytes copyEndDstPtr srcPtr bigRotate
       when (smallRotate > 0) $ do
+        -- This works similarly to shifts
         let !invSmallRotate = 8 - smallRotate
         let !mask = 0xFF `Bits.unsafeShiftL` invSmallRotate
         !(cloneFirstByte :: Word8) <- peekByteOff dstPtr 0

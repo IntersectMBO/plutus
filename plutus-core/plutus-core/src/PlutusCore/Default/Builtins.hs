@@ -1948,8 +1948,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar RotateByteString =
-        let rotateByteStringDenotation :: BS.ByteString -> Int -> BS.ByteString
-            rotateByteStringDenotation = Bitwise.rotateByteString
+        let rotateByteStringDenotation :: BS.ByteString -> Integer -> BS.ByteString
+            rotateByteStringDenotation = Bitwise.rotateByteStringWrapper
             {-# INLINE rotateByteStringDenotation #-}
         in makeBuiltinMeaning
             rotateByteStringDenotation
