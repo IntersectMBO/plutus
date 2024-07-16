@@ -1,8 +1,6 @@
-# Plutus Script Evaluation
+# Plutus Script Event Indexer
 
 This package provides tools to gather real-world script events from the Cardano blockchain network (typically 'mainnet'). These events can then be used in tests to validate assumptions about Plutus scripts against their actual behavior on the network.
-
-## Script Dump Job
 
 An executable `dump-script-events` is provided that can be used to dump script events from the Cardano blockchain network. 
 

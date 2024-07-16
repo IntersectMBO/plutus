@@ -27,7 +27,7 @@ packages:
   plutus-core
   plutus-ledger-api
   plutus-metatheory
-  plutus-script-evaluation
+  plutus-script-event-indexer
   plutus-tx
   plutus-tx-plugin
   plutus-tx-test-util

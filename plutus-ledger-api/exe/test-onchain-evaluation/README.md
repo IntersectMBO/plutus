@@ -18,7 +18,7 @@ AWS_SECRET_ACCESS_KEY=<replace_with_aws_secret_access_key> \
 AWS_DEFAULT_REGION=us-east-1 \
 AWS_ENDPOINT_URL=https://s3.devx.iog.io \
 S3_DUMP_DIR=s3://plutus/mainnet-script-dump/ \
-cabal run plutus-script-evaluation-test:dump-script-events -- \
+cabal run plutus-script-event-indexer:dump-script-events -- \
 --socket-path $HOME/mainnet/db/node.socket \
 --config $HOME/mainnet/mainnet-config.json \
 --mainnet \

@@ -1,5 +1,5 @@
 cabal-version: 3.0
-name:          plutus-script-evaluation
+name:          plutus-script-event-indexer
 version:       0.1.0.0
 
 -- We don't care about ghc810, and ghc910 ships with base ==4.20.0, 
@@ -63,6 +63,6 @@ executable dump-script-events
   hs-source-dirs: exe
   main-is:        Main.hs
   build-depends:
-    , base                      >=4.9 && <5
+    , base                         >=4.9 && <5
     , optparse-applicative
-    , plutus-script-evaluation
+    , plutus-script-event-indexer
