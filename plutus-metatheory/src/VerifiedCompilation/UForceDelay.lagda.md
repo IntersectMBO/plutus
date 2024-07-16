@@ -44,6 +44,7 @@ isFD? ast ast' with ((isForce? (isDelay? isTerm?)) ast)
 ... | yes (isforce (isdelay (isterm x))) with isForceDelay? x ast'
 ... | yes p = yes (forcedelay x ast' p)
 ... | no ¬x≟ast' = no λ { (forcedelay _ _ x) → ¬x≟ast' x }
+
 isForceDelay? = translation? isFD?
 ```
 
