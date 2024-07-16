@@ -981,7 +981,9 @@ test_Bitwise =
       testPropertyNamed "rotations over bit length roll over" "rotate_too_much"
                         Bitwise.rotateRollover,
       testPropertyNamed "rotations move bits but don't change them" "rotate_move"
-                        Bitwise.rotateMoveBits
+                        Bitwise.rotateMoveBits,
+      testPropertyNamed "rotations do not break when given minBound as a rotation" "rotate_min_bound"
+                        Bitwise.rotateMinBound
     ],
   testGroup "countSetBits" [
       testGroup "homomorphism" Bitwise.csbHomomorphism,

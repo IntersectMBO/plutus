@@ -736,8 +736,11 @@ rotateByteString bs bitMove
       -- functions, like for shifts), and also simplify rotations larger than
       -- the bit length to the equivalent value modulo the bit length, as
       -- they're equivalent.
-      let !magnitude = abs bitMove
-          !reducedMagnitude = magnitude `rem` bitLen
+      --
+      -- We have to be a little careful here, as abs minBound == minBound for Int.
+      let !reducedMagnitude = if bitMove == minBound
+                              then fromIntegral $ abs (fromIntegral bitMove) `rem` bitLenInteger
+                              else abs bitMove `rem` bitLen
        in if reducedMagnitude == 0
             then bs
             else unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
@@ -751,6 +754,8 @@ rotateByteString bs bitMove
     !len = BS.length bs
     bitLen :: Int
     !bitLen = len * 8
+    bitLenInteger :: Integer
+    bitLenInteger = fromIntegral bitLen
     negativeRotate :: Ptr Word8 -> Ptr Word8 -> Int -> Int -> IO ()
     negativeRotate srcPtr dstPtr bigRotate smallRotate = do
       -- Two partial copies are needed here, unlike with shifts, because
