@@ -10,6 +10,7 @@ module PlutusCore.Bitwise (
   -- * Wrappers
   integerToByteStringWrapper,
   byteStringToIntegerWrapper,
+  shiftByteStringWrapper,
   -- * Implementation details
   IntegerToByteStringError (..),
   integerToByteStringMaximumOutputLength,
@@ -597,6 +598,22 @@ replicateByte len w8
       evaluationFailure
   | otherwise = pure . BS.replicate len $ w8
 
+-- | Wrapper for calling 'shiftByteString' safely. Specifically, we avoid various edge cases:
+--
+-- * Empty 'ByteString`s and zero moves don't do anything
+-- * Bit moves whose absolute value is larger than the bit length produce all-zeroes
+--
+-- This also ensures we don't accidentally hit integer overflow issues.
+shiftByteStringWrapper :: ByteString -> Integer -> ByteString
+shiftByteStringWrapper bs bitMove
+  | BS.null bs = bs
+  | bitMove == 0 = bs
+  | otherwise = let len = BS.length bs
+                    bitLen = fromIntegral $ 8 * len
+                  in if abs bitMove >= bitLen
+                     then BS.replicate len 0x00
+                     else shiftByteString bs (fromIntegral bitMove)
+
 {- Note [Shift and rotation implementation]
 
 Both shifts and rotations work similarly: they effectively impose a 'write
@@ -653,13 +670,7 @@ of 8, we can be _much_ faster, as Step 2 becomes unnecessary in that case.
 
 -- | Shifts, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
 shiftByteString :: ByteString -> Int -> ByteString
-shiftByteString bs bitMove
-  | BS.null bs = bs
-  | bitMove == 0 = bs
-  -- Needed to guard against overflow when given minBound for Int as a bit move
-  | abs (fromIntegral bitMove) >= (fromIntegral bitLen :: Integer) =
-      BS.replicate len 0x00
-  | otherwise = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
+shiftByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
       BSI.create len $ \dstPtr -> do
         -- To simplify our calculations, we work only with absolute values,
         -- letting different functions control for direction, instead of
