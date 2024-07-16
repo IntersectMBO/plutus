@@ -49,7 +49,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntCostedLiterally (..),
                                                     ListCostedByLength (..),
                                                     NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra
@@ -477,11 +477,11 @@ deriving newtype instance HasConstantIn DefaultUni term =>
     ReadKnownIn DefaultUni term NumBytesCostedAsNumWords
 
 deriving newtype instance
-    KnownTypeAst tyname DefaultUni IntegerCostedLiterally
+    KnownTypeAst tyname DefaultUni IntCostedLiterally
 deriving newtype instance HasConstantIn DefaultUni term =>
-    MakeKnownIn DefaultUni term IntegerCostedLiterally
+    MakeKnownIn DefaultUni term IntCostedLiterally
 deriving newtype instance HasConstantIn DefaultUni term =>
-    ReadKnownIn DefaultUni term IntegerCostedLiterally
+    ReadKnownIn DefaultUni term IntCostedLiterally
 
 deriving newtype instance
   forall tyname a .

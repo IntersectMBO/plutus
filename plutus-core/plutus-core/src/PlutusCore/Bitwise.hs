@@ -592,18 +592,18 @@ writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
 -- | Byte replication, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 -- We want to cautious about the allocation of huge amounts of memory so we
 -- impose the same length limit that's used in integerToByteString.
-replicateByte :: Integer -> Word8 -> BuiltinResult ByteString
+replicateByte :: Int -> Word8 -> BuiltinResult ByteString
 replicateByte len w8
   | len < 0 = do
       emit "replicateByte: negative length requested"
       evaluationFailure
-  | len > integerToByteStringMaximumOutputLength = do
+  | toInteger len > integerToByteStringMaximumOutputLength = do
       emit . pack $ "replicateByte: requested length is too long (maximum is "
                ++ show integerToByteStringMaximumOutputLength
                ++ " bytes)"
       emit $ "Length requested: " <> (pack . show $ len)
       evaluationFailure
-  | otherwise = pure . BS.replicate (fromIntegral len) $ w8
+  | otherwise = pure . BS.replicate len $ w8
 
 {- Note [Shift and rotation implementation]
 

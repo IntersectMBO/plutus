@@ -21,7 +21,7 @@ import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntCostedLiterally (..),
                                                     ListCostedByLength (..),
                                                     NumBytesCostedAsNumWords (..), memoryUsage,
                                                     singletonRose)
@@ -1870,9 +1870,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar IntegerToByteString =
         let integerToByteStringDenotation :: Bool -> NumBytesCostedAsNumWords -> Integer -> BuiltinResult BS.ByteString
             {- The second argument is wrapped in a NumBytesCostedAsNumWords to allow us to
-               interpret it as a size during costing.  It appears as an integer
-               in UPLC: see Note [Integral types as Integer]. -}
-            integerToByteStringDenotation b (NumBytesCostedAsNumWords w) = Bitwise.integerToByteStringWrapper b w
+               interpret it as a size during costing.  Elsewhere we need
+               `NumBytesCostedAsNumWords` to contain an `Int` so we re-use that
+               here at the cost of not being able to convert an integer to a
+               bytestring of length greater than 2^63-1, which we're never going
+               to want to do anyway. -}
+            integerToByteStringDenotation b (NumBytesCostedAsNumWords w) = Bitwise.integerToByteStringWrapper b $ toInteger w
             {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
             integerToByteStringDenotation
@@ -1947,16 +1950,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramReplicateByte)
 
     toBuiltinMeaning _semvar ShiftByteString =
-        let shiftByteStringDenotation :: BS.ByteString -> IntegerCostedLiterally -> BS.ByteString
-            shiftByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.shiftByteString s (fromIntegral n)
+        let shiftByteStringDenotation :: BS.ByteString -> IntCostedLiterally -> BS.ByteString
+            shiftByteStringDenotation s (IntCostedLiterally n) = Bitwise.shiftByteString s n
             {-# INLINE shiftByteStringDenotation #-}
         in makeBuiltinMeaning
             shiftByteStringDenotation
             (runCostingFunTwoArguments . paramShiftByteString)
 
     toBuiltinMeaning _semvar RotateByteString =
-        let rotateByteStringDenotation :: BS.ByteString -> IntegerCostedLiterally -> BS.ByteString
-            rotateByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.rotateByteString s (fromIntegral n)
+        let rotateByteStringDenotation :: BS.ByteString -> IntCostedLiterally -> BS.ByteString
+            rotateByteStringDenotation s (IntCostedLiterally n) = Bitwise.rotateByteString s n
             {-# INLINE rotateByteStringDenotation #-}
         in makeBuiltinMeaning
             rotateByteStringDenotation

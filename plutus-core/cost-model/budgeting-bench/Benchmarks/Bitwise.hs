@@ -6,7 +6,7 @@ import Generators
 
 import PlutusCore
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntCostedLiterally (..),
                                                     ListCostedByLength (..),
                                                     NumBytesCostedAsNumWords (..), flattenCostRose,
                                                     memoryUsage)
@@ -43,8 +43,12 @@ repunitOfSize n = 256^(8*n) - 1
 topBitIndex :: BS.ByteString -> Integer
 topBitIndex s = fromIntegral $ 8*(BS.length s)-1
 
-memoryUsageAsNumBytes :: ExMemoryUsage a => a -> Integer
+memoryUsageAsNumBytes :: ExMemoryUsage a => a -> Int
 memoryUsageAsNumBytes = (8*) . fromSatInt . sumCostStream . flattenCostRose . memoryUsage
+
+-- An explicit conversion to avoid some type annotations later.
+integerToInt :: Integer -> Int
+integerToInt = fromIntegral
 
 {- Experiments show that the times for big-endian and little-endian
    `byteStringToInteger` conversions are very similar, with big-endian
@@ -75,9 +79,9 @@ benchIntegerToByteString =
     let b = IntegerToByteString
         inputs = fmap repunitOfSize sampleSizes
         -- The minimum width of bytestring needed to fit the inputs into.
-        widthsInBytes = fmap memoryUsageAsNumBytes inputs
+        widthsInBytes = fmap (fromIntegral . memoryUsageAsNumBytes) inputs
     in createThreeTermBuiltinBenchElementwiseWithWrappers
-       (id, NumBytesCostedAsNumWords, id) b [] $
+       (id, NumBytesCostedAsNumWords . integerToInt, id) b [] $
        zip3 (repeat True) widthsInBytes inputs
 
 {- For `andByteString` with different-sized inputs, calling it with extension
@@ -163,7 +167,7 @@ benchReplicateByte =
       -- ^ This gives us replication counts up to 64*128 = 8192, the maximum allowed.
       inputs = pairWith (const (0xFF::Integer)) xs
   in createTwoTermBuiltinBenchElementwiseWithWrappers
-     (NumBytesCostedAsNumWords, id) ReplicateByte [] inputs
+     (NumBytesCostedAsNumWords . fromIntegral, id) ReplicateByte [] inputs
 
 {- Benchmarks with varying sizes of bytestrings and varying amounts of shifting
    show that the execution time of `shiftByteString` depends linearly on the
@@ -183,7 +187,7 @@ benchShiftByteString =
   let xs = makeSample seedA
       inputs = pairWith (const 1) xs
       in createTwoTermBuiltinBenchElementwiseWithWrappers
-         (id, IntegerCostedLiterally) ShiftByteString [] inputs
+         (id, IntCostedLiterally . integerToInt) ShiftByteString [] inputs
 
 {- The behaviour of `rotateByteString` is very similar to that of
    `shiftByteString` except that the time taken depends pretty much linearly on
@@ -198,7 +202,7 @@ benchRotateBytestring =
   let xs = makeSample seedA
       inputs = pairWith (const 1) xs
   in createTwoTermBuiltinBenchElementwiseWithWrappers
-     (id, IntegerCostedLiterally) RotateByteString [] inputs
+     (id, IntCostedLiterally . integerToInt) RotateByteString [] inputs
 
 {- For `countSetBits`, the time taken is linear in the length.  A model based on
    small input sizes (up to 1280 bytes) extrapolates well to results for large
