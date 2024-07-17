@@ -1,6 +1,6 @@
 {
   "0": {
-    "type": "integer",
+    "type": "coin",
     "predicates": [
       {
         "minValue": 30,
@@ -19,7 +19,7 @@
   },
 
   "1": {
-    "type": "integer",
+    "type": "coin",
     "predicates": [
       {
         "minValue": 100000,
@@ -36,7 +36,6 @@
     ],
     "$comment": "txFeeFixed"
   },
-
   "10": {
     "type": "unit_interval",
     "predicates": [
@@ -80,7 +79,7 @@
   },
 
   "16": {
-    "type": "integer",
+    "type": "coin",
     "predicates": [
       {
         "minValue": 0,
@@ -94,7 +93,7 @@
   },
 
   "17": {
-    "type": "integer",
+    "type": "coin",
     "predicates": [
       {
         "minValue": 3000,
@@ -115,9 +114,12 @@
     ],
     "$comment": "utxoCostPerByte"
   },
-
+  "18": {
+    "type": "costMdls",
+    "$comment": "costmodels for all plutus versions"
+  },
   "19[0]": {
-    "type": "unit_interval",
+    "type": "nonnegative_interval",
     "predicates": [
       {
         "maxValue": { "numerator": 2000, "denominator": 10000 },
@@ -132,7 +134,7 @@
   },
 
   "19[1]": {
-    "type": "unit_interval",
+    "type": "nonnegative_interval",
     "predicates": [
       {
         "maxValue": { "numerator": 2000, "denominator": 10000000 },
@@ -147,7 +149,7 @@
   },
 
   "2": {
-    "type": "integer",
+    "type": "uint.size4",
     "predicates": [
       {
         "maxValue": 122880,
@@ -162,7 +164,7 @@
   },
 
   "20[0]": {
-    "type": "integer",
+    "type": "uint",
     "predicates": [
       {
         "maxValue": 40000000,
@@ -178,7 +180,7 @@
   },
 
   "20[1]": {
-    "type": "integer",
+    "type": "uint",
     "predicates": [
       {
         "maxValue": 15000000000,
@@ -194,7 +196,7 @@
   },
 
   "21[0]": {
-    "type": "integer",
+    "type": "uint",
     "predicates": [
       {
         "maxValue": 120000000,
@@ -209,7 +211,7 @@
   },
 
   "21[1]": {
-    "type": "integer",
+    "type": "uint",
     "predicates": [
       {
         "maxValue": 40000000000,
@@ -224,7 +226,7 @@
   },
 
   "22": {
-    "type": "integer",
+    "type": "uint.size4",
     "predicates": [
       {
         "maxValue": 12288,
@@ -240,7 +242,7 @@
   },
 
   "23": {
-    "type": "integer",
+    "type": "uint.size2",
     "predicates": [
       {
         "minValue": 100,
@@ -264,7 +266,7 @@
   },
 
   "24": {
-    "type": "integer",
+    "type": "uint.size2",
     "predicates": [
       {
         "minValue": 1,
@@ -604,7 +606,7 @@
   },
 
   "27": {
-    "type": "integer",
+    "type": "uint.size2",
     "predicates": [
       {
         "minValue": 0,
@@ -623,7 +625,7 @@
   },
 
   "28": {
-    "type": "integer",
+    "type": "epoch_interval",
     "predicates": [
       {
         "notEqual": 0,
@@ -646,7 +648,7 @@
   },
 
   "29": {
-    "type": "integer",
+    "type": "epoch_interval",
     "predicates": [
       {
         "minValue": 1,
@@ -661,7 +663,7 @@
   },
 
   "3": {
-    "type": "integer",
+    "type": "uint.size4",
     "predicates": [
       {
         "maxValue": 32768,
@@ -676,7 +678,7 @@
   },
 
   "30": {
-    "type": "integer",
+    "type": "coin",
     "predicates": [
       {
         "minValue": 0,
@@ -695,7 +697,7 @@
   },
 
   "31": {
-    "type": "integer",
+    "type": "coin",
     "predicates": [
       {
         "minValue": 0,
@@ -714,7 +716,7 @@
   },
 
   "32": {
-    "type": "integer",
+    "type": "epoch_interval",
     "predicates": [
       {
         "minValue": 13,
@@ -733,7 +735,7 @@
   },
 
   "33": {
-    "type": "unit_interval",
+    "type": "nonnegative_interval",
     "predicates": [
       {
         "maxValue": { "numerator": 1000, "denominator": 1 },
@@ -748,7 +750,7 @@
   },
 
   "4": {
-    "type": "integer",
+    "type": "uint.size2",
     "predicates": [
       {
         "maxValue": 5000,
@@ -763,7 +765,7 @@
   },
 
   "5": {
-    "type": "integer",
+    "type": "coin",
     "predicates": [
       {
         "minValue": 1000000,
@@ -782,7 +784,7 @@
   },
 
   "6": {
-    "type": "integer",
+    "type": "coin",
     "predicates": [
       {
         "minValue": 250000000,
@@ -801,7 +803,7 @@
   },
 
   "7": {
-    "type": "integer",
+    "type": "epoch_interval",
     "predicates": [
       {
         "minValue": 0,
@@ -812,7 +814,7 @@
   },
 
   "8": {
-    "type": "integer",
+    "type": "uint.size2",
     "predicates": [
       {
         "minValue": 250,
@@ -835,7 +837,7 @@
   },
 
   "9": {
-    "type": "unit_interval",
+    "type": "nonnegative_interval",
     "predicates": [
       {
         "minValue": { "numerator": 1, "denominator": 10 },
@@ -851,10 +853,5 @@
       }
     ],
     "$comment": "poolPledgeInfluence"
-  },
-
-  "18": {
-        "type": "any",
-        "$comment": "costmodels for all plutus versions"
   }
 }
