@@ -31,6 +31,11 @@ open import Level using (Level)
 open import Builtin using (Builtin; decBuiltin)
 open import Builtin.Signature using (_⊢♯)
 import Data.Nat.Properties using (_≟_)
+open import Data.Integer using (ℤ)
+import Data.Integer.Properties using (_≟_)
+import Data.String.Properties using (_≟_)
+import Data.Bool.Properties using (_≟_)
+import Data.Unit.Properties using (_≟_)
 open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; builtin; error)
 import Relation.Unary as Unary using (Decidable)
 import Relation.Binary.Definitions as Binary using (Decidable)
@@ -40,7 +45,8 @@ open import Relation.Nullary.Product using (_×-dec_)
 open import Utils as U using (Maybe; nothing; just; Either)
 import Data.List.Properties as LP using (≡-dec)
 open import Builtin.Constant.AtomicType using (decAtomicTyCon)
-
+open import Agda.Builtin.TrustMe using (primTrustMe)
+open import Agda.Builtin.String using (String; primStringEquality)
 ```
 Instances of `DecEq` will provide a Decidable Equality procedure for their type. 
 
@@ -55,22 +61,10 @@ implementations further down.
 
 ```
 decEq-TmCon : DecidableEquality TmCon
-postulate
-  decEq-TyTag : DecidableEquality TyTag
-  decEq-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
 
-```
-The equality of the semantics of constants will depend on the equality of
-the underlying types, so this can leverage the standard library decision
-procedures. 
+decEq-TyTag : DecidableEquality TyTag
 
-```
-{-
 decEq-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
-decEq-⟦ _⊢♯.atomic x ⟧tag v v₁ = {!!}
-decEq-⟦ _⊢♯.list t ⟧tag = {!!}
-decEq-⟦ _⊢♯.pair t t₁ ⟧tag = {!!}
--}
 ```
 # Pointwise Decisions
 
@@ -123,30 +117,74 @@ instance
   DecEq-ℕ : DecEq ℕ
   DecEq-ℕ ._≟_ = Data.Nat.Properties._≟_
 
+  DecEq-ℤ : DecEq ℤ
+  DecEq-ℤ ._≟_ = Data.Integer.Properties._≟_
+
   DecEq-TyTag : DecEq TyTag
   DecEq-TyTag ._≟_ = decEq-TyTag
 
 ```
-Type Tags (`TyTag`) are ... [ FIXME: what are they?? ]
+The `TmCon` type inserts constants into Terms, so it is built from the
+type tag and semantics equality decision procedures. 
+
+Type Tags (`TyTag`) are just a list of constructors to represent each
+of the builtin types, or they are a structure built on top of those using
+`list` or `pair`.
 ```
-{-
 decEq-TyTag (_⊢♯.atomic x) (_⊢♯.atomic x₁) with (decAtomicTyCon x x₁)
 ... | yes refl = yes refl
 ... | no ¬x=x₁ = no λ { refl → ¬x=x₁ refl }
 decEq-TyTag (_⊢♯.atomic x) (_⊢♯.list t') = no (λ ())
 decEq-TyTag (_⊢♯.atomic x) (_⊢♯.pair t' t'') = no (λ ())
 decEq-TyTag (_⊢♯.list t) (_⊢♯.atomic x) = no (λ ())
-decEq-TyTag (_⊢♯.list t) (_⊢♯.list t') = {!!}
+decEq-TyTag (_⊢♯.list t) (_⊢♯.list t') with t ≟ t'
+... | yes refl = yes refl
+... | no ¬p = no λ { refl → ¬p refl }
 decEq-TyTag (_⊢♯.list t) (_⊢♯.pair t' t'') = no (λ ())
 decEq-TyTag (_⊢♯.pair t t₁) (_⊢♯.atomic x) = no (λ ())
 decEq-TyTag (_⊢♯.pair t t₁) (_⊢♯.list t') = no (λ ())
-decEq-TyTag (_⊢♯.pair t t₁) (_⊢♯.pair t' t'') = {!!}
--}
-```
-The `TmCon` type inserts constants into Terms, so it is built from the
-type tag and semantics equality decision procedures. 
+decEq-TyTag (_⊢♯.pair t t₁) (_⊢♯.pair t' t'') with (t ≟ t') ×-dec (t₁ ≟ t'')
+... | yes (refl , refl) = yes refl
+... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
 
 ```
+The equality of the semantics of constants will depend on the equality of
+the underlying types, so this can leverage the standard library decision
+procedures. 
+
+```
+postulate
+  magicNeg : ∀ {A : Set} {a b : A} → ¬ a ≡ b
+  hsEq : {A : Set} → (a b : A) → Agda.Builtin.Bool.Bool
+{-# COMPILE GHC hsEq = (==) #-}
+
+magicBoolDec : {A : Set} → {a b : A} → Agda.Builtin.Bool.Bool → Dec (a ≡ b)
+magicBoolDec true = yes primTrustMe
+magicBoolDec false = no magicNeg
+
+builtinEq : {A : Set} → Binary.Decidable {A = A} _≡_
+builtinEq x y = magicBoolDec (hsEq x y)
+
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = Data.Integer.Properties._≟_
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = builtinEq
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = Data.String.Properties._≟_
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = Data.Unit.Properties._≟_
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = Data.Bool.Properties._≟_
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag v v₁ = magicBoolDec (U.eqDATA v v₁)
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = builtinEq
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = builtinEq
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = builtinEq
+decEq-⟦ _⊢♯.list t ⟧tag U.[] U.[] = yes refl
+decEq-⟦ _⊢♯.list t ⟧tag U.[] (x U.∷ v₁) = no λ ()
+decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) U.[] = no (λ ())
+decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) (x₁ U.∷ v₁) with decEq-⟦ t ⟧tag x x₁
+... | no ¬x=x₁ = no λ { refl → ¬x=x₁ refl }
+... | yes refl with decEq-⟦ _⊢♯.list t ⟧tag v v₁
+...                  | yes refl = yes refl
+...                  | no ¬v=v₁ = no λ { refl → ¬v=v₁ refl }
+decEq-⟦ _⊢♯.pair t t₁ ⟧tag (proj₁ U., proj₂) (proj₃ U., proj₄) with (decEq-⟦ t ⟧tag proj₁ proj₃) ×-dec (decEq-⟦ t₁ ⟧tag proj₂ proj₄)
+... | yes ( refl , refl ) = yes refl
+... | no ¬pq = no λ { refl → ¬pq (refl , refl) } 
 decEq-TmCon (tmCon t x) (tmCon t₁ x₁) with t ≟ t₁
 ... | no ¬t=t₁ = no λ { refl → ¬t=t₁ refl }
 ... | yes refl with decEq-⟦ t ⟧tag x x₁

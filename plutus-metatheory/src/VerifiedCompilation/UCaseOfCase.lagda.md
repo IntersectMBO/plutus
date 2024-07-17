@@ -108,7 +108,7 @@ isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
 ... | yes (refl , refl , refl , ttpw , ftpw , altpw) = yes (isCoC b tn fn tt tt' ft ft' alts alts' altpw ttpw ftpw)
 ... | no ¬p = no λ { (isCoC .b .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p (refl , refl , refl , x₁ , x₂ , x) }
 
-isUntypedCaseOfCase? {X} ast ast' = translation? {X} isCoC? ast ast'
+isUntypedCaseOfCase? {X} = translation? {X} isCoC? 
 ```
 
 ## Semantic Equivalence
