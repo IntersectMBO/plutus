@@ -613,6 +613,9 @@ shiftByteStringWrapper bs bitMove
                     bitLen = fromIntegral $ 8 * len
                   in if abs bitMove >= bitLen
                      then BS.replicate len 0x00
+                     -- fromIntegral is safe to use here, as the only way this
+                     -- could overflow (or underflow) an Int is if we had a
+                     -- ByteString onchain that was over 30 petabytes in size.
                      else shiftByteString bs (fromIntegral bitMove)
 
 -- | Wrapper for calling 'rotateByteString' safely. Specifically, we avoid various edge cases:
@@ -621,7 +624,7 @@ shiftByteStringWrapper bs bitMove
 -- * Bit moves whose absolute value is larger than the bit length gets modulo reduced
 --
 -- Furthermore, we can convert all rotations into positive rotations, by noting that a rotation by @b@
--- is the same as a rotation by @b `mod` bitLen@, where @bitLen` is the length of the 'ByteString'
+-- is the same as a rotation by @b `mod` bitLen@, where @bitLen@ is the length of the 'ByteString'
 -- argument in bits. This value is always non-negative, and if we get 0, we have nothing to do. This
 -- reduction also helps us avoid integer overflow issues.
 rotateByteStringWrapper :: ByteString -> Integer -> ByteString
@@ -632,6 +635,9 @@ rotateByteStringWrapper bs bitMove
                     reducedBitMove = bitMove `mod` bitLen
                   in if reducedBitMove == 0
                      then bs
+                     -- fromIntegral is safe to use here, as the only way this
+                     -- could overflow (or underflow) an Int is if we had a
+                     -- ByteString onchain that was over 30 petabytes in size.
                      else rotateByteString bs (fromIntegral reducedBitMove)
 
 {- Note [Shift and rotation implementation]
