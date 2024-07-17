@@ -66,6 +66,17 @@ module PlutusTx.Prelude (
     indexByteString,
     emptyByteString,
     decodeUtf8,
+    Builtins.andByteString,
+    Builtins.orByteString,
+    Builtins.xorByteString,
+    Builtins.complementByteString,
+    -- ** Bit operations
+    Builtins.readBit,
+    Builtins.writeBits,
+    Builtins.shiftByteString,
+    Builtins.rotateByteString,
+    Builtins.countSetBits,
+    Builtins.findFirstSetBit,
     -- * Hashes and Signatures
     sha2_256,
     sha3_256,
@@ -108,13 +119,13 @@ module PlutusTx.Prelude (
     bls12_381_millerLoop,
     bls12_381_mulMlResult,
     bls12_381_finalVerify,
-    byteStringToInteger,
-    integerToByteString,
     -- * Conversions
     fromBuiltin,
     toBuiltin,
     fromOpaque,
-    toOpaque
+    toOpaque,
+    integerToByteString,
+    byteStringToInteger
     ) where
 
 import Data.String (IsString (..))
