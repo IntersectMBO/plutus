@@ -11,7 +11,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , ExMemoryUsage(..)
     , flattenCostRose
     , NumBytesCostedAsNumWords(..)
-    , IntCostedLiterally(..)
+    , IntegerCostedLiterally(..)
     , ListCostedByLength(..)
     ) where
 
@@ -188,16 +188,16 @@ instance ExMemoryUsage NumBytesCostedAsNumWords where
     memoryUsage (NumBytesCostedAsNumWords n) = singletonRose . fromIntegral $ ((n-1) `div` 8) + 1
     {-# INLINE memoryUsage #-}
 
-{- | A wrapper for `Int`s whose "memory usage" for costing purposes is the
-   absolute value of the `Int`.  This is used for costing built-in functions
+{- | A wrapper for `Integer`s whose "memory usage" for costing purposes is the
+   absolute value of the `Integer`.  This is used for costing built-in functions
    such as `shiftByteString` and `rotateByteString`, where the cost may depend
    on the actual value of the shift argument, not its size.  If this is used to
    wrap an argument in the denotation of a builtin then it *MUST* also be used
    to wrap the same argument in the relevant budgeting benchmark.
 -}
-newtype IntCostedLiterally = IntCostedLiterally { unIntCostedLiterally :: Int }
-instance ExMemoryUsage IntCostedLiterally where
-    memoryUsage (IntCostedLiterally n) = singletonRose . fromIntegral $ abs n
+newtype IntegerCostedLiterally = IntegerCostedLiterally { unIntegerCostedLiterally :: Integer }
+instance ExMemoryUsage IntegerCostedLiterally where
+    memoryUsage (IntegerCostedLiterally n) = singletonRose . fromIntegral $ abs n
     {-# INLINE memoryUsage #-}
 
 {- | A wrappper for lists whose "memory usage" for costing purposes is just the

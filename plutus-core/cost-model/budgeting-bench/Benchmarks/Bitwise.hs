@@ -6,7 +6,7 @@ import Generators
 
 import PlutusCore
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntCostedLiterally (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
                                                     ListCostedByLength (..),
                                                     NumBytesCostedAsNumWords (..), flattenCostRose,
                                                     memoryUsage)
@@ -187,7 +187,7 @@ benchShiftByteString =
   let xs = makeSample seedA
       inputs = pairWith (const 1) xs
       in createTwoTermBuiltinBenchElementwiseWithWrappers
-         (id, IntCostedLiterally . integerToInt) ShiftByteString [] inputs
+         (id, IntegerCostedLiterally) ShiftByteString [] inputs
 
 {- The behaviour of `rotateByteString` is very similar to that of
    `shiftByteString` except that the time taken depends pretty much linearly on
@@ -202,7 +202,7 @@ benchRotateBytestring =
   let xs = makeSample seedA
       inputs = pairWith (const 1) xs
   in createTwoTermBuiltinBenchElementwiseWithWrappers
-     (id, IntCostedLiterally . integerToInt) RotateByteString [] inputs
+     (id, IntegerCostedLiterally) RotateByteString [] inputs
 
 {- For `countSetBits`, the time taken is linear in the length.  A model based on
    small input sizes (up to 1280 bytes) extrapolates well to results for large

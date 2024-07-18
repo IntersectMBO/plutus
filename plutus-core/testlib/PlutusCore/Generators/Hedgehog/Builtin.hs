@@ -29,7 +29,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntCostedLiterally, ListCostedByLength,
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally, ListCostedByLength,
                                                     NumBytesCostedAsNumWords)
 import PlutusCore.Generators.Hedgehog.AST hiding (genConstant)
 
@@ -83,7 +83,7 @@ genConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @Int) = SomeGen genInteger
     | Just HRefl <- eqTypeRep tr (typeRep @Word8) = SomeGen genInteger
     | Just HRefl <- eqTypeRep tr (typeRep @NumBytesCostedAsNumWords) = SomeGen genInteger
-    | Just HRefl <- eqTypeRep tr (typeRep @IntCostedLiterally) = SomeGen genInteger
+    | Just HRefl <- eqTypeRep tr (typeRep @IntegerCostedLiterally) = SomeGen genInteger
     | Just HRefl <- eqTypeRep tr (typeRep @Bool) = SomeGen Gen.bool
     | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = SomeGen genByteString
     | Just HRefl <- eqTypeRep tr (typeRep @Text) = SomeGen genText

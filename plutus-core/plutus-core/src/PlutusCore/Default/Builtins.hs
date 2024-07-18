@@ -21,7 +21,7 @@ import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntCostedLiterally (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
                                                     ListCostedByLength (..),
                                                     NumBytesCostedAsNumWords (..), memoryUsage,
                                                     singletonRose)
@@ -1228,6 +1228,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             consByteStringMeaning_V1 =
                 let consByteStringDenotation :: Integer -> BS.ByteString -> BS.ByteString
                     consByteStringDenotation n xs = BS.cons (fromIntegral n) xs
+                    -- Earlier instructions say never to use `fromIntegral` in the definition of a
+                    -- builtin; however in this case it reduces its argument modulo 256 to get a
+                    -- `Word8`, which is exactly what we want.
                     {-# INLINE consByteStringDenotation #-}
                 in makeBuiltinMeaning
                     consByteStringDenotation
@@ -1950,16 +1953,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramReplicateByte)
 
     toBuiltinMeaning _semvar ShiftByteString =
-        let shiftByteStringDenotation :: BS.ByteString -> IntCostedLiterally -> BS.ByteString
-            shiftByteStringDenotation s (IntCostedLiterally n) = Bitwise.shiftByteStringWrapper s n
+        let shiftByteStringDenotation :: BS.ByteString -> IntegerCostedLiterally -> BS.ByteString
+            shiftByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.shiftByteStringWrapper s n
             {-# INLINE shiftByteStringDenotation #-}
         in makeBuiltinMeaning
             shiftByteStringDenotation
             (runCostingFunTwoArguments . paramShiftByteString)
 
     toBuiltinMeaning _semvar RotateByteString =
-        let rotateByteStringDenotation :: BS.ByteString -> IntCostedLiterally -> BS.ByteString
-            rotateByteStringDenotation s (IntCostedLiterally n) = Bitwise.rotateByteStringWrapper s n
+        let rotateByteStringDenotation :: BS.ByteString -> IntegerCostedLiterally -> BS.ByteString
+            rotateByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.rotateByteStringWrapper s n
             {-# INLINE rotateByteStringDenotation #-}
         in makeBuiltinMeaning
             rotateByteStringDenotation
