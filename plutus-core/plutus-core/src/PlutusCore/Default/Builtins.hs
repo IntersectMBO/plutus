@@ -1922,12 +1922,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar WriteBits =
-        let writeBitsDenotation :: BS.ByteString -> [(Integer, Bool)] -> BuiltinResult BS.ByteString
-            writeBitsDenotation = Bitwise.writeBits
+        let writeBitsDenotation :: BS.ByteString -> [Integer] -> [Bool] -> BuiltinResult BS.ByteString
+            writeBitsDenotation = Bitwise.writeBitsWrapper
             {-# INLINE writeBitsDenotation #-}
         in makeBuiltinMeaning
             writeBitsDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
+            (runCostingFunThreeArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ReplicateByte =
         let replicateByteDenotation :: Int -> Word8 -> BuiltinResult BS.ByteString
