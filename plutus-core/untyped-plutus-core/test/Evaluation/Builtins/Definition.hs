@@ -972,14 +972,18 @@ test_Bitwise =
       testPropertyNamed "positive shifts clear low indexes" "shift_pos_low"
                         Bitwise.shiftPosClearLow,
       testPropertyNamed "negative shifts clear high indexes" "shift_neg_high"
-                        Bitwise.shiftNegClearHigh
+                        Bitwise.shiftNegClearHigh,
+      testPropertyNamed "shifts do not break when given minBound as a shift" "shift_min_bound"
+                        Bitwise.shiftMinBound
     ],
   testGroup "rotateByteString" [
       testGroup "homomorphism" Bitwise.rotateHomomorphism,
       testPropertyNamed "rotations over bit length roll over" "rotate_too_much"
                         Bitwise.rotateRollover,
       testPropertyNamed "rotations move bits but don't change them" "rotate_move"
-                        Bitwise.rotateMoveBits
+                        Bitwise.rotateMoveBits,
+      testPropertyNamed "rotations do not break when given minBound as a rotation" "rotate_min_bound"
+                        Bitwise.rotateMinBound
     ],
   testGroup "countSetBits" [
       testGroup "homomorphism" Bitwise.csbHomomorphism,

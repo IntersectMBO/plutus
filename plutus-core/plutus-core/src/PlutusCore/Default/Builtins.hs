@@ -1940,16 +1940,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Bitwise
 
     toBuiltinMeaning _semvar ShiftByteString =
-        let shiftByteStringDenotation :: BS.ByteString -> Int -> BS.ByteString
-            shiftByteStringDenotation = Bitwise.shiftByteString
+        let shiftByteStringDenotation :: BS.ByteString -> Integer -> BS.ByteString
+            shiftByteStringDenotation = Bitwise.shiftByteStringWrapper
             {-# INLINE shiftByteStringDenotation #-}
         in makeBuiltinMeaning
             shiftByteStringDenotation
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar RotateByteString =
-        let rotateByteStringDenotation :: BS.ByteString -> Int -> BS.ByteString
-            rotateByteStringDenotation = Bitwise.rotateByteString
+        let rotateByteStringDenotation :: BS.ByteString -> Integer -> BS.ByteString
+            rotateByteStringDenotation = Bitwise.rotateByteStringWrapper
             {-# INLINE rotateByteStringDenotation #-}
         in makeBuiltinMeaning
             rotateByteStringDenotation
