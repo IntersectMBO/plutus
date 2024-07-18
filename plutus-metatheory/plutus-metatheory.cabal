@@ -211,6 +211,8 @@ library
     MAlonzo.Code.Data.Tree.AVL.Key
     MAlonzo.Code.Data.Tree.AVL.Map
     MAlonzo.Code.Data.Tree.AVL.Value
+    MAlonzo.Code.Data.Unit.Base
+    MAlonzo.Code.Data.Unit.Properties
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
     MAlonzo.Code.Declarative
@@ -306,6 +308,10 @@ library
     MAlonzo.Code.Utils.Decidable
     MAlonzo.Code.Utils.List
     MAlonzo.Code.Utils.Reflection
+    MAlonzo.Code.VerifiedCompilation.Equality
+    MAlonzo.Code.VerifiedCompilation.UCaseOfCase
+    MAlonzo.Code.VerifiedCompilation.UntypedTranslation
+    MAlonzo.Code.VerifiedCompilation.UntypedViews
     MAlonzo.RTE
     MAlonzo.RTE.Float
 
