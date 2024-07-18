@@ -717,7 +717,7 @@ shiftByteString ::
   BuiltinInteger ->
   BuiltinByteString
 shiftByteString (BuiltinByteString bs) =
-  BuiltinByteString . Bitwise.shiftByteString bs . fromIntegral
+  BuiltinByteString . Bitwise.shiftByteStringWrapper bs
 
 {-# NOINLINE rotateByteString #-}
 rotateByteString ::
@@ -725,7 +725,7 @@ rotateByteString ::
   BuiltinInteger ->
   BuiltinByteString
 rotateByteString (BuiltinByteString bs) =
-  BuiltinByteString . Bitwise.rotateByteString bs . fromIntegral
+  BuiltinByteString . Bitwise.rotateByteStringWrapper bs
 
 {-# NOINLINE countSetBits #-}
 countSetBits ::
