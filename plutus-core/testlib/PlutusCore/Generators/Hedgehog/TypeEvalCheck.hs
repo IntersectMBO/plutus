@@ -132,6 +132,6 @@ unsafeTypeEvalCheck termOfTbv = do
         Left err         -> error $ concat
             [ prettyPlcErrorString err
             , "\nin\n"
-            , render . prettyPlcClassicDebug $ _termOfTerm termOfTbv
+            , render . prettyPlcClassicSimple $ _termOfTerm termOfTbv
             ]
         Right termOfTecr -> _termCheckResultValue <$> termOfTecr

@@ -1,11 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
 module PlutusIR.Purity.Tests where
 
 import Test.Tasty.Extras
 
 import PlutusCore qualified as PLC
-import PlutusCore.Pretty (prettyPlcReadableDef)
+import PlutusCore.Pretty (prettyPlcReadable)
 import PlutusCore.Quote
 import PlutusIR
 import PlutusIR.Analysis.VarInfo
@@ -29,7 +28,7 @@ computeEvalOrderCoarse
 computeEvalOrderCoarse = termEvaluationOrder def mempty
 
 goldenEvalOrder :: String -> TestNested
-goldenEvalOrder = goldenPirDoc (prettyPlcReadableDef . computeEvalOrder) pTerm
+goldenEvalOrder = goldenPirDoc (prettyPlcReadable . computeEvalOrder) pTerm
 
 -- Should hit Unknown before trying to process the undefined. Shows
 -- that the computation is lazy

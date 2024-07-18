@@ -1,30 +1,11 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl MyMonoData (type))
-
-        MyMonoData_match
-        (vardecl Mono (fun (con integer) (fun (con integer) MyMonoData)))
-        (vardecl Mono (fun (con integer) MyMonoData))
-        (vardecl Mono (fun (con integer) MyMonoData))
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl `$WMono` (fun (con integer) MyMonoData))
-      (lam
-        conrep
-        (con integer)
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl conrep (con integer)) conrep)
-          [ Mono conrep ]
-        )
-      )
-    )
-    [ `$WMono` (con integer 1) ]
-  )
-)
+    data MyMonoData | MyMonoData_match where
+      Mono : integer -> integer -> MyMonoData
+      Mono : integer -> MyMonoData
+      Mono : integer -> MyMonoData
+    ~`$WMono` : integer -> MyMonoData
+      = \(conrep : integer) -> let !conrep : integer = conrep in Mono conrep
+  in
+  `$WMono` 1)

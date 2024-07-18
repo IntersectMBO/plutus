@@ -1,9 +1,9 @@
 (force
   [
     [
-      [ (force (builtin ifThenElse)) b_0 ]
-      (delay (case (constr 0 x_1 xs_2) f_3 (con integer 2)))
+      [ (force (builtin ifThenElse)) b ]
+      (delay (case (constr 0 x xs) f (con integer 2)))
     ]
-    (delay (case (constr 1) f_3 (con integer 2)))
+    (delay (case (constr 1) f (con integer 2)))
   ]
 )

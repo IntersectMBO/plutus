@@ -1,9 +1,4 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl funApp (fun (con integer) (con integer)))
-    (lam x (con integer) [ [ (builtin addInteger) (con integer 4) ] x ])
-  )
-  [ funApp (con integer 4) ]
-)
+let
+  !funApp : integer -> integer = \(x : integer) -> addInteger 4 x
+in
+funApp 4

@@ -159,7 +159,7 @@ testLexConstant :: Assertion
 testLexConstant =
   for_ smallConsts $ \t -> do
     let res :: Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SrcSpan)
-        res = runQuoteT $ parseTerm $ displayPlcDef t
+        res = runQuoteT $ parseTerm $ displayPlc t
     -- using `void` here to get rid of `SrcSpan`
     fmap void res @?= Right t
   where
@@ -182,7 +182,7 @@ testLexConstant =
 genConstantForTest :: AstGen (Some (ValueOf DefaultUni))
 genConstantForTest =
   Gen.frequency
-    [ (3, someValue <$> pure ())
+    [ (3, pure (someValue ()))
     , (3, someValue <$> Gen.bool)
     , -- Smallish Integers
       (5, someValue <$> Gen.integral (Range.linear (-k1) k1))
@@ -211,7 +211,7 @@ genConstantForTest =
 propLexConstant :: Property
 propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
   term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
-  Hedgehog.tripping term displayPlcDef (fmap void . parseTm)
+  Hedgehog.tripping term displayPlc (fmap void . parseTm)
   where
     parseTm ::
       T.Text ->
@@ -226,7 +226,7 @@ propParser = property $ do
   prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
   Hedgehog.tripping
     prog
-    (displayPlcDef . unTextualProgram)
+    (displayPlc . unTextualProgram)
     (\p -> fmap (TextualProgram . void) (parseProg p))
   where
     parseProg ::
@@ -242,7 +242,7 @@ asIO :: TestFunction -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . readFile
 
 errorgen :: (PrettyPlc a) => a -> BSL.ByteString
-errorgen = BSL.fromStrict . encodeUtf8 . displayPlcDef
+errorgen = BSL.fromStrict . encodeUtf8 . displayPlcSimple
 
 asGolden :: TestFunction -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
@@ -275,7 +275,7 @@ printType ::
   m T.Text
 printType txt =
   runQuoteT $
-    T.pack . show . pretty <$> do
+    render . prettyBy (prettyConfigPlcClassicSimple prettyConfigPlcOptions) <$> do
       scoped <- parseScoped txt
       config <- getDefTypeCheckConfig topSrcSpan
       inferTypeOfProgram config scoped
@@ -293,12 +293,12 @@ format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 testsGolden :: [FilePath] -> TestTree
 testsGolden =
   testGroup "golden tests"
-    . fmap (asGolden (format $ defPrettyConfigPlcClassic defPrettyConfigPlcOptions))
+    . fmap (asGolden (format (prettyConfigPlcClassicSimple prettyConfigPlcOptions)))
 
 testsRewrite :: [FilePath] -> TestTree
 testsRewrite =
   testGroup "golden rewrite tests"
-    . fmap (asGolden (format $ debugPrettyConfigPlcClassic defPrettyConfigPlcOptions))
+    . fmap (asGolden (format (prettyConfigPlcClassic prettyConfigPlcOptions)))
 
 tests :: TestTree
 tests =
@@ -311,7 +311,7 @@ tests =
   where
     fmt :: T.Text -> Either ParserErrorBundle T.Text
     fmt = format cfg
-    cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
+    cfg = prettyConfigPlcClassicSimple prettyConfigPlcOptions
 
 allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
 allTests plcFiles rwFiles typeFiles typeErrorFiles =

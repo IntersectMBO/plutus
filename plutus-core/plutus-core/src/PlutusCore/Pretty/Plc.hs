@@ -17,16 +17,16 @@ module PlutusCore.Pretty.Plc
     , PrettyConfigPlc (..)
     , PrettyPlc
     , DefaultPrettyPlcStrategy
-    , defPrettyConfigPlcOptions
-    , defPrettyConfigPlcClassic
-    , debugPrettyConfigPlcClassic
-    , defPrettyConfigPlcReadable
-    , debugPrettyConfigPlcReadable
+    , prettyConfigPlcOptions
+    , prettyConfigPlcClassic
+    , prettyConfigPlcClassicSimple
+    , prettyConfigPlcReadable
+    , prettyConfigPlcReadableSimple
     -- * Custom functions for PLC types.
-    , prettyPlcClassicDef
-    , prettyPlcClassicDebug
-    , prettyPlcReadableDef
-    , prettyPlcReadableDebug
+    , prettyPlcClassic
+    , prettyPlcClassicSimple
+    , prettyPlcReadable
+    , prettyPlcReadableSimple
     , prettyPlcCondensedErrorBy
     ) where
 
@@ -46,17 +46,20 @@ data CondensedErrors
 newtype PrettyConfigPlcOptions = PrettyConfigPlcOptions
     { _pcpoCondensedErrors :: CondensedErrors
     }
+    deriving stock (Show)
 
 -- | Strategy for pretty-printing PLC entities.
 data PrettyConfigPlcStrategy
     = PrettyConfigPlcClassic (PrettyConfigClassic PrettyConfigName)
     | PrettyConfigPlcReadable (PrettyConfigReadable PrettyConfigName)
+    deriving stock (Show)
 
 -- | Global configuration used for pretty-printing PLC entities.
 data PrettyConfigPlc = PrettyConfigPlc
     { _pcpOptions  :: PrettyConfigPlcOptions
     , _pcpStrategy :: PrettyConfigPlcStrategy
     }
+    deriving stock (Show)
 
 type instance HasPrettyDefaults PrettyConfigPlc = 'True
 
@@ -85,50 +88,50 @@ instance DefaultPrettyPlcStrategy a => PrettyBy PrettyConfigPlc (PrettyAny a) wh
 
 -- | The 'PrettyConfigPlcOptions' used by default:
 -- print errors in full.
-defPrettyConfigPlcOptions :: PrettyConfigPlcOptions
-defPrettyConfigPlcOptions = PrettyConfigPlcOptions CondensedErrorsNo
+prettyConfigPlcOptions :: PrettyConfigPlcOptions
+prettyConfigPlcOptions = PrettyConfigPlcOptions CondensedErrorsNo
 
 -- | The 'PrettyConfigPlc' used by default:
 -- use the classic view and print neither 'Unique's, nor name attachments.
-defPrettyConfigPlcClassic :: PrettyConfigPlcOptions -> PrettyConfigPlc
-defPrettyConfigPlcClassic opts =
-    PrettyConfigPlc opts $ PrettyConfigPlcClassic defPrettyConfigClassic
+prettyConfigPlcClassic :: PrettyConfigPlcOptions -> PrettyConfigPlc
+prettyConfigPlcClassic opts =
+    PrettyConfigPlc opts $ PrettyConfigPlcClassic prettyConfigClassic
 
 -- | The 'PrettyConfigPlc' used for debugging:
 -- use the classic view and print 'Unique's, but not name attachments.
-debugPrettyConfigPlcClassic :: PrettyConfigPlcOptions -> PrettyConfigPlc
-debugPrettyConfigPlcClassic opts =
-    PrettyConfigPlc opts $ PrettyConfigPlcClassic debugPrettyConfigClassic
+prettyConfigPlcClassicSimple :: PrettyConfigPlcOptions -> PrettyConfigPlc
+prettyConfigPlcClassicSimple opts =
+    PrettyConfigPlc opts $ PrettyConfigPlcClassic prettyConfigClassicSimple
 
 -- | The 'PrettyConfigPlc' used by default and for readability:
--- use the refined view and print neither 'Unique's, nor name attachments.
-defPrettyConfigPlcReadable :: PrettyConfigPlcOptions -> PrettyConfigPlc
-defPrettyConfigPlcReadable opts =
+-- use the refined view and print 'Unique's but not name attachments.
+prettyConfigPlcReadable :: PrettyConfigPlcOptions -> PrettyConfigPlc
+prettyConfigPlcReadable opts =
     PrettyConfigPlc opts . PrettyConfigPlcReadable $
-        topPrettyConfigReadable defPrettyConfigName def
+        botPrettyConfigReadable prettyConfigName def
 
 -- | The 'PrettyConfigPlc' used for debugging and readability:
--- use the refined view and print 'Unique's, but not name attachments.
-debugPrettyConfigPlcReadable :: PrettyConfigPlcOptions -> PrettyConfigPlc
-debugPrettyConfigPlcReadable opts =
+-- use the refined view and print neither 'Unique's nor name attachments.
+prettyConfigPlcReadableSimple :: PrettyConfigPlcOptions -> PrettyConfigPlc
+prettyConfigPlcReadableSimple opts =
     PrettyConfigPlc opts . PrettyConfigPlcReadable $
-        topPrettyConfigReadable debugPrettyConfigName def
+        botPrettyConfigReadable prettyConfigNameSimple def
 
 -- | Pretty-print a PLC value in the default mode using the classic view.
-prettyPlcClassicDef :: PrettyPlc a => a -> Doc ann
-prettyPlcClassicDef = prettyBy $ defPrettyConfigPlcClassic defPrettyConfigPlcOptions
+prettyPlcClassic :: PrettyPlc a => a -> Doc ann
+prettyPlcClassic = prettyBy $ prettyConfigPlcClassic prettyConfigPlcOptions
 
--- | Pretty-print a PLC value in the debug mode using the classic view.
-prettyPlcClassicDebug :: PrettyPlc a => a -> Doc ann
-prettyPlcClassicDebug = prettyBy $ debugPrettyConfigPlcClassic defPrettyConfigPlcOptions
+-- | Pretty-print a PLC value witout unique indices using the classic view.
+prettyPlcClassicSimple :: PrettyPlc a => a -> Doc ann
+prettyPlcClassicSimple = prettyBy $ prettyConfigPlcClassicSimple prettyConfigPlcOptions
 
 -- | Pretty-print a PLC value in the default mode using the readable view.
-prettyPlcReadableDef :: PrettyPlc a => a -> Doc ann
-prettyPlcReadableDef = prettyBy $ defPrettyConfigPlcReadable defPrettyConfigPlcOptions
+prettyPlcReadable :: PrettyPlc a => a -> Doc ann
+prettyPlcReadable = prettyBy $ prettyConfigPlcReadable prettyConfigPlcOptions
 
--- | Pretty-print a PLC value in the debug mode using the readable view.
-prettyPlcReadableDebug :: PrettyPlc a => a -> Doc ann
-prettyPlcReadableDebug = prettyBy $ debugPrettyConfigPlcReadable defPrettyConfigPlcOptions
+-- | Pretty-print a PLC value witout unique indices using the readable view.
+prettyPlcReadableSimple :: PrettyPlc a => a -> Doc ann
+prettyPlcReadableSimple = prettyBy $ prettyConfigPlcReadableSimple prettyConfigPlcOptions
 
 -- | Pretty-print a PLC value using the condensed way (see 'CondensedErrors')
 -- of pretty-printing PLC errors (in case there are any).

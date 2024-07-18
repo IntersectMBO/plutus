@@ -148,3 +148,7 @@ constant = do
   Refl <- reoption $ checkStar uni
   -- Parse the constant of the type represented by the type tag.
   someValueOf uni <$> constantOf ExpectParensYes uni
+
+data ExpectParens
+  = ExpectParensYes
+  | ExpectParensNo

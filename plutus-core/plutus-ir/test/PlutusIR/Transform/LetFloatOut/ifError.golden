@@ -1,32 +1,6 @@
-[
-  (lam
-    b
-    (all a (type) (fun (fun (con integer) a) (fun (fun (con integer) a) a)))
-    [
-      [
-        { b (con integer) }
-        (lam
-          z
-          (con integer)
-          (let
-            (nonrec)
-            (termbind
-              (strict) (vardecl err (con integer)) (error (con integer))
-            )
-            err
-          )
-        )
-      ]
-      (lam z (con integer) (con integer 1))
-    ]
-  )
-  (abs
-    a
-    (type)
-    (lam
-      x
-      (fun (con integer) a)
-      (lam y (fun (con integer) a) [ y (con integer 0) ])
-    )
-  )
-]
+(\(b : all a. (integer -> a) -> (integer -> a) -> a) ->
+   b
+     {integer}
+     (\(z : integer) -> let !err : integer = error {integer} in err)
+     (\(z : integer) -> 1))
+  (/\a -> \(x : integer -> a) (y : integer -> a) -> y 0)

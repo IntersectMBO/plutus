@@ -1,1 +1,1 @@
-((\a_2 b_3 -> a_2) error)
+(\a b -> a) error

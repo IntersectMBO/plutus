@@ -1,28 +1,9 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (termbind
-      (strict)
-      (vardecl trace (all a (type) (fun (con string) (fun a a))))
-      (builtin trace)
-    )
-    (termbind
-      (nonstrict)
-      (vardecl trace (all a (type) (fun (con string) (fun a a))))
-      trace
-    )
-    (lam
-      ds
-      (con string)
-      (let
-        (nonrec)
-        (termbind (strict) (vardecl ds (con string)) ds)
-        [ [ { trace Unit } ds ] Unit ]
-      )
-    )
-  )
-)
+    data Unit | Unit_match where
+      Unit : Unit
+    !trace : all a. string -> a -> a = trace
+    ~trace : all a. string -> a -> a = trace
+  in
+  \(ds : string) -> let !ds : string = ds in trace {Unit} ds Unit)

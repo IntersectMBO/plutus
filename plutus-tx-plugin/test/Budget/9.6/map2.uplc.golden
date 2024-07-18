@@ -1,259 +1,260 @@
-program
-  1.1.0
-  ((\fix1 ->
-      (\go ->
-         (\go ->
-            (\goList
-              n ->
-               (\unsafeFromList ->
-                  (\nt ->
-                     (\go ->
-                        (\nt ->
-                           (\nt ->
-                              fix1
-                                (\go ds ->
-                                   force
-                                     (case
-                                        ds
-                                        [ (delay (constr 0 []))
-                                        , (\x xs ->
-                                             delay
-                                               (constr 1
-                                                  [ (case
-                                                       x
-                                                       [ (\k v ->
-                                                            constr 0
-                                                              [ k
-                                                              , (decodeUtf8
-                                                                   v) ]) ])
-                                                  , (go xs) ])) ]))
-                                (go nt))
-                             ((\rs' ->
-                                 (\ls' -> go rs' ls') (go nt))
-                                (fix1
-                                   (\go
-                                     xs ->
-                                      force
-                                        (force chooseList)
-                                        xs
-                                        (\ds -> [])
-                                        (\ds ->
-                                           (\hd ->
-                                              (\tl' ->
-                                                 force
-                                                   (case
-                                                      ((\k ->
-                                                          fix1
-                                                            (\go
-                                                              xs ->
-                                                               force
-                                                                 (force
-                                                                    chooseList)
-                                                                 xs
-                                                                 (\ds ->
-                                                                    constr 1 [])
-                                                                 (\ds ->
-                                                                    force
-                                                                      (force
-                                                                         (force
-                                                                            ifThenElse
-                                                                            (equalsData
-                                                                               k
-                                                                               (force
-                                                                                  (force
-                                                                                     fstPair)
-                                                                                  (force
-                                                                                     headList
-                                                                                     xs)))
-                                                                            (delay
-                                                                               (delay
-                                                                                  ((\ds ->
-                                                                                      constr 0
-                                                                                        [  ])
-                                                                                     (force
-                                                                                        tailList
-                                                                                        xs))))
-                                                                            (delay
-                                                                               (delay
-                                                                                  (go
-                                                                                     (force
-                                                                                        tailList
-                                                                                        xs)))))))
-                                                                 (constr 0 []))
-                                                            nt)
-                                                         (force (force fstPair)
-                                                            hd))
-                                                      [ (delay tl')
-                                                      , (delay
-                                                           (force mkCons
-                                                              hd
-                                                              tl')) ]))
-                                                (go (force tailList xs)))
-                                             (force headList xs))
-                                        (constr 0 []))
-                                   nt)))
-                          (unsafeFromList
-                             (\i -> iData i)
-                             bData
-                             (constr 1
-                                [ (constr 0 [(addInteger 1 n), #6f6e65])
+(program
+   1.1.0
+   ((\fix1 ->
+       (\go ->
+          (\go ->
+             (\goList
+               n ->
+                (\unsafeFromList ->
+                   (\nt ->
+                      (\go ->
+                         (\nt ->
+                            (\nt ->
+                               fix1
+                                 (\go ds ->
+                                    force
+                                      (case
+                                         ds
+                                         [ (delay (constr 0 []))
+                                         , (\x xs ->
+                                              delay
+                                                (constr 1
+                                                   [ (case
+                                                        x
+                                                        [ (\k v ->
+                                                             constr 0
+                                                               [ k
+                                                               , (decodeUtf8
+                                                                    v) ]) ])
+                                                   , (go xs) ])) ]))
+                                 (go nt))
+                              ((\rs' ->
+                                  (\ls' -> go rs' ls') (go nt))
+                                 (fix1
+                                    (\go
+                                      xs ->
+                                       force
+                                         (force chooseList)
+                                         xs
+                                         (\ds -> [])
+                                         (\ds ->
+                                            (\hd ->
+                                               (\tl' ->
+                                                  force
+                                                    (case
+                                                       ((\k ->
+                                                           fix1
+                                                             (\go
+                                                               xs ->
+                                                                force
+                                                                  (force
+                                                                     chooseList)
+                                                                  xs
+                                                                  (\ds ->
+                                                                     constr 1
+                                                                       [])
+                                                                  (\ds ->
+                                                                     force
+                                                                       (force
+                                                                          (force
+                                                                             ifThenElse
+                                                                             (equalsData
+                                                                                k
+                                                                                (force
+                                                                                   (force
+                                                                                      fstPair)
+                                                                                   (force
+                                                                                      headList
+                                                                                      xs)))
+                                                                             (delay
+                                                                                (delay
+                                                                                   ((\ds ->
+                                                                                       constr 0
+                                                                                         [  ])
+                                                                                      (force
+                                                                                         tailList
+                                                                                         xs))))
+                                                                             (delay
+                                                                                (delay
+                                                                                   (go
+                                                                                      (force
+                                                                                         tailList
+                                                                                         xs)))))))
+                                                                  (constr 0 []))
+                                                             nt)
+                                                          (force (force fstPair)
+                                                             hd))
+                                                       [ (delay tl')
+                                                       , (delay
+                                                            (force mkCons
+                                                               hd
+                                                               tl')) ]))
+                                                 (go (force tailList xs)))
+                                              (force headList xs))
+                                         (constr 0 []))
+                                    nt)))
+                           (unsafeFromList
+                              (\i -> iData i)
+                              bData
+                              (constr 1
+                                 [ (constr 0 [(addInteger 1 n), #6f6e65])
+                                 , (constr 1
+                                      [ (constr 0 [(addInteger 2 n), #74776f])
+                                      , (constr 1
+                                           [ (constr 0
+                                                [(addInteger 3 n), #7468726565])
+                                           , (constr 1
+                                                [ (constr 0
+                                                     [ (addInteger 4 n)
+                                                     , #666f7572 ])
+                                                , (constr 1
+                                                     [ (constr 0
+                                                          [ (addInteger 5 n)
+                                                          , #66697665 ])
+                                                     , (constr 0
+                                                          []) ]) ]) ]) ]) ])))
+                        (fix1
+                           (\go
+                             xs ->
+                              force
+                                (force chooseList)
+                                xs
+                                (\ds -> [])
+                                (\ds ->
+                                   (\hd ->
+                                      (\tl ->
+                                         (\v' ->
+                                            (\k' ->
+                                               force
+                                                 (case
+                                                    (fix1
+                                                       (\go
+                                                         xs ->
+                                                          force
+                                                            (force chooseList)
+                                                            xs
+                                                            (\ds -> constr 1 [])
+                                                            (\ds ->
+                                                               (\hd ->
+                                                                  force
+                                                                    (force
+                                                                       (force
+                                                                          ifThenElse
+                                                                          (equalsData
+                                                                             k'
+                                                                             (force
+                                                                                (force
+                                                                                   fstPair)
+                                                                                hd))
+                                                                          (delay
+                                                                             (delay
+                                                                                ((\ds ->
+                                                                                    constr 0
+                                                                                      [ (force
+                                                                                           (force
+                                                                                              sndPair)
+                                                                                           hd) ])
+                                                                                   (force
+                                                                                      tailList
+                                                                                      xs))))
+                                                                          (delay
+                                                                             (delay
+                                                                                (go
+                                                                                   (force
+                                                                                      tailList
+                                                                                      xs)))))))
+                                                                 (force headList
+                                                                    xs))
+                                                            (constr 0 []))
+                                                       nt)
+                                                    [ (\r ->
+                                                         delay
+                                                           (force
+                                                              mkCons
+                                                              (mkPairData
+                                                                 k'
+                                                                 (bData
+                                                                    (appendByteString
+                                                                       (unBData
+                                                                          v')
+                                                                       (unBData
+                                                                          r))))
+                                                              (go tl)))
+                                                    , (delay
+                                                         (force mkCons
+                                                            (mkPairData k' v')
+                                                            (go tl))) ]))
+                                              (force (force fstPair) hd))
+                                           (force (force sndPair) hd))
+                                        (force tailList xs))
+                                     (force headList xs))
+                                (constr 0 []))))
+                     (unsafeFromList
+                        (\i -> iData i)
+                        bData
+                        (constr 1
+                           [ (constr 0 [(addInteger 3 n), #5448524545])
+                           , (constr 1
+                                [ (constr 0 [(addInteger 4 n), #464f5552])
                                 , (constr 1
-                                     [ (constr 0 [(addInteger 2 n), #74776f])
+                                     [ (constr 0 [(addInteger 6 n), #534958])
                                      , (constr 1
                                           [ (constr 0
-                                               [(addInteger 3 n), #7468726565])
-                                          , (constr 1
-                                               [ (constr 0
-                                                    [ (addInteger 4 n)
-                                                    , #666f7572 ])
-                                               , (constr 1
-                                                    [ (constr 0
-                                                         [ (addInteger 5 n)
-                                                         , #66697665 ])
-                                                    , (constr 0
-                                                         []) ]) ]) ]) ]) ])))
+                                               [(addInteger 7 n), #534556454e])
+                                          , (constr 0 []) ]) ]) ]) ])))
+                  (\`$dToData` `$dToData` ->
+                     (\go eta -> goList (go eta))
                        (fix1
-                          (\go
-                            xs ->
+                          (\go ds ->
                              force
-                               (force chooseList)
-                               xs
-                               (\ds -> [])
-                               (\ds ->
-                                  (\hd ->
-                                     (\tl ->
-                                        (\v' ->
-                                           (\k' ->
-                                              force
-                                                (case
-                                                   (fix1
-                                                      (\go
-                                                        xs ->
-                                                         force
-                                                           (force chooseList)
-                                                           xs
-                                                           (\ds -> constr 1 [])
-                                                           (\ds ->
-                                                              (\hd ->
-                                                                 force
-                                                                   (force
-                                                                      (force
-                                                                         ifThenElse
-                                                                         (equalsData
-                                                                            k'
-                                                                            (force
-                                                                               (force
-                                                                                  fstPair)
-                                                                               hd))
-                                                                         (delay
-                                                                            (delay
-                                                                               ((\ds ->
-                                                                                   constr 0
-                                                                                     [ (force
-                                                                                          (force
-                                                                                             sndPair)
-                                                                                          hd) ])
-                                                                                  (force
-                                                                                     tailList
-                                                                                     xs))))
-                                                                         (delay
-                                                                            (delay
-                                                                               (go
-                                                                                  (force
-                                                                                     tailList
-                                                                                     xs)))))))
-                                                                (force headList
-                                                                   xs))
-                                                           (constr 0 []))
-                                                      nt)
-                                                   [ (\r ->
-                                                        delay
-                                                          (force
-                                                             mkCons
-                                                             (mkPairData
-                                                                k'
-                                                                (bData
-                                                                   (appendByteString
-                                                                      (unBData
-                                                                         v')
-                                                                      (unBData
-                                                                         r))))
-                                                             (go tl)))
-                                                   , (delay
-                                                        (force mkCons
-                                                           (mkPairData k' v')
-                                                           (go tl))) ]))
-                                             (force (force fstPair) hd))
-                                          (force (force sndPair) hd))
-                                       (force tailList xs))
-                                    (force headList xs))
-                               (constr 0 []))))
-                    (unsafeFromList
-                       (\i -> iData i)
-                       bData
-                       (constr 1
-                          [ (constr 0 [(addInteger 3 n), #5448524545])
-                          , (constr 1
-                               [ (constr 0 [(addInteger 4 n), #464f5552])
-                               , (constr 1
-                                    [ (constr 0 [(addInteger 6 n), #534958])
-                                    , (constr 1
-                                         [ (constr 0
-                                              [(addInteger 7 n), #534556454e])
-                                         , (constr 0 []) ]) ]) ]) ])))
-                 (\`$dToData` `$dToData` ->
-                    (\go eta -> goList (go eta))
-                      (fix1
-                         (\go ds ->
-                            force
-                              (case
-                                 ds
-                                 [ (delay (constr 0 []))
-                                 , (\x xs ->
-                                      delay
-                                        (constr 1
-                                           [ (case
-                                                x
-                                                [ (\k a ->
-                                                     constr 0
-                                                       [ (`$dToData` k)
-                                                       , (`$dToData` a) ]) ])
-                                           , (go xs) ])) ])))))
-              (fix1
-                 (\goList ds ->
-                    force
-                      (case
-                         ds
-                         [ (delay [])
-                         , (\d ds ->
-                              delay
-                                (force mkCons
-                                   (case d [(\d d -> mkPairData d d)])
-                                   (goList ds))) ]))))
-           (fix1
-              (\go acc xs ->
-                 force (force chooseList)
-                   xs
-                   (\ds -> acc)
-                   (\ds ->
-                      go
-                        (force mkCons (force headList xs) acc)
-                        (force tailList xs))
-                   (constr 0 []))))
-        (fix1
-           (\go xs ->
-              force (force chooseList)
-                xs
-                (\ds -> constr 0 [])
-                (\ds ->
-                   (\hd ->
-                      (\tl ->
-                         constr 1
-                           [ (constr 0
-                                [ (unIData (force (force fstPair) hd))
-                                , (unBData (force (force sndPair) hd)) ])
-                           , (go tl) ])
-                        (force tailList xs))
-                     (force headList xs))
-                (constr 0 []))))
-     (\f -> (\s -> s s) (\s -> f (\x -> s s x))))
+                               (case
+                                  ds
+                                  [ (delay (constr 0 []))
+                                  , (\x xs ->
+                                       delay
+                                         (constr 1
+                                            [ (case
+                                                 x
+                                                 [ (\k a ->
+                                                      constr 0
+                                                        [ (`$dToData` k)
+                                                        , (`$dToData` a) ]) ])
+                                            , (go xs) ])) ])))))
+               (fix1
+                  (\goList ds ->
+                     force
+                       (case
+                          ds
+                          [ (delay [])
+                          , (\d ds ->
+                               delay
+                                 (force mkCons
+                                    (case d [(\d d -> mkPairData d d)])
+                                    (goList ds))) ]))))
+            (fix1
+               (\go acc xs ->
+                  force (force chooseList)
+                    xs
+                    (\ds -> acc)
+                    (\ds ->
+                       go
+                         (force mkCons (force headList xs) acc)
+                         (force tailList xs))
+                    (constr 0 []))))
+         (fix1
+            (\go xs ->
+               force (force chooseList)
+                 xs
+                 (\ds -> constr 0 [])
+                 (\ds ->
+                    (\hd ->
+                       (\tl ->
+                          constr 1
+                            [ (constr 0
+                                 [ (unIData (force (force fstPair) hd))
+                                 , (unBData (force (force sndPair) hd)) ])
+                            , (go tl) ])
+                         (force tailList xs))
+                      (force headList xs))
+                 (constr 0 []))))
+      (\f -> (\s -> s s) (\s -> f (\x -> s s x)))))

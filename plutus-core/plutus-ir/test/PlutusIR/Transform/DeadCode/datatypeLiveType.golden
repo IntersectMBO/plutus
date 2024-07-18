@@ -1,8 +1,4 @@
-(let
-  (nonrec)
-  (typebind
-    (tyvardecl Maybe (fun (type) (type)))
-    (lam a (type) (all a (type) (fun a a)))
-  )
-  (error [ Maybe (con integer) ])
-)
+let
+  Maybe :: * -> * = \a -> all a. a -> a
+in
+error {Maybe integer}

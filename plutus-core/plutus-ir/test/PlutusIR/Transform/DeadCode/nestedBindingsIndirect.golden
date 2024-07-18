@@ -1,16 +1,8 @@
-(let
-  (nonrec)
-  (typebind (tyvardecl unit (type)) (all a (type) (fun a a)))
-  (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl SomeType (type))
-
-        match_SomeType
-        (vardecl Constr (fun unit SomeType))
-      )
-    )
-    [ Constr (error unit) ]
-  )
-)
+let
+  unit = all a. a -> a
+in
+let
+  data SomeType | match_SomeType where
+    Constr : unit -> SomeType
+in
+Constr (error {unit})

@@ -130,7 +130,7 @@ instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
     prettyBy _      EvaluationFailure     = "Failure"
 
 instance PrettyClassic a => Pretty (EvaluationResult a) where
-    pretty = prettyClassicDef
+    pretty = prettyClassic
 
 -- | Check whether an 'EvaluationResult' is an 'EvaluationSuccess'.
 isEvaluationSuccess :: EvaluationResult a -> Bool

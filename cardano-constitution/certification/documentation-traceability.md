@@ -2,7 +2,7 @@
 
 ## Version
 
-Version 1.1
+Version 1.2
 
 ## Authors
 
@@ -22,20 +22,21 @@ Romain Soulat <romain.soulat@iohk.io>
 | --- | --- | --- | --- |
 | 1.0 | 2024-05-13 | Romain Soulat | Initial version |
 | 1.1 | 2024-05-14 | Romain Soulat | Updated with new version of defaultConstitution.json |
+| 1.2 | 2024-07-04 | Romain Soulat | Updated with new version of defaultConstitution.json |
 
 ## References
 
 - Interim Constitution
-  - SHA 256: `7b4e7c896a8b48b1f1109c92934f1858ae7941183e223a35bf4e9a8e`
-  - URL: <https://docs.google.com/document/d/1GwI_6qzfTa5V_BeEY4f-rZNhbfA8lXon/>
+  - SHA 256: `6010c89fb4edef2467979db5ea181ff7eda7d93d71bf304aa1bc88defedb5c26`
+  - URL: <https://raw.githubusercontent.com/IntersectMBO/interim-constitution/main/cardano-constitution-0.txt>
 
 - CDDL description of the protocol parameters
-  - SHA 256: `5c712c432227acff7e4c26576343fcfe966a66dd0a09db1e61821b55283da47f`
-  - URL: <https://github.com/IntersectMBO/cardano-ledger/blob/master/eras/conway/impl/cddl-files/conway.cddl>
+  - SHA 256: `5ef21d4aaeba11bfef903734b580f68102ebfab8e12be8144ec5e01b19b0a3c1`
+  - URL: <https://raw.githubusercontent.com/IntersectMBO/cardano-ledger/master/eras/conway/impl/cddl-files/conway.cddl>
 
 - JSON used to generate the constitution script
-  - SHA 256: `9dfa556ee6321ed389444f186ce9d26c637359749be11d516c944711c8ef5af7`
-  - URL: <https://github.com/IntersectMBO/plutus/blob/master/cardano-constitution/data/defaultConstitution.json>
+  - SHA 256: `6ed0900d3dda83924ca1008e4acbfc708b24a3c0b2e7c14cdd73f61e786d58fc`
+  - URL: <https://github.com/IntersectMBO/constitution-priv/blob/master/data/defaultConstitution.json>
 
 ## Introduction
 
@@ -45,63 +46,63 @@ This document provides a traceability between the Interim Constitution, the cddl
 
 The Interim Constitution is a human readable document that describes the protocol parameters. The CDDL description of the protocol parameters is a machine readable document that describes the protocol parameters.
 
-| Interim Constitution Parameter Name | CDDL Parameter number | CDDL Parameter name (in comments) |
+| Interim Constitution Parameter Name | CDDL Parameter number | CDDL Parameter name (in comments) | Types (CDDL <-> Haskell)|
 |---|---|---|
-| txFeePerByte | 0 | min fee a |
-| txFeeFixed | 1 | min fee b |
-| maxBlockBodySize | 2 | max block body size |
-| maxTxSize | 3 | max transaction size |
-| maxBlockHeaderSize | 4 | max block header size |
-| stakeAddressDeposit | 5 | key deposit |
-| stakePoolDeposit | 6 | pool deposit |
-| poolRetireMaxEpoch | 7 | maximum epoch |
-| stakePoolTargetNum | 8 | n_opt: desired number of stake pool |
-| poolPledgeInfluence | 9 | pool pledge influence |
-| monetaryExpansion | 10 | expansion rate |
-| treasuryCut | 11 | treasury growth rate |
+| txFeePerByte | 0 | min fee a | (coin <-> Integer) |
+| txFeeFixed | 1 | min fee b | (coin <-> Integer) |
+| maxBlockBodySize | 2 | max block body size | (uint.size4 <-> Integer) |
+| maxTxSize | 3 | max transaction size | (uint.size4 <-> Integer) |
+| maxBlockHeaderSize | 4 | max block header size | (uint.size2 <-> Integer) |
+| stakeAddressDeposit | 5 | key deposit | (coin <-> Integer) |
+| stakePoolDeposit | 6 | pool deposit | (coin <-> Integer) |
+| poolRetireMaxEpoch | 7 | maximum epoch | (epoch_interval <-> Integer) |
+| stakePoolTargetNum | 8 | n_opt: desired number of stake pool | (uint.size2 <-> Integer) |
+| poolPledgeInfluence | 9 | pool pledge influence | (nonnegative_interval <-> Rational) |
+| monetaryExpansion | 10 | expansion rate | (unit_interval <-> Rational) |
+| treasuryCut | 11 | treasury growth rate | (unit_interval <-> Rational) |
 | BLANK NO PARAMETER | 12 | BLANK NO PARAMETER |
 | BLANK NO PARAMETER | 13 | BLANK NO PARAMETER |
 | BLANK NO PARAMETER | 14 | BLANK NO PARAMETER |
 | BLANK NO PARAMETER | 15 | BLANK NO PARAMETER |
-| minPoolCost | 16 | min pool cost |
-| utxoCostPerByte | 17 | ada per utxo byte |
-| costModels | 18 | cost models for script language |
-| executionUnitPrices | 19 | execution costs |
-| executionUnitPrices[priceMemory] | 19.0 | execution costs mem|
-| executionUnitPrices[priceSteps] | 19.1 | execution costs steps|
-| maxTxExecutionUnits | 20 | max tx ex units |
-| maxTxExecutionUnits[mem] | 20.0 | |
-| maxTxExecutionUnits[steps] | 20.1 | |
-| maxBlockExecutionUnits | 21 | max block ex units |
-| maxBlockExecutionUnits[mem] | 21.0 | |
-| maxBlockExecutionUnits[steps] | 21.1 | |
-| maxValueSize | 22 | max value size |
-| collateralPercentage | 23 | collateral percentage |
-| maxCollateralInputs | 24 | max collateral inputs |
-| poolVotingThresholds | 25 | pool voting thresholds |
-| poolVotingThresholds[pvtMotionNoConfidence] | 25.0 | motion no confidence |
-| poolVotingThresholds[pvtCommitteeNormal] | 25.1 | committee normal |
-| poolVotingThresholds[pvtCommitteeNoConfidence] | 25.2 | committee no conficence |
-| poolVotingThresholds[pvtHardForkInitiation] | 25.3 | hard fork initiation |
-| poolVotingThresholds[pvtPPSecurityGroup] | 25.4 | security relevant parameter voting threshold|
-| dRepVotingThresholds | 26 | DRep voting threshold |
-| dRepVotingThresholds[dvtMotionNoConfidence] | 26.0 | motion no confidence |
-| dRepVotingThresholds[dvtCommitteeNormal] | 26.1 | committee normal |
-| dRepVotingThresholds[dvtCommitteeNoConfidence] | 26.2 | committee no confidence |
-| dRepVotingThresholds[dvtUpdateToConstitution] | 26.3 | update constitution |
-| dRepVotingThresholds[dvtHardForkInitiation] | 26.4 | hard fork initiation |
-| dRepVotingThresholds[dvtPPNetworkGroup] | 26.5 | PP network group |
-| dRepVotingThresholds[dvtPPEconomicGroup] | 26.6 | PP economic group |
-| dRepVotingThresholds[dvtPPTechnicalGroup] | 26.7 | PP technical group |
-| dRepVotingThresholds[dvtPPGovGroup] | 26.8 | PP governance group |
-| dRepVotingThresholds[dvtTreasuryWithdrawal] | 26.9 | treasury withdrawal |
-| committeeMinSize | 27 | min committee size |
-| committeeMaxTermLimit | 28 | committee term limit |
-| govActionLifetime | 29 | governance action validity lifetime |
-| govDeposit | 30 | governance action deposit |
-| dRepDeposit | 31 | DRep deposit |
-| dRepActivity | 32 | DRep inactivity period |
-| minFeeRefScriptCoinsPerByte | 33 | MinFee RefScriptCostPerByte |
+| minPoolCost | 16 | min pool cost | (coin <-> Integer) |
+| utxoCostPerByte | 17 | ada per utxo byte | (coin <-> Integer) |
+| costModels | 18 | cost models for script language | (costMdls <-> Any) |
+| executionUnitPrices | 19 | execution costs | ex_unit_prices |
+| executionUnitPrices[priceMemory] | 19.0 | execution costs mem | (nonnegative_interval <-> Rational) |
+| executionUnitPrices[priceSteps] | 19.1 | execution costs steps | (nonnegative_interval <-> Rational) |
+| maxTxExecutionUnits | 20 | max tx ex units | ex_units |
+| maxTxExecutionUnits[mem] | 20.0 | | (uint <-> Integer) |
+| maxTxExecutionUnits[steps] | 20.1 | | (uint <-> Integer) |
+| maxBlockExecutionUnits | 21 | max block ex units | ex_units |
+| maxBlockExecutionUnits[mem] | 21.0 | | (uint <-> Integer) |
+| maxBlockExecutionUnits[steps] | 21.1 | | (uint <-> Integer) |
+| maxValueSize | 22 | max value size | (uint.size4 <-> Integer) |
+| collateralPercentage | 23 | collateral percentage | (uint.size2 <-> Integer) |
+| maxCollateralInputs | 24 | max collateral inputs | (uint.size2 <-> Integer) |
+| poolVotingThresholds | 25 | pool_voting_thresholds | pool_voting_thresholds |
+| poolVotingThresholds[pvtMotionNoConfidence] | 25.0 | motion no confidence | (unit_interval <-> Rational) |
+| poolVotingThresholds[pvtCommitteeNormal] | 25.1 | committee normal | (unit_interval <-> Rational) |
+| poolVotingThresholds[pvtCommitteeNoConfidence] | 25.2 | committee no conficence | (unit_interval <-> Rational) |
+| poolVotingThresholds[pvtHardForkInitiation] | 25.3 | hard fork initiation | (unit_interval <-> Rational) |
+| poolVotingThresholds[pvtPPSecurityGroup] | 25.4 | security relevant parameter voting threshold | (unit_interval <-> Rational) |
+| dRepVotingThresholds | 26 | DRep voting threshold | drep_voting_thresholds |
+| dRepVotingThresholds[dvtMotionNoConfidence] | 26.0 | motion no confidence | (unit_interval <-> Rational) |
+| dRepVotingThresholds[dvtCommitteeNormal] | 26.1 | committee normal | (unit_interval <-> Rational) |
+| dRepVotingThresholds[dvtCommitteeNoConfidence] | 26.2 | committee no confidence | (unit_interval <-> Rational) |
+| dRepVotingThresholds[dvtUpdateToConstitution] | 26.3 | update constitution | (unit_interval <-> Rational) |
+| dRepVotingThresholds[dvtHardForkInitiation] | 26.4 | hard fork initiation | (unit_interval <-> Rational) |
+| dRepVotingThresholds[dvtPPNetworkGroup] | 26.5 | PP network group | (unit_interval <-> Rational) |
+| dRepVotingThresholds[dvtPPEconomicGroup] | 26.6 | PP economic group | (unit_interval <-> Rational) |
+| dRepVotingThresholds[dvtPPTechnicalGroup] | 26.7 | PP technical group | (unit_interval <-> Rational) |
+| dRepVotingThresholds[dvtPPGovGroup] | 26.8 | PP governance group | (unit_interval <-> Rational) |
+| dRepVotingThresholds[dvtTreasuryWithdrawal] | 26.9 | treasury withdrawal | (unit_interval <-> Rational) |
+| committeeMinSize | 27 | min committee size | (uint.size2 <-> Integer) |
+| committeeMaxTermLimit | 28 | committee term limit | (epoch_interval <-> Integer) |
+| govActionLifetime | 29 | governance action validity lifetime | (epoch_interval <-> Integer) |
+| govDeposit | 30 | governance action deposit | (coin <-> Integer) |
+| dRepDeposit | 31 | DRep deposit | (coin <-> Integer) |
+| dRepActivity | 32 | DRep inactivity period | (epoch_interval <-> Integer) |
+| minFeeRefScriptCoinsPerByte | 33 | MinFee RefScriptCostPerByte | (nonnegative_interval <-> Rational) |
 
 ## Documentation Traceability
 
@@ -116,7 +117,7 @@ They will be fixed in a subsequent version.
 | Interim Constitution Guardrail | Entry in the JSON file | Status |
 | --- | --- | -- |
 | PARAM-01 | No parameter falls under this requirement | :white_check_mark: |
-| PARAM-02 | `"18": { "type": "any"}` | :white_check_mark: |
+| PARAM-02 | `"18": { "type": "costMdls"}` | :white_check_mark: |
 
 ### Section 2.1
 
@@ -208,8 +209,8 @@ No additional entries in object "19[0]" in the JSON file. :white_check_mark
 
 | Interim Constitution Guardrail | Entry in the JSON file | Status |
 | --- | --- | -- |
-| MFRS-01 | In "33": `"maxValue": 1000` | :white_check_mark: |
-| MFRS-02 | In "33": `"minValue": 0` | :white_check_mark: |
+| MFRS-01 | In "33": `"maxValue": { "numerator": 1000, "denominator": 1 }` | :white_check_mark: |
+| MFRS-02 | In "33": `"minValue": { "numerator": 0, "denominator": 1 }` | :white_check_mark: |
 
 No additional entries in object "33" in the JSON file. :white_check_mark:
 

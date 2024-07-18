@@ -109,9 +109,9 @@ data DebugInterface
 -- | ONLY applicable for Text output.
 data PrettyStyle
     = Classic
-    | ClassicDebug
+    | ClassicSimple
     | Readable
-    | ReadableDebug
+    | ReadableSimple
     deriving stock (Show)
 
 data Verbosity

@@ -88,7 +88,7 @@ main sn sa prog = do
                               STxSrcSpans -> progN
 
     -- make sure to not display annotations
-    let progTextN = withA @PP.Pretty sa $ PP.displayPlcDef $ void progN
+    let progTextN = withA @PP.Pretty sa $ PP.displayPlc $ void progN
 
     -- the parsed prog with uplc.srcspan
     progWithUplcSpan <- either (fail . show @(PLC.Error DefaultUni DefaultFun PLC.SrcSpan)) pure $
@@ -168,7 +168,7 @@ driverThread driverMailbox brickMailbox prog mbudget = do
     let term = prog ^. UPLC.progTerm
     ndterm <- case runExcept @FreeVariableError $ deBruijnTerm term of
             Right t -> pure t
-            Left _  -> fail $ "deBruijnTerm failed: " <> PLC.displayPlcDef (void term)
+            Left _  -> fail $ "deBruijnTerm failed: " <> PLC.displayPlc (void term)
     -- if user provided `--budget` the mode is restricting; otherwise just counting
     -- See Note [Budgeting implementation for the debugger]
     let exBudgetMode = case mbudget of

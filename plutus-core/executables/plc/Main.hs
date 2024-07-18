@@ -168,9 +168,9 @@ runTypecheck (TypecheckOptions inp fmt) = do
     PLC.inferTypeOfProgram tcConfig (void prog)
     of
       Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
-        errorWithoutStackTrace $ PP.displayPlcDef e
+        errorWithoutStackTrace $ PP.displayPlc e
       Right ty                                               ->
-        T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
+        T.putStrLn (PP.displayPlc ty) >> exitSuccess
 
 ---------------- Optimisation ----------------
 

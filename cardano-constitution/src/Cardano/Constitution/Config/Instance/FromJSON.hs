@@ -115,16 +115,33 @@ parseParamValue = \case
     -- if we parsed a sub-index, treat the param value as a `M.singleton subIndex value`
     Just subIndex -> fmap (RawParamList . M.singleton subIndex) . parseTypedParamValue
   where
+      parseTypedParamValue :: Value -> Parser RawParamValue
       parseTypedParamValue = withObject "RawParamValue" $ \o -> do
-          String ty <- o .: typeKey
-          case ty of
-              "integer"       -> RawParamInteger <$> (o .: predicatesKey)
-              -- NOTE: even if the Tx.Ratio.Rational constructor is not exposed, the 2 arguments to the constructor
-              -- will be normalized (co-primed) when Tx.lift is called on them.
-              -- SO there is no speed benefit to statically co-prime them ourselves for efficiency.
-              "unit_interval" -> RawParamRational <$> (o .: predicatesKey)
-              "any"           -> pure RawParamAny
-              _               -> fail "invalid type tag"
+          ty <- o .: typeKey
+          parseSynonymType ty o
+
+      -- the base types we support
+      parseBaseType :: Key -> Object -> Parser RawParamValue
+      parseBaseType ty o = case ty of
+          "integer"  -> RawParamInteger <$> (o .: predicatesKey)
+          -- NOTE: even if the Tx.Ratio.Rational constructor is not exposed, the 2 arguments to the constructor
+          -- will be normalized (co-primed) when Tx.lift is called on them.
+          -- SO there is no speed benefit to statically co-prime them ourselves for efficiency.
+          "rational" -> RawParamRational <$> (o .: predicatesKey)
+          "any"      -> pure RawParamAny
+          _          -> fail "invalid type tag"
+
+      -- synonyms to ease the transition from cddl
+      parseSynonymType = \case
+          "coin"                 -> parseBaseType "integer"
+          "uint.size4"           -> parseBaseType "integer"
+          "uint.size2"           -> parseBaseType "integer"
+          "uint"                 -> parseBaseType "integer" -- For ex units
+          "epoch_interval"       -> parseBaseType "integer" -- Rename of uint.size4
+          "unit_interval"        -> parseBaseType "rational"
+          "nonnegative_interval" -> parseBaseType "rational"
+          "costMdls"             -> parseBaseType "any"
+          x -> parseBaseType x -- didn't find synonym, try as basetype
 
 -- | It is like an `mappend` when both inputs are ParamList's.
 mergeParamValues :: MonadFail m => RawParamValue -> RawParamValue -> m RawParamValue

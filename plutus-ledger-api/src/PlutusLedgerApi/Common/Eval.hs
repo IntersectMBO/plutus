@@ -62,7 +62,7 @@ instance AsScriptDecodeError EvaluationError where
     _ScriptDecodeError = _CodecError
 
 instance Pretty EvaluationError where
-    pretty (CekError e)               = prettyClassicDef e
+    pretty (CekError e)               = prettyClassic e
     pretty (DeBruijnError e)          = pretty e
     pretty (CodecError e)             = pretty e
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"

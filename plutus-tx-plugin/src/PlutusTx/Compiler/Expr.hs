@@ -521,7 +521,7 @@ maybeProfileRhs var t = do
   CompileContext{ccOpts = compileOpts} <- ask
   let ty = PLC._varDeclType var
       varName = PLC._varDeclName var
-      displayName = T.pack $ PP.displayPlcDef varName
+      displayName = T.pack $ PP.displayPlc varName
       isFunctionOrAbstraction = case ty of PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False
   -- Trace only if profiling is on *and* the thing being defined is a function
   if coProfile compileOpts == All && isFunctionOrAbstraction

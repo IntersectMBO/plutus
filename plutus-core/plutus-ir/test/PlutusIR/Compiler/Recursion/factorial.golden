@@ -1,37 +1,10 @@
-(program
+program
   1.1.0
-  [
-    [
-      (lam s_1354 [ s_1354 s_1354 ])
-      (lam
-        s_1355
-        (lam
-          i_1356
-          [
-            [
-              [
-                [
-                  (force (builtin ifThenElse))
-                  [ [ (builtin equalsInteger) (con integer 0) ] i_1356 ]
-                ]
-                (lam u_1357 (con integer 1))
-              ]
-              (lam
-                u_1358
-                [
-                  [ (builtin multiplyInteger) i_1356 ]
-                  [
-                    (lam x_1359 [ [ s_1355 s_1355 ] x_1359 ])
-                    [ [ (builtin subtractInteger) i_1356 ] (con integer 1) ]
-                  ]
-                ]
-              )
-            ]
-            (con unit ())
-          ]
-        )
-      )
-    ]
-    (con integer 5)
-  ]
-)
+  ((\s -> s s)
+     (\s i ->
+        force ifThenElse
+          (equalsInteger 0 i)
+          (\u -> 1)
+          (\u -> multiplyInteger i ((\x -> s s x) (subtractInteger i 1)))
+          ())
+     5)

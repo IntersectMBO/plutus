@@ -153,7 +153,7 @@ optDescrs =
 
    -- PRETTY-STYLE for OUTPUT & ERRORS
  , Option ['p'] ["pretty"]
-     (ReqArg (set prettyStyle . read) "STYLE") "Make program's textual-output&error output pretty. Ignored for non-textual output (flat/cbor). Values: `classic`, `readable, `classic-debug`, `readable-debug` "
+     (ReqArg (set prettyStyle . read) "STYLE") "Make program's textual-output&error output pretty. Ignored for non-textual output (flat/cbor). Values: `classic`, `readable, `classic-simple`, `readable-simple` "
    -- OUTPUT
  , Option ['o'] []
      (ReqArg (setOutput . AbsolutePath) "FILE") "Write compiled program to file"
@@ -257,14 +257,14 @@ instance Read Ann where
 instance Read PrettyStyle where
   readsPrec _prec = one . \case
       "classic" -> Classic
-      "classic-debug" -> ClassicDebug
+      "classic-simple" -> ClassicSimple
       "readable" -> Readable
-      "readable-debug" -> ReadableDebug
+      "readable-simple" -> ReadableSimple
       -- synonyms for lazy people like me
       "c" -> Classic
-      "cd" -> ClassicDebug
+      "cs" -> ClassicSimple
       "r" -> Readable
-      "rd" -> ReadableDebug
+      "rs" -> ReadableSimple
       _ -> error "Failed to read --pretty=STYLE."
 
 instance Read ExBudget where

@@ -1,109 +1,38 @@
-(program
+program
   1.1.0
-  [
-    [
-      (force
+  (force
+     (delay
+        (\`GHC.Tuple.Prim.Tuple2` `match_GHC.Tuple.Prim.Tuple2` ->
+           force
+             (delay
+                (\`GHC.Maybe.Just`
+                  `GHC.Maybe.Nothing`
+                  `match_GHC.Maybe.Maybe` ->
+                   force
+                     (delay
+                        (\`Lift.Spec.NestedRecord`
+                          `match_Lift.Spec.NestedRecord` ->
+                           `Lift.Spec.NestedRecord`))
+                     (\arg_0 -> constr 0 [arg_0])
+                     (\x ->
+                        delay
+                          (\`case_Lift.Spec.NestedRecord` ->
+                             case x [`case_Lift.Spec.NestedRecord`]))
+                     (force `GHC.Maybe.Just`
+                        (force (force `GHC.Tuple.Prim.Tuple2`) 1 2))))
+             (delay (\arg_0 -> constr 0 [arg_0]))
+             (delay (constr 1 []))
+             (delay
+                (\x ->
+                   delay
+                     (\`case_GHC.Maybe.Just` `case_GHC.Maybe.Nothing` ->
+                        case
+                          x
+                          [`case_GHC.Maybe.Just`, `case_GHC.Maybe.Nothing`])))))
+     (delay (delay (\arg_0 arg_1 -> constr 0 [arg_0, arg_1])))
+     (delay
         (delay
-          (lam
-            `GHC.Tuple.Prim.Tuple2_i0`
-            (lam
-              `match_GHC.Tuple.Prim.Tuple2_i0`
-              [
-                [
-                  [
-                    (force
-                      (delay
-                        (lam
-                          `GHC.Maybe.Just_i0`
-                          (lam
-                            `GHC.Maybe.Nothing_i0`
-                            (lam
-                              `match_GHC.Maybe.Maybe_i0`
-                              [
-                                [
-                                  [
-                                    (force
-                                      (delay
-                                        (lam
-                                          `Lift.Spec.NestedRecord_i0`
-                                          (lam
-                                            `match_Lift.Spec.NestedRecord_i0`
-                                            `Lift.Spec.NestedRecord_i2`
-                                          )
-                                        )
-                                      )
-                                    )
-                                    (lam arg_0_i0 (constr 0 arg_0_i1))
-                                  ]
-                                  (lam
-                                    x_i0
-                                    (delay
-                                      (lam
-                                        `case_Lift.Spec.NestedRecord_i0`
-                                        (case
-                                          x_i2 `case_Lift.Spec.NestedRecord_i1`
-                                        )
-                                      )
-                                    )
-                                  )
-                                ]
-                                [
-                                  (force `GHC.Maybe.Just_i3`)
-                                  [
-                                    [
-                                      (force (force `GHC.Tuple.Prim.Tuple2_i5`))
-                                      (con integer 1)
-                                    ]
-                                    (con integer 2)
-                                  ]
-                                ]
-                              ]
-                            )
-                          )
-                        )
-                      )
-                    )
-                    (delay (lam arg_0_i0 (constr 0 arg_0_i1)))
-                  ]
-                  (delay (constr 1))
-                ]
-                (delay
-                  (lam
-                    x_i0
-                    (delay
-                      (lam
-                        `case_GHC.Maybe.Just_i0`
-                        (lam
-                          `case_GHC.Maybe.Nothing_i0`
-                          (case
-                            x_i3
-                            `case_GHC.Maybe.Just_i2`
-                            `case_GHC.Maybe.Nothing_i1`
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
-              ]
-            )
-          )
-        )
-      )
-      (delay (delay (lam arg_0_i0 (lam arg_1_i0 (constr 0 arg_0_i2 arg_1_i1)))))
-    ]
-    (delay
-      (delay
-        (lam
-          x_i0
-          (delay
-            (lam
-              `case_GHC.Tuple.Prim.Tuple2_i0`
-              (case x_i2 `case_GHC.Tuple.Prim.Tuple2_i1`)
-            )
-          )
-        )
-      )
-    )
-  ]
-)
+           (\x ->
+              delay
+                (\`case_GHC.Tuple.Prim.Tuple2` ->
+                   case x [`case_GHC.Tuple.Prim.Tuple2`])))))
