@@ -33,5 +33,5 @@ executable example-cip57
   build-depends:
     , base               ^>=4.18
     , containers
-    , plutus-ledger-api
-    , plutus-tx
+    , plutus-ledger-api  ^>=1.31
+    , plutus-tx          ^>=1.31
