@@ -600,10 +600,7 @@ library bitwise-internal
   import:          lang, ghc-version-support
   hs-source-dirs:  bitwise/src
   exposed-modules: PlutusBenchmark.NQueens
-  build-depends:
-    , base              >=4.9   && <5
-    , plutus-tx         ^>=1.30
-    , plutus-tx-plugin  ^>=1.30
+  build-depends:   plutus-tx ^>=1.31
 
 test-suite bitwise-test
   import:         lang, ghc-version-support
