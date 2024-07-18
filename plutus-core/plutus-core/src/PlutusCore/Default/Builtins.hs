@@ -1476,7 +1476,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunThreeArguments . paramChooseList)
 
     toBuiltinMeaning _semvar MkCons =
-
         let mkConsDenotation
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             mkConsDenotation

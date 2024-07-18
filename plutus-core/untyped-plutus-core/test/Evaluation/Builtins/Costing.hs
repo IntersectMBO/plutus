@@ -428,7 +428,7 @@ test_flattenCostRoseHandlesBottom =
 test_costsAreNeverNegative :: TestTree
 test_costsAreNeverNegative =
     testProperty "costs coming from 'memoryUsage' are never negative" $
-        withMaxSuccess 500 $ \(val :: Some (ValueOf DefaultUni)) ->
+        withMaxSuccess 1000 $ \(val :: Some (ValueOf DefaultUni)) ->
             all (>= 0) . toCostList . flattenCostRose $ memoryUsage val
 
 test_costing :: TestTree
