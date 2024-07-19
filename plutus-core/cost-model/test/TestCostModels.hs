@@ -44,10 +44,6 @@ import Hedgehog.Range qualified as Range
    for exact equality of the outputs but instead check that the R result and the
    Haskell result agreee to within a factor of 2/100 (two percent).
 -}
--- FIXME: The two-variable quadratic costing functions for the integer division
--- builtins fail to pass the test because the Haskell version adds a floor under
--- the costing function that isn't there in the R version, so we get different
--- results.  For the time being the relevant tests are commented out.
 
 -- | Maximum allowable difference beween R result and Haskell result.
 epsilon :: Double
@@ -84,6 +80,11 @@ memUsageGen =
         where small = unsafeToSatInt <$> Gen.integral (Range.constant 0 2)
               large = unsafeToSatInt <$> Gen.integral (Range.linear 0 5000)
 
+-- | Generate inputs for costing functions, making sure that we test a large
+-- range of inputs, but that we also get small inputs.
+memUsageGen40 :: Gen CostingInteger
+memUsageGen40 = unsafeToSatInt <$> Gen.integral (Range.linear 0 40)
+
 -- A type alias to make our signatures more concise.  This type is a record in
 -- which every field refers to an R SEXP (over some state s), the lm model for
 -- the benchmark data for the relevant builtin.
@@ -102,6 +103,9 @@ data TestDomain
   = Everywhere
   | OnDiagonal
   | BelowDiagonal
+  -- Small values for integer division builtins with quadratic costing functions; we want
+  -- to keep away from the regions where the floor comes into play.
+  | BelowDiagonal'
 
 -- Approximate equality
 (~=) :: CostingInteger -> CostingInteger -> Bool
@@ -198,10 +202,12 @@ testPredictTwo costingFunH modelR domain = propertyR $
         coerce $ exBudgetCPU $ sumExBudgetStream $
         runCostingFunTwoArguments costingFunH (ExM x) (ExM y)
       sizeGen = case domain of
-                  Everywhere    -> twoArgs
-                  OnDiagonal    -> memUsageGen >>= \x -> pure (x,x)
-                  BelowDiagonal -> Gen.filter (uncurry (>=)) twoArgs
+                  Everywhere     -> twoArgs
+                  OnDiagonal     -> memUsageGen >>= \x -> pure (x,x)
+                  BelowDiagonal  -> Gen.filter (uncurry (>=)) twoArgs
+                  BelowDiagonal' -> Gen.filter (uncurry (>=)) twoArgs'
         where twoArgs = (,) <$> memUsageGen <*> memUsageGen
+              twoArgs' = (,) <$> memUsageGen40 <*> memUsageGen40
   in do
     (x, y) <- forAll sizeGen
     byR <- lift $ predictR x y
@@ -320,10 +326,10 @@ main =
               [ $(genTest 2 "addInteger")            Everywhere
               , $(genTest 2 "subtractInteger")       Everywhere
               , $(genTest 2 "multiplyInteger")       Everywhere
---            , $(genTest 2 "divideInteger")         BelowDiagonal
---            , $(genTest 2 "quotientInteger")       BelowDiagonal
---            , $(genTest 2 "remainderInteger")      BelowDiagonal
---            , $(genTest 2 "modInteger")            BelowDiagonal
+              , $(genTest 2 "divideInteger")         BelowDiagonal'
+              , $(genTest 2 "quotientInteger")       BelowDiagonal'
+              , $(genTest 2 "remainderInteger")      BelowDiagonal'
+              , $(genTest 2 "modInteger")            BelowDiagonal'
               , $(genTest 2 "lessThanInteger")       Everywhere
               , $(genTest 2 "lessThanEqualsInteger") Everywhere
               , $(genTest 2 "equalsInteger")         Everywhere
