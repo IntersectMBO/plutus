@@ -572,12 +572,14 @@ writeBits bs ixs bits = case unsafeDupablePerformIO . try $ go of
     go :: IO ByteString
     go = BS.useAsCString bs $ \srcPtr ->
           BSI.create len $
-            \dstPtr ->
-              let go2 (i:is) (v:vs) = setAtIx dstPtr i v *> go2 is vs
-                  go2 _ _           = pure ()
-              in do
+            \dstPtr -> do
                 copyBytes dstPtr (castPtr srcPtr) len
-                go2 ixs bits
+                go2 (setAtIx dstPtr) ixs bits
+      where go2 f (i:is) (v:vs) = f i v *> go2 f is vs
+            go2 _ _ _           = pure ()
+            {-# INLINEABLE go2 #-}
+    {-# INLINEABLE go #-}
+
     len :: Int
     len = BS.length bs
     bitLen :: Integer
