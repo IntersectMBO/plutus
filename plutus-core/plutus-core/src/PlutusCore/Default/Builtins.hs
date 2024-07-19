@@ -1940,7 +1940,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               -> ListCostedByLength Integer
               -> ListCostedByLength Bool
               -> BuiltinResult BS.ByteString
-            writeBitsDenotation s (ListCostedByLength ixs) (ListCostedByLength bits) = Bitwise.writeBitsWrapper s ixs bits
+            writeBitsDenotation s (ListCostedByLength ixs) (ListCostedByLength bits) = Bitwise.writeBits s ixs bits
             {-# INLINE writeBitsDenotation #-}
         in makeBuiltinMeaning
             writeBitsDenotation

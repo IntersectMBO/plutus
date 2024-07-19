@@ -12,7 +12,6 @@ module PlutusCore.Bitwise (
   byteStringToIntegerWrapper,
   shiftByteStringWrapper,
   rotateByteStringWrapper,
-  writeBitsWrapper,
   -- * Implementation details
   IntegerToByteStringError (..),
   integerToByteStringMaximumOutputLength,
@@ -357,12 +356,6 @@ byteStringToInteger statedByteOrder input = case statedByteOrder of
 
 endiannessArgToByteOrder :: Bool -> ByteOrder
 endiannessArgToByteOrder b = if b then BigEndian else LittleEndian
-
--- | Needed due to the complexities of passing lists of pairs as arguments.
--- Effectively, we pass the second argument as required by CIP-122 in its
--- \'unzipped\' form, truncating mismatches.
-writeBitsWrapper :: ByteString -> [Integer] -> [Bool] -> BuiltinResult ByteString
-writeBitsWrapper bs ixes = writeBits bs ixes
 
 {- Note [Binary bitwise operation implementation and manual specialization]
 
