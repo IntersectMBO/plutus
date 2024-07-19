@@ -107,12 +107,15 @@ mapTestLimit f =
           EarlyTermination c tests      -> EarlyTermination c $ f tests
       }
 
-{- | Set the number of times a property should be executed before it is considered
-successful, unless it's already higher than that.
+{- | Set the number of times a property should be executed before it is considered successful,
+unless it's already higher than that.
 -}
 withAtLeastTests :: TestLimit -> Property -> Property
 withAtLeastTests = mapTestLimit . max
 
+{- | Set the number of times a property should be executed before it is considered successful,
+unless the given function scales it higher than that.
+-}
 mapTestLimitAtLeast :: TestLimit -> (TestLimit -> TestLimit) -> Property -> Property
 mapTestLimitAtLeast n f = withAtLeastTests n . mapTestLimit f
 
