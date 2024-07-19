@@ -156,10 +156,6 @@ instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
     memoryUsage (a, b) = CostRose 1 [memoryUsage a, memoryUsage b]
     {-# INLINE memoryUsage #-}
 
-instance ExMemoryUsage (SomeTypeIn uni) where
-    memoryUsage _ = singletonRose 1
-    {-# INLINE memoryUsage #-}
-
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (ValueOf uni)) where
     memoryUsage (Some (ValueOf uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
     {-# INLINE memoryUsage #-}
