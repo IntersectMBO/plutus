@@ -65,7 +65,8 @@ getSet =
     b <- evaluateToHaskell lookupExp
     let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
           mkConstant @ByteString () bs,
-          mkConstant @[(Integer, Bool)] () [(i, b)]
+          mkConstant @[Integer] () [i],
+          mkConstant @[Bool] () [b]
           ]
     evaluatesToConstant bs lhs
 
@@ -79,7 +80,8 @@ setGet =
     b <- forAll Gen.bool
     let lhsInner = mkIterAppNoAnn (builtin () PLC.WriteBits) [
           mkConstant @ByteString () bs,
-          mkConstant @[(Integer, Bool)] () [(i, b)]
+          mkConstant @[Integer] () [i],
+          mkConstant @[Bool] () [b]
           ]
     let lhs = mkIterAppNoAnn (builtin () PLC.ReadBit) [
           lhsInner,
@@ -97,11 +99,13 @@ setSet =
     b2 <- forAll Gen.bool
     let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
           mkConstant @ByteString () bs,
-          mkConstant @[(Integer, Bool)] () [(i, b1), (i, b2)]
+          mkConstant @[Integer] () [i, i],
+          mkConstant @[Bool] () [b1, b2]
           ]
     let rhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
           mkConstant @ByteString () bs,
-          mkConstant @[(Integer, Bool)] () [(i, b2)]
+          mkConstant @[Integer] () [i],
+          mkConstant @[Bool] () [b2]
           ]
     evaluateTheSame lhs rhs
 
@@ -122,25 +126,29 @@ writeBitsHomomorphismLaws =
         bs <- forAllByteString 1 512
         let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
               mkConstant @ByteString () bs,
-              mkConstant @[(Integer, Bool)] () []
+              mkConstant @[Integer] () [],
+              mkConstant @[Bool] () []
               ]
         evaluatesToConstant bs lhs
       compositionProp :: Property
       compositionProp = property $ do
         bs <- forAllByteString 1 512
-        changelist1 <- forAllChangelistOf bs
-        changelist2 <- forAllChangelistOf bs
+        (ixes1, bits1) <- forAllChangelistsOf bs
+        (ixes2, bits2) <- forAllChangelistsOf bs
         let lhsInner = mkIterAppNoAnn (builtin () PLC.WriteBits) [
               mkConstant @ByteString () bs,
-              mkConstant @[(Integer, Bool)] () changelist1
+              mkConstant @[Integer] () ixes1,
+              mkConstant @[Bool] () bits1
               ]
         let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
               lhsInner,
-              mkConstant @[(Integer, Bool)] () changelist2
+              mkConstant @[Integer] () ixes2,
+              mkConstant @[Bool] () bits2
               ]
         let rhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
               mkConstant @ByteString () bs,
-              mkConstant @[(Integer, Bool)] () (changelist1 <> changelist2)
+              mkConstant @[Integer] () (ixes1 <> ixes2),
+              mkConstant @[Bool] () (bits1 <> bits2)
               ]
         evaluateTheSame lhs rhs
 
@@ -455,9 +463,12 @@ unitProp f isPadding unit = property $ do
 forAllIndexOf :: ByteString -> PropertyT IO Integer
 forAllIndexOf bs = forAll . Gen.integral . Range.linear 0 . fromIntegral $ BS.length bs * 8 - 1
 
-forAllChangelistOf :: ByteString -> PropertyT IO [(Integer, Bool)]
-forAllChangelistOf bs =
-  forAll . Gen.list (Range.linear 0 (8 * len - 1)) $ (,) <$> genIndex <*> Gen.bool
+forAllChangelistsOf :: ByteString -> PropertyT IO ([Integer], [Bool])
+forAllChangelistsOf bs = do
+  ourLen :: Int <- forAll . Gen.integral . Range.linear 0 $ 8 * len - 1
+  ixes <- forAll . Gen.list (Range.singleton ourLen) $ genIndex
+  bits <- forAll . Gen.list (Range.singleton ourLen) $ Gen.bool
+  pure (ixes, bits)
   where
     len :: Int
     len = BS.length bs

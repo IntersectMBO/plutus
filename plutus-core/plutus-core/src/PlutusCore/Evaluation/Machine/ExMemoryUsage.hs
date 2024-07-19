@@ -240,15 +240,25 @@ instance ExMemoryUsage BS.ByteString where
     {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage T.Text where
-    -- This is slow and inaccurate, but matches the version that was originally deployed.
-    -- We may try and improve this in future so long as the new version matches this exactly.
-    memoryUsage text = memoryUsage $ T.unpack text
+    -- This says that @Text@ allocates 1 'CostingInteger' worth of memory (i.e. 8 bytes) per
+    -- character, which is a conservative overestimate (i.e. is safe) regardless of whether @Text@
+    -- is UTF16-based (like it used to when we implemented this instance) or UTF8-based (like it is
+    -- now).
+    --
+    -- Note that the @ExMemoryUsage Char@ instance does not affect this one, this is for performance
+    -- reasons, since @T.length@ is O(1) unlike @sum . map (memoryUsage @Char) . T.unpack@. We used
+    -- to have the latter, but changed it to the former for easy performance gains.
+    --
+    -- We may want to make this a bit less of an overestimate in future just not to overcharge
+    -- users.
+    memoryUsage = singletonRose . fromIntegral . T.length
     {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
     memoryUsage _ = singletonRose 1
     {-# INLINE memoryUsage #-}
 
+-- If you ever change this, also change @ExMemoryUsage T.Text@.
 instance ExMemoryUsage Char where
     memoryUsage _ = singletonRose 1
     {-# INLINE memoryUsage #-}
@@ -257,8 +267,24 @@ instance ExMemoryUsage Bool where
     memoryUsage _ = singletonRose 1
     {-# INLINE memoryUsage #-}
 
+-- | Add two 'CostRose's. We don't make this into a 'Semigroup' instance, because there exist
+-- different ways to add two 'CostRose's (e.g. we could optimize the case when one of the roses
+-- contains only one element or we can make the function lazy in the second argument). Here we chose
+-- the version that is most efficient when the first argument is a statically known constant (we
+-- didn't do any benchmarking though, so it may not be the most efficient one) as we need this
+-- below.
+addConstantRose :: CostRose -> CostRose -> CostRose
+addConstantRose (CostRose cost1 forest1) (CostRose cost2 forest2) =
+    CostRose (cost1 + cost2) (forest1 ++ forest2)
+{-# INLINE addConstantRose #-}
+
 instance ExMemoryUsage a => ExMemoryUsage [a] where
-    memoryUsage = CostRose 0 . map memoryUsage
+    memoryUsage = CostRose nilCost . map (addConstantRose consRose . memoryUsage) where
+        -- As per https://wiki.haskell.org/GHC/Memory_Footprint
+        nilCost = 1
+        {-# INLINE nilCost #-}
+        consRose = singletonRose 3
+        {-# INLINE consRose #-}
     {-# INLINE memoryUsage #-}
 
 {- Another naive traversal for size.  This accounts for the number of nodes in
@@ -279,28 +305,16 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
 -}
 instance ExMemoryUsage Data where
     memoryUsage = sizeData where
-        -- The cost of each node of the 'Data' object (in addition to the cost of its content).
-        nodeMem = singletonRose 4
-        {-# INLINE nodeMem #-}
+        dataNodeRose = singletonRose 4
+        {-# INLINE dataNodeRose #-}
 
-        -- Add two 'CostRose's. We don't make this into a 'Semigroup' instance, because there exist
-        -- different ways to add two 'CostRose's (e.g. we could optimize the case when one of the
-        -- roses contains only one element or we can make the function lazy in the second argument).
-        -- Here we chose the version that is most efficient when the first argument is @nodeMem@ (we
-        -- didn't do any benchmarking though, so it may not be the most efficient one) -- we don't
-        -- have any other cases.
-        combine (CostRose cost1 forest1) (CostRose cost2 forest2) =
-            CostRose (cost1 + cost2) (forest1 ++ forest2)
-        {-# INLINE combine #-}
-
-        sizeData d = combine nodeMem $ case d of
-            -- TODO: include the size of the tag, but not just yet.  See SCP-3677.
+        sizeData d = addConstantRose dataNodeRose $ case d of
+            -- TODO: include the size of the tag, but not just yet. See PLT-1176.
             Constr _ l -> CostRose 0 $ l <&> sizeData
             Map l      -> CostRose 0 $ l >>= \(d1, d2) -> [d1, d2] <&> sizeData
             List l     -> CostRose 0 $ l <&> sizeData
             I n        -> memoryUsage n
             B b        -> memoryUsage b
-
 
 {- Note [Costing constant-size types]
 The memory usage of each of the BLS12-381 types is constant, so we may be able

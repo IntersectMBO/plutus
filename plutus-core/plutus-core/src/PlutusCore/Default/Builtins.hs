@@ -1481,7 +1481,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunThreeArguments . paramChooseList)
 
     toBuiltinMeaning _semvar MkCons =
-
         let mkConsDenotation
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             mkConsDenotation
@@ -1936,13 +1935,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramReadBit)
 
     toBuiltinMeaning _semvar WriteBits =
-        let writeBitsDenotation :: BS.ByteString -> ListCostedByLength (Integer, Bool) -> BuiltinResult BS.ByteString
-            writeBitsDenotation s (ListCostedByLength updates) = Bitwise.writeBits s updates
+        let writeBitsDenotation
+              :: BS.ByteString
+              -> ListCostedByLength Integer
+              -> ListCostedByLength Bool
+              -> BuiltinResult BS.ByteString
+            writeBitsDenotation s (ListCostedByLength ixs) (ListCostedByLength bits) = Bitwise.writeBitsWrapper s ixs bits
             {-# INLINE writeBitsDenotation #-}
         in makeBuiltinMeaning
             writeBitsDenotation
             (runCostingFunTwoArguments . paramWriteBits)
-
     toBuiltinMeaning _semvar ReplicateByte =
         let replicateByteDenotation :: NumBytesCostedAsNumWords -> Word8 -> BuiltinResult BS.ByteString
             replicateByteDenotation (NumBytesCostedAsNumWords n) w = Bitwise.replicateByte n w
