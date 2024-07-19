@@ -43,7 +43,7 @@ import Data.Bits qualified as Bits
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Internal qualified as BSI
-import Data.Foldable (for_, traverse_)
+import Data.Foldable (for_)
 import Data.Text (pack)
 import Data.Word (Word64, Word8)
 import Foreign.Marshal.Utils (copyBytes, fillBytes)
@@ -362,7 +362,7 @@ endiannessArgToByteOrder b = if b then BigEndian else LittleEndian
 -- Effectively, we pass the second argument as required by CIP-122 in its
 -- \'unzipped\' form, truncating mismatches.
 writeBitsWrapper :: ByteString -> [Integer] -> [Bool] -> BuiltinResult ByteString
-writeBitsWrapper bs ixes = writeBits bs . zip ixes
+writeBitsWrapper bs ixes = writeBits bs ixes
 
 {- Note [Binary bitwise operation implementation and manual specialization]
 
@@ -566,8 +566,8 @@ readBit bs ix
 
 -- | Bulk bit write, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 {-# INLINEABLE writeBits #-}
-writeBits :: ByteString -> [(Integer, Bool)] -> BuiltinResult ByteString
-writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
+writeBits :: ByteString -> [Integer] -> [Bool] -> BuiltinResult ByteString
+writeBits bs ixs bits = case unsafeDupablePerformIO . try $ go of
   Left (WriteBitsException i) -> do
     emit "writeBits: index out of bounds"
     emit $ "Index: " <> (pack . show $ i)
@@ -578,15 +578,19 @@ writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
     -- exceptions], which covers why we did this.
     go :: IO ByteString
     go = BS.useAsCString bs $ \srcPtr ->
-          BSI.create len $ \dstPtr -> do
-            copyBytes dstPtr (castPtr srcPtr) len
-            traverse_ (setAtIx dstPtr) changelist
+          BSI.create len $
+            \dstPtr ->
+              let go2 (i:is) (v:vs) = setAtIx dstPtr i v *> go2 is vs
+                  go2 _ _           = pure ()
+              in do
+                copyBytes dstPtr (castPtr srcPtr) len
+                go2 ixs bits
     len :: Int
     len = BS.length bs
     bitLen :: Integer
     bitLen = fromIntegral len * 8
-    setAtIx :: Ptr Word8 -> (Integer, Bool) -> IO ()
-    setAtIx ptr (i, b)
+    setAtIx :: Ptr Word8 -> Integer -> Bool -> IO ()
+    setAtIx ptr i b
       | i < 0 = throw $ WriteBitsException i
       | i >= bitLen = throw $ WriteBitsException i
       | otherwise = do
