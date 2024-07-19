@@ -127,32 +127,39 @@ benchReadBit =
   let xs = makeSample seedA
   in createTwoTermBuiltinBenchElementwise ReadBit [] $ pairWith topBitIndex xs
 
-{- Benchmarks show that the time taken by `writeBits` depends mostly on the size
-   of the list of updates, although it may take a little longer to write bits
-   with larger indices.  We run benchmarks involving increasing numbers of
-   updates to 1024-byte bytestrings, always writing the highest-indexed bit to
-   take account of this.  We use a fresh bytestring for each set of updates.
+{- The `writeBits` function takes a bytestring, a list of positions to write to,
+   and a list of True/False values to write at those positions.  It behaves like
+   `zip` in that if the two lists are of different lengths, the trailing
+   elements of the longer list are ignored.  Because of this we only run
+   benchmarks with lists of equal length because in the general case the time
+   taken will depend only on the length of the smaller list and there's nothing
+   to be gained by traversing a two-dimensional space of inputs.  Moreover,
+   benchmarks show that the time taken by `writeBits` depends mostly on the
+   number of updates (and not on the length of the bytestring), although it may
+   take a little longer to write bits with larger indices.  We run benchmarks
+   involving increasing numbers of updates to 1024-byte bytestrings, always
+   writing the highest-indexed bit to take account of this.  We use a fresh
+   bytestring for each set of updates.
 -}
 benchWriteBits :: Benchmark
 benchWriteBits =
-  let fun = WriteBits
-      size = 128  -- This is equal to length 1024.
-      xs = makeSizedByteStrings seedA $ take numSamples $ repeat size
-      l = zip xs [1..numSamples]
-      -- Given a bytestring s and an integer k, return a pair (s,u) where u is a
-      -- list of updates which write the highest bit in s 10*k times.  Here k
-      -- will range from 1 to numSamples, which is 150.
-      mkUpdatesFor (s,k) =
-        let topIndex = topBitIndex s
-            updates = take (10*k) $ cycle [(topIndex, False), (topIndex, True)]
-        in (s, updates)
-      inputs = fmap mkUpdatesFor l
-      mkBM x y = benchDefault (showMemoryUsage (ListCostedByLength y)) $ mkApp2 fun [] x y
-  in bgroup (show fun) $ fmap(\(s,u) -> bgroup (showMemoryUsage s) $ [mkBM s u]) inputs
-  {- This is like createTwoTermBuiltinBenchElementwise except that the benchmark name contains
-   the length of the list of updates, not the memory usage.  The denotation of WriteBits
-   in Default.Builtins must wrap its second argument in ListCostedByLength to make sure
-   that the correct ExMemoryUsage instance is called for costing. -}
+  let size = 128  -- This is equal to length 1024.
+      xs = makeSizedByteStrings seedA $ replicate numSamples size
+      updateCounts = [1..numSamples]
+      positions = zipWith (\x n -> replicate (10*n) (topBitIndex x)) xs updateCounts
+      -- Given an integer k, return a list of updates which write a bit 10*k
+      -- times.  Here k will range from 1 to numSamples, which is 150.
+      mkUpdatesFor k = take (10*k) $ cycle [False, True]
+      updates = fmap mkUpdatesFor updateCounts
+      inputs = zip3 xs positions updates
+  in createThreeTermBuiltinBenchElementwiseWithWrappers
+       (id, ListCostedByLength, ListCostedByLength)
+       WriteBits [] inputs
+  {- This is like createThreeTermBuiltinBenchElementwise except that the benchmark
+   name contains the length of the list of updates, not the memory usage.  The
+   denotation of WriteBits in Default.Builtins must wrap its second and third
+   arguments in ListCostedByLength to make sure that the correct ExMemoryUsage
+   instance is called for costing. -}
 
 {- For small inputs `replicateByte` looks constant-time.  For larger inputs it's
    linear.  We're limiting the output to 8192 bytes (size 1024), so we may as

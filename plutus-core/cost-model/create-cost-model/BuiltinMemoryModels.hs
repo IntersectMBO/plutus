@@ -157,7 +157,7 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramXorByteString                   = Id $ ModelThreeArgumentsLinearInMaxYZ identityFunction
   , paramComplementByteString            = Id $ ModelOneArgumentLinearInX identityFunction
   , paramReadBit                         = Id $ ModelTwoArgumentsConstantCost 1
-  , paramWriteBits                       = Id $ ModelTwoArgumentsLinearInX identityFunction
+  , paramWriteBits                       = Id $ ModelThreeArgumentsLinearInX identityFunction
   -- The empty bytestring has memory usage 1, so we add an extra memory unit here to make sure that
   -- the memory cost of `replicateByte` is always nonzero. That means that we're charging one unit
   -- ore than we perhaps should for nonempty bytestrings, but that's negligible (plus there's some

@@ -254,7 +254,7 @@ createBuiltinCostModel bmfile rfile = do
   paramXorByteString                   <- getParams readCF3 paramXorByteString
   paramComplementByteString            <- getParams readCF1 paramComplementByteString
   paramReadBit                         <- getParams readCF2 paramReadBit
-  paramWriteBits                       <- getParams readCF2 paramWriteBits
+  paramWriteBits                       <- getParams readCF3 paramWriteBits
   paramReplicateByte                   <- getParams readCF2 paramReplicateByte
   paramShiftByteString                 <- getParams readCF2 paramShiftByteString
   paramRotateByteString                <- getParams readCF2 paramRotateByteString

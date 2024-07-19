@@ -174,7 +174,7 @@ data BuiltinCostModelBase f =
     , paramXorByteString                   :: f ModelThreeArguments
     , paramComplementByteString            :: f ModelOneArgument
     , paramReadBit                         :: f ModelTwoArguments
-    , paramWriteBits                       :: f ModelTwoArguments
+    , paramWriteBits                       :: f ModelThreeArguments
     , paramReplicateByte                   :: f ModelTwoArguments
     , paramShiftByteString                 :: f ModelTwoArguments
     , paramRotateByteString                :: f ModelTwoArguments
