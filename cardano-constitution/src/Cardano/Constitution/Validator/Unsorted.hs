@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Strict            #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
@@ -7,6 +8,8 @@
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.1.0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:remove-trace #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+
 module Cardano.Constitution.Validator.Unsorted
     ( constitutionValidator
     , defaultConstitutionValidator
@@ -30,8 +33,18 @@ validateParam :: ConstitutionConfig -> (BuiltinData, BuiltinData) -> Bool
 validateParam (ConstitutionConfig cfg) (B.unsafeDataAsI -> actualPid, actualValueData) =
     Common.validateParamValue
       -- If param not found, it will error
-      (Common.lookupUnsafe actualPid cfg)
+      (lookupUnsafe actualPid cfg)
       actualValueData
+
+{-# INLINEABLE lookupUnsafe #-}
+-- | An unsafe version of PlutusTx.AssocMap.lookup, specialised to Integer keys
+lookupUnsafe :: Integer -> [(Integer, v)] -> v
+lookupUnsafe k = go
+ where
+   go [] = traceError "Unsorted lookup failed"
+   go ((k', i) : xs') = if k `B.equalsInteger` k'
+                        then i
+                        else go xs'
 
 -- | Statically configure the validator with the `defaultConstitutionConfig`.
 defaultConstitutionValidator :: ConstitutionValidator

@@ -25,7 +25,7 @@ assertSucceeded t =
     case runTermCek t of
         (Right _, _)  -> pure ()
         (Left err, logs) -> assertFailure . Text.unpack . Text.intercalate "\n" $
-            [ render (prettyPlcClassicDebug err)
+            [ render (prettyPlcClassicSimple err)
             , "Cek logs:"
             ] ++ logs
 

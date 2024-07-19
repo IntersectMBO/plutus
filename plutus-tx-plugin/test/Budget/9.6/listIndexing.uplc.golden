@@ -1,21 +1,21 @@
-program
-  1.1.0
-  ((\go xs -> go 5 xs)
-     ((\s -> s s)
-        (\s ds ds ->
-           force
-             (case
-                ds
-                [ (delay error)
-                , (\x xs ->
-                     delay
-                       (force
-                          (force
-                             (force ifThenElse
-                                (equalsInteger 0 ds)
-                                (delay (delay x))
-                                (delay
-                                   (delay
-                                      ((\x -> s s x)
-                                         (subtractInteger ds 1)
-                                         xs))))))) ]))))
+(program
+   1.1.0
+   ((\go xs -> go 5 xs)
+      ((\s -> s s)
+         (\s ds ds ->
+            force
+              (case
+                 ds
+                 [ (delay error)
+                 , (\x xs ->
+                      delay
+                        (force
+                           (force
+                              (force ifThenElse
+                                 (equalsInteger 0 ds)
+                                 (delay (delay x))
+                                 (delay
+                                    (delay
+                                       ((\x -> s s x)
+                                          (subtractInteger ds 1)
+                                          xs))))))) ])))))

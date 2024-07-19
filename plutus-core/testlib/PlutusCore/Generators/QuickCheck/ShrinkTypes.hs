@@ -235,9 +235,9 @@ shrinkKindAndType ctx (k0, ty) =
           | b' <- shrinkType (Map.insert x ka ctx) b
           ]
         ]
-    TyBuiltin _ builtin ->
+    TyBuiltin _ someUni ->
         [ (kindOfBuiltinType uni', TyBuiltin () $ SomeTypeIn uni')
-        | SomeTypeIn uni' <- shrinkBuiltinType builtin
+        | SomeTypeIn uni' <- shrinkBuiltinType someUni
         ]
     TyIFix _ pat arg  -> map (Type (), ) $ concat
         [ [ fixKind ctx pat $ Type ()

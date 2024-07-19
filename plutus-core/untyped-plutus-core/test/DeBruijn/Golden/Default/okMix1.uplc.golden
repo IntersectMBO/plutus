@@ -1,42 +1,34 @@
 (Right (program
   1.1.0
   (lam
-    i_0
+    i
     (lam
-      i_1
+      i
       (lam
-        i_2
+        i
         (lam
-          i_3
+          i
           (lam
-            i_4
+            i
             (lam
-              i_5
+              i
               (lam
-                i_6
+                i
                 (lam
-                  i_7
+                  i
                   (lam
-                    i_8
+                    i
                     (lam
-                      i_9
+                      i
                       (lam
-                        i_10
+                        i
                         (lam
-                          i_11
+                          i
                           (lam
-                            i_12
+                            i
                             (lam
-                              i_13
-                              (lam
-                                i_14
-                                (lam
-                                  i_15
-                                  (lam
-                                    i_16 (lam i_17 (lam i_18 (lam i_19 i_0)))
-                                  )
-                                )
-                              )
+                              i
+                              (lam i (lam i (lam i (lam i (lam i (lam i i))))))
                             )
                           )
                         )

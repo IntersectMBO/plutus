@@ -1,5 +1,5 @@
 letrec
-  !x_0 : integer = error {integer}
-  ~y_1 : integer = x_0
+  !x : integer = error {integer}
+  ~y : integer = x
 in
 1

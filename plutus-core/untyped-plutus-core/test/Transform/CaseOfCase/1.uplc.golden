@@ -1,7 +1,7 @@
 (force
   [
     [
-      [ (force (builtin ifThenElse)) b_0 ]
+      [ (force (builtin ifThenElse)) b ]
       (delay (case (constr 0) (con integer 1) (con integer 2)))
     ]
     (delay (case (constr 1) (con integer 1) (con integer 2)))

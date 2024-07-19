@@ -510,7 +510,7 @@ instance Show IndicesLengthsMismatchException where
     show (IndicesLengthsMismatchException expected actual tyName) = concat
         [ "Wrong number of elements\n"
         , "expected: ", show expected, " , actual: ", show actual, "\n"
-        , "while constructing a ", displayPlcDef tyName
+        , "while constructing a ", displayPlc tyName
         ]
 
 -- | Get the kind of a data type having the kinds of its arguments.

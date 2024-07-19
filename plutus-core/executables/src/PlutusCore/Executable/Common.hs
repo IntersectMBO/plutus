@@ -180,7 +180,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
                 putStrLn ""
                 putStrLn $ "Total builtin costs:   " ++ budgetToString totalBuiltinCosts
                 printf "Time spent executing builtins:  %4.2f%%\n"
-                        (100 * (getCPU totalBuiltinCosts) / (getCPU totalCost))
+                        (100 * getCPU totalBuiltinCosts / getCPU totalCost)
                 putStrLn ""
                 putStrLn $ "Total budget spent:    " ++ printf (budgetToString totalCost)
                 putStrLn $ "Predicted execution time: "
@@ -316,7 +316,7 @@ writeFlat ::
 writeFlat outp flatMode prog = do
     -- ASTs are always serialised with unit annotations to save space: `flat`
     -- does not need any space to serialise ().
-    let flatProg = serialiseProgramFlat flatMode (() <$ prog)
+    let flatProg = serialiseProgramFlat flatMode (void prog)
     case outp of
         FileOutput file -> BSL.writeFile file flatProg
         StdOutput       -> BSL.putStr flatProg
@@ -327,10 +327,10 @@ writeFlat outp flatMode prog = do
 getPrintMethod ::
     PP.PrettyPlc a => PrintMode -> (a -> Doc ann)
 getPrintMethod = \case
-    Classic       -> PP.prettyPlcClassicDef
-    Debug         -> PP.prettyPlcClassicDebug
-    Readable      -> PP.prettyPlcReadableDef
-    ReadableDebug -> PP.prettyPlcReadableDebug
+    Classic        -> PP.prettyPlcClassic
+    Simple         -> PP.prettyPlcClassicSimple
+    Readable       -> PP.prettyPlcReadable
+    ReadableSimple -> PP.prettyPlcReadableSimple
 
 writeProgram ::
     ( ProgramLike p
@@ -380,20 +380,20 @@ data SomeExample = SomeTypedExample SomeTypedExample | SomeUntypedExample SomeUn
 
 prettySignature :: ExampleName -> SomeExample -> Doc ann
 prettySignature name (SomeTypedExample (SomeTypeExample (TypeExample kind _))) =
-    pretty name <+> "::" <+> PP.prettyPlcDef kind
+    pretty name <+> "::" <+> PP.prettyPlc kind
 prettySignature name (SomeTypedExample (SomeTypedTermExample (TypedTermExample ty _))) =
-    pretty name <+> ":" <+> PP.prettyPlcDef ty
+    pretty name <+> ":" <+> PP.prettyPlc ty
 prettySignature name (SomeUntypedExample _) =
     pretty name
 
 prettyExample :: SomeExample -> Doc ann
 prettyExample =
     \case
-        SomeTypedExample (SomeTypeExample (TypeExample _ ty)) -> PP.prettyPlcDef ty
+        SomeTypedExample (SomeTypeExample (TypeExample _ ty)) -> PP.prettyPlc ty
         SomeTypedExample (SomeTypedTermExample (TypedTermExample _ term)) ->
-            PP.prettyPlcDef $ PLC.Program () PLC.latestVersion term
+            PP.prettyPlc $ PLC.Program () PLC.latestVersion term
         SomeUntypedExample (SomeUntypedTermExample (UntypedTermExample term)) ->
-            PP.prettyPlcDef $ UPLC.Program () PLC.latestVersion term
+            PP.prettyPlc $ UPLC.Program () PLC.latestVersion term
 
 toTypedTermExample ::
     PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun () -> TypedTermExample
@@ -405,7 +405,7 @@ toTypedTermExample term = TypedTermExample ty term
         PLC.inferTypeOfProgram tcConfig program
     ty = case errOrTy of
         Left (err :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
-            error $ PP.displayPlcDef err
+            error $ PP.displayPlc err
         Right vTy -> PLC.unNormalized vTy
 
 getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ())]

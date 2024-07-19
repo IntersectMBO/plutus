@@ -717,7 +717,7 @@ shiftByteString ::
   BuiltinInteger ->
   BuiltinByteString
 shiftByteString (BuiltinByteString bs) =
-  BuiltinByteString . Bitwise.shiftByteString bs . fromIntegral
+  BuiltinByteString . Bitwise.shiftByteStringWrapper bs
 
 {-# NOINLINE rotateByteString #-}
 rotateByteString ::
@@ -725,7 +725,7 @@ rotateByteString ::
   BuiltinInteger ->
   BuiltinByteString
 rotateByteString (BuiltinByteString bs) =
-  BuiltinByteString . Bitwise.rotateByteString bs . fromIntegral
+  BuiltinByteString . Bitwise.rotateByteStringWrapper bs
 
 {-# NOINLINE countSetBits #-}
 countSetBits ::
@@ -793,15 +793,15 @@ readBit (BuiltinByteString bs) i =
 {-# NOINLINE writeBits #-}
 writeBits ::
   BuiltinByteString ->
-  BuiltinList (BuiltinPair BuiltinInteger BuiltinBool) ->
+  BuiltinList BuiltinInteger ->
+  BuiltinList BuiltinBool ->
   BuiltinByteString
-writeBits (BuiltinByteString bs) (BuiltinList xs) =
-  let unwrapped = fmap (\(BuiltinPair (i, BuiltinBool b)) -> (i, b)) xs in
-    case Bitwise.writeBits bs unwrapped of
-      BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
-        Haskell.error "writeBits errored."
-      BuiltinSuccess bs' -> BuiltinByteString bs'
-      BuiltinSuccessWithLogs logs bs' -> traceAll logs $ BuiltinByteString bs'
+writeBits (BuiltinByteString bs) (BuiltinList ixes) (BuiltinList bits) =
+  case Bitwise.writeBitsWrapper bs ixes (fmap (\(BuiltinBool b) -> b) bits) of
+    BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
+      Haskell.error "writeBits errored."
+    BuiltinSuccess bs' -> BuiltinByteString bs'
+    BuiltinSuccessWithLogs logs bs' -> traceAll logs $ BuiltinByteString bs'
 
 {-# NOINLINE replicateByte #-}
 replicateByte ::

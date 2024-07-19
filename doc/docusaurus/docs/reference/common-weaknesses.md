@@ -54,9 +54,9 @@ Any application that makes payments to specific parties needs to ensure that tho
 ### Solutions
 
 It's possible that a solution will be developed that makes this weakness easier to avoid. 
-In the mean time, there are workarounds that developers can use.
+In the meantime, there are workarounds that developers can use.
 
-- **Unique outputs**
+#### **Unique outputs**
 
 The simplest workaround is to ensure that the outputs which your scripts care about are unique. 
 This prevents them being confused with other outputs.
@@ -67,7 +67,7 @@ It is not too difficult to use unique outputs.
 For payments to users, wallets typically already generate unique key hashes for every payment received. 
 For payments to script addresses it is a bit more complicated, and applications may wish to include the equivalent of a "payment reference" in the datum to keep things unique.
 
-- **Ban other scripts**
+#### **Ban other scripts**
 
 A more draconian workaround is for your script to insist that it runs in a transaction which is running no other scripts, so there is no risk of confusion. 
 Note that it is not enough to consider just validator scripts, minting and reward scripts must also be banned.
@@ -117,12 +117,12 @@ Script size should not itself be a risk (since scripts and their sizes should ge
 
 In the long run, hard limits may be increased, removed, or turned into soft limits.
 
-In the mean time, there are some approaches that developers can use to reduce the risk.
+In the meantime, there are some approaches that developers can use to reduce the risk.
 
 - **Careful testing**
 
 It is important to test as many of the execution paths of your application as possible. 
-This is important for correctness, but also to ensure that there are not unexpected cases where script resource usage spikes.
+This is important for correctness, but also to ensure that there are no unexpected cases where script resource usage spikes.
 
 - **Bounding data usage**
 

@@ -111,7 +111,7 @@ toBuiltinMeaning
     -> BuiltinMeaning val (CostingPart uni fun)
 ```
 
-i.e. in order to construct a `BuiltinMeaning` one needs not only a built-in function, but also a semantics variant (a "version") of the set of built-in functions. You can read more about versioning of builtins and everything else in [CIP-35](https://cips.cardano.org/cips/cip35) and in Chapter 4 of the Plutus Core [specification](https://intersectmbo.github.io/plutus/resources/plutus-core-spec.pdf#page=8).
+i.e. in order to construct a `BuiltinMeaning` one needs not only a built-in function, but also a semantics variant (a "version") of the set of built-in functions. You can read more about versioning of builtins and everything else in [CIP-35](https://cips.cardano.org/cips/cip35) and in Chapter 4 of the Plutus Core [specification](https://plutus.cardano.intersectmbo.org/resources/plutus-core-spec.pdf#page=8).
 
 We do not construct `BuiltinMeaning`s manually, because that would be extremely laborious. Instead, we use an auxiliary function that does the heavy lifting for us. Here's its type signature with a few lines of constraints omitted for clarity:
 

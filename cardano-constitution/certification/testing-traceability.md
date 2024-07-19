@@ -2,7 +2,7 @@
 
 # Version
 
-Version: 1.1
+Version: 1.2
 
 ## Authors 
 
@@ -21,16 +21,16 @@ Romain Soulat (romain.soulat@iohk.io)
 |---|---|---|---|
 | 1.0 | April, 30, 2024 | Bogdan Manole, Romain Soulat | Initial version |
 | 1.1 | May, 14, 2024 | Romain Soulat | Update to May 07 version of the Constitution |
+| 1.2 | July, 04, 2024 | Romain Soulat | Changed parameter 33 to new type, updated the documents versions |
 
 ## References
 
-- [Constitution](https://docs.google.com/document/d/1GwI_6qzfTa5V_BeEY4f-rZNhbfA8lXon)
-  - SHA 256: `XX`
-  - Date: May, 14, 2024 (latest)
+- Interim Constitution
+  - SHA 256: `6010c89fb4edef2467979db5ea181ff7eda7d93d71bf304aa1bc88defedb5c26`
+  - URL: <https://raw.githubusercontent.com/IntersectMBO/interim-constitution/main/cardano-constitution-0.txt>
 
-- Testing Framework
-  - Old constitution repo Commit: c422981
-  - Date: May, 15, 2024 
+- [Testing Framework](https://github.com/IntersectMBO/constitution-priv/tree/d62d2cc5ab90356a36cd4fd1c3c0146a381c2e6a)
+  - Date: July, 04, 2024
 
 ## Traceability
 
@@ -147,8 +147,8 @@ The script assumes all the guarantees provided by the ledger rules and types.
 
 |Guardrail ID | Checkable | Checked by (if applicable)|Validation |
 |---|:---:|---|:---:|
-| MFRS-01 | :white_check_mark: | ("MFRS-01", "minFeeRefScriptCoinsPerByte must not exceed 1,000 (0.001 ada)") `MustNotBe` NG 1_000 | :white_check_mark: |
-| MFRS-02 | :white_check_mark: | ("MFRS-02", "minFeeRefScriptCoinsPerByte must not be negative") `MustNotBe` NL 0 | :white_check_mark: |
+| MFRS-01 | :white_check_mark: | ("MFRS-01", "minFeeRefScriptCoinsPerByte must not exceed 1,000 (0.001 ada)") `MustNotBe` NG (1_000 % 1) | :white_check_mark: |
+| MFRS-02 | :white_check_mark: | ("MFRS-02", "minFeeRefScriptCoinsPerByte must not be negative") `MustNotBe` NL (0 % 1) | :white_check_mark: |
 | MFRS-03 | :x: | | :white_check_mark: |
 | MFRS-04 | :x: | | :white_check_mark: |
 

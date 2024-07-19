@@ -1,11 +1,17 @@
 # This workflow builds and publishes the Haddock site to:
-# https://intersectmbo.github.io/plutus/haddock/$version
+# https://plutus.cardano.intersectmbo.org/haddock/$version
 # And optionally to:
-# https://intersectmbo.github.io/plutus/haddock/latest
+# https://plutus.cardano.intersectmbo.org/haddock/latest
+# On push to master, this workflows publishes to:
+# https://plutus.cardano.intersectmbo.org/haddock/master
 
 name: "📜 Haddock Site"
 
 on:
+  push: 
+    branches:
+      - master
+      
   workflow_dispatch:
     inputs:
       ref:
@@ -19,14 +25,14 @@ on:
       destination:
         description: |
           The $destination folder, e.g. when "1.29.0.0" the haddock will be deploy to:
-          https://intersectmbo.github.io/plutus/haddock/1.29.0.0
+          https://plutus.cardano.intersectmbo.org/haddock/1.29.0.0
         required: true
         type: string
   
       latest: 
         description: |
           If true, then the haddock site will also be deploy to:
-          https://intersectmbo.github.io/plutus/haddock/latest.
+          https://plutus.cardano.intersectmbo.org/haddock/latest.
           You want to leave this to true unless you are deploying old versions or back-porting.
         type: boolean
         required: true 
@@ -44,22 +50,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.ref || github.ref_name }}
 
+      - name: Checkout Haddock Script
+        run: | 
+          git fetch origin master
+          git checkout origin/master ./scripts/combined-haddock.sh
+            
       - name: Build Site
         run: | 
           nix develop --no-warn-dirty --accept-flake-config --command ./scripts/combined-haddock.sh _haddock all
 
       - name: Deploy Site
-        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        uses: JamesIves/github-pages-deploy-action@v4.6.3
         with:
           folder: _haddock
-          target-folder: haddock/${{ inputs.destination }}
+          target-folder: haddock/${{ inputs.destination || github.ref_name }}
           single-commit: true
  
       - name: Deploy Site (latest)
         if: ${{ inputs.latest == true }}
-        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        uses: JamesIves/github-pages-deploy-action@v4.6.3
         with:
           folder: _haddock
           target-folder: haddock/latest

@@ -1,110 +1,111 @@
-program
-  1.1.0
-  (\d ->
-     (\int1Manual ->
-        (\x ->
-           (\int2Manual ->
-              (\y ->
-                 (\int3Manual ->
-                    (\z ->
-                       (\int4Manual ->
-                          (\w ->
-                             (\lessThanInteger ->
-                                addInteger
-                                  (addInteger
-                                     (addInteger
-                                        (addInteger (addInteger x y) z)
-                                        w)
-                                     (force
-                                        (case
-                                           (lessThanInteger
-                                              (addInteger y z)
-                                              (addInteger x w))
-                                           [ (delay (addInteger x z))
-                                           , (delay (addInteger y w)) ])))
+(program
+   1.1.0
+   (\d ->
+      (\int1Manual ->
+         (\x ->
+            (\int2Manual ->
+               (\y ->
+                  (\int3Manual ->
+                     (\z ->
+                        (\int4Manual ->
+                           (\w ->
+                              (\lessThanInteger ->
+                                 addInteger
+                                   (addInteger
+                                      (addInteger
+                                         (addInteger (addInteger x y) z)
+                                         w)
+                                      (force
+                                         (case
+                                            (lessThanInteger
+                                               (addInteger y z)
+                                               (addInteger x w))
+                                            [ (delay (addInteger x z))
+                                            , (delay (addInteger y w)) ])))
+                                   (force
+                                      (case
+                                         (lessThanInteger
+                                            (addInteger
+                                               (int3Manual d)
+                                               (int2Manual d))
+                                            (addInteger
+                                               (int4Manual d)
+                                               (int1Manual d)))
+                                         [ (delay
+                                              (addInteger
+                                                 (int3Manual d)
+                                                 (int1Manual d)))
+                                         , (delay
+                                              (addInteger
+                                                 (int4Manual d)
+                                                 (int2Manual d))) ])))
+                                (\x y ->
+                                   force ifThenElse
+                                     (lessThanInteger x y)
+                                     (constr 0 [])
+                                     (constr 1 [])))
+                             (int4Manual d))
+                          (\ds ->
+                             (\tup ->
+                                (\i ->
+                                   (\d ->
+                                      force
+                                        (force
+                                           (force ifThenElse
+                                              (equalsInteger 0 i)
+                                              (delay (delay (unIData d)))
+                                              (delay (delay error)))))
+                                     (force headList
+                                        (force tailList
+                                           (force tailList
+                                              (force tailList
+                                                 (force (force sndPair)
+                                                    tup))))))
+                                  (force (force fstPair) tup))
+                               (unConstrData ds)))
+                       (int3Manual d))
+                    (\ds ->
+                       (\tup ->
+                          (\i ->
+                             (\d ->
+                                force
                                   (force
-                                     (case
-                                        (lessThanInteger
-                                           (addInteger
-                                              (int3Manual d)
-                                              (int2Manual d))
-                                           (addInteger
-                                              (int4Manual d)
-                                              (int1Manual d)))
-                                        [ (delay
-                                             (addInteger
-                                                (int3Manual d)
-                                                (int1Manual d)))
-                                        , (delay
-                                             (addInteger
-                                                (int4Manual d)
-                                                (int2Manual d))) ])))
-                               (\x y ->
-                                  force ifThenElse
-                                    (lessThanInteger x y)
-                                    (constr 0 [])
-                                    (constr 1 [])))
-                            (int4Manual d))
-                         (\ds ->
-                            (\tup ->
-                               (\i ->
-                                  (\d ->
-                                     force
-                                       (force
-                                          (force ifThenElse
-                                             (equalsInteger 0 i)
-                                             (delay (delay (unIData d)))
-                                             (delay (delay error)))))
-                                    (force headList
-                                       (force tailList
-                                          (force tailList
-                                             (force tailList
-                                                (force (force sndPair) tup))))))
-                                 (force (force fstPair) tup))
-                              (unConstrData ds)))
-                      (int3Manual d))
-                   (\ds ->
-                      (\tup ->
-                         (\i ->
-                            (\d ->
-                               force
-                                 (force
-                                    (force ifThenElse
-                                       (equalsInteger 0 i)
-                                       (delay (delay (unIData d)))
-                                       (delay (delay error)))))
-                              (force headList
-                                 (force tailList
-                                    (force tailList
-                                       (force (force sndPair) tup)))))
-                           (force (force fstPair) tup))
-                        (unConstrData ds)))
-                (int2Manual d))
-             (\ds ->
-                (\tup ->
-                   (\i ->
-                      (\d ->
-                         force
-                           (force
-                              (force ifThenElse
-                                 (equalsInteger 0 i)
-                                 (delay (delay (unIData d)))
-                                 (delay (delay error)))))
-                        (force headList
-                           (force tailList (force (force sndPair) tup))))
-                     (force (force fstPair) tup))
-                  (unConstrData ds)))
-          (int1Manual d))
-       (\ds ->
-          (\tup ->
-             (\i ->
-                (\d ->
-                   force
-                     (force
-                        (force ifThenElse
-                           (equalsInteger 0 i)
-                           (delay (delay (unIData d)))
-                           (delay (delay error)))))
-                  (force headList (force (force sndPair) tup)))
-               (force (force fstPair) tup))
-            (unConstrData ds)))
+                                     (force ifThenElse
+                                        (equalsInteger 0 i)
+                                        (delay (delay (unIData d)))
+                                        (delay (delay error)))))
+                               (force headList
+                                  (force tailList
+                                     (force tailList
+                                        (force (force sndPair) tup)))))
+                            (force (force fstPair) tup))
+                         (unConstrData ds)))
+                 (int2Manual d))
+              (\ds ->
+                 (\tup ->
+                    (\i ->
+                       (\d ->
+                          force
+                            (force
+                               (force ifThenElse
+                                  (equalsInteger 0 i)
+                                  (delay (delay (unIData d)))
+                                  (delay (delay error)))))
+                         (force headList
+                            (force tailList (force (force sndPair) tup))))
+                      (force (force fstPair) tup))
+                   (unConstrData ds)))
+           (int1Manual d))
+        (\ds ->
+           (\tup ->
+              (\i ->
+                 (\d ->
+                    force
+                      (force
+                         (force ifThenElse
+                            (equalsInteger 0 i)
+                            (delay (delay (unIData d)))
+                            (delay (delay error)))))
+                   (force headList (force (force sndPair) tup)))
+                (force (force fstPair) tup))
+             (unConstrData ds))))

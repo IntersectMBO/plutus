@@ -1,9 +1,9 @@
-program
-  1.1.0
-  (\m ->
-     force
-       (force
-          (force ifThenElse
-             (lessThanInteger m 0)
-             (delay (delay ((\cse -> addInteger cse cse) (error m))))
-             (delay (delay m)))))
+(program
+   1.1.0
+   (\m ->
+      force
+        (force
+           (force ifThenElse
+              (lessThanInteger m 0)
+              (delay (delay ((\cse -> addInteger cse cse) (error m))))
+              (delay (delay m))))))

@@ -1,219 +1,79 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl Animal (type))
-
-        Animal_match
-        (vardecl Cat Animal) (vardecl Dog Animal)
-      )
-    )
-    (datatypebind
-      (datatype
-        (tyvardecl Bool (type))
-
-        Bool_match
-        (vardecl True Bool) (vardecl False Bool)
-      )
-    )
-    (datatypebind
-      (datatype
-        (tyvardecl PersonLike (fun (type) (type)))
-        (tyvardecl a (type))
-        PersonLike_match
-        (vardecl
-          CConsPersonLike
-          (fun
-            (fun a (con integer))
-            (fun (fun a (fun Animal Bool)) [ PersonLike a ])
-          )
-        )
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl age (all a (type) (fun [ PersonLike a ] (fun a (con integer)))))
-      (abs
-        a
-        (type)
-        (lam
-          v
-          [ PersonLike a ]
-          [
-            { [ { PersonLike_match a } v ] (fun a (con integer)) }
-            (lam v (fun a (con integer)) (lam v (fun a (fun Animal Bool)) v))
-          ]
-        )
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl ifThenElse (all a (type) (fun (con bool) (fun a (fun a a)))))
-      (builtin ifThenElse)
-    )
-    (termbind
-      (strict)
-      (vardecl
-        lessThanInteger (fun (con integer) (fun (con integer) (con bool)))
-      )
-      (builtin lessThanInteger)
-    )
-    (termbind
-      (nonstrict)
-      (vardecl lessThanInteger (fun (con integer) (fun (con integer) Bool)))
-      (lam
-        x
-        (con integer)
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl x (con integer)) x)
-          (lam
-            y
-            (con integer)
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl y (con integer)) y)
-              (termbind
-                (strict) (vardecl b (con bool)) [ [ lessThanInteger x ] y ]
-              )
-              [ [ [ { ifThenElse Bool } b ] True ] False ]
-            )
-          )
-        )
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl
-        likesAnimal
-        (all a (type) (fun [ PersonLike a ] (fun a (fun Animal Bool))))
-      )
-      (abs
-        a
-        (type)
-        (lam
-          v
-          [ PersonLike a ]
-          [
-            { [ { PersonLike_match a } v ] (fun a (fun Animal Bool)) }
-            (lam v (fun a (con integer)) (lam v (fun a (fun Animal Bool)) v))
-          ]
-        )
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl predicate (all p (type) (fun [ PersonLike p ] (fun p Bool))))
-      (abs
-        p
-        (type)
-        (lam
-          `$dPersonLike`
-          [ PersonLike p ]
-          (lam
-            p
-            p
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl p p) p)
-              {
-                [
-                  [
-                    {
-                      [
-                        Bool_match
-                        [ [ [ { likesAnimal p } `$dPersonLike` ] p ] Cat ]
-                      ]
-                      (all dead (type) Bool)
-                    }
-                    (abs
-                      dead
-                      (type)
-                      [
-                        [ lessThanInteger [ [ { age p } `$dPersonLike` ] p ] ]
-                        (con integer 30)
-                      ]
-                    )
-                  ]
-                  (abs dead (type) False)
-                ]
-                (all dead (type) dead)
-              }
-            )
-          )
-        )
-      )
-    )
-    (datatypebind
-      (datatype
-        (tyvardecl Person (type))
-
-        Person_match
-        (vardecl Jane Person) (vardecl Jim Person)
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl `$cage` (fun Person (con integer)))
-      (lam
-        ds
-        Person
-        [
-          [ { [ Person_match ds ] (con integer) } (con integer 35) ]
-          (con integer 30)
-        ]
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl `$clikesAnimal` (fun Person (fun Animal Bool)))
-      (lam
-        ds
-        Person
-        (lam
-          ds
-          Animal
-          {
-            [
-              [
-                { [ Person_match ds ] (all dead (type) Bool) }
-                (abs
-                  dead
-                  (type)
-                  {
-                    [
-                      [
-                        { [ Animal_match ds ] (all dead (type) Bool) }
-                        (abs dead (type) True)
-                      ]
-                      (abs dead (type) False)
-                    ]
-                    (all dead (type) dead)
-                  }
-                )
-              ]
-              (abs dead (type) False)
-            ]
-            (all dead (type) dead)
-          }
-        )
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl `$fPersonLikePerson` [ PersonLike Person ])
-      [ [ { CConsPersonLike Person } `$cage` ] `$clikesAnimal` ]
-    )
-    (lam
-      ds
-      Person
-      (let
-        (nonrec)
-        (termbind (strict) (vardecl ds Person) ds)
-        [ [ { predicate Person } `$fPersonLikePerson` ] ds ]
-      )
-    )
-  )
-)
+    data Animal | Animal_match where
+      Cat : Animal
+      Dog : Animal
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
+    data (PersonLike :: * -> *) a | PersonLike_match where
+      CConsPersonLike : (a -> integer) -> (a -> Animal -> Bool) -> PersonLike a
+    ~age : all a. PersonLike a -> a -> integer
+      = /\a ->
+          \(v : PersonLike a) ->
+            PersonLike_match
+              {a}
+              v
+              {a -> integer}
+              (\(v : a -> integer) (v : a -> Animal -> Bool) -> v)
+    !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+    !lessThanInteger : integer -> integer -> bool = lessThanInteger
+    ~lessThanInteger : integer -> integer -> Bool
+      = \(x : integer) ->
+          let
+            !x : integer = x
+          in
+          \(y : integer) ->
+            let
+              !y : integer = y
+              !b : bool = lessThanInteger x y
+            in
+            ifThenElse {Bool} b True False
+    ~likesAnimal : all a. PersonLike a -> a -> Animal -> Bool
+      = /\a ->
+          \(v : PersonLike a) ->
+            PersonLike_match
+              {a}
+              v
+              {a -> Animal -> Bool}
+              (\(v : a -> integer) (v : a -> Animal -> Bool) -> v)
+    ~predicate : all p. PersonLike p -> p -> Bool
+      = /\p ->
+          \(`$dPersonLike` : PersonLike p) (p : p) ->
+            let
+              !p : p = p
+            in
+            Bool_match
+              (likesAnimal {p} `$dPersonLike` p Cat)
+              {all dead. Bool}
+              (/\dead -> lessThanInteger (age {p} `$dPersonLike` p) 30)
+              (/\dead -> False)
+              {all dead. dead}
+    data Person | Person_match where
+      Jane : Person
+      Jim : Person
+    ~`$cage` : Person -> integer
+      = \(ds : Person) -> Person_match ds {integer} 35 30
+    ~`$clikesAnimal` : Person -> Animal -> Bool
+      = \(ds : Person) (ds : Animal) ->
+          Person_match
+            ds
+            {all dead. Bool}
+            (/\dead ->
+               Animal_match
+                 ds
+                 {all dead. Bool}
+                 (/\dead -> True)
+                 (/\dead -> False)
+                 {all dead. dead})
+            (/\dead -> False)
+            {all dead. dead}
+    ~`$fPersonLikePerson` : PersonLike Person
+      = CConsPersonLike {Person} `$cage` `$clikesAnimal`
+  in
+  \(ds : Person) ->
+    let
+      !ds : Person = ds
+    in
+    predicate {Person} `$fPersonLikePerson` ds)

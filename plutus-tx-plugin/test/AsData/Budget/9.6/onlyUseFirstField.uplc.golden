@@ -1,28 +1,28 @@
-program
-  1.1.0
-  (\d ->
-     (\tup ->
-        force
-          (force
-             (force ifThenElse
-                (equalsInteger 0 (force (force fstPair) tup))
-                (delay
-                   (delay
-                      ((\l ->
-                          (\l ->
-                             (\l ->
-                                (\ds ->
-                                   (\ds ->
-                                      (\ds ->
-                                         (\ds -> ds)
-                                           (unIData
-                                              (force headList
-                                                 (force tailList l))))
-                                        (unIData (force headList l)))
-                                     (unIData (force headList l)))
-                                  (unIData (force headList l)))
-                               (force tailList l))
-                            (force tailList l))
-                         (force (force sndPair) tup))))
-                (delay (delay error)))))
-       (unConstrData d))
+(program
+   1.1.0
+   (\d ->
+      (\tup ->
+         force
+           (force
+              (force ifThenElse
+                 (equalsInteger 0 (force (force fstPair) tup))
+                 (delay
+                    (delay
+                       ((\l ->
+                           (\l ->
+                              (\l ->
+                                 (\ds ->
+                                    (\ds ->
+                                       (\ds ->
+                                          (\ds -> ds)
+                                            (unIData
+                                               (force headList
+                                                  (force tailList l))))
+                                         (unIData (force headList l)))
+                                      (unIData (force headList l)))
+                                   (unIData (force headList l)))
+                                (force tailList l))
+                             (force tailList l))
+                          (force (force sndPair) tup))))
+                 (delay (delay error)))))
+        (unConstrData d)))

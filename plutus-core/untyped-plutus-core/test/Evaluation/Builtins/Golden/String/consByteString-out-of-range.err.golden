@@ -1,5 +1,5 @@
 An error has occurred:
 The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
-Caused by: (consByteString 256 #68656c6c6f20776f726c64)
+Caused by: consByteString 256 #68656c6c6f20776f726c64
 Logs were:
 256 is not within the bounds of Word8

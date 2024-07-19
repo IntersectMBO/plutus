@@ -19,4 +19,4 @@ yarn start # for live development on localhost
 
 Go to the [docusaurus-site.yml](https://github.com/IntersectMBO/plutus/actions/workflows/docusaurus-site.yml) workflow and click `Run workflow` on the right.
 
-This will build and publish the website to [GitHub pages](https://intersectmbo.github.io/plutus/docs).
+This will build and publish the website to [GitHub pages](https://plutus.cardano.intersectmbo.org/docs).

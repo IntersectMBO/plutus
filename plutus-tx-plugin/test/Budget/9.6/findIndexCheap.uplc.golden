@@ -1,40 +1,41 @@
-program
-  1.1.0
-  ((\s ->
-      s s)
-     (\s i ds ->
-        force
-          (case
-             ds
-             [ (delay (constr 1 []))
-             , (\x xs ->
-                  delay
-                    (force
-                       (force
-                          (force ifThenElse
-                             (lessThanEqualsInteger 10 x)
-                             (delay (delay ((\x -> s s x) (addInteger 1 i) xs)))
-                             (delay (delay (constr 0 [i]))))))) ]))
-     0
-     (constr 1
-        [ 1
-        , (constr 1
-             [ 2
-             , (constr 1
-                  [ 3
-                  , (constr 1
-                       [ 4
-                       , (constr 1
-                            [ 5
-                            , (constr 1
-                                 [ 6
-                                 , (constr 1
-                                      [ 7
-                                      , (constr 1
-                                           [ 8
-                                           , (constr 1
-                                                [ 9
-                                                , (constr 1
-                                                     [ 10
-                                                     , (constr 0
-                                                          [  ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]))
+(program
+   1.1.0
+   ((\s ->
+       s s)
+      (\s i ds ->
+         force
+           (case
+              ds
+              [ (delay (constr 1 []))
+              , (\x xs ->
+                   delay
+                     (force
+                        (force
+                           (force ifThenElse
+                              (lessThanEqualsInteger 10 x)
+                              (delay
+                                 (delay ((\x -> s s x) (addInteger 1 i) xs)))
+                              (delay (delay (constr 0 [i]))))))) ]))
+      0
+      (constr 1
+         [ 1
+         , (constr 1
+              [ 2
+              , (constr 1
+                   [ 3
+                   , (constr 1
+                        [ 4
+                        , (constr 1
+                             [ 5
+                             , (constr 1
+                                  [ 6
+                                  , (constr 1
+                                       [ 7
+                                       , (constr 1
+                                            [ 8
+                                            , (constr 1
+                                                 [ 9
+                                                 , (constr 1
+                                                      [ 10
+                                                      , (constr 0
+                                                           [  ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ])))

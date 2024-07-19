@@ -1,1 +1,1 @@
-(fun (con integer) (all a_42 (type) (fun a_42 a_42)))
+integer -> (all a-42. a-42 -> a-42)

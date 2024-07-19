@@ -3,8 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
--- | Tests for [this
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md)
+-- | Tests for [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123)
 module Evaluation.Builtins.Bitwise (
   shiftHomomorphism,
   rotateHomomorphism,
@@ -21,7 +20,9 @@ module Evaluation.Builtins.Bitwise (
   ffsReplicate,
   ffsXor,
   ffsIndex,
-  ffsZero
+  ffsZero,
+  shiftMinBound,
+  rotateMinBound
   ) where
 
 import Evaluation.Helpers (assertEvaluatesToConstant, evaluateTheSame, evaluateToHaskell,
@@ -40,6 +41,38 @@ import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (testCase)
+
+-- | If given 'Int' 'minBound' as an argument, rotations behave sensibly.
+rotateMinBound :: Property
+rotateMinBound = property $ do
+  bs <- forAllByteString 1 512
+  let bitLen = fromIntegral $ BS.length bs * 8
+  -- By the laws of rotations, we know that we can perform a modular reduction on
+  -- the argument and not change the result we get. Thus, we (via Integer) do
+  -- this exact reduction on minBound, then compare the result of running a
+  -- rotation using this reduced argument versus the actual argument.
+  let minBoundInt = fromIntegral (minBound :: Int)
+  let minBoundIntReduced = negate (abs minBoundInt `rem` bitLen)
+  let lhs = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () minBoundInt
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () minBoundIntReduced
+        ]
+  evaluateTheSame lhs rhs
+
+-- | If given 'Int' 'minBound' as an argument, shifts behave sensibly.
+shiftMinBound :: Property
+shiftMinBound = property $ do
+  bs <- forAllByteString 0 512
+  let len = BS.length bs
+  let shiftExp = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () . fromIntegral $ (minBound :: Int)
+        ]
+  evaluatesToConstant @ByteString (BS.replicate len 0x00) shiftExp
 
 -- | Finding the first set bit in a bytestring with only zero bytes should always give -1.
 ffsZero :: Property

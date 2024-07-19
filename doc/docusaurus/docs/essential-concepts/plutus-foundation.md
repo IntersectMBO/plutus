@@ -36,4 +36,4 @@ Supporting "mixed" code in this way enables libraries written with the Plutus Ha
 
 The formal details of Plutus Core are in its [specification](https://github.com/IntersectMBO/plutus#specifications-and-design). 
 
-The design is discussed in the [technical report](https://intersectmbo.github.io/plutus/resources/plutus-report.pdf).
+The design is discussed in the [technical report](https://plutus.cardano.intersectmbo.org/resources/plutus-report.pdf).

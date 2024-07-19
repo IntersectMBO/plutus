@@ -1,5 +1,5 @@
 # This workflow is triggered whenever any of the workflows listed in on.workflow_run.workflows 
-# has been cancelled or has failed, and will send a message to the specified Slack channel ids.
+# has been cancelled or has failed, and will send a message to the plutus-ci channel.
 
 name: "📮 Slack Message Broker"
 
@@ -19,7 +19,6 @@ on:
 jobs:
   Send:
     runs-on: [ubuntu-latest]
-    # if: contains(fromJson('["success", "failure", "null", "skipped", "cancelled", "action_required", "neutral", "timed_out"]'), github.event.workflow_run.conclusion)
     steps:
       - name: Prepare Slack Message
         uses: actions/github-script@main
@@ -29,10 +28,25 @@ jobs:
             const name = "${{ github.event.workflow_run.name }}";
             const url = "${{ github.event.workflow_run.html_url }}";
             const status = "${{ github.event.workflow_run.status }}";
-            const action = "${{ github.event.action }}";
             const conclusion = "${{ github.event.workflow_run.conclusion }}";
-            const message = `Workflow '${name}' \`${action}\`: \`${status}\`, \`${conclusion}\`, <${url}|View Logs>`;
-            console.log(message)
+            const failure_conclusions = [ "failure", "null", "cancelled", "action_required", "neutral", "timed_out" ];
+            let message = "";
+            if (conclusion == "") {
+              message = `${name} \`${status}\` ⏳ <${url}|View Logs>`;
+            } 
+            else if (conclusion == "success") {
+              message = `${name} \`${conclusion}\` ✅ <${url}|View Logs>`;
+            } 
+            else if (conclusion == "skipped") {
+              message = `${name} \`${conclusion}\` ⏩ <${url}|View Logs>`;
+            } 
+            else if (failure_conclusions.includes(conclusion)) {
+              message = `${name} \`${conclusion}\` ❌ <${url}|View Logs> @channel`;
+            } 
+            else {
+              message = `${name} \`${conclusion}\` ⁉️ <${url}|View Logs> Unknown Conclusion @channel`;
+            }
+            console.log(message);
             core.setOutput("message", message); 
 
       - name: Notify Slack
@@ -40,7 +54,7 @@ jobs:
         env:
             SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
         with:
-          channel-id: C07A1GSNZEE
+          channel-id: C07A1GSNZEE # plutus-ci
           payload: |
             {
               "text": "${{ steps.prepare-slack-message.outputs.message }}",

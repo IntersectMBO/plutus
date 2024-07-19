@@ -1,17 +1,7 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl unitval (all a (type) (fun a a)))
-    (abs a (type) (lam x a x))
-  )
-  (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl unitunit (all a (type) (fun a a)))
-      [ { unitval (all a (type) (fun a a)) } unitval ]
-    )
-    unitval
-  )
-)
+let
+  !unitval : all a. a -> a = /\a -> \(x : a) -> x
+in
+let
+  !unitunit : all a. a -> a = unitval {all a. a -> a} unitval
+in
+unitval

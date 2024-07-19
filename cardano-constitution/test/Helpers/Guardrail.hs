@@ -183,10 +183,10 @@ executionUnitPrices = ParamList @Rational 19 "executionUnitPrices"
     ] `WithinDomain` (0.0, 1.0)
   ]
 
-minFeeRefScriptCoinsPerByte :: Guardrail (Param (Scalar Integer))
-minFeeRefScriptCoinsPerByte = Param @Integer 33 "minFeeRefScriptCoinsPerByte" 1
-  [ ("MFRS-01", "minFeeRefScriptCoinsPerByte must not exceed 1,000 (0.001 ada)") `MustNotBe` NG 1_000
-  , ("MFRS-02", "minFeeRefScriptCoinsPerByte must not be negative") `MustNotBe` NL 0
+minFeeRefScriptCoinsPerByte :: Guardrail (Param (Scalar Rational))
+minFeeRefScriptCoinsPerByte = Param @Rational 33 "minFeeRefScriptCoinsPerByte" 1
+  [ ("MFRS-01", "minFeeRefScriptCoinsPerByte must not exceed 1,000 (0.001 ada)") `MustNotBe` NG (1_000 % 1)
+  , ("MFRS-02", "minFeeRefScriptCoinsPerByte must not be negative") `MustNotBe` NL (0 % 1)
   ]
   `WithinDomain` (-5_000,10_000)
 

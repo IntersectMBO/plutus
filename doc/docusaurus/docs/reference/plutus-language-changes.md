@@ -64,7 +64,7 @@ Starting with the release of [Cardano node v.8.8.0-pre](https://github.com/Inter
 - Well-known and optimal cryptographic algorithms
 - Support for porting of smart contracts from Ethereum
 - Creating sidechain bridges
-- Improving performance by adding a sums of products (SOPs) feature to support the direct encoding of differrent data types.
+- Improving performance by adding a sums of products (SOPs) feature to support the direct encoding of different data types.
 
 ### Sums of products
 

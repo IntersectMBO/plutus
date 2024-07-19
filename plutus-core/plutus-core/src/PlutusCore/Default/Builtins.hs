@@ -1476,7 +1476,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunThreeArguments . paramChooseList)
 
     toBuiltinMeaning _semvar MkCons =
-
         let mkConsDenotation
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             mkConsDenotation
@@ -1922,12 +1921,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar WriteBits =
-        let writeBitsDenotation :: BS.ByteString -> [(Integer, Bool)] -> BuiltinResult BS.ByteString
-            writeBitsDenotation = Bitwise.writeBits
+        let writeBitsDenotation :: BS.ByteString -> [Integer] -> [Bool] -> BuiltinResult BS.ByteString
+            writeBitsDenotation = Bitwise.writeBitsWrapper
             {-# INLINE writeBitsDenotation #-}
         in makeBuiltinMeaning
             writeBitsDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
+            (runCostingFunThreeArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ReplicateByte =
         let replicateByteDenotation :: Int -> Word8 -> BuiltinResult BS.ByteString
@@ -1940,16 +1939,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Bitwise
 
     toBuiltinMeaning _semvar ShiftByteString =
-        let shiftByteStringDenotation :: BS.ByteString -> Int -> BS.ByteString
-            shiftByteStringDenotation = Bitwise.shiftByteString
+        let shiftByteStringDenotation :: BS.ByteString -> Integer -> BS.ByteString
+            shiftByteStringDenotation = Bitwise.shiftByteStringWrapper
             {-# INLINE shiftByteStringDenotation #-}
         in makeBuiltinMeaning
             shiftByteStringDenotation
             (runCostingFunTwoArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar RotateByteString =
-        let rotateByteStringDenotation :: BS.ByteString -> Int -> BS.ByteString
-            rotateByteStringDenotation = Bitwise.rotateByteString
+        let rotateByteStringDenotation :: BS.ByteString -> Integer -> BS.ByteString
+            rotateByteStringDenotation = Bitwise.rotateByteStringWrapper
             {-# INLINE rotateByteStringDenotation #-}
         in makeBuiltinMeaning
             rotateByteStringDenotation

@@ -1,12 +1,6 @@
-(let
-  (nonrec)
-  (datatypebind
-    (datatype
-      (tyvardecl Maybe (fun (type) (type)))
-      (tyvardecl a (type))
-      Maybe_match
-      (vardecl Just (fun a [ Maybe a ])) (vardecl Nothing [ Maybe a ])
-    )
-  )
-  { (abs dead (type) (con integer 42)) (all dead (type) dead) }
-)
+let
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+in
+(/\dead -> 42) {all dead. dead}

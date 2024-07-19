@@ -1,9 +1,4 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl idFun (fun (con integer) (con integer)))
-    (lam x (con integer) x)
-  )
-  [ (lam y (fun (con integer) (con integer)) idFun) idFun ]
-)
+let
+  !idFun : integer -> integer = \(x : integer) -> x
+in
+(\(y : integer -> integer) -> idFun) idFun

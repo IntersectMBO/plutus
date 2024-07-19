@@ -1,349 +1,104 @@
-(program
+program
   1.1.0
-  (let
-    (rec)
-    (datatypebind
-      (datatype
-        (tyvardecl List (fun (type) (type)))
-        (tyvardecl a (type))
-        List_match
-        (vardecl Nil [ List a ])
-        (vardecl Cons (fun a (fun [ List a ] [ List a ])))
-      )
-    )
-    (let
-      (nonrec)
-      (termbind
-        (nonstrict)
-        (vardecl
-          `$fFoldableList_$cfoldr`
-          (all
-            a
-            (type)
-            (all b (type) (fun (fun a (fun b b)) (fun b (fun [ List a ] b))))
-          )
-        )
-        (abs
-          a
-          (type)
-          (abs
-            b
-            (type)
-            (lam
-              f
-              (fun a (fun b b))
-              (let
-                (nonrec)
-                (termbind (strict) (vardecl f (fun a (fun b b))) f)
-                (lam
-                  z
-                  b
-                  (let
-                    (nonrec)
-                    (termbind (strict) (vardecl z b) z)
-                    (let
-                      (rec)
-                      (termbind
-                        (nonstrict)
-                        (vardecl go (fun [ List a ] b))
-                        (lam
-                          ds
-                          [ List a ]
-                          {
-                            [
-                              [
-                                { [ { List_match a } ds ] (all dead (type) b) }
-                                (abs dead (type) z)
-                              ]
-                              (lam
-                                x
-                                a
-                                (lam
-                                  xs
-                                  [ List a ]
-                                  (abs dead (type) [ [ f x ] [ go xs ] ])
-                                )
-                              )
-                            ]
-                            (all dead (type) dead)
-                          }
-                        )
-                      )
-                      (lam eta [ List a ] [ go eta ])
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-      (termbind
-        (nonstrict)
-        (vardecl
-          `$fFoldableList`
-          [
-            (lam
-              t
-              (fun (type) (type))
-              (all
-                a
-                (type)
-                (all b (type) (fun (fun a (fun b b)) (fun b (fun [ t a ] b))))
-              )
-            )
-            List
-          ]
-        )
-        `$fFoldableList_$cfoldr`
-      )
-      (termbind
-        (nonstrict)
-        (vardecl
-          build
-          (all
-            a
-            (type)
-            (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [ List a ])
-          )
-        )
-        (abs
-          a
-          (type)
-          (lam
-            g
-            (all b (type) (fun (fun a (fun b b)) (fun b b)))
-            [
-              [
-                { g [ List a ] }
-                (lam ds a (lam ds [ List a ] [ [ { Cons a } ds ] ds ]))
-              ]
-              { Nil a }
-            ]
-          )
-        )
-      )
-      (termbind
-        (nonstrict)
-        (vardecl
-          concat
-          (all
-            t
-            (fun (type) (type))
-            (all
-              a
-              (type)
-              (fun
-                [
-                  (lam
-                    t
-                    (fun (type) (type))
-                    (all
-                      a
-                      (type)
-                      (all
-                        b (type) (fun (fun a (fun b b)) (fun b (fun [ t a ] b)))
-                      )
-                    )
-                  )
-                  t
-                ]
-                (fun [ t [ List a ] ] [ List a ])
-              )
-            )
-          )
-        )
-        (abs
-          t
-          (fun (type) (type))
-          (abs
-            a
-            (type)
-            (lam
-              `$dFoldable`
-              [
-                (lam
-                  t
-                  (fun (type) (type))
-                  (all
-                    a
-                    (type)
-                    (all
-                      b (type) (fun (fun a (fun b b)) (fun b (fun [ t a ] b)))
-                    )
-                  )
-                )
-                t
-              ]
-              (lam
-                xs
-                [ t [ List a ] ]
-                (let
-                  (nonrec)
-                  (termbind (strict) (vardecl xs [ t [ List a ] ]) xs)
-                  [
-                    { build a }
-                    (abs
-                      b
-                      (type)
-                      (lam
-                        c
-                        (fun a (fun b b))
-                        (let
-                          (nonrec)
-                          (termbind (strict) (vardecl c (fun a (fun b b))) c)
-                          (lam
-                            n
-                            b
-                            (let
-                              (nonrec)
-                              (termbind (strict) (vardecl n b) n)
-                              [
-                                [
-                                  [
-                                    { { `$dFoldable` [ List a ] } b }
-                                    (lam
-                                      x
-                                      [ List a ]
-                                      (let
-                                        (nonrec)
-                                        (termbind
-                                          (strict) (vardecl x [ List a ]) x
-                                        )
-                                        (lam
-                                          y
-                                          b
-                                          (let
-                                            (nonrec)
-                                            (termbind (strict) (vardecl y b) y)
-                                            (let
-                                              (rec)
-                                              (termbind
-                                                (nonstrict)
-                                                (vardecl go (fun [ List a ] b))
-                                                (lam
-                                                  ds
-                                                  [ List a ]
-                                                  {
-                                                    [
-                                                      [
-                                                        {
-                                                          [
-                                                            { List_match a } ds
-                                                          ]
-                                                          (all dead (type) b)
-                                                        }
-                                                        (abs dead (type) y)
-                                                      ]
-                                                      (lam
-                                                        x
-                                                        a
-                                                        (lam
-                                                          xs
-                                                          [ List a ]
-                                                          (abs
-                                                            dead
-                                                            (type)
-                                                            [
-                                                              [ c x ] [ go xs ]
-                                                            ]
-                                                          )
-                                                        )
-                                                      )
-                                                    ]
-                                                    (all dead (type) dead)
-                                                  }
-                                                )
-                                              )
-                                              [ go x ]
-                                            )
-                                          )
-                                        )
-                                      )
-                                    )
-                                  ]
-                                  n
-                                ]
-                                xs
-                              ]
-                            )
-                          )
-                        )
-                      )
-                    )
-                  ]
-                )
-              )
-            )
-          )
-        )
-      )
-      [
-        [ { { concat List } (con integer) } `$fFoldableList` ]
-        [
-          { build [ List (con integer) ] }
-          (abs
-            a
-            (type)
-            (lam
-              c
-              (fun [ List (con integer) ] (fun a a))
-              (lam
-                n
-                a
-                [
-                  [
-                    c
-                    [
-                      { build (con integer) }
-                      (abs
-                        a
-                        (type)
-                        (lam
-                          c
-                          (fun (con integer) (fun a a))
-                          (lam
-                            n
-                            a
-                            [
-                              [ c (con integer 1) ] [ [ c (con integer 2) ] n ]
-                            ]
-                          )
-                        )
-                      )
-                    ]
-                  ]
-                  [
-                    [
-                      c
-                      [
-                        { build (con integer) }
-                        (abs
-                          a
-                          (type)
-                          (lam
-                            c
-                            (fun (con integer) (fun a a))
-                            (lam
-                              n
-                              a
-                              [
-                                [ c (con integer 3) ]
-                                [ [ c (con integer 4) ] n ]
-                              ]
-                            )
-                          )
-                        )
-                      ]
-                    ]
-                    n
-                  ]
-                ]
-              )
-            )
-          )
-        ]
-      ]
-    )
-  )
-)
+  (letrec
+    data (List :: * -> *) a | List_match where
+      Nil : List a
+      Cons : a -> List a -> List a
+  in
+  let
+    ~`$fFoldableList_$cfoldr` : all a b. (a -> b -> b) -> b -> List a -> b
+      = /\a b ->
+          \(f : a -> b -> b) ->
+            let
+              !f : a -> b -> b = f
+            in
+            \(z : b) ->
+              let
+                !z : b = z
+              in
+              letrec
+                ~go : List a -> b
+                  = \(ds : List a) ->
+                      List_match
+                        {a}
+                        ds
+                        {all dead. b}
+                        (/\dead -> z)
+                        (\(x : a) (xs : List a) -> /\dead -> f x (go xs))
+                        {all dead. dead}
+              in
+              \(eta : List a) -> go eta
+    ~`$fFoldableList` :
+       (\(t :: * -> *) -> all a b. (a -> b -> b) -> b -> t a -> b) List
+      = `$fFoldableList_$cfoldr`
+    ~build : all a. (all b. (a -> b -> b) -> b -> b) -> List a
+      = /\a ->
+          \(g : all b. (a -> b -> b) -> b -> b) ->
+            g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a})
+    ~concat :
+       all (t :: * -> *) a.
+         (\(t :: * -> *) -> all a b. (a -> b -> b) -> b -> t a -> b) t ->
+         t (List a) ->
+         List a
+      = /\(t :: * -> *) a ->
+          \(`$dFoldable` :
+              (\(t :: * -> *) -> all a b. (a -> b -> b) -> b -> t a -> b) t)
+           (xs : t (List a)) ->
+            let
+              !xs : t (List a) = xs
+            in
+            build
+              {a}
+              (/\b ->
+                 \(c : a -> b -> b) ->
+                   let
+                     !c : a -> b -> b = c
+                   in
+                   \(n : b) ->
+                     let
+                       !n : b = n
+                     in
+                     `$dFoldable`
+                       {List a}
+                       {b}
+                       (\(x : List a) ->
+                          let
+                            !x : List a = x
+                          in
+                          \(y : b) ->
+                            let
+                              !y : b = y
+                            in
+                            letrec
+                              ~go : List a -> b
+                                = \(ds : List a) ->
+                                    List_match
+                                      {a}
+                                      ds
+                                      {all dead. b}
+                                      (/\dead -> y)
+                                      (\(x : a) (xs : List a) ->
+                                         /\dead -> c x (go xs))
+                                      {all dead. dead}
+                            in
+                            go x)
+                       n
+                       xs)
+  in
+  concat
+    {List}
+    {integer}
+    `$fFoldableList`
+    (build
+       {List integer}
+       (/\a ->
+          \(c : List integer -> a -> a) (n : a) ->
+            c
+              (build
+                 {integer}
+                 (/\a -> \(c : integer -> a -> a) (n : a) -> c 1 (c 2 n)))
+              (c
+                 (build
+                    {integer}
+                    (/\a -> \(c : integer -> a -> a) (n : a) -> c 3 (c 4 n)))
+                 n))))

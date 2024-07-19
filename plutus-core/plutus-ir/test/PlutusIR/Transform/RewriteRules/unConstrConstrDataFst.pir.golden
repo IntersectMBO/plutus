@@ -1,41 +1,13 @@
-(let
-  (nonrec)
-  (datatypebind
-    (datatype
-      (tyvardecl MyD_1099 (type))
-
-      MyD_match_1102
-      (vardecl MyD_1100 (fun (con integer) MyD_1099))
-      (vardecl MyD_1101 (fun (con bytestring) MyD_1099))
-    )
-  )
-  (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl generated (con integer))
-      [
-        [ { (builtin trace) (con integer) } (con string "BEFORE") ]
-        (con integer 0)
-      ]
-    )
-    (let
-      (nonrec)
-      (termbind
-        (strict)
-        (vardecl generated [ (con list) (con data) ])
-        [
-          [ { (builtin trace) [ (con list) (con data) ] } (con string "AFTER") ]
-          [
-            [
-              { (builtin mkCons) (con data) }
-              [ (builtin iData) (con integer 1) ]
-            ]
-            [ (builtin mkNilData) (con unit ()) ]
-          ]
-        ]
-      )
-      generated
-    )
-  )
-)
+let
+  data MyD_1099 | MyD_match_1102 where
+    MyD_1100 : integer -> MyD_1099
+    MyD_1101 : bytestring -> MyD_1099
+in
+let
+  !generated : integer = trace {integer} "BEFORE" 0
+in
+let
+  !generated : list data
+    = trace {list data} "AFTER" (mkCons {data} (iData 1) (mkNilData ()))
+in
+generated

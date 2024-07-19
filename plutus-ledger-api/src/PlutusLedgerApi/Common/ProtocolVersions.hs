@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE OverloadedStrings #-}
 module PlutusLedgerApi.Common.ProtocolVersions
     ( MajorProtocolVersion (..)
     -- ** Protocol Version aliases

@@ -1,5 +1,5 @@
 # This job builds various papers and deploys them to:
-# https://intersectmbo.github.io/plutus/resources
+# https://plutus.cardano.intersectmbo.org/resources
 
 name: "📝 Papers & Specs"
 
@@ -40,7 +40,7 @@ jobs:
           done 
 
       - name: Publish Papers
-        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        uses: JamesIves/github-pages-deploy-action@v4.6.3
         with:
           folder: _resources
           target-folder: resources

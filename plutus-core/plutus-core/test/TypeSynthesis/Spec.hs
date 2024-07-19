@@ -59,7 +59,8 @@ assertIllTyped semvar term isExpected = case runExcept . runQuoteT $ typecheck s
 
 nestedGoldenVsErrorOrThing :: (PrettyPlc e, PrettyReadable a) => String -> Either e a -> TestNested
 nestedGoldenVsErrorOrThing name =
-    nestedGoldenVsText name ".plc" . either displayPlcCondensedErrorClassic (display . AsReadable)
+    nestedGoldenVsText name ".plc"
+    . either displayPlcCondensedErrorClassic (render . prettyPlcReadableSimple . AsReadable)
 
 foldAssertWell
     :: (ToBuiltinMeaning DefaultUni fun, Pretty fun)
@@ -74,10 +75,12 @@ foldAssertWell semvar
 
 test_typecheckAvailable :: TestTree
 test_typecheckAvailable =
-    testGroup "Available"
-        [ foldAssertWell def stdLib
-        , foldAssertWell def examples
-        ]
+  let builtinSemanticsVariant :: ToBuiltinMeaning DefaultUni fun => BuiltinSemanticsVariant fun
+      builtinSemanticsVariant = def
+  in testGroup "Available"
+      [ foldAssertWell builtinSemanticsVariant stdLib
+      , foldAssertWell builtinSemanticsVariant examples
+      ]
 
 -- | Self-application. An example of ill-typed term.
 --

@@ -1,18 +1,13 @@
 letrec
-  data Nat_0 | match_Nat_1 where
-    Zero_2 : Nat_0
-    Suc_3 : Nat_0 -> Nat_0
+  data Nat | match_Nat where
+    Zero : Nat
+    Suc : Nat -> Nat
 in
 let
-  !three_4 : Nat_0 = Suc_3 (Suc_3 (Suc_3 Zero_2))
+  !three : Nat = Suc (Suc (Suc Zero))
 in
 letrec
-  !stupidZero_5 : Nat_0 -> Nat_0
-    = \(n_6 : Nat_0) ->
-        match_Nat_1
-          n_6
-          {Nat_0}
-          Zero_2
-          (\(pred_7 : Nat_0) -> stupidZero_5 pred_7)
+  !stupidZero : Nat -> Nat
+    = \(n : Nat) -> match_Nat n {Nat} Zero (\(pred : Nat) -> stupidZero pred)
 in
-stupidZero_5 three_4
+stupidZero three

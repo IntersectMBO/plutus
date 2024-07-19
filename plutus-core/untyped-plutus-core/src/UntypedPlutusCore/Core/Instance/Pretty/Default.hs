@@ -19,8 +19,8 @@ import UntypedPlutusCore.Core.Type
 
 instance (PrettyClassic name, PrettyUni uni, Pretty fun, Pretty ann) =>
         Pretty (Term name uni fun ann) where
-    pretty = prettyClassicDef
+    pretty = prettyClassic
 
 instance (PrettyClassic name, PrettyUni uni, Pretty fun, Pretty ann) =>
         Pretty (Program name uni fun ann) where
-    pretty = prettyClassicDef
+    pretty = prettyClassic

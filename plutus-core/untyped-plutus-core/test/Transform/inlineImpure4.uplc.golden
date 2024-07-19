@@ -1,1 +1,1 @@
-((\a_3 b_4 -> a_3) (force a_2))
+(\a b -> a) (force a)

@@ -34,7 +34,7 @@ viewApp term0 = go term0 [] where
     go fun               args = Just (fun, args)
 
 instance
-  (PrettyReadableBy configName name, PrettyUni uni, Pretty fun) =>
+  (PrettyReadableBy configName name, PrettyUni uni, Pretty fun, Show configName) =>
   PrettyBy (PrettyConfigReadable configName) (Term name uni fun a)
   where
   prettyBy = inContextM $ \case

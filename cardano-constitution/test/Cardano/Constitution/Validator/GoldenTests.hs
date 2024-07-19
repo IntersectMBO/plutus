@@ -9,7 +9,7 @@ import Cardano.Constitution.Validator.TestsCommon
 import Helpers.TestBuilders
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Pretty (prettyPlcReadableDef)
+import PlutusCore.Pretty (prettyPlcReadable)
 import PlutusLedgerApi.V3 as V3
 import PlutusLedgerApi.V3.ArbitraryContexts as V3
 import PlutusTx.Code as Tx
@@ -56,13 +56,13 @@ test_budget_small = testGroup "BudgetSmall" $ M.elems $
 test_readable_pir = testGroup "ReadablePir" $ M.elems $
     (\vName (_, vCode) ->
          goldenVsString vName (mkPath vName ["pir"]) $
-            pure $ fromString $ show $ prettyPlcReadableDef $ fromJust $ getPirNoAnn vCode
+            pure $ fromString $ show $ prettyPlcReadable $ fromJust $ getPirNoAnn vCode
     )`M.mapWithKey` defaultValidatorsWithCodes
 
 test_readable_uplc = testGroup "ReadableUplc" $ M.elems $
     (\vName (_, vCode) ->
          goldenVsString vName (mkPath vName ["uplc"]) $
-            pure $ fromString $ show $ prettyPlcReadableDef $ getPlcNoAnn vCode
+            pure $ fromString $ show $ prettyPlcReadable $ getPlcNoAnn vCode
     )`M.mapWithKey` defaultValidatorsWithCodes
 
 tests :: TestTreeWithTestState

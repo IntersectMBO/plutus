@@ -1,49 +1,17 @@
-(let
-  (rec)
-  (datatypebind
-    (datatype
-      (tyvardecl List (fun (type) (type)))
-      (tyvardecl a (type))
-      match_List
-      (vardecl Nil [ List a ])
-      (vardecl Cons (fun a (fun [ List a ] [ List a ])))
-    )
-  )
-  (let
-    (rec)
-    (termbind
-      (strict)
-      (vardecl
-        map
-        (fun
-          (fun (con integer) (con integer))
-          (fun [ List (con integer) ] [ List (con integer) ])
-        )
-      )
-      (lam
-        f
-        (fun (con integer) (con integer))
-        (lam
+letrec
+  data (List :: * -> *) a | match_List where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+letrec
+  !map : (integer -> integer) -> List integer -> List integer
+    = \(f : integer -> integer) (lst : List integer) ->
+        match_List
+          {integer}
           lst
-          [ List (con integer) ]
-          [
-            [
-              { [ { match_List (con integer) } lst ] [ List (con integer) ] }
-              { Nil (con integer) }
-            ]
-            (lam
-              x
-              (con integer)
-              (lam
-                xs
-                [ List (con integer) ]
-                [ [ { Cons (con integer) } [ f x ] ] [ [ map f ] xs ] ]
-              )
-            )
-          ]
-        )
-      )
-    )
-    map
-  )
-)
+          {List integer}
+          (Nil {integer})
+          (\(x : integer) (xs : List integer) ->
+             Cons {integer} (f x) (map f xs))
+in
+map

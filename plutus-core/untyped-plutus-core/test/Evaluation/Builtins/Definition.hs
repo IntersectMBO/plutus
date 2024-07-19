@@ -418,8 +418,8 @@ test_TrackCostsRestricting =
     let n = 10000
     in test_TrackCostsWith "restricting" n $ \term ->
         case typecheckReadKnownCek def () term of
-            Left err                         -> fail $ displayPlcDef err
-            Right (Left err)                 -> fail $ displayPlcDef err
+            Left err                         -> fail $ displayPlc err
+            Right (Left err)                 -> fail $ displayPlc err
             Right (Right (res :: [Integer])) -> do
                 let expected = n `div` 10
                     actual = length res
@@ -440,8 +440,8 @@ test_TrackCostsRetaining =
                 let (getRes, budgets) = runCekNoEmit params retaining term'
                 in (getRes >>= readKnownSelf, budgets)
         case typecheckAndRunRetainer () term of
-            Left err                                  -> fail $ displayPlcDef err
-            Right (Left err, _)                       -> fail $ displayPlcDef err
+            Left err                                  -> fail $ displayPlc err
+            Right (Left err, _)                       -> fail $ displayPlc err
             Right (Right (res :: [Integer]), budgets) -> do
                 -- @length budgets@ is for retaining @budgets@ for as long as possible just in case.
                 -- @3@ is just for giving us room to handle erratic GC behavior. It really should be
@@ -486,10 +486,10 @@ evals
 evals expectedVal fun typeArgs termArgs =
     let actualExpNoTermArgs = mkIterInstNoAnn (builtin () fun) typeArgs
         actualExp = mkIterAppNoAnn actualExpNoTermArgs termArgs
-        prename = stripParensIfAny . render $ prettyPlcReadableDef actualExp
+        prename = stripParensIfAny . render $ prettyPlcReadable actualExp
         -- Shorten the name of the test in case it's too long to be displayed in CLI.
         name = if length prename < 70 then prename else
-            stripParensIfAny (render $ prettyPlcReadableDef actualExpNoTermArgs) ++
+            stripParensIfAny (render $ prettyPlcReadable actualExpNoTermArgs) ++
                 concatMap (\_ -> " <...>") termArgs
         expectedRes = Right . EvaluationSuccess $ cons expectedVal
         actualRes = typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting actualExp
@@ -517,15 +517,15 @@ fails fileName fun typeArgs termArgs = do
                 embed . testCase expectedToDisplay $
                     assertFailure "expected an evaluation failure, but got a success"
             Left err ->
-                let prename = stripParensIfAny . render $ prettyPlcReadableDef actualExp
+                let prename = stripParensIfAny . render $ prettyPlcReadable actualExp
                     -- Shorten the name of the test in case it's too long to be displayed in CLI.
                     name = if length prename < 70 then prename else
-                        stripParensIfAny (render $ prettyPlcReadableDef actualExpNoTermArgs) ++
+                        stripParensIfAny (render $ prettyPlcReadable actualExpNoTermArgs) ++
                             concatMap (\_ -> " <...>") termArgs
                 in testNestedNamedM mempty name $
                     testNestedNamedM mempty expectedToDisplay $
                         nestedGoldenVsDoc fileName ".err" . vsep $ concat
-                            [ [prettyPlcReadableDef err]
+                            [ [prettyPlcReadable err]
                             , ["Logs were:" | not $ null logs]
                             , map pretty logs
                             ]
@@ -981,6 +981,8 @@ test_Bitwise =
                 mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftPosClearLow
             , testPropertyNamed "negative shifts clear high indexes" "shift_neg_high" $
                 mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftNegClearHigh
+            , testPropertyNamed "shifts do not break when given minBound" "shift_min_bound" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftMinBound
             ]
         , testGroup "rotateByteString"
             [ testGroup "homomorphism" Bitwise.rotateHomomorphism
@@ -988,6 +990,8 @@ test_Bitwise =
                 mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateRollover
             , testPropertyNamed "rotations move bits but don't change them" "rotate_move" $
                 mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateMoveBits
+            , testPropertyNamed "rotations do not break when given minBound" "rotate_min_bound" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.rotateMinBound
             ]
         , testGroup "countSetBits"
             [ testGroup "homomorphism" Bitwise.csbHomomorphism

@@ -75,8 +75,11 @@ testBudget runtime name term =
                        nestedGoldenVsText
     name
     ".uplc"
-    (render $
-        prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCostsForTesting runtime) Cek.tallying term)
+    (render
+      $ prettyPlcReadable
+      $ runCekNoEmit
+        (MachineParameters Plc.defaultCekMachineCostsForTesting runtime)
+        Cek.tallying term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs = FolderContents [treeFolderContents "Fib" $ map fibFile [1..3]] where
@@ -137,8 +140,7 @@ testTallying name term =
                        nestedGoldenVsText
     name
     ".uplc"
-    (render $
-        prettyPlcReadableDef $ runCekNoEmit Plc.defaultCekParametersForTesting Cek.tallying term)
+    (render $ prettyPlcReadable $ runCekNoEmit Plc.defaultCekParametersForTesting Cek.tallying term)
 
 test_tallying :: TestTree
 test_tallying =
