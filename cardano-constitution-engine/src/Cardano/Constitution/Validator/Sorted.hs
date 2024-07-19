@@ -10,10 +10,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 
 module Cardano.Constitution.Validator.Sorted
-    ( constitutionValidator
-    , defaultConstitutionValidator
-    , mkConstitutionCode
-    , defaultConstitutionCode
+    ( mkConstitutionCode
     ) where
 
 import Cardano.Constitution.Config
@@ -22,11 +19,6 @@ import PlutusCore.Version (plcVersion110)
 import PlutusTx as Tx
 import PlutusTx.Builtins as B
 import PlutusTx.Prelude as Tx
-
--- | Expects a constitution-configuration, statically *OR* at runtime via Tx.liftCode
-constitutionValidator :: ConstitutionConfig -> ConstitutionValidator
-constitutionValidator (ConstitutionConfig cfg) =
-    Common.withChangedParams (runRules cfg)
 
 -- | The `runRules` is a loop that works element-wise from left-to-right on the 2 sorted maps.
 runRules :: [Param]  -- ^ the config (sorted by default)
@@ -48,18 +40,15 @@ runRules ((expectedPid, paramValue) : cfgRest)
 -- if cparams left: it means we reached the end of config without validating all cparams
 runRules _ cparams = Tx.null cparams
 
--- | Statically configure the validator with the `defaultConstitutionConfig`.
-defaultConstitutionValidator :: ConstitutionValidator
-defaultConstitutionValidator = constitutionValidator defaultConstitutionConfig
+-- | Expects a constitution-configuration, statically *OR* at runtime via Tx.liftCode
+mkConstitutionValidator :: ConstitutionConfig -> ConstitutionValidator
+mkConstitutionValidator (ConstitutionConfig cfg) =
+    Common.withChangedParams (runRules cfg)
 
 {-| Make a constitution code by supplied the config at runtime.
 
 See Note [Manually constructing a Configuration value]
 -}
 mkConstitutionCode :: ConstitutionConfig -> CompiledCode ConstitutionValidator
-mkConstitutionCode cCfg = $$(compile [|| constitutionValidator ||])
+mkConstitutionCode cCfg = $$(compile [|| mkConstitutionValidator ||])
                           `unsafeApplyCode` liftCode plcVersion110 cCfg
-
--- | The code of the constitution statically configured with the `defaultConstitutionConfig`.
-defaultConstitutionCode :: CompiledCode ConstitutionValidator
-defaultConstitutionCode = $$(compile [|| defaultConstitutionValidator ||])
