@@ -45,7 +45,7 @@ import Hedgehog.Range qualified as Range
    Haskell result agreee to within a factor of 2/100 (two percent).
 -}
 
--- | Maximum allowable difference beween R result and Haskell result.
+-- Maximum allowable difference beween R result and Haskell result.
 epsilon :: Double
 epsilon = 2/100
 
@@ -72,16 +72,17 @@ epsilon = 2/100
 numberOfTests :: TestLimit
 numberOfTests = 100
 
--- | Generate inputs for costing functions, making sure that we test a large
--- range of inputs, but that we also get small inputs.
+-- Generate inputs for costing functions, making sure that we test a large range
+-- of inputs, but that we also get small inputs.
 memUsageGen :: Gen CostingInteger
 memUsageGen =
     Gen.choice [small, large]
         where small = unsafeToSatInt <$> Gen.integral (Range.constant 0 2)
               large = unsafeToSatInt <$> Gen.integral (Range.linear 0 5000)
 
--- | Generate inputs for costing functions, making sure that we test a large
--- range of inputs, but that we also get small inputs.
+-- Smaller inputs for testing the piecewise costing functions for integer
+-- division operations, where the Haskell model differs from the R one for
+-- larger values.
 memUsageGen40 :: Gen CostingInteger
 memUsageGen40 = unsafeToSatInt <$> Gen.integral (Range.linear 0 40)
 
