@@ -49,7 +49,7 @@ testMachine
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
-        testPropertyNamed name (fromString name) . withTests 100 . property $ do
+        testPropertyNamed name (fromString name) . withTests 99 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
             let resExp =
                     eraseTerm <$>

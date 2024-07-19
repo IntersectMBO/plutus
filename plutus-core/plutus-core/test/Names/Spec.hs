@@ -46,7 +46,7 @@ test_DeBruijnInteresting =
   testGroup "de Bruijn transformation round-trip" $
     fromInterestingTermGens \name ->
       testPropertyNamed name (fromString name)
-        . mapTestLimitAtLeast 99(`div` 10)
+        . mapTestLimitAtLeast 99 (`div` 10)
         . prop_DeBruijn
 
 test_mangle :: TestTree

@@ -370,7 +370,7 @@ test_no_hash_collisions_dst =
              dsts <- nub <$> replicateM numHashCollisionInputs (resize maxDstSize arbitrary)
              let terms = fmap (\dst -> hashToGroupTerm @g msg (bytestring dst)) dsts
                  hashed = fmap evalTerm terms
-                 noErrors = conjoin $ fmap (=/= CekError) hashed
+                 noErrors = property $ all (/= CekError) hashed
                  noDuplicates = List.length hashed === List.length (nub hashed)
              pure $ noErrors .&. noDuplicates
 
