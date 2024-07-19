@@ -1,12 +1,10 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TypeApplications  #-}
 
 module PlutusBenchmark.NQueens (nqueens) where
 
-import PlutusTx.Builtins (complementByteString, findFirstSetBit, orByteString, replicateByte,
-                          shiftByteString, writeBits)
+import PlutusTx.Builtins (replicateByte)
 import PlutusTx.Prelude
 
 -- Based on Qiu, Zongyan (February 2002). "Bit-vector encoding of n-queen problem". ACM SIGPLAN Notices. 37 (2): 68–70
@@ -76,4 +74,4 @@ selectByteString which bs
 
 {-# INLINE writeBit #-}
 writeBit :: BuiltinByteString -> Integer -> Bool -> BuiltinByteString
-writeBit bs i b = writeBits bs . toBuiltin @[(Integer, Bool)] $ [(i, b)]
+writeBit bs i b = writeBits bs [i] [b]
