@@ -578,6 +578,8 @@ writeBits bs ixs bits = case unsafeDupablePerformIO . try $ go of
       where go2 :: (a -> b -> IO()) -> [a] -> [b] -> IO ()
             go2 f (i:is) (v:vs) = f i v *> go2 f is vs
             go2 _ _ _           = pure ()
+            {-# INLINEABLE go2 #-}
+    {-# INLINEABLE go #-}
     len :: Int
     len = BS.length bs
     bitLen :: Integer
@@ -594,6 +596,7 @@ writeBits bs ixs bits = case unsafeDupablePerformIO . try $ go of
                         then Bits.setBit w8 . fromIntegral $ littleIx
                         else Bits.clearBit w8 . fromIntegral $ littleIx
           pokeByteOff ptr flipIx toWrite
+    {-# INLINEABLE setAtIx #-}
 
 -- | Byte replication, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 -- We want to cautious about the allocation of huge amounts of memory so we
