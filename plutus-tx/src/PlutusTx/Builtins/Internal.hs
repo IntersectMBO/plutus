@@ -797,7 +797,7 @@ writeBits ::
   BuiltinList BuiltinBool ->
   BuiltinByteString
 writeBits (BuiltinByteString bs) (BuiltinList ixes) (BuiltinList bits) =
-  case Bitwise.writeBitsWrapper bs ixes (fmap (\(BuiltinBool b) -> b) bits) of
+  case Bitwise.writeBits bs ixes (fmap (\(BuiltinBool b) -> b) bits) of
     BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
       Haskell.error "writeBits errored."
     BuiltinSuccess bs' -> BuiltinByteString bs'
