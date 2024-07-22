@@ -65,6 +65,7 @@ library
     Cardano.Constitution.Config.Instance.TxLift
     Cardano.Constitution.Config.Types
     Cardano.Constitution.DataFilePaths
+    Cardano.Constitution.Validator
     Cardano.Constitution.Validator.Common
     Cardano.Constitution.Validator.Sorted
     Cardano.Constitution.Validator.Unsorted
@@ -82,3 +83,43 @@ library
     , regex-tdfa
     , safe
     , template-haskell
+
+test-suite cardano-constitution-engine-test
+  import:           lang, ghc-version-support, os-support
+  hs-source-dirs:   test
+  default-language: Haskell2010
+  ghc-options:      -threaded -rtsopts -with-rtsopts=-N
+  type:             exitcode-stdio-1.0
+  main-is:          Driver.hs
+  other-modules:
+    Cardano.Constitution.Config.Schema.UnitTests
+    Cardano.Constitution.Validator.Empty.GoldenTests
+    -- Cardano.Constitution.Validator.TestsCommon
+    -- Cardano.Constitution.Validator.UnitTests
+    -- Helpers.CekTests
+    -- Helpers.Farey
+    -- Helpers.Guardrail
+    -- Helpers.Intervals
+    -- Helpers.MultiParam
+    -- Helpers.Spec.FareySpec
+    -- Helpers.Spec.IntervalSpec
+    -- Helpers.TestBuilders
+  build-depends:
+    , aeson
+    , base                                            >=4.9   && <5
+    , bytestring
+    , cardano-constitution-engine                            ^>=1.31
+    , containers
+    -- , directory
+    , filepath
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.31
+    , plutus-ledger-api                               ^>=1.31
+    , plutus-tx                                       ^>=1.31
+    -- , QuickCheck
+    , serialise
+    , tasty
+    -- , tasty-expected-failure
+    , tasty-golden
+    , tasty-hunit
+    -- , tasty-json
+    , tasty-quickcheck

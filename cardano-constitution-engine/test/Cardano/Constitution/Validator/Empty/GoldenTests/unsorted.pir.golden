@@ -1,0 +1,894 @@
+program
+  1.1.0
+  ((let
+       data Ordering-23720 | Ordering_match-23724 where
+         EQ-23721 : Ordering-23720
+         GT-23722 : Ordering-23720
+         LT-23723 : Ordering-23720
+       data Bool-23708 | Bool_match-23711 where
+         True-23709 : Bool-23708
+         False-23710 : Bool-23708
+       data (Ord-23725 :: * -> *) a-23728 | Ord_match-23727 where
+         CConsOrd-23726 :
+           (\a-23729 -> a-23729 -> a-23729 -> Bool-23708) a-23728 ->
+           (a-23728 -> a-23728 -> Ordering-23720) ->
+           (a-23728 -> a-23728 -> Bool-23708) ->
+           (a-23728 -> a-23728 -> Bool-23708) ->
+           (a-23728 -> a-23728 -> Bool-23708) ->
+           (a-23728 -> a-23728 -> Bool-23708) ->
+           (a-23728 -> a-23728 -> a-23728) ->
+           (a-23728 -> a-23728 -> a-23728) ->
+           Ord-23725 a-23728
+       data PredKey-23715 | PredKey_match-23719 where
+         MaxValue-23716 : PredKey-23715
+         MinValue-23717 : PredKey-23715
+         NotEqual-23718 : PredKey-23715
+     in
+     letrec
+       data (List-23703 :: * -> *) a-23707 | List_match-23706 where
+         Nil-23704 : List-23703 a-23707
+         Cons-23705 : a-23707 -> List-23703 a-23707 -> List-23703 a-23707
+     in
+     let
+       data (Tuple2-23693 :: * -> * -> *) a-23696
+       b-23697 | Tuple2_match-23695 where
+         Tuple2-23694 : a-23696 -> b-23697 -> Tuple2-23693 a-23696 b-23697
+       !validatePreds-23861 :
+          all a-23862.
+            Ord-23725 a-23862 ->
+            (\v-23863 ->
+               List-23703 (Tuple2-23693 PredKey-23715 (List-23703 v-23863)))
+              a-23862 ->
+            a-23862 ->
+            Bool-23708
+         = /\a-23794 ->
+             \(`$dOrd`-23795 : Ord-23725 a-23794)
+              (ds-23796 :
+                 (\v-23797 ->
+                    List-23703
+                      (Tuple2-23693 PredKey-23715 (List-23703 v-23797)))
+                   a-23794)
+              (ds-23798 : a-23794) ->
+               letrec
+                 !go-23799 :
+                    List-23703
+                      (Tuple2-23693 PredKey-23715 (List-23703 a-23794)) ->
+                    Bool-23708
+                   = \(ds-23800 :
+                         List-23703
+                           (Tuple2-23693 PredKey-23715 (List-23703 a-23794))) ->
+                       List_match-23706
+                         {Tuple2-23693 PredKey-23715 (List-23703 a-23794)}
+                         ds-23800
+                         {all dead-23801. Bool-23708}
+                         (/\dead-23802 -> True-23709)
+                         (\(x-23803 :
+                              Tuple2-23693 PredKey-23715 (List-23703 a-23794))
+                           (xs-23804 :
+                              List-23703
+                                (Tuple2-23693
+                                   PredKey-23715
+                                   (List-23703 a-23794))) ->
+                            /\dead-23805 ->
+                              Tuple2_match-23695
+                                {PredKey-23715}
+                                {List-23703 a-23794}
+                                x-23803
+                                {Bool-23708}
+                                (\(predKey-23806 : PredKey-23715)
+                                  (expectedPredValues-23807 :
+                                     List-23703 a-23794) ->
+                                   let
+                                     !meaning-23847 :
+                                        a-23794 -> a-23794 -> Bool-23708
+                                       = PredKey_match-23719
+                                           predKey-23806
+                                           {all dead-23808.
+                                              a-23794 -> a-23794 -> Bool-23708}
+                                           (/\dead-23809 ->
+                                              Ord_match-23727
+                                                {a-23794}
+                                                `$dOrd`-23795
+                                                {a-23794 ->
+                                                 a-23794 ->
+                                                 Bool-23708}
+                                                (\(v-23810 :
+                                                     (\a-23811 ->
+                                                        a-23811 ->
+                                                        a-23811 ->
+                                                        Bool-23708)
+                                                       a-23794)
+                                                  (v-23812 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     Ordering-23720)
+                                                  (v-23813 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     Bool-23708)
+                                                  (v-23814 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     Bool-23708)
+                                                  (v-23815 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     Bool-23708)
+                                                  (v-23816 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     Bool-23708)
+                                                  (v-23817 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     a-23794)
+                                                  (v-23818 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     a-23794) ->
+                                                   v-23816))
+                                           (/\dead-23819 ->
+                                              Ord_match-23727
+                                                {a-23794}
+                                                `$dOrd`-23795
+                                                {a-23794 ->
+                                                 a-23794 ->
+                                                 Bool-23708}
+                                                (\(v-23820 :
+                                                     (\a-23821 ->
+                                                        a-23821 ->
+                                                        a-23821 ->
+                                                        Bool-23708)
+                                                       a-23794)
+                                                  (v-23822 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     Ordering-23720)
+                                                  (v-23823 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     Bool-23708)
+                                                  (v-23824 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     Bool-23708)
+                                                  (v-23825 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     Bool-23708)
+                                                  (v-23826 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     Bool-23708)
+                                                  (v-23827 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     a-23794)
+                                                  (v-23828 :
+                                                     a-23794 ->
+                                                     a-23794 ->
+                                                     a-23794) ->
+                                                   v-23824))
+                                           (/\dead-23829 ->
+                                              \(x-23830 : a-23794)
+                                               (y-23831 : a-23794) ->
+                                                Bool_match-23711
+                                                  (Ord_match-23727
+                                                     {a-23794}
+                                                     `$dOrd`-23795
+                                                     {(\a-23832 ->
+                                                         a-23832 ->
+                                                         a-23832 ->
+                                                         Bool-23708)
+                                                        a-23794}
+                                                     (\(v-23833 :
+                                                          (\a-23834 ->
+                                                             a-23834 ->
+                                                             a-23834 ->
+                                                             Bool-23708)
+                                                            a-23794)
+                                                       (v-23835 :
+                                                          a-23794 ->
+                                                          a-23794 ->
+                                                          Ordering-23720)
+                                                       (v-23836 :
+                                                          a-23794 ->
+                                                          a-23794 ->
+                                                          Bool-23708)
+                                                       (v-23837 :
+                                                          a-23794 ->
+                                                          a-23794 ->
+                                                          Bool-23708)
+                                                       (v-23838 :
+                                                          a-23794 ->
+                                                          a-23794 ->
+                                                          Bool-23708)
+                                                       (v-23839 :
+                                                          a-23794 ->
+                                                          a-23794 ->
+                                                          Bool-23708)
+                                                       (v-23840 :
+                                                          a-23794 ->
+                                                          a-23794 ->
+                                                          a-23794)
+                                                       (v-23841 :
+                                                          a-23794 ->
+                                                          a-23794 ->
+                                                          a-23794) ->
+                                                        v-23833)
+                                                     x-23830
+                                                     y-23831)
+                                                  {all dead-23842. Bool-23708}
+                                                  (/\dead-23843 -> False-23710)
+                                                  (/\dead-23844 -> True-23709)
+                                                  {all dead-23845. dead-23845})
+                                           {all dead-23846. dead-23846}
+                                   in
+                                   letrec
+                                     !go-23848 :
+                                        List-23703 a-23794 -> Bool-23708
+                                       = \(ds-23849 : List-23703 a-23794) ->
+                                           List_match-23706
+                                             {a-23794}
+                                             ds-23849
+                                             {all dead-23850. Bool-23708}
+                                             (/\dead-23851 -> go-23799 xs-23804)
+                                             (\(x-23852 : a-23794)
+                                               (xs-23853 :
+                                                  List-23703 a-23794) ->
+                                                /\dead-23854 ->
+                                                  Bool_match-23711
+                                                    (meaning-23847
+                                                       x-23852
+                                                       ds-23798)
+                                                    {all dead-23855. Bool-23708}
+                                                    (/\dead-23856 ->
+                                                       go-23848 xs-23853)
+                                                    (/\dead-23857 ->
+                                                       False-23710)
+                                                    {all dead-23858.
+                                                       dead-23858})
+                                             {all dead-23859. dead-23859}
+                                   in
+                                   go-23848 expectedPredValues-23807))
+                         {all dead-23860. dead-23860}
+               in
+               go-23799 ds-23796
+       !equalsInteger-23780 : integer -> integer -> Bool-23708
+         = \(x-23778 : integer) (y-23779 : integer) ->
+             ifThenElse
+               {Bool-23708}
+               (equalsInteger x-23778 y-23779)
+               True-23709
+               False-23710
+       !`$fOrdInteger_$ccompare`-23777 : integer -> integer -> Ordering-23720
+         = \(eta-23767 : integer) (eta-23768 : integer) ->
+             Bool_match-23711
+               (ifThenElse
+                  {Bool-23708}
+                  (equalsInteger eta-23767 eta-23768)
+                  True-23709
+                  False-23710)
+               {all dead-23769. Ordering-23720}
+               (/\dead-23770 -> EQ-23721)
+               (/\dead-23771 ->
+                  Bool_match-23711
+                    (ifThenElse
+                       {Bool-23708}
+                       (lessThanEqualsInteger eta-23767 eta-23768)
+                       True-23709
+                       False-23710)
+                    {all dead-23772. Ordering-23720}
+                    (/\dead-23773 -> LT-23723)
+                    (/\dead-23774 -> GT-23722)
+                    {all dead-23775. dead-23775})
+               {all dead-23776. dead-23776}
+       data Rational-23730 | Rational_match-23732 where
+         Rational-23731 : integer -> integer -> Rational-23730
+       !`$fOrdRational0_$c<=`-23766 :
+          Rational-23730 -> Rational-23730 -> Bool-23708
+         = \(ds-23760 : Rational-23730) (ds-23761 : Rational-23730) ->
+             Rational_match-23732
+               ds-23760
+               {Bool-23708}
+               (\(n-23762 : integer) (d-23763 : integer) ->
+                  Rational_match-23732
+                    ds-23761
+                    {Bool-23708}
+                    (\(n'-23764 : integer) (d'-23765 : integer) ->
+                       ifThenElse
+                         {Bool-23708}
+                         (lessThanEqualsInteger
+                            (multiplyInteger n-23762 d'-23765)
+                            (multiplyInteger n'-23764 d-23763))
+                         True-23709
+                         False-23710))
+     in
+     letrec
+       !euclid-23741 : integer -> integer -> integer
+         = \(x-23742 : integer) (y-23743 : integer) ->
+             Bool_match-23711
+               (ifThenElse
+                  {Bool-23708}
+                  (equalsInteger 0 y-23743)
+                  True-23709
+                  False-23710)
+               {all dead-23744. integer}
+               (/\dead-23745 -> x-23742)
+               (/\dead-23746 ->
+                  euclid-23741 y-23743 (modInteger x-23742 y-23743))
+               {all dead-23747. dead-23747}
+     in
+     letrec
+       !unsafeRatio-23748 : integer -> integer -> Rational-23730
+         = \(n-23749 : integer) (d-23750 : integer) ->
+             Bool_match-23711
+               (ifThenElse
+                  {Bool-23708}
+                  (equalsInteger 0 d-23750)
+                  True-23709
+                  False-23710)
+               {all dead-23751. Rational-23730}
+               (/\dead-23752 -> error {Rational-23730})
+               (/\dead-23753 ->
+                  Bool_match-23711
+                    (ifThenElse
+                       {Bool-23708}
+                       (lessThanInteger d-23750 0)
+                       True-23709
+                       False-23710)
+                    {all dead-23754. Rational-23730}
+                    (/\dead-23755 ->
+                       unsafeRatio-23748
+                         (subtractInteger 0 n-23749)
+                         (subtractInteger 0 d-23750))
+                    (/\dead-23756 ->
+                       let
+                         !gcd'-23757 : integer = euclid-23741 n-23749 d-23750
+                       in
+                       Rational-23731
+                         (quotientInteger n-23749 gcd'-23757)
+                         (quotientInteger d-23750 gcd'-23757))
+                    {all dead-23758. dead-23758})
+               {all dead-23759. dead-23759}
+     in
+     letrec
+       data ParamValue-23733 | ParamValue_match-23738 where
+         ParamAny-23734 : ParamValue-23733
+         ParamInteger-23735 :
+           (\v-23739 ->
+              List-23703 (Tuple2-23693 PredKey-23715 (List-23703 v-23739)))
+             integer ->
+           ParamValue-23733
+         ParamList-23736 : List-23703 ParamValue-23733 -> ParamValue-23733
+         ParamRational-23737 :
+           (\v-23740 ->
+              List-23703 (Tuple2-23693 PredKey-23715 (List-23703 v-23740)))
+             Rational-23730 ->
+           ParamValue-23733
+     in
+     let
+       data Unit-23712 | Unit_match-23714 where
+         Unit-23713 : Unit-23712
+     in
+     letrec
+       !validateParamValue-23781 : ParamValue-23733 -> data -> Bool-23708
+         = \(eta-23782 : ParamValue-23733) (eta-23783 : data) ->
+             let
+               ~bl-23940 : list data = unListData eta-23783
+               ~bl'-23941 : list data = tailList {data} bl-23940
+             in
+             ParamValue_match-23738
+               eta-23782
+               {all dead-23864. Bool-23708}
+               (/\dead-23865 -> True-23709)
+               (\(preds-23866 :
+                    (\v-23867 ->
+                       List-23703
+                         (Tuple2-23693 PredKey-23715 (List-23703 v-23867)))
+                      integer) ->
+                  /\dead-23868 ->
+                    validatePreds-23861
+                      {integer}
+                      (CConsOrd-23726
+                         {integer}
+                         equalsInteger-23780
+                         `$fOrdInteger_$ccompare`-23777
+                         (\(x-23869 : integer) (y-23870 : integer) ->
+                            ifThenElse
+                              {Bool-23708}
+                              (lessThanInteger x-23869 y-23870)
+                              True-23709
+                              False-23710)
+                         (\(x-23871 : integer) (y-23872 : integer) ->
+                            ifThenElse
+                              {Bool-23708}
+                              (lessThanEqualsInteger x-23871 y-23872)
+                              True-23709
+                              False-23710)
+                         (\(x-23873 : integer) (y-23874 : integer) ->
+                            ifThenElse
+                              {Bool-23708}
+                              (lessThanEqualsInteger x-23873 y-23874)
+                              False-23710
+                              True-23709)
+                         (\(x-23875 : integer) (y-23876 : integer) ->
+                            ifThenElse
+                              {Bool-23708}
+                              (lessThanInteger x-23875 y-23876)
+                              False-23710
+                              True-23709)
+                         (\(x-23877 : integer) (y-23878 : integer) ->
+                            Bool_match-23711
+                              (ifThenElse
+                                 {Bool-23708}
+                                 (lessThanEqualsInteger x-23877 y-23878)
+                                 True-23709
+                                 False-23710)
+                              {all dead-23879. integer}
+                              (/\dead-23880 -> y-23878)
+                              (/\dead-23881 -> x-23877)
+                              {all dead-23882. dead-23882})
+                         (\(x-23883 : integer) (y-23884 : integer) ->
+                            Bool_match-23711
+                              (ifThenElse
+                                 {Bool-23708}
+                                 (lessThanEqualsInteger x-23883 y-23884)
+                                 True-23709
+                                 False-23710)
+                              {all dead-23885. integer}
+                              (/\dead-23886 -> x-23883)
+                              (/\dead-23887 -> y-23884)
+                              {all dead-23888. dead-23888}))
+                      preds-23866
+                      (unIData eta-23783))
+               (\(paramValues-23889 : List-23703 ParamValue-23733) ->
+                  /\dead-23890 ->
+                    validateParamValues-23784
+                      paramValues-23889
+                      (unListData eta-23783))
+               (\(preds-23891 :
+                    (\v-23892 ->
+                       List-23703
+                         (Tuple2-23693 PredKey-23715 (List-23703 v-23892)))
+                      Rational-23730) ->
+                  /\dead-23893 ->
+                    validatePreds-23861
+                      {Rational-23730}
+                      (CConsOrd-23726
+                         {Rational-23730}
+                         (\(ds-23894 : Rational-23730)
+                           (ds-23895 : Rational-23730) ->
+                            Rational_match-23732
+                              ds-23894
+                              {Bool-23708}
+                              (\(n-23896 : integer) (d-23897 : integer) ->
+                                 Rational_match-23732
+                                   ds-23895
+                                   {Bool-23708}
+                                   (\(n'-23898 : integer)
+                                     (d'-23899 : integer) ->
+                                      Bool_match-23711
+                                        (ifThenElse
+                                           {Bool-23708}
+                                           (equalsInteger n-23896 n'-23898)
+                                           True-23709
+                                           False-23710)
+                                        {all dead-23900. Bool-23708}
+                                        (/\dead-23901 ->
+                                           ifThenElse
+                                             {Bool-23708}
+                                             (equalsInteger d-23897 d'-23899)
+                                             True-23709
+                                             False-23710)
+                                        (/\dead-23902 -> False-23710)
+                                        {all dead-23903. dead-23903})))
+                         (\(ds-23904 : Rational-23730)
+                           (ds-23905 : Rational-23730) ->
+                            Rational_match-23732
+                              ds-23904
+                              {Ordering-23720}
+                              (\(n-23906 : integer) (d-23907 : integer) ->
+                                 Rational_match-23732
+                                   ds-23905
+                                   {Ordering-23720}
+                                   (\(n'-23908 : integer)
+                                     (d'-23909 : integer) ->
+                                      `$fOrdInteger_$ccompare`-23777
+                                        (multiplyInteger n-23906 d'-23909)
+                                        (multiplyInteger n'-23908 d-23907))))
+                         (\(ds-23910 : Rational-23730)
+                           (ds-23911 : Rational-23730) ->
+                            Rational_match-23732
+                              ds-23910
+                              {Bool-23708}
+                              (\(n-23912 : integer) (d-23913 : integer) ->
+                                 Rational_match-23732
+                                   ds-23911
+                                   {Bool-23708}
+                                   (\(n'-23914 : integer)
+                                     (d'-23915 : integer) ->
+                                      ifThenElse
+                                        {Bool-23708}
+                                        (lessThanInteger
+                                           (multiplyInteger n-23912 d'-23915)
+                                           (multiplyInteger n'-23914 d-23913))
+                                        True-23709
+                                        False-23710)))
+                         `$fOrdRational0_$c<=`-23766
+                         (\(ds-23916 : Rational-23730)
+                           (ds-23917 : Rational-23730) ->
+                            Rational_match-23732
+                              ds-23916
+                              {Bool-23708}
+                              (\(n-23918 : integer) (d-23919 : integer) ->
+                                 Rational_match-23732
+                                   ds-23917
+                                   {Bool-23708}
+                                   (\(n'-23920 : integer)
+                                     (d'-23921 : integer) ->
+                                      ifThenElse
+                                        {Bool-23708}
+                                        (lessThanEqualsInteger
+                                           (multiplyInteger n-23918 d'-23921)
+                                           (multiplyInteger n'-23920 d-23919))
+                                        False-23710
+                                        True-23709)))
+                         (\(ds-23922 : Rational-23730)
+                           (ds-23923 : Rational-23730) ->
+                            Rational_match-23732
+                              ds-23922
+                              {Bool-23708}
+                              (\(n-23924 : integer) (d-23925 : integer) ->
+                                 Rational_match-23732
+                                   ds-23923
+                                   {Bool-23708}
+                                   (\(n'-23926 : integer)
+                                     (d'-23927 : integer) ->
+                                      ifThenElse
+                                        {Bool-23708}
+                                        (lessThanInteger
+                                           (multiplyInteger n-23924 d'-23927)
+                                           (multiplyInteger n'-23926 d-23925))
+                                        False-23710
+                                        True-23709)))
+                         (\(x-23928 : Rational-23730)
+                           (y-23929 : Rational-23730) ->
+                            Bool_match-23711
+                              (`$fOrdRational0_$c<=`-23766 x-23928 y-23929)
+                              {all dead-23930. Rational-23730}
+                              (/\dead-23931 -> y-23929)
+                              (/\dead-23932 -> x-23928)
+                              {all dead-23933. dead-23933})
+                         (\(x-23934 : Rational-23730)
+                           (y-23935 : Rational-23730) ->
+                            Bool_match-23711
+                              (`$fOrdRational0_$c<=`-23766 x-23934 y-23935)
+                              {all dead-23936. Rational-23730}
+                              (/\dead-23937 -> x-23934)
+                              (/\dead-23938 -> y-23935)
+                              {all dead-23939. dead-23939}))
+                      preds-23891
+                      (ifThenElse
+                         {Unit-23712 -> Rational-23730}
+                         (nullList {data} (tailList {data} bl'-23941))
+                         (\(ds-23942 : Unit-23712) ->
+                            unsafeRatio-23748
+                              (unIData (headList {data} bl-23940))
+                              (unIData (headList {data} bl'-23941)))
+                         (\(ds-23943 : Unit-23712) -> error {Rational-23730})
+                         Unit-23713))
+               {all dead-23944. dead-23944}
+       !validateParamValues-23784 :
+          List-23703 ParamValue-23733 -> list data -> Bool-23708
+         = \(ds-23785 : List-23703 ParamValue-23733) ->
+             List_match-23706
+               {ParamValue-23733}
+               ds-23785
+               {list data -> Bool-23708}
+               (\(eta-23786 : list data) ->
+                  ifThenElse
+                    {Bool-23708}
+                    (nullList {data} eta-23786)
+                    True-23709
+                    False-23710)
+               (\(paramValueHd-23787 : ParamValue-23733)
+                 (paramValueTl-23788 : List-23703 ParamValue-23733)
+                 (actualValueData-23789 : list data) ->
+                  Bool_match-23711
+                    (validateParamValue-23781
+                       paramValueHd-23787
+                       (headList {data} actualValueData-23789))
+                    {all dead-23790. Bool-23708}
+                    (/\dead-23791 ->
+                       validateParamValues-23784
+                         paramValueTl-23788
+                         (tailList {data} actualValueData-23789))
+                    (/\dead-23792 -> False-23710)
+                    {all dead-23793. dead-23793})
+     in
+     let
+       data (Maybe-23698 :: * -> *) a-23702 | Maybe_match-23701 where
+         Just-23699 : a-23702 -> Maybe-23698 a-23702
+         Nothing-23700 : Maybe-23698 a-23702
+     in
+     \(cfg-23945 : List-23703 (Tuple2-23693 integer ParamValue-23733)) ->
+       let
+         !fun-23979 : List-23703 (Tuple2-23693 data data) -> Bool-23708
+           = (let
+                 a-23946 = Tuple2-23693 data data
+               in
+               \(f-23947 : a-23946 -> Bool-23708) ->
+                 letrec
+                   !go-23949 : List-23703 a-23946 -> Bool-23708
+                     = \(ds-23950 : List-23703 a-23946) ->
+                         List_match-23706
+                           {a-23946}
+                           ds-23950
+                           {all dead-23951. Bool-23708}
+                           (/\dead-23952 -> True-23709)
+                           (\(x-23953 : a-23946)
+                             (xs-23954 : List-23703 a-23946) ->
+                              /\dead-23955 ->
+                                Bool_match-23711
+                                  (f-23947 x-23953)
+                                  {all dead-23956. Bool-23708}
+                                  (/\dead-23957 -> go-23949 xs-23954)
+                                  (/\dead-23958 -> False-23710)
+                                  {all dead-23959. dead-23959})
+                           {all dead-23960. dead-23960}
+                 in
+                 \(eta-23948 : List-23703 a-23946) -> go-23949 eta-23948)
+               (\(ds-23961 : Tuple2-23693 data data) ->
+                  Tuple2_match-23695
+                    {data}
+                    {data}
+                    ds-23961
+                    {Bool-23708}
+                    (\(ds-23962 : data) (actualValueData-23963 : data) ->
+                       validateParamValue-23781
+                         ((let
+                              !k-23964 : integer = unIData ds-23962
+                            in
+                            letrec
+                              !go-23965 :
+                                 List-23703
+                                   (Tuple2-23693 integer ParamValue-23733) ->
+                                 ParamValue-23733
+                                = \(ds-23966 :
+                                      List-23703
+                                        (Tuple2-23693
+                                           integer
+                                           ParamValue-23733)) ->
+                                    List_match-23706
+                                      {Tuple2-23693 integer ParamValue-23733}
+                                      ds-23966
+                                      {all dead-23967. ParamValue-23733}
+                                      (/\dead-23968 -> error {ParamValue-23733})
+                                      (\(ds-23969 :
+                                           Tuple2-23693
+                                             integer
+                                             ParamValue-23733)
+                                        (xs'-23970 :
+                                           List-23703
+                                             (Tuple2-23693
+                                                integer
+                                                ParamValue-23733)) ->
+                                         /\dead-23971 ->
+                                           Tuple2_match-23695
+                                             {integer}
+                                             {ParamValue-23733}
+                                             ds-23969
+                                             {ParamValue-23733}
+                                             (\(k'-23972 : integer)
+                                               (i-23973 : ParamValue-23733) ->
+                                                Bool_match-23711
+                                                  (equalsInteger-23780
+                                                     k-23964
+                                                     k'-23972)
+                                                  {all dead-23974.
+                                                     ParamValue-23733}
+                                                  (/\dead-23975 -> i-23973)
+                                                  (/\dead-23976 ->
+                                                     go-23965 xs'-23970)
+                                                  {all dead-23977. dead-23977}))
+                                      {all dead-23978. dead-23978}
+                            in
+                            go-23965)
+                            cfg-23945)
+                         actualValueData-23963))
+       in
+       \(ds-23980 : data) ->
+         Maybe_match-23701
+           {List-23703 (Tuple2-23693 data data)}
+           (let
+             !ds-23987 : data
+               = headList
+                   {data}
+                   (tailList
+                      {data}
+                      (tailList
+                         {data}
+                         (sndPair
+                            {integer}
+                            {list data}
+                            (unConstrData
+                               (let
+                                 !ds-23981 : data
+                                   = headList
+                                       {data}
+                                       (tailList
+                                          {data}
+                                          (tailList
+                                             {data}
+                                             (sndPair
+                                                {integer}
+                                                {list data}
+                                                (unConstrData ds-23980))))
+                                 ~si-23982 : pair integer (list data)
+                                   = unConstrData ds-23981
+                               in
+                               Bool_match-23711
+                                 (ifThenElse
+                                    {Bool-23708}
+                                    (equalsInteger
+                                       5
+                                       (fstPair {integer} {list data} si-23982))
+                                    True-23709
+                                    False-23710)
+                                 {all dead-23983. data}
+                                 (/\dead-23984 ->
+                                    headList
+                                      {data}
+                                      (tailList
+                                         {data}
+                                         (sndPair
+                                            {integer}
+                                            {list data}
+                                            si-23982)))
+                                 (/\dead-23985 -> error {data})
+                                 {all dead-23986. dead-23986})))))
+             ~ds-23988 : pair integer (list data) = unConstrData ds-23987
+             !x-23989 : integer = fstPair {integer} {list data} ds-23988
+           in
+           Bool_match-23711
+             (ifThenElse
+                {Bool-23708}
+                (equalsInteger 0 x-23989)
+                True-23709
+                False-23710)
+             {all dead-23990. Maybe-23698 (List-23703 (Tuple2-23693 data data))}
+             (/\dead-23991 ->
+                Just-23699
+                  {List-23703 (Tuple2-23693 data data)}
+                  (let
+                    !d-23992 : data
+                      = headList
+                          {data}
+                          (tailList
+                             {data}
+                             (sndPair {integer} {list data} ds-23988))
+                  in
+                  (let
+                      arep-23993 = pair data data
+                    in
+                    /\a-23994 ->
+                      \(`$dHasFromOpaque`-23995 :
+                          (\arep-23996 a-23997 -> arep-23996 -> a-23997)
+                            arep-23993
+                            a-23994) ->
+                        letrec
+                          !go-23999 : list arep-23993 -> List-23703 a-23994
+                            = \(l-24000 : list arep-23993) ->
+                                chooseList
+                                  {arep-23993}
+                                  {unit -> List-23703 a-23994}
+                                  l-24000
+                                  (\(ds-24001 : unit) -> Nil-23704 {a-23994})
+                                  (\(ds-24002 : unit) ->
+                                     Cons-23705
+                                       {a-23994}
+                                       (`$dHasFromOpaque`-23995
+                                          (headList {arep-23993} l-24000))
+                                       (go-23999
+                                          (tailList {arep-23993} l-24000)))
+                                  ()
+                        in
+                        \(eta-23998 : list arep-23993) -> go-23999 eta-23998)
+                    {Tuple2-23693 data data}
+                    (\(p-24003 : pair data data) ->
+                       Tuple2-23694
+                         {data}
+                         {data}
+                         (fstPair {data} {data} p-24003)
+                         (sndPair {data} {data} p-24003))
+                    (unMapData d-23992)))
+             (/\dead-24004 ->
+                Bool_match-23711
+                  (ifThenElse
+                     {Bool-23708}
+                     (equalsInteger 2 x-23989)
+                     True-23709
+                     False-23710)
+                  {all dead-24005.
+                     Maybe-23698 (List-23703 (Tuple2-23693 data data))}
+                  (/\dead-24006 ->
+                     Nothing-23700 {List-23703 (Tuple2-23693 data data)})
+                  (/\dead-24007 ->
+                     error {Maybe-23698 (List-23703 (Tuple2-23693 data data))})
+                  {all dead-24008. dead-24008})
+             {all dead-24009. dead-24009})
+           {all dead-24010. unit}
+           (\(cparams-24011 : List-23703 (Tuple2-23693 data data)) ->
+              /\dead-24012 ->
+                Bool_match-23711
+                  (fun-23979 cparams-24011)
+                  {all dead-24013. unit}
+                  (/\dead-24014 -> ())
+                  (/\dead-24015 -> error {unit})
+                  {all dead-24016. dead-24016})
+           (/\dead-24017 -> ())
+           {all dead-24018. dead-24018})
+     (let
+       data `PlutusTx.Ratio.Rational`-22 | `match_PlutusTx.Ratio.Rational`-23 where
+         `PlutusTx.Ratio.Rational`-24 :
+           integer -> integer -> `PlutusTx.Ratio.Rational`-22
+     in
+     letrec
+       data (`GHC.Types.List`-0 :: * -> *) a-1 | `match_GHC.Types.List`-2 where
+         `GHC.Types.Nil`-3 : `GHC.Types.List`-0 a-1
+         `GHC.Types.Cons`-4 :
+           a-1 -> `GHC.Types.List`-0 a-1 -> `GHC.Types.List`-0 a-1
+     in
+     let
+       data (`GHC.Tuple.Prim.Tuple2`-5 :: * -> * -> *) a-6
+       b-7 | `match_GHC.Tuple.Prim.Tuple2`-8 where
+         `GHC.Tuple.Prim.Tuple2`-9 :
+           a-6 -> b-7 -> `GHC.Tuple.Prim.Tuple2`-5 a-6 b-7
+     in
+     let
+       data `Cardano.Constitution.Config.Types.PredKey`-15 | `match_Cardano.Constitution.Config.Types.PredKey`-16 where
+         `Cardano.Constitution.Config.Types.MaxValue`-17 :
+           `Cardano.Constitution.Config.Types.PredKey`-15
+         `Cardano.Constitution.Config.Types.MinValue`-18 :
+           `Cardano.Constitution.Config.Types.PredKey`-15
+         `Cardano.Constitution.Config.Types.NotEqual`-19 :
+           `Cardano.Constitution.Config.Types.PredKey`-15
+     in
+     let
+       `Cardano.Constitution.Config.Types.Predicates`-13 :: * -> *
+         = \v-14 ->
+             `GHC.Types.List`-0
+               (`GHC.Tuple.Prim.Tuple2`-5
+                  `Cardano.Constitution.Config.Types.PredKey`-15
+                  (`GHC.Types.List`-0 v-14))
+     in
+     letrec
+       data `Cardano.Constitution.Config.Types.ParamValue`-10 | `match_Cardano.Constitution.Config.Types.ParamValue`-11 where
+         `Cardano.Constitution.Config.Types.ParamAny`-12 :
+           `Cardano.Constitution.Config.Types.ParamValue`-10
+         `Cardano.Constitution.Config.Types.ParamInteger`-20 :
+           (\v-14 ->
+              `GHC.Types.List`-0
+                (`GHC.Tuple.Prim.Tuple2`-5
+                   `Cardano.Constitution.Config.Types.PredKey`-15
+                   (`GHC.Types.List`-0 v-14)))
+             integer ->
+           `Cardano.Constitution.Config.Types.ParamValue`-10
+         `Cardano.Constitution.Config.Types.ParamList`-21 :
+           `GHC.Types.List`-0
+             `Cardano.Constitution.Config.Types.ParamValue`-10 ->
+           `Cardano.Constitution.Config.Types.ParamValue`-10
+         `Cardano.Constitution.Config.Types.ParamRational`-25 :
+           (\v-14 ->
+              `GHC.Types.List`-0
+                (`GHC.Tuple.Prim.Tuple2`-5
+                   `Cardano.Constitution.Config.Types.PredKey`-15
+                   (`GHC.Types.List`-0 v-14)))
+             `PlutusTx.Ratio.Rational`-22 ->
+           `Cardano.Constitution.Config.Types.ParamValue`-10
+     in
+     `GHC.Types.Nil`-3
+       {`GHC.Tuple.Prim.Tuple2`-5
+          integer
+          `Cardano.Constitution.Config.Types.ParamValue`-10}))

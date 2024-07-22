@@ -11,7 +11,8 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 
 module Cardano.Constitution.Validator.Unsorted
-    ( mkConstitutionCode
+    ( mkConstitutionValidator
+    , mkConstitutionCode
     ) where
 
 import Cardano.Constitution.Config
