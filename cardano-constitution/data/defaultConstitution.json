@@ -311,12 +311,12 @@
         "$comment": "All thresholds must be in the range 50%-100%"
       },
       {
-        "minValue": { "numerator": 65, "denominator": 100 },
-        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+        "minValue": { "numerator": 51, "denominator": 100 },
+        "$comment": "Update Constitutional committee action thresholds must be in the range 51%-90%"
       },
       {
         "maxValue": { "numerator": 90, "denominator": 100 },
-        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+        "$comment": "Update Constitutional committee action thresholds must be in the range 51%-90%"
       }
     ],
     "$comment": "poolVotingThresholds[committeeNormal]"
@@ -334,12 +334,12 @@
         "$comment": "All thresholds must be in the range 50%-100%"
       },
       {
-        "minValue": { "numerator": 65, "denominator": 100 },
-        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+        "minValue": { "numerator": 51, "denominator": 100 },
+        "$comment": "Update Constitutional committee action thresholds must be in the range 51%-90%"
       },
       {
         "maxValue": { "numerator": 90, "denominator": 100 },
-        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+        "$comment": "Update Constitutional committee action thresholds must be in the range 51%-90%"
       }
     ],
     "$comment": "poolVotingThresholds[committeeNoConfidence]"
@@ -418,12 +418,12 @@
         "$comment": "All thresholds must be in the range 50%-100%"
       },
       {
-        "minValue": { "numerator": 65, "denominator": 100 },
-        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+        "minValue": { "numerator": 51, "denominator": 100 },
+        "$comment": "Update Constitutional committee action thresholds must be in the range 51%-90%"
       },
       {
         "maxValue": { "numerator": 90, "denominator": 100 },
-        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+        "$comment": "Update Constitutional committee action thresholds must be in the range 51%-90%"
       }
     ],
     "$comment": "dRepVotingThresholds[committeeNormal]"
@@ -441,12 +441,12 @@
         "$comment": "All thresholds must be in the range 50%-100%"
       },
       {
-        "minValue": { "numerator": 65, "denominator": 100 },
-        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+        "minValue": { "numerator": 51, "denominator": 100 },
+        "$comment": "Update Constitutional committee action thresholds must be in the range 51%-90%"
       },
       {
         "maxValue": { "numerator": 90, "denominator": 100 },
-        "$comment": "Update Constitutional committee action thresholds must be in the range 65%-90%"
+        "$comment": "Update Constitutional committee action thresholds must be in the range 51%-90%"
       }
     ],
     "$comment": "dRepVotingThresholds[committeeNoConfidence]"
