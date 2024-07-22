@@ -63,11 +63,19 @@ simplifyTerm opts builtinSemanticsVariant =
     -- generate simplification step
     simplifyStep :: Int -> Term name uni fun a -> m (Term name uni fun a)
     simplifyStep _ =
-      floatDelay
+      traceFirst
+        >=> floatDelay
         >=> pure . forceDelay
         >=> caseOfCase'
         >=> pure . caseReduce
         >=> inline (_soInlineConstants opts) (_soInlineHints opts) builtinSemanticsVariant
+
+    traceFirst :: Term name uni fun a -> m (Term name uni fun a)
+    traceFirst first = case eqT @fun @DefaultFun of
+      Just Refl -> do
+        State.modify' $ \s -> s { caseOfCaseTrace = caseOfCaseTrace s ++ [first] }
+        pure first
+      Nothing   -> pure first
 
     caseOfCase' :: Term name uni fun a -> m (Term name uni fun a)
     caseOfCase' pre = case eqT @fun @DefaultFun of

@@ -146,6 +146,7 @@ library
     MAlonzo.Code.Data.Empty.Irrelevant
     MAlonzo.Code.Data.Empty.Polymorphic
     MAlonzo.Code.Data.Fin.Base
+    MAlonzo.Code.Data.Float.Properties
     MAlonzo.Code.Data.Integer
     MAlonzo.Code.Data.Integer.Base
     MAlonzo.Code.Data.Integer.Properties
@@ -215,6 +216,7 @@ library
     MAlonzo.Code.Data.Unit.Properties
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
+    MAlonzo.Code.Data.Word.Properties
     MAlonzo.Code.Declarative
     MAlonzo.Code.Evaluator.Base
     MAlonzo.Code.Evaluator.Program
@@ -244,6 +246,19 @@ library
     MAlonzo.Code.Main
     MAlonzo.Code.Raw
     MAlonzo.Code.RawU
+    MAlonzo.Code.Reflection
+    MAlonzo.Code.Reflection.Abstraction
+    MAlonzo.Code.Reflection.Argument
+    MAlonzo.Code.Reflection.Argument.Information
+    MAlonzo.Code.Reflection.Argument.Modality
+    MAlonzo.Code.Reflection.Argument.QQuantity
+    MAlonzo.Code.Reflection.Argument.Relevance
+    MAlonzo.Code.Reflection.Argument.Visibility
+    MAlonzo.Code.Reflection.Literal
+    MAlonzo.Code.Reflection.Meta
+    MAlonzo.Code.Reflection.Name
+    MAlonzo.Code.Reflection.Show
+    MAlonzo.Code.Reflection.Term
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
     MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
@@ -449,6 +464,7 @@ library
     MAlonzo.Code.Data.Tree.AVL.Value
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
+    MAlonzo.Code.Data.Word.Properties
     MAlonzo.Code.Declarative
     MAlonzo.Code.Evaluator.Base
     MAlonzo.Code.Evaluator.Program
@@ -478,6 +494,21 @@ library
     MAlonzo.Code.Main
     MAlonzo.Code.Raw
     MAlonzo.Code.RawU
+    MAlonzo.Code.Reflection
+    MAlonzo.Code.Data.Float.Properties
+    MAlonzo.Code.Data.Word.Properties
+    MAlonzo.Code.Reflection.Abstraction
+    MAlonzo.Code.Reflection.Argument
+    MAlonzo.Code.Reflection.Argument.Information
+    MAlonzo.Code.Reflection.Argument.Modality
+    MAlonzo.Code.Reflection.Argument.QQuantity
+    MAlonzo.Code.Reflection.Argument.Relevance
+    MAlonzo.Code.Reflection.Argument.Visibility
+    MAlonzo.Code.Reflection.Literal
+    MAlonzo.Code.Reflection.Meta
+    MAlonzo.Code.Reflection.Name
+    MAlonzo.Code.Reflection.Show
+    MAlonzo.Code.Reflection.Term
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
     MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality

@@ -33,6 +33,7 @@ open import Scoped using (ScopeError;deBError)
 open import VerifiedCompilation.Equality using (DecEq)
 import Relation.Binary as Binary using (Decidable)
 open import VerifiedCompilation.UntypedTranslation using (Translation)
+open import Reflection using (showTerm)
 ```
 
 ## Compiler certification component
@@ -81,17 +82,33 @@ postulate
 toWellScoped' : Untyped → Either ScopeError (Maybe ⊥ ⊢)
 toWellScoped' = toWellScoped
 
+showTranslation : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Translation UCC.CoC ast ast' → String
+showTranslation (Translation.istranslation _ _ x) = "istranslation TODO"
+showTranslation Translation.var = "var"
+showTranslation (Translation.ƛ t) = "(ƛ " ++ showTranslation t ++ ")"
+showTranslation (Translation.app t t₁) = "(app " ++ showTranslation t ++ " " ++ showTranslation t₁ ++ ")"
+showTranslation (Translation.force t) = "(force " ++ showTranslation t ++ ")"
+showTranslation (Translation.delay t) = "(delay " ++ showTranslation t ++ ")"
+showTranslation Translation.con = "con"
+showTranslation (Translation.constr x) = "(constr TODO)"
+showTranslation (Translation.case x t) = "case TODO " ++ showTranslation t ++ ")"
+showTranslation Translation.builtin = "builtin"
+showTranslation Translation.error = "error"
+
 -- TODO: unparse proof
 showDec : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Dec (Translation UCC.CoC ast ast') → String
-showDec {X} (yes refl) = "Yes" 
-showDec {X} (no ¬refl) = "No"
+-- showDec {X} result = showTerm (quoteTerm result)
+showDec {X} (yes refl) = "yes" ++ showTranslation refl
+showDec {X} (no ¬refl) = "no"
 
--- TODO: just checks whether the head of the list passes the decision procedure check 
+-- TODO: write dec for a trace of ASTs
 runCertifier : List Untyped → IO ⊤
 runCertifier [] = putStrLn "No ASTs"
 runCertifier (x ∷ xs) with toWellScoped' x
 ...                | inj₁ _ = putStrLn "Can't parse AST"
 ...                | inj₂ t =
                       let result = UCC.isUntypedCaseOfCase? t t
-                       in putStrLn (showDec result)
+                       in do
+                        putStrLn (showDec result)
+                        runCertifier xs
 {-# COMPILE GHC runCertifier as runCertifier #-}
