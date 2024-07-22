@@ -2,7 +2,7 @@
 
 # Version
 
-Version: 1.2
+Version: 1.3
 
 ## Authors 
 
@@ -21,16 +21,14 @@ Romain Soulat (romain.soulat@iohk.io)
 |---|---|---|---|
 | 1.0 | April, 30, 2024 | Bogdan Manole, Romain Soulat | Initial version |
 | 1.1 | May, 14, 2024 | Romain Soulat | Update to May 07 version of the Constitution |
-| 1.2 | July, 04, 2024 | Romain Soulat | Changed parameter 33 to new type, updated the documents versions |
+| 1.2 | July, 04, 2024 | Romain Soulat | Changed parameter 33 to new type, updated the documents versions |
+| 1.3 | July, 22, 2024 | Romain Soulat | Updated with changes to VT-CC-01 and guardrail ordering changes |
 
 ## References
 
 - Interim Constitution
   - SHA 256: `6010c89fb4edef2467979db5ea181ff7eda7d93d71bf304aa1bc88defedb5c26`
   - URL: <https://raw.githubusercontent.com/IntersectMBO/interim-constitution/main/cardano-constitution-0.txt>
-
-- [Testing Framework](https://github.com/IntersectMBO/constitution-priv/tree/d62d2cc5ab90356a36cd4fd1c3c0146a381c2e6a)
-  - Date: July, 04, 2024
 
 ## Traceability
 
@@ -58,9 +56,9 @@ The script assumes all the guarantees provided by the ledger rules and types.
 |---|:---:|---|:---:|
 |PARAM-01| :white_check_mark: | No parameters were found to fall into this guardrail  |  :black_square_button: |
 |PARAM-02| :white_check_mark: | Cost Models follow PARAM-02  |  :black_square_button: |
-|PARAM-03| :white_check_mark: | The script cannot enforce this guardrail directly, it is enforced by [VT-GEN-XX] |  :black_square_button: |
+|PARAM-03| :white_check_mark: | The script cannot enforce this guardrail directly, it is enforced by [VT-GEN-01] |  :black_square_button: |
 |PARAM-04| :x: | | :white_check_mark: |
-|PARAM-05| :white_check_mark: | The script cannot enforce this guardrail directly, it is enforced by [VT-GEN-XX] |  :black_square_button: |
+|PARAM-05| :white_check_mark: | The script cannot enforce this guardrail directly, it is enforced by [VT-GEN-01] |  :black_square_button: |
 |PARAM-06| :x: | | :white_check_mark: |
 
 #### Economic Parameters
@@ -169,6 +167,7 @@ The script assumes all the guarantees provided by the ledger rules and types.
 | MBBS-04 | :x: | | :white_check_mark: |
 | MBBS-05 | :x: | | :white_check_mark: |
 | MBBS-06 | :x: | | :white_check_mark: |
+| MBBS-07 | :x: | | :white_check_mark: |
 
 ##### Transaction size
 
@@ -193,7 +192,7 @@ The script assumes all the guarantees provided by the ledger rules and types.
 | MBEU-M-02 | :white_check_mark: | ("MBEU-M-02","maxBlockExecutionUnits[memory] must not be negative") `MustNotBe` NL 0 | :white_check_mark: |
 | MBEU-M-03 | :x: | | :white_check_mark: |
 | MBEU-M-04 | :x: | | :white_check_mark: |
-| MTEU-GEN-01 | :x: | | :white_check_mark: |
+| MEU-M-01 | :x: | | :white_check_mark: |
 
 ##### CPU Unit Limits
 
@@ -202,9 +201,9 @@ The script assumes all the guarantees provided by the ledger rules and types.
 | MTEU-S-01 | :white_check_mark: | ("MTEU-S-01","maxTxExecutionUnits[steps] must not exceed 15,000,000,000 (15Bn) units") `MustNotBe` NG 15_000_000_000 | :white_check_mark: |
 | MTEU-S-02 | :white_check_mark: | ("MTEU-S-02","maxTxExecutionUnits[steps] must not be negative") `MustNotBe` NL 0 | :white_check_mark: |
 | MTEU-S-03 | :x: | | :white_check_mark: |
+| MTEU-S-04 | :x: | | :white_check_mark: |
 | MBEU-S-01 | :white_check_mark: | ("MBEU-S-01","maxBlockExecutionUnits[steps] must not exceed 40,000,000,000 (40Bn) units") `MustNotBe` NG 40_000_000_000 | :white_check_mark: |
 | MBEU-S-02 | :white_check_mark: | ("MBEU-S-02","maxBlockExecutionUnits[steps] must not be negative") `MustNotBe` NL 0 | :white_check_mark: |
-| MTEU-S-04 | :x: | | :white_check_mark: |
 | MBEU-S-03 | :x: | | :white_check_mark: |
 | MEU-S-01 | :x: | | :white_check_mark: |
 
@@ -319,8 +318,8 @@ Note: Test cases exist for the Plutus Cost Models, the presence of a Cost model 
 | VT-GEN-02 | :white_check_mark: | **dRepVotingThresholds = Collection @Rational 26 "dRepVotingThresholds"** <br> Param 5 "ppNetworkGroup" (2 % 3) <br>("VT-GEN-02", "Economic, network, and technical parameters thresholds must be in the range 51%-75%") `MustNotBe` NL (51 % 100) <br> ("VT-GEN-02b", "Economic, network, and technical parameters thresholds must be in the range 51%-75%") `MustNotBe` NG (75 % 100) <br><br> Param 6 "ppEconomicGroup" (2 % 3) <br>("VT-GEN-02", "Economic, network, and technical parameters thresholds must be in the range 51%-75%") `MustNotBe` NL (51 % 100) <br> ("VT-GEN-02b", "Economic, network, and technical parameters thresholds must be in the range 51%-75%") `MustNotBe` NG (75 % 100) <br><br> Param 7 "ppTechnicalGroup" (2 % 3) <br>("VT-GEN-02", "Economic, network, and technical parameters thresholds must be in the range 51%-75%") `MustNotBe` NL (51 % 100) <br> ("VT-GEN-02b", "Economic, network, and technical parameters thresholds must be in the range 51%-75%") `MustNotBe` NG (75 % 100)  | :white_check_mark: |
 | VT-GOV-01 | :white_check_mark: | **dRepVotingThresholds = ParamList @Rational 26 "dRepVotingThresholds"** <br>Param 8 "ppGovernanceGroup" (4 % 5) <br> ("VT-GOV-01", "Governance parameter thresholds must be in the range 75%-90%") `MustNotBe` NL (75 % 100) <br> ("VT-GOV-01b", "Governance parameter thresholds must be in the range 75%-90%") `MustNotBe` NG (90 % 100) | :white_check_mark: |
 | VT-HF-01 | :white_check_mark: | **poolVotingThresholds = ParamList @Rational 25 "poolVotingThresholds"**<br> Param 3 "hardForkInitiation" (2 % 3) <br> ("VT-HF-01", "Hard fork action thresholds must be in the range 51%-80%") `MustNotBe` NL (51 % 100) <br> ("VT-HF-01b", "Hard fork action thresholds must be in the range 51%-80%") `MustNotBe` NG (80 % 100) <br><br> **dRepVotingThresholds = ParamList @Rational 26 "dRepVotingThresholds"** <br> Param 4 "hardForkInitiation" (2 % 3) <br> ("VT-HF-01", "Hard fork action thresholds must be in the range 51%-80%") `MustNotBe` NL (51 % 100) <br> ("VT-HF-01b", "Hard fork action thresholds must be in the range 51%-80%") `MustNotBe` NG (80 % 100)| :white_check_mark: |
-| VT-CON-01 | :white_check_mark: | **dRepVotingThresholds = ParamList @Rational 26 "dRepVotingThresholds"** <br> Param 3 "updateConstitution" (2 % 3) <br> ("VT-CON-01", "Update Constitution or proposal policy action thresholds must be in the range 65%-90%") `MustNotBe` NL (65 % 100) <br> ("VT-CON-01b", "Update Constitution or proposal policy action thresholds must be in the range 65%-90%") `MustNotBe` NG (90 % 100)  | :white_check_mark: |
-| VT-CC-01 | :white_check_mark: | **poolVotingThresholds = ParamList @Rational 25 "poolVotingThresholds"** <br> Param 1 "committeeNormal" (2 % 3) <br> ("VT-CC-01","Update Constitutional Committee action thresholds must be in the range 65%-90%") `MustNotBe` NL (65 % 100) <br> ("VT-CC-01b","Update Constitutional Committee action thresholds must be in the range 65%-90%") `MustNotBe` NG (90 % 100) <br><br> Param 2 "committeeNoConfidence" (2 % 3) <br> ("VT-CC-01","Update Constitutional Committee action thresholds must be in the range 65%-90%") `MustNotBe` NL (65 % 100) <br> ("VT-CC-01b","Update Constitutional Committee action thresholds must be in the range 65%-90%") `MustNotBe` NG (90 % 100) <br><br>  **dRepVotingThresholds = ParamList @Rational 26 "dRepVotingThresholds"** <br> Param 1 "committeeNormal" (2 % 3) <br> ("VT-CC-01","Update Constitutional Committee action thresholds must be in the range 65%-90%") `MustNotBe` NL (65 % 100) <br> ("VT-CC-01b","Update Constitutional Committee action thresholds must be in the range 65%-90%") `MustNotBe` NG (90 % 100) <br><br> Param 2 "committeeNoConfidence" (2 % 3) <br> ("VT-CC-01","Update Constitutional Committee action thresholds must be in the range 65%-90%") `MustNotBe` NL (65 % 100) <br> ("VT-CC-01b","Update Constitutional Committee action thresholds must be in the range 65%-90%") `MustNotBe` NG (90 % 100)| :white_check_mark: |
+| VT-CON-01 | :white_check_mark: | **dRepVotingThresholds = ParamList @Rational 26 "dRepVotingThresholds"** <br> Param 3 "updateConstitution" (2 % 3) <br> ("VT-CON-01", "New Constitution or guardrails script actionthresholds must be in the range 65%-90%") `MustNotBe` NL (65 % 100) <br> ("VT-CON-01b", "New Constitution or guardrails script actionthresholds must be in the range 65%-90%") `MustNotBe` NG (90 % 100)  | :white_check_mark: |
+| VT-CC-01 | :white_check_mark: | **poolVotingThresholds = ParamList @Rational 25 "poolVotingThresholds"** <br> Param 1 "committeeNormal" (2 % 3) <br> ("VT-CC-01","Update Constitutional Committee action thresholds must be in the range 51%-90%") `MustNotBe` NL (51 % 100) <br> ("VT-CC-01b","Update Constitutional Committee action thresholds must be in the range 51%-90%") `MustNotBe` NG (90 % 100) <br><br> Param 2 "committeeNoConfidence" (2 % 3) <br> ("VT-CC-01","Update Constitutional Committee action thresholds must be in the range 51%-90%") `MustNotBe` NL (51 % 100) <br> ("VT-CC-01b","Update Constitutional Committee action thresholds must be in the range 51%-90%") `MustNotBe` NG (90 % 100) <br><br>  **dRepVotingThresholds = ParamList @Rational 26 "dRepVotingThresholds"** <br> Param 1 "committeeNormal" (2 % 3) <br> ("VT-CC-01","Update Constitutional Committee action thresholds must be in the range 51%-90%") `MustNotBe` NL (51 % 100) <br> ("VT-CC-01b","Update Constitutional Committee action thresholds must be in the range 51%-90%") `MustNotBe` NG (90 % 100) <br><br> Param 2 "committeeNoConfidence" (2 % 3) <br> ("VT-CC-01","Update Constitutional Committee action thresholds must be in the range 51%-90%") `MustNotBe` NL (51 % 100) <br> ("VT-CC-01b","Update Constitutional Committee action thresholds must be in the range 51%-90%") `MustNotBe` NG (90 % 100)| :white_check_mark: |
 | VT-NC-01 | :white_check_mark: | **poolVotingThresholds = ParamList @Rational 25 "poolVotingThresholds"** <br>Param 0 "motionNoConfidence" (2 % 3) <br> ("VT-NC-01", "No confidence action thresholds must be in the range 51%-75%") `MustNotBe` NL (51 % 100) <br>  ("VT-NC-01b", "No confidence action thresholds must be in the range 51%-75%") `MustNotBe` NG (75 % 100) <br><br> **dRepVotingThresholds = ParamList @Rational 26 "dRepVotingThresholds"** <br>Param 0 "motionNoConfidence" (2 % 3) <br> ("VT-NC-01", "No confidence action thresholds must be in the range 51%-75%") `MustNotBe` NL (51 % 100) <br>  ("VT-NC-01b", "No confidence action thresholds must be in the range 51%-75%") `MustNotBe` NG (75 % 100)  | :white_check_mark: |
 
 ##### Governance Action Lifetime
