@@ -18,7 +18,7 @@ import Relation.Nullary.Product using (_×-dec_)
 import Relation.Nullary.Sum using (_⊎-dec_)
 import Relation.Binary using (Decidable)
 open import Untyped
-open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;DATA;List;[];_∷_)
+open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;DATA;List;[];_∷_;_×_;_,_)
 open import RawU using (Untyped)
 open import Data.String using (String;_++_)
 open import Agda.Builtin.IO using (IO)
@@ -32,8 +32,13 @@ open import Data.Empty using (⊥)
 open import Scoped using (ScopeError;deBError)
 open import VerifiedCompilation.Equality using (DecEq)
 import Relation.Binary as Binary using (Decidable)
-open import VerifiedCompilation.UntypedTranslation using (Translation)
+open import VerifiedCompilation.UntypedTranslation using (Translation; Relation)
 open import Reflection using (showTerm)
+import Relation.Binary as Binary using (Decidable)
+import Relation.Unary as Unary using (Decidable)
+open import Relation.Binary.Core using (Rel)
+open import Agda.Primitive using (Level; _⊔_)
+open import Agda.Builtin.Equality using (refl)
 ```
 
 ## Compiler certification component
@@ -91,19 +96,36 @@ showTranslation (Translation.force t) = "(force " ++ showTranslation t ++ ")"
 showTranslation (Translation.delay t) = "(delay " ++ showTranslation t ++ ")"
 showTranslation Translation.con = "con"
 showTranslation (Translation.constr x) = "(constr TODO)"
-showTranslation (Translation.case x t) = "case TODO " ++ showTranslation t ++ ")"
+showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ ")"
 showTranslation Translation.builtin = "builtin"
 showTranslation Translation.error = "error"
 
 -- TODO: unparse proof
 showDec : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Dec (Translation UCC.CoC ast ast') → String
 -- showDec {X} result = showTerm (quoteTerm result)
-showDec {X} (yes refl) = "yes" ++ showTranslation refl
-showDec {X} (no ¬refl) = "no"
+showDec {X} (yes p) = "yes" ++ showTranslation p
+showDec {X} (no ¬p) = "no"
 
+aux : {X : Set} → List (X ⊢) -> List ((X ⊢) × (X ⊢))
+aux [] = []
+aux (x ∷ []) = (x , x) ∷ []
+aux (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ aux (x₂ ∷ xs)
+
+data Trace (R : Relation) : { X : Set } → List ((X ⊢) × (X ⊢)) → Set₁ where
+  empty : {X : Set} → Trace R {X} []
+  cons : {X : Set} {x x' : X ⊢} {xs : List ((X ⊢) × (X ⊢))} → R x x' → Trace R {X} xs → Trace R {X} ((x , x') ∷ xs)
+
+isTrace? : {X : Set} {R : Relation} → Binary.Decidable (R {X}) → Unary.Decidable (Trace R {X})
+isTrace? {X} {R} isR? [] = yes empty
+isTrace? {X} {R} isR? ((x₁ , x₂) ∷ xs) with isTrace? {X} {R} isR? xs
+... | no ¬p = no λ {(cons a as) → ¬p as}
+... | yes p with isR? x₁ x₂
+...   | no ¬p = no λ {(cons x x₁) → ¬p x}
+...   | yes p₁ = yes (cons p₁ p)
+  
 -- TODO: write dec for a trace of ASTs
 runCertifier : List Untyped → IO ⊤
-runCertifier [] = putStrLn "No ASTs"
+runCertifier [] = putStrLn ""
 runCertifier (x ∷ xs) with toWellScoped' x
 ...                | inj₁ _ = putStrLn "Can't parse AST"
 ...                | inj₂ t =
