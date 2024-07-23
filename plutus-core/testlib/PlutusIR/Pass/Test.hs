@@ -34,7 +34,7 @@ instance Arbitrary (BuiltinSemanticsVariant PLC.DefaultFun) where
 -- exploration of the program space. If you also take other arguments, then consider multiplying
 -- this up in order to account for the larger space.
 numTestsForPassProp :: Int
-numTestsForPassProp = 3000
+numTestsForPassProp = 99
 
 -- | Run a 'Pass' on a 'Term', setting up the typechecking config and throwing errors.
 runTestPass

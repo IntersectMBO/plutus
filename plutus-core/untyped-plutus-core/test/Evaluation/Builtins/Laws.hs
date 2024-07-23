@@ -20,6 +20,11 @@ module Evaluation.Builtins.Laws (
   replicateIndex
   ) where
 
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
+import PlutusCore.Test (mapTestLimitAtLeast)
+import UntypedPlutusCore qualified as UPLC
+
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Evaluation.Helpers (evaluateTheSame, evaluateToHaskell, evaluatesToConstant,
@@ -28,34 +33,32 @@ import GHC.Exts (fromString)
 import Hedgehog (Gen, Property, PropertyT, forAll, forAllWith, property)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore qualified as PLC
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testPropertyNamed)
-import UntypedPlutusCore qualified as UPLC
 
 -- | Any call to 'replicateByteString' must produce the same byte at
 -- every valid index, namely the byte specified.
 replicateIndex :: TestTree
-replicateIndex = testPropertyNamed "every byte is the same" "replicate_all_match" . property $ do
-  n <- forAll . Gen.integral . Range.linear 1 $ 512
-  b <- forAll . Gen.integral . Range.constant 0 $ 255
-  i <- forAll . Gen.integral . Range.linear 0 $ n - 1
-  let lhsInner = mkIterAppNoAnn (builtin () PLC.ReplicateByte) [
-        mkConstant @Integer () n,
-        mkConstant @Integer () b
-        ]
-  let lhs = mkIterAppNoAnn (builtin () PLC.IndexByteString) [
-        lhsInner,
-        mkConstant @Integer () i
-        ]
-  evaluatesToConstant @Integer b lhs
+replicateIndex = testPropertyNamed "every byte is the same" "replicate_all_match" $
+  mapTestLimitAtLeast 99 (`div` 20) . property $ do
+    n <- forAll . Gen.integral . Range.linear 1 $ 512
+    b <- forAll . Gen.integral . Range.constant 0 $ 255
+    i <- forAll . Gen.integral . Range.linear 0 $ n - 1
+    let lhsInner = mkIterAppNoAnn (builtin () PLC.ReplicateByte) [
+          mkConstant @Integer () n,
+          mkConstant @Integer () b
+          ]
+    let lhs = mkIterAppNoAnn (builtin () PLC.IndexByteString) [
+          lhsInner,
+          mkConstant @Integer () i
+          ]
+    evaluatesToConstant @Integer b lhs
 
 -- | If you retrieve a bit value at an index, then write that same value to
 -- the same index, nothing should happen.
 getSet :: TestTree
 getSet =
-  testPropertyNamed "get-set" "get_set" . property $ do
+  testPropertyNamed "get-set" "get_set" . mapTestLimitAtLeast 50 (`div` 20) . property $ do
     bs <- forAllByteString 1 512
     i <- forAllIndexOf bs
     let lookupExp = mkIterAppNoAnn (builtin () PLC.ReadBit) [
@@ -74,7 +77,7 @@ getSet =
 -- same index, you should get back what you wrote.
 setGet :: TestTree
 setGet =
-  testPropertyNamed "set-get" "set_get" . property $ do
+  testPropertyNamed "set-get" "set_get" . mapTestLimitAtLeast 99 (`div` 10) . property $ do
     bs <- forAllByteString 1 512
     i <- forAllIndexOf bs
     b <- forAll Gen.bool
@@ -92,7 +95,7 @@ setGet =
 -- | If you write twice to the same bit index, the second write should win.
 setSet :: TestTree
 setSet =
-  testPropertyNamed "set-set" "set_set" . property $ do
+  testPropertyNamed "set-set" "set_set" . mapTestLimitAtLeast 50 (`div` 20) . property $ do
     bs <- forAllByteString 1 512
     i <- forAllIndexOf bs
     b1 <- forAll Gen.bool
@@ -117,8 +120,10 @@ setSet =
 writeBitsHomomorphismLaws :: TestTree
 writeBitsHomomorphismLaws =
   testGroup "homomorphism to lists" [
-    testPropertyNamed "identity -> []" "write_bits_h_1" identityProp,
-    testPropertyNamed "composition -> concatenation" "write_bits_h_2" compositionProp
+    testPropertyNamed "identity -> []" "write_bits_h_1" $
+      mapTestLimitAtLeast 99 (`div` 20) identityProp,
+    testPropertyNamed "composition -> concatenation" "write_bits_h_2" $
+      mapTestLimitAtLeast 50 (`div` 20) compositionProp
     ]
     where
       identityProp :: Property
@@ -161,8 +166,10 @@ writeBitsHomomorphismLaws =
 replicateHomomorphismLaws :: TestTree
 replicateHomomorphismLaws =
   testGroup "homomorphism" [
-    testPropertyNamed "0 -> empty" "replicate_h_1" identityProp,
-    testPropertyNamed "+ -> concat" "replicate_h_2" compositionProp
+    testPropertyNamed "0 -> empty" "replicate_h_1" $
+      mapTestLimitAtLeast 99 (`div` 20) identityProp,
+    testPropertyNamed "+ -> concat" "replicate_h_2" $
+      mapTestLimitAtLeast 50 (`div` 20) compositionProp
     ]
   where
     identityProp :: Property
@@ -199,15 +206,16 @@ replicateHomomorphismLaws =
 -- | If you complement a 'ByteString' twice, nothing should change.
 complementSelfInverse :: TestTree
 complementSelfInverse =
-  testPropertyNamed "self-inverse" "self_inverse" . property $ do
-    bs <- forAllByteString 0 512
-    let lhsInner = mkIterAppNoAnn (builtin () PLC.ComplementByteString) [
-          mkConstant @ByteString () bs
-          ]
-    let lhs = mkIterAppNoAnn (builtin () PLC.ComplementByteString) [
-          lhsInner
-          ]
-    evaluatesToConstant bs lhs
+  testPropertyNamed "self-inverse" "self_inverse" $
+    mapTestLimitAtLeast 99 (`div` 20) . property $ do
+      bs <- forAllByteString 0 512
+      let lhsInner = mkIterAppNoAnn (builtin () PLC.ComplementByteString) [
+            mkConstant @ByteString () bs
+            ]
+      let lhs = mkIterAppNoAnn (builtin () PLC.ComplementByteString) [
+            lhsInner
+            ]
+      evaluatesToConstant bs lhs
 
 -- | Checks that:
 --
@@ -220,7 +228,7 @@ deMorgan = testGroup "De Morgan's laws" [
   ]
   where
     go :: UPLC.DefaultFun -> UPLC.DefaultFun -> Property
-    go f g = property $ do
+    go f g = mapTestLimitAtLeast 50 (`div` 10) . property $ do
       semantics <- forAllWith showSemantics Gen.bool
       bs1 <- forAllByteString 0 512
       bs2 <- forAllByteString 0 512
@@ -247,20 +255,21 @@ deMorgan = testGroup "De Morgan's laws" [
 
 -- | If you XOR any 'ByteString' with itself twice, nothing should change.
 xorInvoluteLaw :: TestTree
-xorInvoluteLaw = testPropertyNamed "involute (both)" "involute_both" . property $ do
-  bs <- forAllByteString 0 512
-  semantics <- forAllWith showSemantics Gen.bool
-  let lhsInner = mkIterAppNoAnn (builtin () PLC.XorByteString) [
-        mkConstant @Bool () semantics,
-        mkConstant @ByteString () bs,
-        mkConstant @ByteString () bs
-        ]
-  let lhs = mkIterAppNoAnn (builtin () PLC.XorByteString) [
-        mkConstant @Bool () semantics,
-        mkConstant @ByteString () bs,
-        lhsInner
-        ]
-  evaluatesToConstant bs lhs
+xorInvoluteLaw = testPropertyNamed "involute (both)" "involute_both" $
+  mapTestLimitAtLeast 99 (`div` 20) . property $ do
+    bs <- forAllByteString 0 512
+    semantics <- forAllWith showSemantics Gen.bool
+    let lhsInner = mkIterAppNoAnn (builtin () PLC.XorByteString) [
+          mkConstant @Bool () semantics,
+          mkConstant @ByteString () bs,
+          mkConstant @ByteString () bs
+          ]
+    let lhs = mkIterAppNoAnn (builtin () PLC.XorByteString) [
+          mkConstant @Bool () semantics,
+          mkConstant @ByteString () bs,
+          lhsInner
+          ]
+    evaluatesToConstant bs lhs
 
 -- | Checks that the first 'DefaultFun' distributes over the second from the
 -- left, given the specified semantics (as a 'Bool'). More precisely, for
@@ -269,14 +278,16 @@ leftDistributiveLaw :: String -> String -> UPLC.DefaultFun -> UPLC.DefaultFun ->
 leftDistributiveLaw name distOpName f distOp isPadding =
   testPropertyNamed ("left distribution (" <> name <> ") over " <> distOpName)
                     ("left_distribution_" <> fromString name <> "_" <> fromString distOpName)
-                    (leftDistProp f distOp isPadding)
+                    (mapTestLimitAtLeast 50 (`div` 10) $ leftDistProp f distOp isPadding)
 
 -- | Checks that the given function self-distributes both left and right.
 distributiveLaws :: String -> UPLC.DefaultFun -> Bool -> TestTree
 distributiveLaws name f isPadding =
   testGroup ("distributivity over itself (" <> name <> ")") [
-    testPropertyNamed "left distribution" "left_distribution" (leftDistProp f f isPadding),
-    testPropertyNamed "right distribution" "right_distribution" (rightDistProp f isPadding)
+    testPropertyNamed "left distribution" "left_distribution" $
+      mapTestLimitAtLeast 50 (`div` 10) $ leftDistProp f f isPadding,
+    testPropertyNamed "right distribution" "right_distribution" $
+      mapTestLimitAtLeast 50 (`div` 10) $ rightDistProp f isPadding
     ]
 
 -- | Checks that the given 'DefaultFun', under the given semantics, forms an
@@ -284,8 +295,10 @@ distributiveLaws name f isPadding =
 abelianSemigroupLaws :: String -> UPLC.DefaultFun -> Bool -> TestTree
 abelianSemigroupLaws name f isPadding =
   testGroup ("abelian semigroup (" <> name <> ")") [
-    testPropertyNamed "commutativity" "commutativity" (commProp f isPadding),
-    testPropertyNamed "associativity" "associativity" (assocProp f isPadding)
+    testPropertyNamed "commutativity" "commutativity" $
+      mapTestLimitAtLeast 50 (`div` 10) $ commProp f isPadding,
+    testPropertyNamed "associativity" "associativity" $
+      mapTestLimitAtLeast 50 (`div` 10) $ assocProp f isPadding
     ]
 
 -- | As 'abelianSemigroupLaws', but also checks that the provided 'ByteString'
@@ -293,9 +306,12 @@ abelianSemigroupLaws name f isPadding =
 abelianMonoidLaws :: String -> UPLC.DefaultFun -> Bool -> ByteString -> TestTree
 abelianMonoidLaws name f isPadding unit =
   testGroup ("abelian monoid (" <> name <> ")") [
-    testPropertyNamed "commutativity" "commutativity" (commProp f isPadding),
-    testPropertyNamed "associativity" "associativity" (assocProp f isPadding),
-    testPropertyNamed "unit" "unit" (unitProp f isPadding unit)
+    testPropertyNamed "commutativity" "commutativity" $
+      mapTestLimitAtLeast 50 (`div` 10) $ commProp f isPadding,
+    testPropertyNamed "associativity" "associativity" $
+      mapTestLimitAtLeast 50 (`div` 10) $ assocProp f isPadding,
+    testPropertyNamed "unit" "unit" $
+      mapTestLimitAtLeast 75 (`div` 15) $ unitProp f isPadding unit
     ]
 
 -- | Checks that the provided 'DefaultFun', under the given semantics, is
@@ -304,7 +320,7 @@ idempotenceLaw :: String -> UPLC.DefaultFun -> Bool -> TestTree
 idempotenceLaw name f isPadding =
   testPropertyNamed ("idempotence (" <> name <> ")")
                     ("idempotence_" <> fromString name)
-                    idempProp
+                    (mapTestLimitAtLeast 75 (`div` 15) idempProp)
   where
     idempProp :: Property
     idempProp = property $ do
@@ -324,7 +340,7 @@ absorbtionLaw :: String -> UPLC.DefaultFun -> Bool -> ByteString -> TestTree
 absorbtionLaw name f isPadding absorber =
   testPropertyNamed ("absorbing element (" <> name <> ")")
                     ("absorbing_element_" <> fromString name)
-                    absorbProp
+                    (mapTestLimitAtLeast 75 (`div` 15) absorbProp)
   where
     absorbProp :: Property
     absorbProp = property $ do

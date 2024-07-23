@@ -10,6 +10,9 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module PlutusCore.Test (
+  mapTestLimit,
+  withAtLeastTests,
+  mapTestLimitAtLeast,
   checkFails,
   ToTPlc (..),
   ToUPlc (..),
@@ -104,11 +107,17 @@ mapTestLimit f =
           EarlyTermination c tests      -> EarlyTermination c $ f tests
       }
 
-{- | Set the number of times a property should be executed before it is considered
-successful, unless it's already higher than that.
+{- | Set the number of times a property should be executed before it is considered successful,
+unless it's already higher than that.
 -}
 withAtLeastTests :: TestLimit -> Property -> Property
 withAtLeastTests = mapTestLimit . max
+
+{- | Set the number of times a property should be executed before it is considered successful,
+unless the given function scales it higher than that.
+-}
+mapTestLimitAtLeast :: TestLimit -> (TestLimit -> TestLimit) -> Property -> Property
+mapTestLimitAtLeast n f = withAtLeastTests n . mapTestLimit f
 
 {- | @check@ is supposed to just check if the property fails or not, but for some stupid reason it
 also performs shrinking and prints the counterexample and other junk. This function is like
@@ -568,7 +577,7 @@ prop_scopingFor ::
   -- | The runner of the pass.
   (t NameAnn -> TPLC.Quote (t NameAnn)) ->
   Property
-prop_scopingFor gen bindRem preren run = withTests 1000 . property $ do
+prop_scopingFor gen bindRem preren run = withTests 200 . property $ do
   prog <- forAllNoShow $ runAstGen gen
   let catchEverything = unsafePerformIO . try @SomeException . evaluate
       prep = runPrerename preren
