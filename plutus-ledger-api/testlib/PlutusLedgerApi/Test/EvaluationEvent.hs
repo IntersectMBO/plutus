@@ -4,17 +4,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module PlutusLedgerApi.Test.EvaluationEvent (
-  ScriptEvaluationEvents (..),
-  ScriptEvaluationEvent (..),
-  ScriptEvaluationData (..),
-  ScriptEvaluationResult (..),
-  UnexpectedEvaluationResult (..),
-  TestFailure (..),
-  renderTestFailure,
-  renderTestFailures,
-  checkEvaluationEvent,
-) where
+module PlutusLedgerApi.Test.EvaluationEvent
+  ( ScriptEvaluationEvents (..)
+  , ScriptEvaluationEvent (..)
+  , ScriptEvaluationData (..)
+  , ScriptEvaluationResult (..)
+  , UnexpectedEvaluationResult (..)
+  , TestFailure (..)
+  , renderTestFailure
+  , renderTestFailures
+  , checkEvaluationEvent
+  ) where
 
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Pretty
@@ -98,14 +98,14 @@ data ScriptEvaluationEvents = ScriptEvaluationEvents
 data UnexpectedEvaluationResult
   = UnexpectedEvaluationSuccess
       ScriptEvaluationEvent
-      -- | Cost parameters
       [Int64]
-      -- | Actual budget consumed
+      -- ^ Cost parameters
       ExBudget
+      -- ^ Actual budget consumed
   | UnexpectedEvaluationFailure
       ScriptEvaluationEvent
-      -- | Cost parameters
       [Int64]
+      -- ^ Cost parameters
       EvaluationError
   | DecodeError ScriptDecodeError
   deriving stock (Show)
@@ -157,12 +157,12 @@ renderTestFailures testFailures =
     ++ unwords (map renderTestFailure (toList testFailures))
 
 -- | Re-evaluate an on-chain script evaluation event.
-checkEvaluationEvent ::
-  EvaluationContext ->
-  -- | Cost parameters
-  [Int64] ->
-  ScriptEvaluationEvent ->
-  Maybe UnexpectedEvaluationResult
+checkEvaluationEvent
+  :: EvaluationContext
+  -> [Int64]
+  -- ^ Cost parameters
+  -> ScriptEvaluationEvent
+  -> Maybe UnexpectedEvaluationResult
 checkEvaluationEvent ctx params ev = case ev of
   PlutusEvent PlutusV1 ScriptEvaluationData{..} expected ->
     case deserialiseScript PlutusV1 dataProtocolVersion dataScript of
@@ -207,10 +207,10 @@ checkEvaluationEvent ctx params ev = case ev of
                 dataInput
         verify expected actual
       Left err -> Just (DecodeError err)
- where
-  verify ScriptEvaluationSuccess (Left err) =
-    Just $ UnexpectedEvaluationFailure ev params err
-  verify ScriptEvaluationFailure (Right budget) =
-    Just $ UnexpectedEvaluationSuccess ev params budget
-  verify _ _ =
-    Nothing
+  where
+    verify ScriptEvaluationSuccess (Left err) =
+      Just $ UnexpectedEvaluationFailure ev params err
+    verify ScriptEvaluationFailure (Right budget) =
+      Just $ UnexpectedEvaluationSuccess ev params budget
+    verify _ _ =
+      Nothing
