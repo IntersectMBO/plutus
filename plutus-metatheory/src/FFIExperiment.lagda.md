@@ -45,22 +45,6 @@ open import Agda.Builtin.Equality using (refl)
 ## Compiler certification component
 ```
 postulate
-  -- This should actually return a Dec of some type representing
-  -- a trace of ASTs which are in the transition relation one-by-one
-  something : {X : Set} → List (X ⊢) → Dec (X ⊢ )
-  -- This should take the result from the above and transform it
-  -- into a string which could potentially be loaded back into Agda
-  serializeProof : {X : Set} → Dec (X ⊢) → String
-
-parseASTs : {X : Set} → List Untyped → Maybe (List (Maybe X ⊢))
-parseASTs [] = nothing
-parseASTs (x ∷ xs) with toWellScoped x 
-...                | inj₁ _ = nothing
-...                | inj₂ t with parseASTs xs
-...                         | nothing = nothing
-...                         | just ts = just (t ∷ ts)
-
-postulate
   -- we will probably want hPutStrLn instead, to write to a file
   -- handle
   putStrLn : String → IO ⊤
@@ -84,28 +68,6 @@ postulate
   showUntyped : Untyped → String
 {-# FOREIGN GHC import qualified Data.Text as Text #-}
 {-# COMPILE GHC showUntyped = Text.pack . show #-}
-
-toWellScoped' : Untyped → Either ScopeError (Maybe ⊥ ⊢)
-toWellScoped' = toWellScoped
-
-showTranslation : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Translation UCC.CoC ast ast' → String
-showTranslation (Translation.istranslation _ _ x) = "istranslation TODO"
-showTranslation Translation.var = "var"
-showTranslation (Translation.ƛ t) = "(ƛ " ++ showTranslation t ++ ")"
-showTranslation (Translation.app t t₁) = "(app " ++ showTranslation t ++ " " ++ showTranslation t₁ ++ ")"
-showTranslation (Translation.force t) = "(force " ++ showTranslation t ++ ")"
-showTranslation (Translation.delay t) = "(delay " ++ showTranslation t ++ ")"
-showTranslation Translation.con = "con"
-showTranslation (Translation.constr x) = "(constr TODO)"
-showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ ")"
-showTranslation Translation.builtin = "builtin"
-showTranslation Translation.error = "error"
-
--- TODO: unparse proof
-showDec : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Dec (Translation UCC.CoC ast ast') → String
--- showDec {X} result = showTerm (quoteTerm result)
-showDec {X} (yes p) = "yes" ++ showTranslation p
-showDec {X} (no ¬p) = "no"
 
 aux : {X : Set} → List (Maybe X ⊢) -> List ((Maybe X ⊢) × (Maybe X ⊢))
 aux [] = []
@@ -146,6 +108,25 @@ isTransformation? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (IsTransforma
 isTransformation? ast₁ ast₂ with UCC.isCoC? ast₁ ast₂
 ... | bla = {!   !}
 
+showTranslation : {X : Set}  {{_ : DecEq X}} {ast ast' : X ⊢} → Translation IsTransformation ast ast' → String
+showTranslation (Translation.istranslation _ _ x) = "istranslation TODO"
+showTranslation Translation.var = "var"
+showTranslation (Translation.ƛ t) = "(ƛ " ++ showTranslation t ++ ")"
+showTranslation (Translation.app t t₁) = "(app " ++ showTranslation t ++ " " ++ showTranslation t₁ ++ ")"
+showTranslation (Translation.force t) = "(force " ++ showTranslation t ++ ")"
+showTranslation (Translation.delay t) = "(delay " ++ showTranslation t ++ ")"
+showTranslation Translation.con = "con"
+showTranslation (Translation.constr x) = "(constr TODO)"
+showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ ")"
+showTranslation Translation.builtin = "builtin"
+showTranslation Translation.error = "error"
+
+-- TODO: unparse proof
+showDec : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Dec (Translation IsTransformation ast ast') → String
+-- showDec {X} result = showTerm (quoteTerm result)
+showDec {X} (yes p) = "yes" ++ showTranslation p
+showDec {X} (no ¬p) = "no"
+
 certifier
   : {X : Set} {R : Relation}
   → List Untyped
@@ -159,6 +140,6 @@ certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
 
 runCertifier : List Untyped → IO ⊤
 runCertifier rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
-... | inj₁ err = putStrLn "error"
+... | inj₁ err = putStrLn "error" -- TODO: pretty print error
 ... | inj₂ result = putStrLn result
 {-# COMPILE GHC runCertifier as runCertifier #-}
