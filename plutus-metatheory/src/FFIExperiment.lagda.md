@@ -39,7 +39,6 @@ import Relation.Unary as Unary using (Decidable)
 open import Relation.Binary.Core using (Rel)
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (refl)
-import Foreign.Haskell.Either as Std using (Either; left; right)
 ```
 
 ## Compiler certification component
@@ -124,18 +123,13 @@ isTrace? {X} {R} isR? ((x₁ , x₂) ∷ xs) with isTrace? {X} {R} isR? xs
 ...   | no ¬p = no λ {(cons x x₁) → ¬p x}
 ...   | yes p₁ = yes (cons p₁ p)
   
-traverseEitherList : {a b e : Level} {A : Set a} {B : Set b} {E : Set e} → (A → Std.Either E B) → L.List A → Std.Either E (L.List B) 
-traverseEitherList _ L.[] = Std.right L.[]
-traverseEitherList f (x L.∷ xs) with f x
-... | Std.left err = Std.left err
-... | Std.right x' with traverseEitherList f xs
-...     | Std.left err = Std.left err
-...     | Std.right resList = Std.right (x' L.∷ resList)
-
-toWellScoped'' : {X : Set} → Untyped → Std.Either ScopeError (Maybe X ⊢)
-toWellScoped'' u with toWellScoped u
-... | inj₁ err = Std.left err
-... | inj₂ x = Std.right x
+traverseEitherList : {A B E : Set} → (A → Either E B) → List A → Either E (List B) 
+traverseEitherList _ [] = inj₂ []
+traverseEitherList f (x ∷ xs) with f x
+... | inj₁ err = inj₁ err
+... | inj₂ x' with traverseEitherList f xs
+...     | inj₁ err = inj₁ err
+...     | inj₂ resList = inj₂ (x' ∷ resList)
 
 -- TODO: finish
 serializeTraceProof : {X : Set} {R : Relation} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace R xs) → String
@@ -146,16 +140,16 @@ go
   : {X : Set} {R : Relation}
   → List Untyped
   → Unary.Decidable (Trace R {Maybe X})
-  → Std.Either ScopeError String
-go {X} rawInput isRTrace? with traverseEitherList toWellScoped'' (U.toList rawInput)
-... | Std.left err = Std.left err
-... | Std.right rawTrace = 
-  let inputTrace = aux (U.fromList {(Maybe X ⊢)} rawTrace)
-   in Std.right (serializeTraceProof (isRTrace? inputTrace))
+  → Either ScopeError String
+go {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
+... | inj₁ err = inj₁ err
+... | inj₂ rawTrace = 
+  let inputTrace = aux rawTrace
+   in inj₂ (serializeTraceProof (isRTrace? inputTrace))
 
 -- TODO: finish
 runCertifier : List Untyped → IO ⊤
 runCertifier rawInput with go rawInput (isTrace? {Maybe ⊥} {Translation UCC.CoC} UCC.isUntypedCaseOfCase?)
-... | Std.left err = putStrLn "error"
-... | Std.right result = putStrLn result
+... | inj₁ err = putStrLn "error"
+... | inj₂ result = putStrLn result
 {-# COMPILE GHC runCertifier as runCertifier #-}
