@@ -18,8 +18,9 @@
 module PlutusCore.Builtin.KnownType
     ( BuiltinError
     , throwBuiltinErrorWithCause
+    , DefaultKnownBuiltinTypeIn
+    , DefaultKnownBuiltinType
     , KnownBuiltinTypeIn
-    , KnownBuiltinType
     , BuiltinResult (..)
     , ReadKnownM
     , MakeKnownIn (..)
@@ -46,15 +47,6 @@ import Data.String
 import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
 import Universe
-
--- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
--- in @uni@\".
-type KnownBuiltinTypeIn uni val a =
-    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEq uni, uni `HasTermLevel` a)
-
--- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
--- in @UniOf term@\".
-type KnownBuiltinType val a = KnownBuiltinTypeIn (UniOf val) val a
 
 {- Note [Performance of ReadKnownIn and MakeKnownIn instances]
 It's critically important that 'readKnown' runs in the concrete 'Either' rather than a general
@@ -83,6 +75,11 @@ used in 'readKnownConstant' then 'GHC pulls @gshow uniExp@ out of the 'Nothing' 
 allocating a thunk of type 'String' that is completely redundant whenever there's no error,
 which is the majority of cases. And putting 'oneShot' as the outermost call results in
 worse Core.
+
+The @AllBuiltinArgs uni (HasTermLevel uni) a@ constraint in 'KnownBuiltinTypeIn' is semantically
+equivalent to the simple @HasTermLevel uni a@, however we use the former, because this way GHC is
+forced to statically discharge the outermost 'HasTermLevel' instance, which ensures that it won't be
+passed into the builtins code directly as a dictionary.
 
 Any change to an instance of 'ReadKnownIn' or 'MakeKnownIn', even completely trivial, requires
 looking into the generated Core, since compilation of these instances is extremely brittle
@@ -187,7 +184,7 @@ faster than any kind of fancy encoding.
 We keep 'ReadKnownIn' and 'MakeKnownIn' separate, because values of some types can only be lifted
 and not unlifted, for example 'EvaluationResult' and 'Emitter' can't appear in argument position.
 
-'KnownTypeAst' is not a superclass of ReadKnownIn and MakeKnownIn. This is due to the fact that
+'KnownTypeAst' is not a superclass of 'ReadKnownIn' and 'MakeKnownIn'. This is due to the fact that
 polymorphic built-in types are only liftable/unliftable when they're fully monomorphized, while
 'toTypeAst' works for polymorphic built-in types that have type variables in them, and so the
 constraints are completely different in the two cases and we keep the two concepts apart
@@ -229,12 +226,29 @@ Lifting is allowed to the following classes of types:
 2. monomorphized polymorphic built-in types such as @(Integer, Text)@
 3. @Opaque val rep@ for @rep@ representing a Plutus type
 4. @SomeConstant uni rep@ for @rep@ representing a Plutus type
-5. @Emitter a@ for any @a@ that lifting is allowed to
-6. @EvaluationResult a@ for any @a@ that lifting is allowed to
-7. anything else that implements 'MakeKnownIn', for example we express the
+5. @BuiltinResult a@ for any @a@ that lifting is allowed to
+6. anything else that implements 'MakeKnownIn', for example we express the
    @MakeKnownIn DefaultUni term Int@ instance in terms of the @MakeKnownIn DefaultUni term Integer@
    one, and for another example define an instance for 'Void' in tests
 -}
+
+-- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
+-- in @uni@\".
+type DefaultKnownBuiltinTypeIn uni val a =
+    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEq uni, uni `HasTermLevel` a)
+
+-- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
+-- in @UniOf term@\".
+type DefaultKnownBuiltinType val a = DefaultKnownBuiltinTypeIn (UniOf val) val a
+
+-- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included in a
+-- statically known @uni@ and a statically known @a@\". The "statically known" part is what allows
+-- us to simplify the constraints from 'DefaultKnownBuiltinTypeIn' (where the universe is not
+-- assumed to be known statically) to what we have here.
+--
+-- This is useful for providing 'MakeKnownIn' and 'ReadKnownIn' instances for a specific universe
+-- and a specific type.
+type KnownBuiltinTypeIn uni val a = (HasConstantIn uni val, AllBuiltinArgs uni (HasTermLevel uni) a)
 
 typeMismatchError
     :: PrettyParens (SomeTypeIn uni)
@@ -261,7 +275,7 @@ type ReadKnownM = Either BuiltinError
 
 -- See Note [Unlifting a term as a value of a built-in type].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
-readKnownConstant :: forall val a. KnownBuiltinType val a => val -> ReadKnownM a
+readKnownConstant :: forall val a. DefaultKnownBuiltinType val a => val -> ReadKnownM a
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances]
 readKnownConstant val = asConstant val >>= oneShot \case
     Some (ValueOf uniAct x) -> do
@@ -279,7 +293,7 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     -- | Convert a Haskell value to the corresponding PLC value.
     -- The inverse of 'readKnown'.
     makeKnown :: a -> BuiltinResult val
-    default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult val
+    default makeKnown :: DefaultKnownBuiltinType val a => a -> BuiltinResult val
     -- Everything on evaluation path has to be strict in production, so in theory we don't need to
     -- force anything here. In practice however all kinds of weird things happen in tests and @val@
     -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
@@ -298,7 +312,7 @@ class uni ~ UniOf val => ReadKnownIn uni val a where
     -- | Convert a PLC value to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
     readKnown :: val -> ReadKnownM a
-    default readKnown :: KnownBuiltinType val a => val -> ReadKnownM a
+    default readKnown :: DefaultKnownBuiltinType val a => val -> ReadKnownM a
     -- If 'inline' is not used, proper inlining does not happen for whatever reason.
     readKnown = inline readKnownConstant
     {-# INLINE readKnown #-}
