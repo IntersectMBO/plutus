@@ -39,6 +39,7 @@ import Relation.Unary as Unary using (Decidable)
 open import Relation.Binary.Core using (Rel)
 open import Agda.Primitive using (Level; _⊔_)
 open import Agda.Builtin.Equality using (refl)
+import Foreign.Haskell.Either as Std using (Either; left; right)
 ```
 
 ## Compiler certification component
@@ -106,7 +107,7 @@ showDec : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Dec (Translation UCC.
 showDec {X} (yes p) = "yes" ++ showTranslation p
 showDec {X} (no ¬p) = "no"
 
-aux : {X : Set} → List (X ⊢) -> List ((X ⊢) × (X ⊢))
+aux : {X : Set} → List (Maybe X ⊢) -> List ((Maybe X ⊢) × (Maybe X ⊢))
 aux [] = []
 aux (x ∷ []) = (x , x) ∷ []
 aux (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ aux (x₂ ∷ xs)
@@ -123,6 +124,29 @@ isTrace? {X} {R} isR? ((x₁ , x₂) ∷ xs) with isTrace? {X} {R} isR? xs
 ...   | no ¬p = no λ {(cons x x₁) → ¬p x}
 ...   | yes p₁ = yes (cons p₁ p)
   
+traverseEitherList : {a b e : Level} {A : Set a} {B : Set b} {E : Set e} → (A → Std.Either E B) → L.List A → Std.Either E (L.List B) 
+traverseEitherList _ L.[] = Std.right L.[]
+traverseEitherList f (x L.∷ xs) with f x
+... | Std.left err = Std.left err
+... | Std.right x' with traverseEitherList f xs
+...     | Std.left err = Std.left err
+...     | Std.right resList = Std.right (x' L.∷ resList)
+
+-- f : {X : Set} {R : Relation} → List Untyped → Binary.Decidable (R {X}) → Std.Either ScopeError (Unary.Decidable (Trace R {X}))
+-- f input isR? = {! aux (U.fromList (traverseEitherList toWellScoped' (U.toList input)))  !} 
+
+toWellScoped'' : {X : Set} → Untyped → Std.Either ScopeError (Maybe X ⊢)
+toWellScoped'' u with toWellScoped u
+... | inj₁ err = Std.left err
+... | inj₂ x = Std.right x
+
+go : {X : Set} {R : Relation} {xs : List ((Maybe X ⊢) × (Maybe X ⊢))} → List Untyped → Binary.Decidable (R {Maybe X}) → Std.Either ScopeError (Dec (Trace R xs))
+go {X} inputTrace isR? with traverseEitherList toWellScoped'' (U.toList inputTrace)
+... | Std.left err = Std.left err
+... | Std.right rawTrace = 
+  let inputTrace = aux (U.fromList {(Maybe X ⊢)} rawTrace)
+   in Std.right (isTrace? {Maybe X} isR? {! inputTrace !})
+
 -- TODO: write dec for a trace of ASTs
 runCertifier : List Untyped → IO ⊤
 runCertifier [] = putStrLn ""
