@@ -69,6 +69,8 @@ copyData =
      I n        -> I $ copyInteger n
      B b        -> B $ copyByteString b
 
+pairWith :: (a -> b) -> [a] -> [(a,b)]
+pairWith f = fmap (\a -> (a, f a))
 
 ---------------- Creating benchmarks ----------------
 
@@ -108,18 +110,18 @@ mkUnit = eraseTerm $  mkConstant () ()
 mkApp1
     :: (uni `HasTermLevel` a, NFData a)
     => fun -> [Type tyname uni ()] -> a -> PlainTerm uni fun
-mkApp1 !name !tys (force -> !x) =
+mkApp1 !fun !tys (force -> !x) =
     eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x]
-    where instantiated = mkIterInstNoAnn (builtin () name) tys
+    where instantiated = mkIterInstNoAnn (builtin () fun) tys
 
 
 -- Create a term instantiating a builtin and applying it to two arguments
 mkApp2
     :: (uni `HasTermLevel` a, uni `HasTermLevel` b, NFData a, NFData b)
     => fun -> [Type tyname uni ()]-> a -> b -> PlainTerm uni fun
-mkApp2 !name !tys (force -> !x) (force -> !y) =
+mkApp2 !fun !tys (force -> !x) (force -> !y) =
     eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x,  mkConstant () y]
-    where instantiated = mkIterInstNoAnn (builtin () name) tys
+    where instantiated = mkIterInstNoAnn (builtin () fun) tys
 
 
 -- Create a term instantiating a builtin and applying it to three arguments
@@ -128,9 +130,9 @@ mkApp3
        , NFData a, NFData b, NFData c
        )
     => fun -> [Type tyname uni ()] -> a -> b -> c -> PlainTerm uni fun
-mkApp3 !name !tys (force -> !x) (force -> !y) (force -> !z) =
+mkApp3 !fun !tys (force -> !x) (force -> !y) (force -> !z) =
     eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x, mkConstant () y, mkConstant () z]
-    where instantiated = mkIterInstNoAnn (builtin () name) tys
+    where instantiated = mkIterInstNoAnn (builtin () fun) tys
 
 
 -- Create a term instantiating a builtin and applying it to four arguments
@@ -140,10 +142,10 @@ mkApp4
        , NFData a, NFData b, NFData c, NFData d
        )
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> PlainTerm uni fun
-mkApp4 !name !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) =
+mkApp4 !fun !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) =
     eraseTerm $ mkIterAppNoAnn instantiated [ mkConstant () x, mkConstant () y
                                       , mkConstant () z, mkConstant () t ]
-    where instantiated = mkIterInstNoAnn (builtin () name) tys
+    where instantiated = mkIterInstNoAnn (builtin () fun) tys
 
 
 -- Create a term instantiating a builtin and applying it to five arguments
@@ -153,10 +155,10 @@ mkApp5
        , NFData a, NFData b, NFData c, NFData d, NFData e
        )
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> PlainTerm uni fun
-mkApp5 !name !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) =
+mkApp5 !fun !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) =
     eraseTerm $ mkIterAppNoAnn instantiated [ mkConstant () x, mkConstant () y, mkConstant () z
                                       , mkConstant () t, mkConstant () u ]
-    where instantiated = mkIterInstNoAnn (builtin () name) tys
+    where instantiated = mkIterInstNoAnn (builtin () fun) tys
 
 
 -- Create a term instantiating a builtin and applying it to six arguments
@@ -166,10 +168,10 @@ mkApp6
        , NFData a, NFData b, NFData c, NFData d, NFData e, NFData f
        )
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> f-> PlainTerm uni fun
-mkApp6 name tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) (force -> !v)=
+mkApp6 fun tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) (force -> !v)=
     eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x, mkConstant () y, mkConstant () z,
                                        mkConstant () t, mkConstant () u, mkConstant () v]
-    where instantiated = mkIterInstNoAnn (builtin () name) tys
+    where instantiated = mkIterInstNoAnn (builtin () fun) tys
 
 
 ---------------- Creating benchmarks ----------------
@@ -185,36 +187,65 @@ mkApp6 name tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -
 {- | Given a builtin function f of type a -> _ together with a lists xs, create a
    collection of benchmarks which run f on all elements of xs. -}
 createOneTermBuiltinBench
-    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `HasTermLevel` a, ExMemoryUsage a, NFData a)
-    => fun
-    -> [Type tyname uni ()]
-    -> [a]
-    -> Benchmark
-createOneTermBuiltinBench name tys xs =
-    bgroup (show name) $ [mkBM x | x <- xs]
-        where mkBM x = benchDefault (showMemoryUsage x) $ mkApp1 name tys x
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , ExMemoryUsage a
+     , NFData a)
+  => fun
+  -> [Type tyname uni ()]
+  -> [a]
+  -> Benchmark
+createOneTermBuiltinBench fun tys xs =
+  bgroup (show fun) [mkBM x | x <- xs]
+  where mkBM x = benchDefault (showMemoryUsage x) $ mkApp1 fun tys x
 
 {- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
    ys::[b], create a collection of benchmarks which run f on all pairs in
    {(x,y}: x in xs, y in ys}. -}
 createTwoTermBuiltinBench
-    :: ( fun ~ DefaultFun, uni ~ DefaultUni
-       , uni `HasTermLevel` a, DefaultUni `HasTermLevel` b
-       , ExMemoryUsage a, ExMemoryUsage b
-       , NFData a, NFData b
-       )
-    => fun
-    -> [Type tyname uni ()]
-    -> [a]
-    -> [b]
-    -> Benchmark
-createTwoTermBuiltinBench name tys xs ys =
-    bgroup (show name) $ [bgroup (showMemoryUsage x) [mkBM x y | y <- ys] | x <- xs]
-        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name tys x y
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , ExMemoryUsage a
+     , ExMemoryUsage b
+     , NFData a
+     , NFData b
+     )
+  => fun
+  -> [Type tyname uni ()]
+  -> [a]
+  -> [b]
+  -> Benchmark
+createTwoTermBuiltinBench fun tys xs ys =
+  bgroup (show fun) [bgroup (showMemoryUsage x) [mkBM x y | y <- ys] | x <- xs]
+  where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 fun tys x y
 
-{- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
-   ys::[b], create a collection of benchmarks which run f on all pairs in 'zip
-   xs ys'.  This can be used when the worst-case execution time of a
+createTwoTermBuiltinBenchWithFlag
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , ExMemoryUsage a
+     , ExMemoryUsage b
+     , NFData a
+     , NFData b
+     )
+  => fun
+  -> [Type tyname uni ()]
+  -> Bool
+  -> [a]
+  -> [b]
+  -> Benchmark
+createTwoTermBuiltinBenchWithFlag fun tys flag ys zs =
+  bgroup (show fun) [bgroup (showMemoryUsage flag)
+                       [bgroup (showMemoryUsage y) [mkBM y z | z <- zs] | y <- ys]]
+  where mkBM y z = benchDefault (showMemoryUsage z) $ mkApp3 fun tys flag y z
+
+{- | Given a builtin function f of type a * b -> _ together with a list of (a,b)
+   pairs, create a collection of benchmarks which run f on all of the pairs in
+   the list.  This can be used when the worst-case execution time of a
    two-argument builtin is known to occur when it is given two identical
    arguments (for example equality testing, where the function has to examine
    the whole of both inputs in that case; with unequal arguments it will usually
@@ -223,41 +254,102 @@ createTwoTermBuiltinBench name tys xs ys =
    builtin can spot that its arguments both point to the same heap object.
 -}
 createTwoTermBuiltinBenchElementwise
-    :: ( fun ~ DefaultFun, uni ~ DefaultUni
-       , uni `HasTermLevel` a, uni `HasTermLevel` b
-       , ExMemoryUsage a, ExMemoryUsage b
-       , NFData a, NFData b
-       )
-    => fun
-    -> [Type tyname uni ()]
-    -> [a]
-    -> [b]
-    -> Benchmark
-createTwoTermBuiltinBenchElementwise name tys xs ys =
-    bgroup (show name) $ zipWith (\x y -> bgroup (showMemoryUsage x) [mkBM x y]) xs ys
-        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name tys x y
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , ExMemoryUsage a
+     , ExMemoryUsage b
+     , NFData a
+     , NFData b
+     )
+  => fun
+  -> [Type tyname uni ()]
+  -> [(a,b)]
+  -> Benchmark
+createTwoTermBuiltinBenchElementwise =
+  createTwoTermBuiltinBenchElementwiseWithWrappers (id, id)
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.
+
+{- Note [Adjusting the memory usage of arguments of costing benchmarks] In some
+  cases we want to measure the (so-called) "memory usage" of a builtin argument
+  in a nonstandard way for benchmarking and costing purposes. This function
+  allows you to supply suitable wrapping functions in the benchmarks to achieve
+  this.  NB: wrappers used in benchmarks *MUST* be the same as wrappers used in
+  builtin denotations to make sure that during script execution the inputs to
+  the costing functions are costed in the same way as the are in thhe
+  benchmmarks.
+-}
+createTwoTermBuiltinBenchElementwiseWithWrappers
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , ExMemoryUsage a'
+     , ExMemoryUsage b'
+     , NFData a
+     , NFData b
+     )
+  => (a -> a', b -> b')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [(a,b)]
+  -> Benchmark
+createTwoTermBuiltinBenchElementwiseWithWrappers (wrapX, wrapY) fun tys inputs =
+  bgroup (show fun) $
+  fmap(\(x, y) -> bgroup (showMemoryUsage $ wrapX x) [mkBM x y]) inputs
+  where mkBM x y = benchDefault (showMemoryUsage $ wrapY y) $ mkApp2 fun tys x y
 
 {- | Given a builtin function f of type a * b * c -> _ together with a list of
    inputs of type (a,b,c), create a collection of benchmarks which run f on all
    inputs.
 -}
 createThreeTermBuiltinBenchElementwise
-    :: ( fun ~ DefaultFun, uni ~ DefaultUni
-       , uni `HasTermLevel` a, uni `HasTermLevel` b, uni `HasTermLevel` c
-       , ExMemoryUsage a, ExMemoryUsage b, ExMemoryUsage c
-       , NFData a, NFData b, NFData c
-       )
-    => fun
-    -> [Type tyname uni ()]
-    -> [(a,b,c)]
-    -> Benchmark
-createThreeTermBuiltinBenchElementwise name tys inputs =
-    bgroup (show name) $
-        map
-            (\(x, y, z) -> bgroup (showMemoryUsage x) [bgroup (showMemoryUsage y) [mkBM x y z]])
-            inputs
-        where mkBM x y z = benchDefault (showMemoryUsage z) $ mkApp3 name tys x y z
--- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
--- done something wrong.
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , uni `HasTermLevel` c
+     , ExMemoryUsage a
+     , ExMemoryUsage b
+     , ExMemoryUsage c
+     , NFData a
+     , NFData b
+     , NFData c
+     )
+  => fun
+  -> [Type tyname uni ()]
+  -> [(a,b,c)]
+  -> Benchmark
+createThreeTermBuiltinBenchElementwise =
+  createThreeTermBuiltinBenchElementwiseWithWrappers (id, id, id)
+
+{- See Note [Adjusting the memory usage of arguments of costing benchmarks]. -}
+createThreeTermBuiltinBenchElementwiseWithWrappers
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , uni `HasTermLevel` c
+     , ExMemoryUsage a'
+     , ExMemoryUsage b'
+     , ExMemoryUsage c'
+     , NFData a
+     , NFData b
+     , NFData c
+     )
+  => (a -> a', b -> b', c -> c')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [(a,b,c)]
+  -> Benchmark
+createThreeTermBuiltinBenchElementwiseWithWrappers (wrapX, wrapY, wrapZ) fun tys inputs =
+  bgroup (show fun) $
+  fmap
+  (\(x, y, z) ->
+     bgroup (showMemoryUsage $ wrapX x)
+     [bgroup (showMemoryUsage $ wrapY y) [mkBM x y z]]
+  )
+  inputs
+  where mkBM x y z = benchDefault (showMemoryUsage $ wrapZ z) $ mkApp3 fun tys x y z

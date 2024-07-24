@@ -48,7 +48,9 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (LiteralByteSize (..))
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
+                                                    ListCostedByLength (..),
+                                                    NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra
 
 import Data.ByteString (ByteString)
@@ -467,11 +469,25 @@ deriving via AsInteger Word64 instance HasConstantIn DefaultUni term =>
     ReadKnownIn DefaultUni term Word64
 
 deriving newtype instance
-    KnownTypeAst tyname DefaultUni LiteralByteSize
+    KnownTypeAst tyname DefaultUni NumBytesCostedAsNumWords
 deriving newtype instance HasConstantIn DefaultUni term =>
-    MakeKnownIn DefaultUni term LiteralByteSize
+    MakeKnownIn DefaultUni term NumBytesCostedAsNumWords
 deriving newtype instance HasConstantIn DefaultUni term =>
-    ReadKnownIn DefaultUni term LiteralByteSize
+    ReadKnownIn DefaultUni term NumBytesCostedAsNumWords
+
+deriving newtype instance
+    KnownTypeAst tyname DefaultUni IntegerCostedLiterally
+deriving newtype instance HasConstantIn DefaultUni term =>
+    MakeKnownIn DefaultUni term IntegerCostedLiterally
+deriving newtype instance HasConstantIn DefaultUni term =>
+    ReadKnownIn DefaultUni term IntegerCostedLiterally
+
+deriving newtype instance KnownTypeAst tyname DefaultUni a =>
+    KnownTypeAst tyname DefaultUni (ListCostedByLength a)
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
+    MakeKnownIn DefaultUni term (ListCostedByLength a)
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
+    ReadKnownIn DefaultUni term (ListCostedByLength a)
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the

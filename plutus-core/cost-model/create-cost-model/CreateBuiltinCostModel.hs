@@ -112,6 +112,17 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramKeccak_256                      = "keccak_256Model"
   , paramIntegerToByteString             = "integerToByteStringModel"
   , paramByteStringToInteger             = "byteStringToIntegerModel"
+  , paramAndByteString                   = "andByteStringModel"
+  , paramOrByteString                    = "orByteStringModel"
+  , paramXorByteString                   = "xorByteStringModel"
+  , paramComplementByteString            = "complementByteStringModel"
+  , paramReadBit                         = "readBitModel"
+  , paramWriteBits                       = "writeBitsModel"
+  , paramReplicateByte                   = "replicateByteModel"
+  , paramShiftByteString                 = "shiftByteStringModel"
+  , paramRotateByteString                = "rotateByteStringModel"
+  , paramCountSetBits                    = "countSetBitsModel"
+  , paramFindFirstSetBit                 = "findFirstSetBitModel"
   }
 
 
@@ -238,6 +249,17 @@ createBuiltinCostModel bmfile rfile = do
   -- Bitwise operations
   paramByteStringToInteger             <- getParams readCF2 paramByteStringToInteger
   paramIntegerToByteString             <- getParams readCF3 paramIntegerToByteString
+  paramAndByteString                   <- getParams readCF3 paramAndByteString
+  paramOrByteString                    <- getParams readCF3 paramOrByteString
+  paramXorByteString                   <- getParams readCF3 paramXorByteString
+  paramComplementByteString            <- getParams readCF1 paramComplementByteString
+  paramReadBit                         <- getParams readCF2 paramReadBit
+  paramWriteBits                       <- getParams readCF3 paramWriteBits
+  paramReplicateByte                   <- getParams readCF2 paramReplicateByte
+  paramShiftByteString                 <- getParams readCF2 paramShiftByteString
+  paramRotateByteString                <- getParams readCF2 paramRotateByteString
+  paramCountSetBits                    <- getParams readCF1 paramCountSetBits
+  paramFindFirstSetBit                 <- getParams readCF1 paramFindFirstSetBit
 
   pure $ BuiltinCostModelBase {..}
 
@@ -388,6 +410,7 @@ readCF3 e = do
     "linear_in_y"                 -> ModelThreeArgumentsLinearInY             <$> readOneVariableLinearFunction "y_mem" e
     "linear_in_z"                 -> ModelThreeArgumentsLinearInZ             <$> readOneVariableLinearFunction "z_mem" e
     "quadratic_in_z"              -> ModelThreeArgumentsQuadraticInZ          <$> readOneVariableQuadraticFunction "z_mem" e
+    "linear_in_y_and_z"           -> ModelThreeArgumentsLinearInYAndZ         <$> readTwoVariableLinearFunction "y_mem" "z_mem" e
     "literal_in_y_or_linear_in_z" -> ModelThreeArgumentsLiteralInYOrLinearInZ <$> error "literal"
     _                             -> error $ "Unknown three-variable model type: " ++ ty
 

@@ -38,8 +38,8 @@ import Text.Show.Pretty (ppShow)
 
 -- Properties and examples directly from CIP-121:
 --
--- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-0121#builtinintegertobytestring
--- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-0121#builtinbytestringtointeger
+-- - https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121#builtinintegertobytestring
+-- - https://github.com/cardano-foundation/CIPs/tree/master/CIP-01211#builtinbytestringtointeger
 
 -- lengthOfByteString (integerToByteString e d 0) = d
 i2bProperty1 :: PropertyT IO ()

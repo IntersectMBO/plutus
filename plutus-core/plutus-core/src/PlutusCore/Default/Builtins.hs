@@ -21,8 +21,10 @@ import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, LiteralByteSize (..),
-                                                    memoryUsage, singletonRose)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
+                                                    ListCostedByLength (..),
+                                                    NumBytesCostedAsNumWords (..), memoryUsage,
+                                                    singletonRose)
 import PlutusCore.Pretty (PrettyConfigPlc)
 
 import PlutusCore.Bitwise qualified as Bitwise
@@ -1226,6 +1228,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             consByteStringMeaning_V1 =
                 let consByteStringDenotation :: Integer -> BS.ByteString -> BS.ByteString
                     consByteStringDenotation n xs = BS.cons (fromIntegral n) xs
+                    -- Earlier instructions say never to use `fromIntegral` in the definition of a
+                    -- builtin; however in this case it reduces its argument modulo 256 to get a
+                    -- `Word8`, which is exactly what we want.
                     {-# INLINE consByteStringDenotation #-}
                 in makeBuiltinMeaning
                     consByteStringDenotation
@@ -1859,13 +1864,20 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             blake2b_224Denotation
             (runCostingFunOneArgument . paramBlake2b_224)
 
+
+    -- Extra bytestring operations
+
     -- Conversions
     {- See Note [Input length limitation for IntegerToByteString] -}
     toBuiltinMeaning _semvar IntegerToByteString =
-        let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> BuiltinResult BS.ByteString
-            {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
-               costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
-            integerToByteStringDenotation b (LiteralByteSize w) = Bitwise.integerToByteStringWrapper b w
+        let integerToByteStringDenotation :: Bool -> NumBytesCostedAsNumWords -> Integer -> BuiltinResult BS.ByteString
+            {- The second argument is wrapped in a NumBytesCostedAsNumWords to allow us to
+               interpret it as a size during costing.  Elsewhere we need
+               `NumBytesCostedAsNumWords` to contain an `Int` so we re-use that
+               here at the cost of not being able to convert an integer to a
+               bytestring of length greater than 2^63-1, which we're never going
+               to want to do anyway. -}
+            integerToByteStringDenotation b (NumBytesCostedAsNumWords w) = Bitwise.integerToByteStringWrapper b $ toInteger w
             {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
             integerToByteStringDenotation
@@ -1886,7 +1898,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE andByteStringDenotation #-}
         in makeBuiltinMeaning
             andByteStringDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
+            (runCostingFunThreeArguments . paramAndByteString)
 
     toBuiltinMeaning _semvar OrByteString =
         let orByteStringDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
@@ -1894,7 +1906,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE orByteStringDenotation #-}
         in makeBuiltinMeaning
             orByteStringDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
+            (runCostingFunThreeArguments . paramOrByteString)
 
     toBuiltinMeaning _semvar XorByteString =
         let xorByteStringDenotation :: Bool -> BS.ByteString -> BS.ByteString -> BS.ByteString
@@ -1902,7 +1914,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE xorByteStringDenotation #-}
         in makeBuiltinMeaning
             xorByteStringDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
+            (runCostingFunThreeArguments . paramXorByteString)
 
     toBuiltinMeaning _semvar ComplementByteString =
         let complementByteStringDenotation :: BS.ByteString -> BS.ByteString
@@ -1910,7 +1922,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE complementByteStringDenotation #-}
         in makeBuiltinMeaning
             complementByteStringDenotation
-            (runCostingFunOneArgument . unimplementedCostingFun)
+            (runCostingFunOneArgument . paramComplementByteString)
+
+    -- Bitwise operations
 
     toBuiltinMeaning _semvar ReadBit =
         let readBitDenotation :: BS.ByteString -> Int -> BuiltinResult Bool
@@ -1918,41 +1932,42 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE readBitDenotation #-}
         in makeBuiltinMeaning
             readBitDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
+            (runCostingFunTwoArguments . paramReadBit)
 
     toBuiltinMeaning _semvar WriteBits =
-        let writeBitsDenotation :: BS.ByteString -> [Integer] -> [Bool] -> BuiltinResult BS.ByteString
-            writeBitsDenotation = Bitwise.writeBitsWrapper
+        let writeBitsDenotation
+              :: BS.ByteString
+              -> ListCostedByLength Integer
+              -> ListCostedByLength Bool
+              -> BuiltinResult BS.ByteString
+            writeBitsDenotation s (ListCostedByLength ixs) (ListCostedByLength bits) = Bitwise.writeBits s ixs bits
             {-# INLINE writeBitsDenotation #-}
         in makeBuiltinMeaning
             writeBitsDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
-
+            (runCostingFunThreeArguments . paramWriteBits)
     toBuiltinMeaning _semvar ReplicateByte =
-        let replicateByteDenotation :: Int -> Word8 -> BuiltinResult BS.ByteString
-            replicateByteDenotation = Bitwise.replicateByte
+        let replicateByteDenotation :: NumBytesCostedAsNumWords -> Word8 -> BuiltinResult BS.ByteString
+            replicateByteDenotation (NumBytesCostedAsNumWords n) w = Bitwise.replicateByte n w
             {-# INLINE replicateByteDenotation #-}
         in makeBuiltinMeaning
             replicateByteDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
-
-    -- Bitwise
+            (runCostingFunTwoArguments . paramReplicateByte)
 
     toBuiltinMeaning _semvar ShiftByteString =
-        let shiftByteStringDenotation :: BS.ByteString -> Integer -> BS.ByteString
-            shiftByteStringDenotation = Bitwise.shiftByteStringWrapper
+        let shiftByteStringDenotation :: BS.ByteString -> IntegerCostedLiterally -> BS.ByteString
+            shiftByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.shiftByteStringWrapper s n
             {-# INLINE shiftByteStringDenotation #-}
         in makeBuiltinMeaning
             shiftByteStringDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
+            (runCostingFunTwoArguments . paramShiftByteString)
 
     toBuiltinMeaning _semvar RotateByteString =
-        let rotateByteStringDenotation :: BS.ByteString -> Integer -> BS.ByteString
-            rotateByteStringDenotation = Bitwise.rotateByteStringWrapper
+        let rotateByteStringDenotation :: BS.ByteString -> IntegerCostedLiterally -> BS.ByteString
+            rotateByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.rotateByteStringWrapper s n
             {-# INLINE rotateByteStringDenotation #-}
         in makeBuiltinMeaning
             rotateByteStringDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
+            (runCostingFunTwoArguments . paramRotateByteString)
 
     toBuiltinMeaning _semvar CountSetBits =
         let countSetBitsDenotation :: BS.ByteString -> Int
@@ -1960,7 +1975,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE countSetBitsDenotation #-}
         in makeBuiltinMeaning
             countSetBitsDenotation
-            (runCostingFunOneArgument . unimplementedCostingFun)
+            (runCostingFunOneArgument . paramCountSetBits)
 
     toBuiltinMeaning _semvar FindFirstSetBit =
         let findFirstSetBitDenotation :: BS.ByteString -> Int
@@ -1968,7 +1983,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE findFirstSetBitDenotation #-}
         in makeBuiltinMeaning
             findFirstSetBitDenotation
-            (runCostingFunOneArgument . unimplementedCostingFun)
+            (runCostingFunOneArgument . paramFindFirstSetBit)
 
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}

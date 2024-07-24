@@ -12,7 +12,6 @@ module PlutusCore.Bitwise (
   byteStringToIntegerWrapper,
   shiftByteStringWrapper,
   rotateByteStringWrapper,
-  writeBitsWrapper,
   -- * Implementation details
   IntegerToByteStringError (..),
   integerToByteStringMaximumOutputLength,
@@ -43,7 +42,7 @@ import Data.Bits qualified as Bits
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Internal qualified as BSI
-import Data.Foldable (for_, traverse_)
+import Data.Foldable (for_)
 import Data.Text (pack)
 import Data.Word (Word64, Word8)
 import Foreign.Marshal.Utils (copyBytes, fillBytes)
@@ -358,12 +357,6 @@ byteStringToInteger statedByteOrder input = case statedByteOrder of
 endiannessArgToByteOrder :: Bool -> ByteOrder
 endiannessArgToByteOrder b = if b then BigEndian else LittleEndian
 
--- | Needed due to the complexities of passing lists of pairs as arguments.
--- Effectively, we pass the second argument as required by CIP-122 in its
--- \'unzipped\' form, truncating mismatches.
-writeBitsWrapper :: ByteString -> [Integer] -> [Bool] -> BuiltinResult ByteString
-writeBitsWrapper bs ixes = writeBits bs . zip ixes
-
 {- Note [Binary bitwise operation implementation and manual specialization]
 
    All of the 'binary' bitwise operations (namely `andByteString`,
@@ -566,8 +559,8 @@ readBit bs ix
 
 -- | Bulk bit write, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 {-# INLINEABLE writeBits #-}
-writeBits :: ByteString -> [(Integer, Bool)] -> BuiltinResult ByteString
-writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
+writeBits :: ByteString -> [Integer] -> [Bool] -> BuiltinResult ByteString
+writeBits bs ixs bits = case unsafeDupablePerformIO . try $ go of
   Left (WriteBitsException i) -> do
     emit "writeBits: index out of bounds"
     emit $ "Index: " <> (pack . show $ i)
@@ -578,15 +571,19 @@ writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
     -- exceptions], which covers why we did this.
     go :: IO ByteString
     go = BS.useAsCString bs $ \srcPtr ->
-          BSI.create len $ \dstPtr -> do
-            copyBytes dstPtr (castPtr srcPtr) len
-            traverse_ (setAtIx dstPtr) changelist
+          BSI.create len $
+            \dstPtr ->
+              let go2 (i:is) (v:vs) = setAtIx dstPtr i v *> go2 is vs
+                  go2 _ _           = pure ()
+              in do
+                copyBytes dstPtr (castPtr srcPtr) len
+                go2 ixs bits
     len :: Int
     len = BS.length bs
     bitLen :: Integer
     bitLen = fromIntegral len * 8
-    setAtIx :: Ptr Word8 -> (Integer, Bool) -> IO ()
-    setAtIx ptr (i, b)
+    setAtIx :: Ptr Word8 -> Integer -> Bool -> IO ()
+    setAtIx ptr i b
       | i < 0 = throw $ WriteBitsException i
       | i >= bitLen = throw $ WriteBitsException i
       | otherwise = do
@@ -597,12 +594,21 @@ writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
                         then Bits.setBit w8 . fromIntegral $ littleIx
                         else Bits.clearBit w8 . fromIntegral $ littleIx
           pokeByteOff ptr flipIx toWrite
+    {-# INLINEABLE setAtIx #-}
 
 -- | Byte replication, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
+-- We want to cautious about the allocation of huge amounts of memory so we
+-- impose the same length limit that's used in integerToByteString.
 replicateByte :: Int -> Word8 -> BuiltinResult ByteString
 replicateByte len w8
   | len < 0 = do
       emit "replicateByte: negative length requested"
+      evaluationFailure
+  | toInteger len > integerToByteStringMaximumOutputLength = do
+      emit . pack $ "replicateByte: requested length is too long (maximum is "
+               ++ show integerToByteStringMaximumOutputLength
+               ++ " bytes)"
+      emit $ "Length requested: " <> (pack . show $ len)
       evaluationFailure
   | otherwise = pure . BS.replicate len $ w8
 
@@ -701,7 +707,7 @@ benefit: if the requested rotation or shift happens to be an exact multiple
 of 8, we can be _much_ faster, as Step 2 becomes unnecessary in that case.
 -}
 
--- | Shifts, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Shifts, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 shiftByteString :: ByteString -> Int -> ByteString
 shiftByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
       BSI.create len $ \dstPtr -> do
@@ -770,7 +776,7 @@ shiftByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcP
         !(lastByte :: Word8) <- peekByteOff dstPtr (copyLen - 1)
         pokeByteOff dstPtr (copyLen - 1) (lastByte `Bits.unsafeShiftL` smallShift)
 
--- | Rotations, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Rotations, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 rotateByteString :: ByteString -> Int -> ByteString
 rotateByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
   BSI.create len $ \dstPtr -> do
@@ -811,7 +817,7 @@ rotateByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \src
                 Bits..|. (firstOverflowBits `Bits.unsafeShiftR` invSmallRotate)
         pokeByteOff dstPtr (len - 1) newLastByte
 
--- | Counting the number of set bits, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Counting the number of set bits, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 countSetBits :: ByteString -> Int
 countSetBits bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
   -- See Note [Loop sectioning] for details of why we
@@ -845,7 +851,7 @@ countSetBits bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
           !w8 <- peekElemOff smallSrcPtr smallIx
           goSmall smallSrcPtr (acc + Bits.popCount w8) (smallIx + 1)
 
--- | Finding the first set bit's index, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Finding the first set bit's index, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 findFirstSetBit :: ByteString -> Int
 findFirstSetBit bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
   let bigSrcPtr :: Ptr Word64 = castPtr srcPtr
