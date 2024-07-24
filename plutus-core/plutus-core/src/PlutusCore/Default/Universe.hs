@@ -7,7 +7,6 @@
 -- to test that some constraints are solvable
 {-# OPTIONS -Wno-redundant-constraints #-}
 
-{-# LANGUAGE AllowAmbiguousTypes      #-}
 {-# LANGUAGE BlockArguments           #-}
 {-# LANGUAGE CPP                      #-}
 {-# LANGUAGE ConstraintKinds          #-}
@@ -483,27 +482,12 @@ deriving newtype instance HasConstantIn DefaultUni term =>
 deriving newtype instance HasConstantIn DefaultUni term =>
     ReadKnownIn DefaultUni term IntegerCostedLiterally
 
-deriving newtype instance
-  forall tyname a .
-  ( Contains DefaultUni a
-  , KnownTypeAst tyname DefaultUni a
-  )
-  => KnownTypeAst tyname DefaultUni (ListCostedByLength a)
-deriving newtype instance
-  forall term tyname a .
-  ( Contains DefaultUni a
-  , HasConstantIn DefaultUni term
-  , KnownTypeAst tyname DefaultUni a
-  )
-  => MakeKnownIn DefaultUni term (ListCostedByLength a)
-deriving newtype instance
-  forall term tyname a .
-  ( Contains DefaultUni a
-  , HasConstantIn DefaultUni term
-  , KnownTypeAst tyname DefaultUni a
-  )
-  => ReadKnownIn DefaultUni term (ListCostedByLength a)
-
+deriving newtype instance KnownTypeAst tyname DefaultUni a =>
+    KnownTypeAst tyname DefaultUni (ListCostedByLength a)
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
+    MakeKnownIn DefaultUni term (ListCostedByLength a)
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
+    ReadKnownIn DefaultUni term (ListCostedByLength a)
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
