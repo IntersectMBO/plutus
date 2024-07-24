@@ -325,6 +325,7 @@ library
     MAlonzo.Code.Utils.Reflection
     MAlonzo.Code.VerifiedCompilation.Equality
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
+    MAlonzo.Code.VerifiedCompilation.UForceDelay
     MAlonzo.Code.VerifiedCompilation.UntypedTranslation
     MAlonzo.Code.VerifiedCompilation.UntypedViews
     MAlonzo.RTE

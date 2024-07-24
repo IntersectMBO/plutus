@@ -28,11 +28,12 @@ open Monad {{...}}
 import IO.Primitive as IO using (return;_>>=_)
 import Data.List as L
 import VerifiedCompilation.UCaseOfCase as UCC
+import VerifiedCompilation.UForceDelay as UFD
 open import Data.Empty using (⊥)
 open import Scoped using (ScopeError;deBError)
 open import VerifiedCompilation.Equality using (DecEq)
 import Relation.Binary as Binary using (Decidable)
-open import VerifiedCompilation.UntypedTranslation using (Translation; Relation)
+open import VerifiedCompilation.UntypedTranslation using (Translation; Relation; translation?)
 open import Reflection using (showTerm)
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
@@ -131,25 +132,33 @@ traverseEitherList f (x ∷ xs) with f x
 ...     | inj₁ err = inj₁ err
 ...     | inj₂ resList = inj₂ (x' ∷ resList)
 
--- TODO: finish
+-- TODO: finish + write "show" functions for translations
 serializeTraceProof : {X : Set} {R : Relation} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace R xs) → String
 serializeTraceProof (no ¬p) = "no"
 serializeTraceProof (yes p) = "yes"
 
-go
+data IsTransformation : Relation where
+  isCoC : {X : Set} → (ast ast' : X ⊢) → UCC.CoC ast ast' → IsTransformation ast ast'
+  isFD : {X : Set} → (ast ast' : X ⊢) → UFD.FD ast ast' → IsTransformation ast ast'
+
+-- TODO: finish
+isTransformation? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (IsTransformation {X})
+isTransformation? ast₁ ast₂ with UCC.isCoC? ast₁ ast₂
+... | bla = {!   !}
+
+certifier
   : {X : Set} {R : Relation}
   → List Untyped
   → Unary.Decidable (Trace R {Maybe X})
   → Either ScopeError String
-go {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
+certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
 ... | inj₁ err = inj₁ err
 ... | inj₂ rawTrace = 
   let inputTrace = aux rawTrace
    in inj₂ (serializeTraceProof (isRTrace? inputTrace))
 
--- TODO: finish
 runCertifier : List Untyped → IO ⊤
-runCertifier rawInput with go rawInput (isTrace? {Maybe ⊥} {Translation UCC.CoC} UCC.isUntypedCaseOfCase?)
+runCertifier rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
 ... | inj₁ err = putStrLn "error"
 ... | inj₂ result = putStrLn result
 {-# COMPILE GHC runCertifier as runCertifier #-}
