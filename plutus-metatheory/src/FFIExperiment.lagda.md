@@ -132,29 +132,30 @@ traverseEitherList f (x L.∷ xs) with f x
 ...     | Std.left err = Std.left err
 ...     | Std.right resList = Std.right (x' L.∷ resList)
 
--- f : {X : Set} {R : Relation} → List Untyped → Binary.Decidable (R {X}) → Std.Either ScopeError (Unary.Decidable (Trace R {X}))
--- f input isR? = {! aux (U.fromList (traverseEitherList toWellScoped' (U.toList input)))  !} 
-
 toWellScoped'' : {X : Set} → Untyped → Std.Either ScopeError (Maybe X ⊢)
 toWellScoped'' u with toWellScoped u
 ... | inj₁ err = Std.left err
 ... | inj₂ x = Std.right x
 
-go : {X : Set} {R : Relation} {xs : List ((Maybe X ⊢) × (Maybe X ⊢))} → List Untyped → Binary.Decidable (R {Maybe X}) → Std.Either ScopeError (Dec (Trace R xs))
-go {X} inputTrace isR? with traverseEitherList toWellScoped'' (U.toList inputTrace)
+-- TODO: finish
+serializeTraceProof : {X : Set} {R : Relation} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace R xs) → String
+serializeTraceProof (no ¬p) = "no"
+serializeTraceProof (yes p) = "yes"
+
+go
+  : {X : Set} {R : Relation}
+  → List Untyped
+  → Unary.Decidable (Trace R {Maybe X})
+  → Std.Either ScopeError String
+go {X} rawInput isRTrace? with traverseEitherList toWellScoped'' (U.toList rawInput)
 ... | Std.left err = Std.left err
 ... | Std.right rawTrace = 
   let inputTrace = aux (U.fromList {(Maybe X ⊢)} rawTrace)
-   in Std.right (isTrace? {Maybe X} isR? {! inputTrace !})
+   in Std.right (serializeTraceProof (isRTrace? inputTrace))
 
--- TODO: write dec for a trace of ASTs
+-- TODO: finish
 runCertifier : List Untyped → IO ⊤
-runCertifier [] = putStrLn ""
-runCertifier (x ∷ xs) with toWellScoped' x
-...                | inj₁ _ = putStrLn "Can't parse AST"
-...                | inj₂ t =
-                      let result = UCC.isUntypedCaseOfCase? t t
-                       in do
-                        putStrLn (showDec result)
-                        runCertifier xs
+runCertifier rawInput with go rawInput (isTrace? {Maybe ⊥} {Translation UCC.CoC} UCC.isUntypedCaseOfCase?)
+... | Std.left err = putStrLn "error"
+... | Std.right result = putStrLn result
 {-# COMPILE GHC runCertifier as runCertifier #-}
