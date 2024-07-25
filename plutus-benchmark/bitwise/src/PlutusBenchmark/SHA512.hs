@@ -362,7 +362,7 @@ pad bs = bs <> padding
                   k = if r <= (-1) then r + 1024 else r
                   -- INVARIANT: k is necessarily > 0, and (k + 1) is a
                   -- multiple of 8.
-                  kBytes = (k + 1) `quotient` 8
+                  kBytes = (k + 1) `divide` 8
                   zeroBytes = kBytes - 1
                   paddingZeroes = replicateByte zeroBytes 0x0
                   paddingWith1 = consByteString 0x80 paddingZeroes
