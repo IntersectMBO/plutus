@@ -228,6 +228,8 @@ builtinNames = [
     , 'Builtins.head
     , 'Builtins.tail
     , 'Builtins.chooseList
+    , 'Builtins.mkNilInteger
+    , 'Builtins.mkNilBool
     , 'Builtins.mkNilData
     , 'Builtins.mkNilPairData
     , 'Builtins.mkCons
@@ -331,6 +333,12 @@ defineBuiltinTerms = do
 
     -- Text constant
     defineBuiltinTerm annMayInline 'Builtins.emptyString $ PIR.mkConstant annMayInline ("" :: Text)
+
+    -- List constants
+    defineBuiltinTerm annMayInline 'Builtins.mkNilInteger $
+        PIR.mkConstant annMayInline ([] @Integer)
+    defineBuiltinTerm annMayInline 'Builtins.mkNilBool $
+        PIR.mkConstant annMayInline ([] @Bool)
 
     -- The next two constants are 48 bytes long, so in fact we may not want to inline them.
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_compressed_generator $
