@@ -593,3 +593,35 @@ benchmark marlowe-agda-cek
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.31
     , plutus-tx                ^>=1.31
+
+-------------------- bitwise-----------------------
+
+library bitwise-internal
+  import:          lang, ghc-version-support
+  hs-source-dirs:  bitwise/src
+  exposed-modules: PlutusBenchmark.NQueens
+  build-depends:   plutus-tx ^>=1.31
+
+test-suite bitwise-test
+  import:         lang, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: bitwise/test
+  build-depends:
+    , base              >=4.9 && <5
+    , bitwise-internal
+    , tasty
+    , tasty-hunit
+
+benchmark bitwise-bench
+  import:         lang, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: bitwise/bench
+  build-depends:  base >=4.9 && <5
+
+--    , bitwise-internal
+--    , criterion
+--    , plutus-benchmark-common
+--    , plutus-tx                ^>=1.30
+--    , plutus-tx-plugin         ^>=1.30
