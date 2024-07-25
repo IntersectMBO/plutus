@@ -7,6 +7,7 @@ import GHC.ByteOrder (ByteOrder (LittleEndian))
 import PlutusBenchmark.SHA512 (sha512)
 import PlutusTx.Prelude hiding (inv)
 
+{-# INLINE checkValid #-}
 checkValid ::
   BuiltinByteString ->
   BuiltinByteString ->
