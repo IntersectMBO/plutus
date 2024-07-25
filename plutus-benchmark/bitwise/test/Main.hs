@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
@@ -34,8 +35,8 @@ sha512Case = do
 ed25519Case :: IO ()
 ed25519Case = do
   let msg = "hello world"
-  (refPK@(PublicKey pk), refSK) <- Ed25519Ref.createKeypair
-  let signed@(Signature sigRaw) = Ed25519Ref.dsign refSK msg
-  let expected = Ed25519Ref.dverify refPK msg signed
-  let actual = checkValid (toBuiltin sigRaw) (toBuiltin msg) (toBuiltin pk)
+  let signature = "\NUL\147!x\173\167\209z`\t\243|\195$X$\233\166\234\NUL\134\152l\DC4\243\&4\217\NAK\152\180{$M\227R\214\218%\241\157\ENQ\SO\ENQ\t\152\140\171\240\200f\184\133\203\227z\163\NUL\185\155Y\139\178\249\STX"
+  let pk = "(:\255\251\129\&7-^w\253\145\vh\ESC\171r\189\223/\213Qzb\249\175$z\211q\195\DC1\198"
+  let expected = Ed25519Ref.dverify (PublicKey pk) msg (Signature signature)
+  let actual = checkValid (toBuiltin signature) (toBuiltin msg) (toBuiltin pk)
   assertEqual "" expected actual

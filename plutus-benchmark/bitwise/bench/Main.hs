@@ -26,6 +26,12 @@ nqueensCompiled :: CompiledCode [(Integer, Integer)]
 nqueensCompiled = $$(compile [|| nqueens 8 ||])
 
 ed25519Compiled :: CompiledCode Bool
-ed25519Compiled = $$(compile [|| checkValid "x\\SUB`\\EOT\\209\\145$h\\209\\207\\193\\b\\149\\253\\249%\\231\\b\\DC1s\\212\\191l/\\v)\\235\\208\\200tW\\155\\202\\163\\&8Z\\n\\rzojc\\\\\\189\\&3\\230\\139\\171\\GS\\162\\129\\\\|=\\253\\ACK.\\137&^\\SOH\\ETX\\216\\v"
-                                            "hello world"
-                                            "V\\244\\f8\\223\\229\\&2\\189Z@\\137F\\168\\221\\245\\&3\\137W\\EOT\\229\\223T)O\\219\\SI\\242\\153\\CAN\\210Nw" ||])
+ed25519Compiled = $$(compile [||
+  let msg = "hello world"
+      signature = "\NUL\147!x\173\167\209z`\t\243|\195$X$\233\166\234\NUL\134\152l\DC4\243\&4\217\NAK\152\180{$M\227R\214\218%\241\157\ENQ\SO\ENQ\t\152\140\171\240\200f\184\133\203\227z\163\NUL\185\155Y\139\178\249\STX"
+      pk = "(:\255\251\129\&7-^w\253\145\vh\ESC\171r\189\223/\213Qzb\249\175$z\211q\195\DC1\198"
+    in checkValid signature msg pk
+ ||])
+
+nqueensCompiled :: CompiledCode [(Integer, Integer)]
+nqueensCompiled = $$(compile [||nqueens 8||])
