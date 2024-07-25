@@ -94,21 +94,21 @@ traverseEitherList f (x ∷ xs) with f x
 ...     | inj₁ err = inj₁ err
 ...     | inj₂ resList = inj₂ (x' ∷ resList)
 
--- TODO: finish + write "show" functions for translations
-serializeTraceProof : {X : Set} {R : Relation} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace R xs) → String
-serializeTraceProof (no ¬p) = "no"
-serializeTraceProof (yes p) = "yes"
-
 data IsTransformation : Relation where
   isCoC : {X : Set} → (ast ast' : X ⊢) → UCC.CoC ast ast' → IsTransformation ast ast'
   isFD : {X : Set} → (ast ast' : X ⊢) → UFD.FD ast ast' → IsTransformation ast ast'
 
--- TODO: finish
 isTransformation? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (IsTransformation {X})
 isTransformation? ast₁ ast₂ with UCC.isCoC? ast₁ ast₂
-... | bla = {!   !}
+... | bla with UFD.isFD? ast₁ ast₂
+isTransformation? ast₁ ast₂ | no ¬p | no ¬p₁ = no λ {(isCoC .ast₁ .ast₂ x) → ¬p x
+                                                   ; (isFD .ast₁ .ast₂ x) → ¬p₁ x}
+isTransformation? ast₁ ast₂ | no ¬p | yes p = yes (isFD ast₁ ast₂ p)
+isTransformation? ast₁ ast₂ | yes p | no ¬p = yes (isCoC ast₁ ast₂ p)
+-- how can it be both? need to revisit this
+isTransformation? ast₁ ast₂ | yes p | yes p₁ = yes (isCoC ast₁ ast₂ p)
 
-showTranslation : {X : Set}  {{_ : DecEq X}} {ast ast' : X ⊢} → Translation IsTransformation ast ast' → String
+showTranslation : {X : Set} {ast ast' : X ⊢} → Translation IsTransformation ast ast' → String
 showTranslation (Translation.istranslation _ _ x) = "istranslation TODO"
 showTranslation Translation.var = "var"
 showTranslation (Translation.ƛ t) = "(ƛ " ++ showTranslation t ++ ")"
@@ -121,16 +121,21 @@ showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ "
 showTranslation Translation.builtin = "builtin"
 showTranslation Translation.error = "error"
 
--- TODO: unparse proof
-showDec : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Dec (Translation IsTransformation ast ast') → String
 -- showDec {X} result = showTerm (quoteTerm result)
-showDec {X} (yes p) = "yes" ++ showTranslation p
-showDec {X} (no ¬p) = "no"
+
+showTrace : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
+showTrace empty = "empty"
+showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
+
+-- TODO: finish + write "show" functions for translations
+serializeTraceProof : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
+serializeTraceProof (no ¬p) = "no" 
+serializeTraceProof (yes p) = "yes " ++ showTrace p
 
 certifier
-  : {X : Set} {R : Relation}
+  : {X : Set}
   → List Untyped
-  → Unary.Decidable (Trace R {Maybe X})
+  → Unary.Decidable (Trace (Translation IsTransformation) {Maybe X})
   → Either ScopeError String
 certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
 ... | inj₁ err = inj₁ err
