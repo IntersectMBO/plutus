@@ -108,9 +108,10 @@ module PlutusTx.Builtins (
                          , toOpaque
                          , fromBuiltin
                          , toBuiltin
+                         -- * Logical
+                         , ByteOrder (..)
                          , integerToByteString
                          , byteStringToInteger
-                         -- * Logical
                          , andByteString
                          , orByteString
                          , xorByteString
@@ -350,7 +351,7 @@ remainderInteger x y = fromOpaque (BI.remainderInteger (toOpaque x) (toOpaque y)
 {-# INLINABLE greaterThanInteger #-}
 -- | Check whether one 'Integer' is greater than another.
 greaterThanInteger :: Integer -> Integer -> Bool
-greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqualsInteger x y ) False True
+greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqualsInteger x y) False True
 
 {-# INLINABLE greaterThanEqualsInteger #-}
 -- | Check whether one 'Integer' is greater than or equal to another.
@@ -636,6 +637,7 @@ bls12_381_finalVerify a b = fromOpaque (BI.bls12_381_finalVerify a b)
 byteOrderToBool :: ByteOrder -> Bool
 byteOrderToBool BigEndian    = True
 byteOrderToBool LittleEndian = False
+{-# INLINABLE byteOrderToBool #-}
 
 -- | Convert a 'BuiltinInteger' into a 'BuiltinByteString', as described in
 -- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
@@ -823,7 +825,7 @@ writeBits ::
   [Integer] ->
   [Bool] ->
   BuiltinByteString
-writeBits bs ixes bits = BI.writeBits bs (toBuiltin ixes) (toBuiltin bits)
+writeBits bs ixes bits = BI.writeBits bs (toOpaque ixes) (toOpaque bits)
 
 -- | Given a length (first argument) and a byte (second argument), produce a 'BuiltinByteString' of
 -- that length, with that byte in every position. Will error if given a negative length, or a second

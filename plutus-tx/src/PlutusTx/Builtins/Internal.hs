@@ -403,6 +403,14 @@ chooseList :: BuiltinList a -> b -> b -> b
 chooseList (BuiltinList [])    b1 _ = b1
 chooseList (BuiltinList (_:_)) _ b2 = b2
 
+{-# NOINLINE mkNilInteger #-}
+mkNilInteger :: BuiltinList BuiltinInteger
+mkNilInteger = BuiltinList []
+
+{-# NOINLINE mkNilBool #-}
+mkNilBool :: BuiltinList BuiltinBool
+mkNilBool = BuiltinList []
+
 {-# NOINLINE mkNilData #-}
 mkNilData :: BuiltinUnit -> BuiltinList BuiltinData
 mkNilData _ = BuiltinList []
