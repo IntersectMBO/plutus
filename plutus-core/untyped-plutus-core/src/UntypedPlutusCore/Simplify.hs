@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs            #-}
+{-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeApplications #-}
 
 module UntypedPlutusCore.Simplify (
@@ -63,32 +64,34 @@ simplifyTerm opts builtinSemanticsVariant =
     -- generate simplification step
     simplifyStep :: Int -> Term name uni fun a -> m (Term name uni fun a)
     simplifyStep _ =
-      traceFirst
+      traceAST
         >=> floatDelay
+        >=> traceAST
         >=> pure . forceDelay
-        >=> caseOfCase'
+        >=> traceAST
+        >=> pure . caseOfCase'
+        >=> traceAST
         >=> pure . caseReduce
+        >=> traceAST
         >=> inline (_soInlineConstants opts) (_soInlineHints opts) builtinSemanticsVariant
+        >=> traceAST
 
-    traceFirst :: Term name uni fun a -> m (Term name uni fun a)
-    traceFirst first = case eqT @fun @DefaultFun of
-      Just Refl -> do
-        State.modify' $ \s -> s { caseOfCaseTrace = caseOfCaseTrace s ++ [first] }
-        pure first
-      Nothing   -> pure first
-
-    caseOfCase' :: Term name uni fun a -> m (Term name uni fun a)
-    caseOfCase' pre = case eqT @fun @DefaultFun of
-      Just Refl -> do
-        let post = caseOfCase pre
-        State.modify' $ \s -> s { caseOfCaseTrace = caseOfCaseTrace s ++ [post] }
-        pure post
-      Nothing   -> pure pre
+    caseOfCase' :: Term name uni fun a -> Term name uni fun a
+    caseOfCase' = case eqT @fun @DefaultFun of
+      Just Refl -> caseOfCase
+      Nothing   -> id
 
     cseStep :: Int -> Term name uni fun a -> m (Term name uni fun a)
     cseStep _ =
       case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
         (Just Refl, Just Refl) -> cse builtinSemanticsVariant
         _                      -> pure
+
+    traceAST ast =
+      case eqT @fun @DefaultFun of
+        Just Refl -> do
+          State.modify' (\st -> st { uplcSimplifierTrace = uplcSimplifierTrace st ++ [ast] })
+          return ast
+        Nothing -> return ast
 
     cseTimes = if _soConservativeOpts opts then 0 else _soMaxCseIterations opts

@@ -14,7 +14,7 @@ import UntypedPlutusCore.Core.Type qualified as UPLC
 -- we should consider serializing this to disk
 newtype UPLCSimplifierTrace name uni fun a =
   UPLCSimplifierTrace
-    { caseOfCaseTrace
+    { uplcSimplifierTrace
       :: [UPLC.Term name uni PLC.DefaultFun a]
     }
 
