@@ -102,6 +102,7 @@ parserInfo :: Config -> ParserInfo BenchOptions
 parserInfo cfg =
     info (helper <*> parseBenchOptions cfg) $ header "Plutus Core validation benchmark suite"
 
+
 benchWith :: (FilePath -> BS.ByteString -> Benchmarkable) -> IO ()
 benchWith act = do
     cfg <- getConfig 20.0  -- Run each benchmark for at least 20 seconds.  Change this with -L or --timeout (longer is better).
