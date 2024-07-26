@@ -318,7 +318,7 @@ library
     , monoidal-containers
     , mtl
     , multiset
-    , nothunks                    ^>=0.1.5
+    , nothunks                    ^>=0.2
     , parser-combinators          >=0.4.0
     , prettyprinter               >=1.1.0.1
     , prettyprinter-configurable  ^>=1.31
