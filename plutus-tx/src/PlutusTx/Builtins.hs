@@ -106,6 +106,8 @@ module PlutusTx.Builtins (
                          -- * Conversions
                          , fromOpaque
                          , toOpaque
+                         , useToOpaque
+                         , useFromOpaque
                          , fromBuiltin
                          , toBuiltin
                          -- * Logical
