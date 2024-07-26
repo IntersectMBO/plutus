@@ -68,6 +68,8 @@ module PlutusTx.Builtins (
                          -- * Pairs
                          , pairToPair
                          -- * Lists
+                         , mkNil
+                         , mkNilOpaque
                          , null
                          , matchList
                          , matchList'

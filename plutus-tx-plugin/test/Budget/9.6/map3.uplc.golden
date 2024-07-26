@@ -222,15 +222,13 @@
                                             , (go xs) ])) ])))))
                (fix1
                   (\goList ds ->
-                     force
-                       (case
-                          ds
-                          [ (delay [])
-                          , (\d ds ->
-                               delay
-                                 (force mkCons
-                                    (case d [(\d d -> mkPairData d d)])
-                                    (goList ds))) ]))))
+                     case
+                       ds
+                       [ []
+                       , (\d ds ->
+                            force mkCons
+                              (case d [(\d d -> mkPairData d d)])
+                              (goList ds)) ])))
             (fix1
                (\go acc xs ->
                   force (force chooseList)
