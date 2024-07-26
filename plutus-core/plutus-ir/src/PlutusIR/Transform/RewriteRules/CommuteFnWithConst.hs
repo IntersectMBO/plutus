@@ -143,3 +143,4 @@ isCommutative = \case
   RotateByteString                -> False
   CountSetBits                    -> False
   FindFirstSetBit                 -> False
+  ExpModInteger           -> False

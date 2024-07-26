@@ -564,6 +564,13 @@ BUILTIN ripemd-160 = λ
   { (app base (V-con bytestring b)) -> inj₂ (V-con bytestring (RIPEMD-160 b))
   ; _ -> inj₁ userError
   }
+BUILTIN expModInteger = λ
+  { (app (app (app base (V-con integer b)) (V-con integer e)) (V-con integer m)) -> case expModINTEGER b e m of λ
+     { (just r) -> inj₂ (V-con integer r)
+     ; nothing  -> inj₁ userError
+     }
+  ; _ -> inj₁ userError
+  }
 
 -- Take an apparently more general index and show that it is a fully applied builtin.
 mkFullyAppliedBuiltin : ∀ { b }

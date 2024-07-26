@@ -32,6 +32,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
+import PlutusCore.Crypto.ExpMod qualified as ExpMod
 import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
 
@@ -169,6 +170,7 @@ data DefaultFun
     | FindFirstSetBit
     -- Ripemd_160
     | Ripemd_160
+    | ExpModInteger
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1992,6 +1994,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             ripemd_160Denotation
             (runCostingFunOneArgument . paramRipemd_160)
 
+    toBuiltinMeaning _semvar ExpModInteger =
+        let expModIntegerDenotation :: Integer -> Integer -> Natural -> BuiltinResult Natural
+            expModIntegerDenotation = ExpMod.expMod
+            {-# INLINE expModIntegerDenotation #-}
+        in makeBuiltinMeaning
+            expModIntegerDenotation
+            (runCostingFunThreeArguments . paramExpModInteger)
+
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -2132,6 +2142,8 @@ instance Flat DefaultFun where
               FindFirstSetBit                 -> 85
               Ripemd_160                      -> 86
 
+              ExpModInteger           -> 87
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -2220,6 +2232,7 @@ instance Flat DefaultFun where
               go 84 = pure CountSetBits
               go 85 = pure FindFirstSetBit
               go 86 = pure Ripemd_160
+              go 87 = pure ExpModInteger
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

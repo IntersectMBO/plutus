@@ -378,7 +378,7 @@ emitRuntimeError codeTy e = do
     let shown = show $ PP.pretty (pruneContext (_posContextLevel opts) e)
     tcName <- thNameToGhcNameOrFail ''CompiledCode
     tc <- lift . lift $ GHC.lookupTyCon tcName
-#if MIN_VERSION_ghc (9,6,0)
+#if MIN_VERSION_ghc(9,6,0)
     pure $ GHC.mkImpossibleExpr (GHC.mkTyConApp tc [codeTy]) shown
 #else
     pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc [codeTy]) shown

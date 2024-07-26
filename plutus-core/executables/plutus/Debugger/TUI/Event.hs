@@ -16,8 +16,8 @@ import Brick.Focus qualified as B
 import Brick.Main qualified as B
 import Brick.Types qualified as B
 import Brick.Widgets.Edit qualified as BE
--- ghc 9.6 has this in base
-#if __GLASGOW_HASKELL__ < 906
+-- ghc>=9.6 has this in base
+#if ! MIN_VERSION_base(4,18,0)
 import Control.Applicative (liftA2)
 #endif
 import Control.Arrow ((>>>))
