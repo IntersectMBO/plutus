@@ -46,10 +46,6 @@ topBitIndex s = fromIntegral $ 8*(BS.length s)-1
 memoryUsageAsNumBytes :: ExMemoryUsage a => a -> Int
 memoryUsageAsNumBytes = (8*) . fromSatInt . sumCostStream . flattenCostRose . memoryUsage
 
--- An explicit conversion to avoid some type annotations later.
-integerToInt :: Integer -> Int
-integerToInt = fromIntegral
-
 {- Experiments show that the times for big-endian and little-endian
    `byteStringToInteger` conversions are very similar, with big-endian
    conversion perhaps taking a fraction longer.  We just generate a costing
@@ -81,7 +77,7 @@ benchIntegerToByteString =
         -- The minimum width of bytestring needed to fit the inputs into.
         widthsInBytes = fmap (fromIntegral . memoryUsageAsNumBytes) inputs
     in createThreeTermBuiltinBenchElementwiseWithWrappers
-       (id, NumBytesCostedAsNumWords . integerToInt, id) b [] $
+       (id, NumBytesCostedAsNumWords, id) b [] $
        zip3 (repeat True) widthsInBytes inputs
 
 {- For `andByteString` with different-sized inputs, calling it with extension
@@ -174,7 +170,7 @@ benchReplicateByte =
       -- ^ This gives us replication counts up to 64*128 = 8192, the maximum allowed.
       inputs = pairWith (const (0xFF::Integer)) xs
   in createTwoTermBuiltinBenchElementwiseWithWrappers
-     (NumBytesCostedAsNumWords . fromIntegral, id) ReplicateByte [] inputs
+     (NumBytesCostedAsNumWords, id) ReplicateByte [] inputs
 
 {- Benchmarks with varying sizes of bytestrings and varying amounts of shifting
    show that the execution time of `shiftByteString` depends linearly on the
