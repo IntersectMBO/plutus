@@ -21,7 +21,7 @@ module Evaluation.Builtins.Conversion (
 
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import PlutusCore qualified as PLC
-import PlutusCore.Bitwise (integerToByteStringMaximumOutputLength)
+import PlutusCore.Bitwise qualified as Bitwise (maximumOutputLength)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusPrelude (Word8, def)
@@ -47,7 +47,7 @@ i2bProperty1 = do
   e <- forAllWith ppShow Gen.bool
   -- We limit this temporarily due to the limit imposed on lengths for the
   -- conversion primitive.
-  d <- forAllWith ppShow $ Gen.integral (Range.constant 0 integerToByteStringMaximumOutputLength)
+  d <- forAllWith ppShow $ Gen.integral (Range.constant 0 Bitwise.maximumOutputLength)
   let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
         mkConstant @Bool () e,
         mkConstant @Integer () d,
@@ -68,7 +68,7 @@ i2bProperty2 = do
   e <- forAllWith ppShow Gen.bool
   -- We limit this temporarily due to the limit imposed on lengths for the
   -- conversion primitive.
-  k <- forAllWith ppShow $ Gen.integral (Range.constant 1 integerToByteStringMaximumOutputLength)
+  k <- forAllWith ppShow $ Gen.integral (Range.constant 1 Bitwise.maximumOutputLength)
   j <- forAllWith ppShow $ Gen.integral (Range.constant 0 (k-1))
   let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
         mkConstant @Bool () e,
@@ -406,9 +406,9 @@ i2bCipExamples = [
 -- inputs close to the maximum size.
 i2bLimitTests ::[TestTree]
 i2bLimitTests =
-    let maxAcceptableInput = 2 ^ (8*integerToByteStringMaximumOutputLength) - 1
-        maxAcceptableLength = integerToByteStringMaximumOutputLength -- Just for brevity
-        maxOutput = fromList (take (fromIntegral integerToByteStringMaximumOutputLength) $ repeat 0xFF)
+    let maxAcceptableInput = 2 ^ (8*Bitwise.maximumOutputLength) - 1
+        maxAcceptableLength = Bitwise.maximumOutputLength -- Just for brevity
+        maxOutput = fromList (take (fromIntegral Bitwise.maximumOutputLength) $ repeat 0xFF)
         makeTests endianness =
             let prefix = if endianness
                          then "Big-endian, "

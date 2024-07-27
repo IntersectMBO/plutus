@@ -601,7 +601,7 @@ replicateByte len w8
   | len < 0 = do
       emit "replicateByte: negative length requested"
       evaluationFailure
-  | toInteger len > maximumOutputLength = do
+  | len > maximumOutputLength = do
       emit . pack $ "replicateByte: requested length is too long (maximum is "
                ++ show maximumOutputLength
                ++ " bytes)"
