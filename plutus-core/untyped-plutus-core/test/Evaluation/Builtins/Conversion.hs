@@ -407,7 +407,6 @@ i2bCipExamples = [
 i2bLimitTests ::[TestTree]
 i2bLimitTests =
     let maxAcceptableInput = 2 ^ (8*Bitwise.maximumOutputLength) - 1
-        maxAcceptableLength = Bitwise.maximumOutputLength -- Just for brevity
         maxOutput = fromList (take (fromIntegral Bitwise.maximumOutputLength) $ repeat 0xFF)
         makeTests endianness =
             let prefix = if endianness
@@ -427,7 +426,7 @@ i2bLimitTests =
                       in evaluateAssertEqual expectedExp actualExp,
              -- integerToByteString maxLen maxInput = 0xFF...FF
              testCase (prefix ++ "maximum acceptable input, maximum acceptable length argument") $
-                      let actualExp = mkIntegerToByteStringApp maxAcceptableLength maxAcceptableInput
+                      let actualExp = mkIntegerToByteStringApp Bitwise.maximumOutputLength maxAcceptableInput
                           expectedExp = mkConstant @ByteString () maxOutput
                       in evaluateAssertEqual expectedExp actualExp,
              -- integerToByteString 0 (maxInput+1) fails
@@ -436,16 +435,16 @@ i2bLimitTests =
                       in evaluateShouldFail actualExp,
              -- integerToByteString maxLen (maxInput+1) fails
              testCase (prefix ++ "input too big, maximum acceptable length argument") $
-                      let actualExp = mkIntegerToByteStringApp maxAcceptableLength (maxAcceptableInput + 1)
+                      let actualExp = mkIntegerToByteStringApp Bitwise.maximumOutputLength (maxAcceptableInput + 1)
                       in evaluateShouldFail actualExp,
              -- integerToByteString (maxLen-1) maxInput fails
              testCase (prefix ++ "maximum acceptable input, length argument not big enough") $
-                      let actualExp = mkIntegerToByteStringApp (maxAcceptableLength - 1) maxAcceptableInput
+                      let actualExp = mkIntegerToByteStringApp (Bitwise.maximumOutputLength - 1) maxAcceptableInput
                       in evaluateShouldFail actualExp,
              -- integerToByteString _ (maxLen+1) 0 fails, just to make sure that
              -- we can't go beyond the supposed limit
              testCase (prefix ++ "input zero, length argument over limit") $
-                      let actualExp = mkIntegerToByteStringApp (maxAcceptableLength + 1) 0
+                      let actualExp = mkIntegerToByteStringApp (Bitwise.maximumOutputLength + 1) 0
                       in evaluateShouldFail actualExp
             ]
         in makeTests True ++ makeTests False
