@@ -14,7 +14,7 @@ module PlutusCore.Bitwise (
   rotateByteStringWrapper,
   -- * Implementation details
   IntegerToByteStringError (..),
-  integerToByteStringMaximumOutputLength,
+  maximumOutputLength,
   integerToByteString,
   byteStringToInteger,
   andByteString,
@@ -65,8 +65,8 @@ import GHC.IO.Unsafe (unsafeDupablePerformIO)
 {- NB: if we do relax the length restriction then we will need two variants of
    integerToByteString in Plutus Core so that we can continue to support the
    current behaviour for old scripts.-}
-integerToByteStringMaximumOutputLength :: Integer
-integerToByteStringMaximumOutputLength = 8192
+maximumOutputLength :: Integer
+maximumOutputLength = 8192
 
 {- Return the base 2 logarithm of an integer, returning 0 for inputs that aren't
    strictly positive.  This is essentially copied from GHC.Num.Integer, which
@@ -85,9 +85,9 @@ integerToByteStringWrapper endiannessArg lengthArg input
       evaluationFailure
   -- Check that the requested length does not exceed the limit.  *NB*: if we remove the limit we'll
   -- still have to make sure that the length fits into an Int.
-  | lengthArg > integerToByteStringMaximumOutputLength = do
+  | lengthArg > maximumOutputLength = do
       emit . pack $ "integerToByteString: requested length is too long (maximum is "
-               ++ show integerToByteStringMaximumOutputLength
+               ++ show maximumOutputLength
                ++ " bytes)"
       emit $ "Length requested: " <> (pack . show $ lengthArg)
       evaluationFailure
@@ -96,12 +96,12 @@ integerToByteStringWrapper endiannessArg lengthArg input
   -- limit.  If the requested length is nonzero and less than the limit,
   -- integerToByteString checks that the input fits.
   | lengthArg == 0 -- integerLog2 n is one less than the number of significant bits in n
-       && fromIntegral (integerLog2 input) >= 8 * integerToByteStringMaximumOutputLength =
+       && fromIntegral (integerLog2 input) >= 8 * maximumOutputLength =
     let bytesRequiredFor n = integerLog2 n `div` 8 + 1
         -- ^ This gives 1 instead of 0 for n=0, but we'll never get that.
     in do
       emit . pack $ "integerToByteString: input too long (maximum is 2^"
-               ++ show (8 * integerToByteStringMaximumOutputLength)
+               ++ show (8 * maximumOutputLength)
                ++ "-1)"
       emit $ "Length required: " <> (pack . show $ bytesRequiredFor input)
       evaluationFailure
@@ -599,18 +599,18 @@ writeBits bs ixs bits = case unsafeDupablePerformIO . try $ go of
 -- | Byte replication, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 -- We want to cautious about the allocation of huge amounts of memory so we
 -- impose the same length limit that's used in integerToByteString.
-replicateByte :: Int -> Word8 -> BuiltinResult ByteString
+replicateByte :: Integer -> Word8 -> BuiltinResult ByteString
 replicateByte len w8
   | len < 0 = do
       emit "replicateByte: negative length requested"
       evaluationFailure
-  | toInteger len > integerToByteStringMaximumOutputLength = do
+  | toInteger len > maximumOutputLength = do
       emit . pack $ "replicateByte: requested length is too long (maximum is "
-               ++ show integerToByteStringMaximumOutputLength
+               ++ show maximumOutputLength
                ++ " bytes)"
       emit $ "Length requested: " <> (pack . show $ len)
       evaluationFailure
-  | otherwise = pure . BS.replicate len $ w8
+  | otherwise = pure . BS.replicate (fromIntegral len) $ w8
 
 -- | Wrapper for calling 'shiftByteString' safely. Specifically, we avoid various edge cases:
 --
