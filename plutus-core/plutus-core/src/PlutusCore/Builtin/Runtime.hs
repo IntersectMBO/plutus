@@ -38,7 +38,7 @@ instance NoThunks (BuiltinRuntime val) where
     wNoThunks ctx = \case
         -- Unreachable, because we don't allow nullary builtins and the 'BuiltinArrow' case only
         -- checks for WHNF without recursing. Hence we can throw if we reach this clause somehow.
-        BuiltinCostedResult _ _    -> pure . Just $ ThunkInfo ctx
+        BuiltinCostedResult _ _    -> pure . Just . ThunkInfo $ Left ctx
         -- This one doesn't do much. It only checks that the function stored in the 'BuiltinArrow'
         -- is in WHNF. The function may contain thunks inside of it. Not sure if it's possible to do
         -- better, since the final 'BuiltinCostedResult' contains a thunk for the result of the

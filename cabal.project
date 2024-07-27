@@ -92,9 +92,4 @@ constraints:
   -- The API has changed for version 2.2, ledger depends on the old version and ledger will not
   -- be updated until after the Conway release.
   , cardano-crypto-class ^>= 2.1
-  -- Later versions have API changes.
-  , nothunks ^>= 0.1.5
-
-allow-newer:
-  , nothunks:containers
 
