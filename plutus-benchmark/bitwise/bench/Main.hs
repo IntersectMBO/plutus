@@ -8,6 +8,7 @@ module Main (main) where
 import Criterion.Main (bench, defaultMain)
 import PlutusBenchmark.Common (benchProgramCek, mkMostRecentEvalCtx)
 import PlutusBenchmark.NQueens (nqueens)
+import PlutusBenchmark.NQueens.Compiled (dimAsData, nqueensCompiled)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData)
 import PlutusTx.Code (CompiledCode, getPlcNoAnn, unsafeApplyCode)
 import PlutusTx.IsData (toBuiltinData, unsafeFromBuiltinData)
@@ -38,9 +39,3 @@ signatureAsData =
 pkAsData :: CompiledCode BuiltinData
 pkAsData =
   $$(compile [|| toBuiltinData ("(:\255\251\129\&7-^w\253\145\vh\ESC\171r\189\223/\213Qzb\249\175$z\211q\195\DC1\198" :: BuiltinByteString) ||])
-
-nqueensCompiled :: CompiledCode (BuiltinData -> [(Integer, Integer)])
-nqueensCompiled = $$(compile [|| \dim -> nqueens (unsafeFromBuiltinData dim) ||])
-
-dimAsData :: CompiledCode BuiltinData
-dimAsData = $$(compile [|| toBuiltinData (8 :: Integer) ||])
