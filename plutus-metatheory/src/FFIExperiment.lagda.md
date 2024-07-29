@@ -74,6 +74,7 @@ aux [] = []
 aux (x ∷ []) = (x , x) ∷ []
 aux (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ aux (x₂ ∷ xs)
 
+-- TODO: (X, Y) -> (Y, Z) we should actually check that the Ys are the same
 data Trace (R : Relation) : { X : Set } → List ((X ⊢) × (X ⊢)) → Set₁ where
   empty : {X : Set} → Trace R {X} []
   cons : {X : Set} {x x' : X ⊢} {xs : List ((X ⊢) × (X ⊢))} → R x x' → Trace R {X} xs → Trace R {X} ((x , x') ∷ xs)
@@ -94,6 +95,7 @@ traverseEitherList f (x ∷ xs) with f x
 ...     | inj₁ err = inj₁ err
 ...     | inj₂ resList = inj₂ (x' ∷ resList)
 
+-- TODO: add tags to know beforehand which transformation we should apply
 data IsTransformation : Relation where
   isCoC : {X : Set} → (ast ast' : X ⊢) → UCC.CoC ast ast' → IsTransformation ast ast'
   isFD : {X : Set} → (ast ast' : X ⊢) → UFD.FD ast ast' → IsTransformation ast ast'
@@ -108,6 +110,8 @@ isTransformation? ast₁ ast₂ | yes p | no ¬p = yes (isCoC ast₁ ast₂ p)
 -- how can it be both? need to revisit this
 isTransformation? ast₁ ast₂ | yes p | yes p₁ = yes (isCoC ast₁ ast₂ p)
 
+
+-- TODO: try to use the Haskell Agda library to pretty print 
 showTranslation : {X : Set} {ast ast' : X ⊢} → Translation IsTransformation ast ast' → String
 showTranslation (Translation.istranslation _ _ x) = "istranslation TODO"
 showTranslation Translation.var = "var"
@@ -123,12 +127,18 @@ showTranslation Translation.error = "error"
 
 -- showDec {X} result = showTerm (quoteTerm result)
 
+macro
+  showProof : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → Reflection.Term → Reflection.TC ⊤
+  showProof proof hole = Reflection.bindTC (Reflection.quoteTC proof) (λ t → Reflection.unify (Reflection.lit (Reflection.string (showTerm t))) hole)
+
+-- TODO: produce actual proof term to run in Agda and check
 showTrace : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
 showTrace empty = "empty"
 showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
 
 -- TODO: finish + write "show" functions for translations
 serializeTraceProof : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
+-- serializeTraceProof p = showProof p
 serializeTraceProof (no ¬p) = "no" 
 serializeTraceProof (yes p) = "yes " ++ showTrace p
 
@@ -143,8 +153,9 @@ certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
   let inputTrace = aux rawTrace
    in inj₂ (serializeTraceProof (isRTrace? inputTrace))
 
-runCertifier : List Untyped → IO ⊤
-runCertifier rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
+-- TODO: print to moduleNameCert.agda
+runCertifier : String → List Untyped → IO ⊤
+runCertifier moduleName rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
 ... | inj₁ err = putStrLn "error" -- TODO: pretty print error
 ... | inj₂ result = putStrLn result
 {-# COMPILE GHC runCertifier as runCertifier #-}

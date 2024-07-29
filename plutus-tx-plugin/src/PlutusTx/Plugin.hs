@@ -86,6 +86,7 @@ import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
+import Data.Text qualified as Text
 import Data.Type.Bool qualified as PlutusTx.Bool
 import GHC.Num.Integer qualified
 import PlutusCore.Compiler.Types (UPLCSimplifierTrace (UPLCSimplifierTrace),
@@ -579,11 +580,11 @@ runCompiler moduleName opts expr = do
               Right res                            -> res
               Left (err :: UPLC.FreeVariableError) -> error $ show err
         rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
-        test = Agda.runCertifier rawAgdaTrace
+        test = Agda.runCertifier (Text.pack moduleName) rawAgdaTrace
     -- test out running the certifier
-    liftIO $ putStrLn "Starting certifier..."
+    liftIO $ putStrLn $ "Starting certifier for " <> moduleName
     liftIO test
-    liftIO $ putStrLn "Certifier finished."
+    liftIO $ putStrLn $ "Certifier finished for " <> moduleName
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat
             (UPLC.UnrestrictedProgram $ void dbP)
