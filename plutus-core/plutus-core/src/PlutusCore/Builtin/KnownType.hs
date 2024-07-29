@@ -16,7 +16,8 @@
 {-# LANGUAGE StrictData             #-}
 
 module PlutusCore.Builtin.KnownType
-    ( BuiltinError
+    ( GEqL (..)
+    , BuiltinError
     , throwBuiltinErrorWithCause
     , DefaultKnownBuiltinTypeIn
     , DefaultKnownBuiltinType
@@ -232,10 +233,13 @@ Lifting is allowed to the following classes of types:
    one, and for another example define an instance for 'Void' in tests
 -}
 
+class GEqL f a where
+    geqL :: f b -> Maybe (Esc a :~: b)
+
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @uni@\".
 type DefaultKnownBuiltinTypeIn uni val a =
-    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEq uni, uni `HasTermLevel` a)
+    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEqL uni a, uni `HasTermLevel` a)
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @UniOf term@\".
@@ -248,7 +252,11 @@ type DefaultKnownBuiltinType val a = DefaultKnownBuiltinTypeIn (UniOf val) val a
 --
 -- This is useful for providing 'MakeKnownIn' and 'ReadKnownIn' instances for a specific universe
 -- and a specific type.
-type KnownBuiltinTypeIn uni val a = (HasConstantIn uni val, AllBuiltinArgs uni (HasTermLevel uni) a)
+type KnownBuiltinTypeIn uni val a =
+    ( HasConstantIn uni val
+    , AllBuiltinArgs uni (HasTermLevel uni) a
+    , AllBuiltinArgs uni (GEqL uni) a
+    )
 
 typeMismatchError
     :: PrettyParens (SomeTypeIn uni)
@@ -278,14 +286,12 @@ type ReadKnownM = Either BuiltinError
 readKnownConstant :: forall val a. DefaultKnownBuiltinType val a => val -> ReadKnownM a
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances]
 readKnownConstant val = asConstant val >>= oneShot \case
-    Some (ValueOf uniAct x) -> do
-        let uniExp = knownUni @_ @(UniOf val) @a
-        -- 'geq' matches on its first argument first, so we make the type tag that will be known
-        -- statically (because this function will be inlined) go first in order for GHC to
-        -- optimize some of the matching away.
-        case uniExp `geq` uniAct of
+    Some (ValueOf uniAct x) ->
+        case geqL @(UniOf val) @a uniAct of
             Just Refl -> pure x
-            Nothing   -> throwing _UnliftingEvaluationError $ typeMismatchError uniExp uniAct
+            Nothing   -> do
+                let uniExp = knownUni @_ @(UniOf val) @a
+                throwing _UnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
