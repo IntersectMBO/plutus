@@ -153,17 +153,31 @@ the underlying types, so this can leverage the standard library decision
 procedures. 
 
 ```
+record HsEq (A : Set) : Set where
+  field
+    hsEq : A → A → Agda.Builtin.Bool.Bool
+
+open HsEq {{...}} public
+
 postulate
   magicNeg : ∀ {A : Set} {a b : A} → ¬ a ≡ b
-  hsEq : {A : Set} → (a b : A) → Agda.Builtin.Bool.Bool
-{-# COMPILE GHC hsEq = (==) #-}
 
 magicBoolDec : {A : Set} → {a b : A} → Agda.Builtin.Bool.Bool → Dec (a ≡ b)
 magicBoolDec true = yes primTrustMe
 magicBoolDec false = no magicNeg
 
-builtinEq : {A : Set} → Binary.Decidable {A = A} _≡_
+builtinEq : {A : Set} {{_ : HsEq A}} → Binary.Decidable {A = A} _≡_
 builtinEq x y = magicBoolDec (hsEq x y)
+
+instance
+  HsEqBytestring : HsEq U.ByteString
+  HsEqBytestring = record { hsEq = U.eqByteString }
+  HsEqBlsG1 : HsEq U.Bls12-381-G1-Element
+  HsEqBlsG1 = record { hsEq = U.eqBls12-381-G1-Element }
+  HsEqBlsG2 : HsEq U.Bls12-381-G2-Element
+  HsEqBlsG2 = record { hsEq = U.eqBls12-381-G2-Element }
+  HsEqBlsMlResult : HsEq U.Bls12-381-MlResult
+  HsEqBlsMlResult = record { hsEq = U.eqBls12-381-MlResult }
 
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = Data.Integer.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = builtinEq
