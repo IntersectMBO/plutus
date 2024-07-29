@@ -54,18 +54,14 @@ import GHC.Integer.Logarithms (integerLog2#)
 import GHC.IO.Unsafe (unsafeDupablePerformIO)
 
 {- Note [Input length limitation for IntegerToByteString].
-We make 'integerToByteString' and 'replicateByte' fail if they're called with arguments which would
+We make `integerToByteString` and `replicateByte` fail if they're called with arguments which would
 cause the length of the result to exceed about 8K bytes because the execution time becomes difficult
 to predict accurately beyond this point (benchmarks on a number of different machines show that the
 CPU time increases smoothly for inputs up to about 8K then increases sharply, becoming chaotic after
-about 14K). This restriction may be removed once a more efficient implementation becomes available,
-which may happen when we no longer have to support GHC 8.10.
--}
-
-{- NB: if we do relax the length restriction then we will need two variants of 'integerToByteString'
-and 'replicateByte' in Plutus Core so that we can continue to support the current behaviour for old
-scripts.
--}
+about 14K).  This restriction may be removed once a more efficient implementation becomes available,
+which may happen when we no longer have to support GHC 8.10. -}
+{- NB: if we do relax the length restriction then we will need two variants of integerToByteString in
+   Plutus Core so that we can continue to support the current behaviour for old scripts.-}
 maximumOutputLength :: Integer
 maximumOutputLength = 8192
 
@@ -600,18 +596,18 @@ writeBits bs ixs bits = case unsafeDupablePerformIO . try $ go of
 -- | Byte replication, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 -- We want to cautious about the allocation of huge amounts of memory so we
 -- impose the same length limit that's used in integerToByteString.
-replicateByte :: Int -> Word8 -> BuiltinResult ByteString
+replicateByte :: Integer -> Word8 -> BuiltinResult ByteString
 replicateByte len w8
   | len < 0 = do
       emit "replicateByte: negative length requested"
       evaluationFailure
-  | toInteger len > maximumOutputLength = do
+  | len > maximumOutputLength = do
       emit . pack $ "replicateByte: requested length is too long (maximum is "
                ++ show maximumOutputLength
                ++ " bytes)"
       emit $ "Length requested: " <> (pack . show $ len)
       evaluationFailure
-  | otherwise = pure . BS.replicate len $ w8
+  | otherwise = pure . BS.replicate (fromIntegral len) $ w8
 
 -- | Wrapper for calling 'shiftByteString' safely. Specifically, we avoid various edge cases:
 --

@@ -688,6 +688,8 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
     _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
+  useToOpaqueName <- GHC.getName <$> getThing 'Builtins.useToOpaque
+  useFromOpaqueName <- GHC.getName <$> getThing 'Builtins.useFromOpaque
   boolOperatorOr <- GHC.getName <$> getThing '(PlutusTx.Bool.||)
   boolOperatorAnd <- GHC.getName <$> getThing '(PlutusTx.Bool.&&)
   case e of
@@ -775,6 +777,12 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- <error func> <overall type> <message>
     GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
       PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
+    GHC.Var n
+      | GHC.getName n == useToOpaqueName ->
+          throwPlain $ UnsupportedError "It is no longer possible to use 'toBuiltin' with a script, use 'toOpaque' instead"
+    GHC.Var n
+      | GHC.getName n == useFromOpaqueName ->
+          throwPlain $ UnsupportedError "It is no longer possible to use 'fromBuiltin' with a script, use 'fromOpaque' instead"
     -- See Note [Uses of Eq]
     GHC.Var n
       | GHC.getName n == GHC.eqName ->

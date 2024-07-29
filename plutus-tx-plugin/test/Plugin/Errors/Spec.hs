@@ -50,6 +50,8 @@ errors = testNested "Errors" . pure $ testNestedGhc
   , goldenUPlc "rangeEnumFromThenTo" rangeEnumFromThenTo
   , goldenUPlc "rangeEnumFrom" rangeEnumFrom
   , goldenUPlc "rangeEnumFromThen" rangeEnumFromThen
+  , goldenUPlc "toBuiltinUsed" toBuiltinUsed
+  , goldenUPlc "fromBuiltinUsed" fromBuiltinUsed
   ]
 
 machInt :: CompiledCode Int
@@ -114,3 +116,9 @@ rangeEnumFrom = plc (Proxy @"rangeEnumFrom") [1..]
 
 rangeEnumFromThen :: CompiledCode [Integer]
 rangeEnumFromThen = plc (Proxy @"rangeEnumFromThen") [1,5..]
+
+toBuiltinUsed :: CompiledCode (Integer -> Integer)
+toBuiltinUsed = plc (Proxy @"toBuiltinUsed") Builtins.toBuiltin
+
+fromBuiltinUsed :: CompiledCode (Integer -> Integer)
+fromBuiltinUsed = plc (Proxy @"fromBuiltinUsed") Builtins.fromBuiltin

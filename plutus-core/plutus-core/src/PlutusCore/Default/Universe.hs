@@ -489,6 +489,26 @@ deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
 deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
     ReadKnownIn DefaultUni term (ListCostedByLength a)
 
+deriving via AsInteger Natural instance
+    KnownTypeAst tyname DefaultUni Natural
+deriving via AsInteger Natural instance HasConstantIn DefaultUni term =>
+    MakeKnownIn DefaultUni term Natural
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Natural where
+    readKnown term =
+        -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
+        -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
+        -- (go figure why).
+        inline readKnownConstant term >>= oneShot \(i :: Integer) ->
+            -- TODO: benchmark alternatives:signumInteger,integerIsNegative,integerToNaturalThrow
+            if i >= 0
+            -- TODO: benchmark alternatives: ghc8.10 naturalFromInteger, ghc>=9 integerToNatural
+            then pure $ fromInteger i
+            else throwing _OperationalUnliftingError . MkUnliftingError $ fold
+                 [ Text.pack $ show i
+                 , " is not within the bounds of Natural"
+                 ]
+    {-# INLINE readKnown #-}
+
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
 universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'

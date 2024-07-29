@@ -1872,12 +1872,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar IntegerToByteString =
         let integerToByteStringDenotation :: Bool -> NumBytesCostedAsNumWords -> Integer -> BuiltinResult BS.ByteString
             {- The second argument is wrapped in a NumBytesCostedAsNumWords to allow us to
-               interpret it as a size during costing.  Elsewhere we need
-               `NumBytesCostedAsNumWords` to contain an `Int` so we re-use that
-               here at the cost of not being able to convert an integer to a
-               bytestring of length greater than 2^63-1, which we're never going
-               to want to do anyway. -}
-            integerToByteStringDenotation b (NumBytesCostedAsNumWords w) = Bitwise.integerToByteStringWrapper b $ toInteger w
+               interpret it as a size during costing. -}
+            integerToByteStringDenotation b (NumBytesCostedAsNumWords w) = Bitwise.integerToByteStringWrapper b w
             {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
             integerToByteStringDenotation

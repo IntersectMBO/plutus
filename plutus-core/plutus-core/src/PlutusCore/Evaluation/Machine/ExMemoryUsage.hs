@@ -179,10 +179,14 @@ instance ExMemoryUsage () where
    denotation of a builtin then it *MUST* also be used to wrap the same argument
    in the relevant budgeting benchmark.
 -}
-newtype NumBytesCostedAsNumWords = NumBytesCostedAsNumWords { unNumBytesCostedAsNumWords :: Int }
+newtype NumBytesCostedAsNumWords = NumBytesCostedAsNumWords { unNumBytesCostedAsNumWords :: Integer }
 instance ExMemoryUsage NumBytesCostedAsNumWords where
     memoryUsage (NumBytesCostedAsNumWords n) = singletonRose . fromIntegral $ ((n-1) `div` 8) + 1
     {-# INLINE memoryUsage #-}
+    -- Note that this uses `fromIntegral`, which will narrow large values to
+    -- maxBound::SatInt = 2^63-1.  This shouldn't be a problem for costing because no
+    -- realistic input should be that large; however if you're going to use this then be
+    -- sure to convince yourself that it's safe.
 
 {- | A wrapper for `Integer`s whose "memory usage" for costing purposes is the
    absolute value of the `Integer`.  This is used for costing built-in functions
@@ -195,6 +199,10 @@ newtype IntegerCostedLiterally = IntegerCostedLiterally { unIntegerCostedLiteral
 instance ExMemoryUsage IntegerCostedLiterally where
     memoryUsage (IntegerCostedLiterally n) = singletonRose . fromIntegral $ abs n
     {-# INLINE memoryUsage #-}
+    -- Note that this uses `fromIntegral`, which will narrow large values to
+    -- maxBound::SatInt = 2^63-1.  This shouldn't be a problem for costing because no
+    -- realistic input should be that large; however if you're going to use this then be
+    -- sure to convince yourself that it's safe.
 
 {- | A wrappper for lists whose "memory usage" for costing purposes is just the
    length of the list, ignoring the sizes of the elements. If this is used to
@@ -204,6 +212,10 @@ newtype ListCostedByLength a = ListCostedByLength { unListCostedByLength :: [a] 
 instance ExMemoryUsage (ListCostedByLength a) where
     memoryUsage (ListCostedByLength l) = singletonRose . fromIntegral $ length l
     {-# INLINE memoryUsage #-}
+    -- Note that this uses `fromIntegral`, which will narrow large values to
+    -- maxBound::SatInt = 2^63-1.  This shouldn't be a problem for costing because no
+    -- realistic input should be that large; however if you're going to use this then be
+    -- sure to convince yourself that it's safe.
 
 -- | Calculate a 'CostingInteger' for the given 'Integer'.
 memoryUsageInteger :: Integer -> CostingInteger

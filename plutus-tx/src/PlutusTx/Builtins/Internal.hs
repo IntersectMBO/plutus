@@ -403,6 +403,14 @@ chooseList :: BuiltinList a -> b -> b -> b
 chooseList (BuiltinList [])    b1 _ = b1
 chooseList (BuiltinList (_:_)) _ b2 = b2
 
+{-# NOINLINE mkNilInteger #-}
+mkNilInteger :: BuiltinList BuiltinInteger
+mkNilInteger = BuiltinList []
+
+{-# NOINLINE mkNilBool #-}
+mkNilBool :: BuiltinList BuiltinBool
+mkNilBool = BuiltinList []
+
 {-# NOINLINE mkNilData #-}
 mkNilData :: BuiltinUnit -> BuiltinList BuiltinData
 mkNilData _ = BuiltinList []
@@ -809,7 +817,7 @@ replicateByte ::
   BuiltinInteger ->
   BuiltinByteString
 replicateByte n w8 =
-  case Bitwise.replicateByte (fromIntegral n) (fromIntegral w8) of
+  case Bitwise.replicateByte n (fromIntegral w8) of
     BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
       Haskell.error "byteStringReplicate errored."
     BuiltinSuccess bs -> BuiltinByteString bs

@@ -114,8 +114,8 @@ evaluationContextCacheIsComplete =
 
 failIfThunk :: Show a => Maybe a -> IO ()
 failIfThunk mbThunkInfo =
-    whenJust mbThunkInfo $ \thunkInfo ->
-        assertFailure $ "Unexpected thunk: " <> show thunkInfo
+    whenJust mbThunkInfo $ \thunk ->
+        assertFailure $ "Unexpected thunk: " <> show thunk
 
 -- | Ensure that no 'EvaluationContext' has thunks in it for all language versions.
 evaluationContextNoThunks :: TestTree
