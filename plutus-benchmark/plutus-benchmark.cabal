@@ -602,10 +602,12 @@ library bitwise-internal
   exposed-modules: 
     PlutusBenchmark.NQueens
     PlutusBenchmark.Ed25519
+    PlutusBenchmark.NQueens.Compiled
     PlutusBenchmark.SHA512
   build-depends:
     , base
-    , plutus-tx  ^>=1.31
+    , plutus-tx         ^>=1.31
+    , plutus-tx-plugin
 
 test-suite bitwise-test
   import:         lang, ghc-version-support
@@ -613,8 +615,12 @@ test-suite bitwise-test
   main-is:        Main.hs
   hs-source-dirs: bitwise/test
   build-depends:
-    , base              >=4.9 && <5
+    , base                                            >=4.9 && <5
     , bitwise-internal
+    , cryptohash-sha512
+    , ed25519
+    , plutus-core:{plutus-core, plutus-core-testlib}
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}
     , tasty
     , tasty-hunit
 

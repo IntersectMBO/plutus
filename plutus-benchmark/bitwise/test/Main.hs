@@ -7,16 +7,29 @@ import Crypto.Hash.SHA512 qualified as SHA512Ref
 import Crypto.Sign.Ed25519 (PublicKey (PublicKey), Signature (Signature))
 import Crypto.Sign.Ed25519 qualified as Ed25519Ref
 import PlutusBenchmark.Ed25519 (checkValid)
+import PlutusBenchmark.NQueens (nqueens)
+import PlutusBenchmark.NQueens.Compiled (dimAsData, nqueensCompiled)
 import PlutusBenchmark.SHA512 (sha512)
 import PlutusTx.Builtins (fromBuiltin, toBuiltin)
-import Test.Tasty (defaultMain, testGroup)
+import PlutusTx.Code (unsafeApplyCode)
+import PlutusTx.Test (goldenBudget, goldenEvalCekCatch, goldenPirReadable, goldenSize)
+import Test.Tasty (TestTree, defaultMain, testGroup)
+import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
 import Test.Tasty.HUnit (assertEqual, testCase)
 
 main :: IO ()
-main = defaultMain . testGroup "nqueens" $ [
-  testCase "solves for 8 queens" $ assertEqual ""
-    [(0,0), (1,4), (2,7), (3,5), (4,2), (5,6), (6,1), (7,3)]
-    (nqueens 8),
+main = defaultMain . testGroup "bitwise" $ [
+  testGroup "N-queens" [
+    testCase "solves for 8 queens" $ assertEqual ""
+      [(0,0), (1,4), (2,7), (3,5), (4,2), (5,6), (6,1), (7,3)]
+      (nqueens 8),
+    runTestGhc [
+      goldenPirReadable "8 queens" $ nqueensCompiled `unsafeApplyCode` dimAsData,
+      goldenSize "8 queens" $ nqueensCompiled `unsafeApplyCode` dimAsData,
+      goldenBudget "8 queens" $ nqueensCompiled `unsafeApplyCode` dimAsData,
+      goldenEvalCekCatch "8 queens" [nqueensCompiled `unsafeApplyCode` dimAsData]
+      ]
+    ],
   testGroup "Ed25519" [
     testCase "SHA512 works" sha512Case,
     testCase "Ed25519 works" ed25519Case
@@ -40,3 +53,8 @@ ed25519Case = do
   let expected = Ed25519Ref.dverify (PublicKey pk) msg (Signature signature)
   let actual = checkValid (toBuiltin signature) (toBuiltin msg) (toBuiltin pk)
   assertEqual "" expected actual
+
+-- Helpers
+
+runTestGhc :: [TestNested] -> TestTree
+runTestGhc = runTestNested ["bitwise", "test"] . pure . testNestedGhc
