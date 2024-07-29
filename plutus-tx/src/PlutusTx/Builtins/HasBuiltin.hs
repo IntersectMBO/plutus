@@ -19,6 +19,20 @@ import Data.ByteString (ByteString)
 import Data.Kind qualified as GHC
 import Data.Text (Text)
 
+{- Note [useToOpaque and useFromOpaque]
+It used to be possible to use 'toBuiltin'/'fromBuiltin' within a smart contract, but this is no
+longer the case, hence we throw a compilation error suggesting to use 'toOpaque'/'fromOpaque'
+instead.
+-}
+
+useToOpaque :: a -> a
+useToOpaque x = x
+{-# OPAQUE useToOpaque #-}
+
+useFromOpaque :: a -> a
+useFromOpaque x = x
+{-# OPAQUE useFromOpaque #-}
+
 -- Also see Note [Built-in types and their Haskell counterparts].
 -- | A class for converting values of Haskell-defined built-in types to their Plutus Tx
 -- counterparts.
@@ -37,42 +51,42 @@ class HasToBuiltin (FromBuiltin arep) => HasFromBuiltin arep where
 
 instance HasToBuiltin Integer where
     type ToBuiltin Integer = BuiltinInteger
-    toBuiltin = id
+    toBuiltin = useToOpaque id
 instance HasFromBuiltin BuiltinInteger where
     type FromBuiltin BuiltinInteger = Integer
-    fromBuiltin = id
+    fromBuiltin = useFromOpaque id
 
 instance HasToBuiltin ByteString where
     type ToBuiltin ByteString = BuiltinByteString
-    toBuiltin = BuiltinByteString
+    toBuiltin = useToOpaque BuiltinByteString
 instance HasFromBuiltin BuiltinByteString where
     type FromBuiltin BuiltinByteString = ByteString
-    fromBuiltin (BuiltinByteString b) = b
+    fromBuiltin = useFromOpaque $ \(BuiltinByteString b) -> b
 
 instance HasToBuiltin Text where
     type ToBuiltin Text = BuiltinString
-    toBuiltin = BuiltinString
+    toBuiltin = useToOpaque BuiltinString
 instance HasFromBuiltin BuiltinString where
     type FromBuiltin BuiltinString = Text
     fromBuiltin (BuiltinString t) = t
 
 instance HasToBuiltin () where
     type ToBuiltin () = BuiltinUnit
-    toBuiltin = BuiltinUnit
+    toBuiltin = useToOpaque BuiltinUnit
 instance HasFromBuiltin BuiltinUnit where
     type FromBuiltin BuiltinUnit = ()
     fromBuiltin (BuiltinUnit u) = u
 
 instance HasToBuiltin Bool where
     type ToBuiltin Bool = BuiltinBool
-    toBuiltin = BuiltinBool
+    toBuiltin = useToOpaque BuiltinBool
 instance HasFromBuiltin BuiltinBool where
     type FromBuiltin BuiltinBool = Bool
     fromBuiltin (BuiltinBool b) = b
 
 instance HasToBuiltin a => HasToBuiltin [a] where
     type ToBuiltin [a] = BuiltinList (ToBuiltin a)
-    toBuiltin = BuiltinList . map toBuiltin
+    toBuiltin = useToOpaque BuiltinList . map toBuiltin
 instance HasFromBuiltin a => HasFromBuiltin (BuiltinList a) where
     type FromBuiltin (BuiltinList a) = [FromBuiltin a]
     fromBuiltin (BuiltinList xs) = map fromBuiltin xs
@@ -86,28 +100,28 @@ instance (HasFromBuiltin a, HasFromBuiltin b) => HasFromBuiltin (BuiltinPair a b
 
 instance HasToBuiltin Data where
     type ToBuiltin Data = BuiltinData
-    toBuiltin = BuiltinData
+    toBuiltin = useToOpaque BuiltinData
 instance HasFromBuiltin BuiltinData where
     type FromBuiltin BuiltinData = Data
     fromBuiltin (BuiltinData t) = t
 
 instance HasToBuiltin BLS12_381.G1.Element where
     type ToBuiltin BLS12_381.G1.Element = BuiltinBLS12_381_G1_Element
-    toBuiltin = BuiltinBLS12_381_G1_Element
+    toBuiltin = useToOpaque BuiltinBLS12_381_G1_Element
 instance HasFromBuiltin BuiltinBLS12_381_G1_Element where
     type FromBuiltin BuiltinBLS12_381_G1_Element = BLS12_381.G1.Element
     fromBuiltin (BuiltinBLS12_381_G1_Element a) = a
 
 instance HasToBuiltin BLS12_381.G2.Element where
     type ToBuiltin BLS12_381.G2.Element = BuiltinBLS12_381_G2_Element
-    toBuiltin = BuiltinBLS12_381_G2_Element
+    toBuiltin = useToOpaque BuiltinBLS12_381_G2_Element
 instance HasFromBuiltin BuiltinBLS12_381_G2_Element where
     type FromBuiltin BuiltinBLS12_381_G2_Element = BLS12_381.G2.Element
     fromBuiltin (BuiltinBLS12_381_G2_Element a) = a
 
 instance HasToBuiltin BLS12_381.Pairing.MlResult where
     type ToBuiltin BLS12_381.Pairing.MlResult = BuiltinBLS12_381_MlResult
-    toBuiltin = BuiltinBLS12_381_MlResult
+    toBuiltin = useToOpaque BuiltinBLS12_381_MlResult
 instance HasFromBuiltin BuiltinBLS12_381_MlResult where
     type FromBuiltin BuiltinBLS12_381_MlResult = BLS12_381.Pairing.MlResult
     fromBuiltin (BuiltinBLS12_381_MlResult a) = a

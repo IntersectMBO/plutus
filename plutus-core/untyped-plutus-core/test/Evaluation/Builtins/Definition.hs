@@ -968,8 +968,7 @@ test_Conversion =
             ]
         ]
 
--- Tests of the laws from [this
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md)
+-- Tests of the laws from [CIP-0123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 test_Bitwise :: TestTree
 test_Bitwise =
     testGroup "Bitwise"
@@ -1016,7 +1015,7 @@ test_Bitwise =
             ]
         ]
 
--- Tests for the logical operations, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md)
+-- Tests for the logical operations, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 test_Logical :: TestTree
 test_Logical =
   testGroup "Logical"

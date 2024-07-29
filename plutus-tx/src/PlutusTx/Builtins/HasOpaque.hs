@@ -204,6 +204,18 @@ instance HasFromOpaque BuiltinBool Bool where
     fromOpaque b = ifThenElse b True False
     {-# INLINABLE fromOpaque #-}
 
+instance HasToOpaque [BuiltinInteger] (BuiltinList BuiltinInteger) where
+    toOpaque = goList where
+        goList :: [BuiltinInteger] -> BuiltinList BuiltinInteger
+        goList []     = mkNilInteger
+        goList (d:ds) = mkCons (toOpaque d) (goList ds)
+    {-# INLINABLE toOpaque #-}
+instance HasToOpaque [Bool] (BuiltinList BuiltinBool) where
+    toOpaque = goList where
+        goList :: [Bool] -> BuiltinList BuiltinBool
+        goList []     = mkNilBool
+        goList (d:ds) = mkCons (toOpaque d) (goList ds)
+    {-# INLINABLE toOpaque #-}
 instance HasToOpaque [BuiltinData] (BuiltinList BuiltinData) where
     toOpaque = goList where
         goList :: [BuiltinData] -> BuiltinList BuiltinData

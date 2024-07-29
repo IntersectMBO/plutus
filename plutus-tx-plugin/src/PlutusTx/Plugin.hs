@@ -21,6 +21,7 @@ module PlutusTx.Plugin (plugin, plc) where
 import Data.Bifunctor
 import PlutusPrelude
 import PlutusTx.Bool ((&&), (||))
+import PlutusTx.Builtins.HasBuiltin (useFromOpaque, useToOpaque)
 import PlutusTx.Code
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -405,6 +406,8 @@ compileMarkedExpr locStr codeTy origE = do
           , 'GHC.Num.Integer.integerNegate
           , '(PlutusTx.Bool.&&)
           , '(PlutusTx.Bool.||)
+          , 'useToOpaque
+          , 'useFromOpaque
           ]
     modBreaks <- asks pcModuleModBreaks
     let coverage = CoverageOpts . Set.fromList $

@@ -106,11 +106,14 @@ module PlutusTx.Builtins (
                          -- * Conversions
                          , fromOpaque
                          , toOpaque
+                         , useToOpaque
+                         , useFromOpaque
                          , fromBuiltin
                          , toBuiltin
+                         -- * Logical
+                         , ByteOrder (..)
                          , integerToByteString
                          , byteStringToInteger
-                         -- * Logical
                          , andByteString
                          , orByteString
                          , xorByteString
@@ -350,7 +353,7 @@ remainderInteger x y = fromOpaque (BI.remainderInteger (toOpaque x) (toOpaque y)
 {-# INLINABLE greaterThanInteger #-}
 -- | Check whether one 'Integer' is greater than another.
 greaterThanInteger :: Integer -> Integer -> Bool
-greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqualsInteger x y ) False True
+greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqualsInteger x y) False True
 
 {-# INLINABLE greaterThanEqualsInteger #-}
 -- | Check whether one 'Integer' is greater than or equal to another.
@@ -636,6 +639,7 @@ bls12_381_finalVerify a b = fromOpaque (BI.bls12_381_finalVerify a b)
 byteOrderToBool :: ByteOrder -> Bool
 byteOrderToBool BigEndian    = True
 byteOrderToBool LittleEndian = False
+{-# INLINABLE byteOrderToBool #-}
 
 -- | Convert a 'BuiltinInteger' into a 'BuiltinByteString', as described in
 -- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
@@ -667,22 +671,26 @@ byteStringToInteger endianness =
 
 -- Bitwise operations
 
--- | Shift a 'BuiltinByteString', as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Shift a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 {-# INLINEABLE shiftByteString #-}
 shiftByteString :: BuiltinByteString -> Integer -> BuiltinByteString
 shiftByteString = BI.shiftByteString
 
--- | Rotate a 'BuiltinByteString', as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Rotate a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 {-# INLINEABLE rotateByteString #-}
 rotateByteString :: BuiltinByteString -> Integer -> BuiltinByteString
 rotateByteString = BI.rotateByteString
 
--- | Count the set bits in a 'BuiltinByteString', as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Count the set bits in a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 {-# INLINEABLE countSetBits #-}
 countSetBits :: BuiltinByteString -> Integer
 countSetBits = BI.countSetBits
 
--- | Find the lowest index of a set bit in a 'BuiltinByteString', as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Find the lowest index of a set bit in a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 --
 -- If given a 'BuiltinByteString' which consists only of zero bytes (including the empty
 -- 'BuiltinByteString', this returns @-1@.
@@ -819,7 +827,7 @@ writeBits ::
   [Integer] ->
   [Bool] ->
   BuiltinByteString
-writeBits bs ixes bits = BI.writeBits bs (toBuiltin ixes) (toBuiltin bits)
+writeBits bs ixes bits = BI.writeBits bs (toOpaque ixes) (toOpaque bits)
 
 -- | Given a length (first argument) and a byte (second argument), produce a 'BuiltinByteString' of
 -- that length, with that byte in every position. Will error if given a negative length, or a second

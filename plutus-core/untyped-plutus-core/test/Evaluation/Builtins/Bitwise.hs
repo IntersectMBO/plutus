@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
--- | Tests for [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123)
+-- | Tests for [CIP-0123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 module Evaluation.Builtins.Bitwise (
   shiftHomomorphism,
   rotateHomomorphism,

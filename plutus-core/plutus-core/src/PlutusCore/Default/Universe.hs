@@ -48,7 +48,9 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (LiteralByteSize (..))
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
+                                                    ListCostedByLength (..),
+                                                    NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra
 
 import Data.ByteString (ByteString)
@@ -501,11 +503,45 @@ deriving via AsInteger Word64 instance KnownBuiltinTypeIn DefaultUni term Intege
     ReadKnownIn DefaultUni term Word64
 
 deriving newtype instance
-    KnownTypeAst tyname DefaultUni LiteralByteSize
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term LiteralByteSize
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    ReadKnownIn DefaultUni term LiteralByteSize
+    KnownTypeAst tyname DefaultUni NumBytesCostedAsNumWords
+deriving newtype instance HasConstantIn DefaultUni term =>
+    MakeKnownIn DefaultUni term NumBytesCostedAsNumWords
+deriving newtype instance HasConstantIn DefaultUni term =>
+    ReadKnownIn DefaultUni term NumBytesCostedAsNumWords
+
+deriving newtype instance
+    KnownTypeAst tyname DefaultUni IntegerCostedLiterally
+deriving newtype instance HasConstantIn DefaultUni term =>
+    MakeKnownIn DefaultUni term IntegerCostedLiterally
+deriving newtype instance HasConstantIn DefaultUni term =>
+    ReadKnownIn DefaultUni term IntegerCostedLiterally
+
+deriving newtype instance KnownTypeAst tyname DefaultUni a =>
+    KnownTypeAst tyname DefaultUni (ListCostedByLength a)
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
+    MakeKnownIn DefaultUni term (ListCostedByLength a)
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
+    ReadKnownIn DefaultUni term (ListCostedByLength a)
+
+deriving via AsInteger Natural instance
+    KnownTypeAst tyname DefaultUni Natural
+deriving via AsInteger Natural instance HasConstantIn DefaultUni term =>
+    MakeKnownIn DefaultUni term Natural
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Natural where
+    readKnown term =
+        -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
+        -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
+        -- (go figure why).
+        inline readKnownConstant term >>= oneShot \(i :: Integer) ->
+            -- TODO: benchmark alternatives:signumInteger,integerIsNegative,integerToNaturalThrow
+            if i >= 0
+            -- TODO: benchmark alternatives: ghc8.10 naturalFromInteger, ghc>=9 integerToNatural
+            then pure $ fromInteger i
+            else throwing _OperationalUnliftingError . MkUnliftingError $ fold
+                 [ Text.pack $ show i
+                 , " is not within the bounds of Natural"
+                 ]
+    {-# INLINE readKnown #-}
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
