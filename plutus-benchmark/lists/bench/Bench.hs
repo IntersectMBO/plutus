@@ -44,11 +44,11 @@ benchmarks ctx =
       mkBMsForSort name f =
         bgroup name $ sizesForSort <&> \n ->
           bench (show n) $ benchTermCek ctx (f n)
-      sizesForSort = [10, 20..500]
+      sizesForSort = [50, 100..300]
       mkBMsForSum name f =
         bgroup name $ sizesForSum <&> \n ->
           bench (show n) $ benchTermCek ctx (f [1..n])
-      sizesForSum = [10, 50, 100, 500, 1000, 5000, 10000]
+      sizesForSum = [100, 500, 1000, 2500, 5000]
 
 main :: IO ()
 main = do
