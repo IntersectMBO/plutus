@@ -103,5 +103,5 @@ benchWith benchmarker = do
   let runners = ( benchClausifyWith benchmarker, benchKnightsWith benchmarker
                 , benchPrimeWith benchmarker, benchQueensWith benchmarker)
   -- Run each benchmark for at least one minute.  Change this with -L or --timeout.
-  config <- getConfig 60.0
+  config <- getConfig 30.0
   defaultMainWith config $ mkBenchMarks runners
