@@ -7,6 +7,7 @@ import Crypto.Hash.SHA512 qualified as SHA512Ref
 import Crypto.Sign.Ed25519 (PublicKey (PublicKey), Signature (Signature))
 import Crypto.Sign.Ed25519 qualified as Ed25519Ref
 import PlutusBenchmark.Ed25519 (checkValid)
+import PlutusBenchmark.Ed25519.Compiled (checkValidCompiled, msgAsData, pkAsData, signatureAsData)
 import PlutusBenchmark.NQueens (nqueens)
 import PlutusBenchmark.NQueens.Compiled (dimAsData, nqueensCompiled)
 import PlutusBenchmark.SHA512 (sha512)
@@ -32,7 +33,18 @@ main = defaultMain . testGroup "bitwise" $ [
     ],
   testGroup "Ed25519" [
     testCase "SHA512 works" sha512Case,
-    testCase "Ed25519 works" ed25519Case
+    testCase "Ed25519 works" ed25519Case,
+    runTestGhc [
+      goldenPirReadable "Ed25519" $
+        checkValidCompiled `unsafeApplyCode` signatureAsData `unsafeApplyCode` msgAsData `unsafeApplyCode` pkAsData,
+      goldenSize "Ed25519" $
+        checkValidCompiled `unsafeApplyCode` signatureAsData `unsafeApplyCode` msgAsData `unsafeApplyCode` pkAsData,
+      goldenBudget "Ed25519" $
+        checkValidCompiled `unsafeApplyCode` signatureAsData `unsafeApplyCode` msgAsData `unsafeApplyCode` pkAsData,
+      goldenEvalCekCatch "Ed25519" [
+        checkValidCompiled `unsafeApplyCode` signatureAsData `unsafeApplyCode` msgAsData `unsafeApplyCode` pkAsData
+        ]
+      ]
     ]
   ]
 
