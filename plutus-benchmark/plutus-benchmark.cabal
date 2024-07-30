@@ -599,12 +599,14 @@ benchmark marlowe-agda-cek
 library bitwise-internal
   import:          lang, ghc-version-support
   hs-source-dirs:  bitwise/src
+  buildable:       False
   exposed-modules:
     PlutusBenchmark.Ed25519
     PlutusBenchmark.Ed25519.Compiled
     PlutusBenchmark.NQueens
     PlutusBenchmark.NQueens.Compiled
     PlutusBenchmark.SHA512
+
   build-depends:
     , base
     , plutus-tx         ^>=1.31
@@ -614,6 +616,7 @@ test-suite bitwise-test
   import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
+  buildable:      False
   hs-source-dirs: bitwise/test
   build-depends:
     , base                                      >=4.9 && <5
@@ -629,6 +632,7 @@ benchmark bitwise-bench
   import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
+  buildable:      False
   hs-source-dirs: bitwise/bench
   build-depends:
     , base                     >=4.9   && <5
