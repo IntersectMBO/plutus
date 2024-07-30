@@ -171,46 +171,61 @@ instance GEqL DefaultUni BLS12_381.Pairing.MlResult where
     geqL _                            = Nothing
 
 instance GEq DefaultUni where
-    geq = go where
-        go :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
-        go DefaultUniInteger a2 = do
+    -- We define 'geq' manually instead of using 'deriveGEq', because the latter creates a single
+    -- recursive definition and we want two instead. The reason why we want two is because this
+    -- allows GHC to inline the initial step that appears non-recursive to GHC, because recursion
+    -- is hidden in the other function that is marked as @NOINLINE@ and is chosen by GHC as a
+    -- loop-breaker, see https://wiki.haskell.org/Inlining_and_Specialisation#What_is_a_loop-breaker
+    -- (we're not really sure if this is a reliable solution, but if it stops working, we won't miss
+    -- very much and we've failed to settle on any other approach).
+    --
+    -- This trick gives us a 1% speedup across validation benchmarks (some are up to 4% faster) and
+    -- a more sensible generated Core where things like @geq DefaulUniBool@ are reduced away.
+    geq = geqStep where
+        geqStep :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
+        geqStep DefaultUniInteger a2 = do
             DefaultUniInteger <- Just a2
             Just Refl
-        go DefaultUniByteString a2 = do
+        geqStep DefaultUniByteString a2 = do
             DefaultUniByteString <- Just a2
             Just Refl
-        go DefaultUniString a2 = do
+        geqStep DefaultUniString a2 = do
             DefaultUniString <- Just a2
             Just Refl
-        go DefaultUniUnit a2 = do
+        geqStep DefaultUniUnit a2 = do
             DefaultUniUnit <- Just a2
             Just Refl
-        go DefaultUniBool a2 = do
+        geqStep DefaultUniBool a2 = do
             DefaultUniBool <- Just a2
             Just Refl
-        go DefaultUniProtoList a2 = do
+        geqStep DefaultUniProtoList a2 = do
             DefaultUniProtoList <- Just a2
             Just Refl
-        go DefaultUniProtoPair a2 = do
+        geqStep DefaultUniProtoPair a2 = do
             DefaultUniProtoPair <- Just a2
             Just Refl
-        go (DefaultUniApply f1 x1) a2 = do
+        geqStep (DefaultUniApply f1 x1) a2 = do
             DefaultUniApply f2 x2 <- Just a2
-            Refl <- go f1 f2
-            Refl <- go x1 x2
+            Refl <- geqRec f1 f2
+            Refl <- geqRec x1 x2
             Just Refl
-        go DefaultUniData a2 = do
+        geqStep DefaultUniData a2 = do
             DefaultUniData <- Just a2
             Just Refl
-        go DefaultUniBLS12_381_G1_Element a2 = do
+        geqStep DefaultUniBLS12_381_G1_Element a2 = do
             DefaultUniBLS12_381_G1_Element <- Just a2
             Just Refl
-        go DefaultUniBLS12_381_G2_Element a2 = do
+        geqStep DefaultUniBLS12_381_G2_Element a2 = do
             DefaultUniBLS12_381_G2_Element <- Just a2
             Just Refl
-        go DefaultUniBLS12_381_MlResult a2 = do
+        geqStep DefaultUniBLS12_381_MlResult a2 = do
             DefaultUniBLS12_381_MlResult <- Just a2
             Just Refl
+        {-# INLINE geqStep #-}
+
+        geqRec :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
+        geqRec = geqStep
+        {-# NOINLINE geqRec #-}
 
 -- | For pleasing the coverage checker.
 noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any

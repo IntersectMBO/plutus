@@ -1,19 +1,20 @@
-{-# LANGUAGE BlockArguments         #-}
-{-# LANGUAGE ConstraintKinds        #-}
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DefaultSignatures      #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TypeApplications       #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeOperators          #-}
-{-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE BlockArguments           #-}
+{-# LANGUAGE ConstraintKinds          #-}
+{-# LANGUAGE DataKinds                #-}
+{-# LANGUAGE DefaultSignatures        #-}
+{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE FunctionalDependencies   #-}
+{-# LANGUAGE LambdaCase               #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE OverloadedStrings        #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TemplateHaskell          #-}
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE UndecidableInstances     #-}
 
-{-# LANGUAGE StrictData             #-}
+{-# LANGUAGE StrictData               #-}
 
 module PlutusCore.Builtin.KnownType
     ( GEqL (..)
@@ -44,6 +45,7 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Data.Either.Extras
+import Data.Kind qualified as GHC
 import Data.String
 import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
@@ -233,6 +235,7 @@ Lifting is allowed to the following classes of types:
    one, and for another example define an instance for 'Void' in tests
 -}
 
+type GEqL :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
 class GEqL f a where
     geqL :: f b -> Maybe (Esc a :~: b)
 
