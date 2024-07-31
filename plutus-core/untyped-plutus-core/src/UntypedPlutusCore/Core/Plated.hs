@@ -2,10 +2,12 @@
 {-# LANGUAGE RankNTypes #-}
 
 module UntypedPlutusCore.Core.Plated
-    ( termBinds
+    ( termConstants
+    , termBinds
     , termVars
     , termUniques
     , termSubterms
+    , termConstantsDeep
     , termSubtermsDeep
     , termUniquesDeep
     ) where
@@ -15,6 +17,21 @@ import PlutusCore.Name.Unique
 import UntypedPlutusCore.Core.Type
 
 import Control.Lens
+import Universe
+
+-- | Get all the direct constants of the given 'Term' from 'Constant's.
+termConstants :: Traversal' (Term name uni fun ann) (Some (ValueOf uni))
+termConstants f term0 = case term0 of
+    Constant ann val -> Constant ann <$> f val
+    Var{}            -> pure term0
+    LamAbs{}         -> pure term0
+    Error{}          -> pure term0
+    Apply{}          -> pure term0
+    Force{}          -> pure term0
+    Delay{}          -> pure term0
+    Builtin{}        -> pure term0
+    Constr{}         -> pure term0
+    Case{}           -> pure term0
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'LamAbs'es.
 termBinds :: Traversal' (Term name uni fun ann) name
@@ -49,6 +66,10 @@ termSubterms f = \case
     v@Var {}          -> pure v
     c@Constant {}     -> pure c
     b@Builtin {}      -> pure b
+
+-- | Get all the transitive child 'Constant's of the given 'Term'.
+termConstantsDeep :: Fold (Term name uni fun ann) (Some (ValueOf uni))
+termConstantsDeep = termSubtermsDeep . termConstants
 
 -- | Get all the transitive child 'Term's of the given 'Term'.
 termSubtermsDeep :: Fold (Term name uni fun ann) (Term name uni fun ann)

@@ -105,6 +105,7 @@ library
     PlutusCore.Compiler.Opts
     PlutusCore.Compiler.Types
     PlutusCore.Core
+    PlutusCore.Core.Plated
     PlutusCore.Crypto.BLS12_381.Error
     PlutusCore.Crypto.BLS12_381.G1
     PlutusCore.Crypto.BLS12_381.G2
@@ -192,6 +193,7 @@ library
     UntypedPlutusCore.Check.Scope
     UntypedPlutusCore.Check.Uniques
     UntypedPlutusCore.Core
+    UntypedPlutusCore.Core.Plated
     UntypedPlutusCore.Core.Type
     UntypedPlutusCore.Core.Zip
     UntypedPlutusCore.DeBruijn
@@ -229,7 +231,6 @@ library
     PlutusCore.Core.Instance.Pretty.Plc
     PlutusCore.Core.Instance.Pretty.Readable
     PlutusCore.Core.Instance.Scoping
-    PlutusCore.Core.Plated
     PlutusCore.Core.Type
     PlutusCore.Crypto.Utils
     PlutusCore.Default.Universe
@@ -256,7 +257,6 @@ library
     UntypedPlutusCore.Core.Instance.Pretty.Default
     UntypedPlutusCore.Core.Instance.Pretty.Plc
     UntypedPlutusCore.Core.Instance.Pretty.Readable
-    UntypedPlutusCore.Core.Plated
     UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
     UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     UntypedPlutusCore.Evaluation.Machine.CommonAPI
@@ -817,6 +817,7 @@ library plutus-core-testlib
     PlutusIR.Pass.Test
     PlutusIR.Test
     Test.Tasty.Extras
+    UntypedPlutusCore.Generators.Hedgehog
     UntypedPlutusCore.Test.DeBruijn.Bad
     UntypedPlutusCore.Test.DeBruijn.Good
 
@@ -831,6 +832,7 @@ library plutus-core-testlib
     , free
     , hashable
     , hedgehog                              >=1.0
+    , hedgehog-quickcheck
     , lazy-search
     , lens
     , mmorph

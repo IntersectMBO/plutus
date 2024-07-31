@@ -19,8 +19,10 @@ import PlutusCore.Generators.Hedgehog.AST qualified as AST
 import PlutusCore.Parser (defaultUni, parseGen)
 import PlutusCore.Pretty (displayPlc)
 import PlutusCore.Quote (QuoteT, runQuoteT)
+import PlutusCore.Test (isSerialisable)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Core.Type (Program (Program), Term (..), progTerm, termAnn)
+import UntypedPlutusCore.Generators.Hedgehog (discardIfAnyConstant)
 import UntypedPlutusCore.Parser (parseProgram, parseTerm)
 
 import Control.Lens (view)
@@ -73,12 +75,14 @@ genProgram = fmap eraseProgram AST.genProgram
 
 propFlat :: TestTree
 propFlat = testPropertyNamed "Flat" "Flat" $ property $ do
-    prog <- forAllPretty $ runAstGen (Generators.genProgram @DefaultFun)
+    prog <- forAllPretty . runAstGen $
+        discardIfAnyConstant (not . isSerialisable) $ Generators.genProgram @DefaultFun
     tripping prog (Flat.flat . UPLC.UnrestrictedProgram) (fmap UPLC.unUnrestrictedProgram . Flat.unflat)
 
 propParser :: TestTree
 propParser = testPropertyNamed "Parser" "parser" $ property $ do
-    prog <- TextualProgram <$> forAllPretty (runAstGen Generators.genProgram)
+    prog <- TextualProgram <$>
+        forAllPretty (runAstGen $ discardIfAnyConstant (not . isSerialisable) Generators.genProgram)
     tripping prog (displayPlc . unTextualProgram)
                 (\p -> fmap (TextualProgram . void) (parseProg p))
     where
@@ -93,10 +97,10 @@ propTermSrcSpan = testPropertyNamed
     "propTermSrcSpan"
     . property
     $ do
-        code <-
-            display
-                <$> forAllPretty
-                    (view progTerm <$> runAstGen (Generators.genProgram @DefaultFun))
+        code <- display <$>
+            forAllPretty (view progTerm <$>
+                runAstGen (discardIfAnyConstant (not . isSerialisable)
+                    (Generators.genProgram @DefaultFun)))
         annotateShow code
         let (endingLine, endingCol) = length &&& T.length . last $ T.lines code
         trailingSpaces <- forAllPretty $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])
