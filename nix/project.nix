@@ -40,44 +40,44 @@ let
         "https://github.com/jaccokrijnen/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" = "0srqvx0b819b5crrbsa9hz2fnr50ahqizvvm0wdmyq2bbpk2rka7";
       };
 
-      # TODO: move this into the cabalib.project using the new conditional support?
-      # Configuration settings needed for cabal configure to work when cross compiling.
-      # We can't use `modules` for these as `modules` are only applied
-      # after cabal has been configured.
-      cabalProjectLocal = lib.optionalString isCrossCompiling
-        ''
-          -- When cross compiling we don't have a `ghc` package, so use
-          -- the `plutus-ghc-stub` package instead.
-          package plutus-tx-plugin
-            flags: +use-ghc-stub
+      # # TODO: move this into the cabalib.project using the new conditional support?
+      # # Configuration settings needed for cabal configure to work when cross compiling.
+      # # We can't use `modules` for these as `modules` are only applied
+      # # after cabal has been configured.
+      # cabalProjectLocal = lib.optionalString isCrossCompiling
+      #   ''
+      #     -- When cross compiling we don't have a `ghc` package, so use
+      #     -- the `plutus-ghc-stub` package instead.
+      #     package plutus-tx-plugin
+      #       flags: +use-ghc-stub
 
-          -- Exclude tests that use `doctest`.  They will not work for
-          -- cross compilation and `cabal` will not be able to make a plan.
-          package prettyprinter-configurable
-            tests: False
-        '';
+      #     -- Exclude tests that use `doctest`.  They will not work for
+      #     -- cross compilation and `cabal` will not be able to make a plan.
+      #     package prettyprinter-configurable
+      #       tests: False
+      #   '';
 
       modules = [
 
-        # Cross Compiling 
-        (lib.mkIf isCrossCompiling {
-          packages = {
-            # Things that need plutus-tx-plugin
-            docusaurus-examples.package.buildable = false;
-            plutus-benchmark.package.buildable = false;
-            plutus-tx-plugin.package.buildable = false;
-            plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.buildable = lib.mkForce false;
-            # Needs agda
-            plutus-metatheory.package.buildable = false;
-            # These need R
-            plutus-core.components.benchmarks.cost-model-test.buildable = lib.mkForce false;
-            plutus-core.components.exes.generate-cost-model.buildable = lib.mkForce false;
-            # This contains support for doing testing, so we're not interested in cross-compiling it
-            plutus-conformance.package.buildable = false;
-          };
-          # can't rebuild lib:ghc when cross-compiling
-          reinstallableLibGhc = false;
-        })
+        # # Cross Compiling 
+        # (lib.mkIf isCrossCompiling {
+        #   packages = {
+        #     # Things that need plutus-tx-plugin
+        #     docusaurus-examples.package.buildable = false;
+        #     plutus-benchmark.package.buildable = false;
+        #     plutus-tx-plugin.package.buildable = false;
+        #     plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.buildable = lib.mkForce false;
+        #     # Needs agda
+        #     plutus-metatheory.package.buildable = false;
+        #     # These need R
+        #     plutus-core.components.benchmarks.cost-model-test.buildable = lib.mkForce false;
+        #     plutus-core.components.exes.generate-cost-model.buildable = lib.mkForce false;
+        #     # This contains support for doing testing, so we're not interested in cross-compiling it
+        #     plutus-conformance.package.buildable = false;
+        #   };
+        #   # can't rebuild lib:ghc when cross-compiling
+        #   reinstallableLibGhc = false;
+        # })
 
         # Common 
         {
