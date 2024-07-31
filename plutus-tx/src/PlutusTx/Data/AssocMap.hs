@@ -414,7 +414,7 @@ unsafeFromBuiltinList = Map
 {-# INLINEABLE nil #-}
 -- | An empty `P.BuiltinList` of key-value pairs.
 nil :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-nil = BI.mkNilPairData BI.unitval
+nil = P.mkNil
 
 keys'
   :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
@@ -424,7 +424,7 @@ keys' = go
     go xs =
       P.matchList
         xs
-        (\() -> BI.mkNilData BI.unitval)
+        (\() -> P.mkNil)
         ( \hd tl ->
             let k = BI.fst hd
              in BI.mkCons k (go tl)

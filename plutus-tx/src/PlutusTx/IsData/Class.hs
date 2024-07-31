@@ -101,7 +101,7 @@ instance ToData a => ToData [a] where
           mapToBuiltin = go
             where
                 go :: [a] -> BI.BuiltinList BI.BuiltinData
-                go []     = BI.mkNilData BI.unitval
+                go []     = mkNil
                 go (x:xs) = BI.mkCons (toBuiltinData x) (go xs)
 instance FromData a => FromData [a] where
     {-# INLINABLE fromBuiltinData #-}

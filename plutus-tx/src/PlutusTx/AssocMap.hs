@@ -93,7 +93,7 @@ instance (ToData k, ToData v) => ToData (Map k v) where
       mapToBuiltin = go
         where
           go :: [(k, v)] -> BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData)
-          go []            = BI.mkNilPairData BI.unitval
+          go []            = P.mkNil
           go ((k, v) : xs) = BI.mkCons (BI.mkPairData (toBuiltinData k) (toBuiltinData v)) (go xs)
 
 -- | A hand-written transformation from 'Data' to 'Map'. Compared to 'unsafeFromBuiltinData',
