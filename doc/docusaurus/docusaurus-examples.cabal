@@ -24,12 +24,13 @@ common ghc-version-support
   if (impl(ghc <9.6) || impl(ghc >=9.7))
     buildable: False
 
-library docusaurus-code
-  import:         lang, ghc-version-support
-  hs-source-dirs: static/code
-
+common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
+
+library docusaurus-code
+  import:         lang, ghc-version-support, os-support
+  hs-source-dirs: static/code
 
   other-modules:
     AuctionValidator
@@ -46,8 +47,9 @@ library docusaurus-code
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin
 
+
 executable example-cip57
-  import:           lang, ghc-version-support
+  import:           lang, ghc-version-support, os-support
   main-is:          Example/Cip57/Blueprint/Main.hs
   hs-source-dirs:   static/code
   default-language: Haskell2010

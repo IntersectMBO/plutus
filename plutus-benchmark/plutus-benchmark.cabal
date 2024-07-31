@@ -41,6 +41,10 @@ common ghc-version-support
   if (impl(ghc <9.6) || impl(ghc >=9.7))
     buildable: False
 
+common os-support
+  if (impl(ghcjs) || os(windows))
+    buildable: False
+
 common lang
   default-language:   Haskell2010
   default-extensions:
@@ -74,7 +78,7 @@ common lang
 ---------------- Common code for benchmarking ----------------
 
 library plutus-benchmark-common
-  import:          lang
+  import:          lang, os-support
   hs-source-dirs:  common
   exposed-modules:
     PlutusBenchmark.Common
@@ -100,7 +104,7 @@ library plutus-benchmark-common
 ---------------- nofib ----------------
 
 library nofib-internal
-  import:          lang, ghc-version-support
+  import:          lang, ghc-version-support, os-support
   hs-source-dirs:  nofib/src
   exposed-modules:
     PlutusBenchmark.NoFib.Clausify
@@ -123,7 +127,7 @@ library nofib-internal
     , plutus-tx-plugin         ^>=1.32
 
 executable nofib-exe
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   main-is:        Main.hs
   hs-source-dirs: nofib/exe
   build-depends:
@@ -140,7 +144,7 @@ executable nofib-exe
     , transformers
 
 benchmark nofib
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        BenchCek.hs
   hs-source-dirs: nofib/bench
@@ -152,7 +156,7 @@ benchmark nofib
     , plutus-benchmark-common
 
 benchmark nofib-hs
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        BenchHaskell.hs
   hs-source-dirs: nofib/bench
@@ -164,7 +168,7 @@ benchmark nofib-hs
     , plutus-benchmark-common
 
 test-suite plutus-benchmark-nofib-tests
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: nofib/test
@@ -182,7 +186,7 @@ test-suite plutus-benchmark-nofib-tests
 ---------------- lists ----------------
 
 library lists-internal
-  import:          lang, ghc-version-support
+  import:          lang, ghc-version-support, os-support
   hs-source-dirs:  lists/src
   exposed-modules:
     PlutusBenchmark.Lists.Lookup.Compiled
@@ -205,7 +209,7 @@ library lists-internal
     , plutus-tx-plugin         ^>=1.32
 
 executable list-sort-exe
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   main-is:        Main.hs
   hs-source-dirs: lists/exe
   build-depends:
@@ -216,7 +220,7 @@ executable list-sort-exe
     , plutus-core              ^>=1.32
 
 benchmark lists
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        Bench.hs
   hs-source-dirs: lists/bench
@@ -228,7 +232,7 @@ benchmark lists
     , plutus-ledger-api        ^>=1.32
 
 test-suite plutus-benchmark-lists-tests
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
@@ -250,7 +254,7 @@ test-suite plutus-benchmark-lists-tests
 ---------------- validation ----------------
 
 benchmark validation
-  import:         lang
+  import:         lang, os-support
   type:           exitcode-stdio-1.0
   main-is:        BenchCek.hs
   hs-source-dirs: validation/bench
@@ -270,7 +274,7 @@ benchmark validation
 ---------------- validation-decode ----------------
 
 benchmark validation-decode
-  import:         lang
+  import:         lang, os-support
   type:           exitcode-stdio-1.0
   main-is:        BenchDec.hs
   hs-source-dirs: validation/bench
@@ -291,7 +295,7 @@ benchmark validation-decode
 ---------------- validation-full ----------------
 
 benchmark validation-full
-  import:         lang
+  import:         lang, os-support
   type:           exitcode-stdio-1.0
   main-is:        BenchFull.hs
   hs-source-dirs: validation/bench
@@ -312,7 +316,7 @@ benchmark validation-full
 ---------------- Cek cost model calibration ----------------
 
 benchmark cek-calibration
-  import:           lang, ghc-version-support
+  import:           lang, ghc-version-support, os-support
   type:             exitcode-stdio-1.0
   default-language: Haskell2010
   main-is:          Main.hs
@@ -331,7 +335,7 @@ benchmark cek-calibration
 ---------------- Signature verification throughput ----------------
 
 executable ed25519-costs
-  import:           lang, ghc-version-support
+  import:           lang, ghc-version-support, os-support
   default-language: Haskell2010
   hs-source-dirs:   ed25519-costs/exe ed25519-costs/src
   main-is:          Main.hs
@@ -349,7 +353,7 @@ executable ed25519-costs
 -- Calculate the predicted costs of sequences of ed25519 signature verification
 -- operations and compare them with a golden file.
 test-suite ed25519-costs-test
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: ed25519-costs/test ed25519-costs/src
@@ -370,7 +374,7 @@ test-suite ed25519-costs-test
 library bls12-381lib-internal
   -- bls12-381-internal isn't allowed: you must have at least one letter in each
   -- component.
-  import:          lang, ghc-version-support
+  import:          lang, ghc-version-support, os-support
   hs-source-dirs:  bls12-381-costs/src
   exposed-modules:
     PlutusBenchmark.BLS12_381.RunTests
@@ -388,7 +392,7 @@ library bls12-381lib-internal
 
 -- Print out predicted costs of various scripts involving BLS12-381 operations
 executable bls12-381-costs
-  import:           lang, ghc-version-support
+  import:           lang, ghc-version-support, os-support
   default-language: Haskell2010
   main-is:          Main.hs
   hs-source-dirs:   bls12-381-costs/exe
@@ -399,7 +403,7 @@ executable bls12-381-costs
 -- Calculate predicted costs of various scripts involving BLS12-381 operations
 -- and compare them with a golden file.
 test-suite bls12-381-costs-test
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
@@ -412,7 +416,7 @@ test-suite bls12-381-costs-test
 
 -- Run benchmarks for various scripts involving BLS12-381 operations
 benchmark bls12-381-benchmarks
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        Bench.hs
   hs-source-dirs: bls12-381-costs/bench
@@ -428,7 +432,7 @@ benchmark bls12-381-benchmarks
 ---------------- script contexts ----------------
 
 library script-contexts-internal
-  import:          lang, ghc-version-support
+  import:          lang, ghc-version-support, os-support
   hs-source-dirs:  script-contexts/src
   exposed-modules:
     PlutusBenchmark.Data.ScriptContexts
@@ -441,7 +445,7 @@ library script-contexts-internal
     , plutus-tx-plugin   ^>=1.32
 
 test-suite plutus-benchmark-script-contexts-tests
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
@@ -460,7 +464,7 @@ test-suite plutus-benchmark-script-contexts-tests
 ---------------- Marlowe scripts ----------------
 
 library marlowe-internal
-  import:          lang, ghc-version-support
+  import:          lang, ghc-version-support, os-support
   hs-source-dirs:  marlowe/src
   exposed-modules:
     PlutusBenchmark.Marlowe.BenchUtil
@@ -487,7 +491,7 @@ library marlowe-internal
     , serialise
 
 executable marlowe-validators
-  import:           lang, ghc-version-support
+  import:           lang, ghc-version-support, os-support
   default-language: Haskell2010
   hs-source-dirs:   marlowe/exe
   main-is:          Main.hs
@@ -508,7 +512,7 @@ executable marlowe-validators
     , serialise
 
 benchmark marlowe
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        BenchCek.hs
   other-modules:  Shared
@@ -522,7 +526,7 @@ benchmark marlowe
     , plutus-tx                ^>=1.32
 
 test-suite plutus-benchmark-marlowe-tests
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
@@ -541,7 +545,7 @@ test-suite plutus-benchmark-marlowe-tests
 -- TODO: Add benchmarks for the executable semantics when we have a UPLC version
 
 library agda-internal
-  import:          lang
+  import:          lang, os-support
   hs-source-dirs:  agda-common
   exposed-modules: PlutusBenchmark.Agda.Common
   build-depends:
@@ -551,7 +555,7 @@ library agda-internal
     , plutus-metatheory
 
 benchmark validation-agda-cek
-  import:         lang
+  import:         lang, os-support
   type:           exitcode-stdio-1.0
   main-is:        BenchAgdaCek.hs
   hs-source-dirs: validation/bench
@@ -570,7 +574,7 @@ benchmark validation-agda-cek
     , plutus-core              ^>=1.32
 
 benchmark nofib-agda-cek
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        BenchAgdaCek.hs
   hs-source-dirs: nofib/bench
@@ -583,7 +587,7 @@ benchmark nofib-agda-cek
     , plutus-benchmark-common
 
 benchmark marlowe-agda-cek
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        BenchAgdaCek.hs
   other-modules:  Shared
@@ -600,7 +604,7 @@ benchmark marlowe-agda-cek
 -------------------- bitwise-----------------------
 
 library bitwise-internal
-  import:          lang, ghc-version-support
+  import:          lang, ghc-version-support, os-support
   hs-source-dirs:  bitwise/src
   exposed-modules:
     PlutusBenchmark.Ed25519
@@ -615,7 +619,7 @@ library bitwise-internal
     , plutus-tx-plugin
 
 test-suite bitwise-test
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
   hs-source-dirs: bitwise/test
@@ -630,7 +634,7 @@ test-suite bitwise-test
     , tasty-hunit
 
 benchmark bitwise-bench
-  import:         lang, ghc-version-support
+  import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
   hs-source-dirs: bitwise/bench

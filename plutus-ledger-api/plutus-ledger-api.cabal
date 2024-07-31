@@ -210,6 +210,9 @@ test-suite plutus-ledger-api-plugin-test
     Spec.ScriptSize
     Spec.Value
 
+  if os(windows)
+    buildable: false 
+
   build-depends:
     , base                                                              >=4.9   && <5
     , bytestring
