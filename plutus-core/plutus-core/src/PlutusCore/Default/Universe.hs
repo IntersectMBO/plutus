@@ -157,9 +157,24 @@ instance GEq DefaultUni where
             Just Refl
         geqStep (DefaultUniApply f1 x1) a2 = do
             DefaultUniApply f2 x2 <- Just a2
-            Refl <- geqRec f1 f2
-            Refl <- geqRec x1 x2
-            Just Refl
+            case f1 of
+                DefaultUniProtoList -> do
+                    DefaultUniProtoList <- Just f2
+                    case x1 of
+                        DefaultUniData -> do
+                            DefaultUniData <- Just x2
+                            Just Refl
+                        DefaultUniInteger -> do
+                            DefaultUniInteger <- Just x2
+                            Just Refl
+                        _ -> do
+                            Refl <- geqRec f1 f2
+                            Refl <- geqRec x1 x2
+                            Just Refl
+                _ -> do
+                    Refl <- geqRec f1 f2
+                    Refl <- geqRec x1 x2
+                    Just Refl
         geqStep DefaultUniData a2 = do
             DefaultUniData <- Just a2
             Just Refl
