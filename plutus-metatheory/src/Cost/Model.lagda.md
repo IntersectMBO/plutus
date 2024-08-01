@@ -1,4 +1,4 @@
-s---
+---
 title: Cost.Model
 layout: page
 ---
