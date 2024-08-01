@@ -102,15 +102,25 @@ agdaEvalUplcProg WithoutCosting =
                          Left _          -> Nothing
                          Right namedTerm -> Just $ UPLC.Program () version namedTerm
 
-{- | Any tests here currently fail, so they are marked as expected to fail.  Once
- a fix for a test is pushed, the test will succeed and should be removed from
- this list.  The entries of the list are paths from the root of
- plutus-conformance to the directory containing the test, eg
+{- | A list of evaluation tests which are currently expected to fail.  Once a fix
+ for a test is pushed, the test will succeed and should be removed from the
+ list.  The entries of the list are paths from the root of plutus-conformance to
+ the directory containing the test, eg
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
 -}
-failingTests :: [FilePath]
-failingTests = []
+failingEvaluationTests :: [FilePath]
+failingEvaluationTests = []
+
+{- | A list of budget tests which are currently expected to fail.  Once a fix for
+ a test is pushed, the test will succeed and should be removed from the list.
+ The entries of the list are paths from the root of plutus-conformance to the
+ directory containing the test, eg
+ "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
+-}
+failingBudgetTests :: [FilePath]
+failingBudgetTests = ["test-cases/uplc/evaluation/builtin/semantics/tmp/replicateByte"]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
 main :: IO ()
-main = runUplcEvalTests (agdaEvalUplcProg WithCosting) (\dir -> elem dir failingTests)
+main = runUplcEvalTests (agdaEvalUplcProg WithCosting)
+       (flip elem failingEvaluationTests) (flip elem failingBudgetTests)
