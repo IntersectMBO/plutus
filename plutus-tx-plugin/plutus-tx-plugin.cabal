@@ -101,7 +101,7 @@ library
       -Wno-unused-packages -Wno-unused-imports -Wno-overlapping-patterns
 
   else
-    build-depends: ghc >=9.2
+    build-depends: ghc
 
 executable gen-plugin-opts-doc
   import:           lang, ghc-version-support, os-support
