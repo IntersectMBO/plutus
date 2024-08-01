@@ -118,7 +118,7 @@ failingEvaluationTests = []
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
 -}
 failingBudgetTests :: [FilePath]
-failingBudgetTests = ["test-cases/uplc/evaluation/builtin/semantics/tmp/replicateByte"]
+failingBudgetTests = []
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
 main :: IO ()
