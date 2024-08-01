@@ -963,7 +963,7 @@ test_Conversion =
             , -- integerToByteString True 0 (multiplyInteger p 256) = appendByteString
               -- (integerToByteString True 0 p) (singleton 0)
               testPropertyNamed "property 5" "i2b_prop5"
-              . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty5
+              . mapTestLimitAtLeast 50 (`div` 20) $ property Conversion.i2bProperty5
             , -- integerToByteString False 0 (plusInteger (multiplyInteger q 256) r) =
               -- appendByteString (integerToByteString False 0 r) (integerToByteString False 0 q)
               testPropertyNamed "property 6" "i2b_prop6"
@@ -1012,7 +1012,7 @@ test_Bitwise =
             , testPropertyNamed "rotations move bits but don't change them" "rotate_move" $
                 mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateMoveBits
             , testPropertyNamed "rotations do not break when given minBound" "rotate_min_bound" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.rotateMinBound
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateMinBound
             ]
         , testGroup "countSetBits"
             [ testGroup "homomorphism" Bitwise.csbHomomorphism

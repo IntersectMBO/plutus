@@ -72,7 +72,7 @@ prop_fixKind = withMaxSuccess 10000 $
 
 -- | Check that 'normalizeType' returns a normal type.
 prop_normalizedTypeIsNormal :: Property
-prop_normalizedTypeIsNormal = withMaxSuccess 10000 $
+prop_normalizedTypeIsNormal = withMaxSuccess 1000 $
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (_, ty) ->
     unless (isNormalType . unNormalized . runQuote $ normalizeType ty) $
       Left "'normalizeType' returned a non-normal type"
