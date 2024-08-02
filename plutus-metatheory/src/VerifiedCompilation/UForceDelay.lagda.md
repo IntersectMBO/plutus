@@ -40,8 +40,11 @@ data FD : ℕ → Relation where
 
 ForceDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
 ForceDelay = Translation (FD zero)
+```
+## Quick simple examples
+These autocomplete, which is probably a good sign?
+```
 
--- These autocomplete, which is probably a good sign?
 _ : ForceDelay {⊥} (force ((ƛ (delay error)) · error)) ((ƛ error) · error)
 _ = Translation.istranslation (force (ƛ (delay error) · error))
      (ƛ error · error)
