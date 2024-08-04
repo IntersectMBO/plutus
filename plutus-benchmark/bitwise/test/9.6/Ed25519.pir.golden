@@ -1,40 +1,4 @@
 (let
-    data Bool | Bool_match where
-      True : Bool
-      False : Bool
-    !even : integer -> Bool
-      = \(n : integer) ->
-          ifThenElse {Bool} (equalsInteger 0 (modInteger n 2)) True False
-  in
-  letrec
-    !expMod : integer -> integer -> integer -> integer
-      = \(b' : integer) (e : integer) (m : integer) ->
-          Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 e) True False)
-            {all dead. integer}
-            (/\dead -> 1)
-            (/\dead ->
-               let
-                 !reduced : integer = expMod b' (divideInteger e 2) m
-                 !t : integer = modInteger (multiplyInteger reduced reduced) m
-               in
-               Bool_match
-                 (even e)
-                 {all dead. integer}
-                 (/\dead -> t)
-                 (/\dead -> modInteger (multiplyInteger t b') m)
-                 {all dead. dead})
-            {all dead. dead}
-  in
-  let
-    ~by :
-       integer
-      = multiplyInteger
-          4
-          (expMod
-             5
-             57896044618658097711785492504343953926634992332820282019728792003956564819947
-             57896044618658097711785492504343953926634992332820282019728792003956564819949)
     !checkValid_f : bytestring -> integer = byteStringToInteger False
     data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
       Tuple2 : a -> b -> Tuple2 a b
@@ -43,6 +7,11 @@
     data (List :: * -> *) a | List_match where
       Nil : List a
       Cons : a -> List a -> List a
+  in
+  let
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
   in
   letrec
     !goList : List Bool -> list bool
@@ -78,6 +47,31 @@
     !writeBits : bytestring -> List integer -> List Bool -> bytestring
       = \(bs : bytestring) (ixes : List integer) (bits : List Bool) ->
           writeBits bs (goList ixes) (goList bits)
+    !even : integer -> Bool
+      = \(n : integer) ->
+          ifThenElse {Bool} (equalsInteger 0 (modInteger n 2)) True False
+  in
+  letrec
+    !expMod : integer -> integer -> integer -> integer
+      = \(b' : integer) (e : integer) (m : integer) ->
+          Bool_match
+            (ifThenElse {Bool} (equalsInteger 0 e) True False)
+            {all dead. integer}
+            (/\dead -> 1)
+            (/\dead ->
+               let
+                 !reduced : integer = expMod b' (divideInteger e 2) m
+                 !t : integer = modInteger (multiplyInteger reduced reduced) m
+               in
+               Bool_match
+                 (even e)
+                 {all dead. integer}
+                 (/\dead -> t)
+                 (/\dead -> modInteger (multiplyInteger t b') m)
+                 {all dead. dead})
+            {all dead. dead}
+  in
+  let
     ~d :
        integer
       = multiplyInteger
@@ -574,6 +568,15 @@
       !sig : bytestring = unBData signature
       !message : bytestring = unBData msg
       !pubKey : bytestring = unBData pk
+      !by :
+         integer
+        = multiplyInteger
+            4
+            (expMod
+               5
+               57896044618658097711785492504343953926634992332820282019728792003956564819947
+               57896044618658097711785492504343953926634992332820282019728792003956564819949)
+      !bx : integer = xRecover by
       !s : integer = checkValid_f (sliceByteString 32 32 sig)
       !nt : Tuple2 integer integer = decodePoint pubKey
       !nt : Tuple2 integer integer = decodePoint (sliceByteString 0 32 sig)
@@ -2287,7 +2290,7 @@
                {integer}
                {integer}
                (modInteger
-                  (xRecover by)
+                  bx
                   57896044618658097711785492504343953926634992332820282019728792003956564819949)
                (modInteger
                   by
