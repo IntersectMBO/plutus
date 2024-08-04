@@ -10,6 +10,7 @@ module PlutusBenchmark.NQueens.Compiled (
 import PlutusBenchmark.NQueens (nqueens)
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.IsData (toBuiltinData, unsafeFromBuiltinData)
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude
 import PlutusTx.TH (compile)
 

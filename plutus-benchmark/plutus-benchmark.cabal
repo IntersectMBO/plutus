@@ -637,4 +637,3 @@ benchmark bitwise-bench
     , criterion
     , plutus-benchmark-common
     , plutus-tx                ^>=1.31
-    , plutus-tx-plugin         ^>=1.31
