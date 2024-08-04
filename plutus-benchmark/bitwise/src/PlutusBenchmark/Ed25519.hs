@@ -17,8 +17,7 @@ checkValid sig message pubKey =
   let r = decodePoint (sliceByteString 0 32 sig)
       a = decodePoint pubKey
       s = decodeInt (sliceByteString 32 32 sig)
-      hintArg = encodePoint r <> pubKey <> message
-      h = hint hintArg
+      h = asSha512Integer (encodePoint r <> pubKey <> message)
    in scalarMult bPoint s == edwards r (scalarMult a h)
 
 -- Helpers
@@ -73,9 +72,9 @@ edwards (Point (x1, y1)) (Point (x2, y2)) = Point (x3 `modulo` q, y3 `modulo` q)
     y3 :: Integer
     y3 = (y1 * y2 + x1 * x2) * inv (1 - d * x1 * x2 * y1 * y2)
 
-{-# INLINEABLE hint #-}
-hint :: BuiltinByteString -> Integer
-hint = byteStringToInteger LittleEndian . sha512
+{-# INLINEABLE asSha512Integer #-}
+asSha512Integer :: BuiltinByteString -> Integer
+asSha512Integer = byteStringToInteger LittleEndian . sha512
 
 {-# INLINEABLE decodeInt #-}
 decodeInt :: BuiltinByteString -> Integer
