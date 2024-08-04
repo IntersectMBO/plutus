@@ -41,20 +41,18 @@
           List_match
             {Bool}
             ds
-            {all dead. list bool}
-            (/\dead -> [])
+            {list bool}
+            []
             (\(d : Bool) (ds : List Bool) ->
-               /\dead ->
-                 mkCons
-                   {bool}
-                   (Bool_match
-                      d
-                      {all dead. bool}
-                      (/\dead -> True)
-                      (/\dead -> False)
-                      {all dead. dead})
-                   (goList ds))
-            {all dead. dead}
+               mkCons
+                 {bool}
+                 (Bool_match
+                    d
+                    {all dead. bool}
+                    (/\dead -> True)
+                    (/\dead -> False)
+                    {all dead. dead})
+                 (goList ds))
   in
   letrec
     !goList : List integer -> list integer
@@ -62,11 +60,10 @@
           List_match
             {integer}
             ds
-            {all dead. list integer}
-            (/\dead -> [])
+            {list integer}
+            []
             (\(d : integer) (ds : List integer) ->
-               /\dead -> mkCons {integer} d (goList ds))
-            {all dead. dead}
+               mkCons {integer} d (goList ds))
   in
   let
     !writeBits : bytestring -> List integer -> List Bool -> bytestring
