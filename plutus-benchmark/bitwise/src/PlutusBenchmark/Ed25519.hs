@@ -19,6 +19,13 @@ checkValid sig message pubKey =
       s = decodeInt (sliceByteString 32 32 sig)
       h = asSha512Integer (encodePoint r <> pubKey <> message)
    in scalarMult bPoint s == edwards r (scalarMult a h)
+  where
+    bPoint :: Point
+    bPoint = Point (bx `modulo` q, by `modulo` q)
+    by :: Integer
+    by = 4 * inv 5
+    bx :: Integer
+    bx = xRecover by
 
 -- Helpers
 
@@ -27,10 +34,6 @@ newtype Point = Point (Integer, Integer)
 instance Eq Point where
   {-# INLINEABLE (==) #-}
   Point (x1, y1) == Point (x2, y2) = x1 == x2 && y1 == y2
-
-{-# INLINEABLE bPoint #-}
-bPoint :: Point
-bPoint = Point (bx `modulo` q, by `modulo` q)
 
 {-# INLINEABLE decodePoint #-}
 decodePoint :: BuiltinByteString -> Point
@@ -79,14 +82,6 @@ asSha512Integer = byteStringToInteger LittleEndian . sha512
 {-# INLINEABLE decodeInt #-}
 decodeInt :: BuiltinByteString -> Integer
 decodeInt = byteStringToInteger LittleEndian
-
-{-# INLINEABLE bx #-}
-bx :: Integer
-bx = xRecover by
-
-{-# INLINEABLE by #-}
-by :: Integer
-by = 4 * inv 5
 
 {-# INLINEABLE q #-}
 -- 2 ^ 255 - 19, but as a constant
