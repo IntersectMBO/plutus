@@ -111,6 +111,8 @@ xRecover y =
     cond1 = (x * x - xx) `modulo` q /= 0 -- x here is always the input x
     cond2 :: Bool
     cond2 = if cond1 then odd xA else odd x
+    i :: Integer
+    i = expMod 2 ((q - 1) `divide` 4) q
 
 {-# INLINEABLE clearBit #-}
 clearBit :: Integer -> BuiltinByteString -> BuiltinByteString
@@ -135,7 +137,3 @@ expMod b' e m =
        in if odd e
             then (t * b') `modulo` m
             else t
-
-{-# INLINEABLE i #-}
-i :: Integer
-i = expMod 2 ((q - 1) `divide` 4) q
