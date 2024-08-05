@@ -1,20 +1,18 @@
 -- BLOCK1
 -- Necessary language extensions for the Plutus Tx compiler to work.
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
 
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
 
 module BasicPlutusTx where
 
-import PlutusCore.Default qualified as PLC
 import PlutusCore.Version (plcVersion100)
 -- Main Plutus Tx module.
 import PlutusTx
--- Additional support for lifting.
-import PlutusTx.Lift
 -- Builtin functions.
 import PlutusTx.Builtins
 -- The Plutus Tx Prelude, discussed further below.
