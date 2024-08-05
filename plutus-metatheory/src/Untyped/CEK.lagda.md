@@ -428,6 +428,8 @@ BUILTIN bls12-381-G1-hashToGroup = λ
      { (just p) -> inj₂ (V-con bls12-381-g1-element p)
      ; nothing  -> inj₁ userError
      }
+  ; _ -> inj₁ userError
+  }
 BUILTIN bls12-381-G1-compress = λ
   { (app base (V-con bls12-381-g1-element e)) -> inj₂ (V-con bytestring (BLS12-381-G1-compress e))
   ; _ -> inj₁ userError

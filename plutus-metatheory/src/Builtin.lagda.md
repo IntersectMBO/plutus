@@ -132,10 +132,6 @@ data Builtin : Set where
   -- Bitwise operations
   byteStringToInteger             : Builtin
   integerToByteString             : Builtin
-<<<<<<< HEAD
-  -- Ripemd-160
-  ripemd-160                      : Builtin
-=======
   andByteString                   : Builtin
   orByteString                    : Builtin
   xorByteString                   : Builtin
@@ -147,7 +143,8 @@ data Builtin : Set where
   rotateByteString                : Builtin
   countSetBits                    : Builtin
   findFirstSetBit                 : Builtin
->>>>>>> master
+  -- Ripemd-160
+  ripemd-160                      : Builtin
 ```
 
 ## Signatures
