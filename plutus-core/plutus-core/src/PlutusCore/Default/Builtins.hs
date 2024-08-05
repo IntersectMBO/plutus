@@ -1941,6 +1941,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             writeBitsDenotation
             (runCostingFunThreeArguments . paramWriteBits)
+
     toBuiltinMeaning _semvar ReplicateByte =
         let replicateByteDenotation :: NumBytesCostedAsNumWords -> Word8 -> BuiltinResult BS.ByteString
             replicateByteDenotation (NumBytesCostedAsNumWords n) w = Bitwise.replicateByte n w
