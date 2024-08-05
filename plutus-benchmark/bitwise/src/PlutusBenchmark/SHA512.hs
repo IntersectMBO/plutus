@@ -8,6 +8,7 @@ import GHC.ByteOrder (ByteOrder (BigEndian))
 import PlutusTx.Builtins (replicateByte)
 import PlutusTx.Prelude
 
+-- Based on https://datatracker.ietf.org/doc/html/rfc6234
 {-# INLINEABLE sha512 #-}
 sha512 :: BuiltinByteString -> BuiltinByteString
 sha512 = extract . runSha initialState processBlock . pad
@@ -57,6 +58,9 @@ lsig512_1 x = rot (-19) x `xor` rot (-61) x `xor` shiftU (-6) x
    in integerToUInt64
         . (\z -> if limit < added then (added - limit) - 1 else z)
         $ added
+  where
+    limit :: Integer
+    limit = 18_446_744_073_709_551_615
 
 {-# INLINEABLE complementU #-}
 complementU :: UInt64 -> UInt64
@@ -75,10 +79,6 @@ infixl 7 .&.
 (UInt64 x) .|. (UInt64 y) = UInt64 (orByteString True x y)
 
 infixl 5 .|.
-
-{-# INLINEABLE limit #-}
-limit :: Integer
-limit = 18_446_744_073_709_551_615
 
 data SHA512State
   = SHA512State
