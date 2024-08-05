@@ -7,6 +7,7 @@ import GHC.ByteOrder (ByteOrder (LittleEndian))
 import PlutusBenchmark.SHA512 (sha512)
 import PlutusTx.Prelude hiding (inv)
 
+-- Based on https://ed25519.cr.yp.to/python/ed25519.py
 {-# INLINEABLE checkValid #-}
 checkValid ::
   BuiltinByteString ->
@@ -108,7 +109,7 @@ xRecover y =
     xAB :: Integer
     xAB = q - xA
     cond1 :: Bool
-    cond1 = (x * x - xx) `modulo` q /= 0 -- x here is always the input x
+    cond1 = (x * x - xx) `modulo` q /= 0
     cond2 :: Bool
     cond2 = if cond1 then odd xA else odd x
     i :: Integer
