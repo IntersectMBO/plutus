@@ -778,13 +778,13 @@ test_Crypto = testNestedM "Crypto" $ do
     evals @ByteString "G\ETB2\133\168\215\&4\RS^\151/\198w(c\132\248\STX\248\239B\165\236_\ETX\187\250%L\176\US\173"
         Keccak_256 [] [cons @ByteString "hello world"]
     -- independently verified by the calculator at https://emn178.github.io/online-tools/ripemd_160.html
-    evals @ByteString ripemd_160Hash
-        Ripemd_160 [cons @ByteString "hello world"]
     let
       hashHex = "98c615784ccb5fe5936fbc0cbe9dfdb408d92f0f"
       ripemd_160Hash = case Base16.decode $ Text.encodeUtf8 hashHex of
         Right res -> res
         Left _    -> error $ "Unexpected error during hex decoding: " <> Text.unpack hashHex
+    evals @ByteString ripemd_160Hash
+        Ripemd_160 [] [cons @ByteString "hello world"]
     -- Tests for blake2b_224: output obtained using the b2sum program from https://github.com/BLAKE2/BLAKE2
     evals (pack [ 0x83, 0x6c, 0xc6, 0x89, 0x31, 0xc2, 0xe4, 0xe3, 0xe8, 0x38, 0x60, 0x2e, 0xca, 0x19
                 , 0x02, 0x59, 0x1d, 0x21, 0x68, 0x37, 0xba, 0xfd, 0xdf, 0xe6, 0xf0, 0xc8, 0xcb, 0x07 ])
