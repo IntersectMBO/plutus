@@ -9,8 +9,11 @@ import UntypedPlutusCore.Evaluation.Machine.SteppableCek qualified as SCek
 
 import Control.Lens
 
-failingTests :: [FilePath]
-failingTests = []
+failingEvaluationTests :: [FilePath]
+failingEvaluationTests = []
+
+failingBudgetTests :: [FilePath]
+failingBudgetTests = []
 
 -- | The `evaluator` for the steppable-version of the CEK machine.
 evalSteppableUplcProg :: UplcEvaluator
@@ -27,4 +30,5 @@ evalSteppableUplcProg = UplcEvaluatorWithoutCosting $ traverseOf UPLC.progTerm $
 main :: IO ()
 main =
     -- UPLC evaluation tests
-    runUplcEvalTests evalSteppableUplcProg (\dir -> elem dir failingTests)
+    runUplcEvalTests evalSteppableUplcProg
+    (flip elem failingEvaluationTests) (flip elem failingBudgetTests)
