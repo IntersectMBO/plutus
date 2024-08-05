@@ -75,6 +75,9 @@ pkgs/.stack
 *.code-workspace
 .*.sw*
 
+# Doc site
+yarn.lock
+
 # Misc
 act-event.json
 .history/
@@ -109,4 +112,3 @@ plutus-pab/test-node/alonzo-purple/db
 *.timelog
 *.stacks
 .nvimrc
-

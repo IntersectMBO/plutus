@@ -87,6 +87,15 @@ record OneVariableQuadraticFunction : Set where
 
 {-# COMPILE GHC OneVariableQuadraticFunction = data OneVariableQuadraticFunction(OneVariableQuadraticFunction) #-}
 
+record TwoVariableLinearFunction : Set where
+    constructor mkTwoVariableLinearFunction
+    field
+        intercept : CostingNat
+        slope1 : CostingNat
+        slope2 : CostingNat
+
+{-# COMPILE GHC TwoVariableLinearFunction = data TwoVariableLinearFunction(TwoVariableLinearFunction) #-}
+
 record TwoVariableQuadraticFunction : Set where
     constructor mkTwoVariableQuadraticFunction
     field
@@ -110,6 +119,8 @@ data RawModel : Set where
     LinearInY             : LinearFunction → RawModel
     LinearInZ             : LinearFunction → RawModel
     LiteralInYOrLinearInZ : LinearFunction → RawModel
+    LinearInMaxYZ         : LinearFunction → RawModel
+    LinearInYAndZ         : TwoVariableLinearFunction -> RawModel
     QuadraticInY          : OneVariableQuadraticFunction → RawModel
     QuadraticInZ          : OneVariableQuadraticFunction → RawModel
     QuadraticInXAndY      : TwoVariableQuadraticFunction → RawModel
@@ -118,11 +129,11 @@ data RawModel : Set where
     ConstBelowDiagonal    : CostingNat → RawModel → RawModel
     ConstOffDiagonal      : CostingNat → RawModel → RawModel
 
-{-# COMPILE GHC RawModel = data Model (ConstantCost | AddedSizes | MultipliedSizes |
-                                   MinSize | MaxSize | LinearInX | LinearInY | LinearInZ |
-                                   LiteralInYOrLinearInZ | QuadraticInY | QuadraticInZ |
-                                   QuadraticInXAndY | SubtractedSizes | ConstAboveDiagonal | 
-                                   ConstBelowDiagonal | ConstOffDiagonal)  #-}
+{-# COMPILE GHC RawModel = data Model (ConstantCost | AddedSizes |
+    MultipliedSizes | MinSize | MaxSize | LinearInX | LinearInY | LinearInZ |
+    LiteralInYOrLinearInZ | LinearInMaxYZ | LinearInYAndZ |QuadraticInY |
+    QuadraticInZ | QuadraticInXAndY | SubtractedSizes | ConstAboveDiagonal |
+    ConstBelowDiagonal | ConstOffDiagonal) #-}
 
 record CpuAndMemoryModel : Set where
      constructor mkCpuAndMemoryModel
