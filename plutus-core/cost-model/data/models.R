@@ -130,7 +130,7 @@ arity <- function(name) {
         "Bls12_381_finalVerify" = 2,
         "Keccak_256" = 1,
         "Blake2b_224" = 1,
-        "Ripemd_160" = 1
+        "Ripemd_160" = 1,
         "IntegerToByteString" = 3,
         "ByteStringToInteger" = 2,
         "AndByteString" = 3,
