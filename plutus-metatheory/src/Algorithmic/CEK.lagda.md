@@ -319,6 +319,23 @@ BUILTIN byteStringToInteger (base $ V-con e $ V-con s) = inj₂ (V-con (BStoI e 
 BUILTIN integerToByteString (base $ V-con e $ V-con w $ V-con n) with ItoBS e w n
 ... | just s = inj₂ (V-con s)
 ... | nothing = inj₁ (con (ne (^ (atomic aBytestring))))
+BUILTIN andByteString (base  $ V-con b $ V-con s $ V-con s') = inj₂ (V-con (andBYTESTRING b s s'))
+BUILTIN orByteString  (base  $ V-con b $ V-con s $ V-con s') = inj₂ (V-con (orBYTESTRING b s s'))
+BUILTIN xorByteString (base  $ V-con b $ V-con s $ V-con s') = inj₂ (V-con (xorBYTESTRING b s s'))
+BUILTIN complementByteString (base $ V-con s) = inj₂ (V-con (complementBYTESTRING s))
+BUILTIN readBit (base $ V-con s $ V-con i) with readBIT s i
+... | just r = inj₂ (V-con r)
+... | nothing  = inj₁ (con (ne (^ (atomic aBool))))
+BUILTIN writeBits (base $ V-con s $ V-con ps $ V-con us) with writeBITS s (toList ps) (toList us)
+... | just r = inj₂ (V-con r)
+... | nothing  = inj₁ (con (ne (^ (atomic aBytestring))))
+BUILTIN replicateByte (base  $ V-con l $ V-con w) with replicateBYTE l w 
+... | just r = inj₂ (V-con r)
+... | nothing  = inj₁ (con (ne (^ (atomic aBytestring))))
+BUILTIN shiftByteString (base $ V-con s $ V-con i) = inj₂ (V-con (shiftBYTESTRING s i))
+BUILTIN rotateByteString (base $ V-con s $ V-con i) = inj₂ (V-con (rotateBYTESTRING s i))
+BUILTIN countSetBits (base $ V-con  s) = inj₂ (V-con (countSetBITS s))
+BUILTIN findFirstSetBit (base $ V-con s) = inj₂ (V-con (findFirstSetBIT s))
 
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}

@@ -61,7 +61,8 @@ postulate stringSize : String → CostingNat
 ```
 
 For each constant we return the corresponding size.
-
+These *must* match the size functions defined in
+`PlutusCore.Evaluation.Machine.ExMemoryUsage`
 ```
 defaultConstantMeasure : TmCon → CostingNat
 defaultConstantMeasure (tmCon (atomic aInteger) x) = integerSize x
@@ -73,13 +74,13 @@ defaultConstantMeasure (tmCon (atomic aData) d) = dataSize d
 defaultConstantMeasure (tmCon (atomic aBls12-381-g1-element) x) = g1ElementSize x
 defaultConstantMeasure (tmCon (atomic aBls12-381-g2-element) x) = g2ElementSize x
 defaultConstantMeasure (tmCon (atomic aBls12-381-mlresult) x) = mlResultElementSize x
-defaultConstantMeasure (tmCon (list t) []) = 0
+defaultConstantMeasure (tmCon (list t) []) = 1
 defaultConstantMeasure (tmCon (list t) (x ∷ xs)) = 
-       defaultConstantMeasure (tmCon t x) 
-     + defaultConstantMeasure (tmCon (list t) xs)
+      3 + defaultConstantMeasure (tmCon t x)
+      + defaultConstantMeasure (tmCon (list t) xs)
 defaultConstantMeasure (tmCon (pair t u) (x , y)) = 
       1 + defaultConstantMeasure (tmCon t x) 
-        + defaultConstantMeasure (tmCon u y)
+      + defaultConstantMeasure (tmCon u y)
 
 -- This is the main sizing function for Values
 -- It only measures constants. Other types should use models where the size 
