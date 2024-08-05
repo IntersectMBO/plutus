@@ -7,7 +7,7 @@ module Main where
 import Criterion.Main
 
 import PlutusBenchmark.BLS12_381.Scripts
-import PlutusBenchmark.Common (benchProgramCek, mkEvalCtx)
+import PlutusBenchmark.Common (benchProgramCek, mkMostRecentEvalCtx)
 import PlutusLedgerApi.Common (EvaluationContext)
 import PlutusTx.Prelude qualified as Tx
 
@@ -17,27 +17,27 @@ import Data.ByteString qualified as BS (empty)
 
 benchHashAndAddG1 :: EvaluationContext -> Integer -> Benchmark
 benchHashAndAddG1 ctx n =
-    let prog = mkHashAndAddG1Script (listOfSizedByteStrings n 4)
+    let prog = mkHashAndAddG1Script (listOfByteStringsOfLength n 4)
     in bench (show n) $ benchProgramCek ctx prog
 
 benchHashAndAddG2 :: EvaluationContext -> Integer -> Benchmark
 benchHashAndAddG2 ctx n =
-    let prog = mkHashAndAddG2Script (listOfSizedByteStrings n 4)
+    let prog = mkHashAndAddG2Script (listOfByteStringsOfLength n 4)
     in bench (show n) $ benchProgramCek ctx prog
 
 benchUncompressAndAddG1 :: EvaluationContext -> Integer -> Benchmark
 benchUncompressAndAddG1 ctx n =
-    let prog = mkUncompressAndAddG1Script (listOfSizedByteStrings n 4)
+    let prog = mkUncompressAndAddG1Script (listOfByteStringsOfLength n 4)
     in bench (show n) $ benchProgramCek ctx prog
 
 benchUncompressAndAddG2 :: EvaluationContext -> Integer -> Benchmark
 benchUncompressAndAddG2 ctx n =
-    let prog = mkUncompressAndAddG2Script (listOfSizedByteStrings n 4)
+    let prog = mkUncompressAndAddG2Script (listOfByteStringsOfLength n 4)
     in bench (show n) $ benchProgramCek ctx prog
 
 benchPairing :: EvaluationContext -> Benchmark
 benchPairing ctx =
-    case listOfSizedByteStrings 4 4 of
+    case listOfByteStringsOfLength 4 4 of
       [b1, b2, b3, b4] ->
           let emptyDst = Tx.toBuiltin BS.empty
               p1 = Tx.bls12_381_G1_hashToGroup (Tx.toBuiltin b1) emptyDst
@@ -46,7 +46,7 @@ benchPairing ctx =
               q2 = Tx.bls12_381_G2_hashToGroup (Tx.toBuiltin b4) emptyDst
               prog = mkPairingScript p1 p2 q1 q2
           in bench "pairing" $ benchProgramCek ctx prog
-      _ -> error "Unexpected list returned by listOfSizedByteStrings"
+      _ -> error "Unexpected list returned by listOfByteStringsOfLength"
 
 benchGroth16Verify :: EvaluationContext -> Benchmark
 benchGroth16Verify ctx = bench "groth16Verify" $ benchProgramCek ctx mkGroth16VerifyScript
@@ -77,7 +77,7 @@ schnorrG2Verify ctx = bench "schnorrG2Verify" $ benchProgramCek ctx mkSchnorrG2V
 
 main :: IO ()
 main = do
-  evalCtx <- evaluate mkEvalCtx
+  evalCtx <- evaluate mkMostRecentEvalCtx
   defaultMain [
         bgroup "hashAndAddG1" $ fmap (benchHashAndAddG1 evalCtx) [0, 10..150]
       , bgroup "hashAndAddG2" $ fmap (benchHashAndAddG2 evalCtx) [0, 10..150]

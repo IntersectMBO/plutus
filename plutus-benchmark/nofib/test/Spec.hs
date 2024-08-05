@@ -32,7 +32,7 @@ runTestGhc = runTestNested ["nofib", "test"] . pure . testNestedGhc
 -- Unit tests comparing PLC and Haskell computations on given inputs
 
 runAndCheck :: Tx.Lift DefaultUni a => Term -> a -> IO ()
-runAndCheck term value = cekResultMatchesHaskellValue term (@?=) value
+runAndCheck term = cekResultMatchesHaskellValue term (@?=)
 
 ---------------- Clausify ----------------
 

@@ -1,1 +1,1 @@
-((\a_1 -> addInteger (force a_1) (force a_1)) (delay (addInteger 1 2)))
+(\a -> addInteger (force a) (force a)) (delay (addInteger 1 2))

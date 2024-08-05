@@ -130,9 +130,20 @@ arity <- function(name) {
         "Bls12_381_finalVerify" = 2,
         "Keccak_256" = 1,
         "Blake2b_224" = 1,
+        "Ripemd_160" = 1
         "IntegerToByteString" = 3,
         "ByteStringToInteger" = 2,
-        "Ripemd_160" = 1
+        "AndByteString" = 3,
+        "OrByteString" = 3,
+        "XorByteString" = 3,
+        "ComplementByteString" = 1,
+        "ReadBit" = 2,
+        "WriteBits" = 2,
+        "ReplicateByte" = 2,
+        "ShiftByteString" = 2,
+        "RotateByteString" = 2,
+        "CountSetBits" = 1,
+        "FindFirstSetBit" = 1
         )
 }
 
@@ -422,8 +433,8 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname)  %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead ()
-        m <- lm(t ~ I(x_mem + y_mem), filtered)
-        mk.result(m,"added_sizes")
+        m <- lm(t ~ I(x_mem * y_mem), filtered)
+        mk.result(m,"multiplied_sizes")
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
 
@@ -436,20 +447,24 @@ modelFun <- function(path) {
     ## a good fit.
     divideIntegerModel <- {
         fname <- "DivideInteger"
-        filtered <- data %>%  ## Data below diagonal
-            filter.and.check.nonempty(fname) %>%
-            filter(x_mem > 0 & y_mem > 0) %>%
-            filter (x_mem > y_mem) %>%
-            discard.overhead ()
-        m <- lm(t ~ I(x_mem * y_mem), filtered)
 
-       filtered2 <- data %>%  ## Data on or above diagonal: effectively constant time.
+        data1 <- data %>%  ## Data on or above diagonal: effectively constant time.
             filter.and.check.nonempty(fname) %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             filter (x_mem <= y_mem) %>%
             discard.overhead ()
-        constant = mean(filtered2$t)
-        mk.result(m, "const_above_diagonal", constant=constant, subtype="multiplied_sizes")
+        constant = mean(data1$t)
+
+        data2 <- data %>%  ## Data below diagonal
+            filter.and.check.nonempty(fname) %>%
+            filter(x_mem > 0 & y_mem > 0) %>%
+            filter (x_mem > y_mem) %>%
+            discard.overhead ()
+        m <- lm(t ~ I(x_mem) + I(y_mem) + I(x_mem^2) + I(x_mem * y_mem) + I(y_mem^2), data2)
+
+        ## Re-use the above-diagonal cost as the minimum cost below the diagonal.  See Note
+        ## [Minimum values for two-variable quadratic costing functions].
+        mk.result(m, "const_above_diagonal", constant=constant, minimum=constant, subtype="quadratic_in_x_and_y")
     }
 
     quotientIntegerModel  <- divideIntegerModel
@@ -530,7 +545,7 @@ modelFun <- function(path) {
         m <- lm(t ~ x_mem, filtered)
 
         constant <- min(filtered$t)
-        ## FIXME.  The `constant` value above is the above-diagonal cost, which we
+        ## FIXME.  The `constant` value above is the off-diagonal cost, which we
         ## don't collect benchmarking data for.  Collect some data and infer it.
 
         mk.result(m, "linear_on_diagonal", constant=constant)
@@ -597,7 +612,7 @@ modelFun <- function(path) {
         m <- lm(t ~ x_mem, filtered)
 
         constant <- min(filtered$t)
-        ## FIXME.  The `constant` value above is the above-diagonal cost, which
+        ## FIXME.  The `constant` value above is the off-diagonal cost, which
         ## we don't collect benchmarking data for.  We might want to collect
         ## some data and infer it.
 
@@ -740,16 +755,39 @@ modelFun <- function(path) {
         mk.result(m, "quadratic_in_y")
     }
 
-    ##### Models to be returned to Haskell #####
+    andByteStringModel <- {
+        fname <- "AndByteString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ y_mem + z_mem, filtered)
+        mk.result(m, "linear_in_y_and_z")
+    }
+    orByteStringModel         <- andByteStringModel
+    xorByteStringModel        <- andByteStringModel
 
-    models <- list (
+    complementByteStringModel <- linearInX ("ComplementByteString")
+    readBitModel              <- constantModel ("ReadBit")
+    writeBitsModel            <- linearInY ("WriteBits")
+    ## ^ The Y value here is the length of the list of positions because we use ListCostedByLength
+    ## in the relevant costing benchmark.  The time actually depends on the minimum of the lengths
+    ## of the second and third arguments of `writeBits`, but that will be at most Y, so using
+    ## linearInY is conservatively safe.  If `writeBits` is used correctly then the lengths of the
+    ## second and third arguments will always be the same anyway.
+    replicateByteModel        <- linearInX ("ReplicateByte")
+    shiftByteStringModel      <- linearInX ("ShiftByteString")
+    rotateByteStringModel     <- linearInX ("RotateByteString")
+    countSetBitsModel         <- linearInX ("CountSetBits")
+    findFirstSetBitModel      <- linearInX ("FindFirstSetBit")
+
+
+##### Models to be returned to Haskell #####
+
+    models.for.adjustment <-
+        list (
         addIntegerModel                      = addIntegerModel,
         subtractIntegerModel                 = subtractIntegerModel,
         multiplyIntegerModel                 = multiplyIntegerModel,
-        divideIntegerModel                   = divideIntegerModel,
-        quotientIntegerModel                 = quotientIntegerModel,
-        remainderIntegerModel                = remainderIntegerModel,
-        modIntegerModel                      = modIntegerModel,
         equalsIntegerModel                   = equalsIntegerModel,
         lessThanIntegerModel                 = lessThanIntegerModel,
         lessThanEqualsIntegerModel           = lessThanEqualsIntegerModel,
@@ -818,12 +856,32 @@ modelFun <- function(path) {
         bls12_381_mulMlResultModel           = bls12_381_mulMlResultModel,
         bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel,
         integerToByteStringModel             = integerToByteStringModel,
-        byteStringToIntegerModel             = byteStringToIntegerModel
+        byteStringToIntegerModel             = byteStringToIntegerModel,
+        andByteStringModel                   = andByteStringModel,
+        orByteStringModel                    = orByteStringModel,
+        xorByteStringModel                   = xorByteStringModel,
+        complementByteStringModel            = complementByteStringModel,
+        readBitModel                         = readBitModel,
+        writeBitsModel                       = writeBitsModel,
+        replicateByteModel                   = replicateByteModel,
+        shiftByteStringModel                 = shiftByteStringModel,
+        rotateByteStringModel                = rotateByteStringModel,
+        countSetBitsModel                    = countSetBitsModel,
+        findFirstSetBitModel                 = findFirstSetBitModel
+        )
+
+    ## The integer division functions have a complex costing behaviour that requires some negative
+    ## coefficients to get accurate results. Because of this they are excluded from adjustModels:
+    ## the Haskell code receives the raw model and takes care of the (unlikely) case when a negative
+    ## value is returned itself (using a minimm value returned from R as an extra parameter).  Any
+    ## other builtins which need a non-monotonic costing function should be treated similarly.
+
+    unadjusted.models <- list (
+        divideIntegerModel                   = divideIntegerModel,
+        quotientIntegerModel                 = quotientIntegerModel,
+        remainderIntegerModel                = remainderIntegerModel,
+        modIntegerModel                      = modIntegerModel
     )
 
-    return(adjustModels(models))
-
-    ## Caution!  If we introduce any non-monotonic costing functions they should
-    ## be excluded from adjustModels and make their own adjustments for eg,
-    ## possible negative return values
+    return(c(adjustModels(models.for.adjustment), unadjusted.models))
 }

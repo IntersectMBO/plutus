@@ -5,9 +5,9 @@
   in
   \(x : integer) ->
     Bool_match
-      (ifThenElse
+      (Bool_match
+         (ifThenElse {Bool} (lessThanInteger 0 x) True False)
          {all dead. Bool}
-         (lessThanInteger 0 x)
          (/\dead -> False)
          (/\dead -> True)
          {all dead. dead})

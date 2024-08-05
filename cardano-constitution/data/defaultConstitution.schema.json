@@ -1,0 +1,131 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "propertyNames": {
+        "$comment": "The param id is supposed to be a non-negative integer"
+        , "$comment": "optionally followed by a square-bracketed non-negative integer"
+        , "$comment": "We enforce with a regex (^(0|[1-9][0-9]*)$) the param id to the non-negative decimal numbers"
+        , "$comment": "The regex also disallows leading zeroes, to avoid silent duplicates"
+        , "pattern": "^(0|[1-9][0-9]*)(\\[(0|[1-9][0-9]*)\\])?$"
+    },
+    "additionalProperties": {
+        "type": "object",
+        "properties": {
+            "$comment": { "type": "string" },
+            "type": {"type": "string", "enum": ["integer","unit_interval", "any"]},
+            "predicates": { "type": "array"
+                            , "items": { "$ref": "#/$defs/predKeyValue" }
+                            , "$comment": "Unknown Parameters and Parameters with no restrictions are treated differently:"
+                            , "$comment": "An unknown parameter is not specified in the json file, whereas a no-restrictions parameter is specified with type any or with predicates==[]."
+                          }
+        },
+        "required": ["type"],
+        "additionalProperties": false
+    },
+    "$defs": {
+        "predKeyValue": {"oneOf": [
+            {"type": "object", "properties": {"minValue": { "$ref": "#/$defs/predValue"}, "$comment": { "type": "string" }}, "additionalProperties": false, "required": ["minValue"]},
+            {"type": "object", "properties": {"maxValue": { "$ref": "#/$defs/predValue"}, "$comment": { "type": "string" }}, "additionalProperties": false, "required": ["maxValue"]},
+            {"type": "object", "properties": {"notEqual": { "$ref": "#/$defs/predValue"}, "$comment": { "type": "string" }}, "additionalProperties": false, "required": ["notEqual"]}
+                         ]
+                        },
+        "predValue": {"oneOf":
+                      [ {"type": "integer"},
+                        {"type": "object", "properties": {"numerator": {"type": "integer"}, "denominator": {"type": "integer"}}, "required": ["numerator","denominator"]}
+                      ]
+                     }
+    },
+    "examples": [
+        { "0": {
+            "type": "integer"
+            , "predicates": [{ "minValue": 1 }]
+            , "$comment": "This restricts the parameter to be at least 1"
+        }},
+        {"0": {
+            "type": "integer"
+            , "predicates": [{ "minValue": 1}, {"maxValue": 1 }]
+            , "$comment": "Parameter should be least 1 and at most 1 ==> can only be 1"
+            , "$comment": "A hard/frozen restriction on the parameter, because it cannot change as long as constitution remains the same"
+        }},
+        {"0": {
+            "type": "integer"
+            , "predicates": [{ "minValue": 1}, {"maxValue": -1 }]
+            , "$comment": "Must be at least 1 and at most -1. UNSATISFIABLE"
+            , "$comment": "A non-sense parameter restriction. A proposal trying to touch this parameter will always fail"
+            , "$comment": "Currently, we don't have a guard against configuring a constitution with such non-sense restrictions"
+        }},
+        {"0": {
+            "type": "integer"
+            , "predicates": [{ "minValue": 1} , {"minValue": -1 }]
+            , "$comment": "An example with duplicated, redundant predicates"
+            , "$comment": "Both predicates must succeed, which implies that ==> {minValue: min(1,-1)} ==> {minValue: -1}"
+        }},
+        {"0": {
+            "type": "integer"
+            , "predicates": []
+            , "$comment": "Does not contain any restrictions, and thus is allowed to take any integer Value"
+            , "$comment": "This example of an empty-predicates parameter, acknowledges the existence of a parameter and allows it to be changed (*to any integer value*)."
+            , "$comment": "Unlike this example of a known parameter with no predicates, an unknown parameter (not specified at all in a constitution-config) would make its proposal fail."
+        }},
+        {"0": {
+            "type": "any"
+            , "$comment": "An example of a known parameter that can take any value"
+            , "$comment": "This is different than specifying the type with predicates==[], since there is not going to be any de-serialization done for the proposed parameter's type"
+        }},
+        {"0": {
+            "type": "integer"
+            , "predicates": [{ "minValue": 1, "minValue": 2 }]
+            , "$comment": "^ DUPLICATE ENTRY inside THE SAME PREDICATE OBJECT"
+            , "$comment": "This MIGHT be caught by the JSON schema validator but definitely NOT by AESON."
+
+            , "$comment": "VERY IMPORTANT: json schema (and JSON) allows duplicate object entries."
+            , "$comment": "Only one of the duplicates will be *silently* loaded and we don't guarantee the order"
+            , "$comment": "SO DO NOT ENTER DUPLICATES inside the **SAME JSON OBJECT** in the configuration"
+        }},
+        {"0": {
+            "type": "integer"
+            , "predicates": [{ "minValue": 1}]
+            , "predicates": [{ "maxValue": 1}, {"notEqual": 0}]
+            , "$comment": "^ DUPLICATE PREDICATES ENTRY inside the SAME PARAM OBJECT"
+            , "$comment": "This will definitely NOT be caught by any json schema validator or by AESON."
+            , "$comment": "VERY IMPORTANT: json schema (and JSON) allows duplicate object entries."
+            , "$comment": "Only one of the duplicates will be *silently* loaded and we don't guarantee the order"
+            , "$comment": "SO DO NOT ENTER DUPLICATES inside the **SAME JSON OBJECT** in the configuration"
+        }},
+        {"0": {
+            "type": "unit_interval"
+            , "predicates": [
+                { "maxValue": { "numerator": 2000, "denominator": 10000 }},
+                { "minValue": { "numerator": 400, "denominator": 10000 } }
+            ]
+            , "$comment": "An example of a Rational value"
+            , "$comment": "Mixing values of different types (integer / unit_interval) will fail when parsing the config"
+            , "$comment": "The denominator is not allowed to be zero both for this expected value as well as the proposed value."
+        }},
+        {"0[0]": {
+             "type": "unit_interval",
+             "predicates": [
+                 { "maxValue": { "numerator": 2000, "denominator": 10000 } },
+                 { "minValue": { "numerator": 400, "denominator": 10000 } }
+             ]
+          }
+         ,"0[1]": {
+             "type": "integer",
+             "predicates": [
+                 { "maxValue": 100 }
+             ]
+             , "$comment": "An example of a config with a parameter being a list of two elements"
+             , "$comment": "Each element can take a different type"
+             , "$comment": "Deeply nested lists are supported but currently we do not have a use for them."
+         }
+        },
+        {"0[0]": {"type": "any"},
+         "0[1]": {"type": "integer",
+                  "predicates": [
+                      { "maxValue": 100 }
+                  ]
+                  , "$comment": "An example of a known parameter that takes a list of any and an integer"
+                 }
+        }
+    ]
+}

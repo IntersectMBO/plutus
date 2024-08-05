@@ -1,4 +1,41 @@
 
+<a id='changelog-1.30.0.0'></a>
+# 1.30.0.0 — 2024-06-17
+
+## Removed
+
+- Removed incorrect Ord and Eq instances from AssocMap and Data.AssocMap.
+
+## Added
+
+- Builtins corresponding to the logical operations from [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md).
+
+- Builtin wrappers for operations from [this
+  CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md).
+
+- Haskell `Eq` and `Ord` instances for `AssocMap` based on `Data.Map.Strict`.
+
+## Changed
+
+- References to CIP-0087 now correctly refer to CIP-121.
+
+- Rename `replicateByteString` to `replicateByte`
+
+<a id='changelog-1.29.0.0'></a>
+# 1.29.0.0 — 2024-06-04
+
+## Added
+
+- Added `Data.AssocList.Map` module which provides a map implementation based on `Data`.
+
+## Changed
+
+- Split `PlutusTx.Builtins.Class` into `PlutusTx.Builtins.HasBuiltin` and `PlutusTx.Builtins.HasOpaque` in #5971:
++ Split 'FromBuiltin' into 'HasFromBuiltin' and 'HasFromOpaque'
++ Split 'ToBuiltin' into 'HasToBuiltin' and 'HasToOpaque'
+
+- The PlutusTx `These` type had the Haskell implementations of `Show`, `Eq` and `Ord` instances instead of PlutusTx ones. This has been fixed.
+
 <a id='changelog-1.28.0.0'></a>
 # 1.28.0.0 — 2024-05-15
 

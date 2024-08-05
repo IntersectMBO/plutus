@@ -60,20 +60,18 @@ letrec
         List_match
           {Tuple2 data data}
           ds
-          {all dead. list (pair data data)}
-          (/\dead -> [])
+          {list (pair data data)}
+          []
           (\(d : Tuple2 data data) (ds : List (Tuple2 data data)) ->
-             /\dead ->
-               mkCons
-                 {pair data data}
-                 (Tuple2_match
-                    {data}
-                    {data}
-                    d
-                    {pair data data}
-                    (\(d : data) (d : data) -> mkPairData d d))
-                 (goList ds))
-          {all dead. dead}
+             mkCons
+               {pair data data}
+               (Tuple2_match
+                  {data}
+                  {data}
+                  d
+                  {pair data data}
+                  (\(d : data) (d : data) -> mkPairData d d))
+               (goList ds))
 in
 let
   !unsafeFromList :
@@ -111,11 +109,7 @@ let
                            (go xs))
                     {all dead. dead}
           in
-          \(eta : List (Tuple2 k a)) ->
-            let
-              !eta : List (Tuple2 data data) = go eta
-            in
-            goList eta
+          \(eta : List (Tuple2 k a)) -> goList (go eta)
 in
 \(n : integer) ->
   let
@@ -182,9 +176,13 @@ in
                               !hd : pair data data
                                 = headList {pair data data} xs
                             in
-                            ifThenElse
+                            Bool_match
+                              (ifThenElse
+                                 {Bool}
+                                 (equalsData k' (fstPair {data} {data} hd))
+                                 True
+                                 False)
                               {all dead. Maybe data}
-                              (equalsData k' (fstPair {data} {data} hd))
                               (/\dead ->
                                  let
                                    !ds : list (pair data data)
@@ -276,14 +274,18 @@ in
                            xs
                            (\(ds : Unit) -> False)
                            (\(ds : Unit) ->
-                              ifThenElse
+                              Bool_match
+                                (ifThenElse
+                                   {Bool}
+                                   (equalsData
+                                      k
+                                      (fstPair
+                                         {data}
+                                         {data}
+                                         (headList {pair data data} xs)))
+                                   True
+                                   False)
                                 {all dead. Bool}
-                                (equalsData
-                                   k
-                                   (fstPair
-                                      {data}
-                                      {data}
-                                      (headList {pair data data} xs)))
                                 (/\dead ->
                                    let
                                      !ds : list (pair data data)

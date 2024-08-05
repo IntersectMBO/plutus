@@ -1,6 +1,9 @@
 let
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !`$mInts` :
      all r.
        data ->
@@ -14,9 +17,13 @@ let
           let
             !tup : pair integer (list data) = unConstrData scrut
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse
+               {Bool}
+               (equalsInteger 0 (fstPair {integer} {list data} tup))
+               True
+               False)
             {all dead. r}
-            (equalsInteger 0 (fstPair {integer} {list data} tup))
             (/\dead ->
                let
                  !l : list data = sndPair {integer} {list data} tup
@@ -58,9 +65,6 @@ let
           ds
           (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
           (\(void : unit) -> error {integer})
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   !lessThanInteger : integer -> integer -> Bool
     = \(x : integer) (y : integer) ->
         ifThenElse {Bool} (lessThanInteger x y) True False

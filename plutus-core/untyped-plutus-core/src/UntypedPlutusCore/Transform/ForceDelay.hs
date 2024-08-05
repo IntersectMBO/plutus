@@ -139,7 +139,7 @@ import UntypedPlutusCore.Core
 
 import Control.Lens (transformOf)
 import Control.Monad (guard)
-import Data.Foldable (foldl')
+import Data.Foldable as Foldable (foldl')
 
 {- | Traverses the term, for each node applying the optimisation
  detailed above. For implementation details see 'optimisationProcedure'.
@@ -195,7 +195,7 @@ toMultiApply term =
 
 fromMultiApply :: MultiApply name uni fun a -> Term name uni fun a
 fromMultiApply (MultiApply term ts) =
-    foldl' (\acc (ann, arg) -> Apply ann acc arg) term ts
+    Foldable.foldl' (\acc (ann, arg) -> Apply ann acc arg) term ts
 
 data MultiAbs name uni fun a = MultiAbs
     { absVars :: [(a, name)]
@@ -215,4 +215,4 @@ toMultiAbs term =
 
 fromMultiAbs :: MultiAbs name uni fun a -> Term name uni fun a
 fromMultiAbs (MultiAbs vars term) =
-    foldl' (\acc (ann, name) -> LamAbs ann name acc) term vars
+    Foldable.foldl' (\acc (ann, name) -> LamAbs ann name acc) term vars

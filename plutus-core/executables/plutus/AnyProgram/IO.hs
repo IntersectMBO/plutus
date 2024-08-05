@@ -17,7 +17,7 @@ import PlutusCore.Pretty qualified as PP
 import PlutusPrelude hiding ((%~))
 import Types
 
-import Codec.CBOR.Extras
+import Codec.Extras.SerialiseViaFlat
 import Codec.Serialise (deserialiseOrFail, serialise)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
@@ -90,10 +90,10 @@ writeProgram sng ast file =
 
 prettyWithStyle :: PP.PrettyPlc a => PrettyStyle -> a -> Doc ann
 prettyWithStyle = \case
-        Classic       -> PP.prettyPlcClassicDef
-        ClassicDebug  -> PP.prettyPlcClassicDebug
-        Readable      -> PP.prettyPlcReadableDef
-        ReadableDebug -> PP.prettyPlcReadableDebug
+        Classic       -> PP.prettyPlcClassic
+        ClassicSimple  -> PP.prettyPlcClassicSimple
+        Readable      -> PP.prettyPlcReadable
+        ReadableSimple -> PP.prettyPlcReadableSimple
 
 readFileName :: (?opts :: Opts)
              => FileName -> IO BS.ByteString

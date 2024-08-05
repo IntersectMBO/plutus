@@ -1,4 +1,7 @@
 let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   data Unit | Unit_match where
     Unit : Unit
 in
@@ -15,18 +18,13 @@ letrec
                !hd : data = headList {data} xs
                !tl : list data = tailList {data} xs
              in
-             ifThenElse
+             Bool_match
+               (ifThenElse {Bool} (equalsInteger 0 i) True False)
                {all dead. data}
-               (equalsInteger 0 i)
                (/\dead -> hd)
                (/\dead -> go tl (subtractInteger i 1))
                {all dead. dead})
           Unit
           Unit
-in
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
 in
 \(d : data) -> let !xs : list data = unListData d in go xs 5

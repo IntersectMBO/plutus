@@ -74,9 +74,9 @@ evalBuiltinApp
     -> CkM uni fun s (CkValue uni fun)
 evalBuiltinApp term runtime = case runtime of
     BuiltinCostedResult _ getX -> case getX of
-        BuiltinFailure logs err       -> emitCkM logs *> throwBuiltinErrorWithCause term err
         BuiltinSuccess x              -> pure x
         BuiltinSuccessWithLogs logs x -> emitCkM logs $> x
+        BuiltinFailure logs err       -> emitCkM logs *> throwBuiltinErrorWithCause term err
     _ -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
@@ -114,6 +114,9 @@ type CkM uni fun s =
 
 instance AsEvaluationFailure CkUserError where
     _EvaluationFailure = _EvaluationFailureVia CkEvaluationFailure
+
+instance AsUnliftingError CkUserError where
+    _UnliftingError = _UnliftingErrorVia CkEvaluationFailure
 
 instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."

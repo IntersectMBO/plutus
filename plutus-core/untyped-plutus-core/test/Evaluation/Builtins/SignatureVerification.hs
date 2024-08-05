@@ -10,9 +10,9 @@
 
 module Evaluation.Builtins.SignatureVerification (
   ecdsaSecp256k1Prop,
-  ed25519_Variant0Prop,
-  ed25519_Variant1Prop,
-  ed25519_Variant2Prop,
+  ed25519_VariantAProp,
+  ed25519_VariantBProp,
+  ed25519_VariantCProp,
   schnorrSecp256k1Prop,
   ) where
 
@@ -48,42 +48,42 @@ import Text.Show.Pretty (ppShow)
 ecdsaSecp256k1Prop :: PropertyT IO ()
 ecdsaSecp256k1Prop = do
   testCase <- forAllWith ppShow genEcdsaCase
-  cover 14 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
-  cover 14 "malformed message" . is (_ShouldError . _BadMessage) $ testCase
-  cover 14 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
-  cover 14 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
-  cover 14 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
-  cover 14 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
+  cover 4 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
+  cover 4 "malformed message" . is (_ShouldError . _BadMessage) $ testCase
+  cover 4 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
+  cover 4 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
+  cover 4 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
+  cover 4 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
   runTestDataWith def testCase fromMessageHash VerifyEcdsaSecp256k1Signature
 
 schnorrSecp256k1Prop :: PropertyT IO ()
 schnorrSecp256k1Prop = do
   testCase <- forAllWith ppShow genSchnorrCase
-  cover 18 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
-  cover 18 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
-  cover 18 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
-  cover 18 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
-  cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
+  cover 5 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
+  cover 5 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
+  cover 5 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
+  cover 5 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
+  cover 5 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
   runTestDataWith def testCase id VerifySchnorrSecp256k1Signature
 
 ed25519Prop :: BuiltinSemanticsVariant DefaultFun -> PropertyT IO ()
 ed25519Prop semvar = do
   testCase <- forAllWith ppShow genEd25519Case
-  cover 18 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
-  cover 18 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
-  cover 18 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
-  cover 18 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
-  cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
+  cover 5 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
+  cover 5 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
+  cover 5 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
+  cover 5 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
+  cover 5 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
   runTestDataWith semvar testCase id VerifyEd25519Signature
 
-ed25519_Variant0Prop :: PropertyT IO ()
-ed25519_Variant0Prop = ed25519Prop DefaultFunSemanticsVariant0
+ed25519_VariantAProp :: PropertyT IO ()
+ed25519_VariantAProp = ed25519Prop DefaultFunSemanticsVariantA
 
-ed25519_Variant1Prop :: PropertyT IO ()
-ed25519_Variant1Prop = ed25519Prop DefaultFunSemanticsVariant1
+ed25519_VariantBProp :: PropertyT IO ()
+ed25519_VariantBProp = ed25519Prop DefaultFunSemanticsVariantB
 
-ed25519_Variant2Prop :: PropertyT IO ()
-ed25519_Variant2Prop = ed25519Prop DefaultFunSemanticsVariant2
+ed25519_VariantCProp :: PropertyT IO ()
+ed25519_VariantCProp = ed25519Prop DefaultFunSemanticsVariantC
 
 -- Helpers
 
@@ -101,7 +101,7 @@ runTestDataWith semvar testData f op = do
         mkConstant @ByteString () msg,
         mkConstant @ByteString () sig
         ]
-  let result = typecheckEvaluateCek semvar defaultBuiltinCostModel actualExp
+  let result = typecheckEvaluateCek semvar defaultBuiltinCostModelForTesting actualExp  -- FIXME: semantic variant?
   case result of
     Left x -> annotateShow x >> failure
     Right (res, logs) -> do

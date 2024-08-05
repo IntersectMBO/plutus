@@ -31,7 +31,7 @@ instance PLC.AsTypeError (Error uni fun ann) (PLC.Term PLC.TyName PLC.Name uni f
     _TypeError = _PLCError . PLC._TypeError
 
 instance (PLC.PrettyUni uni, PP.Pretty fun, PP.Pretty ann) => Show (Error uni fun ann) where
-    show = show . PLC.prettyPlcClassicDebug
+    show = show . PLC.prettyPlcClassicSimple
 
 instance (PLC.PrettyUni uni, PP.Pretty fun, PP.Pretty ann) =>
         PLC.PrettyBy PLC.PrettyConfigPlc (Error uni fun ann) where

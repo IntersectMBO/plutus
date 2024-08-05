@@ -1,20 +1,15 @@
-(let
-  (nonrec)
-  (typebind (tyvardecl unit (type)) (all a (type) (fun a a)))
-  (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl Bool (type))
-
-        match_Bool
-        (vardecl True Bool) (vardecl False Bool)
-      )
-    )
-    (let
-      (nonrec)
-      (termbind (strict) (vardecl true Bool) True)
-      (let (nonrec) (termbind (strict) (vardecl false Bool) False) false)
-    )
-  )
-)
+let
+  unit = all a. a -> a
+in
+let
+  data Bool | match_Bool where
+    True : Bool
+    False : Bool
+in
+let
+  !true : Bool = True
+in
+let
+  !false : Bool = False
+in
+false

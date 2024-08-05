@@ -1,5 +1,6 @@
--- editorconfig-checker-disable-file
+{-# LANGUAGE BlockArguments    #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
@@ -13,32 +14,31 @@ module StdLib.Spec where
 
 import Control.DeepSeq (NFData, force)
 import Control.Exception (SomeException, evaluate, try)
+import Control.Monad.Except (runExceptT)
 import Control.Monad.IO.Class (MonadIO (liftIO))
+import Data.Proxy (Proxy (..))
 import Data.Ratio ((%))
 import GHC.Exts (fromString)
 import Hedgehog (MonadGen, Property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore.Test (TestNested, embed, goldenUEval, testNested, testNestedGhc)
-import PlutusTx.Test (goldenPir)
-import Test.Tasty (TestName)
-import Test.Tasty.Hedgehog (testPropertyNamed)
-
-import PlutusTx.Eq qualified as PlutusTx
-import PlutusTx.Ord qualified as PlutusTx
-import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Ratio qualified as Ratio
-
+import PlutusCore.Data qualified as PLC
+import PlutusCore.MkPlc qualified as Core
+import PlutusCore.Test (TestNested, embed, runUPlc, testNested, testNestedGhc)
+import PlutusPrelude (reoption)
 import PlutusTx.Builtins.Internal (BuiltinData (BuiltinData))
 import PlutusTx.Code (CompiledCode, getPlcNoAnn)
+import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.Lift qualified as Lift
+import PlutusTx.Ord qualified as PlutusTx
 import PlutusTx.Plugin (plc)
-
-import PlutusCore.Data qualified as PLC
-
-import Data.Proxy (Proxy (Proxy))
-import PlutusPrelude (reoption)
+import PlutusTx.Prelude qualified as PlutusTx
+import PlutusTx.Ratio qualified as Ratio
+import PlutusTx.Test (goldenPir)
+import Test.Tasty (TestName, TestTree)
+import Test.Tasty.Hedgehog (testPropertyNamed)
+import Test.Tasty.HUnit (assertFailure, testCase, (@?=))
 
 roundPlc :: CompiledCode (Ratio.Rational -> Integer)
 roundPlc = plc (Proxy @"roundPlc") Ratio.round
@@ -46,7 +46,7 @@ roundPlc = plc (Proxy @"roundPlc") Ratio.round
 tests :: TestNested
 tests =
   testNested "StdLib" . pure $ testNestedGhc
-    [ goldenUEval "ratioInterop" [ getPlcNoAnn roundPlc, snd (Lift.liftProgramDef (Ratio.fromGHC 3.75)) ]
+    [ embed testRatioInterop
     , testRatioProperty "round" Ratio.round round
     , testRatioProperty "truncate" Ratio.truncate truncate
     , testRatioProperty "abs" (fmap Ratio.toGHC Ratio.abs) abs
@@ -66,8 +66,17 @@ tryHard :: (MonadIO m, NFData a) => a -> m (Maybe a)
 -- the body, i.e. outside of the call to 'try', defeating the whole purpose.
 tryHard ~a = reoption <$> (liftIO $ try @SomeException $ evaluate $ force a)
 
-testRatioProperty :: (Show a, Eq a) => TestName -> (Ratio.Rational -> a) -> (Rational -> a) -> TestNested
-testRatioProperty nm plutusFunc ghcFunc = embed $ testPropertyNamed nm (fromString nm) $ Hedgehog.property $ do
+testRatioInterop :: TestTree
+testRatioInterop = testCase "ratioInterop" do
+  runExceptT (runUPlc [getPlcNoAnn roundPlc, snd (Lift.liftProgramDef (Ratio.fromGHC 3.75))])
+    >>= \case
+      Left e -> assertFailure (show e)
+      Right r -> r @?= Core.mkConstant () (4 :: Integer)
+
+testRatioProperty ::
+  (Show a, Eq a) => TestName -> (Ratio.Rational -> a) -> (Rational -> a) -> TestNested
+testRatioProperty nm plutusFunc ghcFunc =
+  embed $ testPropertyNamed nm (fromString nm) $ Hedgehog.property $ do
     rat <- Hedgehog.forAll $ Gen.realFrac_ (Range.linearFrac (-10000) 100000)
     let ghcResult = ghcFunc rat
         plutusResult = plutusFunc $ Ratio.fromGHC rat

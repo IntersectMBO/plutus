@@ -184,6 +184,7 @@ builtinNames = [
 
     , 'Builtins.verifyEd25519Signature
 
+    , ''Builtins.BuiltinInteger
     , ''Integer
     , 'Builtins.addInteger
     , 'Builtins.subtractInteger
@@ -277,6 +278,19 @@ builtinNames = [
 
     , 'Builtins.integerToByteString
     , 'Builtins.byteStringToInteger
+
+    , 'Builtins.andByteString
+    , 'Builtins.orByteString
+    , 'Builtins.xorByteString
+    , 'Builtins.complementByteString
+    , 'Builtins.readBit
+    , 'Builtins.writeBits
+    , 'Builtins.replicateByte
+
+    , 'Builtins.shiftByteString
+    , 'Builtins.rotateByteString
+    , 'Builtins.countSetBits
+    , 'Builtins.findFirstSetBit
     ]
 
 defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -434,6 +448,21 @@ defineBuiltinTerms = do
             -- Bitwise operations
             PLC.IntegerToByteString -> defineBuiltinInl 'Builtins.integerToByteString
             PLC.ByteStringToInteger -> defineBuiltinInl 'Builtins.byteStringToInteger
+
+            -- Logical operations
+            PLC.AndByteString -> defineBuiltinInl 'Builtins.andByteString
+            PLC.OrByteString -> defineBuiltinInl 'Builtins.orByteString
+            PLC.XorByteString -> defineBuiltinInl 'Builtins.xorByteString
+            PLC.ComplementByteString -> defineBuiltinInl 'Builtins.complementByteString
+            PLC.ReadBit -> defineBuiltinInl 'Builtins.readBit
+            PLC.WriteBits -> defineBuiltinInl 'Builtins.writeBits
+            PLC.ReplicateByte -> defineBuiltinInl 'Builtins.replicateByte
+
+            -- Other bitwise ops
+            PLC.ShiftByteString -> defineBuiltinInl 'Builtins.shiftByteString
+            PLC.RotateByteString -> defineBuiltinInl 'Builtins.rotateByteString
+            PLC.CountSetBits -> defineBuiltinInl 'Builtins.countSetBits
+            PLC.FindFirstSetBit -> defineBuiltinInl 'Builtins.findFirstSetBit
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m ann

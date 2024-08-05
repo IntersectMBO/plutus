@@ -233,15 +233,15 @@ genApplyAdd2 = do
     return . TermOf term $ iv + jv
 
 -- | Check that division by zero results in 'Error'.
-genDivideByZero :: TermGen (EvaluationResult Integer)
+genDivideByZero :: TermGen (BuiltinResult Integer)
 genDivideByZero = do
     op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
     TermOf i _ <- genTermLoose $ typeRep @Integer
     let term = mkIterAppNoAnn (Builtin () op) [i, mkConstant @Integer () 0]
-    return $ TermOf term EvaluationFailure
+    return $ TermOf term evaluationFailure
 
 -- | Check that division by zero results in 'Error' even if a function doesn't use that argument.
-genDivideByZeroDrop :: TermGen (EvaluationResult Integer)
+genDivideByZeroDrop :: TermGen (BuiltinResult Integer)
 genDivideByZeroDrop = do
     op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
     let typedInt = typeRep
@@ -252,7 +252,7 @@ genDivideByZeroDrop = do
                 [ mkConstant @Integer () iv
                 , mkIterAppNoAnn (Builtin () op) [i, mkConstant @Integer () 0]
                 ]
-    return $ TermOf term EvaluationFailure
+    return $ TermOf term evaluationFailure
 
 -- | Apply a function to all interesting generators and collect the results.
 fromInterestingTermGens

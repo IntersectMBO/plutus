@@ -75,14 +75,14 @@ mkDsignBmInputs :: forall v msg .
     -> [(ByteString, ByteString, ByteString)]
 mkDsignBmInputs toMsg msgSize =
     map mkOneInput (zip seeds messages)
-    where seeds = listOfSizedByteStrings numSamples 128
+    where seeds = listOfByteStringsOfLength numSamples 128
           -- ^ Seeds for key generation. For some algorithms the seed has to be
           -- a certain minimal size and there's a SeedBytesExhausted error if
           -- it's not big enough; 128 is big enough for everything here though.
           messages =
               case msgSize of
                 Arbitrary -> bigByteStrings seedA
-                Fixed n   -> listOfSizedByteStrings numSamples n
+                Fixed n   -> listOfByteStringsOfLength numSamples n
           mkOneInput (seed, msg) =
               let signKey = genKeyDSIGN @v $ mkSeedFromBytes seed                 -- Signing key (private)
                   vkBytes = rawSerialiseVerKeyDSIGN $ deriveVerKeyDSIGN signKey   -- Verification key (public)
@@ -126,7 +126,7 @@ benchByteStringOneArgOp name =
 
 
 byteStrings :: [ByteString]
-byteStrings = listOfSizedByteStrings 200 20
+byteStrings = listOfByteStringsOfLength 200 20
 
 byteStringsA :: [ByteString]
 byteStringsA = take 100 byteStrings
@@ -177,7 +177,7 @@ gtinputsB = zipWith Pairing.millerLoop g1inputsB g2inputsB
 benchBls12_381_G1_add :: Benchmark
 benchBls12_381_G1_add =
         let name = Bls12_381_G1_add
-        in createTwoTermBuiltinBenchElementwise name [] g1inputsA g1inputsB
+        in createTwoTermBuiltinBenchElementwise name [] $ zip g1inputsA g1inputsB
 -- constant time
 -- Two arguments, points on G1
 
@@ -190,13 +190,13 @@ benchBls12_381_G1_neg =
 benchBls12_381_G1_scalarMul :: [Integer] -> Benchmark
 benchBls12_381_G1_scalarMul multipliers =
     let name = Bls12_381_G1_scalarMul
-    in createTwoTermBuiltinBenchElementwise name [] multipliers g1inputsA
+    in createTwoTermBuiltinBenchElementwise name [] $ zip multipliers g1inputsA
 -- linear in x (size of scalar)
 
 benchBls12_381_G1_equal :: Benchmark
 benchBls12_381_G1_equal =
     let name = Bls12_381_G1_equal
-    in createTwoTermBuiltinBenchElementwise name [] g1inputsA g1inputsA
+    in createTwoTermBuiltinBenchElementwise name [] $ zip g1inputsA g1inputsA
     -- Same arguments twice
 -- constant time
 
@@ -206,8 +206,8 @@ benchBls12_381_G1_hashToGroup =
         inputs = listOfByteStrings 100
         -- The maximum length of a DST is 255 bytes, so let's use that for all
         -- cases (DST size shouldn't make much difference anyway).
-        dsts = listOfSizedByteStrings 100 255
-    in createTwoTermBuiltinBenchElementwise name [] inputs dsts
+        dsts = listOfByteStringsOfLength 100 255
+    in createTwoTermBuiltinBenchElementwise name [] $ zip inputs dsts
 -- linear in input size
 
 benchBls12_381_G1_compress :: Benchmark
@@ -226,7 +226,7 @@ benchBls12_381_G1_uncompress =
 benchBls12_381_G2_add :: Benchmark
 benchBls12_381_G2_add =
     let name = Bls12_381_G2_add
-    in createTwoTermBuiltinBenchElementwise name [] g2inputsA g2inputsB
+    in createTwoTermBuiltinBenchElementwise name [] $ zip g2inputsA g2inputsB
 -- constant time
 
 benchBls12_381_G2_neg :: Benchmark
@@ -238,13 +238,13 @@ benchBls12_381_G2_neg =
 benchBls12_381_G2_scalarMul :: [Integer] -> Benchmark
 benchBls12_381_G2_scalarMul multipliers =
     let name = Bls12_381_G2_scalarMul
-    in createTwoTermBuiltinBenchElementwise name [] multipliers g2inputsA
+    in createTwoTermBuiltinBenchElementwise name [] $ zip multipliers g2inputsA
 -- linear in x (size of scalar)
 
 benchBls12_381_G2_equal :: Benchmark
 benchBls12_381_G2_equal =
     let name = Bls12_381_G2_equal
-    in createTwoTermBuiltinBenchElementwise name [] g2inputsA g2inputsA
+    in createTwoTermBuiltinBenchElementwise name [] $ zip g2inputsA g2inputsA
     -- Same arguments twice
 -- constant time
 
@@ -252,8 +252,8 @@ benchBls12_381_G2_hashToGroup :: Benchmark
 benchBls12_381_G2_hashToGroup =
     let name = Bls12_381_G2_hashToGroup
         inputs = listOfByteStrings 100
-        dsts = listOfSizedByteStrings 100 255
-    in createTwoTermBuiltinBenchElementwise name [] inputs dsts
+        dsts = listOfByteStringsOfLength 100 255
+    in createTwoTermBuiltinBenchElementwise name [] $ zip inputs dsts
 -- linear in size of input
 
 benchBls12_381_G2_compress :: Benchmark
@@ -272,19 +272,19 @@ benchBls12_381_G2_uncompress =
 benchBls12_381_millerLoop :: Benchmark
 benchBls12_381_millerLoop =
     let name = Bls12_381_millerLoop
-    in createTwoTermBuiltinBenchElementwise name [] g1inputsA g2inputsA
+    in createTwoTermBuiltinBenchElementwise name [] $ zip g1inputsA g2inputsA
 -- constant time
 
 benchBls12_381_mulMlResult :: Benchmark
 benchBls12_381_mulMlResult =
     let name = Bls12_381_mulMlResult
-    in createTwoTermBuiltinBenchElementwise name [] gtinputsA gtinputsB
+    in createTwoTermBuiltinBenchElementwise name [] $ zip gtinputsA gtinputsB
 -- constant time
 
 benchBls12_381_finalVerify :: Benchmark
 benchBls12_381_finalVerify =
     let name = Bls12_381_finalVerify
-    in createTwoTermBuiltinBenchElementwise name [] gtinputsA gtinputsB
+    in createTwoTermBuiltinBenchElementwise name [] $ zip gtinputsA gtinputsB
 -- constant time
 
 

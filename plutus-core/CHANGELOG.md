@@ -1,4 +1,70 @@
 
+<a id='changelog-1.31.0.0'></a>
+# 1.31.0.0 — 2024-07-17
+
+## Removed
+
+- Removed `Emitter` and `MonadEmitter` in #6224.
+
+- In #6248 the case-of-case optimization was removed from the compiler due to it causing OOMs.
+
+## Changed
+
+-  All names are printed with their unique suffixes by default.
+
+- Forbade using `EvaluationResult` in the builtins code in favor of `BuiltinResult` in #5926, so that builtins throw errors with more helpful messages.
+
+- Changed the type of `emit` to `Text -> BuiltinResult ()` in #6224.
+
+## Fixed
+
+- In #6272 fixed a bug in `isNormalType`.
+
+<a id='changelog-1.30.0.0'></a>
+# 1.30.0.0 — 2024-06-17
+
+## Added
+
+- Logical operations as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md).
+
+- Implementation and tests for primitive operations in [this
+  CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md)
+
+## Changed
+
+- References to CIP-87 have been corrected to refer to CIP-121.
+- Rename `ReplicateByteString` to `ReplicateByte` (and similarly for denotation)
+- Renamed decodeViaFlat to decodeViaFlatWith
+- Renamed AsSerialize to FlatViaSerialise
+
+<a id='changelog-1.29.0.0'></a>
+# 1.29.0.0 — 2024-06-04
+
+## Removed
+
+- `unsafeRunCekNoEmit` and all `unsafeEvaluate*` functions in #6043. To replace e.g. `unsafeEvaluateCek` you can use `evaluateCek` in combination with `unsafeToEvaluationResult`.
+
+- `UnknownBuiltin` and `UnknownBuiltinType` in #6064.
+
+## Added
+
+- Primitives `integerToByteString` and `byteStringToInteger` are added to PlutusV2,
+  enabled at protocol version 10.
+
+- A new cost model for PlutusV3.
+
+- Missing `KnownTypeAst`, `ReadKnownIn` and `MakeKnownIn` for integral types (`Int8`, `Word16` etc) in #6036
+
+## Changed
+
+- Renamed `unsafeExtractEvaluationResult` to `unsafeToEvaluationResult`.
+
+- We now have configurable cost models which allow different costs for different Plutus language versions and protocol versions.
+
+- Made unlifting errors a bit more flexible by allowing operational unlifting errors in #6036
+
+- CPU charges reduced for PlutusV1 and PlutusV2 scripts in the Conway era.
+
 <a id='changelog-1.28.0.0'></a>
 # 1.28.0.0 — 2024-05-15
 

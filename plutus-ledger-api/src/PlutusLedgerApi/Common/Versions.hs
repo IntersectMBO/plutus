@@ -28,6 +28,7 @@ import PlutusCore
 import PlutusLedgerApi.Common.ProtocolVersions
 import PlutusPrelude
 
+import Codec.Serialise.Class (Serialise)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 import NoThunks.Class (NoThunks)
@@ -75,7 +76,7 @@ data PlutusLedgerLanguage =
     | PlutusV2 -- ^ introduced in vasil era
     | PlutusV3 -- ^ not yet enabled
    deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
-   deriving anyclass (NFData, NoThunks)
+   deriving anyclass (NFData, NoThunks, Serialise)
 
 instance Pretty PlutusLedgerLanguage where
     pretty = viaShow
@@ -117,7 +118,13 @@ builtinsIntroducedIn = Map.fromList [
           Bls12_381_G2_equal, Bls12_381_G2_hashToGroup,
           Bls12_381_G2_compress, Bls12_381_G2_uncompress,
           Bls12_381_millerLoop, Bls12_381_mulMlResult, Bls12_381_finalVerify,
+          Keccak_256, Blake2b_224, IntegerToByteString, ByteStringToInteger
+          ]),
           Keccak_256, Blake2b_224, IntegerToByteString, ByteStringToInteger,
+  ((PlutusV3, futurePV), Set.fromList [
+          AndByteString, OrByteString, XorByteString, ComplementByteString,
+          ReadBit, WriteBits, ReplicateByte,
+          ShiftByteString, RotateByteString, CountSetBits, FindFirstSetBit,
           Ripemd_160
           ])
   ]

@@ -27,9 +27,9 @@ letrec
                  ds
                  {Bool}
                  (\(ds : bytestring) (x : integer) ->
-                    ifThenElse
+                    Bool_match
+                      (ifThenElse {Bool} (equalsInteger 0 x) True False)
                       {all dead. Bool}
-                      (equalsInteger 0 x)
                       (/\dead -> go xs)
                       (/\dead -> False)
                       {all dead. dead}))
@@ -93,29 +93,33 @@ letrec
                               ds
                               {Bool}
                               (\(ds : bytestring) (x : These integer integer) ->
-                                 These_match
-                                   {integer}
-                                   {integer}
-                                   x
+                                 Bool_match
+                                   (These_match
+                                      {integer}
+                                      {integer}
+                                      x
+                                      {Bool}
+                                      (\(b : integer) ->
+                                         ifThenElse
+                                           {Bool}
+                                           (lessThanInteger 0 b)
+                                           False
+                                           True)
+                                      (\(a : integer) (b : integer) ->
+                                         ifThenElse
+                                           {Bool}
+                                           (lessThanInteger a b)
+                                           False
+                                           True)
+                                      (\(a : integer) ->
+                                         ifThenElse
+                                           {Bool}
+                                           (lessThanInteger a 0)
+                                           False
+                                           True))
                                    {all dead. Bool}
-                                   (\(b : integer) ->
-                                      ifThenElse
-                                        {all dead. Bool}
-                                        (lessThanInteger 0 b)
-                                        (/\dead -> False)
-                                        (/\dead -> go xs))
-                                   (\(a : integer) (b : integer) ->
-                                      ifThenElse
-                                        {all dead. Bool}
-                                        (lessThanInteger a b)
-                                        (/\dead -> False)
-                                        (/\dead -> go xs))
-                                   (\(a : integer) ->
-                                      ifThenElse
-                                        {all dead. Bool}
-                                        (lessThanInteger a 0)
-                                        (/\dead -> False)
-                                        (/\dead -> go xs))
+                                   (/\dead -> go xs)
+                                   (/\dead -> False)
                                    {all dead. dead}))
                        {all dead. dead}
              in

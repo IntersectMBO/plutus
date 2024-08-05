@@ -12,10 +12,10 @@ module PlutusCore.Pretty
     , displayBy
     , juxtRenderContext
     -- * Defaults
-    , prettyPlcDef
-    , displayPlcDef
-    , prettyPlcDebug
-    , displayPlcDebug
+    , prettyPlc
+    , displayPlc
+    , prettyPlcSimple
+    , displayPlcSimple
     -- * Global configuration
     , CondensedErrors (..)
     , DefaultPrettyPlcStrategy
@@ -23,30 +23,30 @@ module PlutusCore.Pretty
     , PrettyConfigPlcStrategy (..)
     , PrettyConfigPlc (..)
     , PrettyPlc
-    , defPrettyConfigPlcOptions
-    , defPrettyConfigPlcClassic
-    , debugPrettyConfigPlcClassic
-    , defPrettyConfigPlcReadable
-    , debugPrettyConfigPlcReadable
+    , prettyConfigPlcOptions
+    , prettyConfigPlcClassic
+    , prettyConfigPlcClassicSimple
+    , prettyConfigPlcReadable
+    , prettyConfigPlcReadableSimple
     -- * Custom functions for PLC types.
-    , prettyPlcClassicDef
-    , prettyPlcClassicDebug
-    , prettyPlcReadableDef
-    , prettyPlcReadableDebug
+    , prettyPlcClassic
+    , prettyPlcClassicSimple
+    , prettyPlcReadable
+    , prettyPlcReadableSimple
     , prettyPlcCondensedErrorBy
     , displayPlcCondensedErrorClassic
     -- * Names
     , PrettyConfigName (..)
     , HasPrettyConfigName (..)
-    , defPrettyConfigName
-    , debugPrettyConfigName
+    , prettyConfigName
+    , prettyConfigNameSimple
     -- * Classic view
     , PrettyConfigClassic (..)
     , PrettyClassicBy
     , PrettyClassic
     , consAnnIf
-    , prettyClassicDef
-    , prettyClassicDebug
+    , prettyClassic
+    , prettyClassicSimple
     -- * Readable view
     , ShowKinds (..)
     , PrettyConfigReadable (..)

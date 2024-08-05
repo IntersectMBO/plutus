@@ -1,4 +1,57 @@
 
+<a id='changelog-1.30.0.0'></a>
+# 1.30.0.0 — 2024-06-17
+
+## Added
+
+- Added a new `Value` type backed by `Data`. This is currently experimental and not yet used in the ledger API.
+
+- Exported the following from `PlutusLedgerApi.Common` in #6178:
+  + `ExCPU (..)`
+  + `ExMemory (..)`
+  + `SatInt (unSatInt)`
+  + `fromSatInt`
+  + `toOpaque,
+  + `fromOpaque`
+  + `BuiltinData (..)`
+  + `ToData (..)`
+  + `FromData (..)`
+  + `UnsafeFromData (..)`
+  + `toData`
+  + `fromData`
+  + `unsafeFromData`
+  + `dataToBuiltinData`
+  + `builtinDataToData`
+
+## Fixed
+
+- Fixed the `Pretty` instance for `ScriptContext` to display the redemeer as well.
+
+<a id='changelog-1.29.0.0'></a>
+# 1.29.0.0 — 2024-06-04
+
+## Added
+
+- A new cost model for PlutusV3.
+
+## Changed
+
+- The `ScriptContext` type for Plutus V3 is modified to contain an optional datum for
+  spending scripts, in the `scriptContextScriptInfo` field. The redeemer is now also
+  part of `ScriptContext`. As a result, all Plutus V3 scripts, regardless of the purpose,
+  take a single argument: `ScriptContext`.
+- Datum is now optional for Plutus V3 spending scripts.
+
+- We now have configurable cost models which allow different costs for different Plutus language versions and protocol versions.
+- The `mkEvaluationContext` functions in `plutus-ledger-api` (which provide
+  version-dependent on-chain configuration of the Plutus Core evaluator) now
+  select appropriate cost models as well.
+
+- `evaluateScriptRestricting` and `evaluateScriptCounting` now require Plutus V3
+  scripts to return `BuiltinUnit`, otherwise the evaluation is considered to
+  have failed, and a `InvalidReturnValue` error is thrown. There is no such
+  requirement on Plutus V1 and V2 scripts.
+
 <a id='changelog-1.27.0.0'></a>
 # 1.27.0.0 — 2024-04-30
 

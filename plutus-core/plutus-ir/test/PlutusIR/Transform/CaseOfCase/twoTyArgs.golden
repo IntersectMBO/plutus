@@ -1,40 +1,15 @@
-(let
-  (nonrec)
-  (datatypebind
-    (datatype
-      (tyvardecl d12 (fun (fun (type) (type)) (fun (type) (type))))
-      (tyvardecl a3 (fun (type) (type))) (tyvardecl a10 (type))
-      m11
-      (vardecl c6 (fun (con unit) [ [ d12 a3 ] a10 ]))
-    )
-  )
-  (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl k_caseOfCase (fun [ [ d12 (con list) ] (con unit) ] (con unit)))
-      (lam
-        scrutinee
-        [ [ d12 (con list) ] (con unit) ]
-        [
-          { [ { { m11 (con list) } (con unit) } scrutinee ] (con unit) }
-          (error (fun (con unit) (con unit)))
-        ]
-      )
-    )
-    [
-      {
-        [
-          { { m11 (con list) } (con unit) }
-          (error [ [ d12 (con list) ] (con unit) ])
-        ]
-        (con unit)
-      }
-      (lam
-        x23
-        (con unit)
-        [ k_caseOfCase (error [ [ d12 (con list) ] (con unit) ]) ]
-      )
-    ]
-  )
-)
+let
+  data (d12 :: (* -> *) -> * -> *) (a3 :: * -> *) a10 | m11 where
+    c6 : unit -> d12 a3 a10
+in
+let
+  !k_caseOfCase : d12 list unit -> unit
+    = \(scrutinee : d12 list unit) ->
+        m11 {list} {unit} scrutinee {unit} (error {unit -> unit})
+in
+m11
+  {list}
+  {unit}
+  (error {d12 list unit})
+  {unit}
+  (\(x23 : unit) -> k_caseOfCase (error {d12 list unit}))

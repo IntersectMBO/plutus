@@ -16,8 +16,8 @@ import PlutusCore.Compiler qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel,
-                                                          defaultCekMachineCosts)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting,
+                                                          defaultCekMachineCostsForTesting)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters (..),
                                                         mkMachineParameters)
 import PlutusCore.Parser qualified as PC
@@ -87,7 +87,7 @@ evaluateUplcProgramWithTraces uplcProg =
     evaluateCek logEmitter machineParameters (uplcProg ^. UPLC.progTerm)
  where
   costModel :: CostModel CekMachineCosts BuiltinCostModel =
-    CostModel defaultCekMachineCosts defaultBuiltinCostModel
+    CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
   machineParameters
     :: MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ()) =
       mkMachineParameters def costModel

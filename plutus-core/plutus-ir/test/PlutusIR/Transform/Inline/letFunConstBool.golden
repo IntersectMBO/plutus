@@ -1,12 +1,6 @@
-(let
-  (nonrec)
-  (datatypebind
-    (datatype
-      (tyvardecl Bool (type))
-
-      Bool_match
-      (vardecl True Bool) (vardecl False Bool)
-    )
-  )
-  [ [ (lam x (con integer) (lam y Bool x)) (con integer 3) ] False ]
-)
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+(\(x : integer) (y : Bool) -> x) 3 False

@@ -1,6 +1,4 @@
-(\x_8 ->
-   (\cse_9 ->
-      f_3
-        (addInteger 1 (addInteger cse_9 cse_9))
-        (addInteger 2 (addInteger cse_9 cse_9)))
-     (addInteger 0 x_8))
+\x ->
+  (\cse ->
+     f (addInteger 1 (addInteger cse cse)) (addInteger 2 (addInteger cse cse)))
+    (addInteger 0 x)

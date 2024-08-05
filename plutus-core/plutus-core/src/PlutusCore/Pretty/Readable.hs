@@ -43,6 +43,7 @@ data PrettyConfigReadable configName = PrettyConfigReadable
   , _pcrRenderContext :: RenderContext
   , _pcrShowKinds     :: ShowKinds
   }
+  deriving stock (Show)
 
 type instance HasPrettyDefaults (PrettyConfigReadable _) = 'True
 
@@ -70,7 +71,7 @@ instance HasRenderContext (PrettyConfigReadable configName) where
   renderContext = pcrRenderContext
 
 {- | For rendering things in a readable manner regardless of the pretty-printing function chosen.
-I.e. all of 'show', 'pretty', 'prettyClassicDef' will use 'PrettyReadable' instead of doing what
+I.e. all of 'show', 'pretty', 'prettyClassic' will use 'PrettyReadable' instead of doing what
 they normally do. @prettyBy config (AsReadable x)@ requires @config@ to have a 'PrettyConfigName'
 and respects it.
 
@@ -90,7 +91,7 @@ instance
     prettyBy (botPrettyConfigReadable (toPrettyConfigName config) def) x
 
 instance (PrettyReadable a) => Show (AsReadable a) where
-  show = displayBy $ Sole defPrettyConfigName
+  show = displayBy $ Sole prettyConfigName
 
 instance (PrettyReadable a) => Pretty (AsReadable a) where
   pretty = viaShow

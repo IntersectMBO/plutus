@@ -50,10 +50,10 @@ constants. The [`Type`](Type.html) module contains kinds, contexts and
 types. Types are intrinsically scoped and kinded and variables are
 represented using De Bruijn indices. Parallel renaming and
 substitution are implemented in the
-[`Type.RenamingSubstitution`](Type/RenamingSubstitution.html) module
+[`Type.RenamingSubstitution`](Type.RenamingSubstitution.html) module
 and they are shown to be satisfy the functor and relative monad laws
 respectively. Equality of types is specified in the
-[`Type.Equality`](Type/Equality.html) module. Equality serves as a
+[`Type.Equality`](Type.Equality.html) module. Equality serves as a
 specification of type computation and is used in the normalisation
 proof.
 

@@ -7,7 +7,7 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Text.Encoding (encodeUtf8)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (BuiltinSemanticsVariant)
-import PlutusCore.Pretty (PrettyPlc, Render (render), prettyPlcReadableDebug)
+import PlutusCore.Pretty (PrettyPlc, Render (render), prettyPlcReadableSimple)
 import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree)
 import Test.Tasty.Golden (goldenVsString)
@@ -19,7 +19,7 @@ goldenVsPretty :: (PrettyPlc a) => String -> String -> a -> TestTree
 goldenVsPretty extn name value =
   goldenVsString name ("untyped-plutus-core/test/Transform/" ++ name ++ extn) $
     pure . BSL.fromStrict . encodeUtf8 . render $
-      prettyPlcReadableDebug value
+      prettyPlcReadableSimple value
 
 goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsSimplified name =

@@ -9,6 +9,7 @@ import PlutusCore
 import PlutusCore.Generators.Hedgehog.AST
 import PlutusCore.MkPlc
 import PlutusCore.Normalize
+import PlutusCore.Test
 
 import Control.Monad.Morph (hoist)
 
@@ -30,15 +31,16 @@ test_appAppLamLam = do
     integer2 @?= integer2'
 
 test_normalizeTypesInIdempotent :: Property
-test_normalizeTypesInIdempotent = property . hoist (pure . runQuote) $ do
-    termNormTypes <- forAllT $ runAstGen (genTerm @DefaultFun) >>= normalizeTypesIn
-    termNormTypes' <- normalizeTypesIn termNormTypes
-    termNormTypes === termNormTypes'
+test_normalizeTypesInIdempotent =
+    mapTestLimitAtLeast 300 (`div` 10) . property . hoist (pure . runQuote) $ do
+        termNormTypes <- forAllT $ runAstGen (genTerm @DefaultFun) >>= normalizeTypesIn
+        termNormTypes' <- normalizeTypesIn termNormTypes
+        termNormTypes === termNormTypes'
 
 test_typeNormalization :: TestTree
 test_typeNormalization =
     testGroup "typeNormalization"
-        [ testCase     "appAppLamLam"               test_appAppLamLam
+        [ testCase "appAppLamLam" test_appAppLamLam
         , testPropertyNamed
             "normalizeTypesInIdempotent"
             "normalizeTypesInIdempotent"

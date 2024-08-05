@@ -51,11 +51,12 @@ toExBudgetList = NonEmpty . go where
     go (ExBudgetLast budget)         = [budget]
     go (ExBudgetCons budget budgets) = budget : go budgets
 
--- | A list of ranges: @(0, 10) : (11, 100) : (101, 1000) : ... : [(10^18, maxBound)]@.
+-- | A list of ranges: @(0, 0), (1, 10) : (11, 100) : (101, 1000) : ... : [(10^18, maxBound)]@.
 magnitudes :: [(SatInt, SatInt)]
 magnitudes
     = map (bimap fromInteger fromInteger)
-    . magnitudesPositive 10
+    . ((0, 0) :)
+    . magnitudesPositive (* 10)
     $ fromSatInt (maxBound :: SatInt)
 
 -- | Return the range (in the sense of 'magnitudes') in which the given 'SatInt' belongs. E.g.
@@ -121,7 +122,8 @@ bottom = error "this value wasn't supposed to be forced"
 test_magnitudes :: TestTree
 test_magnitudes =
     testProperty "magnitudes" $
-        let check (_, hi1) (lo2, hi2) = hi1 + 1 == lo2 && hi1 * 10 == hi2
+        let check (0, 0)   (1,   10)  = True
+            check (_, hi1) (lo2, hi2) = hi1 + 1 == lo2 && hi1 * 10 == hi2
         in and
            [ fst (head magnitudes) == 0
            , snd (last magnitudes) == maxBound
@@ -428,7 +430,7 @@ test_flattenCostRoseHandlesBottom =
 test_costsAreNeverNegative :: TestTree
 test_costsAreNeverNegative =
     testProperty "costs coming from 'memoryUsage' are never negative" $
-        withMaxSuccess 500 $ \(val :: Some (ValueOf DefaultUni)) ->
+        withMaxSuccess 1000 $ \(val :: Some (ValueOf DefaultUni)) ->
             all (>= 0) . toCostList . flattenCostRose $ memoryUsage val
 
 test_costing :: TestTree

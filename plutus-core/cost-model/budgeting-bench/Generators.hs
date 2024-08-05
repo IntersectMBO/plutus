@@ -10,7 +10,7 @@ import Control.Monad
 import Data.Bits
 import Data.ByteString (ByteString)
 import Data.Int (Int64)
-import Data.List (foldl')
+import Data.List as List (foldl')
 import Data.Text (Text)
 import Data.Word (Word64)
 
@@ -81,12 +81,12 @@ makeSizedByteStrings seed l = map (makeSizedByteString seed) l
 
 
 -- TODO: don't use Hedgehog's 'sample' below: it silently resizes the generator
--- to size 30, so listOfSizedByteStrings and listOfByteStrings are biased
+-- to size 30, so listOfByteStringsOfLength and listOfByteStrings are biased
 -- towards low byte values.
 
 -- Create a list containing m bytestrings of length n (also terrible)
-listOfSizedByteStrings :: Int -> Int -> [ByteString]
-listOfSizedByteStrings m n =
+listOfByteStringsOfLength :: Int -> Int -> [ByteString]
+listOfByteStringsOfLength m n =
     unsafePerformIO . G.sample $ G.list (R.singleton m) (G.bytes (R.singleton n))
 
 -- Create a list containing m bytestrings of random lengths
@@ -133,7 +133,7 @@ genBigInteger :: Int -> Gen Integer
 genBigInteger n = do
   body :: [Word64] <- vectorOf (n-1) arbitrary
   first :: Int64 <- arbitrary
-  pure $ foldl' go (fromIntegral first) body
+  pure $ List.foldl' go (fromIntegral first) body
       where go :: Integer -> Word64 -> Integer
             go acc w = acc `shiftL` 64 + fromIntegral w
 

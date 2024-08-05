@@ -1,39 +1,13 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (termbind
-      (nonstrict)
-      (vardecl `$csize` (fun (con integer) (con integer)))
-      (lam x (con integer) x)
-    )
-    (termbind
-      (nonstrict)
-      (vardecl
-        `$fSizedInteger` [ (lam a (type) (fun a (con integer))) (con integer) ]
-      )
-      `$csize`
-    )
-    (termbind
-      (nonstrict)
-      (vardecl
-        size
-        (all
-          a
-          (type)
-          (fun [ (lam a (type) (fun a (con integer))) a ] (fun a (con integer)))
-        )
-      )
-      (abs a (type) (lam v [ (lam a (type) (fun a (con integer))) a ] v))
-    )
-    (lam
-      ds
-      (con integer)
-      (let
-        (nonrec)
-        (termbind (strict) (vardecl ds (con integer)) ds)
-        [ [ { size (con integer) } `$fSizedInteger` ] ds ]
-      )
-    )
-  )
-)
+    ~`$csize` : integer -> integer = \(x : integer) -> x
+    ~`$fSizedInteger` : (\a -> a -> integer) integer = `$csize`
+    ~size : all a. (\a -> a -> integer) a -> a -> integer
+      = /\a -> \(v : (\a -> a -> integer) a) -> v
+  in
+  \(ds : integer) ->
+    let
+      !ds : integer = ds
+    in
+    size {integer} `$fSizedInteger` ds)

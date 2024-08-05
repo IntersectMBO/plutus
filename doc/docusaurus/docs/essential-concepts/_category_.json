@@ -1,0 +1,9 @@
+{
+    "label": "Essential concepts",
+    "position": 20,
+    "link": {
+      "type": "generated-index",
+      "description": "To use Plutus most skillfully and securely, gaining a deep understanding of its foundational concepts is a requirement."
+    }
+  }
+  

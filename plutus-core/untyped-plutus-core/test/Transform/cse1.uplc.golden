@@ -1,12 +1,12 @@
-(\x_6 y_7 ->
-   (\cse_8 ->
-      (\cse_9 ->
-         addInteger
-           cse_9
-           (case
-              y_7
-              [ (addInteger cse_9 (addInteger 3 x_6))
-              , (addInteger cse_8 (addInteger 3 x_6))
-              , (addInteger 4 x_6) ]))
-        (addInteger 1 cse_8))
-     (addInteger 2 x_6))
+\x y ->
+  (\cse ->
+     (\cse ->
+        addInteger
+          cse
+          (case
+             y
+             [ (addInteger cse (addInteger 3 x))
+             , (addInteger cse (addInteger 3 x))
+             , (addInteger 4 x) ]))
+       (addInteger 1 cse))
+    (addInteger 2 x)

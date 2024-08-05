@@ -238,7 +238,7 @@ iteAtStringWithCond = Apply () iteAtString lteExpr
 -- @string@. It still runs succefully, because even in typed world (the CK machine) we don't look
 -- at types at runtime.
 iteAtStringWithCondWithIntegerWithString :: Term TyName Name DefaultUni DefaultFun ()
-iteAtStringWithCondWithIntegerWithString = mkIterAppNoAnn (iteAtStringWithCond)
+iteAtStringWithCondWithIntegerWithString = mkIterAppNoAnn iteAtStringWithCond
     [ mkConstant @Integer () 33
     , mkConstant @Text () "abc"
     ]
@@ -395,18 +395,18 @@ caseNonTag = Case () integer (mkConstant @Integer () 1) []
 goldenVsPretty :: PrettyPlc a => String -> String -> a -> TestTree
 goldenVsPretty extn name value =
     goldenVsString name ("untyped-plutus-core/test/Evaluation/Golden/" ++ name ++ extn) $
-        pure . BSL.fromStrict . encodeUtf8 . render $ prettyPlcClassicDebug value
+        pure . BSL.fromStrict . encodeUtf8 . render $ prettyPlcClassicSimple value
 
 goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCK name
     = goldenVsPretty ".plc.golden" name
     . bimap (fmap eraseTerm) eraseTerm
-    . evaluateCkNoEmit defaultBuiltinsRuntime
+    . evaluateCkNoEmit defaultBuiltinsRuntimeForTesting
 
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCEK name
     = goldenVsPretty ".uplc.golden" name
-    . evaluateCekNoEmit defaultCekParameters
+    . evaluateCekNoEmit defaultCekParametersForTesting
     . eraseTerm
 
 runTypecheck
@@ -426,7 +426,7 @@ goldenVsTypecheckedEvaluatedCK name term =
     -- that the term is well-typed before checking that the type of the result is the
     -- one stored in the golden file (we could simply check the two types for equality,
     -- but since we're doing golden testing in this file, why not do it here as well).
-    case (runTypecheck term, evaluateCkNoEmit defaultBuiltinsRuntime term) of
+    case (runTypecheck term, evaluateCkNoEmit defaultBuiltinsRuntimeForTesting term) of
         (Right _, Right res) -> goldenVsTypechecked name res
         _                    -> testGroup name []
 

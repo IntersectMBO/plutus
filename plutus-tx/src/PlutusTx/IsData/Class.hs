@@ -11,10 +11,8 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.IsData.Class where
 
-import Prelude qualified as Haskell (Either (..), Int, error)
+import Prelude qualified as Haskell (Int, error)
 
-import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
-import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Data qualified as PLC
 import PlutusTx.Base
 import PlutusTx.Builtins as Builtins
@@ -103,7 +101,7 @@ instance ToData a => ToData [a] where
           mapToBuiltin = go
             where
                 go :: [a] -> BI.BuiltinList BI.BuiltinData
-                go []     = BI.mkNilData BI.unitval
+                go []     = mkNil
                 go (x:xs) = BI.mkCons (toBuiltinData x) (go xs)
 instance FromData a => FromData [a] where
     {-# INLINABLE fromBuiltinData #-}
@@ -159,10 +157,7 @@ instance FromData Builtins.BuiltinBLS12_381_G1_Element where
     fromBuiltinData d =
         case fromBuiltinData d of
           Nothing -> Nothing
-          Just (BI.BuiltinByteString bs) ->
-              case BLS12_381.G1.uncompress bs of
-                Haskell.Left _  -> Nothing
-                Haskell.Right g -> Just $ toBuiltin g
+          Just bs -> Just $ bls12_381_G1_uncompress bs
 instance UnsafeFromData Builtins.BuiltinBLS12_381_G1_Element where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData = Builtins.bls12_381_G1_uncompress . unsafeFromBuiltinData
@@ -175,10 +170,7 @@ instance FromData Builtins.BuiltinBLS12_381_G2_Element where
     fromBuiltinData d =
         case fromBuiltinData d of
           Nothing -> Nothing
-          Just (BI.BuiltinByteString bs) ->
-              case BLS12_381.G2.uncompress bs of
-                Haskell.Left _  -> Nothing
-                Haskell.Right g -> Just $ toBuiltin g
+          Just bs -> Just $ bls12_381_G2_uncompress bs
 instance UnsafeFromData Builtins.BuiltinBLS12_381_G2_Element where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData = Builtins.bls12_381_G2_uncompress . unsafeFromBuiltinData
@@ -205,3 +197,7 @@ toData a = builtinDataToData (toBuiltinData a)
 -- | Convert a value from 'PLC.Data', returning 'Nothing' if this fails.
 fromData :: (FromData a) => PLC.Data -> Maybe a
 fromData d = fromBuiltinData (BuiltinData d)
+
+-- | Convert a value from 'PLC.Data', throwing if this fails.
+unsafeFromData :: (UnsafeFromData a) => PLC.Data -> a
+unsafeFromData d = unsafeFromBuiltinData (BuiltinData d)

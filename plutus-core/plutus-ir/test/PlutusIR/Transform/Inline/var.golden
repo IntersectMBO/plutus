@@ -1,1 +1,1 @@
-(lam y (con integer) y)
+\(y : integer) -> y

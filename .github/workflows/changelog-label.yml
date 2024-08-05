@@ -1,0 +1,62 @@
+# This job enforces that: either some changelog.d/** files were added by the 
+# PR, or the PR has the "No Changelog Required" label.  
+  
+name: "🏷️ Changelog Label"
+
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize, labeled, unlabeled ]
+
+jobs:
+
+  check:
+    name: Check
+    runs-on: [ubuntu-latest]
+    permissions:
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Find Changed Files
+        id: changed-files
+        uses: tj-actions/changed-files@main
+        with:
+          files: '**/changelog.d/**'
+
+      - name: Enforce Label
+        uses: actions/github-script@main
+        if: github.event.pull_request.draft == false
+        with:
+          script: | 
+            function shouldCheckChangelog() {
+              return !${{ contains(github.event.pull_request.labels.*.name, 'No Changelog Required') }};
+            }
+
+            function getNewChangelogFiles() {
+              const newFiles = '${{ steps.changed-files.outputs.added_files }}'.trim().split(' ');
+              // We check that added_files is the singleton array containing the empty string.
+              // This is probably a bug in tj-actions/changed-files
+              if (newFiles.length === 1 && newFiles[0] === "") {
+                return [];
+              } else {
+                return newFiles;
+              }
+            }
+
+            function checkChangelog() {
+              const newFiles = getNewChangelogFiles();
+              if (newFiles.length == 0) {
+                core.info("No files were added by this PR in any of the **/changelog.d directories.");
+                core.info("Either commit a new file, or add the label 'No Changelog Required' to your PR.");
+                core.setFailed("Changelog check failed.");
+              } else {
+                core.info(`The following changelog files were added by this PR:\n${newFiles}`);
+              }
+            }
+
+            if (shouldCheckChangelog()) {
+              checkChangelog();
+            } else {
+              core.info("PR contains the label 'No Changelog Required', skipping changelog check.");
+            }

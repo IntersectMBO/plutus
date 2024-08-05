@@ -53,7 +53,7 @@ instance Show Input where
 data Output = FileOutput FilePath | StdOutput | NoOutput
 data TimingMode = NoTiming | Timing Integer deriving stock (Eq) -- Report program execution time?
 data CekModel = Default | Unit -- Which cost model should we use for CEK machine steps?
-data PrintMode = Classic | Debug | Readable | ReadableDebug deriving stock (Show, Read)
+data PrintMode = Classic | Simple | Readable | ReadableSimple deriving stock (Show, Read)
 data TraceMode = None | Logs | LogsWithTimestamps | LogsWithBudgets deriving stock (Show, Read)
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable

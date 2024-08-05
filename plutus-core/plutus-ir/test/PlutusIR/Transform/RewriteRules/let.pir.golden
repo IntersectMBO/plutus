@@ -1,8 +1,4 @@
-(let
-  (nonrec)
-  (termbind (strict) (vardecl x (con integer)) (error (con integer)))
-  [
-    [ (builtin equalsInteger) (con integer 5) ]
-    [ [ (builtin addInteger) (con integer 10) ] x ]
-  ]
-)
+let
+  !x : integer = error {integer}
+in
+equalsInteger 5 (addInteger 10 x)

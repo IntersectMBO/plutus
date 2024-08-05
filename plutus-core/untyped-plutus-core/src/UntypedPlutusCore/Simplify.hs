@@ -22,7 +22,7 @@ import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
 
 import Control.Monad
-import Data.List
+import Data.List as List (foldl')
 import Data.Typeable
 
 simplifyProgram ::
@@ -47,7 +47,7 @@ simplifyTerm opts builtinSemanticsVariant =
   where
     -- Run the simplifier @n@ times
     simplifyNTimes :: Int -> Term name uni fun a -> m (Term name uni fun a)
-    simplifyNTimes n = foldl' (>=>) pure $ map simplifyStep [1..n]
+    simplifyNTimes n = List.foldl' (>=>) pure $ map simplifyStep [1..n]
 
     -- Run CSE @n@ times, interleaved with the simplifier.
     -- See Note [CSE]

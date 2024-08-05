@@ -19,6 +19,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream (..))
 import PlutusCore.Generators.Hedgehog (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
 import PlutusCore.Pretty
+import PlutusCore.Test
 import PlutusPrelude
 
 import Control.Exception
@@ -50,14 +51,15 @@ test_builtinsDon'tThrow =
     testGroup "Builtins don't throw" $
         enumerate @(BuiltinSemanticsVariant DefaultFun) <&> \semvar ->
             testGroup (fromString . render $ "Version: " <> pretty semvar) $
-                let runtimes = toBuiltinsRuntime semvar defaultBuiltinCostModel
+                let runtimes = toBuiltinsRuntime semvar defaultBuiltinCostModelForTesting
                 in enumerate @DefaultFun <&> \fun ->
                     -- Perhaps using @maxBound@ (with @Enum@, @Bounded@) is indeed better than
                     -- @Default@ for BuiltinSemanticsVariants
                     testPropertyNamed
                         (display fun)
                         (fromString $ display fun)
-                        (prop_builtinEvaluation runtimes fun gen f)
+                        (mapTestLimitAtLeast 99 (`div` 50) $
+                            prop_builtinEvaluation runtimes fun gen f)
   where
     gen bn = Gen.choice [genArgsWellTyped def bn, genArgsArbitrary def bn]
     f bn args = \case
@@ -79,7 +81,7 @@ instance Pretty AlwaysThrows where
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
     type CostingPart uni AlwaysThrows = ()
-    data BuiltinSemanticsVariant AlwaysThrows = AlwaysThrowsSemanticsVariant1
+    data BuiltinSemanticsVariant AlwaysThrows = AlwaysThrowsSemanticsVariantX
 
     toBuiltinMeaning _semvar AlwaysThrows = makeBuiltinMeaning f $ \_ _ -> ExBudgetLast mempty
       where
@@ -87,7 +89,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
         f _ = error "This builtin function always throws an exception."
 
 instance Default (BuiltinSemanticsVariant AlwaysThrows) where
-    def = AlwaysThrowsSemanticsVariant1
+    def = AlwaysThrowsSemanticsVariantX
 
 {- | This test verifies that if evaluating a builtin function actually throws an exception,
  we'd get a `Left` value, which would cause `test_builtinsDon'tThrow` to fail.
@@ -100,7 +102,7 @@ test_alwaysThrows =
             prop_builtinEvaluation @_ @AlwaysThrows runtimes AlwaysThrows (genArgsWellTyped semvar) f
         ]
   where
-    semvar = AlwaysThrowsSemanticsVariant1
+    semvar = AlwaysThrowsSemanticsVariantX
     runtimes = toBuiltinsRuntime semvar ()
     f bn args = \case
         Left _ -> success

@@ -98,6 +98,15 @@ Another example is if a security audit is done on `rc1`, and the changes in `rc2
 - This will automatically open a PR in `plutus-tx-template` with auto-merge enabled
 - Ensure that CI is green and the PR gets merged
 
+10. Publish the updated Metatheory site
+- Navigate to the https://github.com/IntersectMBO/plutus/actions/workflows/metatheory-site.yml[Metatheory Site Action] on GitHub
+- Click the `Run workflow` button on the right, enter the new release version and confirm
+- Ensure that the action completes successfully
+
+11. Delete unused brances and tags 
+- If it was created, delete the `release/*` branch locally and on GitHub
+- If they were created, delete any release candidate `-rc*` tags locally and on GitHub
+
 === Patch Releases
 
 Suppose we are releasing version `x.y.z.w`.
@@ -113,6 +122,7 @@ If so, create branch `release/x.y.z` from the `x.y.z.0` tag.
 6. Open a PR for updating the cabal files and the changelog files.
 7. Once the PR is merged, tag the commit `x.y.z.w`, and open a PR in the CHaP repository for publishing the new version.
 - If issues are found, fix them on master, backport the fixes to `release/x.y.z`, and go to step 5.
+8. If it was created, delete the `release/*` branch locally and on GitHub
 
 === Release QA Process
 

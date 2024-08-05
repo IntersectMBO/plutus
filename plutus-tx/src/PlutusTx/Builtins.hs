@@ -69,6 +69,8 @@ module PlutusTx.Builtins (
                          -- * Pairs
                          , pairToPair
                          -- * Lists
+                         , mkNil
+                         , mkNilOpaque
                          , null
                          , matchList
                          , matchList'
@@ -107,10 +109,26 @@ module PlutusTx.Builtins (
                          -- * Conversions
                          , fromOpaque
                          , toOpaque
+                         , useToOpaque
+                         , useFromOpaque
                          , fromBuiltin
                          , toBuiltin
+                         -- * Logical
+                         , ByteOrder (..)
                          , integerToByteString
                          , byteStringToInteger
+                         , andByteString
+                         , orByteString
+                         , xorByteString
+                         , complementByteString
+                         , readBit
+                         , writeBits
+                         , replicateByte
+                         -- * Bitwise
+                         , shiftByteString
+                         , rotateByteString
+                         , countSetBits
+                         , findFirstSetBit
                          ) where
 
 import Data.Maybe
@@ -343,7 +361,7 @@ remainderInteger x y = fromOpaque (BI.remainderInteger (toOpaque x) (toOpaque y)
 {-# INLINABLE greaterThanInteger #-}
 -- | Check whether one 'Integer' is greater than another.
 greaterThanInteger :: Integer -> Integer -> Bool
-greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqualsInteger x y ) False True
+greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqualsInteger x y) False True
 
 {-# INLINABLE greaterThanEqualsInteger #-}
 -- | Check whether one 'Integer' is greater than or equal to another.
@@ -629,10 +647,10 @@ bls12_381_finalVerify a b = fromOpaque (BI.bls12_381_finalVerify a b)
 byteOrderToBool :: ByteOrder -> Bool
 byteOrderToBool BigEndian    = True
 byteOrderToBool LittleEndian = False
-
+{-# INLINABLE byteOrderToBool #-}
 
 -- | Convert a 'BuiltinInteger' into a 'BuiltinByteString', as described in
--- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
+-- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
 -- The first argument indicates the endianness of the conversion and the third
 -- argument is the integer to be converted, which must be non-negative.  The
 -- second argument must also be non-negative and it indicates the required width
@@ -650,7 +668,7 @@ integerToByteString :: ByteOrder -> Integer -> Integer -> BuiltinByteString
 integerToByteString endianness = BI.integerToByteString (toOpaque (byteOrderToBool endianness))
 
 -- | Convert a 'BuiltinByteString' to a 'BuiltinInteger', as described in
--- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
+-- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
 -- The first argument indicates the endianness of the conversion and the second
 -- is the bytestring to be converted.  There is no limitation on the size of
 -- the bytestring.  The empty bytestring is converted to the integer 0.
@@ -658,3 +676,178 @@ integerToByteString endianness = BI.integerToByteString (toOpaque (byteOrderToBo
 byteStringToInteger :: ByteOrder -> BuiltinByteString -> Integer
 byteStringToInteger endianness =
   BI.byteStringToInteger (toOpaque (byteOrderToBool endianness))
+
+-- Bitwise operations
+
+-- | Shift a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+{-# INLINEABLE shiftByteString #-}
+shiftByteString :: BuiltinByteString -> Integer -> BuiltinByteString
+shiftByteString = BI.shiftByteString
+
+-- | Rotate a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+{-# INLINEABLE rotateByteString #-}
+rotateByteString :: BuiltinByteString -> Integer -> BuiltinByteString
+rotateByteString = BI.rotateByteString
+
+-- | Count the set bits in a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+{-# INLINEABLE countSetBits #-}
+countSetBits :: BuiltinByteString -> Integer
+countSetBits = BI.countSetBits
+
+-- | Find the lowest index of a set bit in a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+--
+-- If given a 'BuiltinByteString' which consists only of zero bytes (including the empty
+-- 'BuiltinByteString', this returns @-1@.
+{-# INLINEABLE findFirstSetBit #-}
+findFirstSetBit :: BuiltinByteString -> Integer
+findFirstSetBit = BI.findFirstSetBit
+
+-- Logical operations
+
+-- | Perform logical AND on two 'BuiltinByteString' arguments, as described in
+-- [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bitwiselogicaland).
+--
+-- The first argument indicates whether padding semantics should be used or not;
+-- if 'False', truncation semantics will be used instead.
+--
+-- = See also
+--
+-- * [Padding and truncation
+-- semantics](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#padding-versus-truncation-semantics)
+-- * [Bit indexing
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
+{-# INLINEABLE andByteString #-}
+andByteString ::
+  Bool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+andByteString b = BI.andByteString (toOpaque b)
+
+-- | Perform logical OR on two 'BuiltinByteString' arguments, as described
+-- [here](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bitwiselogicalor).
+--
+-- The first argument indicates whether padding semantics should be used or not;
+-- if 'False', truncation semantics will be used instead.
+--
+-- = See also
+--
+-- * [Padding and truncation
+-- semantics](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#padding-versus-truncation-semantics)
+-- * [Bit indexing
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
+{-# INLINEABLE orByteString #-}
+orByteString ::
+  Bool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+orByteString b = BI.orByteString (toOpaque b)
+
+-- | Perform logical XOR on two 'BuiltinByteString' arguments, as described
+-- [here](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bitwiselogicalxor).
+--
+-- The first argument indicates whether padding semantics should be used or not;
+-- if 'False', truncation semantics will be used instead.
+--
+-- = See also
+--
+-- * [Padding and truncation
+-- semantics](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#padding-versus-truncation-semantics)
+-- * [Bit indexing
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
+{-# INLINEABLE xorByteString #-}
+xorByteString ::
+  Bool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+xorByteString b = BI.xorByteString (toOpaque b)
+
+-- | Perform logical complement on a 'BuiltinByteString', as described
+-- [here](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bitwiselogicalcomplement).
+--
+-- = See also
+--
+-- * [Bit indexing
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
+{-# INLINEABLE complementByteString #-}
+complementByteString ::
+  BuiltinByteString ->
+  BuiltinByteString
+complementByteString = BI.complementByteString
+
+-- | Read a bit at the _bit_ index given by the 'Integer' argument in the
+-- 'BuiltinByteString' argument. The result will be 'True' if the corresponding bit is set, and
+-- 'False' if it is clear. Will error if given an out-of-bounds index argument; that is, if the
+-- index is either negative, or equal to or greater than the total number of bits in the
+-- 'BuiltinByteString' argument.
+--
+-- = See also
+--
+-- * [Bit indexing
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
+-- * [Operation
+-- description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#readbit)
+{-# INLINEABLE readBit #-}
+readBit ::
+  BuiltinByteString ->
+  Integer ->
+  Bool
+readBit bs i = fromOpaque (BI.readBit bs i)
+
+-- | Given a 'BuiltinByteString', a list of indexes to change, and a list of values to change those
+-- indexes to, set the /bit/ at each of the specified index as follows:
+--
+-- * If the corresponding entry in the list of values is 'True', set that bit;
+-- * Otherwise, clear that bit.
+--
+-- Will error if any of the indexes are out-of-bounds: that is, if the index is either negative, or
+-- equal to or greater than the total number of bits in the 'BuiltinByteString' argument.
+--
+-- If the two list arguments have mismatched lengths, the longer argument will be truncated to match
+-- the length of the shorter one:
+--
+-- * @writeBits bs [0, 1, 4] [True]@ is the same as @writeBits bs [0] [True]@
+-- * @writeBits bs [0] [True, False, True]@ is the same as @writeBits bs [0] [True]@
+--
+-- = Note
+--
+-- This differs slightly from the description of the [corresponding operation in
+-- CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#writebits); instead of a
+-- single changelist argument comprised of pairs, we instead pass two lists, one for indexes to
+-- change, and one for the values to change those indexes to. Effectively, we are passing the
+-- changelist argument \'unzipped\'.
+--
+-- = See also
+--
+-- * [Bit indexing
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
+-- * [Operation
+-- description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#writebits)
+{-# INLINEABLE writeBits #-}
+writeBits ::
+  BuiltinByteString ->
+  [Integer] ->
+  [Bool] ->
+  BuiltinByteString
+writeBits bs ixes bits = BI.writeBits bs (toOpaque ixes) (toOpaque bits)
+
+-- | Given a length (first argument) and a byte (second argument), produce a 'BuiltinByteString' of
+-- that length, with that byte in every position. Will error if given a negative length, or a second
+-- argument that isn't a byte (less than 0, greater than 255).
+--
+-- = See also
+--
+-- * [Operation
+-- description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#replicateByteString)
+{-# INLINEABLE replicateByte #-}
+replicateByte ::
+  Integer ->
+  Integer ->
+  BuiltinByteString
+replicateByte = BI.replicateByte

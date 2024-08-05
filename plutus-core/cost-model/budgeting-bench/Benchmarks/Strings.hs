@@ -152,7 +152,7 @@ benchTwoTextStrings name =
 -- otherwise it'll be exactly the same and the equality will short-circuit.
 benchSameTwoTextStrings :: DefaultFun -> Benchmark
 benchSameTwoTextStrings name =
-    createTwoTermBuiltinBenchElementwise name [] inputs (fmap T.copy inputs)
+    createTwoTermBuiltinBenchElementwise name [] $ pairWith T.copy inputs
     where inputs = makeSizedTextStrings seedA oneArgumentSizes
 
 makeBenchmarks :: StdGen -> [Benchmark]

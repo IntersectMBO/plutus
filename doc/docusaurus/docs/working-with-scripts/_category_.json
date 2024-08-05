@@ -1,0 +1,8 @@
+{
+    "label": "Working with scripts",
+    "position": 50,
+    "link": {
+      "type": "generated-index",
+      "description": "Explore the essential steps of writing, exporting, and profiling Plutus scripts, starting with foundational validator and minting policies."
+    }
+  }

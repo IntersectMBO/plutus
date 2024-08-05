@@ -25,7 +25,7 @@ test_prettyprintingReadable :: TestTree
 test_prettyprintingReadable =
     runTestNested ["plutus-ir", "test", "PlutusIR", "Core", "prettyprintingReadable"] $
         map
-            (goldenPirDoc prettyPirReadable pTerm)
+            (goldenPirDoc prettyPirReadableSimple pTerm)
             [ "basic"
             , "maybe"
             , "letInLet"

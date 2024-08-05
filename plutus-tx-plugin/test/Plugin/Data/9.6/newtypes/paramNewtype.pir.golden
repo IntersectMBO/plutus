@@ -1,29 +1,12 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl Maybe (fun (type) (type)))
-        (tyvardecl a (type))
-        Maybe_match
-        (vardecl Just (fun a [ Maybe a ])) (vardecl Nothing [ Maybe a ])
-      )
-    )
-    (lam
-      ds
-      [ (lam a (type) [ Maybe a ]) (con integer) ]
-      (let
-        (nonrec)
-        (termbind (strict) (vardecl nt [ Maybe (con integer) ]) ds)
-        [
-          [
-            { [ { Maybe_match (con integer) } nt ] (con integer) }
-            (lam i (con integer) i)
-          ]
-          (con integer 1)
-        ]
-      )
-    )
-  )
-)
+    data (Maybe :: * -> *) a | Maybe_match where
+      Just : a -> Maybe a
+      Nothing : Maybe a
+  in
+  \(ds : (\a -> Maybe a) integer) ->
+    let
+      !nt : Maybe integer = ds
+    in
+    Maybe_match {integer} nt {integer} (\(i : integer) -> i) 1)

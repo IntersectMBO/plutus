@@ -1,41 +1,15 @@
-(let
-  (nonrec)
-  (termbind (strict) (vardecl i2 (con integer)) (con integer 3))
-  (lam
-    x
-    (con integer)
-    [
-      (lam
-        y
-        (con integer)
-        (let
-          (rec)
-          (termbind
-            (strict) (vardecl j (con integer)) [ [ (builtin addInteger) x ] k ]
-          )
-          (termbind
-            (strict) (vardecl k (con integer)) [ [ (builtin addInteger) y ] j ]
-          )
-          (let
-            (nonrec)
-            (termbind
-              (strict)
-              (vardecl c (con integer))
-              [ [ (builtin addInteger) (con integer 1) ] i2 ]
-            )
-            (termbind
-              (strict)
-              (vardecl i1 (con integer))
-              [ [ (builtin addInteger) k ] (con integer 3) ]
-            )
-            [
-              [ (builtin addInteger) (con integer 5) ]
-              [ [ (builtin addInteger) j ] i2 ]
-            ]
-          )
-        )
-      )
-      (con integer 1)
-    ]
-  )
-)
+let
+  !i2 : integer = 3
+in
+\(x : integer) ->
+  (\(y : integer) ->
+     letrec
+       !j : integer = addInteger x k
+       !k : integer = addInteger y j
+     in
+     let
+       !c : integer = addInteger 1 i2
+       !i1 : integer = addInteger k 3
+     in
+     addInteger 5 (addInteger j i2))
+    1

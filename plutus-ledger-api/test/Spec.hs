@@ -14,6 +14,7 @@ import Spec.CostModelParams qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
 import Spec.ScriptDecodeError qualified
+import Spec.V1.Data.Value qualified as Data.Value
 import Spec.V1.Value qualified as Value
 import Spec.Versions qualified
 
@@ -61,7 +62,7 @@ availableBuiltins = testCase "builtins are available after Alonzo" $
 integerToByteStringExceedsBudget :: TestTree
 integerToByteStringExceedsBudget = testCase "integerToByteString should exceed budget" $
     let script = either (error . show) id $ V3.deserialiseScript conwayPV integerToByteStringFunction
-        (_, res) = V3.evaluateScriptCounting conwayPV V3.Quiet v3_evalCtxTooFewParams script []
+        (_, res) = V3.evaluateScriptCounting conwayPV V3.Quiet v3_evalCtxTooFewParams script (I 1)
     in case res of
         Left _ -> assertFailure "fails"
         Right (ExBudget cpu _mem) -> assertBool "did not exceed budget" (cpu >= fromIntegral (maxBound :: Int64))
@@ -126,4 +127,5 @@ tests = testGroup "plutus-ledger-api"[
     , Spec.ScriptDecodeError.tests
     , Spec.ContextDecoding.tests
     , Value.test_Value
+    , Data.Value.test_Value
     ]

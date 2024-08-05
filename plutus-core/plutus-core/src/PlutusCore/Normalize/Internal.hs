@@ -175,7 +175,7 @@ Hence we do the opposite, which is straightforward.
 {- | Normalize a built-in type by replacing each application inside the universe with regular
 type application.
 -}
-normalizeUni :: forall k (a :: k) uni tyname. (HasUniApply uni) => uni (Esc a) -> Type tyname uni ()
+normalizeUni :: forall k (a :: k) uni tyname. HasUniApply uni => uni (Esc a) -> Type tyname uni ()
 normalizeUni uni =
   matchUniApply
     uni

@@ -18,6 +18,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
+import PlutusCore.Generators.QuickCheck.GenerateKinds ()
 import PlutusCore.Generators.QuickCheck.Split (multiSplit0, multiSplit1, multiSplit1In)
 
 import Data.ByteString (ByteString, empty)
@@ -47,7 +48,7 @@ instance ArbitraryBuiltin ()
 instance ArbitraryBuiltin Bool
 
 {- Note [QuickCheck and integral types]
-The 'Arbitrary' instances for 'Integer' and 'Int64' only generate small integers:
+The 'Arbitrary' instances for 'Integer' and 'Int' only generate small integers:
 
     >>> :set -XTypeApplications
     >>> fmap (any ((> 30) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Integer]]]
@@ -55,44 +56,69 @@ The 'Arbitrary' instances for 'Integer' and 'Int64' only generate small integers
     >>> fmap (any ((> 30) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Int]]]
     False
 
-We want to at least occasionally generate some larger ones, which is what the 'Arbitrary'
-instance for 'Int64' does:
-
-    >>> import Data.Int
-    >>> fmap (any ((> 10000) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Int64]]]
-    True
-
-For this reason we use 'Int64' when dealing with QuickCheck.
+We want to generate larger ones, including converted-to-Integer 'minBound' and 'maxBound' of various
+integral types. Hence we declare 'nextInterestingBound' and 'highInterestingBound' to specify the
+"interesting" ranges to generate positive integers within. We also make it likely to hit either end
+of each of those ranges.
 -}
 
--- | A list of ranges: @[(0, 10), (11, 100), (101, 1000), ... (10^n + 1, high)]@ when
--- @base = 10@.
-magnitudesPositive :: Integral a => a -> a -> [(a, a)]
-magnitudesPositive base high =
+-- See Note [QuickCheck and integral types].
+nextInterestingBound :: Integer -> Integer
+nextInterestingBound 1 = 127
+nextInterestingBound x = (x + 1) ^ (2 :: Int) * 2 - 1
+
+-- See Note [QuickCheck and integral types].
+highInterestingBound :: Integer
+highInterestingBound = toInteger (maxBound :: Int64) * 16
+
+-- | A list of ranges.
+--
+-- >>> import Data.Int
+-- >>> magnitudesPositive (* 10) (toInteger (maxBound :: Int16))
+-- [(1,10),(11,100),(101,1000),(1001,10000),(10001,32767)]
+-- >>> magnitudesPositive nextInterestingBound (toInteger (maxBound :: Int64))
+-- [(1,127),(128,32767),(32768,2147483647),(2147483648,9223372036854775807)]
+magnitudesPositive :: (Integer -> Integer) -> Integer -> [(Integer, Integer)]
+magnitudesPositive next high =
     zipWith (\lo hi -> (lo + 1, hi)) borders (tail borders)
   where
-    preborders = tail . takeWhile (< high `div` base) $ iterate (* base) 1
-    borders = -1 : preborders ++ [last preborders * base, high]
+    preborders = tail . takeWhile (\x -> next x < high) $ iterate next 1
+    borders = 0 : preborders ++ [next $ last preborders, high]
 
--- | Like 'chooseBoundedIntegral', but doesn't require the 'Bounded' constraint (and hence is slower
--- for 'Word64' and 'Int64').
-chooseIntegral :: Integral a => (a, a) -> Gen a
-chooseIntegral (lo, hi) = fromInteger <$> chooseInteger (toInteger lo, toInteger hi)
+chooseIntegerPreferEnds :: (Integer, Integer) -> Gen Integer
+chooseIntegerPreferEnds (lo, hi)
+    | hi - lo < 20 = chooseInteger (lo, hi)
+    | otherwise    = frequency $ concat
+        [ zip (80 : [9, 8.. 1]) $ map pure [lo..]
+        , zip (80 : [9, 8.. 1]) $ map pure [hi, hi - 1]
+        , [(200, chooseInteger (lo + 10, hi - 10))]
+        ]
 
--- | Generate asymptotically greater positive numbers with exponentially lower chance.
-arbitraryPositive :: Integral a => a -> a -> Gen a
-arbitraryPositive base high =
-    frequency . zip freqs . reverse . map chooseIntegral $ magnitudesPositive base high
-  where
-    freqs = map floor $ iterate (* 1.3) (2 :: Double)
+-- | Generate asymptotically larger positive negative numbers (sans zero) with exponentially lower
+-- chance, stop at the geometric mean of the range and start increasing the probability of
+-- generating larger numbers, so that we generate we're most likely to generate numbers that are
+-- either fairly small or really big. Numbers at the beginning of the range are more likely to get
+-- generated than at the very end, but only by a fairly small factor. The size parameter is ignored,
+-- which is perhaps wrong and should be fixed.
+arbitraryPositive :: (Integer -> Integer) -> Integer -> Gen Integer
+arbitraryPositive next high = frequency . zip freqs $ map chooseIntegerPreferEnds magnitudes where
+    magnitudes = magnitudesPositive next high
+    prefreqs = map floor $ iterate (* 1.1) (100 :: Double)
+    freqs = concat
+        [ reverse (take (length magnitudes `div` 2) prefreqs)
+        , map (floor . (/ (1.5 :: Double)) . fromIntegral) prefreqs
+        ]
 
--- | Generate asymptotically greater negative numbers with exponentially lower chance.
-arbitraryNegative :: Integral a => a -> a -> Gen a
-arbitraryNegative base high = negate <$> arbitraryPositive base high
+-- | Same as 'arbitraryPositive' except produces negative integers.
+arbitraryNegative :: (Integer -> Integer) -> Integer -> Gen Integer
+arbitraryNegative next high = negate <$> arbitraryPositive next high
 
--- | Generate asymptotically greater numbers with exponentially lower chance.
-arbitrarySigned :: Integral a => a -> a -> Gen a
-arbitrarySigned base high = oneof [arbitraryPositive base high, arbitraryNegative base high]
+arbitrarySigned :: (Integer -> Integer) -> Integer -> Gen Integer
+arbitrarySigned next high = frequency
+    [ (48, arbitraryNegative next high)
+    , (4, pure 0)
+    , (48, arbitraryPositive next high)
+    ]
 
 -- | Same as 'shrinkIntegral' except includes the square root of the given number (or of its
 -- negative if the number is negative, in which case the square root is negated too). We need the
@@ -116,11 +142,8 @@ shrinkIntegralFast x = concat
     ]
 
 instance ArbitraryBuiltin Integer where
-    arbitraryBuiltin = frequency
-        [ (4, arbitrary @Integer)
-        -- See Note [QuickCheck and integral types].
-        , (1, fromIntegral <$> arbitrarySigned 10 (maxBound :: Int64))
-        ]
+    -- See Note [QuickCheck and integral types].
+    arbitraryBuiltin = arbitrarySigned nextInterestingBound highInterestingBound
     shrinkBuiltin = shrinkIntegralFast
 
 -- |
@@ -143,7 +166,7 @@ genConstrTag = frequency
     , -- Less plausible -- less often.
       (3, chooseInteger (3, 5))
     , -- And some meaningless garbage occasionally just to have good coverage.
-      (1, abs <$> arbitraryBuiltin)
+      (1, (`mod` toInteger (maxBound :: Int64)) <$> arbitraryBuiltin)
     ]
 
 -- | Generate a 'Data' object using a @spine :: [()]@ as a hint. It's helpful to make the spine a
@@ -220,7 +243,8 @@ instance Arbitrary Data where
 instance ArbitraryBuiltin BLS12_381.G1.Element where
     arbitraryBuiltin =
       BLS12_381.G1.hashToGroup <$> arbitrary <*> pure Data.ByteString.empty >>= \case
-      -- We should only get a failure if the second argument is greater than 255 bytes, which it isn't.
+           -- We should only get a failure if the second argument is greater than 255 bytes, which
+           -- it isn't.
            Left err -> error $ show err
            Right p  -> pure p
     -- It's difficult to come up with a sensible shrinking function here given
@@ -234,7 +258,8 @@ instance ArbitraryBuiltin BLS12_381.G1.Element where
 instance ArbitraryBuiltin BLS12_381.G2.Element where
     arbitraryBuiltin =
       BLS12_381.G2.hashToGroup <$> arbitrary <*> pure Data.ByteString.empty >>= \case
-      -- We should only get a failure if the second argument is greater than 255 bytes, which it isn't.
+           -- We should only get a failure if the second argument is greater than 255 bytes, which
+           -- it isn't.
            Left err -> error $ show err
            Right p  -> pure p
     -- See the comment about shrinking for G1; G2 is even worse.
@@ -404,6 +429,9 @@ instance Arbitrary (Some (ValueOf DefaultUni)) where
         case mayUni of
             NothingSomeType  -> error "Panic: no *-kinded built-in types exist"
             JustSomeType uni ->
+                -- IMPORTANT: if you get a type error here saying an instance is missing, add the
+                -- missing instance and also update the @Arbitrary (MaybeSomeTypeOf k)@ instance by
+                -- adding the relevant type tag to the generator.
                 bring (Proxy @ArbitraryBuiltin) uni $
                     Some . ValueOf uni <$> arbitraryBuiltin
 
@@ -432,6 +460,7 @@ shrinkDropBuiltin uni = concat
 -- TODO: have proper tests
 -- >>> :set -XTypeApplications
 -- >>> import PlutusCore.Pretty
+-- >>> import PlutusCore.Default
 -- >>> mapM_ (putStrLn . display) . shrinkBuiltinType $ someType @_ @[Bool]
 -- unit
 -- bool
@@ -464,3 +493,12 @@ shrinkBuiltinType (SomeTypeIn uni) = concat
     [ shrinkDropBuiltin uni
     , mapMaybe eraseMaybeSomeTypeOf $ shrinkDefaultUniApply uni
     ]
+
+instance Arbitrary (SomeTypeIn DefaultUni) where
+    arbitrary = genKindOfBuiltin >>= (`suchThatMap` id) . genBuiltinTypeOf where
+        genKindOfBuiltin = frequency
+            [ (8, pure $ Type ())
+            , (1, pure . KindArrow () (Type ()) $ Type ())
+            , (1, pure . KindArrow () (Type ()) . KindArrow () (Type ()) $ Type ())
+            ]
+    shrink = shrinkBuiltinType

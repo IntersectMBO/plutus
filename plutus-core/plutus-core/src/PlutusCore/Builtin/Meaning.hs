@@ -109,8 +109,9 @@ throw an error instead of overflowing its first argument.
 One denotation from each builtin is grouped into a 'BuiltinSemanticsVariant'.
 Each Plutus Language version is linked to a specific 'BuiltinSemanticsVariant'
 (done by plutus-ledger-api); e.g. plutus-v1 and plutus-v2 are linked to
-'DefaultFunSemanticsVariant1', whereas plutus-v3 changes the set of denotations
-to 'DefaultFunSemanticsVariant2' (thus fixing 'ConsByteString').
+'DefaultFunSemanticsVariantA' and 'DefaultFunSemanticsVariantB', whereas
+plutus-v3 changes the set of denotations to 'DefaultFunSemanticsVariantC' (thus
+fixing 'ConsByteString').
 
 Each 'BuiltinSemanticsVariant' (grouping) can change the denotation of one or
 more builtins --- or none, but what's the point in that?
@@ -228,8 +229,6 @@ instance (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res) 
             KnownMonotype val '[] res where
     knownMonotype = TypeSchemeResult
 
-    -- We need to lift the 'ReadKnownM' action into 'BuiltinResult',
-    -- hence 'liftReadKnownM'.
     toMonoF =
         either
             -- Unlifting has failed and we don't care about costing at this point, since we're about
@@ -244,7 +243,7 @@ instance (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res) 
             -- either a budgeting failure or a budgeting success with a cost and a 'BuiltinResult'
             -- computation inside, but that would slow things down a bit and the current strategy is
             -- reasonable enough.
-            (BuiltinCostedResult (ExBudgetLast mempty) . BuiltinFailure mempty)
+            builtinRuntimeFailure
             (\(x, cost) -> BuiltinCostedResult cost $ makeKnown x)
     {-# INLINE toMonoF #-}
 

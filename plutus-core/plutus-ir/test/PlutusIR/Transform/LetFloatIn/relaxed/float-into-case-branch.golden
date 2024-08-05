@@ -1,17 +1,4 @@
-(case
-  (con integer)
-  (constr (sop [(con integer)]) 0 (con integer 1))
-  (lam
-    x
-    (con integer)
-    (let
-      (nonrec)
-      (termbind
-        (nonstrict)
-        (vardecl y (con integer))
-        [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
-      )
-      y
-    )
-  )
-)
+case
+  integer
+  (constr (sop [integer]) 0 [1])
+  [(\(x : integer) -> let ~y : integer = addInteger 1 2 in y)]

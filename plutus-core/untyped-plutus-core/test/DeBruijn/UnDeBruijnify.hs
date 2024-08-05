@@ -83,5 +83,5 @@ test_undebruijnify = testNested "Golden"
 
     mkProg = Program () PLC.latestVersion . termMapNames fakeNameDeBruijn
 
-    toPretty = prettyPlcClassicDebug . runExcept @(Error DefaultUni DefaultFun ()) . runQuoteT
+    toPretty = prettyPlcClassicSimple . runExcept @(Error DefaultUni DefaultFun ()) . runQuoteT
 

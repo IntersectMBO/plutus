@@ -22,6 +22,7 @@ module PlutusLedgerApi.Common.Eval
     ) where
 
 import PlutusCore
+import PlutusCore.Builtin (readKnown)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -53,6 +54,7 @@ data EvaluationError =
     | CodecError !ScriptDecodeError -- ^ A deserialisation error
     -- TODO: make this error more informative when we have more information about what went wrong
     | CostModelParameterMismatch -- ^ An error indicating that the cost model parameters didn't match what we expected
+    | InvalidReturnValue -- ^ The script evaluated to a value that is not a valid return value.
     deriving stock (Show, Eq)
 makeClassyPrisms ''EvaluationError
 
@@ -60,10 +62,14 @@ instance AsScriptDecodeError EvaluationError where
     _ScriptDecodeError = _CodecError
 
 instance Pretty EvaluationError where
-    pretty (CekError e)               = prettyClassicDef e
+    pretty (CekError e)               = prettyClassic e
     pretty (DeBruijnError e)          = pretty e
     pretty (CodecError e)             = pretty e
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
+    pretty InvalidReturnValue         =
+        "The evaluation finished but the result value is not valid. "
+        <> "Plutus V3 scripts must return BuiltinUnit. "
+        <> "Returning any other value is considered a failure."
 
 -- | A simple toggle indicating whether or not we should accumulate logs during script execution.
 data VerboseMode =
@@ -178,7 +184,7 @@ mkDynEvaluationContext ll semVars toSemVar newCMP =
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
-assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModel
+assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModelForTesting
 
 -- | Evaluate a fully-applied term using the CEK machine. Useful for mimicking the behaviour of the
 -- on-chain evaluator.
@@ -226,8 +232,7 @@ evaluateScriptRestricting ll pv verbose ectx budget p args = swap $ runWriter @L
     appliedTerm <- mkTermToEvaluate ll pv p args
     let (res, UPLC.RestrictingSt (ExRestrictingBudget final), logs) =
             evaluateTerm (UPLC.restricting $ ExRestrictingBudget budget) pv verbose ectx appliedTerm
-    tell logs
-    liftEither $ first CekError $ void res
+    processLogsAndErrors ll logs res
     pure (budget `minusExBudget` final)
 
 {-| Evaluates a script, returning the minimum budget that the script would need
@@ -249,9 +254,35 @@ evaluateScriptCounting ll pv verbose ectx p args = swap $ runWriter @LogOutput $
     appliedTerm <- mkTermToEvaluate ll pv p args
     let (res, UPLC.CountingSt final, logs) =
             evaluateTerm UPLC.counting pv verbose ectx appliedTerm
-    tell logs
-    liftEither $ first CekError $ void res
+    processLogsAndErrors ll logs res
     pure final
+
+processLogsAndErrors ::
+    forall m.
+    (MonadError EvaluationError m, MonadWriter LogOutput m) =>
+    PlutusLedgerLanguage ->
+    LogOutput ->
+    Either
+        (UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+        (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()) ->
+    m ()
+processLogsAndErrors ll logs res = do
+    tell logs
+    case res of
+        Left e  -> throwError (CekError e)
+        Right v -> unless (isResultValid ll v) (throwError InvalidReturnValue)
+{-# INLINE processLogsAndErrors #-}
+
+isResultValid ::
+    PlutusLedgerLanguage ->
+    UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () ->
+    Bool
+isResultValid ll res = ll == PlutusV1 || ll == PlutusV2 || isBuiltinUnit res
+    where
+        isBuiltinUnit t = case readKnown t of
+            Right () -> True
+            _        -> False
+{-# INLINE isResultValid #-}
 
 {- Note [Checking the Plutus Core language version]
 Since long ago this check has been in `mkTermToEvaluate`, which makes it a phase 2 failure.

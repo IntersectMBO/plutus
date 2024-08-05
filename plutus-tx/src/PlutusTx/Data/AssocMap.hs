@@ -24,13 +24,19 @@ module PlutusTx.Data.AssocMap (
   any,
   union,
   unionWith,
+  keys,
+  map,
+  mapThese,
+  foldr,
   ) where
 
 import PlutusTx.Builtins qualified as P
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData qualified as P
 import PlutusTx.Lift (makeLift)
-import PlutusTx.Prelude hiding (all, any, null, toList, uncons)
+import PlutusTx.List qualified as List
+import PlutusTx.Prelude hiding (all, any, foldr, map, null, toList, uncons)
+import PlutusTx.Prelude qualified
 import PlutusTx.These
 
 
@@ -57,7 +63,7 @@ this implementation provides slow lookup and update operations because it is bas
 on a list representation.
 -}
 newtype Map k a = Map (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData))
-  deriving stock (Haskell.Eq, Haskell.Show)
+  deriving stock (Haskell.Show)
 
 instance P.ToData (Map k a) where
   {-# INLINEABLE toBuiltinData #-}
@@ -190,11 +196,11 @@ null (Map m) = P.null m
 -- | Create an `Map` from a list of key-value pairs.
 -- In case of duplicates, this function will keep only one entry (the one that precedes).
 -- In other words, this function de-duplicates the input list.
-safeFromList :: forall k a . (P.ToData k, P.ToData a) =>[(k, a)] -> Map k a
+safeFromList :: forall k a . (P.ToData k, P.ToData a) => [(k, a)] -> Map k a
 safeFromList =
   Map
     . toOpaque
-    . foldr (uncurry go) []
+    . List.foldr (uncurry go) []
   where
     go k v [] = [(P.toBuiltinData k, P.toBuiltinData v)]
     go k v ((k', v') : rest) =
@@ -321,6 +327,7 @@ union (Map ls) (Map rs) = Map res
              in insert' k v (safeAppend tl xs2)
         )
 
+{-# INLINEABLE unionWith #-}
 -- | Combine two 'Map's with the given combination function.
 unionWith ::
   forall k a.
@@ -407,6 +414,87 @@ unsafeFromBuiltinList = Map
 {-# INLINEABLE nil #-}
 -- | An empty `P.BuiltinList` of key-value pairs.
 nil :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-nil = BI.mkNilPairData BI.unitval
+nil = P.mkNil
+
+keys'
+  :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+  -> BI.BuiltinList BuiltinData
+keys' = go
+  where
+    go xs =
+      P.matchList
+        xs
+        (\() -> P.mkNil)
+        ( \hd tl ->
+            let k = BI.fst hd
+             in BI.mkCons k (go tl)
+        )
+
+{-# INLINEABLE keys #-}
+keys :: forall k a. Map k a -> BI.BuiltinList BuiltinData
+keys (Map m) = keys' m
+
+{-# INLINEABLE mapThese #-}
+mapThese
+  :: forall v k a b
+  . ( P.ToData a, P.ToData b, P.UnsafeFromData v)
+  => (v -> These a b) -> Map k v -> (Map k a, Map k b)
+mapThese f (Map m) = (Map ls, Map rs)
+  where
+    (ls, rs) = go m
+    go
+      :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+      ->
+        ( BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+        , BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+        )
+    go xs =
+      P.matchList
+        xs
+        (\() -> (nil, nil))
+        ( \hd tl ->
+            let k = BI.fst hd
+                v = BI.snd hd
+                (ls', rs') = go tl
+             in case f' v of
+                  This l' -> (BI.mkCons (BI.mkPairData k (P.toBuiltinData l')) ls', rs')
+                  That r' -> (ls', BI.mkCons (BI.mkPairData k (P.toBuiltinData r')) rs')
+                  These l' r' ->
+                    ( BI.mkCons (BI.mkPairData k (P.toBuiltinData l')) ls'
+                    , BI.mkCons (BI.mkPairData k (P.toBuiltinData r')) rs'
+                    )
+        )
+    f' :: BuiltinData -> These a b
+    f' = f . P.unsafeFromBuiltinData
+
+{-# INLINEABLE map #-}
+map :: forall k a b. (P.UnsafeFromData a, P.ToData b) => (a -> b) -> Map k a -> Map k b
+map f (Map m) = Map $ go m
+  where
+    go xs =
+      P.matchList
+        xs
+        (\() -> nil)
+        ( \hd tl ->
+            let k = BI.fst hd
+                v = BI.snd hd
+             in
+              BI.mkCons
+                (BI.mkPairData k (P.toBuiltinData (f (P.unsafeFromBuiltinData v))))
+                (go tl)
+        )
+
+{-# INLINEABLE foldr #-}
+foldr :: forall a b k. (P.UnsafeFromData a) => (a -> b -> b) -> b -> Map k a -> b
+foldr f z (Map m) = go m
+  where
+    go xs =
+      P.matchList
+        xs
+        (\() -> z)
+        ( \hd tl ->
+            let v = BI.snd hd
+             in f (P.unsafeFromBuiltinData v) (go tl)
+        )
 
 makeLift ''Map

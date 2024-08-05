@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                      #-}
 {-# LANGUAGE DefaultSignatures        #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE FunctionalDependencies   #-}
@@ -22,6 +23,10 @@ import Data.String (IsString (..))
 import Data.Text qualified as Text
 import GHC.Magic qualified as Magic
 import Prelude qualified as Haskell (String)
+#if MIN_VERSION_base(4,20,0)
+import Prelude (type (~))
+#endif
+
 
 {- Note [noinline hack]
 For some functions we have two conflicting desires:
@@ -199,19 +204,25 @@ instance HasFromOpaque BuiltinBool Bool where
     fromOpaque b = ifThenElse b True False
     {-# INLINABLE fromOpaque #-}
 
-instance HasToOpaque [BuiltinData] (BuiltinList BuiltinData) where
+-- | The empty list of elements of the given type that gets spotted by the plugin (grep for
+-- 'mkNilOpaque' in the plugin code) and replaced by the actual empty list constant for types that
+-- are supported (a subset of built-in types).
+mkNilOpaque :: BuiltinList a
+mkNilOpaque = BuiltinList []
+{-# OPAQUE mkNilOpaque #-}
+
+class MkNil arep where
+    mkNil :: BuiltinList arep
+    mkNil = mkNilOpaque
+instance MkNil BuiltinInteger
+instance MkNil BuiltinBool
+instance MkNil BuiltinData
+instance MkNil (BuiltinPair BuiltinData BuiltinData)
+
+instance (HasToOpaque a arep, MkNil arep) => HasToOpaque [a] (BuiltinList arep) where
     toOpaque = goList where
-        goList :: [BuiltinData] -> BuiltinList BuiltinData
-        goList []     = mkNilData unitval
-        goList (d:ds) = mkCons (toOpaque d) (goList ds)
-    {-# INLINABLE toOpaque #-}
-instance
-        HasToOpaque
-            [(BuiltinData, BuiltinData)]
-            (BuiltinList (BuiltinPair BuiltinData BuiltinData)) where
-    toOpaque = goList where
-        goList :: [(BuiltinData, BuiltinData)] -> BuiltinList (BuiltinPair BuiltinData BuiltinData)
-        goList []     = mkNilPairData unitval
+        goList :: [a] -> BuiltinList arep
+        goList []     = mkNil
         goList (d:ds) = mkCons (toOpaque d) (goList ds)
     {-# INLINABLE toOpaque #-}
 instance HasFromOpaque arep a => HasFromOpaque (BuiltinList arep) [a] where

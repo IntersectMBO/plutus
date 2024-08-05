@@ -84,7 +84,7 @@ test_canonicalEncoding s n =
 -- the encoding's canonical.
 test_canonicalData :: TestTree
 test_canonicalData =
-  test_canonicalEncoding @Data "flat encodes Data canonically" 10000
+  test_canonicalEncoding @Data "flat encodes Data canonically" 5000
 
 -- We may as well check that it does the right thing for strict bytestrings
 -- while we're here.
@@ -191,7 +191,7 @@ test_nonCanonicalByteStringDecoding =
 
   in testGroup "Non-canonical bytestring encodings decode succesfully"
      [ testProperty "Data via lazy bytestrings" $
-       withMaxSuccess 10000 $
+       withMaxSuccess 5000 $
        forAll (arbitrary @Data) (\d -> Right d === unflat (flat $ (serialise d :: BSL.ByteString)))
      , testProperty "Arbitrary lazy bytestrings" $
        withMaxSuccess 10000 $

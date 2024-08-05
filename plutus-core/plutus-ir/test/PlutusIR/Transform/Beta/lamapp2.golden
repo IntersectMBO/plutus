@@ -1,11 +1,4 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl x (con integer))
-    (let
-      (nonrec) (termbind (strict) (vardecl y (con integer)) (con integer 1)) y
-    )
-  )
-  x
-)
+let
+  !x : integer = let !y : integer = 1 in y
+in
+x

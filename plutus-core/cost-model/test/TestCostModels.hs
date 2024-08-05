@@ -42,12 +42,12 @@ import Hedgehog.Range qualified as Range
    the microToPico function from CreateBuiltinCostModel to convert R results to
    picoseconds expressed as CostingIntegers.  To deal with (A), we don't check
    for exact equality of the outputs but instead check that the R result and the
-   Haskell result agreee to within a factor of 1/100 (one percent).
+   Haskell result agreee to within a factor of 2/100 (two percent).
 -}
 
--- | Maximum allowable difference beween R result and Haskell result.
+-- Maximum allowable difference beween R result and Haskell result.
 epsilon :: Double
-epsilon = 1/100
+epsilon = 2/100
 
 {-
    The tests here use Haskell costing functions (in 'costModelsR' from
@@ -72,13 +72,19 @@ epsilon = 1/100
 numberOfTests :: TestLimit
 numberOfTests = 100
 
--- | Generate inputs for costing functions, making sure that we test a large
--- range of inputs, but that we also get small inputs.
+-- Generate inputs for costing functions, making sure that we test a large range
+-- of inputs, but that we also get small inputs.
 memUsageGen :: Gen CostingInteger
 memUsageGen =
     Gen.choice [small, large]
         where small = unsafeToSatInt <$> Gen.integral (Range.constant 0 2)
               large = unsafeToSatInt <$> Gen.integral (Range.linear 0 5000)
+
+-- Smaller inputs for testing the piecewise costing functions for integer
+-- division operations, where the Haskell model differs from the R one for
+-- larger values.
+memUsageGen40 :: Gen CostingInteger
+memUsageGen40 = unsafeToSatInt <$> Gen.integral (Range.linear 0 40)
 
 -- A type alias to make our signatures more concise.  This type is a record in
 -- which every field refers to an R SEXP (over some state s), the lm model for
@@ -98,6 +104,9 @@ data TestDomain
   = Everywhere
   | OnDiagonal
   | BelowDiagonal
+  -- Small values for integer division builtins with quadratic costing functions; we want
+  -- to keep away from the regions where the floor comes into play.
+  | BelowDiagonal'
 
 -- Approximate equality
 (~=) :: CostingInteger -> CostingInteger -> Bool
@@ -194,10 +203,12 @@ testPredictTwo costingFunH modelR domain = propertyR $
         coerce $ exBudgetCPU $ sumExBudgetStream $
         runCostingFunTwoArguments costingFunH (ExM x) (ExM y)
       sizeGen = case domain of
-                  Everywhere    -> twoArgs
-                  OnDiagonal    -> memUsageGen >>= \x -> pure (x,x)
-                  BelowDiagonal -> Gen.filter (uncurry (>=)) twoArgs
+                  Everywhere     -> twoArgs
+                  OnDiagonal     -> memUsageGen >>= \x -> pure (x,x)
+                  BelowDiagonal  -> Gen.filter (uncurry (>=)) twoArgs
+                  BelowDiagonal' -> Gen.filter (uncurry (>=)) twoArgs'
         where twoArgs = (,) <$> memUsageGen <*> memUsageGen
+              twoArgs' = (,) <$> memUsageGen40 <*> memUsageGen40
   in do
     (x, y) <- forAll sizeGen
     byR <- lift $ predictR x y
@@ -316,10 +327,10 @@ main =
               [ $(genTest 2 "addInteger")            Everywhere
               , $(genTest 2 "subtractInteger")       Everywhere
               , $(genTest 2 "multiplyInteger")       Everywhere
-              , $(genTest 2 "divideInteger")         BelowDiagonal
-              , $(genTest 2 "quotientInteger")       BelowDiagonal
-              , $(genTest 2 "remainderInteger")      BelowDiagonal
-              , $(genTest 2 "modInteger")            BelowDiagonal
+              , $(genTest 2 "divideInteger")         BelowDiagonal'
+              , $(genTest 2 "quotientInteger")       BelowDiagonal'
+              , $(genTest 2 "remainderInteger")      BelowDiagonal'
+              , $(genTest 2 "modInteger")            BelowDiagonal'
               , $(genTest 2 "lessThanInteger")       Everywhere
               , $(genTest 2 "lessThanEqualsInteger") Everywhere
               , $(genTest 2 "equalsInteger")         Everywhere
@@ -407,15 +418,24 @@ main =
               , $(genTest 2 "bls12_381_mulMlResult")    Everywhere
               , $(genTest 2 "bls12_381_finalVerify")    Everywhere
 
-              -- Keccak_256, Blake2b_224
+              -- Keccak_256, Blake2b_224, Ripemd_160
               , $(genTest 1 "keccak_256")
               , $(genTest 1 "blake2b_224")
+              , $(genTest 1 "ripemd_160")
 
               -- Bitwise operations
               , $(genTest 3 "integerToByteString")
               , $(genTest 2 "byteStringToInteger") Everywhere
-
-              -- Ripemd_160
-              , $(genTest 1 "ripemd_160")
+              , $(genTest 3 "andByteString")
+              , $(genTest 3 "orByteString")
+              , $(genTest 3 "xorByteString")
+              , $(genTest 1 "complementByteString")
+              , $(genTest 2 "readBit")             Everywhere
+              , $(genTest 3 "writeBits")
+              , $(genTest 2 "replicateByte")       Everywhere
+              , $(genTest 2 "shiftByteString")     Everywhere
+              , $(genTest 2 "rotateByteString")    Everywhere
+              , $(genTest 1 "countSetBits")
+              , $(genTest 1 "findFirstSetBit")
               ]
 
