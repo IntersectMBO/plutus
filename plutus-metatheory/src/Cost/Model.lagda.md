@@ -28,7 +28,8 @@ open import Relation.Binary.PropositionalEquality using (refl)
 open import Utils using (List;_×_;[];_∷_;_,_;length)
 open import Data.Vec using (Vec;[];_∷_;sum;foldr;lookup;map)
 open import Cost.Base
-open import Cost.Raw renaming (mkLinearFunction to mkLF; mkOneVariableQuadraticFunction to mkQF1; mkTwoVariableQuadraticFunction to mkQF2)
+open import Cost.Raw renaming (mkLinearFunction to mkLF; mkTwoVariableLinearFunction to mkLF2;
+  mkOneVariableQuadraticFunction to mkQF1; mkTwoVariableQuadraticFunction to mkQF2)
 open import Cost.Size using () renaming (defaultValueMeasure to sizeOf)
 open import Builtin using (Builtin;arity;builtinList;showBuiltin;decBuiltin)
 open import Builtin.Signature using (_⊢♯)
@@ -73,11 +74,13 @@ data CostingModel : ℕ → Set where
   minSize            : ∀{n} → Intercept → Slope → CostingModel (1 + n)
   maxSize            : ∀{n} → Intercept → Slope → CostingModel (1 + n)
    -- exactly two arguments
-  twoArgumentsLinearInXAndY      : Intercept → Slope → Slope → CostingModel 2
   twoArgumentsSubtractedSizes    : Intercept → Slope → CostingNat → CostingModel 2
   twoArgumentsConstAboveDiagonal : CostingNat → CostingModel 2 → CostingModel 2
   twoArgumentsConstBelowDiagonal : CostingNat → CostingModel 2 → CostingModel 2
   twoArgumentsConstOffDiagonal   : CostingNat → CostingModel 2 → CostingModel 2
+  -- exactly 3 arguments
+  twoArgumentsLinearInYAndZ      : Intercept → Slope → Slope → CostingModel 3
+  twoArgumentsLinearInMaxYZ      : Intercept → Slope → CostingModel 3
 ```
 
 A model of a builtin consists of a pair of costing models, one for CPU and one for memory.
@@ -119,10 +122,14 @@ runModel (addedSizes i s) xs = i + s * (sum (map sizeOf xs))
 runModel (multipliedSizes i s) xs = i + s * (prod (map sizeOf xs))
 runModel (minSize i s) xs = i + s * minimum (map sizeOf xs)
 runModel (maxSize i s) xs = i + s * maximum (map sizeOf xs)
-runModel (twoArgumentsLinearInXAndY i s₁ s₂) (x ∷ y ∷ []) =
-  let a = sizeOf x
-      b = sizeOf y
+runModel (twoArgumentsLinearInYAndZ i s₁ s₂) (_ ∷ y ∷ z ∷ []) =
+  let a = sizeOf y
+      b = sizeOf z
   in i + s₁ * a + s₂ * b
+runModel (twoArgumentsLinearInMaxYZ i s) (_ ∷ y ∷ z ∷ []) =
+  let a = sizeOf y
+      b = sizeOf z
+  in i + s * maximum (a ∷ b ∷ [])
 runModel (twoArgumentsSubtractedSizes i s min) (x ∷ y ∷ []) =
   let a = sizeOf x
       b = sizeOf y
@@ -164,6 +171,9 @@ convertRawModel {suc n} (MinSize (mkLF intercept slope)) = just (minSize interce
 convertRawModel {suc n} (MaxSize (mkLF intercept slope)) = just (maxSize intercept slope)
 convertRawModel {suc n} (LinearInX (mkLF intercept slope)) = just (linearCostIn zero intercept slope)
 convertRawModel {suc (suc n)} (LinearInY (mkLF intercept slope)) = just (linearCostIn (suc zero) intercept slope)
+convertRawModel {3} (LinearInYAndZ (mkLF2 intercept slope1 slope2)) =
+                   just (twoArgumentsLinearInYAndZ intercept slope1 slope2)
+convertRawModel {3} (LinearInMaxYZ (mkLF intercept slope)) = just (twoArgumentsLinearInMaxYZ intercept slope)
 convertRawModel {suc (suc n)} (QuadraticInY (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 (suc zero) c0 c1 c2)
 convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
 convertRawModel {suc (suc (suc n))} (QuadraticInZ (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 (suc (suc zero)) c0 c1 c2)
