@@ -1488,20 +1488,20 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _ver CaseList =
         makeBuiltinMeaning
-            caseListPlc
+            caseListDenotation
             (\_ _ _ _ -> ExBudgetLast mempty)  -- TODO.
         where
-          caseListPlc
+          caseListDenotation
               :: SomeConstant uni [a]
               -> Opaque val b
               -> Opaque val (a -> [a] -> b)
               -> EvaluationResult (Opaque (HeadSpine val) b)
-          caseListPlc (SomeConstant (Some (ValueOf uniListA xs0))) z f = do
+          caseListDenotation (SomeConstant (Some (ValueOf uniListA xs0))) z f = do
             DefaultUniList uniA <- pure uniListA
             pure $ case xs0 of
                 []     -> headSpine z []
                 x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
-          {-# INLINE caseListPlc #-}
+          {-# INLINE caseListDenotation #-}
 
     toBuiltinMeaning _semvar MkCons =
         let mkConsDenotation
@@ -1579,10 +1579,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _ver CaseData =
         makeBuiltinMeaning
-            caseDataPlc
+            caseDataDenotation
             (\_ _ _ _ _ _ _ -> ExBudgetLast mempty)  -- TODO.
         where
-          caseDataPlc
+          caseDataDenotation
               :: Data
               -> Opaque val (Integer -> [Data] -> b)
               -> Opaque val ([(Data, Data)] -> b)
@@ -1590,13 +1590,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               -> Opaque val (Integer -> b)
               -> Opaque val (BS.ByteString -> b)
               -> Opaque (HeadSpine val) b
-          caseDataPlc d fConstr fMap fList fI fB = case d of
+          caseDataDenotation d fConstr fMap fList fI fB = case d of
               Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
               Map es      -> headSpine fMap [fromValue es]
               List ds     -> headSpine fList [fromValue ds]
               I i         -> headSpine fI [fromValue i]
               B b         -> headSpine fB [fromValue b]
-          {-# INLINE caseDataPlc #-}
+          {-# INLINE caseDataDenotation #-}
 
     toBuiltinMeaning _semvar ConstrData =
         let constrDataDenotation :: Integer -> [Data] -> Data
@@ -2149,8 +2149,6 @@ instance Flat DefaultFun where
               Bls12_381_finalVerify           -> 70
               Keccak_256                      -> 71
               Blake2b_224                     -> 72
-              CaseList                        -> 73
-              CaseData                        -> 74
 
               IntegerToByteString             -> 73
               ByteStringToInteger             -> 74
@@ -2167,6 +2165,9 @@ instance Flat DefaultFun where
               RotateByteString                -> 83
               CountSetBits                    -> 84
               FindFirstSetBit                 -> 85
+
+              CaseList                        -> 86
+              CaseData                        -> 87
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -2255,8 +2256,8 @@ instance Flat DefaultFun where
               go 83 = pure RotateByteString
               go 84 = pure CountSetBits
               go 85 = pure FindFirstSetBit
-              go 85 = pure CaseList
-              go 86 = pure CaseData
+              go 86 = pure CaseList
+              go 87 = pure CaseData
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

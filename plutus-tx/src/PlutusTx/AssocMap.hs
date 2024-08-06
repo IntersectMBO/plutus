@@ -119,17 +119,15 @@ instance (FromData k, FromData v) => FromData (Map k v) where
         where
           go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> Maybe [(k, v)]
           go l =
-            BI.chooseList
+            P.matchList
               l
-              (const (pure []))
-              ( \_ ->
-                  let tup = BI.head l
-                   in liftA2
-                        (:)
-                        (liftA2 (,) (fromBuiltinData $ BI.fst tup) (fromBuiltinData $ BI.snd tup))
-                        (go (BI.tail l))
+              (pure [])
+              ( \tup tups ->
+                   liftA2
+                       (:)
+                       (liftA2 (,) (fromBuiltinData $ BI.fst tup) (fromBuiltinData $ BI.snd tup))
+                       (go tups)
               )
-              ()
 
 -- | A hand-written transformation from 'Data' to 'Map'. It is unsafe because the
 -- caller must provide the guarantee that the 'Data' is constructed using the 'Data's
@@ -150,15 +148,13 @@ instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
         where
           go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
           go l =
-            BI.chooseList
+            P.matchList
               l
-              (const [])
-              ( \_ ->
-                  let tup = BI.head l
-                   in (unsafeFromBuiltinData $ BI.fst tup, unsafeFromBuiltinData $ BI.snd tup)
-                        : go (BI.tail l)
+              []
+              ( \tup tups ->
+                   (unsafeFromBuiltinData $ BI.fst tup, unsafeFromBuiltinData $ BI.snd tup)
+                       : go tups
               )
-              ()
 
 instance Functor (Map k) where
   {-# INLINEABLE fmap #-}

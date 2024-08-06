@@ -23,6 +23,7 @@
                                       [ (delay (addInteger (force x) (force z)))
                                       , (delay
                                            (addInteger
+<<<<<<< HEAD
                                               (force y)
                                               (force w))) ])))
                              (force
@@ -69,3 +70,56 @@
                                 (force (force sndPair) tup))))
                        (delay (delay (case error [error]))))))
               (unConstrData d)))))
+=======
+                                              (addInteger (cse cse) cse)
+                                              cse)
+                                           (force
+                                              (case
+                                                 (lessThanInteger
+                                                    (cse cse)
+                                                    (cse cse))
+                                                 [ (delay (cse cse))
+                                                 , (delay (cse cse)) ])))
+                                        (force
+                                           (case
+                                              (lessThanInteger
+                                                 (cse cse)
+                                                 (cse cse))
+                                              [ (delay (cse cse))
+                                              , (delay (cse cse)) ])))
+                                     (addInteger cse))
+                                  (addInteger cse))
+                               (addInteger cse))
+                            (addInteger cse))
+                         (case cse [(\x y z w -> w)]))
+                      (case cse [(\x y z w -> x)]))
+                   (case cse [(\x y z w -> y)]))
+                (case cse [(\x y z w -> z)]))
+             (\x y -> addInteger x y))
+          (\x y ->
+             force ifThenElse
+               (lessThanInteger x y)
+               (constr 0 [])
+               (constr 1 [])))
+       ((\tup ->
+           force
+             (force ifThenElse
+                (equalsInteger 0 (force (force fstPair) tup))
+                (delay
+                   ((\l ->
+                       (\l ->
+                          (\l ->
+                             (\z w ->
+                                constr 0
+                                  [ (unIData (force headList l))
+                                  , (unIData (force headList l))
+                                  , z
+                                  , w ])
+                               (unIData (force headList l))
+                               (unIData (force headList (force tailList l))))
+                            (force tailList l))
+                         (force tailList l))
+                      (force (force sndPair) tup)))
+                (delay (case error [error]))))
+          (unConstrData d)))
+>>>>>>> 9a46cae2f9ad5146f3566075447915502cdfcbb7

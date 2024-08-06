@@ -132,16 +132,13 @@
             letrec
               !go : list data -> List a
                 = \(l : list data) ->
-                    chooseList
+                    caseList
                       {data}
                       {Unit -> List a}
                       l
                       (\(ds : Unit) -> Nil {a})
-                      (\(ds : Unit) ->
-                         Cons
-                           {a}
-                           (`$dUnsafeFromData` (headList {data} l))
-                           (go (tailList {data} l)))
+                      (\(x : data) (xs : list data) (ds : Unit) ->
+                         Cons {a} (`$dUnsafeFromData` x) (go xs))
                       Unit
             in
             \(d : data) -> go (unListData d)
@@ -198,23 +195,22 @@
             letrec
               !go : list (pair data data) -> List (Tuple2 k v)
                 = \(l : list (pair data data)) ->
-                    chooseList
+                    caseList
                       {pair data data}
                       {Unit -> List (Tuple2 k v)}
                       l
                       (\(ds : Unit) -> Nil {Tuple2 k v})
-                      (\(ds : Unit) ->
-                         let
-                           !tup : pair data data = headList {pair data data} l
-                         in
+                      (\(x : pair data data)
+                        (xs : list (pair data data))
+                        (ds : Unit) ->
                          Cons
                            {Tuple2 k v}
                            (Tuple2
                               {k}
                               {v}
-                              (`$dUnsafeFromData` (fstPair {data} {data} tup))
-                              (`$dUnsafeFromData` (sndPair {data} {data} tup)))
-                           (go (tailList {pair data data} l)))
+                              (`$dUnsafeFromData` (fstPair {data} {data} x))
+                              (`$dUnsafeFromData` (sndPair {data} {data} x)))
+                           (go xs))
                       Unit
             in
             \(d : data) -> go (unMapData d)
