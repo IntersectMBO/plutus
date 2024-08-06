@@ -1,0 +1,454 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  data (List :: * -> *) a | List_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+letrec
+  !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
+    = \(x : integer) (lim : integer) ->
+        Bool_match
+          (ifThenElse {Bool} (lessThanEqualsInteger x lim) False True)
+          {all dead. List integer}
+          (/\dead -> Nil {integer})
+          (/\dead ->
+             Cons {integer} x (`$fEnumBool_$cenumFromTo` (addInteger 1 x) lim))
+          {all dead. dead}
+in
+letrec
+  !go : List integer -> integer -> List integer
+    = \(acc : List integer) (n : integer) ->
+        let
+          !x : integer = quotientInteger n 10
+        in
+        Bool_match
+          (ifThenElse {Bool} (equalsInteger 0 x) True False)
+          {all dead. List integer}
+          (/\dead -> Cons {integer} (remainderInteger n 10) acc)
+          (/\dead -> go (Cons {integer} (remainderInteger n 10) acc) x)
+          {all dead. dead}
+in
+letrec
+  !go :
+     List integer -> List string -> List string
+    = \(ds : List integer) ->
+        List_match
+          {integer}
+          ds
+          {all dead. List string -> List string}
+          (/\dead -> \(x : List string) -> x)
+          (\(x : integer)
+            (xs : List integer) ->
+             /\dead ->
+               let
+                 !acc : List string -> List string = go xs
+               in
+               \(eta : List string) ->
+                 Cons
+                   {string}
+                   (Bool_match
+                      (ifThenElse {Bool} (equalsInteger 0 x) True False)
+                      {all dead. string}
+                      (/\dead -> "0")
+                      (/\dead ->
+                         Bool_match
+                           (ifThenElse {Bool} (equalsInteger 1 x) True False)
+                           {all dead. string}
+                           (/\dead -> "1")
+                           (/\dead ->
+                              Bool_match
+                                (ifThenElse
+                                   {Bool}
+                                   (equalsInteger 2 x)
+                                   True
+                                   False)
+                                {all dead. string}
+                                (/\dead -> "2")
+                                (/\dead ->
+                                   Bool_match
+                                     (ifThenElse
+                                        {Bool}
+                                        (equalsInteger 3 x)
+                                        True
+                                        False)
+                                     {all dead. string}
+                                     (/\dead -> "3")
+                                     (/\dead ->
+                                        Bool_match
+                                          (ifThenElse
+                                             {Bool}
+                                             (equalsInteger 4 x)
+                                             True
+                                             False)
+                                          {all dead. string}
+                                          (/\dead -> "4")
+                                          (/\dead ->
+                                             Bool_match
+                                               (ifThenElse
+                                                  {Bool}
+                                                  (equalsInteger 5 x)
+                                                  True
+                                                  False)
+                                               {all dead. string}
+                                               (/\dead -> "5")
+                                               (/\dead ->
+                                                  Bool_match
+                                                    (ifThenElse
+                                                       {Bool}
+                                                       (equalsInteger 6 x)
+                                                       True
+                                                       False)
+                                                    {all dead. string}
+                                                    (/\dead -> "6")
+                                                    (/\dead ->
+                                                       Bool_match
+                                                         (ifThenElse
+                                                            {Bool}
+                                                            (equalsInteger 7 x)
+                                                            True
+                                                            False)
+                                                         {all dead. string}
+                                                         (/\dead -> "7")
+                                                         (/\dead ->
+                                                            Bool_match
+                                                              (ifThenElse
+                                                                 {Bool}
+                                                                 (equalsInteger
+                                                                    8
+                                                                    x)
+                                                                 True
+                                                                 False)
+                                                              {all dead. string}
+                                                              (/\dead -> "8")
+                                                              (/\dead ->
+                                                                 Bool_match
+                                                                   (ifThenElse
+                                                                      {Bool}
+                                                                      (equalsInteger
+                                                                         9
+                                                                         x)
+                                                                      True
+                                                                      False)
+                                                                   {string}
+                                                                   "9"
+                                                                   "<invalid digit>")
+                                                              {all dead. dead})
+                                                         {all dead. dead})
+                                                    {all dead. dead})
+                                               {all dead. dead})
+                                          {all dead. dead})
+                                     {all dead. dead})
+                                {all dead. dead})
+                           {all dead. dead})
+                      {all dead. dead})
+                   (acc eta))
+          {all dead. dead}
+in
+letrec
+  !`$fShowBuiltinByteString_$cshowsPrec` :
+     integer -> integer -> List string -> List string
+    = \(p : integer) (n : integer) ->
+        Bool_match
+          (ifThenElse {Bool} (lessThanInteger n 0) True False)
+          {all dead. List string -> List string}
+          (/\dead ->
+             \(eta : List string) ->
+               Cons
+                 {string}
+                 "-"
+                 (`$fShowBuiltinByteString_$cshowsPrec`
+                    p
+                    (subtractInteger 0 n)
+                    eta))
+          (/\dead -> go (go (Nil {integer}) n))
+          {all dead. dead}
+in
+let
+  data (Tuple5 :: * -> * -> * -> * -> * -> *) a b c d e | Tuple5_match where
+    Tuple5 : a -> b -> c -> d -> e -> Tuple5 a b c d e
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+in
+letrec
+  !go : all a. integer -> List a -> Tuple2 (List a) (List a)
+    = /\a ->
+        \(ds : integer) (ds : List a) ->
+          List_match
+            {a}
+            ds
+            {all dead. Tuple2 (List a) (List a)}
+            (/\dead -> Tuple2 {List a} {List a} (Nil {a}) (Nil {a}))
+            (\(y : a) (ys : List a) ->
+               /\dead ->
+                 Bool_match
+                   (ifThenElse {Bool} (equalsInteger 1 ds) True False)
+                   {all dead. Tuple2 (List a) (List a)}
+                   (/\dead ->
+                      Tuple2
+                        {List a}
+                        {List a}
+                        ((let
+                             a = List a
+                           in
+                           \(c : a -> a -> a) (n : a) -> c y n)
+                           (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                           (Nil {a}))
+                        ys)
+                   (/\dead ->
+                      Tuple2_match
+                        {List a}
+                        {List a}
+                        (go {a} (subtractInteger ds 1) ys)
+                        {Tuple2 (List a) (List a)}
+                        (\(zs : List a) (ws : List a) ->
+                           Tuple2 {List a} {List a} (Cons {a} y zs) ws))
+                   {all dead. dead})
+            {all dead. dead}
+in
+letrec
+  !go : List string -> integer
+    = \(ds : List string) ->
+        List_match
+          {string}
+          ds
+          {all dead. integer}
+          (/\dead -> 0)
+          (\(x : string) (xs : List string) -> /\dead -> addInteger 1 (go xs))
+          {all dead. dead}
+in
+letrec
+  !concatBuiltinStrings : List string -> string
+    = \(ds : List string) ->
+        List_match
+          {string}
+          ds
+          {string}
+          ""
+          (\(x : string) (ds : List string) ->
+             List_match
+               {string}
+               ds
+               {all dead. string}
+               (/\dead -> x)
+               (\(ipv : string) (ipv : List string) ->
+                  /\dead ->
+                    Tuple2_match
+                      {List string}
+                      {List string}
+                      (let
+                        !n : integer = divideInteger (go ds) 2
+                      in
+                      Bool_match
+                        (ifThenElse
+                           {Bool}
+                           (lessThanEqualsInteger n 0)
+                           True
+                           False)
+                        {all dead. Tuple2 (List string) (List string)}
+                        (/\dead ->
+                           Tuple2 {List string} {List string} (Nil {string}) ds)
+                        (/\dead -> go {string} n ds)
+                        {all dead. dead})
+                      {string}
+                      (\(ipv : List string) (ipv : List string) ->
+                         appendString
+                           (concatBuiltinStrings ipv)
+                           (concatBuiltinStrings ipv)))
+               {all dead. dead})
+in
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  !lookup :
+     all k a.
+       (\a -> a -> data) k ->
+       (\a -> data -> a) a ->
+       k ->
+       (\k a -> list (pair data data)) k a ->
+       Maybe a
+    = /\k a ->
+        \(`$dToData` : (\a -> a -> data) k)
+         (`$dUnsafeFromData` : (\a -> data -> a) a)
+         (ds : k)
+         (ds : (\k a -> list (pair data data)) k a) ->
+          Maybe_match
+            {data}
+            (let
+              !k : data = `$dToData` ds
+            in
+            letrec
+              !go : list (pair data data) -> Maybe data
+                = \(xs : list (pair data data)) ->
+                    chooseList
+                      {pair data data}
+                      {Unit -> Maybe data}
+                      xs
+                      (\(ds : Unit) -> Nothing {data})
+                      (\(ds : Unit) ->
+                         let
+                           !hd : pair data data = headList {pair data data} xs
+                         in
+                         Bool_match
+                           (ifThenElse
+                              {Bool}
+                              (equalsData k (fstPair {data} {data} hd))
+                              True
+                              False)
+                           {all dead. Maybe data}
+                           (/\dead ->
+                              let
+                                !ds : list (pair data data)
+                                  = tailList {pair data data} xs
+                              in
+                              Just {data} (sndPair {data} {data} hd))
+                           (/\dead -> go (tailList {pair data data} xs))
+                           {all dead. dead})
+                      Unit
+            in
+            go ds)
+            {all dead. Maybe a}
+            (\(a : data) -> /\dead -> Just {a} (`$dUnsafeFromData` a))
+            (/\dead -> Nothing {a})
+            {all dead. dead}
+in
+\(n : integer) ->
+  let
+    !nt : list (pair data data)
+      = (let
+            b = (\k a -> list (pair data data)) integer bytestring
+          in
+          \(k : integer -> b -> b) (z : b) ->
+            letrec
+              !go : List integer -> b
+                = \(ds : List integer) ->
+                    List_match
+                      {integer}
+                      ds
+                      {all dead. b}
+                      (/\dead -> z)
+                      (\(y : integer) (ys : List integer) ->
+                         /\dead -> k y (go ys))
+                      {all dead. dead}
+            in
+            \(eta : List integer) -> go eta)
+          (\(i : integer) ->
+             let
+               !ds : integer = addInteger n i
+               !ds : bytestring
+                 = encodeUtf8
+                     (concatBuiltinStrings
+                        (`$fShowBuiltinByteString_$cshowsPrec`
+                           0
+                           i
+                           (Nil {string})))
+             in
+             \(ds : (\k a -> list (pair data data)) integer bytestring) ->
+               let
+                 !k : data = iData ds
+                 !a : data = bData ds
+               in
+               letrec
+                 !go : list (pair data data) -> list (pair data data)
+                   = \(xs : list (pair data data)) ->
+                       chooseList
+                         {pair data data}
+                         {Unit -> list (pair data data)}
+                         xs
+                         (\(ds : Unit) ->
+                            mkCons {pair data data} (mkPairData k a) [])
+                         (\(ds : Unit) ->
+                            let
+                              !hd : pair data data
+                                = headList {pair data data} xs
+                              !tl : list (pair data data)
+                                = tailList {pair data data} xs
+                            in
+                            Bool_match
+                              (ifThenElse
+                                 {Bool}
+                                 (equalsData k (fstPair {data} {data} hd))
+                                 True
+                                 False)
+                              {all dead. list (pair data data)}
+                              (/\dead ->
+                                 mkCons {pair data data} (mkPairData k a) tl)
+                              (/\dead -> mkCons {pair data data} hd (go tl))
+                              {all dead. dead})
+                         Unit
+               in
+               go ds)
+          (mkCons {pair data data} (mkPairData (iData n) (B #30)) [])
+          (`$fEnumBool_$cenumFromTo` 1 10)
+    !nt : list (pair data data)
+      = let
+        !k : data = iData (addInteger 5 n)
+      in
+      letrec
+        !go : list (pair data data) -> list (pair data data)
+          = \(xs : list (pair data data)) ->
+              chooseList
+                {pair data data}
+                {Unit -> list (pair data data)}
+                xs
+                (\(ds : Unit) -> [])
+                (\(ds : Unit) ->
+                   let
+                     !hd : pair data data = headList {pair data data} xs
+                     !tl : list (pair data data) = tailList {pair data data} xs
+                   in
+                   Bool_match
+                     (ifThenElse
+                        {Bool}
+                        (equalsData k (fstPair {data} {data} hd))
+                        True
+                        False)
+                     {all dead. list (pair data data)}
+                     (/\dead -> tl)
+                     (/\dead -> mkCons {pair data data} hd (go tl))
+                     {all dead. dead})
+                Unit
+      in
+      go nt
+  in
+  Tuple5
+    {Maybe bytestring}
+    {Maybe bytestring}
+    {Maybe bytestring}
+    {Maybe bytestring}
+    {Maybe bytestring}
+    (lookup {integer} {bytestring} (\(i : integer) -> iData i) unBData n nt)
+    (lookup
+       {integer}
+       {bytestring}
+       (\(i : integer) -> iData i)
+       unBData
+       (addInteger 5 n)
+       nt)
+    (lookup
+       {integer}
+       {bytestring}
+       (\(i : integer) -> iData i)
+       unBData
+       (addInteger 10 n)
+       nt)
+    (lookup
+       {integer}
+       {bytestring}
+       (\(i : integer) -> iData i)
+       unBData
+       (addInteger 20 n)
+       nt)
+    (lookup
+       {integer}
+       {bytestring}
+       (\(i : integer) -> iData i)
+       unBData
+       (addInteger 5 n)
+       nt)

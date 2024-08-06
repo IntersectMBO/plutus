@@ -7,7 +7,7 @@ The test suite currently runs nightly.
 
 ## Generating Script Dumps
 
-The executable for generating script dumps is in the [plutus-apps](https://github.com/input-output-hk/plutus-apps) repo, since it depends on the node API.
+The executable for generating script dumps is in the [plutus-apps](https://github.com/IntersectMBO/plutus-apps) repo, since it depends on the node API.
 It is currently in the "plutus-script-dump" branch and will eventually be merged into the main branch.
 
 To run it, check out the "plutus-script-dump" branch, and run the following in the nix shell of plutus-apps:

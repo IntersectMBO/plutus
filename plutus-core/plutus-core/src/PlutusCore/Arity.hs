@@ -45,4 +45,4 @@ builtinArity
     -> Arity
 builtinArity _ semvar fun =
   case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) semvar fun of
-        BuiltinMeaning sch _ _ -> typeSchemeArity sch
+    BuiltinMeaning sch _ _ -> typeSchemeArity sch

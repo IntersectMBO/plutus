@@ -19,4 +19,4 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
               | otherwise = id
 
 prettyBytes :: BS.ByteString -> Doc ann
-prettyBytes b = "#" <> fold (asBytes <$> BS.unpack b)
+prettyBytes b = "#" <> foldMap asBytes (BS.unpack b)

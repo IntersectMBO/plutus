@@ -52,6 +52,7 @@ data PluginOptions = PluginOptions
     , _posVerbosity                      :: Verbosity
     , _posMaxSimplifierIterationsPir     :: Int
     , _posMaxSimplifierIterationsUPlc    :: Int
+    , _posMaxCseIterations               :: Int
     , _posDoSimplifierUnwrapCancel       :: Bool
     , _posDoSimplifierBeta               :: Bool
     , _posDoSimplifierInline             :: Bool
@@ -64,6 +65,7 @@ data PluginOptions = PluginOptions
     , _posCoverageBoolean                :: Bool
     , _posRelaxedFloatin                 :: Bool
     , _posCaseOfCaseConservative         :: Bool
+    , _posInlineConstants                :: Bool
     -- | Whether to try and retain the logging behaviour of the program.
     , _posPreserveLogging                :: Bool
     , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
@@ -130,10 +132,7 @@ renderParseError = \case
             [] -> ""
             _  -> [fmt|\nDid you mean one of:\n{Text.intercalate "\n" suggs}|]
 
-{- | Definition of plugin options.
-
- TODO: write a description for each option.
--}
+-- | Definition of plugin options.
 pluginOptions :: Map OptionKey PluginOption
 pluginOptions =
     Map.fromList
@@ -153,7 +152,8 @@ pluginOptions =
               desc =
                 "When conservative optimisation is used, only the optimisations that \
                 \never make the program worse (in terms of cost or size) are employed. \
-                \Implies ``no-relaxed-float-in``."
+                \Implies `no-relaxed-float-in`, `no-inline-constants`, and \
+                \`preserve-logging`."
            in ( k
               , PluginOption
                     typeRep
@@ -165,9 +165,11 @@ pluginOptions =
                     [ Implication (== True) posRelaxedFloatin False
                     , Implication (== True) posPreserveLogging True
                     , Implication (== True) posCaseOfCaseConservative True
+                    , Implication (== True) posInlineConstants False
                     , Implication (== False) posRelaxedFloatin True
                     , Implication (== False) posPreserveLogging False
                     , Implication (== False) posCaseOfCaseConservative False
+                    , Implication (== False) posInlineConstants True
                     ]
               )
         , let k = "context-level"
@@ -176,12 +178,18 @@ pluginOptions =
         , let k = "dump-pir"
               desc = "Dump Plutus IR"
            in (k, PluginOption typeRep (setTrue k) posDumpPir desc [])
-        , let k = "dump-plc"
+        , let k = "dump-tplc"
               desc = "Dump Typed Plutus Core"
            in (k, PluginOption typeRep (setTrue k) posDumpPlc desc [])
         , let k = "dump-uplc"
               desc = "Dump Untyped Plutus Core"
            in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
+        , let k = "inline-constants"
+              desc =
+                "Always inline constants. Inlining constants always reduces script \
+                \costs slightly, but may increase script sizes if a large constant \
+                \is used more than once. Implied by `no-conservative-optimisation`."
+           in (k, PluginOption typeRep (setTrue k) posInlineConstants desc [])
         , let k = "optimize"
               desc = "Run optimization passes such as simplification and floating let-bindings."
            in (k, PluginOption typeRep (setTrue k) posOptimize desc [])
@@ -208,6 +216,9 @@ pluginOptions =
         , let k = "max-simplifier-iterations-uplc"
               desc = "Set the max iterations for the UPLC simplifier"
            in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsUPlc desc [])
+        , let k = "max-cse-iterations"
+              desc = "Set the max iterations for CSE"
+           in (k, PluginOption typeRep (readOption k) posMaxCseIterations desc [])
         , let k = "simplifier-unwrap-cancel"
               desc = "Run a simplification pass that cancels unwrap/wrap pairs"
            in (k, PluginOption typeRep (setTrue k) posDoSimplifierUnwrapCancel desc [])
@@ -238,10 +249,16 @@ pluginOptions =
         , let k = "relaxed-float-in"
               desc =
                 "Use a more aggressive float-in pass, which often leads to reduced costs \
-                \but may occasionally lead to slightly increased costs."
+                \but may occasionally lead to slightly increased costs. Implied by \
+                \`no-conservative-optimisation`."
            in (k, PluginOption typeRep (setTrue k) posRelaxedFloatin desc [])
+        , let k = "preserve-logging"
+              desc =
+                "Turn off optimisations that may alter (i.e., add, remove or change the \
+                \order of) trace messages. Implied by `conservative-optimisation`."
+           in (k, PluginOption typeRep (setTrue k) posPreserveLogging desc [])
         , let k = "remove-trace"
-              desc = "Eliminate calls to ``trace`` from Plutus Core"
+              desc = "Eliminate calls to `trace` from Plutus Core"
            in (k, PluginOption typeRep (setTrue k) posRemoveTrace desc [])
         , let k = "dump-compilation-trace"
               desc = "Dump compilation trace for debugging"
@@ -298,6 +315,7 @@ defaultPluginOptions =
         , _posVerbosity = Quiet
         , _posMaxSimplifierIterationsPir = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
         , _posMaxSimplifierIterationsUPlc = view UPLC.soMaxSimplifierIterations UPLC.defaultSimplifyOpts
+        , _posMaxCseIterations = view UPLC.soMaxCseIterations UPLC.defaultSimplifyOpts
         , _posDoSimplifierUnwrapCancel = True
         , _posDoSimplifierBeta = True
         , _posDoSimplifierInline = True
@@ -310,6 +328,7 @@ defaultPluginOptions =
         , _posCoverageBoolean = False
         , _posRelaxedFloatin = True
         , _posCaseOfCaseConservative = False
+        , _posInlineConstants = True
         , _posPreserveLogging = False
         , _posRemoveTrace = False
         , _posDumpCompilationTrace = False

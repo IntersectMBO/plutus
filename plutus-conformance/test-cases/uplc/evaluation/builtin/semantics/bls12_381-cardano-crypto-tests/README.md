@@ -1,6 +1,6 @@
 These tests reproduce some of those in
-[cardano-crypto-tests](https://github.com/input-output-hk/cardano-base/tree/master/cardano-crypto-tests),
-specifically the unit tests in [EllipticCurves.hs](https://github.com/input-output-hk/cardano-base/blob/master/cardano-crypto-tests/src/Test/Crypto/EllipticCurve.hs).
+[cardano-crypto-tests](https://github.com/IntersectMBO/cardano-base/tree/master/cardano-crypto-tests),
+specifically the unit tests in [EllipticCurves.hs](https://github.com/IntersectMBO/cardano-base/blob/master/cardano-crypto-tests/src/Test/Crypto/EllipticCurve.hs).
 
 The inputs to those tests (and hence these tests) were generated using the Rust
 [bls12_381 library](https://docs.rs/bls12_381/latest/bls12_381/), so they
@@ -18,5 +18,5 @@ against some independent source of truth, although they do guard against changes
 in the Plutus Core implementation and can be used to test other Plutus Core
 evaluators for compatibilty with the standard one.  Also, there are
 comprehensive property tests
-[here](https://github.com/input-output-hk/plutus/tree/master/plutus-core/untyped-plutus-core/test/Evaluation/Builtins)
+[here](https://github.com/IntersectMBO/plutus/tree/master/plutus-core/untyped-plutus-core/test/Evaluation/Builtins)
 which may be converted into conformance tests at some point in the future.

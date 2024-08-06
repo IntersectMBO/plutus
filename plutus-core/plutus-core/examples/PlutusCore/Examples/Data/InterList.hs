@@ -10,14 +10,14 @@ module PlutusCore.Examples.Data.InterList
 
 import PlutusCore.Core
 import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Data.Unit
 import PlutusCore.StdLib.Type
 
-{- Note [InterList]
+{- Note [Example: InterList]
 We encode the following in this module:
 
     open import Function

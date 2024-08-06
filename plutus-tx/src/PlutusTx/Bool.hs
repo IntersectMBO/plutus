@@ -8,6 +8,8 @@ import Prelude (Bool (..), otherwise)
 
 {- HLINT ignore -}
 
+-- See Note [Lazy boolean operators] in the plugin.
+
 {-# INLINE (&&) #-}
 -- | Logical AND
 --
@@ -64,10 +66,10 @@ f = \x -> body
 It doesn't matter whether or not the function is inlined by the PIR inliner, since the PIR
 inliner does not change the semantics of the program.
 
-However, it *does* make a difference if the function is unconditionally inlined by GHC.
+However, it *does* make a difference if the function is inlined by GHC.
 Consider the Plutus Tx code `let f !x = t in f arg`. Here `arg` will be immediately evaluated before
 being passed to `f` (as it should). But now consider `let f ~x = t in f arg`. Here GHC
-may unconditionally inline `f`, leading to `t [x := arg]` (recognize that the GHC inliner
+may inline `f`, leading to `t [x := arg]` (recognize that the GHC inliner
 also performs beta reduction, in addition to replacing `f` with its definition), where `arg`
 may not be evaluated. GHC does so because it is a Haskell compiler and does not know that
 Plutus Tx is a strict language.
@@ -77,8 +79,8 @@ what the GHC inliner does. That said, we can use it in some cases to our advanta
 such as in `(&&)` and `(||)`. These logical operators would be much less useful if
 they can't short-circuit. Using a lazy pattern on the second parameter helps achieve
 the desirable effect, namely, the second parameter is only evaluated if needed, although
-this is currently not guaranteed, since `(&&)` and `(||)` are not necessarily
-unconditionally inlined by GHC. To guarantee that the second parameter is only evaluated
+this is currently not guaranteed, GHC makes no promise to inline `(&&)` and `(||)`.
+To guarantee that the second parameter is only evaluated
 when needed, we can potentially use a particular source annotation to tell the PIR
 inliner to inline and beta-reduce a function, which would achieve the same effect as if
 it is unconditionally inlined by GHC. This is yet to be implemented.

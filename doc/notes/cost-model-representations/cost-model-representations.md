@@ -38,9 +38,9 @@ The cost model consists of two components:
 
 Concrete values for the coefficients of the costing functions for the builtins
 in the current version of Plutus Core are stored in the file
-[`builtinCostModel.json`](https://github.com/input-output-hk/plutus/blob/master/plutus-core/cost-model/data/builtinCostModel.json)
+[`builtinCostModel.json`](https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/builtinCostModel.json)
 and values for the machine steps are stored in
-[`cekMachineCosts.json`](https://github.com/input-output-hk/plutus/blob/master/plutus-core/cost-model/data/cekMachineCosts.json
+[`cekMachineCosts.json`](https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/cekMachineCosts.json
 ) (both in `plutus-core/cost-model/data`). Note that these are not necessarily
 the values in use on the chain at any given time.  The definitive values used
 for calculating on-chain costs are protocol parameters which are part of the
@@ -81,22 +81,22 @@ and it can be difficult to work out which ones are used where.
 #### The main representation
 
 The main internal representation of the cost model is given by the
-[BuiltinCostModelBase](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/BuiltinCostModel.hs#L70)
+[BuiltinCostModelBase](https://github.com/IntersectMBO/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/BuiltinCostModel.hs#L70)
 type, which is a record type with one field for each built-in function. The type
 is parametric over a type `f`.  In reality we instantiate `f` to be the
 `CostingFun` type defined
-[here](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/CostingFun/Core.hs#L75)
-to obtain the [BuiltinCostModel](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/BuiltinCostModel.hs#L57) type.
+[here](https://github.com/IntersectMBO/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/CostingFun/Core.hs#L75)
+to obtain the [BuiltinCostModel](https://github.com/IntersectMBO/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/BuiltinCostModel.hs#L57) type.
 
 When the UPLC evaluator is compiled the contents of `builtinCostModel.json` are
 read in and converted into a BuiltinCostModel object called
-[defaultBuiltinCostModel](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs#L36).
+[defaultBuiltinCostModel](https://github.com/IntersectMBO/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs#L36).
 The costs for the different types of CEK steps (all of which currently have the
 same cost) are defined in
-[cekMachineCosts.json](https://github.com/input-output-hk/plutus/blob/master/plutus-core/cost-model/data/cekMachineCosts.json)
-which is compiled into a CekMachineCosts object called [defaultCekMachineCosts](https://github.com/input-output-hk/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs#L65),
-and this is bundled together with the builtin costs in [defaultCekCostModel](https://github.com/input-output-hk/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs#L69) (of
-type [CostModel CekMachineCosts BuiltinCostModel](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters.hs#L28)).
+[cekMachineCosts.json](https://github.com/IntersectMBO/plutus/blob/master/plutus-core/cost-model/data/cekMachineCosts.json)
+which is compiled into a CekMachineCosts object called [defaultCekMachineCosts](https://github.com/IntersectMBO/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs#L65),
+and this is bundled together with the builtin costs in [defaultCekCostModel](https://github.com/IntersectMBO/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs#L69) (of
+type [CostModel CekMachineCosts BuiltinCostModel](https://github.com/IntersectMBO/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters.hs#L28)).
 
 #### Flattened cost model entries
 
@@ -113,9 +113,9 @@ or a map from keys to values containing entries like
 ```
 
 In particular, the type `CostModelParams = Map.Map Text.Text Integer` (defined
-[here](https://github.com/input-output-hk/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/CostModelInterface.hs#L147)
+[here](https://github.com/IntersectMBO/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/CostModelInterface.hs#L147)
 in `PlutusCore.Evaluation.Machine.CostModelInterface`) uses this format.  The
-[applyCostModelParameters](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/CostModelInterface.hs#L273)
+[applyCostModelParameters](https://github.com/IntersectMBO/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/CostModelInterface.hs#L273)
 function in the same file takes a `CostModelParams` object `p` and a CostModel `c`
 and updates the costing functions in `c` with the values from `p`.  Any entries
 in `c` which are not mentioned in `p` are left unaltered, but if `p` contains an
@@ -125,25 +125,25 @@ The flattened representation merges both components of the cost model (the
 evaluator step costs and the builtin costs) into a single list.
 
 See also the Notes at the top of
-[CostModelInterface.hs](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/CostModelInterface.hs).
+[CostModelInterface.hs](https://github.com/IntersectMBO/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/CostModelInterface.hs).
 
 
 #### MachineParameters
 
-The [MachineParameters](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters.hs#L39) type bundles together a cost model and the denotations of
+The [MachineParameters](https://github.com/IntersectMBO/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters.hs#L39) type bundles together a cost model and the denotations of
 the builtins, and this is used by the machinery which evaluates builtins to both
 evaluate a call to a builtin and cost it.  It's generic over a type `fun` which
 describes the built-in functions.  For testing,  the `MachineParameters` object
 that we use is `defaultCekParameters`, where `fun` is
-[DefaultFun](https://github.com/input-output-hk/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L53),
+[DefaultFun](https://github.com/IntersectMBO/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L53),
 the big list that includes all of the functions in all versions; `defaultCekParameters` is built from
 the contents of the JSON files described [earlier](#serialised-representation).
 
 The function
-[mkMachineParametersFor](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters/Default.hs#L42)
+[mkMachineParametersFor](https://github.com/IntersectMBO/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters/Default.hs#L42)
 in `PlutusCore.Evaluation.Machine.MachineParameters.Default` creates a set of
 machine parameters from a
-[BuiltinSemanticsVariant](https://github.com/input-output-hk/plutus/blob/3617b1f318c1af25202b3ecec098ce18d3b7c875/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L1056)
+[BuiltinSemanticsVariant](https://github.com/IntersectMBO/plutus/blob/3617b1f318c1af25202b3ecec098ce18d3b7c875/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L1056)
 which selects which implementation of each builtin is used (implementations can
 change as time progresses, but old implementations must be retained to allow old
 scripts to be validated), and a list of cost model parameters which is used to
@@ -168,26 +168,26 @@ the form `PlutusV1`, `PlutusV2`, and so on.  See
 various versions used in Cardano.
 
 The ledger interacts with the Plutus Core evaluator using functions defined in
-[plutus-ledger-api](https://github.com/input-output-hk/plutus/tree/master/plutus-ledger-api).
+[plutus-ledger-api](https://github.com/IntersectMBO/plutus/tree/master/plutus-ledger-api).
 The provides functions
-[evaluateScriptCounting](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-ledger-api/src/PlutusLedgerApi/V1.hs#L158)
+[evaluateScriptCounting](https://github.com/IntersectMBO/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-ledger-api/src/PlutusLedgerApi/V1.hs#L158)
 and
-[evaluateScriptRestricting](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-ledger-api/src/PlutusLedgerApi/V1.hs#L173)
+[evaluateScriptRestricting](https://github.com/IntersectMBO/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-ledger-api/src/PlutusLedgerApi/V1.hs#L173)
 (there are PlutusV2 and PlutusV3 versions of these too) to run scripts on the
 Plutus Core evaluator with a particular cost model.  These functions take an
 argument of type
-[EvaluationContext](https://github.com/input-output-hk/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-ledger-api/src/PlutusLedgerApi/Common/Eval.hs#L116),
+[EvaluationContext](https://github.com/IntersectMBO/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-ledger-api/src/PlutusLedgerApi/Common/Eval.hs#L116),
 which contains all of the static parameters that the evaluator needs to evaluate
 a script, including a cost model.  
 
 #### `EvaluationContext`
 
 The
-[EvaluationContext](https://github.com/input-output-hk/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-ledger-api/src/PlutusLedgerApi/Common/Eval.hs#L116)
+[EvaluationContext](https://github.com/IntersectMBO/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-ledger-api/src/PlutusLedgerApi/Common/Eval.hs#L116)
 type is defined in `plutus-ledger-api`, in `PlutusLedgerApi.Common.Eval`, and is
 the part of the interface that the ledger uses to interact with the Plutus Core
 evaluator.  `EvaluationContext` objects are created using the
-[mkEvaluationContext](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-ledger-api/src/PlutusLedgerApi/V1/EvaluationContext.hs#L28)
+[mkEvaluationContext](https://github.com/IntersectMBO/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-ledger-api/src/PlutusLedgerApi/V1/EvaluationContext.hs#L28)
 function in `PlutusLedgerApi.V{1,2,3}.EvaluationContext` (which in turn uses
 `mkMachineParametersFor`, described earlier). The required cost model is
 supplied in the form of a list of integers giving the cost model parameters in
@@ -204,7 +204,7 @@ the end of the list.
 ## Evaluating scripts on the chain
 
 The ledger stores a cost model as a [list of `Integer`
-values](https://github.com/input-output-hk/cardano-ledger/blob/330b42db03fec425ad72c98cb6931f979e59941b/eras/alonzo/impl/src/Cardano/Ledger/Alonzo/Scripts.hs#L330)
+values](https://github.com/IntersectMBO/cardano-ledger/blob/330b42db03fec425ad72c98cb6931f979e59941b/eras/alonzo/impl/src/Cardano/Ledger/Alonzo/Scripts.hs#L330)
 which is converted to an `EvaluationContext` using `mkEvaluationContext`, the
 resulting being used by `evaluateScriptCounting` and `evaluateScriptRestricting`.
 

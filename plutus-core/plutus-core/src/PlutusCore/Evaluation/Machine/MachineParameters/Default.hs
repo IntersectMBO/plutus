@@ -3,6 +3,8 @@
 -- we need to be able to visually inspect, hence we dedicate a separate file to it.
 module PlutusCore.Evaluation.Machine.MachineParameters.Default where
 
+import PlutusPrelude
+
 import PlutusCore.Builtin
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface
@@ -10,6 +12,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
+import Control.DeepSeq (force)
 import Control.Monad.Except
 import GHC.Exts (inline)
 
@@ -26,7 +29,7 @@ that allows GHC to look under lambdas and completely optimize multiple abstracti
 There are two ways of doing that: by relying on 'INLINE' pragmas all the way up from the
 'ToBuiltinMeaning' instance for the default set of builtins or by ensuring that 'toBuiltinsRuntime'
 is compiled efficient by turning it into a one-method class (see
-https://github.com/input-output-hk/plutus/pull/4419 for how that looks like). We chose the former,
+https://github.com/IntersectMBO/plutus/pull/4419 for how that looks like). We chose the former,
 because it's simpler. Although it's also less reliable: machine parameters are computed in
 multiple places and we need to make sure that benchmarking, cost model calculations and the actual
 production path have builtins compiled in the same way, 'cause otherwise performance analysis and
@@ -41,8 +44,9 @@ as we did have cases where sticking 'inline' on something that already had @INLI
 inlining).
 -}
 
--- | Produce a 'DefaultMachineParameters' given the version of the default set of built-in functions
--- and a 'CostModelParams', which gets applied on top of 'defaultCekCostModel'.
+-- | Produce a 'DefaultMachineParameters' for each of the given semantics variants.
+-- The 'CostModelParams' argument is used to update the costing parameters returned by
+-- 'cekCostModelForVariant' for each of the semantics variants.
 --
 -- Whenever you need to evaluate UPLC in a performance-sensitive manner (e.g. in the production,
 -- for benchmarking, for cost calibration etc), you MUST use this definition for creating a
@@ -53,16 +57,21 @@ inlining).
 -- Core; you change how it's exported (implicitly as a part of a whole-module export or explicitly
 -- as a single definition) -- you get the idea.
 --
--- This function is expensive, so its result needs to be cached if it's going to be used multiple
--- times.
+-- This function is very expensive, so its result needs to be cached if it's going to be used
+-- multiple times.
 mkMachineParametersFor
     :: MonadError CostModelApplyError m
-    => BuiltinSemanticsVariant DefaultFun
+    => [BuiltinSemanticsVariant DefaultFun]
     -> CostModelParams
-    -> m DefaultMachineParameters
-mkMachineParametersFor semvar newCMP =
-    inline mkMachineParameters semvar <$>
-        applyCostModelParams defaultCekCostModel newCMP
+    -> m [(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]
+mkMachineParametersFor semVars newCMP = do
+    res <- for semVars $ \semVar ->
+        -- See Note [Inlining meanings of builtins].
+        (,) semVar . inline mkMachineParameters semVar <$>
+            applyCostModelParams (cekCostModelForVariant semVar) newCMP
+    -- Force all thunks to pay the cost of creating machine parameters upfront. Doing it here saves
+    -- us from doing that in every single benchmark runner.
+    pure $! force res
 -- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
 -- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down
 -- the line.

@@ -1,19 +1,14 @@
 (let
   (nonrec)
+  (termbind (strict) (vardecl const (all a (type) (all b (type) (fun a (fun b a))))) (abs a (type) (abs b (type) (lam x a (lam y b x)))))
   (typebind (tyvardecl int (type)) (con integer))
   (lam
     n
     (con integer)
     [
-      [
-        [
-          { (builtin ifThenElse) int }
-          [ [ (builtin equalsInteger) (con integer 1) ] (con integer 0) ]
-        ]
-        (con integer 2)
-      ]
-      (con integer 3)
+      { const (con integer) int }
+      (con integer 1)
     ]
   )
 )
--- The typebind can be floated into the lambda and the application.
+-- The typebind can be floated into the lambda and the application, as can the termbind.

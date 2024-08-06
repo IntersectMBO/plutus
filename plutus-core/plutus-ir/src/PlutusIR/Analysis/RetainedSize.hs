@@ -17,7 +17,7 @@ import PlutusIR.Core
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin as PLC
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Algebra.Graph qualified as C
 import Algebra.Graph.ToGraph
@@ -26,6 +26,7 @@ import Data.Graph.Dom (domTree)
 import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IntMap
 import Data.Tree
+import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo
 
@@ -140,23 +141,23 @@ depsRetentionMap sizeInfo = IntMap.fromList . flatten . annotateWithSizes sizeIn
 -- | Construct a 'UniqueMap' having size information for each individual part of a 'Binding'.
 bindingSize
     :: (HasUnique tyname TypeUnique, HasUnique name TermUnique)
-    => Binding tyname name uni fun ann -> UniqueMap Unique Size
+    => Binding tyname name uni fun ann -> PLC.UniqueMap Unique Size
 bindingSize (TermBind _ _ var term) =
-    insertByNameIndex var (varDeclSize var <> termSize term) mempty
+    UMap.insertByNameIndex var (varDeclSize var <> termSize term) mempty
 bindingSize (TypeBind _ tyVar ty) =
-    insertByNameIndex tyVar (tyVarDeclSize tyVar <> typeSize ty) mempty
+    UMap.insertByNameIndex tyVar (tyVarDeclSize tyVar <> typeSize ty) mempty
 bindingSize (DatatypeBind _ (Datatype _ dataDecl params matchName constrs))
-    = insertByNameIndex dataDecl (tyVarDeclSize dataDecl)
-    . flip (foldr $ \param -> insertByNameIndex param $ tyVarDeclSize param) params
-    . insertByNameIndex matchName (Size 1)
-    . flip (foldr $ \constr -> insertByNameIndex constr $ varDeclSize constr) constrs
+    = UMap.insertByNameIndex dataDecl (tyVarDeclSize dataDecl)
+    . flip (foldr $ \param -> UMap.insertByNameIndex param $ tyVarDeclSize param) params
+    . UMap.insertByNameIndex matchName (Size 1)
+    . flip (foldr $ \constr -> UMap.insertByNameIndex constr $ varDeclSize constr) constrs
     $ mempty
 
 -- | Construct a 'UniqueMap' having size information for each individual part of every 'Binding'
 -- in a term.
 bindingSizes
     :: (HasUnique tyname TypeUnique, HasUnique name TermUnique)
-    => Term tyname name uni fun ann -> UniqueMap Unique Size
+    => Term tyname name uni fun ann -> PLC.UniqueMap Unique Size
 bindingSizes (Let _ _ binds term) = foldMap bindingSize binds <> bindingSizes term
 bindingSizes term                 = term ^. termSubterms . to bindingSizes
 
@@ -165,7 +166,7 @@ toDirectionRetentionMap
     :: (HasUnique tyname TypeUnique, HasUnique name TermUnique)
     => Term tyname name uni fun ann -> DirectionRetentionMap
 toDirectionRetentionMap term =
-    DirectionRetentionMap . IntMap.insert rootInt rootSize . unUniqueMap $ bindingSizes term where
+    DirectionRetentionMap . IntMap.insert rootInt rootSize . PLC.unUniqueMap $ bindingSizes term where
         -- See Note [Handling the root].
         rootSize = Size (- 10 ^ (10::Int))
 

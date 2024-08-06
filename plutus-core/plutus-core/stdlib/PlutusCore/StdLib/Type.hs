@@ -15,7 +15,7 @@ import PlutusPrelude
 
 import PlutusCore.Core
 import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.Quote
 
@@ -284,12 +284,13 @@ Read next: Note [Denormalization]
 -}
 
 {- Note [Denormalization]
-Originally, we were binding 'withSpine' and 'patN' (taken from the end of
-Note [Packing n-ary functors]) on the Plutus Core side and this resulted in huge unreadable types
-being produced. Now we bind 'withSpine', 'patN' and what 'withSpine' receives on the Haskell side,
-i.e. we use Haskell lambdas to bind variables and regular function application to eliminate those
-lambdas which allows us to defer type reduction business to Haskell.
-Here is how the definition of 'list' looks like:
+Originally, we were binding 'withSpine' and 'patN' (taken from the end of Note
+[Packing n-ary pattern functors semantically]) on the Plutus Core side and this
+resulted in huge unreadable types being produced. Now we bind 'withSpine',
+'patN' and what 'withSpine' receives on the Haskell side, i.e. we use Haskell
+lambdas to bind variables and regular function application to eliminate those
+lambdas which allows us to defer type reduction business to Haskell.  Here is
+how the definition of 'list' looks like:
 
     \(a :: *) -> ifix
         (\(rec :: ((* -> *) -> *) -> *) -> \(spine :: (* -> *) -> *) ->
@@ -509,7 +510,7 @@ instance Show IndicesLengthsMismatchException where
     show (IndicesLengthsMismatchException expected actual tyName) = concat
         [ "Wrong number of elements\n"
         , "expected: ", show expected, " , actual: ", show actual, "\n"
-        , "while constructing a ", displayPlcDef tyName
+        , "while constructing a ", displayPlc tyName
         ]
 
 -- | Get the kind of a data type having the kinds of its arguments.

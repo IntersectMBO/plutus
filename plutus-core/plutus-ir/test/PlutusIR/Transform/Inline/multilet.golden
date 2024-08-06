@@ -1,0 +1,8 @@
+\(n : integer) ->
+  let
+    !x : integer = trace {integer} "effect_x" (addInteger 1 n)
+  in
+  let
+    !y : integer = trace {integer} "effect_y" (addInteger 2 n)
+  in
+  addInteger x (addInteger y y)

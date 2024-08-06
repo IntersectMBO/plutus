@@ -23,6 +23,7 @@ import GHC.ByteCode.Types qualified as GHC
 import GHC.Core qualified as GHC
 import GHC.Core.Class qualified as GHC
 import GHC.Core.Multiplicity qualified as GHC
+import GHC.Core.TyCo.Rep qualified as GHC
 import GHC.Plugins qualified as GHC
 import GHC.Types.CostCentre qualified as GHC
 import GHC.Types.Id.Make qualified as GHC
@@ -33,7 +34,9 @@ import GHC.Types.TyThing qualified as GHC
 import GHC.Tc.Utils.TcType qualified as GHC
 #endif
 
+import PlutusTx.Bool qualified
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Builtins.Internal qualified as Builtins
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -48,10 +51,11 @@ import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
 
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
-import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Builtins.HasOpaque qualified as Builtins
 import PlutusTx.Trace
 
 import PlutusIR qualified as PIR
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusIR.Compiler.Names (safeFreshName)
 import PlutusIR.Core.Type (Term (..))
@@ -59,17 +63,20 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Purity qualified as PIR
 
 import PlutusCore qualified as PLC
+import PlutusCore.Data qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PP
 import PlutusCore.Subst qualified as PLC
 
-import Control.Lens hiding (index, strict)
+import Control.Lens hiding (index, strict, transform)
 import Control.Monad
 import Control.Monad.Reader (ask)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
-import Data.List (elemIndex)
+import Data.Generics.Uniplate.Data (transform, universeBi)
+import Data.List (elemIndex, isPrefixOf, isSuffixOf)
 import Data.Map qualified as Map
+import Data.Maybe
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
@@ -116,7 +123,7 @@ compileLiteral ::
   m (PIRTerm uni fun)
 compileLiteral = \case
   -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
-  (GHC.LitNumber _ i) -> pure $ PIR.embed $ PLC.mkConstant annMayInline i
+  (GHC.LitNumber _ i) -> pure $ PIR.embedTerm $ PLC.mkConstant annMayInline i
   GHC.LitString _ -> throwPlain $ UnsupportedError "Literal string (maybe you need to use OverloadedStrings)"
   GHC.LitChar _ -> throwPlain $ UnsupportedError "Literal char"
   GHC.LitFloat _ -> throwPlain $ UnsupportedError "Literal float"
@@ -133,8 +140,11 @@ compileLiteral = \case
 stringExprContent :: GHC.CoreExpr -> Maybe BS.ByteString
 stringExprContent = \case
   GHC.Lit (GHC.LitString bs) -> Just bs
-  -- unpackCString# is just a wrapper around a literal
-  GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> stringExprContent expr
+  -- unpackCString# / unpackCStringUtf8# are just wrappers around a literal
+  GHC.Var n `GHC.App` expr
+    | let name = GHC.getName n
+    , name == GHC.unpackCStringName || name == GHC.unpackCStringUtf8Name ->
+      stringExprContent expr
   -- See Note [unpackFoldrCString#]
   GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
     | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> stringExprContent expr
@@ -228,6 +238,40 @@ isProbablyIntegerEq (GHC.getName -> n)
       True
 isProbablyIntegerEq _ = False
 
+-- | Check for literal ranges like [1..9] and [1, 5..101].  This will also
+-- return `True` if there's an explicit use of `enumFromTo` or similar.
+isProbablyBoundedRange :: GHC.Id -> Bool
+isProbablyBoundedRange (GHC.getName -> n)
+    | Just m <- GHC.nameModule_maybe n
+    , GHC.moduleNameString (GHC.moduleName m) == "GHC.Enum" =
+        ("$fEnum" `isPrefixOf` methodName &&
+         (  "_$cenumFromTo"     `isSuffixOf` methodName  -- [1..100]
+         || "_$cenumFromThenTo" `isSuffixOf` methodName  -- [1,3..100]
+         )
+        )
+        || "enumDeltaToInteger" `isPrefixOf` methodName
+        -- ^ These are introduced by inlining for Integer ranges in
+        -- GHC.Enum. This also happens for Char, Word, and Int, but those types
+        -- aren't supported in Plutus Core.
+        where methodName = GHC.occNameString (GHC.nameOccName n)
+isProbablyBoundedRange _ = False
+
+-- | Check for literal ranges like [1..] and [1, 5..].  This will also return
+-- `True` if there's an explicit use of `enumFrom` or similar.
+isProbablyUnboundedRange :: GHC.Id -> Bool
+isProbablyUnboundedRange (GHC.getName -> n)
+    | Just m <- GHC.nameModule_maybe n
+    , GHC.moduleNameString (GHC.moduleName m) == "GHC.Enum" =
+        ("$fEnum" `isPrefixOf` methodName &&
+         (  "_$cenumFrom"     `isSuffixOf` methodName  -- [1..]
+         || "_$cenumFromThen" `isSuffixOf` methodName  -- [1,3..]
+         )
+        )
+        || "enumDeltaInteger" `isPrefixOf` methodName  -- Introduced by inlining
+        where methodName = GHC.occNameString (GHC.nameOccName n)
+isProbablyUnboundedRange _ = False
+
+
 {- Note [GHC runtime errors]
 GHC has a number of runtime errors for things like pattern matching failures and so on.
 
@@ -267,7 +311,7 @@ In this case we make a strict binding, in all others we make a non-strict bindin
 
 {- Note [Evaluation-only cases]
 GHC sometimes generates case expressions where there is only a single alternative, and where none
-of the variables bound by the alternative are live (see Note [Occurrence analsis] for how we tell
+of the variables bound by the alternative are live (see Note [Occurrence analysis] for how we tell
 that this is the case).
 
 What this amounts to is ensuring the expression is evaluated - hence one place this appears is bang
@@ -480,7 +524,7 @@ maybeProfileRhs var t = do
   CompileContext{ccOpts = compileOpts} <- ask
   let ty = PLC._varDeclType var
       varName = PLC._varDeclName var
-      displayName = T.pack $ PP.displayPlcDef varName
+      displayName = T.pack $ PP.displayPlc varName
       isFunctionOrAbstraction = case ty of PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False
   -- Trace only if profiling is on *and* the thing being defined is a function
   if coProfile compileOpts == All && isFunctionOrAbstraction
@@ -638,6 +682,22 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   -- See Note [Scopes]
   CompileContext{ccScope = scope, ccNameInfo = nameInfo, ccModBreaks = maybeModBreaks, ccBuiltinsInfo = binfo} <- ask
 
+  builtinIntegerTyCon <- case Map.lookup ''Builtins.BuiltinInteger nameInfo of
+    Just (GHC.ATyCon builtinInteger) -> pure builtinInteger
+    _                                -> throwPlain $ CompilationError "No info for Integer builtin"
+
+  builtinBoolTyCon <- case Map.lookup ''Builtins.BuiltinBool nameInfo of
+    Just (GHC.ATyCon builtinBool) -> pure builtinBool
+    _                             -> throwPlain $ CompilationError "No info for Bool builtin"
+
+  builtinDataTyCon <- case Map.lookup ''Builtins.BuiltinData nameInfo of
+    Just (GHC.ATyCon builtinData) -> pure builtinData
+    _                             -> throwPlain $ CompilationError "No info for Data builtin"
+
+  builtinPairTyCon <- case Map.lookup ''Builtins.BuiltinPair nameInfo of
+    Just (GHC.ATyCon builtinPair) -> pure builtinPair
+    _                             -> throwPlain $ CompilationError "No info for Pair builtin"
+
   -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
   (stringTyName, sbsName) <- case (Map.lookup ''Builtins.BuiltinString nameInfo, Map.lookup 'Builtins.stringToBuiltinString nameInfo) of
     (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
@@ -647,7 +707,24 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
     _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
+  useToOpaqueName <- GHC.getName <$> getThing 'Builtins.useToOpaque
+  useFromOpaqueName <- GHC.getName <$> getThing 'Builtins.useFromOpaque
+  mkNilOpaqueName <- GHC.getName <$> getThing 'Builtins.mkNilOpaque
+  boolOperatorOr <- GHC.getName <$> getThing '(PlutusTx.Bool.||)
+  boolOperatorAnd <- GHC.getName <$> getThing '(PlutusTx.Bool.&&)
   case e of
+    {- Note [Lazy boolean operators]
+      (||) and (&&) have a special treatment: we want them lazy in the second argument,
+      as this is the behavior in Haskell and other PLs.
+      Covered by this spec: plutus-tx-plugin/test/ShortCircuit/Spec.hs
+    -}
+    -- Lazy ||
+    GHC.App (GHC.App (GHC.Var var) a) b | GHC.getName var == boolOperatorOr ->
+      compileExpr $ GHC.mkIfThenElse a (GHC.Var GHC.trueDataConId) b
+    -- Lazy &&
+    GHC.App (GHC.App (GHC.Var var) a) b | GHC.getName var == boolOperatorAnd ->
+      compileExpr $ GHC.mkIfThenElse a b (GHC.Var GHC.falseDataConId)
+
     -- See Note [String literals]
     -- IsString has only one method, so it's enough to know that it's an IsString method
     -- to know we're looking at fromString.
@@ -710,7 +787,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
     -- See Note [noinline hack]
     GHC.Var n `GHC.App` GHC.Type _ `GHC.App` arg | GHC.getName n == GHC.noinlineIdName -> compileExpr arg
-    -- See note [GHC runtime errors]
+    -- See Note [GHC runtime errors]
     -- <error func> <runtime rep> <overall type> <call stack> <message>
     GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ `GHC.App` _ ->
       PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
@@ -720,6 +797,23 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- <error func> <overall type> <message>
     GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
       PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
+    GHC.Var n `GHC.App` GHC.Type ty
+      | GHC.getName n == mkNilOpaqueName -> case ty of
+          GHC.TyConApp tyCon []
+            | tyCon == GHC.integerTyCon || tyCon == builtinIntegerTyCon ->
+                pure $ PLC.mkConstant annMayInline ([] @Integer)
+            | tyCon == builtinBoolTyCon -> pure $ PLC.mkConstant annMayInline ([] @Bool)
+            | tyCon == builtinDataTyCon -> pure $ PLC.mkConstant annMayInline ([] @PLC.Data)
+          GHC.TyConApp tyCon [GHC.TyConApp tyArg1 [], GHC.TyConApp tyArg2 []]
+            | (tyCon, tyArg1, tyArg2) == (builtinPairTyCon, builtinDataTyCon, builtinDataTyCon) ->
+                pure $ PLC.mkConstant annMayInline ([] @(PLC.Data, PLC.Data))
+          _ -> throwPlain $ CompilationError "'mkNil' applied to an unknown type"
+    GHC.Var n
+      | GHC.getName n == useToOpaqueName ->
+          throwPlain $ UnsupportedError "It is no longer possible to use 'toBuiltin' with a script, use 'toOpaque' instead"
+    GHC.Var n
+      | GHC.getName n == useFromOpaqueName ->
+          throwPlain $ UnsupportedError "It is no longer possible to use 'fromBuiltin' with a script, use 'fromOpaque' instead"
     -- See Note [Uses of Eq]
     GHC.Var n
       | GHC.getName n == GHC.eqName ->
@@ -730,12 +824,24 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     GHC.Var n
       | isProbablyBytestringEq n ->
           throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
+    GHC.Var n
+      -- Try to produce a sensible error message if a range like [1..9] is encountered.  This works
+      -- by looking for occurrences of GHC.Enum.enumFromTo and similar functions; the same error
+      -- occurs if these functions are used explicitly.
+      | isProbablyBoundedRange n ->
+          throwPlain $ UnsupportedError $ T.pack ("Use of enumFromTo or enumFromThenTo, possibly via range syntax. " ++
+                                                  "Please use PlutusTx.Enum.enumFromTo or PlutusTx.Enum.enumFromThenTo instead.")
+    -- Throw an error if we find an infinite range like [1..]
+    GHC.Var n
+      | isProbablyUnboundedRange n ->
+          throwPlain $ UnsupportedError $ T.pack ("Use of enumFrom or enumFromThen, possibly via range syntax. " ++
+                                                  "Unbounded ranges are not supported.")
     -- locally bound vars
     GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
     -- Special kinds of id
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
     -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
-    -- want to check the unfoldings case first), see the GHC Note [ClassOp/DFun selection] for why. That
+    -- want to check the unfoldings case first), see GHC:Note [ClassOp/DFun selection] for why. That
     -- means we have to reconstruct the RHS ourselves, though, which is a pain.
     GHC.Var n@(GHC.idDetails -> GHC.ClassOpId cls) -> do
       -- This code (mostly) lifted from MkId.mkDictSelId, which makes unfoldings for those dictionary
@@ -823,22 +929,88 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
         body' <- compileExpr body
         pure $ PIR.mkLet annMayInline PIR.Rec binds body'
 
+    GHC.Case scrutinee b t alts ->
+      compileCase (const . GHC.isDeadOcc . GHC.occInfo . GHC.idInfo) True binfo scrutinee b t alts
+
+    -- we can use source notes to get a better context for the inner expression
+    -- these are put in when you compile with -g
+    -- See Note [What source locations to cover]
+    GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
+      traceCompilation 1 ("Compiling expr at:" GHC.<+> GHC.ppr src) $ do
+        CompileContext{ccOpts = coverageOpts} <- ask
+        -- See Note [Coverage annotations]
+        let anns = Set.toList $ activeCoverageTypes coverageOpts
+        compiledBody <- fmap (addSrcSpan $ src ^. srcSpanIso) <$> compileExpr body
+        foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
+
+    -- ignore other annotations
+    GHC.Tick _ body -> compileExpr body
+    -- See Note [Coercions and newtypes]
+    GHC.Cast body _ -> compileExpr body
+    GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
+    GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
+
+compileCase ::
+  (CompilingDefault uni fun m ann) =>
+  -- | Whether the variable is dead in the expr
+  (GHC.Var -> GHC.CoreExpr -> Bool) ->
+  -- | Whether we should try to rewrite unnecessary constructor applications
+  Bool ->
+  BuiltinsInfo uni fun ->
+  GHC.CoreExpr ->
+  GHC.Var ->
+  GHC.Type ->
+  [GHC.CoreAlt] ->
+  m (PIRTerm uni fun)
+compileCase isDead rewriteConApps binfo scrutinee binder t alts = case alts of
+  [GHC.Alt con bs body]
     -- See Note [Evaluation-only cases]
-    GHC.Case scrutinee b _ [GHC.Alt _ bs body] | all (GHC.isDeadOcc . GHC.occInfo . GHC.idInfo) bs -> do
+    | all (`isDead` body) bs -> do
       -- See Note [At patterns]
       scrutinee' <- compileExpr scrutinee
-      withVarScoped b $ \v -> do
+      withVarScoped binder $ \v -> do
         body' <- compileExpr body
         -- See Note [At patterns]
         let binds = [PIR.TermBind annMayInline PIR.Strict v scrutinee']
         pure $ PIR.mkLet annMayInline PIR.NonRec binds body'
-    GHC.Case scrutinee b t alts -> do
+    | rewriteConApps
+    , GHC.DataAlt dataCon <- con -> do
+        -- Attempt to rewrite constructor applications, since sometimes they cannot be
+        -- compiled (e.g., opaque constructors).
+        -- For example, this rewrites
+
+        -- ```
+        -- case scrut of b {BuiltinList xs} -> ...BuiltinList @BuiltinData xs...
+        -- ```
+        --
+        -- into
+        --
+        -- ```
+        -- case scrut of b {BuiltinList xs} -> ...b...
+        -- ```
+        --
+        -- after which `xs` is hopefully dead, and we can then compile it using the
+        -- `all (`isDead` body) bs` branch of `compileCase`.
+        let f (GHC.collectArgs -> (GHC.Var (GHC.isDataConId_maybe -> Just dataCon'), args0))
+              | dataCon == dataCon'
+              -- Discard type arguments
+              , let args = mapMaybe (\case GHC.Var v -> Just v; _ -> Nothing) args0
+              , length bs == length args
+              , and (zipWith (==) bs args) =
+                GHC.Var binder
+            f other = other
+            -- This time we can no longer use `GHC.isDeadOcc`. Instead we check manually.
+            isDead' b = not . any (== b) . universeBi
+        -- If some binders are still alive, we have to give up (rather than trying to rewrite
+        -- constructor applications again, which will loop), hence `False`.
+        compileCase isDead' False binfo scrutinee binder t [GHC.Alt con bs (transform f body)]
+  _ -> do
       -- See Note [At patterns]
       scrutinee' <- compileExpr scrutinee
-      let scrutineeType = GHC.varType b
+      let scrutineeType = GHC.varType binder
 
       -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
-      withVarScoped b $ \v -> do
+      withVarScoped binder $ \v -> do
         (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
           Just (tc, argTys) -> pure (tc, argTys)
           Nothing ->
@@ -906,24 +1078,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
                 PIR.TermBind annMayInline PIR.NonStrict (PIR.VarDecl annMayInline defName originalResultType) defCompiled
               ]
         pure $ PIR.mkLet annMayInline PIR.NonRec binds mainCase
-
-    -- we can use source notes to get a better context for the inner expression
-    -- these are put in when you compile with -g
-    -- See Note [What source locations to cover]
-    GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
-      traceCompilation 1 ("Compiling expr at:" GHC.<+> GHC.ppr src) $ do
-        CompileContext{ccOpts = coverageOpts} <- ask
-        -- See Note [Coverage annotations]
-        let anns = Set.toList $ activeCoverageTypes coverageOpts
-        compiledBody <- fmap (addSrcSpan $ src ^. srcSpanIso) <$> compileExpr body
-        foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
-
-    -- ignore other annotations
-    GHC.Tick _ body -> compileExpr body
-    -- See Note [Coercions and newtypes]
-    GHC.Cast body _ -> compileExpr body
-    GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
-    GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
 
 {- Note [What source locations to cover]
    We try to get as much coverage information as we can out of GHC. This means that
@@ -1126,7 +1280,7 @@ a data constructor.
 The easiest way to ensure that we always have a DEFAULT case is just to put one in if it's missing.
 -}
 
-{- Note [Sharing DEFAULT bodes]
+{- Note [Sharing DEFAULT bodies]
 Consider the following program:
 ```
 data A = B | C | D

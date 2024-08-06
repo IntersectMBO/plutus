@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DeriveLift            #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -17,8 +18,8 @@ module PlutusTx.AssocMap (
   singleton,
   empty,
   null,
-  fromList,
-  fromListSafe,
+  unsafeFromList,
+  safeFromList,
   toList,
   keys,
   elems,
@@ -38,7 +39,7 @@ module PlutusTx.AssocMap (
 
 import Prelude qualified as Haskell
 
-import PlutusTx.Builtins qualified as P
+import PlutusTx.Builtins qualified as P hiding (null)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData
 import PlutusTx.Lift (makeLift)
@@ -48,17 +49,41 @@ import PlutusTx.These
 
 import Control.DeepSeq (NFData)
 import Data.Data
+import Data.Function (on)
+import Data.Map.Strict qualified as HMap
 import GHC.Generics (Generic)
+import Language.Haskell.TH.Syntax as TH (Lift)
 import Prettyprinter (Pretty (..))
 
-{- HLINT ignore "Use newtype instead of data" -}
-
+-- See Note [Optimising Value].
 -- | A 'Map' of key-value pairs.
+-- A 'Map' is considered well-defined if there are no key collisions, meaning that each value
+-- is uniquely identified by a key.
+--
+-- Use 'safeFromList' to create well-defined 'Map's from arbitrary lists of pairs.
+--
+-- If cost minimisation is required, then you can use 'unsafeFromList' but you must
+-- be certain that the list you are converting to a 'Map' abides by the well-definedness condition.
+--
+-- Most operations on 'Map's are definedness-preserving, meaning that for the resulting 'Map' to be
+-- well-defined then the input 'Map'(s) have to also be well-defined. This is not checked explicitly
+-- unless mentioned in the documentation.
+--
+-- Take care when using 'fromBuiltinData' and 'unsafeFromBuiltinData', as neither function performs
+-- deduplication of the input collection and may create invalid 'Map's!
 newtype Map k v = Map {unMap :: [(k, v)]}
-  deriving stock (Generic, Haskell.Eq, Haskell.Show, Data)
-  deriving newtype (Eq, Ord, NFData)
+  deriving stock (Generic, Haskell.Show, Data, TH.Lift)
+  deriving newtype (NFData)
 
--- Hand-written instances to use the underlying 'Map' type in 'Data', and
+instance (Haskell.Ord k, Haskell.Eq v) => Haskell.Eq (Map k v) where
+  Map l == Map r =
+    on (Haskell.==) HMap.fromList l r
+
+instance (Haskell.Ord k, Haskell.Ord v) => Haskell.Ord (Map k v) where
+  Map l <= Map r =
+    on (Haskell.<=) HMap.fromList l r
+
+-- | Hand-written instances to use the underlying 'Map' type in 'Data', and
 -- to be reasonably efficient.
 instance (ToData k, ToData v) => ToData (Map k v) where
   toBuiltinData (Map es) = BI.mkMap (mapToBuiltin es)
@@ -68,9 +93,14 @@ instance (ToData k, ToData v) => ToData (Map k v) where
       mapToBuiltin = go
         where
           go :: [(k, v)] -> BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData)
-          go []            = BI.mkNilPairData BI.unitval
+          go []            = P.mkNil
           go ((k, v) : xs) = BI.mkCons (BI.mkPairData (toBuiltinData k) (toBuiltinData v)) (go xs)
 
+-- | A hand-written transformation from 'Data' to 'Map'. Compared to 'unsafeFromBuiltinData',
+-- it is safe to call when it is unknown if the 'Data' is built with 'Data's 'Map' constructor.
+-- Note that it is, however, unsafe in the sense that it assumes that any map
+-- encoded in the 'Data' is well-formed, i.e. 'fromBuiltinData' does not perform any
+-- deduplication of keys or of key-value pairs!
 instance (FromData k, FromData v) => FromData (Map k v) where
   fromBuiltinData d =
     P.matchData'
@@ -101,11 +131,17 @@ instance (FromData k, FromData v) => FromData (Map k v) where
               )
               ()
 
+-- | A hand-written transformation from 'Data' to 'Map'. It is unsafe because the
+-- caller must provide the guarantee that the 'Data' is constructed using the 'Data's
+-- 'Map' constructor.
+-- Note that it assumes, like the 'fromBuiltinData' transformation, that the map
+-- encoded in the 'Data' is well-formed, i.e. 'unsafeFromBuiltinData' does not perform
+-- any deduplication of keys or of key-value pairs!
 instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
   -- The `~` here enables `BI.unsafeDataAsMap d` to be inlined, which reduces costs slightly.
   -- Without the `~`, the inliner would consider it not effect safe to inline.
   -- We can remove the `~` once we make the inliner smart enough to inline them.
-  -- See https://github.com/input-output-hk/plutus/pull/5371#discussion_r1297833685
+  -- See https://github.com/IntersectMBO/plutus/pull/5371#discussion_r1297833685
   unsafeFromBuiltinData d = let ~es = BI.unsafeDataAsMap d in Map $ mapFromBuiltin es
     where
       {-# INLINE mapFromBuiltin #-}
@@ -148,21 +184,27 @@ instance (Eq k, Semigroup v) => Monoid (Map k v) where
 instance (Pretty k, Pretty v) => Pretty (Map k v) where
   pretty (Map mp) = pretty mp
 
-{-# INLINEABLE fromList #-}
-fromList :: [(k, v)] -> Map k v
-fromList = Map
+{-# INLINEABLE unsafeFromList #-}
+-- | Unsafely create a 'Map' from a list of pairs. This should _only_ be applied to lists which
+-- have been checked to not contain duplicate keys, otherwise the resulting 'Map' will contain
+-- conflicting entries (two entries sharing the same key).
+-- As usual, the "keys" are considered to be the first element of the pair.
+unsafeFromList :: [(k, v)] -> Map k v
+unsafeFromList = Map
 
-{-# INLINEABLE fromListSafe #-}
-fromListSafe :: Eq k => [(k, v)] -> Map k v
-fromListSafe = foldr (uncurry insert) empty
+{-# INLINEABLE safeFromList #-}
+-- | In case of duplicates, this function will keep only one entry (the one that precedes).
+-- In other words, this function de-duplicates the input list.
+safeFromList :: Eq k => [(k, v)] -> Map k v
+safeFromList = foldr (uncurry insert) empty
 
 {-# INLINEABLE toList #-}
 toList :: Map k v -> [(k, v)]
 toList (Map l) = l
 
 {-# INLINEABLE lookup #-}
-
--- | Find an entry in a 'Map'.
+-- | Find an entry in a 'Map'. If the 'Map' is not well-formed (it contains duplicate keys)
+-- then this will return the value of the left-most pair in the underlying list of pairs.
 lookup :: forall k v. (Eq k) => k -> Map k v -> Maybe v
 lookup c (Map xs) =
   let
@@ -178,10 +220,17 @@ member :: forall k v. (Eq k) => k -> Map k v -> Bool
 member k m = isJust (lookup k m)
 
 {-# INLINEABLE insert #-}
+-- | If a key already exists in the map, its entry will be replaced with the new value.
 insert :: forall k v. (Eq k) => k -> v -> Map k v -> Map k v
-insert k v m = unionWith (\_ b -> b) m (fromList [(k, v)])
+insert k v (Map xs) = Map (go xs)
+  where
+    go []                = [(k, v)]
+    go ((k', v') : rest) = if k == k' then (k, v) : rest else (k', v') : go rest
 
 {-# INLINEABLE delete #-}
+-- | Delete an entry from the 'Map'. Assumes that the 'Map' is well-formed, i.e. if the
+-- underlying list of pairs contains pairs with duplicate keys then only the left-most
+-- pair will be removed.
 delete :: forall k v. (Eq k) => k -> Map k v -> Map k v
 delete key (Map ls) = Map (go ls)
   where
@@ -191,14 +240,17 @@ delete key (Map ls) = Map (go ls)
       | otherwise = (k, v) : go rest
 
 {-# INLINEABLE keys #-}
-
--- | The keys of a 'Map'.
+-- | The keys of a 'Map'. Semantically, the resulting list is only a set if the 'Map'
+-- didn't contain duplicate keys.
 keys :: Map k v -> [k]
 keys (Map xs) = P.fmap (\(k, _ :: v) -> k) xs
 
-{-# INLINEABLE union #-}
-
--- | Combine two 'Map's.
+-- | Combine two 'Map's. Keeps both values on key collisions.
+-- Note that well-formedness is only preserved if the two input maps
+-- are also well-formed.
+-- Also, as an implementation detail, in the case that the right map contains
+-- duplicate keys, and there exists a collision between the two maps,
+-- then only the left-most value of the right map will be kept.
 union :: forall k v r. (Eq k) => Map k v -> Map k r -> Map k (These v r)
 union (Map ls) (Map rs) =
   let
@@ -210,6 +262,7 @@ union (Map ls) (Map rs) =
     ls' :: [(k, These v r)]
     ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
 
+    -- Keeps only those keys which don't appear in the left map.
     rs' :: [(k, r)]
     rs' = P.filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
 
@@ -219,13 +272,29 @@ union (Map ls) (Map rs) =
     Map (ls' ++ rs'')
 
 {-# INLINEABLE unionWith #-}
-
 -- | Combine two 'Map's with the given combination function.
+-- Note that well-formedness of the resulting map depends on the two input maps
+-- being well-formed.
+-- Also, as an implementation detail, in the case that the right map contains
+-- duplicate keys, and there exists a collision between the two maps,
+-- then only the left-most value of the right map will be kept.
 unionWith :: forall k a. (Eq k) => (a -> a -> a) -> Map k a -> Map k a -> Map k a
-unionWith merge ls rs = these id id merge <$> union ls rs
+unionWith merge (Map ls) (Map rs) =
+  let
+    f :: a -> Maybe a -> a
+    f a b' = case b' of
+      Nothing -> a
+      Just b  -> merge a b
+
+    ls' :: [(k, a)]
+    ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
+
+    rs' :: [(k, a)]
+    rs' = P.filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
+   in
+    Map (ls' ++ rs')
 
 {-# INLINEABLE mapThese #-}
-
 -- | A version of 'Data.Map.Lazy.mapEither' that works with 'These'.
 mapThese :: (v -> These a b) -> Map k v -> (Map k a, Map k b)
 mapThese f mps = (Map mpl, Map mpr)
@@ -261,7 +330,7 @@ filter f (Map m) = Map $ P.filter (f . snd) m
 
 {-# INLINEABLE elems #-}
 
--- | Return all elements of the map in the ascending order of their keys.
+-- | Return all elements of the map.
 elems :: Map k v -> [v]
 elems (Map xs) = P.fmap (\(_ :: k, v) -> v) xs
 

@@ -26,9 +26,10 @@ ${DOC}.pdf: ${SRC} ${BIB}
 	${BIBTEX} ${DOC}
 	${LATEX}  ${DOC}   # to make sure the (cross)references are correct
 	${MAKEINDEX} ${DOC}.nlo -s nomencl.ist -o ${DOC}.nls
-        # ^ Putting this later seems to get page references out of sync.
 	${LATEX}  ${DOC}
+	${MAKEINDEX} ${DOC}.nlo -s nomencl.ist -o ${DOC}.nls
 	${LATEX}  ${DOC}
+	${MAKEINDEX} ${DOC}.nlo -s nomencl.ist -o ${DOC}.nls
 	${LATEX}  ${DOC}
 
 figs:
@@ -46,4 +47,3 @@ clean2: clean
 
 v: ${PDF}
 	${PDFVIEWER} ${PDF} 2>/dev/null &
-

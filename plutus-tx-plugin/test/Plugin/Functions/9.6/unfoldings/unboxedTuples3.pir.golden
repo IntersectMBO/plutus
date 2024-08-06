@@ -1,94 +1,28 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl UTuple3 (fun (type) (fun (type) (fun (type) (type)))))
-        (tyvardecl a (type)) (tyvardecl b (type)) (tyvardecl c (type))
-        UTuple3_match
-        (vardecl UTuple3 (fun a (fun b (fun c [ [ [ UTuple3 a ] b ] c ]))))
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (builtin addInteger)
-    )
-    (termbind
-      (nonstrict)
-      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (lam
-        x
-        (con integer)
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl x (con integer)) x)
-          (lam
-            y
-            (con integer)
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl y (con integer)) y)
-              [ [ addInteger x ] y ]
-            )
-          )
-        )
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl
-        unboxedTuple
-        (fun
-          [ [ [ UTuple3 (con integer) ] (con integer) ] (con integer) ]
-          (con integer)
-        )
-      )
-      (lam
-        ds
-        [ [ [ UTuple3 (con integer) ] (con integer) ] (con integer) ]
-        [
-          {
-            [
-              {
-                { { UTuple3_match (con integer) } (con integer) } (con integer)
-              }
-              ds
-            ]
-            (con integer)
-          }
-          (lam
-            i
-            (con integer)
-            (lam
-              j
-              (con integer)
-              (lam k (con integer) [ [ addInteger [ [ addInteger i ] j ] ] k ])
-            )
-          )
-        ]
-      )
-    )
-    (lam
-      x
-      (con integer)
-      (let
-        (nonrec)
-        (termbind (strict) (vardecl x (con integer)) x)
-        [
-          unboxedTuple
-          [
-            [
-              [
-                { { { UTuple3 (con integer) } (con integer) } (con integer) } x
-              ]
-              x
-            ]
-            x
-          ]
-        ]
-      )
-    )
-  )
-)
+    data (UTuple3 :: * -> * -> * -> *) a b c | UTuple3_match where
+      UTuple3 : a -> b -> c -> UTuple3 a b c
+    !addInteger : integer -> integer -> integer = addInteger
+    ~addInteger : integer -> integer -> integer
+      = \(x : integer) ->
+          let
+            !x : integer = x
+          in
+          \(y : integer) -> let !y : integer = y in addInteger x y
+    ~unboxedTuple : UTuple3 integer integer integer -> integer
+      = \(ds : UTuple3 integer integer integer) ->
+          UTuple3_match
+            {integer}
+            {integer}
+            {integer}
+            ds
+            {integer}
+            (\(i : integer) (j : integer) (k : integer) ->
+               addInteger (addInteger i j) k)
+  in
+  \(x : integer) ->
+    let
+      !x : integer = x
+    in
+    unboxedTuple (UTuple3 {integer} {integer} {integer} x x x))

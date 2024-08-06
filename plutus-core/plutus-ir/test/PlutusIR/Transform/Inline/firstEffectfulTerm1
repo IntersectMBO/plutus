@@ -4,7 +4,7 @@
   (termbind
     (strict)
     (vardecl a (con integer))
-    { error (con integer) }
+    (error (con integer))
   )
   [ (lam x (con integer) x) a ]
 )

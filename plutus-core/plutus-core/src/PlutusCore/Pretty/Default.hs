@@ -1,8 +1,8 @@
 module PlutusCore.Pretty.Default
-    ( prettyPlcDef
-    , displayPlcDef
-    , prettyPlcDebug
-    , displayPlcDebug
+    ( prettyPlc
+    , displayPlc
+    , prettyPlcSimple
+    , displayPlcSimple
     , displayPlcCondensedErrorClassic
     ) where
 
@@ -11,22 +11,22 @@ import PlutusPrelude
 import PlutusCore.Pretty.Plc
 
 -- | Pretty-print a value in the default mode using the classic view.
-prettyPlcDef :: PrettyPlc a => a -> Doc ann
-prettyPlcDef = prettyPlcClassicDef
+prettyPlc :: PrettyPlc a => a -> Doc ann
+prettyPlc = prettyPlcClassic
 
 -- | Render a value to 'String' in the default mode using the classic view.
-displayPlcDef :: (PrettyPlc a, Render str) => a -> str
-displayPlcDef = render . prettyPlcClassicDef
+displayPlc :: (PrettyPlc a, Render str) => a -> str
+displayPlc = render . prettyPlcClassic
 
 -- | Pretty-print a value in the debug mode using the classic view.
-prettyPlcDebug :: PrettyPlc a => a -> Doc ann
-prettyPlcDebug = prettyPlcClassicDebug
+prettyPlcSimple :: PrettyPlc a => a -> Doc ann
+prettyPlcSimple = prettyPlcClassicSimple
 
 -- | Render a value to 'String' in the debug mode using the classic view.
-displayPlcDebug :: (PrettyPlc a, Render str) => a -> str
-displayPlcDebug = render . prettyPlcClassicDebug
+displayPlcSimple :: (PrettyPlc a, Render str) => a -> str
+displayPlcSimple = render . prettyPlcClassicSimple
 
 -- | Render an error to 'String' in the condensed manner using the classic view.
 displayPlcCondensedErrorClassic :: (PrettyPlc a, Render str) => a -> str
 displayPlcCondensedErrorClassic =
-    render . prettyPlcCondensedErrorBy defPrettyConfigPlcClassic
+    render . prettyPlcCondensedErrorBy prettyConfigPlcClassic

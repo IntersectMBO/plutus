@@ -1,25 +1,24 @@
-cabal-version:      3.0
-name:               plutus-metatheory
-version:            0.1.0.0
-synopsis:           Command line tool for running plutus core programs
-homepage:           https://github.com/input-output-hk/plutus
-license:            Apache-2.0
+cabal-version: 3.0
+name:          plutus-metatheory
+version:       0.1.0.0
+synopsis:      Command line tool for running plutus core programs
+homepage:      https://github.com/IntersectMBO/plutus
+license:       Apache-2.0
 license-files:
   LICENSE
   NOTICE
 
-author:             James Chapman
-maintainer:         james.chapman@iohk.io
-category:           Development
-extra-source-files:
+author:        James Chapman
+maintainer:    james.chapman@iohk.io
+category:      Development
+data-files:
   Plutus.agda-lib
   README.md
-  src/**/*.lagda
   src/**/*.lagda.md
 
 -- This makes cabal rebuild if any of these files change, which allow the
 -- custom setup to fire and rebuild the Haskell sources
-build-type:         Custom
+build-type:    Custom
 
 custom-setup
   setup-depends:
@@ -52,19 +51,25 @@ library
   import:          lang
   hs-source-dirs:  src
   build-depends:
+    , aeson
     , base
     , bytestring
     , composition-prelude
     , cryptonite
     , extra
+    , filepath
+    , ghc-prim
     , ieee754
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.16
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.31
     , process
     , text
     , transformers
+
+  if impl(ghc <9.0)
+    build-depends: integer-gmp
 
   exposed-modules:
     Opts
@@ -86,6 +91,7 @@ library
     MAlonzo.Code.Agda.Builtin.Nat
     MAlonzo.Code.Agda.Builtin.Reflection
     MAlonzo.Code.Agda.Builtin.Sigma
+    MAlonzo.Code.Agda.Builtin.Strict
     MAlonzo.Code.Agda.Builtin.String
     MAlonzo.Code.Agda.Builtin.Unit
     MAlonzo.Code.Agda.Primitive
@@ -125,9 +131,16 @@ library
     MAlonzo.Code.Category.Functor
     MAlonzo.Code.Category.Monad.Indexed
     MAlonzo.Code.Check
+    MAlonzo.Code.Cost
+    MAlonzo.Code.Cost.Base
+    MAlonzo.Code.Cost.Model
+    MAlonzo.Code.Cost.Raw
+    MAlonzo.Code.Cost.Size
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
+    MAlonzo.Code.Data.Char.Base
     MAlonzo.Code.Data.Char.Properties
+    MAlonzo.Code.Data.DifferenceList
     MAlonzo.Code.Data.Digit
     MAlonzo.Code.Data.Empty
     MAlonzo.Code.Data.Empty.Irrelevant
@@ -165,6 +178,7 @@ library
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
     MAlonzo.Code.Data.Maybe.Base
     MAlonzo.Code.Data.Maybe.Categorical
+    MAlonzo.Code.Data.Maybe.Properties
     MAlonzo.Code.Data.Maybe.Relation.Unary.All
     MAlonzo.Code.Data.Maybe.Relation.Unary.Any
     MAlonzo.Code.Data.Nat.Base
@@ -178,19 +192,31 @@ library
     MAlonzo.Code.Data.Product.Function.Dependent.Propositional
     MAlonzo.Code.Data.Product.Function.NonDependent.Propositional
     MAlonzo.Code.Data.Product.Function.NonDependent.Setoid
+    MAlonzo.Code.Data.Product.Nary.NonDependent
     MAlonzo.Code.Data.Product.Properties
     MAlonzo.Code.Data.Product.Relation.Binary.Pointwise.NonDependent
     MAlonzo.Code.Data.Sign.Base
+    MAlonzo.Code.Data.String
     MAlonzo.Code.Data.String.Base
     MAlonzo.Code.Data.String.Properties
     MAlonzo.Code.Data.Sum.Base
+    MAlonzo.Code.Data.Sum.Categorical.Left
     MAlonzo.Code.Data.Sum.Function.Propositional
     MAlonzo.Code.Data.Sum.Function.Setoid
     MAlonzo.Code.Data.Sum.Relation.Binary.Pointwise
     MAlonzo.Code.Data.These.Base
+    MAlonzo.Code.Data.Tree.AVL
+    MAlonzo.Code.Data.Tree.AVL.Height
+    MAlonzo.Code.Data.Tree.AVL.Indexed
+    MAlonzo.Code.Data.Tree.AVL.Key
+    MAlonzo.Code.Data.Tree.AVL.Map
+    MAlonzo.Code.Data.Tree.AVL.Value
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
     MAlonzo.Code.Declarative
+    MAlonzo.Code.Evaluator.Base
+    MAlonzo.Code.Evaluator.Program
+    MAlonzo.Code.Evaluator.Term
     MAlonzo.Code.Function.Base
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
@@ -203,6 +229,7 @@ library
     MAlonzo.Code.Function.LeftInverse
     MAlonzo.Code.Function.Metric.Nat.Bundles
     MAlonzo.Code.Function.Metric.Structures
+    MAlonzo.Code.Function.Nary.NonDependent.Base
     MAlonzo.Code.Function.Related
     MAlonzo.Code.Function.Related.TypeIsomorphisms
     MAlonzo.Code.Function.Structures
@@ -216,6 +243,13 @@ library
     MAlonzo.Code.RawU
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
+    MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
+    MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Strict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Infimum.NonStrict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Infimum.Strict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Point.Equality
+    MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.NonStrict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict
     MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive
     MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.Properties
     MAlonzo.Code.Relation.Binary.Construct.Converse
@@ -250,6 +284,11 @@ library
     MAlonzo.Code.Relation.Unary.Properties
     MAlonzo.Code.Scoped
     MAlonzo.Code.Scoped.Extrication
+    MAlonzo.Code.Strict
+    MAlonzo.Code.Text.Format
+    MAlonzo.Code.Text.Format.Generic
+    MAlonzo.Code.Text.Printf
+    MAlonzo.Code.Text.Printf.Generic
     MAlonzo.Code.Type
     MAlonzo.Code.Type.BetaNBE
     MAlonzo.Code.Type.BetaNBE.Completeness
@@ -260,6 +299,7 @@ library
     MAlonzo.Code.Type.RenamingSubstitution
     MAlonzo.Code.Untyped
     MAlonzo.Code.Untyped.CEK
+    MAlonzo.Code.Untyped.CEKWithCost
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
@@ -280,6 +320,7 @@ library
     MAlonzo.Code.Agda.Builtin.Nat
     MAlonzo.Code.Agda.Builtin.Reflection
     MAlonzo.Code.Agda.Builtin.Sigma
+    MAlonzo.Code.Agda.Builtin.Strict
     MAlonzo.Code.Agda.Builtin.String
     MAlonzo.Code.Agda.Builtin.Unit
     MAlonzo.Code.Agda.Primitive
@@ -319,9 +360,16 @@ library
     MAlonzo.Code.Category.Functor
     MAlonzo.Code.Category.Monad.Indexed
     MAlonzo.Code.Check
+    MAlonzo.Code.Cost
+    MAlonzo.Code.Cost.Base
+    MAlonzo.Code.Cost.Model
+    MAlonzo.Code.Cost.Raw
+    MAlonzo.Code.Cost.Size
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
+    MAlonzo.Code.Data.Char.Base
     MAlonzo.Code.Data.Char.Properties
+    MAlonzo.Code.Data.DifferenceList
     MAlonzo.Code.Data.Digit
     MAlonzo.Code.Data.Empty
     MAlonzo.Code.Data.Empty.Irrelevant
@@ -359,6 +407,7 @@ library
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
     MAlonzo.Code.Data.Maybe.Base
     MAlonzo.Code.Data.Maybe.Categorical
+    MAlonzo.Code.Data.Maybe.Properties
     MAlonzo.Code.Data.Maybe.Relation.Unary.All
     MAlonzo.Code.Data.Maybe.Relation.Unary.Any
     MAlonzo.Code.Data.Nat.Base
@@ -372,19 +421,32 @@ library
     MAlonzo.Code.Data.Product.Function.Dependent.Propositional
     MAlonzo.Code.Data.Product.Function.NonDependent.Propositional
     MAlonzo.Code.Data.Product.Function.NonDependent.Setoid
+    MAlonzo.Code.Data.Product.Nary.NonDependent
     MAlonzo.Code.Data.Product.Properties
     MAlonzo.Code.Data.Product.Relation.Binary.Pointwise.NonDependent
     MAlonzo.Code.Data.Sign.Base
+    MAlonzo.Code.Data.String
     MAlonzo.Code.Data.String.Base
     MAlonzo.Code.Data.String.Properties
     MAlonzo.Code.Data.Sum.Base
+    MAlonzo.Code.Data.Sum.Categorical.Left
     MAlonzo.Code.Data.Sum.Function.Propositional
     MAlonzo.Code.Data.Sum.Function.Setoid
     MAlonzo.Code.Data.Sum.Relation.Binary.Pointwise
     MAlonzo.Code.Data.These.Base
+    MAlonzo.Code.Data.Tree.AVL
+    MAlonzo.Code.Data.Tree.AVL.Height
+    MAlonzo.Code.Data.Tree.AVL.Indexed
+    MAlonzo.Code.Data.Tree.AVL.Key
+    MAlonzo.Code.Data.Tree.AVL.Map
+    MAlonzo.Code.Data.Tree.AVL.Value
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
     MAlonzo.Code.Declarative
+    MAlonzo.Code.Evaluator.Base
+    MAlonzo.Code.Evaluator.Program
+    MAlonzo.Code.Evaluator.Term
+    MAlonzo.Code.Function.Base
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
     MAlonzo.Code.Function.Equality
@@ -396,6 +458,7 @@ library
     MAlonzo.Code.Function.LeftInverse
     MAlonzo.Code.Function.Metric.Nat.Bundles
     MAlonzo.Code.Function.Metric.Structures
+    MAlonzo.Code.Function.Nary.NonDependent.Base
     MAlonzo.Code.Function.Related
     MAlonzo.Code.Function.Related.TypeIsomorphisms
     MAlonzo.Code.Function.Structures
@@ -409,6 +472,13 @@ library
     MAlonzo.Code.RawU
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
+    MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
+    MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Strict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Infimum.NonStrict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Infimum.Strict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Point.Equality
+    MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.NonStrict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict
     MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive
     MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.Properties
     MAlonzo.Code.Relation.Binary.Construct.Converse
@@ -443,6 +513,11 @@ library
     MAlonzo.Code.Relation.Unary.Properties
     MAlonzo.Code.Scoped
     MAlonzo.Code.Scoped.Extrication
+    MAlonzo.Code.Strict
+    MAlonzo.Code.Text.Format
+    MAlonzo.Code.Text.Format.Generic
+    MAlonzo.Code.Text.Printf
+    MAlonzo.Code.Text.Printf.Generic
     MAlonzo.Code.Type
     MAlonzo.Code.Type.BetaNBE
     MAlonzo.Code.Type.BetaNBE.Completeness
@@ -453,6 +528,7 @@ library
     MAlonzo.Code.Type.RenamingSubstitution
     MAlonzo.Code.Untyped
     MAlonzo.Code.Untyped.CEK
+    MAlonzo.Code.Untyped.CEKWithCost
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
@@ -472,8 +548,8 @@ executable plc-agda
 test-suite test1
   import:             lang
   build-tool-depends:
-    , plutus-core:plc   ^>=1.16
-    , plutus-core:uplc  ^>=1.16
+    , plutus-core:plc   ^>=1.31
+    , plutus-core:uplc  ^>=1.31
 
   hs-source-dirs:     test
   build-depends:
@@ -488,8 +564,8 @@ test-suite test1
 test-suite test2
   import:             lang
   build-tool-depends:
-    , plutus-core:plc   ^>=1.16
-    , plutus-core:uplc  ^>=1.16
+    , plutus-core:plc   ^>=1.31
+    , plutus-core:uplc  ^>=1.31
 
   hs-source-dirs:     test
   type:               detailed-0.9
@@ -509,11 +585,12 @@ test-suite test3
   hs-source-dirs: test
   type:           exitcode-stdio-1.0
   main-is:        TestNEAT.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     , base
     , lazy-search
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.16
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.31
     , plutus-metatheory
     , size-based
     , Stream

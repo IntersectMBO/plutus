@@ -1,13 +1,17 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  !reconstructCaseError : string = "PT1"
-  !unitval : unit = ()
+  data Unit | Unit_match where
+    Unit : Unit
+  !traceError : all a. string -> a
+    = /\a ->
+        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
 in
 \(ds : data) ->
   (let
@@ -17,45 +21,35 @@ in
       let
         !tup : pair integer (list data) = unConstrData d
         !index : integer = fstPair {integer} {list data} tup
+        !args : list data = sndPair {integer} {list data} tup
       in
-      ifThenElse
-        {unit -> Maybe a}
-        (equalsInteger 0 index)
-        (\(ds : unit) ->
-           Just
-             {a}
-             (`$dUnsafeFromData`
-                (headList {data} (sndPair {integer} {list data} tup))))
-        (\(ds : unit) ->
-           ifThenElse
-             {unit -> Maybe a}
-             (equalsInteger 1 index)
-             (\(ds : unit) -> Nothing {a})
-             (\(ds : unit) ->
-                let
-                  !x : Unit = trace {Unit} reconstructCaseError Unit
-                in
-                error {Maybe a})
-             unitval)
-        unitval)
+      Bool_match
+        (ifThenElse {Bool} (equalsInteger 1 index) True False)
+        {all dead. Maybe a}
+        (/\dead -> Nothing {a})
+        (/\dead ->
+           Bool_match
+             (ifThenElse {Bool} (equalsInteger 0 index) True False)
+             {all dead. Maybe a}
+             (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
+             (/\dead -> traceError {Maybe a} "PT1")
+             {all dead. dead})
+        {all dead. dead})
     (\(d : data) ->
        let
          !tup : pair integer (list data) = unConstrData d
+         !index : integer = fstPair {integer} {list data} tup
+         !args : list data = sndPair {integer} {list data} tup
        in
-       ifThenElse
-         {unit -> Tuple2 integer integer}
-         (equalsInteger 0 (fstPair {integer} {list data} tup))
-         (\(ds : unit) ->
-            let
-              !t : list data = sndPair {integer} {list data} tup
-              !arg : data = headList {data} t
-              !arg : data = headList {data} (tailList {data} t)
-            in
-            Tuple2 {integer} {integer} (unIData arg) (unIData arg))
-         (\(ds : unit) ->
-            let
-              !x : Unit = trace {Unit} reconstructCaseError Unit
-            in
-            error {Tuple2 integer integer})
-         unitval)
+       Bool_match
+         (ifThenElse {Bool} (equalsInteger 0 index) True False)
+         {all dead. Tuple2 integer integer}
+         (/\dead ->
+            Tuple2
+              {integer}
+              {integer}
+              (unIData (headList {data} args))
+              (unIData (headList {data} (tailList {data} args))))
+         (/\dead -> traceError {Tuple2 integer integer} "PT1")
+         {all dead. dead})
     ds

@@ -14,71 +14,9 @@ If you _really_ cannot use Nix and still want to contribute to Plutus then xref:
 
 === Installing and setting up Nix
 
-This project uses Flakes, so you must have Nix version `>= 2.4` installed.
+For instructions on how to install and configure nix (including how to enable access to our binary caches), refer to link:https://github.com/input-output-hk/iogx/blob/main/doc/nix-setup-guide.md[this document].
 
-Either upgrade or install https://nixos.org/nix/[Nix] following the instructions on https://nixos.org/nix/[its website].
-
-On Linux this command should suffice: `sh <(curl -L https://nixos.org/nix/install) --daemon`
-
-=== How to get a shell environment with tools
-
-To enter the development shell run the following command in the root directory:
-
-`nix develop`
-
-If you receive this message:
-
-`error: experimental Nix feature 'nix-command' is disabled; use '--extra-experimental-features nix-command' to override`
-
-Then try this:
-
-`nix develop --extra-experimental-features 'nix-command flakes'`
-
-You may now choose to edit your `/etc/nix/nix.conf` (global) or `~/.config/nix/nix.conf` (you must be a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] to do this) by appending the following line:
-
-`extra-experimental-features = nix-command flakes`
-
-If you do so you will be able to enter the development shell by running `nix develop`.
-
-If you are a VSCode user, you may want to start your development session by running:
-
-`nix develop --command code`
-
-If this is your first time running `nix develop`, you may be asked the following:
-```
-do you want to allow configuration setting 'allow-import-from-derivation' to be set to 'true' (y/N)? y
-do you want to permanently mark this value as trusted (y/N)? y
-```
-Please type `y` to this and all subsequent prompts to make life easy for yourself.
-
-IMPORTANT: *It is particularly important to accept the `extra-substituters` and `extra-trusted-public-keys` settings, which will grant access to our Nix binary cache.*
-
-At this point and if this is your first time running `nix develop` then Nix will download, build and install a copious amout of dependencies.
-
-It is not uncommon for this process to take a couple of hours and to write tens of GBs to the `/nix/store`.
-
-*Rest assured that this only happens the very first time you run `nix develop`.*
-
-However you should pay attention to the output of `nix develop`: if you notice that you are _building_ GHC, it is likely that your
-caches have not been configured correctly.
-
-Accepting the configuration settings as outlined above should be sufficient to avoid this, however if your caches are still broken, you may try to append the following lines to `/etc/nix/nix.conf` and/or `~/.config/nix/nix.conf`:
-
-----
-substituters = https://cache.zw3rk.com https://cache.iog.io https://cache.nixos.org/
-trusted-public-keys = loony-tools:pr9m4BkM/5/eSTZlkQyRt57Jz7OMBxNSUiMC4FkcNfk= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
-extra-experimental-features = nix-command flakes
-----
-
-On NixOS, set the following NixOS options:
-----
-nix = {
-  binaryCaches          = [ "https://cache.zw3rk.com" "https://cache.iog.io" ];
-  binaryCachePublicKeys = [ "loony-tools:pr9m4BkM/5/eSTZlkQyRt57Jz7OMBxNSUiMC4FkcNfk=" "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" ];
-};
-----
-
-You will need to restart the nix-daemon on non-NixOS for the changes to take effect, or just restart your machine.
+If you already have nix installed and setup, you may enter the development shell by running `nix develop`.
 
 === Note on pre-commit hooks
 
@@ -121,9 +59,9 @@ We don't have a `hie.yaml`, the implicit cradle support in HLS seems to work fin
 
 Haskell components are provisioned by Nix via link:https://github.com/input-output-hk/haskell.nix[Haskell.nix]
 
-In general you can run `nix build .#SYSTEM.plutus.library.plutus-project.hsPkgs.PACKAGE.components.COMPONENT`
+In general you can run `nix build .#cabalProject.SYSTEM.hsPkgs.PACKAGE.components.COMPONENT`
 
-For example `nix build .#x86_64-linux.plutus.library.plutus-project.hsPkgs.plutus-core.components.library`
+For example `nix build .#cabalProject.x86_64-linux.hsPkgs.plutus-core.components.library`
 
 For full documentation about the Nix code see the link:nix/README.md[Nix README].
 
@@ -166,7 +104,7 @@ You need to do a few things when adding a new package, in the following order:
 
 Our Haskell packages come from two package repositories:
 - Hackage
-- https://github.com/input-output-hk/cardano-haskell-packages[CHaP] (which is essentially another Hackage)
+- https://github.com/IntersectMBO/cardano-haskell-packages[CHaP] (which is essentially another Hackage)
 
 The "index state" of each repository is pinned to a particular time in `cabal.project`.
 This tells Cabal to treat the repository "as if" it was the specified time, ensuring reproducibility.
@@ -179,8 +117,8 @@ Note that `cabal` itself keeps track of what index states it knows about, so whe
 The Nix code which builds our packages also cares about the index state.
 This is represented by some pinned inputs in our flake (see xref:update-nix-pins[here] for more details)
 You can update these by running:
-- `nix flake lock --update-input hackage-nix` for Hackage
-- `nix flake lock --update-input CHaP` for CHaP
+- `nix flake update hackage` for Hackage
+- `nix flake update CHaP` for CHaP
 
 ==== Use of `source-repository-package`s
 
@@ -188,9 +126,9 @@ We *can* use Cabal's `source-repository-package` mechanism to pull in un-release
 However, we should try and avoid this.
 In particular, we should not release our packages while we depend on a `source-repository-package`.
 
-If we are stuck in a situation where we need a long-running fork of a package, we should release it to CHaP instead (see the https://github.com/input-output-hk/cardano-haskell-packages[CHaP README] for more).
+If we are stuck in a situation where we need a long-running fork of a package, we should release it to CHaP instead (see the https://github.com/IntersectMBO/cardano-haskell-packages[CHaP README] for more).
 
-If you do add a `source-repository-package`, you need to update the `sha256` mapping in `nix/cells/plutus/library/make-plutus-project.nix`.
+If you do add a `source-repository-package`, you need to update the `sha256` mapping in `nix/project.nix`.
 For the moment you have to do this by hand, using the following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`, or by just getting it wrong and trying to build it, in which case Nix will give you the right value.
 
 [[update-nix-pins]]
@@ -201,7 +139,7 @@ We pin versions of some git repositories that are used by Nix, for example `nixp
 For documentation see https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake.html#flake-inputs[the Nix flake inputs documentation]
 and https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake-lock.html[the Nix flake lock command].
 
-Specifically, you will probably want to say `nix flake lock --update-input <input-name>`.
+Specifically, you will probably want to say `nix flake update <input-name>`.
 
 Do *not* use `nix flake update`, as that will update all the inputs, which we typically don't want to do.
 
@@ -209,7 +147,7 @@ Do *not* use `nix flake update`, as that will update all the inputs, which we ty
 
 TODO: Currently not available, coming soon
 
-If you launch `nix develop .#profiled-plutus` you will get a shell where all the dependencies have been built with profiling.
+If you launch `nix develop .#profiled` you will get a shell where all the dependencies have been built with profiling.
 
 [WARNING]
 ====
@@ -266,32 +204,31 @@ There are various tools for visualizing the resulting profile, e.g. https://hack
 We have a set of supported GHC major versions, which are built in CI and which we commit to keeping working.
 
 We also have a primary development version.
-This is the version we use in the default dev shell, and the one we use day-to-day. 
+This is the version we use in the default dev shell, and the one we use day-to-day.
 The primary development version should be whichever version the Cardano node is using (or migrating towards using).
 Supported versions older than the primary development version are deprecated, and we can drop them as soon as the Cardano node has moved to a later GHC version.
 
 At the moment, our supported GHC versions are:
 - 8.10 (deprecated)
-- 9.2 (primary)
-- 9.6
+- 9.6 (primary)
+- 9.8
 
 === Plugin support
 
 Making `plutus-tx-plugin` work on multiple GHC versions can be painful, because it uses a lot of GHC internals.
 Since the plugin is not in the dependency closure of the Cardano node, we don't _need_ to support all the GHC versions, which is helpful.
-We mostly commit to supporting our primary development version, but we _may_ support other versions as well if it is easy. 
+We mostly commit to supporting our primary development version, but we _may_ support other versions as well if it is easy.
 
 The plugin and its dependents should be marked as unbuildable with cabal conditionals on any non-supported major GHC versions.
 This makes cabal behave reasonably well (it will ignore them and not try and fail to build them).
 
 We currently support the plugin on:
-- 9.2
 - 9.6
 
 === Per-version tooling
 
 We have a dev shell for each supported GHC version which you can use if you need to fix issues on that specific version.
-You can access them like this: `nix develop .#plutus-shell-810`.
+You can access them like this: `nix develop .#ghc810`.
 
 Note that HLS in particular won't work in the non-primary dev shell as it will still be built with the primary GHC version, but other tooling should work fine.
 
@@ -374,8 +311,9 @@ you could write a Note describing the trick (and justifying its usage!), and the
 We use `stylish-haskell` for Haskell code formatting, and `cabal-fmt` for cabal files.
 They are run automatically as pre-commit hooks, but CI will run them again and expect that to be a no-op, so if you somehow don’t apply them your PR will not go green.
 
-To run `stylish-haskell` or `cabal-fmt` manually over your tree, type `fix-stylish-haskell` or `fix-cabal-fmt` respectively.
-They are provided by the `nix develop` environment.
+To run `stylish-haskell` or `cabal-fmt` manually over your tree, type `pre-commit run stylish-haskell --all-files` or `pre-commit run cabal-fmt --all-files` respectively.
+
+Without the `--all-files` flag, `pre-commit` will only run on the files that have changed since the last commit.
 
 === Code linting
 
@@ -477,7 +415,7 @@ The amount of time it's worth spending doing this is probably much more than you
 
 PRs should target `master` unless there is a very good reason not to.
 The only PRs to release branches should be backport PRs which should consist only of cherry-picks of commits from master (and any fixups that are needed).
-For more details, see link:./doc/read-the-docs-site/RELEASE{outfilesuffix}[Plutus Release Process].
+For more details, see link:./RELEASE{outfilesuffix}[Plutus Release Process].
 
 ==== What changes to include, and pull request sizes
 
@@ -667,12 +605,10 @@ If your PR contains a dozen drive-by refactorings, it's unlikely to be merged as
 
 === Continuous integration
 
-We have a few sources of CI checks at the moment:
+We have two sources of CI checks at the moment:
 
 - Hydra
-- ReadTheDocs
 - Github Actions
-- Buildkite
 
 The CI will report statuses on your PRs with links to the logs in case of failure.
 Pull requests cannot be merged without at least the Hydra CI check being green.
@@ -694,16 +630,11 @@ These will be automatically retried, but if you're in a hurry Michael has permis
 Nondeterministic failures are very annoying.
 Michael also has permissions to restart failed builds.
 
-==== ReadTheDocs
+==== Docusaurus
 
-The documentation site is built on ReadTheDocs.
-It will build a preview for each PR which is linked from the PR status.
-It's useful to take a look if you're changing any of the documentation.
+The documentation site is built with Docusaurus.
 
-Enter the development shell using `nix develop`.
-If you get a segfault, run `GC_DONT_GC=1 nix develop` instead.
-
-Then you can run `serve-docs` to host a local instance at http://0.0.0.0:8002 (Haddock is at http://0.0.0.0:8002/haddock).
+Refer to the [README.md](doc/docusaurus/README.md) for more information.
 
 ==== Github Actions
 
@@ -712,14 +643,13 @@ These perform some of the same checks as Hydra, but Github Actions is often more
 == Project roles and responsibilities
 
 - The regular contributors to the Haskell code, all of whom can review and merge PRs are:
-    - @michaelpj
+    - @ana-pantilie
+    - @bezirg
     - @effectfully
     - @kwxm
-    - @bezirg
-    - @thealmarty
+    - @Unisay
     - @zliu41
-- The maintainer of the documentation is @joseph-fajen.
 - The maintainer of the Agda code is @jmchapman, @effectfully can help with small issues.
-- If you have a technical dispute that you need help resolving, you can ask @michaelpj.
-- For problems with the developer environment setup, builds, or CI, you can ask @zeme-iohk, @Pacman99, or @michaelpj.
-- The regular contributors take turns releasing our software, but if you have a specific problem ask @zliu41 or @michaelpj.
+- If you have a technical dispute that you need help resolving, you can ask @zliu41.
+- For problems with the developer environment setup, builds, or CI, you can ask @zeme-iohk or @zliu41.
+- The regular contributors take turns releasing our software, but if you have a specific problem ask @zliu41.

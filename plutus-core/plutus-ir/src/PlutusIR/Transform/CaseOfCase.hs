@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
-module PlutusIR.Transform.CaseOfCase where
+module PlutusIR.Transform.CaseOfCase (caseOfCase, caseOfCasePass, caseOfCasePassSC) where
 
 import Control.Lens hiding (Strict, cons)
 import Control.Monad.Trans (lift)
@@ -11,16 +11,45 @@ import Control.Monad.Trans.Maybe
 import Data.Maybe
 import PlutusCore qualified as PLC
 import PlutusCore.Arity
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusCore.Quote
 import PlutusIR
 import PlutusIR.Analysis.Builtins
-import PlutusIR.Analysis.VarInfo
+import PlutusIR.Analysis.VarInfo (VarInfo (DatatypeConstructor, DatatypeMatcher), VarsInfo,
+                                  getConstructorArities, lookupVarInfo, termVarInfo)
 import PlutusIR.Contexts
 import PlutusIR.Core
 import PlutusIR.MkPir
+import PlutusIR.Pass
 import PlutusIR.Transform.Rename ()
+import PlutusIR.TypeCheck qualified as TC
 import PlutusPrelude
+
+caseOfCasePassSC ::
+    forall m uni fun a.
+    (PLC.Typecheckable uni fun, PLC.GEq uni, PLC.MonadQuote m, Ord a) =>
+    TC.PirTCConfig uni fun ->
+    BuiltinsInfo uni fun ->
+    Bool ->
+    a ->
+    Pass m TyName Name uni fun a
+caseOfCasePassSC tcconfig binfo conservative newAnn =
+  renamePass <> caseOfCasePass tcconfig binfo conservative newAnn
+
+caseOfCasePass ::
+    forall m uni fun a.
+    ( PLC.Typecheckable uni fun, PLC.GEq uni, MonadQuote m, Ord a) =>
+    TC.PirTCConfig uni fun ->
+    BuiltinsInfo uni fun ->
+    Bool ->
+    a ->
+    Pass m TyName Name uni fun a
+caseOfCasePass tcconfig binfo conservative newAnn =
+  NamedPass "case-of-case" $
+    Pass
+      (caseOfCase binfo conservative newAnn)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]
 
 {-|
 Perform the case-of-case transformation. This pushes
@@ -43,7 +72,7 @@ Example:
 caseOfCase ::
     forall m tyname uni fun a.
     ( Ord fun, PLC.HasUnique tyname PLC.TypeUnique
-    , PLC.MonadQuote m
+    , PLC.MonadQuote m -- we need this because we do generate new names
     ) =>
     BuiltinsInfo uni fun ->
     Bool ->
@@ -51,10 +80,7 @@ caseOfCase ::
     Term tyname Name uni fun a ->
     m (Term tyname Name uni fun a)
 -- See Note [Case-of-case and conapps]
-caseOfCase binfo conservative newAnn t0 = do
-    -- We are going to record information about variables in a global map, so we
-    -- need global uniqueness
-    t <- PLC.rename t0
+caseOfCase binfo conservative newAnn t = do
     let vinfo = termVarInfo t
     liftQuote $ transformMOf termSubterms (processTerm binfo vinfo conservative newAnn) t
 

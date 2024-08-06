@@ -18,31 +18,34 @@ module PlutusCore.TypeCheck.Internal
     , MonadNormalizeType
     ) where
 
-import PlutusCore.Builtin
-import PlutusCore.Core
-import PlutusCore.Error
-import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Builtin.KnownKind (ToKind, kindOfBuiltinType)
+import PlutusCore.Builtin.Result (throwing)
+import PlutusCore.Core.Type (Kind (..), Normalized (..), Term (..), Type (..), toPatFuncKind)
+import PlutusCore.Error (AsTypeError (_TypeError), ExpectedShapeOr (ExpectedExact, ExpectedShape),
+                         TypeError (FreeTypeVariableE, FreeVariableE, KindMismatch, NameMismatch, TyNameMismatch, TypeMismatch, UnknownBuiltinFunctionE))
+import PlutusCore.MkPlc (mkIterTyAppNoAnn, mkIterTyFun, mkTyBuiltinOf)
+import PlutusCore.Name.Unique (HasText (theText), Name (Name), Named (Named), TermUnique,
+                               TyName (TyName), TypeUnique, theUnique)
+import PlutusCore.Name.UniqueMap (UniqueMap, insertNamed, lookupName)
 import PlutusCore.Normalize.Internal (MonadNormalizeType)
 import PlutusCore.Normalize.Internal qualified as Norm
-import PlutusCore.Quote
-import PlutusCore.Rename
-import PlutusPrelude
+import PlutusCore.Quote (MonadQuote (liftQuote), freshTyName)
+import PlutusCore.Rename (Dupable, Rename (rename), dupable, liftDupable)
+import PlutusPrelude (Lens', lens, over, view, void, zipExact, (<<$>>), (<<*>>), (^.))
 
-import Control.Lens
+import Control.Lens (Ixed (ix), makeClassy, makeLenses, preview, (^?))
 import Control.Monad (when)
-import Control.Monad.Error.Lens
 import Control.Monad.Except (MonadError)
 -- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
 -- on 'local'.
-import Control.Monad.Trans.Reader
-import Data.Array
+import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, local)
+import Data.Array (Array, Ix)
 import Data.Foldable (for_)
 import Data.List.Extras (wix)
 import Data.Text qualified as Text
-import Universe (GEq, Some (Some), SomeTypeIn (SomeTypeIn), ValueOf (ValueOf))
+import Universe.Core (GEq, Some (Some), SomeTypeIn (SomeTypeIn), ValueOf (ValueOf))
 
-{- Note [Global uniqueness]
+{- Note [Global uniqueness in the type checker]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
 is satisfied. The invariant is not checked, enforced or automatically fulfilled. So you must ensure
 that the global uniqueness condition is satisfied before calling 'inferTypeM' or 'checkTypeM'.
@@ -50,7 +53,7 @@ that the global uniqueness condition is satisfied before calling 'inferTypeM' or
 The invariant is preserved. In future we will enforce the invariant.
 -}
 
-{- Note [Notation]
+{- Note [Typing rules]
 We write type rules in the bidirectional style.
 
 [infer| G !- x : a] -- means that the inferred type of 'x' in the context 'G' is 'a'.
@@ -405,7 +408,7 @@ unfoldIFixOf pat arg k = do
     -- would be less efficient than renaming a subpart of the type explicitly.
     --
     -- Note however that breaking global uniqueness here most likely would not result in buggy
-    -- behavior, see https://github.com/input-output-hk/plutus/pull/2219#issuecomment-672815272
+    -- behavior, see https://github.com/IntersectMBO/plutus/pull/2219#issuecomment-672815272
     -- But breaking global uniqueness is a bad idea regardless.
     vPat' <- rename vPat
     normalizeTypeM $
@@ -414,7 +417,8 @@ unfoldIFixOf pat arg k = do
             , vArg
             ]
 
--- See the [Global uniqueness] and [Type rules] notes.
+-- See Note [Global uniqueness in the type checker].
+-- See Note [Typing rules].
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
     :: (MonadTypeCheckPlc err uni fun ann m, HasTypeCheckConfig cfg uni fun)
@@ -524,11 +528,13 @@ inferTypeM t@(Constr ann resTy i args) = do
 
     -- We don't know exactly what to expect, we only know what the i-th sum should look like, so we
     -- assert that we should have some types in the sum up to there, and then the known product type.
-    let prodPrefix  = map (\j -> "prod_" <> Text.pack (show j)) [0 .. i - 1]
+    let -- 'toInteger' is necessary, because @i@ is a @Word64@ and therefore @i - 1@ would be
+        -- @maxBound :: Word64@ for @i = 0@ if we didn't have 'toInteger'.
+        prodPrefix  = map (\j -> "prod_" <> Text.pack (show j)) [0 .. toInteger i - 1]
         fields      = map (\k -> "field_" <> Text.pack (show k)) [0 .. length args - 1]
         prod_i      = "[" <> Text.intercalate " " fields <> "]"
-        shape       = "sop " <> foldMap (<> " ") prodPrefix <> prod_i <> " ... prod_n"
-        vars        = prodPrefix ++ fields ++ ["prod_n"]
+        shape       = "sop " <> foldMap (<> " ") prodPrefix <> prod_i <> " ..."
+        vars        = prodPrefix ++ fields
         expectedSop = ExpectedShape shape vars
     case unNormalized vResTy of
         TySOP _ vSTys -> case vSTys ^? wix i of
@@ -575,7 +581,8 @@ inferTypeM (Case ann resTy scrut cases) = do
     -- whole expression.
     pure vResTy
 
--- See the [Global uniqueness] and [Type rules] notes.
+-- See Note [Global uniqueness in the type checker].
+-- See Note [Typing rules].
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
     :: (MonadTypeCheckPlc err uni fun ann m, HasTypeCheckConfig cfg uni fun)

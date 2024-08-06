@@ -1,49 +1,39 @@
-{-# LANGUAGE TypeApplications #-}
 module PlutusIR.Transform.LetFloatIn.Tests where
 
 import Test.Tasty
 import Test.Tasty.Extras
 
 import PlutusCore qualified as PLC
-import PlutusCore.Name
+import PlutusCore.Builtin
 import PlutusCore.Quote
-import PlutusIR.Error as PIR
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Parser
+import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.Rename ()
-import PlutusIR.TypeCheck as TC
 import PlutusPrelude
-
-import PlutusCore.Builtin
-import PlutusIR.Analysis.Builtins
-import PlutusIR.Properties.Typecheck
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_letFloatInConservative :: TestTree
 test_letFloatInConservative =
-    runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform", "LetFloatIn"] $
-    testNested "conservative" $
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "LetFloatIn", "conservative"] $
         map
-            (goldenPirM goldenFloatTC pTerm)
+            (goldenPir (runQuote . runTestPass testPass) pTerm)
             [ "avoid-floating-into-lam"
             , "avoid-floating-into-tyabs"
             ]
   where
-    goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
-        let pirFloated = runQuote $ LetFloatIn.floatTerm def False pir
-        -- make sure the floated result typechecks
-        _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
-        -- letmerge is not necessary for floating, but is a nice visual transformation
-        pure $ LetMerge.letMerge pirFloated
+    testPass tcconfig =
+      LetFloatIn.floatTermPassSC tcconfig def False
+      <> LetMerge.letMergePass tcconfig
 
 test_letFloatInRelaxed :: TestTree
 test_letFloatInRelaxed =
-    runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform", "LetFloatIn"] $
-    testNested "relaxed" $
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "LetFloatIn", "relaxed"] $
         map
-            (goldenPirM goldenFloatTC pTerm)
+            (goldenPir (runQuote . runTestPass testPass) pTerm)
             [ "avoid-floating-into-RHS"
             , "avoid-moving-strict-nonvalue-bindings"
             , "cannot-float-into-app"
@@ -62,18 +52,17 @@ test_letFloatInRelaxed =
             , "type"
             ]
   where
-    goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
-        let pirFloated = runQuote $ LetFloatIn.floatTerm def True pir
-        -- make sure the floated result typechecks
-        _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
-        -- letmerge is not necessary for floating, but is a nice visual transformation
-        pure $ LetMerge.letMerge pirFloated
+    testPass tcconfig =
+      LetFloatIn.floatTermPassSC tcconfig def True
+      <> LetMerge.letMergePass tcconfig
 
--- | Check that a term typechecks after a
--- `PlutusIR.Transform.LetFloatIn.floatTerm` pass.
-prop_TypecheckFloatTerm ::
+prop_floatIn ::
   BuiltinSemanticsVariant PLC.DefaultFun -> Bool -> Property
-prop_TypecheckFloatTerm biVariant conservative =
-  withMaxSuccess 40000 $
-    nonPureTypecheckProp $
-      LetFloatIn.floatTerm (def {_biSemanticsVariant = biVariant}) conservative
+prop_floatIn biVariant conservative =
+  withMaxSuccess numTestsForPassProp $ testPassProp runQuote testPass
+  where
+    testPass tcconfig =
+      LetFloatIn.floatTermPassSC
+        tcconfig
+        (def { _biSemanticsVariant = biVariant })
+        conservative

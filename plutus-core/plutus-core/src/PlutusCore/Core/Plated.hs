@@ -12,15 +12,17 @@ module PlutusCore.Core.Plated
     , typeSubtypes
     , typeSubtypesDeep
     , varDeclSubtypes
+    , termConstants
     , termTyBinds
     , termBinds
     , termVars
     , termUniques
     , termSubkinds
     , termSubtypes
-    , termSubtypesDeep
-    , termSubterms
     , termSubtermsDeep
+    , termSubtypesDeep
+    , termConstantsDeep
+    , termSubterms
     , typeUniquesDeep
     , termUniquesDeep
     ) where
@@ -28,9 +30,10 @@ module PlutusCore.Core.Plated
 import PlutusPrelude ((<^>))
 
 import PlutusCore.Core.Type
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Control.Lens
+import Universe
 
 kindSubkinds :: Traversal' (Kind ann) (Kind ann)
 kindSubkinds f kind0 = case kind0 of
@@ -115,6 +118,22 @@ typeSubtypesDeep = cosmosOf typeSubtypes
 -- | Get all the direct child 'Type's of the given 'VarDecl'.
 varDeclSubtypes :: Traversal' (VarDecl tyname name uni a) (Type tyname uni a)
 varDeclSubtypes f (VarDecl a n ty) = VarDecl a n <$> f ty
+
+-- | Get all the direct constants of the given 'Term' from 'Constant's.
+termConstants :: Traversal' (Term tyname name uni fun ann) (Some (ValueOf uni))
+termConstants f term0 = case term0 of
+    Constant ann val -> Constant ann <$> f val
+    Var{}            -> pure term0
+    TyAbs{}          -> pure term0
+    LamAbs{}         -> pure term0
+    TyInst{}         -> pure term0
+    IWrap{}          -> pure term0
+    Error{}          -> pure term0
+    Apply{}          -> pure term0
+    Unwrap{}         -> pure term0
+    Builtin{}        -> pure term0
+    Constr{}         -> pure term0
+    Case{}           -> pure term0
 
 -- | Get all the direct child 'tyname a's of the given 'Term' from 'TyAbs'es.
 termTyBinds :: Traversal' (Term tyname name uni fun ann) tyname
@@ -213,6 +232,10 @@ termSubtypes f term0 = case term0 of
     Var{}               -> pure term0
     Constant{}          -> pure term0
     Builtin{}           -> pure term0
+
+-- | Get all the transitive child 'Constant's of the given 'Term'.
+termConstantsDeep :: Fold (Term tyname name uni fun ann) (Some (ValueOf uni))
+termConstantsDeep = termSubtermsDeep . termConstants
 
 -- | Get all the transitive child 'Type's of the given 'Term'.
 termSubtypesDeep :: Fold (Term tyname name uni fun ann) (Type tyname uni ann)

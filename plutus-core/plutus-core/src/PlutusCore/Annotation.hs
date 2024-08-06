@@ -17,6 +17,7 @@ module PlutusCore.Annotation
     ) where
 
 import Control.DeepSeq
+import Data.Hashable
 import Data.List qualified as List
 import Data.MonoTraversable
 import Data.Semigroup (Any (..))
@@ -39,6 +40,7 @@ data Ann = Ann
     , annSrcSpans :: SrcSpans
     }
     deriving stock (Eq, Ord, Generic, Show)
+    deriving anyclass (Hashable)
 
 data Inline
     = -- | When calling @PlutusIR.Compiler.Definitions.defineTerm@ to add a new term definition,
@@ -52,6 +54,7 @@ data Inline
       AlwaysInline
     | MayInline
     deriving stock (Eq, Ord, Generic, Show)
+    deriving anyclass (Hashable)
 
 instance Pretty Ann where
     pretty = viaShow
@@ -82,7 +85,7 @@ data SrcSpan = SrcSpan
     -- is the line break).
     }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Flat, NFData)
+    deriving anyclass (Flat, Hashable, NFData)
 
 instance Show SrcSpan where
     showsPrec _ s =
@@ -100,7 +103,7 @@ instance Pretty SrcSpan where
     pretty = viaShow
 
 newtype SrcSpans = SrcSpans {unSrcSpans :: Set SrcSpan}
-    deriving newtype (Eq, Ord, Semigroup, Monoid, MonoFoldable, NFData)
+    deriving newtype (Eq, Ord, Hashable, Semigroup, Monoid, MonoFoldable, NFData)
     deriving stock (Generic)
     deriving anyclass (Flat)
 

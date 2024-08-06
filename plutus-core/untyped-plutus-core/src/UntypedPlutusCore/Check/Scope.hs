@@ -20,7 +20,7 @@ Feeding the result of the debruijnification to this function is expected to pass
 
 On the other hand, because of (2), this pass is
 stricter than the undebruijnification's (indirect)
-scope-checking, see NOTE: [DeBruijn indices of Binders].
+scope-checking, see Note [DeBruijn indices of Binders].
 
 Inlining this function makes a big difference,
 since it will usually be called in a context where all the type variables are known.

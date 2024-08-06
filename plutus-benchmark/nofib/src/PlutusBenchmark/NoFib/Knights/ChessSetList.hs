@@ -35,7 +35,7 @@ type Tile     = (Integer,Integer)
 data ChessSet = Board
                 Integer      -- % Size of board (along edge)
                 Integer      -- % Current move number
-                (Maybe Tile) -- % Initial square: see Note [deleteFirst] below
+                (Maybe Tile) -- % Initial square: see Note (deleteFirst) below
                 [Tile]       -- % All squares visited (in reverse: the last element is the initial
                              -- square).
                 deriving stock (Generic)
@@ -78,7 +78,7 @@ secondLast l =
       _:a:_ -> Just a
 
 
-{-%  Note [deleteFirst].
+{-%  Note (deleteFirst).
     deleteFirst removes the first position from the tour.
     Since the sequence of positions (ts) is stored in reverse this involves
     deleting the last element of ts and also storing the second-last element of

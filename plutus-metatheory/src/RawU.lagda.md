@@ -1,3 +1,7 @@
+---
+title: Raw - Interface to Haskell
+layout: page
+---
 
 This module provides the interface between the Haskell code and the Agda code.
 It replicates the Haskell representation of Raw. In particular, for term constants,
@@ -263,7 +267,7 @@ tyTag2Tag (atomic aBls12-381-mlresult) = Bls12-381-MlResult ,, bls12-381-mlresul
 tyTag2Tag (list t)  with tyTag2Tag t 
 ... | A ,, a = List A ,, list a
 tyTag2Tag (pair t u)  with tyTag2Tag t | tyTag2Tag u  
-... | A ,, a | B ,, b  = A × B ,, pair a b
+... | A ,, a | B ,, b  = (A × B) ,, pair a b
 
 tyTagLemma : (t : TyTag) → ⟦ t ⟧tag ≡ proj₁ (tyTag2Tag t)
 tyTagLemma (atomic aInteger) = refl

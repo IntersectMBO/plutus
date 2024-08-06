@@ -13,27 +13,33 @@
     (termbind (strict)
       (vardecl
         foldl
-        (all a (type) (all b (type) (fun (fun a (fun b a)) (fun a (fun [List b] a)))))
+        (all a (type) (all b (type) (fun (fun b (fun a b)) (fun b (fun [List a] b)))))
       )
+      (abs a (type)
+      (abs b (type)
       (lam
         f
-        (fun a (fun b a))
+        (fun b (fun a b))
         (lam
           acc
-          a
+          b
           (lam
             lst
-            [List b]
+            [List a]
             [
-              [ [ { match_List a } lst ] acc ]
-              (lam x b (lam xs [List b]
-                [ [ { (builtin trace) a } (con string "hello") ]
-                 [ [ [ foldl f ] [ [ f acc ] x ] ] xs ]
-
-                 ]))
+              { [ { match_List a } lst ] b }
+              acc
+              (lam x a (lam xs [List a]
+                [
+                  { (builtin trace) b } (con string "hello")
+                  [ { foldl a b } f [ f acc x ] xs ]
+                ]
+              ))
             ]
           )
         )
+      )
+      )
       )
     )
     foldl

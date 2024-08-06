@@ -1,7 +1,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-
 {- | A program to parse a JSON representation of costing functions for Plutus Core
    builtins and print it in readable form. -}
 module Main where
@@ -13,108 +12,28 @@ import Data.Aeson.Key as Key (toString)
 import Data.Aeson.KeyMap qualified as KeyMap
 import Data.ByteString.Lazy as BSL (getContents, readFile)
 import Data.List (intercalate)
-import Data.Text (Text)
 import System.Environment (getArgs, getProgName)
 import System.Exit
 import Text.Printf (printf)
 
+import PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON
+
 data ModelComponent = Cpu | Memory
 
-
--------------- Types representing cost mode entries and functions for JSON parsing ----------------
-
-data LinearFunction =
-    LinearFunction {intercept_ :: Integer, slope_ :: Integer}
-                   deriving stock Show
-
-instance FromJSON LinearFunction where
-    parseJSON = withObject "Linear function" $ \obj ->
-                LinearFunction <$> obj .: "intercept" <*> obj .: "slope"
-
-{- | This type reflects what is actually in the JSON.  The stuff in
-   CostingFun.Core and CostingFun.JSON is much more rigid, allowing parsing only
-   for the model types applicable to the various ModelNArguments types; it also
-   requires entries for everything in DefaultFun. Using the type defined here
-   allows us to be more flexible and parse stuff that's not exactly what's
-   expected in builtinCostModel.json.
--}
-data Model
-    = ConstantCost       Integer
-    | AddedSizes         LinearFunction
-    | MultipliedSizes    LinearFunction
-    | MinSize            LinearFunction
-    | MaxSize            LinearFunction
-    | LinearCost         LinearFunction
-    | LinearInX          LinearFunction
-    | LinearInY          LinearFunction
-    | LinearInZ          LinearFunction
-    | SubtractedSizes    LinearFunction Integer
-    -- ^ Linear model in x-y plus minimum value for the case x-y < 0.
-    | ConstAboveDiagonal Integer Model
-    | ConstBelowDiagonal Integer Model
-    | LinearOnDiagonal   LinearFunction Integer
-      -- ^ Linear model for x=y together with a constant for the case x!=y; we
-      -- should probably allow a general model here.
-      deriving stock Show
-
-{- The JSON representation consists of a list of pairs of (type, arguments)
-   values.  The "type" field corresponds to the possible constructors above, the
-   "arguments" field contains the arguments for that particular constructor.
-
-   The JSON format is a bit inconsistent, which adds some complexity.  For
-   example, the "arguments" field is sometimes a constant, sometimes an object
-   representing a linear function, and sometimes an object which contains the
-   coefficients of a linear function together with some extra data. It would be
-   nice to rationalise this a bit, but it may be too late to do that.
--}
-
-instance FromJSON Model where
-    parseJSON =
-        withObject "Model" $
-           \obj -> do
-             ty   :: Text  <- obj .: "type"
-             args :: Value <- obj .: "arguments"
-             {- We always have an "arguments" field which is a Value.  Usually it's
-                actually an Object (ie, a map) representing a linear function, but
-                sometimes it contains other data, and in those cases we need to
-                coerce it to an Object (with objOf) to extract the relevant date.
-                We could do that once here and rely on laziness to save us in the
-                cases when we don't have an Object, but that looks a bit misleading. -}
-             case ty of
-               "constant_cost"        -> ConstantCost          <$> parseJSON args
-               "added_sizes"          -> AddedSizes            <$> parseJSON args
-               "min_size"             -> MinSize               <$> parseJSON args
-               "max_size"             -> MaxSize               <$> parseJSON args
-               "multiplied_sizes"     -> MultipliedSizes       <$> parseJSON args
-               "linear_cost"          -> LinearCost            <$> parseJSON args
-               "linear_in_x"          -> LinearInX             <$> parseJSON args
-               "linear_in_y"          -> LinearInY             <$> parseJSON args
-               "linear_in_z"          -> LinearInZ             <$> parseJSON args
-               "subtracted_sizes"     ->
-                  SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
-               "const_above_diagonal" ->
-                  ConstAboveDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "const_below_diagonal" ->
-                  ConstBelowDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "linear_on_diagonal"   ->
-                  LinearOnDiagonal      <$> parseJSON args <*> objOf args .: "constant"
-               _                      -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
-
-               where objOf (Object o) = o
-                     objOf _          =
-                      errorWithoutStackTrace "Failed to get Object while parsing \"arguments\""
-
-{- | A CPU usage modelling function and a memory usage modelling function bundled
-   together -}
-data CpuAndMemoryModel = CpuAndMemoryModel {cpuModel :: Model, memoryModel :: Model}
-              deriving stock Show
-
-instance FromJSON CpuAndMemoryModel where
-    parseJSON = withObject "CpuAndMemoryModel" $ \obj ->
-                CpuAndMemoryModel <$> obj .: "cpu" <*> obj .: "memory"
-
-
 ---------------- Printing cost models  ----------------
+
+-- Print a monomial like 5*x or 11*max(x,y)
+stringOfMonomial :: Integer -> String -> String
+stringOfMonomial s v =
+  if s == 1 then unparen v  -- Just so we don't get things like 5 + (x+y).
+  else if s == -1 then "-" ++ v
+       else printf "%d*%s" s v
+            -- Print the slope even if it's zero, so we know the
+            -- function's not constant.
+  where unparen w =
+          if w /= "" && head w == '(' && last w == ')'
+          then tail $ init w
+          else w
 
 -- | Print a linear function in readable form.  The string argument is
 -- supposed to represent the input to the function: x, y, y+z, etc.
@@ -122,44 +41,80 @@ renderLinearFunction :: LinearFunction -> String -> String
 renderLinearFunction (LinearFunction intercept slope) var =
     if intercept == 0 then stringOfMonomial slope var
     else printf "%d + %s" intercept (stringOfMonomial slope var)
-        where stringOfMonomial s v =
-                  if s == 1 then unparen v  -- Just so we don't get things like 5 + (x+y).
-                  else if s == -1 then "-" ++ v
-                  else printf "%d*%s" s v
-                  -- Print the slope even if it's zero, so we know the
-                  -- function's not constant.
-              unparen v = if v /= "" && head v == '(' && last v == ')'
-                          then tail $ init v
-                          else v
 
+renderTwoVariableLinearFunction :: TwoVariableLinearFunction -> String -> String -> String
+renderTwoVariableLinearFunction (TwoVariableLinearFunction intercept slope1 slope2) var1 var2 =
+    if intercept == 0
+    then stringOfMonomial slope1 var1 ++ " + " ++ stringOfMonomial slope2 var2
+    else printf "%d + %s + %s"
+      intercept
+      (stringOfMonomial slope1 var1)
+      (stringOfMonomial slope2 var2)
+
+renderOneVariableQuadraticFunction
+  :: OneVariableQuadraticFunction
+  -> String
+  -> String
+renderOneVariableQuadraticFunction
+  (OneVariableQuadraticFunction c0 c1 c2) var =
+    printf "%d + %d*%s + %d*%s^2" c0 c1 var c2 var
+
+renderTwoVariableQuadraticFunction
+  :: TwoVariableQuadraticFunction
+  -> String
+  -> String
+  -> String
+renderTwoVariableQuadraticFunction
+  (TwoVariableQuadraticFunction minVal c00 c10 c01 c20 c11 c02) var1 var2 =
+    printf "max(%d, %d + %d*%s + %d*%s + %d*%s^2 + %d*%s*%s + %d*%s^2)"
+    minVal c00 c10 var1 c01 var2 c20 var1 c11 var1 var2 c02 var2
+
+-- FIXME.  This is arguably slightly incorrect because some of the arguments are
+-- wrapped in newtypes that change the memory usage instance of their content
+-- and this isn't reflected in the output.  We're able to fix this for
+-- LiteralInYOrLinearInZ since we can tell from the constructor that the second
+-- argument is wrapped, but this doesn't work for `replicateByte`, where the
+-- replication count is wrapped in NumBytesCostedAsNumWords and we don't see that
+-- here.  We should really print "x bytes" instead of just "x", but to fix that
+-- we'd need access to the signatures of the builtins here as well.  Maybe it
+-- could be argued that the user should be aware of the wrappings and interpret
+-- the output accordingly, but it would be helpful to make it explicit.
 renderModel :: Model -> [String]
 renderModel =
     \case
-     ConstantCost       n   -> [ printf "%d" n ]
-     AddedSizes         f   -> [ renderLinearFunction f "(x+y)" ]
-     MultipliedSizes    f   -> [ renderLinearFunction f "(x*y)" ]
-     MinSize            f   -> [ renderLinearFunction f "min(x,y)" ]
-     MaxSize            f   -> [ renderLinearFunction f "max(x,y)" ]
-     LinearCost         f   -> [ renderLinearFunction f "x" ]
-     LinearInX          f   -> [ renderLinearFunction f "x" ]
-     LinearInY          f   -> [ renderLinearFunction f "y" ]
-     LinearInZ          f   -> [ renderLinearFunction f "z" ]
-     SubtractedSizes    l c -> [ "if x>y"
-                               , printf "then %s" $ renderLinearFunction l "(x-y)"
-                               , printf "else %d" c
-                               ]
-     ConstAboveDiagonal c m -> [ "if x>y"
-                               , printf "then %s" $ intercalate "\n" (renderModel m)
-                               , printf "else %d" c
-                               ]
-     ConstBelowDiagonal c m -> [ "if x<y"
-                               , printf "then %s" $ intercalate "\n" (renderModel m)
-                               , printf "else %d" c
-                               ]
-     LinearOnDiagonal   f c -> [ "if x==y"
-                               , printf "then %s" $ renderLinearFunction f "x"
-                               , printf "else %d" c
-                               ]
+     ConstantCost          n   -> [ printf "%d" n ]
+     AddedSizes            f   -> [ renderLinearFunction f "(x+y)" ]
+     MultipliedSizes       f   -> [ renderLinearFunction f "(x*y)" ]
+     MinSize               f   -> [ renderLinearFunction f "min(x,y)" ]
+     MaxSize               f   -> [ renderLinearFunction f "max(x,y)" ]
+     LinearInX             f   -> [ renderLinearFunction f "x" ]
+     LinearInY             f   -> [ renderLinearFunction f "y" ]
+     LinearInZ             f   -> [ renderLinearFunction f "z" ]
+     QuadraticInY          f   -> [ renderOneVariableQuadraticFunction f "y" ]
+     QuadraticInZ          f   -> [ renderOneVariableQuadraticFunction f "z" ]
+     QuadraticInXAndY      f   -> [ renderTwoVariableQuadraticFunction f "x" "y" ]
+     LinearInMaxYZ         f   -> [ renderLinearFunction f "max(y,z)" ]
+     LinearInYAndZ         f   -> [ renderTwoVariableLinearFunction f "y" "z" ]
+     LiteralInYOrLinearInZ f -> [ "if y==0"
+                                  , printf "then %s" $ renderLinearFunction f "z"
+                                  , printf "else y bytes"
+                                ]  -- This is only used for the memory usage of
+                                   -- `integerToByteString` at the moment, so
+                                   -- this makes sense.
+     SubtractedSizes       l c -> [ renderLinearFunction l $ printf "max(x-y,%d)" c
+                                  ]
+     ConstAboveDiagonal    c m -> [ "if x<y"
+                                  , printf "then %d" c
+                                  , printf "else %s" $ intercalate "\n" (renderModel m)
+                                  ]
+     ConstBelowDiagonal    c m -> [ "if x>y"
+                                  , printf "then %d" c
+                                  , printf "else %s" $ intercalate "\n" (renderModel m)
+                                  ]
+     ConstOffDiagonal      c m -> [ "if x==y"
+                                  , printf "then %s" $ intercalate "\n" (renderModel m)
+                                  , printf "else %d" c
+                                  ]
      -- ^ We're not properly indenting submodels in the above/below diagonal
      -- cases, but at present our submodels all fit on one line (eg, constant or
      -- linear).  It seems improbable that we'd ever have a submodel that
@@ -190,46 +145,65 @@ printModel component width (name, CpuAndMemoryModel cpu mem) = do
 
 ---------------- Command line processing ----------------
 
-usage :: FilePath -> IO a
-usage defaultCostModelPath = do
+-- The names of the semantic variants.  If X is a semantic variant and you pass
+-- -X on the command line then the program looks for a cost model file called
+-- builtinCostModelX.json in the data directory and prints its contents.  The -d
+-- option prints the cost model file (if any) corresponding to the final element
+-- in the list.
+semvars :: [String]
+semvars = ["A", "B", "C"]
+
+semvarOptions :: [String]
+semvarOptions = fmap ('-':) semvars
+
+usage :: [String] -> IO a
+usage paths = do
+  let semvarInfo = printf "[%s]" (intercalate "|" semvarOptions) :: String
   prog <- getProgName
-  printf "Usage: %s [-c|--cpu|-m|--mem|--memory] [-d|--default] [<filename>]\n" prog
+  printf "Usage: %s [-c|--cpu|-m|--mem|--memory] [-d|--default] [<filename>] %s\n" prog semvarInfo
   printf "\n"
   printf "Print a JSON cost model file in readable form.\n"
-  printf "The variables x, y, z, etc. represent the *sizes* of the builtin's arguments.\n"
+  printf "The variables x, y, z, etc. represent the *sizes* of the builtin's arguments\n"
+  printf "unless explicitly specified otherwise (eg \"z bytes\").\n"
   printf "Input is read from stdin if no file is given and --default is not specified.\n"
   printf "\n"
   printf "Options (later options take precedence over earlier ones):\n"
   printf "   -c, --cpu (default):  print the CPU costing functions for each built-in function\n"
   printf "   -m, --mem --memory:  print the memory costing functions for each built-in function\n"
   printf "   -d, --default: print the contents of the default cost model in\n"
-  printf "      %s\n" defaultCostModelPath
+  printf "      %s\n" (last paths)
   printf "   <filename>: read and print the cost model in the given file\n"
+  printf "   %s: read and print out the cost model for the given semantics variant\n"
+             (intercalate "," semvarOptions)
   exitSuccess
 
-parseArgs :: [String] -> FilePath -> IO (ModelComponent, Maybe String)
-parseArgs args defaultCostModelPath =
+parseArgs :: [String] -> IO (ModelComponent, Maybe String)
+parseArgs args = do
+  let prefix = "cost-model/data/builtinCostModel"
+      extension = ".json"
+  paths <- mapM (\x -> getDataFileName (prefix ++ x ++ extension)) semvars
+  let parse [] result = pure result
+      parse (arg:rest) (component, input) =
+        case arg of
+          []    -> errorWithoutStackTrace "Empty argument"
+          '-':_ -> parseOption arg rest (component, input)
+          _     -> parse rest (component, Just arg)
+      parseOption arg rest (component, input)
+        | Just path <- lookup arg $ zip semvarOptions paths =
+            parse rest (component, Just path)
+        | elem arg ["-d", "--default"] =
+          parse rest (component, Just $ last paths)
+        | elem arg ["-c", "--cpu"] = parse rest (Cpu, input)
+        | elem arg ["-m", "--mem", "--memory"] = parse rest (Memory, input)
+        | elem arg ["-h", "--help"] = usage paths
+        | otherwise =
+            printf "Error: unknown option %s\n" arg >> usage paths
   parse args (Cpu, Nothing)
-    where parse [] result = pure result
-          parse (arg:rest) (component, input) =
-              case arg of
-                []    -> errorWithoutStackTrace "Empty argument"
-                '-':_ -> parseOption arg rest (component, input)
-                _     -> parse rest (component, Just arg)
-          parseOption arg rest (component, input)
-                      | elem arg ["-d", "--default"] =
-                        parse rest (component, Just defaultCostModelPath)
-                      | elem arg ["-c", "--cpu"]     = parse rest (Cpu, input)
-                      | elem arg ["-m", "--mem", "--memory"] = parse rest (Memory, input)
-                      | elem arg ["-h", "--help"] = usage defaultCostModelPath
-                      | otherwise =
-                        printf "Error: unknown option %s\n" arg >> usage defaultCostModelPath
 
 main :: IO ()
 main = do
   args <- getArgs
-  defaultCostModelPath <- getDataFileName "cost-model/data/builtinCostModel.json"
-  (component, input) <- parseArgs args defaultCostModelPath
+  (component, input) <- parseArgs args
   bytes <- case input of
              Nothing   -> BSL.getContents  -- Read from stdin
              Just file -> BSL.readFile file
@@ -241,4 +215,3 @@ main = do
        -- ^ Width for indentation, leaving at least one space after the name of each builtin.
        -- We want all the costing function to be aligned with each other.
        in mapM_ (printModel component width) l
-

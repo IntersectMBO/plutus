@@ -1,8 +1,4 @@
 let
-  !a_4 : integer = 10
-  !c_6 : integer = addInteger a_4 a_4
+  !c : integer = addInteger 10 10
 in
-let
-  !a_8 : integer = 7
-in
-addInteger (addInteger a_4 a_8) a_8
+addInteger (addInteger 10 7) 7

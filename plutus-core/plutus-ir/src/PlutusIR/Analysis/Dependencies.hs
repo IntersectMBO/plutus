@@ -17,7 +17,7 @@ module PlutusIR.Analysis.Dependencies (
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 
 import PlutusIR
 import PlutusIR.Analysis.Usages qualified as Usages

@@ -1,54 +1,78 @@
--- editorconfig-checker-disable-file
+{-# LANGUAGE BlockArguments    #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:remove-trace #-}
 
 module Plugin.NoTrace.Spec where
 
-import Test.Tasty.Extras
+import Prelude
 
-import Data.Proxy
-import Prelude qualified as H
-
-import PlutusTx
-import PlutusTx.Builtins qualified as B
-import PlutusTx.Plugin
-import PlutusTx.Prelude qualified as P
-import PlutusTx.Test
+import Plugin.NoTrace.Lib (countTraces)
+import Plugin.NoTrace.Lib qualified as Lib
+import Plugin.NoTrace.WithoutTraces qualified as WithoutTraces
+import Plugin.NoTrace.WithPreservedLogging qualified as WithPreservedLogging
+import Plugin.NoTrace.WithTraces qualified as WithTraces
+import Test.Tasty (testGroup)
+import Test.Tasty.Extras (TestNested, embed)
+import Test.Tasty.HUnit (assertBool, testCase, (@=?))
 
 noTrace :: TestNested
-noTrace = testNestedGhc "NoTrace"
-  [ goldenPir "trace" trace
-  , goldenPir "traceComplex" traceComplex
-  , goldenEvalCekLog "traceDirect" [traceDirect]
-  , goldenEvalCekLog "tracePrelude" [tracePrelude]
-  , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
-  ]
-
--- Half-stolen from Plugin.Primitives.Spec
-trace :: CompiledCode (B.BuiltinString -> ())
-trace = plc (Proxy @"trace") (\(x :: B.BuiltinString) -> B.trace x ())
-
-traceComplex :: CompiledCode (H.Bool -> ())
-traceComplex = plc (Proxy @"traceComplex") (\(b :: H.Bool) -> if b then P.trace "yes" () else P.traceError "no")
-
--- Half-stolen from TH.Spec
-traceDirect :: CompiledCode ()
-traceDirect = $$(compile [|| B.trace "test" () ||])
-
-tracePrelude :: CompiledCode H.Integer
-tracePrelude = $$(compile [|| P.trace "test" (1::H.Integer) ||])
-
-traceRepeatedly :: CompiledCode P.Integer
-traceRepeatedly = $$(compile
-  [||
-    let i1 = P.trace "Making my first int" (1::P.Integer)
-        i2 = P.trace "Making my second int" (2::P.Integer)
-        i3 = P.trace "Adding them up" (i1 P.+ i2)
-    in i3
-  ||])
+noTrace = embed do
+  testGroup "remove-trace"
+    [ testGroup "Trace calls are preserved (no-remove-trace)"
+        [ testCase "trace-argument" $
+            1 @=? countTraces WithTraces.traceArgument
+        , testCase "trace-show" $
+            1 @=? countTraces WithTraces.traceShow
+        , testCase "trace-complex" $
+            2 @=? countTraces WithTraces.traceComplex
+        , testCase "trace-direct" $
+            1 @=? countTraces WithTraces.traceDirect
+        , testCase "trace-non-constant" $
+            1 @=? countTraces WithTraces.traceNonConstant
+        , testCase "trace-repeatedly" $
+            3 @=? countTraces WithTraces.traceRepeatedly
+        , testCase "trace-impure" $
+            1 @=? countTraces WithTraces.traceImpure
+        , testCase "trace-impure with effect" $ -- See Note [Impure trace messages]
+            assertBool "Effect is missing" (Lib.evaluatesToError WithTraces.traceImpure)
+        ]
+    , testGroup "Trace calls are preserved (preserve-logging)"
+        [ testCase "trace-argument" $
+            1 @=? countTraces WithPreservedLogging.traceArgument
+        , testCase "trace-show" $
+            1 @=? countTraces WithPreservedLogging.traceShow
+        , testCase "trace-complex" $
+            2 @=? countTraces WithPreservedLogging.traceComplex
+        , testCase "trace-direct" $
+            1 @=? countTraces WithPreservedLogging.traceDirect
+        , testCase "trace-non-constant" $
+            1 @=? countTraces WithPreservedLogging.traceNonConstant
+        , testCase "trace-repeatedly" $
+            3 @=? countTraces WithPreservedLogging.traceRepeatedly
+        , testCase "trace-impure" $
+            1 @=? countTraces WithPreservedLogging.traceImpure
+        , testCase "trace-impure with effect" $ -- See Note [Impure trace messages]
+            assertBool "Effect is missing" (Lib.evaluatesToError WithPreservedLogging.traceImpure)
+        ]
+    , testGroup
+        "Trace calls are removed (remove-trace)"
+        [ testCase "trace-argument" $
+            0 @=? countTraces WithoutTraces.traceArgument
+        , testCase "trace-show" $
+            0 @=? countTraces WithoutTraces.traceShow
+        , testCase "trace-complex" $
+            0 @=? countTraces WithoutTraces.traceComplex
+        , testCase "trace-direct" $
+            0 @=? countTraces WithoutTraces.traceDirect
+        , testCase "trace-non-constant" $
+            0 @=? countTraces WithoutTraces.traceNonConstant
+        , testCase "trace-repeatedly" $
+            0 @=? countTraces WithoutTraces.traceRepeatedly
+        , testCase "trace-impure" $
+            0 @=? countTraces WithoutTraces.traceImpure
+        , testCase "trace-impure without effect" $ -- See Note [Impure trace messages]
+            assertBool "Effect wasn't erased" (Lib.evaluatesWithoutError WithoutTraces.traceImpure)
+        ]
+    ]

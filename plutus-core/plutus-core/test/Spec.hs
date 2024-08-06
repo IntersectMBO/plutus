@@ -14,6 +14,7 @@ import PlutusPrelude
 import CBOR.DataStability qualified
 import Check.Spec qualified as Check
 import CostModelInterface.Spec
+import CostModelSafety.Spec
 import Evaluation.Spec (test_evaluation)
 import Generators.QuickCheck.Utils (test_utils)
 import Names.Spec
@@ -35,7 +36,6 @@ import PlutusCore.Test
 
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
-import Data.Foldable (for_)
 import Data.Proxy
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
@@ -140,7 +140,8 @@ instance (Eq a) => Eq (TextualProgram a) where
 
 propFlat :: Property
 propFlat = property $ do
-  prog <- forAllPretty $ runAstGen (genProgram @DefaultFun)
+  prog <- forAllPretty . runAstGen $
+    discardIfAnyConstant (not . isSerialisable) $ genProgram @DefaultFun
   Hedgehog.tripping prog Flat.flat Flat.unflat
 
 {- The following tests check that (A) the parser can
@@ -159,7 +160,7 @@ testLexConstant :: Assertion
 testLexConstant =
   for_ smallConsts $ \t -> do
     let res :: Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SrcSpan)
-        res = runQuoteT $ parseTerm $ displayPlcDef t
+        res = runQuoteT $ parseTerm $ displayPlc t
     -- using `void` here to get rid of `SrcSpan`
     fmap void res @?= Right t
   where
@@ -182,7 +183,7 @@ testLexConstant =
 genConstantForTest :: AstGen (Some (ValueOf DefaultUni))
 genConstantForTest =
   Gen.frequency
-    [ (3, someValue <$> pure ())
+    [ (3, pure (someValue ()))
     , (3, someValue <$> Gen.bool)
     , -- Smallish Integers
       (5, someValue <$> Gen.integral (Range.linear (-k1) k1))
@@ -205,13 +206,12 @@ genConstantForTest =
     m = fromIntegral (maxBound :: Int) :: Integer
 
 {- | Check that printing followed by parsing is the identity function on
-  constants.  This is quite fast, so we do it 1000 times to get good coverage
-  of the various generators.
+  constants.
 -}
 propLexConstant :: Property
-propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
+propLexConstant = mapTestLimitAtLeast 200 (`div` 10) . property $ do
   term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
-  Hedgehog.tripping term displayPlcDef (fmap void . parseTm)
+  Hedgehog.tripping term displayPlc (fmap void . parseTm)
   where
     parseTm ::
       T.Text ->
@@ -223,10 +223,11 @@ text, hopefully returning the same thing.
 -}
 propParser :: Property
 propParser = property $ do
-  prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
+  prog <- TextualProgram <$>
+    forAllPretty (runAstGen $ discardIfAnyConstant (not . isSerialisable) genProgram)
   Hedgehog.tripping
     prog
-    (displayPlcDef . unTextualProgram)
+    (displayPlc . unTextualProgram)
     (\p -> fmap (TextualProgram . void) (parseProg p))
   where
     parseProg ::
@@ -242,7 +243,7 @@ asIO :: TestFunction -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . readFile
 
 errorgen :: (PrettyPlc a) => a -> BSL.ByteString
-errorgen = BSL.fromStrict . encodeUtf8 . displayPlcDef
+errorgen = BSL.fromStrict . encodeUtf8 . displayPlcSimple
 
 asGolden :: TestFunction -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
@@ -275,7 +276,7 @@ printType ::
   m T.Text
 printType txt =
   runQuoteT $
-    T.pack . show . pretty <$> do
+    render . prettyBy (prettyConfigPlcClassicSimple prettyConfigPlcOptions) <$> do
       scoped <- parseScoped txt
       config <- getDefTypeCheckConfig topSrcSpan
       inferTypeOfProgram config scoped
@@ -293,12 +294,12 @@ format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 testsGolden :: [FilePath] -> TestTree
 testsGolden =
   testGroup "golden tests"
-    . fmap (asGolden (format $ defPrettyConfigPlcClassic defPrettyConfigPlcOptions))
+    . fmap (asGolden (format (prettyConfigPlcClassicSimple prettyConfigPlcOptions)))
 
 testsRewrite :: [FilePath] -> TestTree
 testsRewrite =
   testGroup "golden rewrite tests"
-    . fmap (asGolden (format $ debugPrettyConfigPlcClassic defPrettyConfigPlcOptions))
+    . fmap (asGolden (format (prettyConfigPlcClassic prettyConfigPlcOptions)))
 
 tests :: TestTree
 tests =
@@ -311,7 +312,7 @@ tests =
   where
     fmt :: T.Text -> Either ParserErrorBundle T.Text
     fmt = format cfg
-    cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
+    cfg = prettyConfigPlcClassicSimple prettyConfigPlcOptions
 
 allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
 allTests plcFiles rwFiles typeFiles typeErrorFiles =
@@ -333,6 +334,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , test_evaluation
     , test_normalizationCheck
     , test_costModelInterface
+    , test_costModelSafety
     , CBOR.DataStability.tests
     , Check.tests
     , NEAT.tests

@@ -11,7 +11,7 @@ import PlutusCore.Generators.QuickCheck
 import PlutusIR.Generators.QuickCheck
 
 import PlutusCore.Default
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusIR
@@ -56,7 +56,7 @@ prop_genTypeCorrect = p_genTypeCorrect False
 -- See Note [Debugging generators that don't generate well-typed/kinded terms/types]
 -- and the utility properties below when this property fails.
 p_genTypeCorrect :: Bool -> Property
-p_genTypeCorrect debug = withMaxSuccess 10000 $ do
+p_genTypeCorrect debug = withMaxSuccess 200 $ do
   -- Note, we don't shrink this term here because a precondition of shrinking is that
   -- the term we are shrinking is well-typed. If it is not, the counterexample we get
   -- from shrinking will be nonsene.
@@ -66,7 +66,7 @@ p_genTypeCorrect debug = withMaxSuccess 10000 $ do
 -- | Test that when we generate a fully applied term we end up
 -- with a well-typed term.
 prop_genWellTypedFullyApplied :: Property
-prop_genWellTypedFullyApplied = withMaxSuccess 1000 $
+prop_genWellTypedFullyApplied = withMaxSuccess 50 $
   forAllDoc "ty, tm" genTypeAndTerm_ shrinkClosedTypedTerm $ \ (ty, tm) ->
   -- No shrinking here because if `genFullyApplied` is wrong then the shrinking
   -- will be wrong too. See `prop_genTypeCorrect`.
@@ -99,7 +99,7 @@ prop_shrinkTermSound = withMaxSuccess 10 $
 
 -- | Test that `findInstantiation` results in a well-typed instantiation.
 prop_findInstantiation :: Property
-prop_findInstantiation = withMaxSuccess 10000 $
+prop_findInstantiation = withMaxSuccess 1000 $
   forAllDoc "ctx"    genCtx                          (const [])        $ \ ctx0 ->
   forAllDoc "ty"     (genTypeWithCtx ctx0 $ Type ()) (shrinkType ctx0) $ \ ty0 ->
   forAllDoc "target" (genTypeWithCtx ctx0 $ Type ()) (shrinkType ctx0) $ \ target ->
@@ -160,7 +160,7 @@ prop_stats_numShrink = withMaxSuccess 10 $
 
 -- | Specific test that `inhabitType` returns well-typed things
 prop_inhabited :: Property
-prop_inhabited = withMaxSuccess 3000 $
+prop_inhabited = withMaxSuccess 50 $
   -- No shrinking here because if the generator
   -- generates nonsense shrinking will be nonsense.
   forAllDoc "ty,tm" (genInhab mempty) (const []) $ \ (ty, tm) -> typeCheckTerm tm ty

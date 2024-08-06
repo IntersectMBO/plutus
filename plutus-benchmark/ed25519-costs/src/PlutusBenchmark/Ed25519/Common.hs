@@ -5,6 +5,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE ViewPatterns        #-}
 
 {- | Check how many Ed25519 signature verifications we can perform within the
    limits specified in the protocol parameters.
@@ -20,6 +21,7 @@ import System.IO (Handle)
 import PlutusCore (DefaultFun, DefaultUni)
 import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusTx qualified as Tx
+import PlutusTx.Plugin ()
 import UntypedPlutusCore qualified as UPLC
 
 import PlutusTx.IsData (toData, unstableMakeIsData)
@@ -69,9 +71,9 @@ builtinHash :: BuiltinHashFun
 builtinHash = Tx.sha2_256
 
 -- Create a list containing n bytestrings of length l.  This could be better.
-{-# NOINLINE listOfSizedByteStrings #-}
-listOfSizedByteStrings :: Integer -> Integer -> [ByteString]
-listOfSizedByteStrings n l = unsafePerformIO . G.sample $
+{-# NOINLINE listOfByteStringsOfLength #-}
+listOfByteStringsOfLength :: Integer -> Integer -> [ByteString]
+listOfByteStringsOfLength n l = unsafePerformIO . G.sample $
                              G.list (R.singleton $ fromIntegral n)
                                   (G.bytes (R.singleton $ fromIntegral l))
 
@@ -92,7 +94,7 @@ mkInputs :: forall v msg .
 mkInputs n toMsg hash =
     Inputs $ map mkOneInput (zip seeds1 seeds2)
     where seedSize = 128
-          (seeds1, seeds2) = splitAt n $ listOfSizedByteStrings (2*n) seedSize
+          (seeds1, seeds2) = splitAt n $ listOfByteStringsOfLength (2*n) seedSize
           -- ^ Seeds for key generation. For some algorithms the seed has to be
           -- a certain minimal size and there's a SeedBytesExhausted error if
           -- it's not big enough; 128 is big enough for everything here though.

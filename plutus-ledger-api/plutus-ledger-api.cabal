@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-ledger-api
-version:         1.16.0.0
+version:         1.31.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -18,7 +18,7 @@ extra-doc-files: CHANGELOG.md
 
 source-repository head
   type:     git
-  location: https://github.com/input-output-hk/plutus
+  location: https://github.com/IntersectMBO/plutus
 
 common lang
   default-language:   Haskell2010
@@ -46,12 +46,16 @@ common lang
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     -fno-strictness
 
+common ghc-version-support
+  -- See the section on GHC versions in CONTRIBUTING
+  if (impl(ghc <9.6) || impl(ghc >=9.7))
+    buildable: False
+
 library
   import:           lang
   hs-source-dirs:   src
   default-language: Haskell2010
   exposed-modules:
-    Codec.CBOR.Extras
     PlutusLedgerApi.Common
     PlutusLedgerApi.Common.Versions
     PlutusLedgerApi.V1
@@ -60,6 +64,7 @@ library
     PlutusLedgerApi.V1.Contexts
     PlutusLedgerApi.V1.Credential
     PlutusLedgerApi.V1.Crypto
+    PlutusLedgerApi.V1.Data.Value
     PlutusLedgerApi.V1.DCert
     PlutusLedgerApi.V1.EvaluationContext
     PlutusLedgerApi.V1.Interval
@@ -77,6 +82,7 @@ library
     PlutusLedgerApi.V3.Contexts
     PlutusLedgerApi.V3.EvaluationContext
     PlutusLedgerApi.V3.ParamName
+    PlutusLedgerApi.V3.Tx
 
   other-modules:
     PlutusLedgerApi.Common.Eval
@@ -92,12 +98,11 @@ library
     , cborg
     , containers
     , deepseq
-    , flat               ^>=0.6
     , lens
     , mtl
     , nothunks
-    , plutus-core        ^>=1.16
-    , plutus-tx          ^>=1.16
+    , plutus-core        ^>=1.31
+    , plutus-tx          ^>=1.31
     , prettyprinter
     , serialise
     , tagged
@@ -112,6 +117,7 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.EvaluationEvent
     PlutusLedgerApi.Test.Examples
     PlutusLedgerApi.Test.Scripts
+    PlutusLedgerApi.Test.V1.Data.Value
     PlutusLedgerApi.Test.V1.EvaluationContext
     PlutusLedgerApi.Test.V1.Value
     PlutusLedgerApi.Test.V2.EvaluationContext
@@ -119,16 +125,15 @@ library plutus-ledger-api-testlib
 
   build-depends:
     , barbies
-    , base                                            >=4.9      && <5
+    , base                                            >=4.9   && <5
     , base16-bytestring
     , base64-bytestring
     , bytestring
     , containers
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.16
-    , plutus-ledger-api                               ^>=1.16
-    , plutus-tx                                       ^>=1.16
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.31
+    , plutus-ledger-api                               ^>=1.31
+    , plutus-tx                                       ^>=1.31
     , prettyprinter
-    , PyF                                             >=0.11.1.0
     , QuickCheck
     , serialise
     , text
@@ -138,12 +143,15 @@ test-suite plutus-ledger-api-test
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: test
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   other-modules:
     Spec.CBOR.DeserialiseFailureInfo
+    Spec.ContextDecoding
     Spec.CostModelParams
     Spec.Eval
     Spec.Interval
-    Spec.NoThunks
+    Spec.ScriptDecodeError
+    Spec.V1.Data.Value
     Spec.V1.Value
     Spec.Versions
 
@@ -157,9 +165,11 @@ test-suite plutus-ledger-api-test
     , lens
     , mtl
     , nothunks
-    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.16
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.16
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.16
+    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.31
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.31
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.31
+    , prettyprinter
+    , serialise
     , tasty
     , tasty-hedgehog
     , tasty-hunit
@@ -170,24 +180,34 @@ test-suite plutus-ledger-api-test
 -- GHC (a requirement imposed by @cardano-node@) and while its tests don't have to, we don't want to
 -- give up on all @plutus-ledger-api@ tests for older versions of GHC.
 test-suite plutus-ledger-api-plugin-test
-  import:         lang
-
-  if impl(ghc <9.0)
-    buildable: False
-
+  import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: test-plugin
-  other-modules:  Spec.Value
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  other-modules:
+    Spec.Budget
+    Spec.Data.Budget
+    Spec.Data.Value
+    Spec.ReturnUnit.V1
+    Spec.ReturnUnit.V2
+    Spec.ReturnUnit.V3
+    Spec.ScriptSize
+    Spec.Value
+
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                                                              >=4.9   && <5
+    , bytestring
     , containers
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.16
-    , plutus-ledger-api                               ^>=1.16
-    , plutus-tx                                       ^>=1.16
-    , plutus-tx-plugin                                ^>=1.16
+    , lens
+    , mtl
+    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.31
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.31
+    , plutus-tx-plugin                                                  ^>=1.31
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.31
     , prettyprinter
     , tasty
+    , tasty-hunit
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
 -- running this in CI.
@@ -203,8 +223,8 @@ executable test-onchain-evaluation
     , extra
     , filepath
     , mtl
-    , plutus-core                                                       ^>=1.16
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.16
+    , plutus-core                                                       ^>=1.31
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.31
     , serialise
     , tasty
     , tasty-hunit
@@ -223,9 +243,10 @@ executable analyse-script-events
     , filepath
     , lens
     , mtl
-    , plutus-core                                                       ^>=1.16
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.16
-    , plutus-tx                                                         ^>=1.16
+    , plutus-core                                                       ^>=1.31
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.31
+    , plutus-tx                                                         ^>=1.31
+    , primitive
     , serialise
 
   default-language: Haskell2010

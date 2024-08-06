@@ -26,16 +26,17 @@ module PlutusCore.Builtin.KnownTypeAst
     , TypeHole
     , KnownBuiltinTypeAst
     , KnownTypeAst (..)
+    , toTypeAst
     , Insert
     , Delete
     ) where
 
-import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.KnownKind
 import PlutusCore.Builtin.Polymorphism
+import PlutusCore.Builtin.Result
 import PlutusCore.Core
 import PlutusCore.Evaluation.Result
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Subst (typeMapNames)
 
 import Data.Kind qualified as GHC (Constraint, Type)
@@ -209,40 +210,47 @@ class KnownTypeAst tyname uni x where
     type ToBinds uni (acc :: [GADT.Some TyNameRep]) x :: [GADT.Some TyNameRep]
     type ToBinds uni acc x = ToBinds uni acc (ElaborateBuiltin uni x)
 
-    -- | Return the Plutus counterpart of the @x@ type.
-    toTypeAst :: proxy x -> Type tyname uni ()
-    default toTypeAst
-        :: KnownTypeAst tyname uni (ElaborateBuiltin uni x) => proxy x -> Type tyname uni ()
-    toTypeAst _ = toTypeAst (Proxy @(ElaborateBuiltin uni x))
-    {-# INLINE toTypeAst #-}
+    -- Doesn't take a @proxy@, so that newtype- and via-deriving are available.
+    -- | The Plutus counterpart of the @x@ type.
+    typeAst :: Type tyname uni ()
+    default typeAst :: KnownTypeAst tyname uni (ElaborateBuiltin uni x) => Type tyname uni ()
+    typeAst = toTypeAst $ Proxy @(ElaborateBuiltin uni x)
+    {-# INLINE typeAst #-}
 
 instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (EvaluationResult a) where
     type IsBuiltin _ (EvaluationResult a) = 'False
     type ToHoles _ (EvaluationResult a) = '[TypeHole a]
     type ToBinds uni acc (EvaluationResult a) = ToBinds uni acc a
-    toTypeAst _ = toTypeAst $ Proxy @a
-    {-# INLINE toTypeAst #-}
+    typeAst = toTypeAst $ Proxy @a
+    {-# INLINE typeAst #-}
 
-instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (Emitter a) where
-    type IsBuiltin _ (Emitter a) = 'False
-    type ToHoles _ (Emitter a) = '[TypeHole a]
-    type ToBinds uni acc (Emitter a) = ToBinds uni acc a
-    toTypeAst _ = toTypeAst $ Proxy @a
-    {-# INLINE toTypeAst #-}
+instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (BuiltinResult a) where
+    type IsBuiltin _ (BuiltinResult a) = 'False
+    type ToHoles _ (BuiltinResult a) = '[TypeHole a]
+    type ToBinds uni acc (BuiltinResult a) = ToBinds uni acc a
+    typeAst = toTypeAst $ Proxy @a
+    {-# INLINE typeAst #-}
 
 instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (SomeConstant uni rep) where
     type IsBuiltin _ (SomeConstant uni rep) = 'False
     type ToHoles _ (SomeConstant _ rep) = '[RepHole rep]
     type ToBinds uni acc (SomeConstant _ rep) = ToBinds uni acc rep
-    toTypeAst _ = toTypeAst $ Proxy @rep
-    {-# INLINE toTypeAst #-}
+    typeAst = toTypeAst $ Proxy @rep
+    {-# INLINE typeAst #-}
 
 instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (Opaque val rep) where
     type IsBuiltin _ (Opaque val rep) = 'False
     type ToHoles _ (Opaque _ rep) = '[RepHole rep]
     type ToBinds uni acc (Opaque _ rep) = ToBinds uni acc rep
-    toTypeAst _ = toTypeAst $ Proxy @rep
-    {-# INLINE toTypeAst #-}
+    typeAst = toTypeAst $ Proxy @rep
+    {-# INLINE typeAst #-}
+
+-- | Return the Plutus counterpart of the @x@ type.
+toTypeAst
+    :: forall a tyname uni (x :: a) proxy. KnownTypeAst tyname uni x
+    => proxy x -> Type tyname uni ()
+toTypeAst _ = typeAst @_ @tyname @uni @x
+{-# INLINE toTypeAst #-}
 
 toTyNameAst
     :: forall text uniq. (KnownSymbol text, KnownNat uniq)
@@ -257,32 +265,32 @@ instance uni `Contains` f => KnownTypeAst tyname uni (BuiltinHead f) where
     type IsBuiltin _ (BuiltinHead f) = 'True
     type ToHoles _ (BuiltinHead f) = '[]
     type ToBinds _ acc (BuiltinHead f) = acc
-    toTypeAst _ = TyBuiltin () $ someType @_ @f
-    {-# INLINE toTypeAst #-}
+    typeAst = TyBuiltin () $ someType @_ @f
+    {-# INLINE typeAst #-}
 
 instance (KnownTypeAst tyname uni a, KnownTypeAst tyname uni b) =>
         KnownTypeAst tyname uni (a -> b) where
     type IsBuiltin _ (a -> b) = 'False
     type ToHoles _ (a -> b) = '[TypeHole a, TypeHole b]
     type ToBinds uni acc (a -> b) = ToBinds uni (ToBinds uni acc a) b
-    toTypeAst _ = TyFun () (toTypeAst $ Proxy @a) (toTypeAst $ Proxy @b)
-    {-# INLINE toTypeAst #-}
+    typeAst = TyFun () (toTypeAst $ Proxy @a) (toTypeAst $ Proxy @b)
+    {-# INLINE typeAst #-}
 
 instance (tyname ~ TyName, name ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
             KnownTypeAst tyname uni (TyVarRep name) where
     type IsBuiltin _ (TyVarRep name) = 'False
     type ToHoles _ (TyVarRep name) = '[]
     type ToBinds _ acc (TyVarRep name) = Insert ('GADT.Some name) acc
-    toTypeAst _ = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
-    {-# INLINE toTypeAst #-}
+    typeAst = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
+    {-# INLINE typeAst #-}
 
 instance (KnownTypeAst tyname uni fun, KnownTypeAst tyname uni arg) =>
         KnownTypeAst tyname uni (TyAppRep fun arg) where
     type IsBuiltin uni (TyAppRep fun arg) = IsBuiltin uni fun && IsBuiltin uni arg
     type ToHoles _ (TyAppRep fun arg) = '[RepHole fun, RepHole arg]
     type ToBinds uni acc (TyAppRep fun arg) = ToBinds uni (ToBinds uni acc fun) arg
-    toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
-    {-# INLINE toTypeAst #-}
+    typeAst = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
+    {-# INLINE typeAst #-}
 
 instance
         ( tyname ~ TyName, name ~ 'TyNameRep @kind text uniq, KnownSymbol text, KnownNat uniq
@@ -291,12 +299,12 @@ instance
     type IsBuiltin _ (TyForallRep name a) = 'False
     type ToHoles _ (TyForallRep name a) = '[RepHole a]
     type ToBinds uni acc (TyForallRep name a) = Delete ('GADT.Some name) (ToBinds uni acc a)
-    toTypeAst _ =
+    typeAst =
         TyForall ()
             (toTyNameAst $ Proxy @('TyNameRep text uniq))
             (demoteKind $ knownKind @kind)
             (toTypeAst $ Proxy @a)
-    {-# INLINE toTypeAst #-}
+    {-# INLINE typeAst #-}
 
 -- Utils
 

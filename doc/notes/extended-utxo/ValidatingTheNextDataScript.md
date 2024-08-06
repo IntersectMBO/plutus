@@ -2,7 +2,7 @@
 
 This document is a stub.
 
-Related issues: [#426](https://github.com/input-output-hk/plutus/issues/426), [#488](https://github.com/input-output-hk/plutus/issues/488).
+Related issues: [#426](https://github.com/IntersectMBO/plutus/issues/426), [#488](https://github.com/IntersectMBO/plutus/issues/488).
 
 ## Description
 

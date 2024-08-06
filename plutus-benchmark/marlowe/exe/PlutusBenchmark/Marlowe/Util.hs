@@ -98,5 +98,3 @@ makeBuiltinData =
     . LBS.fromStrict
     . fromBuiltin
     . getLedgerBytes
-
-

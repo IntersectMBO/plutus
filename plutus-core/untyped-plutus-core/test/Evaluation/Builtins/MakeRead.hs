@@ -3,55 +3,92 @@
 {-# LANGUAGE TypeApplications  #-}
 
 module Evaluation.Builtins.MakeRead where
---     ( test_makeRead
---     ) where
+-- --     ( test_makeRead
+-- --     ) where
 
--- import PlutusCore qualified as TPLC
--- import PlutusCore.Builtin
--- import PlutusCore.Default
--- import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
--- import PlutusCore.Evaluation.Machine.Exception
--- import PlutusCore.Evaluation.Result
--- import PlutusCore.MkPlc hiding (error)
--- import PlutusCore.Pretty
--- import PlutusCore.StdLib.Data.Unit
--- import PlutusPrelude
+-- -- import PlutusCore qualified as TPLC
+-- -- import PlutusCore.Builtin
+-- -- import PlutusCore.Default
+-- -- import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
+-- -- import PlutusCore.Evaluation.Machine.Exception
+-- -- import PlutusCore.Evaluation.Result
+-- -- import PlutusCore.MkPlc hiding (error)
+-- -- import PlutusCore.Pretty
+-- -- import PlutusCore.StdLib.Data.Unit
+-- -- import PlutusPrelude
 
--- import UntypedPlutusCore as UPLC (Name, Term, TyName)
+-- -- import UntypedPlutusCore as UPLC (Name, Term, TyName)
 
--- import Evaluation.Builtins.Common
+-- -- import Evaluation.Builtins.Common
 
+-- <<<<<<< HEAD
+-- -- import Hedgehog hiding (Size, Var)
+-- -- import Hedgehog.Gen qualified as Gen
+-- -- import Hedgehog.Range qualified as Range
+-- -- import Test.Tasty
+-- -- import Test.Tasty.HUnit
+-- -- import Test.Tasty.Hedgehog
+-- =======
+-- import Data.String (fromString)
 -- import Hedgehog hiding (Size, Var)
 -- import Hedgehog.Gen qualified as Gen
 -- import Hedgehog.Range qualified as Range
 -- import Test.Tasty
--- import Test.Tasty.HUnit
 -- import Test.Tasty.Hedgehog
+-- >>>>>>> 51a9f163c981efdaf82b6dfcf1244b44ccf581dc
 
--- import Data.Text (Text)
+-- -- import Data.Text (Text)
 
--- -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
--- -- of a different type.
--- readMakeHetero
---     :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
---        , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) b
---        )
---     => a -> EvaluationResult b
--- readMakeHetero x = do
---     xTerm <- makeKnownOrFail @_ @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
---     case extractEvaluationResult <$> typecheckReadKnownCek def TPLC.defaultBuiltinCostModel xTerm of
---         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
---         Right (Left err)  -> error $ "Evaluation error: " ++ show err
---         Right (Right res) -> res
+-- <<<<<<< HEAD
+-- -- -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
+-- -- -- of a different type.
+-- -- readMakeHetero
+-- --     :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+-- --        , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) b
+-- --        )
+-- --     => a -> EvaluationResult b
+-- -- readMakeHetero x = do
+-- --     xTerm <- makeKnownOrFail @_ @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
+-- --     case extractEvaluationResult <$> typecheckReadKnownCek def TPLC.defaultBuiltinCostModel xTerm of
+-- --         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
+-- --         Right (Left err)  -> error $ "Evaluation error: " ++ show err
+-- --         Right (Right res) -> res
 
--- -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
--- -- of the same type.
--- readMake
+-- -- -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
+-- -- -- of the same type.
+-- -- readMake
+-- --     :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+-- --        , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) a
+-- --        )
+-- --     => a -> EvaluationResult a
+-- -- readMake = readMakeHetero
+
+-- -- builtinRoundtrip
+-- --     :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+-- --        , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) a
+-- --        , Show a, Eq a
+-- --        )
+-- --     => Gen a -> Property
+-- -- builtinRoundtrip genX = property $ do
+-- --     x <- forAll genX
+-- --     case readMake x of
+-- --         EvaluationFailure    -> fail "EvaluationFailure"
+-- --         EvaluationSuccess x' -> x === x'
+-- =======
+-- -- | Lift a Haskell value into a PLC term, evaluate it and unlift the result back to the original
+-- -- Haskell value.
+-- makeRead
 --     :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
 --        , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) a
 --        )
 --     => a -> EvaluationResult a
--- readMake = readMakeHetero
+-- makeRead x = do
+--   xTerm <- makeKnownOrFail @_ @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
+--   case extractEvaluationResult <$> typecheckReadKnownCek def
+--     TPLC.defaultBuiltinCostModelForTesting xTerm of
+--       Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
+--       Right (Left err)  -> error $ "Evaluation error: " ++ show err
+--       Right (Right res) -> res
 
 -- builtinRoundtrip
 --     :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
@@ -61,50 +98,80 @@ module Evaluation.Builtins.MakeRead where
 --     => Gen a -> Property
 -- builtinRoundtrip genX = property $ do
 --     x <- forAll genX
---     case readMake x of
+--     case makeRead x of
 --         EvaluationFailure    -> fail "EvaluationFailure"
 --         EvaluationSuccess x' -> x === x'
+-- >>>>>>> 51a9f163c981efdaf82b6dfcf1244b44ccf581dc
 
--- test_textRoundtrip :: TestTree
--- test_textRoundtrip =
---     testPropertyNamed "textRoundtrip" "textRoundtrip" . builtinRoundtrip $
---         Gen.text (Range.linear 0 20) Gen.unicode
+-- -- test_textRoundtrip :: TestTree
+-- -- test_textRoundtrip =
+-- --     testPropertyNamed "textRoundtrip" "textRoundtrip" . builtinRoundtrip $
+-- --         Gen.text (Range.linear 0 20) Gen.unicode
 
--- -- | Generate a bunch of 'text's, put each of them into a 'Term', apply a builtin over
--- -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
--- -- the contents of an external 'IORef' and assemble all the resulting terms together in a single
--- -- term where all characters are passed to lambdas and ignored, so that only 'unitval' is returned
--- -- in the end.
--- -- After evaluation of the CEK machine finishes, read the 'IORef' and check that you got the exact
--- -- same sequence of 'text's that was originally generated.
--- -- Calls 'unsafePerformIO' internally while evaluating the term, because the CEK machine can only
--- -- handle pure things and 'unsafePerformIO' is the way to pretend an effectful thing is pure.
--- test_collectText :: TestTree
--- test_collectText = testPropertyNamed "collectText" "collectText" . property $ do
+-- <<<<<<< HEAD
+-- -- -- | Generate a bunch of 'text's, put each of them into a 'Term', apply a builtin over
+-- -- -- each of these terms such that being evaluated it calls a Haskell function that appends a char to
+-- -- -- the contents of an external 'IORef' and assemble all the resulting terms together in a single
+-- -- -- term where all characters are passed to lambdas and ignored, so that only 'unitval' is returned
+-- -- -- in the end.
+-- -- -- After evaluation of the CEK machine finishes, read the 'IORef' and check that you got the exact
+-- -- -- same sequence of 'text's that was originally generated.
+-- -- -- Calls 'unsafePerformIO' internally while evaluating the term, because the CEK machine can only
+-- -- -- handle pure things and 'unsafePerformIO' is the way to pretend an effectful thing is pure.
+-- -- test_collectText :: TestTree
+-- -- test_collectText = testPropertyNamed "collectText" "collectText" . property $ do
+-- --     strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.text (Range.linear 0 20) Gen.unicode
+-- --     let step arg rest = mkIterApp () (tyInst () (builtin () Trace) unit)
+-- --             [ mkConstant @Text @DefaultUni () arg
+-- --             , rest
+-- --             ]
+-- --         term = foldr step unitval (reverse strs)
+-- --     strs' <- case typecheckEvaluateCek def TPLC.defaultBuiltinCostModel term of
+-- --         Left _                             -> failure
+-- --         Right (EvaluationFailure, _)       -> failure
+-- --         Right (EvaluationSuccess _, strs') -> return strs'
+-- --     strs === strs'
+
+-- -- test_noticeEvaluationFailure :: TestTree
+-- -- test_noticeEvaluationFailure =
+-- --     testCase "noticeEvaluationFailure" . assertBool "'EvaluationFailure' ignored" $
+-- --         isEvaluationFailure $ do
+-- --             _ <- readMake True
+-- --             _ <- readMakeHetero @(EvaluationResult ()) @() EvaluationFailure
+-- --             readMake ("a"::Text)
+
+-- -- test_makeRead :: TestTree
+-- -- test_makeRead =
+-- --     testGroup "makeRead"
+-- --         [ test_textRoundtrip
+-- --         , test_collectText
+-- --         , test_noticeEvaluationFailure
+-- --         ]
+-- =======
+-- -- | Generate a bunch of 'text's, put each of them into a 'Term' and apply the @Trace@ builtin over
+-- -- each of these terms and assemble all the resulting terms together in a single term where all
+-- -- characters are passed to lambdas and ignored, so that only 'unitval' is returned in the end.
+-- --
+-- -- After evaluation of the CEK machine finishes, check that the logs contains the exact same
+-- -- sequence of 'text's that was originally generated.
+-- test_collectText :: BuiltinSemanticsVariant DefaultFun -> TestTree
+-- test_collectText semVar = testPropertyNamed (show semVar) (fromString $ show semVar) . property $ do
 --     strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.text (Range.linear 0 20) Gen.unicode
---     let step arg rest = mkIterApp () (tyInst () (builtin () Trace) unit)
+--     let step arg rest = mkIterAppNoAnn (tyInst () (builtin () Trace) unit)
 --             [ mkConstant @Text @DefaultUni () arg
 --             , rest
 --             ]
 --         term = foldr step unitval (reverse strs)
---     strs' <- case typecheckEvaluateCek def TPLC.defaultBuiltinCostModel term of
+--     strs' <- case typecheckEvaluateCek semVar TPLC.defaultBuiltinCostModelForTesting term of
 --         Left _                             -> failure
 --         Right (EvaluationFailure, _)       -> failure
 --         Right (EvaluationSuccess _, strs') -> return strs'
 --     strs === strs'
 
--- test_noticeEvaluationFailure :: TestTree
--- test_noticeEvaluationFailure =
---     testCase "noticeEvaluationFailure" . assertBool "'EvaluationFailure' ignored" $
---         isEvaluationFailure $ do
---             _ <- readMake True
---             _ <- readMakeHetero @(EvaluationResult ()) @() EvaluationFailure
---             readMake ("a"::Text)
-
 -- test_makeRead :: TestTree
 -- test_makeRead =
 --     testGroup "makeRead"
 --         [ test_textRoundtrip
---         , test_collectText
---         , test_noticeEvaluationFailure
+--         , testGroup "collectText" $ map test_collectText enumerate
 --         ]
+-- >>>>>>> 51a9f163c981efdaf82b6dfcf1244b44ccf581dc

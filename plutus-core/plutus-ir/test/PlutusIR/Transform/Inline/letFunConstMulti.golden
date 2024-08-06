@@ -1,9 +1,4 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl constFun (fun (con integer) (fun (con integer) (con integer))))
-    (lam x (con integer) (lam y (con integer) x))
-  )
-  (lam y (con integer) (con integer 3))
-)
+let
+  !constFun : integer -> integer -> integer = \(x : integer) (y : integer) -> x
+in
+\(y : integer) -> 3

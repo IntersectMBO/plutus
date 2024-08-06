@@ -18,7 +18,7 @@ module PlutusTx.Compiler.Builtins (
     , lookupBuiltinType
     , errorFunc) where
 
-import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Builtins.HasOpaque qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as Builtins
 
 import PlutusTx.Compiler.Error
@@ -46,12 +46,13 @@ import GHC.Types.TyThing qualified as GHC
 
 import Language.Haskell.TH.Syntax qualified as TH
 
-import Control.Monad.Reader (ask, asks)
+import Control.Monad.Reader (asks)
 
 import Data.ByteString qualified as BS
 import Data.Functor
 import Data.Proxy
 import Data.Text (Text)
+import PlutusPrelude (enumerate, for_)
 
 {- Note [Mapping builtins]
 We want the user to be able to call the Plutus builtins as normal Haskell functions.
@@ -94,7 +95,7 @@ That is, we generate something like this:
 
 We handle this in two different ways:
 - For the types like Bool and Unit which are really algebraic types, and which have constructors etc.
-that we care about elsewhere, we insert adaptor code into the definition of the builtin (see note [Mapping builtins]).
+that we care about elsewhere, we insert adaptor code into the definition of the builtin (see Note [Mapping builtins]).
 - For types like Integer and Bytestring which don't have visible constructors, we can treat them as completely opaque,
 and we use a transparent type alias. (Actually we fake the alias by actually just substituting the definition in
 everywhere until we have aliases in PIR. Bear this in mind for the examples below.)
@@ -182,6 +183,7 @@ builtinNames = [
 
     , 'Builtins.verifyEd25519Signature
 
+    , ''Builtins.BuiltinInteger
     , ''Integer
     , 'Builtins.addInteger
     , 'Builtins.subtractInteger
@@ -201,6 +203,8 @@ builtinNames = [
     , 'Builtins.emptyString
     , 'Builtins.equalsString
     , 'Builtins.encodeUtf8
+    , 'Builtins.integerToByteString
+    , 'Builtins.byteStringToInteger
     -- This one is special
     , 'Builtins.stringToBuiltinString
 
@@ -254,8 +258,8 @@ builtinNames = [
     , 'Builtins.bls12_381_G1_compress
     , 'Builtins.bls12_381_G1_uncompress
     , 'Builtins.bls12_381_G1_hashToGroup
-    , 'Builtins.bls12_381_G1_zero
-    , 'Builtins.bls12_381_G1_generator
+    , 'Builtins.bls12_381_G1_compressed_zero
+    , 'Builtins.bls12_381_G1_compressed_generator
 
     , ''Builtins.BuiltinBLS12_381_G2_Element
     , 'Builtins.bls12_381_G2_equals
@@ -265,13 +269,29 @@ builtinNames = [
     , 'Builtins.bls12_381_G2_compress
     , 'Builtins.bls12_381_G2_uncompress
     , 'Builtins.bls12_381_G2_hashToGroup
-    , 'Builtins.bls12_381_G2_zero
-    , 'Builtins.bls12_381_G2_generator
+    , 'Builtins.bls12_381_G2_compressed_zero
+    , 'Builtins.bls12_381_G2_compressed_generator
 
     , ''Builtins.BuiltinBLS12_381_MlResult
     , 'Builtins.bls12_381_millerLoop
     , 'Builtins.bls12_381_mulMlResult
     , 'Builtins.bls12_381_finalVerify
+
+    , 'Builtins.integerToByteString
+    , 'Builtins.byteStringToInteger
+
+    , 'Builtins.andByteString
+    , 'Builtins.orByteString
+    , 'Builtins.xorByteString
+    , 'Builtins.complementByteString
+    , 'Builtins.readBit
+    , 'Builtins.writeBits
+    , 'Builtins.replicateByte
+
+    , 'Builtins.shiftByteString
+    , 'Builtins.rotateByteString
+    , 'Builtins.countSetBits
+    , 'Builtins.findFirstSetBit
     ]
 
 defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -296,139 +316,154 @@ defineBuiltinType name ty = do
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: CompilingDefault uni fun m ann => m ()
 defineBuiltinTerms = do
-    CompileContext {ccOpts=compileOpts} <- ask
-
-    -- See Note [Builtin terms and values]
-    -- Bool
-    defineBuiltinTerm annMayInline 'Builtins.ifThenElse $ mkBuiltin PLC.IfThenElse
-    defineBuiltinTerm annMayInline 'Builtins.true       $ PIR.mkConstant annMayInline True
-    defineBuiltinTerm annMayInline 'Builtins.false      $ PIR.mkConstant annMayInline False
-
-    defineBuiltinTerm annMayInline 'Builtins.unitval    $ PIR.mkConstant annMayInline ()
-    defineBuiltinTerm annMayInline 'Builtins.chooseUnit $ mkBuiltin PLC.ChooseUnit
-
-    -- Bytestring builtins
-    defineBuiltinTerm annMayInline 'Builtins.appendByteString                $ mkBuiltin PLC.AppendByteString
-    defineBuiltinTerm annMayInline 'Builtins.consByteString                  $ mkBuiltin PLC.ConsByteString
-    defineBuiltinTerm annMayInline 'Builtins.sliceByteString                 $ mkBuiltin PLC.SliceByteString
-    defineBuiltinTerm annMayInline 'Builtins.lengthOfByteString              $ mkBuiltin PLC.LengthOfByteString
-    defineBuiltinTerm annMayInline 'Builtins.indexByteString                 $ mkBuiltin PLC.IndexByteString
-    defineBuiltinTerm annMayInline 'Builtins.sha2_256                        $ mkBuiltin PLC.Sha2_256
-    defineBuiltinTerm annMayInline 'Builtins.sha3_256                        $ mkBuiltin PLC.Sha3_256
-    defineBuiltinTerm annMayInline 'Builtins.blake2b_224                     $ mkBuiltin PLC.Blake2b_224
-    defineBuiltinTerm annMayInline 'Builtins.blake2b_256                     $ mkBuiltin PLC.Blake2b_256
-    defineBuiltinTerm annMayInline 'Builtins.keccak_256                      $ mkBuiltin PLC.Keccak_256
-    defineBuiltinTerm annMayInline 'Builtins.equalsByteString                $ mkBuiltin PLC.EqualsByteString
-    defineBuiltinTerm annMayInline 'Builtins.lessThanByteString              $ mkBuiltin PLC.LessThanByteString
-    defineBuiltinTerm annMayInline 'Builtins.lessThanEqualsByteString        $ mkBuiltin PLC.LessThanEqualsByteString
-    defineBuiltinTerm annMayInline 'Builtins.emptyByteString                 $ PIR.mkConstant annMayInline BS.empty
-    defineBuiltinTerm annMayInline 'Builtins.decodeUtf8                      $ mkBuiltin PLC.DecodeUtf8
-    defineBuiltinTerm annMayInline 'Builtins.verifyEcdsaSecp256k1Signature   $ mkBuiltin PLC.VerifyEcdsaSecp256k1Signature
-    defineBuiltinTerm annMayInline 'Builtins.verifySchnorrSecp256k1Signature $ mkBuiltin PLC.VerifySchnorrSecp256k1Signature
-
-    -- Crypto
-    defineBuiltinTerm annMayInline 'Builtins.verifyEd25519Signature $ mkBuiltin PLC.VerifyEd25519Signature
-
-    -- Integer builtins
-    defineBuiltinTerm annMayInline 'Builtins.addInteger             $ mkBuiltin PLC.AddInteger
-    defineBuiltinTerm annMayInline 'Builtins.subtractInteger        $ mkBuiltin PLC.SubtractInteger
-    defineBuiltinTerm annMayInline 'Builtins.multiplyInteger        $ mkBuiltin PLC.MultiplyInteger
-    defineBuiltinTerm annMayInline 'Builtins.divideInteger          $ mkBuiltin PLC.DivideInteger
-    defineBuiltinTerm annMayInline 'Builtins.modInteger             $ mkBuiltin PLC.ModInteger
-    defineBuiltinTerm annMayInline 'Builtins.quotientInteger        $ mkBuiltin PLC.QuotientInteger
-    defineBuiltinTerm annMayInline 'Builtins.remainderInteger       $ mkBuiltin PLC.RemainderInteger
-    defineBuiltinTerm annMayInline 'Builtins.lessThanInteger        $ mkBuiltin PLC.LessThanInteger
-    defineBuiltinTerm annMayInline 'Builtins.lessThanEqualsInteger  $ mkBuiltin PLC.LessThanEqualsInteger
-    defineBuiltinTerm annMayInline 'Builtins.equalsInteger          $ mkBuiltin PLC.EqualsInteger
-
     -- Error
     -- See Note [Delaying error]
     func <- delayedErrorFunc
     -- We always want to inline `error :: forall a . () -> a`, hence `annAlwaysInline`.
     defineBuiltinTerm annAlwaysInline 'Builtins.error func
 
-    -- Strings and chars
-    defineBuiltinTerm annMayInline 'Builtins.appendString $ mkBuiltin PLC.AppendString
-    defineBuiltinTerm annMayInline 'Builtins.emptyString  $ PIR.mkConstant annMayInline ("" :: Text)
-    defineBuiltinTerm annMayInline 'Builtins.equalsString $ mkBuiltin PLC.EqualsString
-    defineBuiltinTerm annMayInline 'Builtins.encodeUtf8   $ mkBuiltin PLC.EncodeUtf8
+    -- Unit constant
+    defineBuiltinTerm annMayInline 'Builtins.unitval $ PIR.mkConstant annMayInline ()
 
-    -- Tracing
-    -- When `remove-trace` is specified, we define `trace` as `\_ a -> a` instead of the builtin version.
-    (traceTerm, ann) <-
-        if coRemoveTrace compileOpts
-            then liftQuote $ do
-                ta <- freshTyName "a"
-                t <- freshName "t"
-                a <- freshName "a"
-                pure
-                    ( PIR.tyAbs annMayInline ta (PLC.Type annMayInline) $
-                        PIR.mkIterLamAbs
-                            [ PIR.VarDecl annMayInline t (PIR.mkTyBuiltin @_ @Text annMayInline)
-                            , PIR.VarDecl annMayInline a (PLC.TyVar annMayInline ta)
-                            ]
-                            $ PIR.Var annMayInline a
-                    , annMayInline
-                    )
-            else pure (mkBuiltin PLC.Trace, annMayInline)
-    defineBuiltinTerm ann 'Builtins.trace traceTerm
+    -- Bool constants
+    defineBuiltinTerm annMayInline 'Builtins.true  $ PIR.mkConstant annMayInline True
+    defineBuiltinTerm annMayInline 'Builtins.false $ PIR.mkConstant annMayInline False
 
-    -- Pairs
-    defineBuiltinTerm annMayInline 'Builtins.fst        $ mkBuiltin PLC.FstPair
-    defineBuiltinTerm annMayInline 'Builtins.snd        $ mkBuiltin PLC.SndPair
-    defineBuiltinTerm annMayInline 'Builtins.mkPairData $ mkBuiltin PLC.MkPairData
+    -- ByteString constant
+    defineBuiltinTerm annMayInline 'Builtins.emptyByteString $ PIR.mkConstant annMayInline BS.empty
 
-    -- List
-    defineBuiltinTerm annMayInline 'Builtins.null          $ mkBuiltin PLC.NullList
-    defineBuiltinTerm annMayInline 'Builtins.head          $ mkBuiltin PLC.HeadList
-    defineBuiltinTerm annMayInline 'Builtins.tail          $ mkBuiltin PLC.TailList
-    defineBuiltinTerm annMayInline 'Builtins.chooseList    $ mkBuiltin PLC.ChooseList
-    defineBuiltinTerm annMayInline 'Builtins.matchList     $ mkBuiltin PLC.CaseList
-    defineBuiltinTerm annMayInline 'Builtins.mkNilData     $ mkBuiltin PLC.MkNilData
-    defineBuiltinTerm annMayInline 'Builtins.mkNilPairData $ mkBuiltin PLC.MkNilPairData
-    defineBuiltinTerm annMayInline 'Builtins.mkCons        $ mkBuiltin PLC.MkCons
+    -- Text constant
+    defineBuiltinTerm annMayInline 'Builtins.emptyString $ PIR.mkConstant annMayInline ("" :: Text)
 
-    -- Data
-    defineBuiltinTerm annMayInline 'Builtins.chooseData         $ mkBuiltin PLC.ChooseData
-    defineBuiltinTerm annMayInline 'Builtins.matchData'         $ mkBuiltin PLC.CaseData
-    defineBuiltinTerm annMayInline 'Builtins.equalsData         $ mkBuiltin PLC.EqualsData
-    defineBuiltinTerm annMayInline 'Builtins.mkConstr           $ mkBuiltin PLC.ConstrData
-    defineBuiltinTerm annMayInline 'Builtins.mkMap              $ mkBuiltin PLC.MapData
-    defineBuiltinTerm annMayInline 'Builtins.mkList             $ mkBuiltin PLC.ListData
-    defineBuiltinTerm annMayInline 'Builtins.mkI                $ mkBuiltin PLC.IData
-    defineBuiltinTerm annMayInline 'Builtins.mkB                $ mkBuiltin PLC.BData
-    defineBuiltinTerm annMayInline 'Builtins.unsafeDataAsConstr $ mkBuiltin PLC.UnConstrData
-    defineBuiltinTerm annMayInline 'Builtins.unsafeDataAsMap    $ mkBuiltin PLC.UnMapData
-    defineBuiltinTerm annMayInline 'Builtins.unsafeDataAsList   $ mkBuiltin PLC.UnListData
-    defineBuiltinTerm annMayInline 'Builtins.unsafeDataAsB      $ mkBuiltin PLC.UnBData
-    defineBuiltinTerm annMayInline 'Builtins.unsafeDataAsI      $ mkBuiltin PLC.UnIData
-    defineBuiltinTerm annMayInline 'Builtins.serialiseData      $ mkBuiltin PLC.SerialiseData
+    -- The next two constants are 48 bytes long, so in fact we may not want to inline them.
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_compressed_generator $
+        PIR.mkConstant annMayInline BLS12_381.G1.compressed_generator
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_compressed_zero $
+        PIR.mkConstant annMayInline BLS12_381.G1.compressed_zero
 
-    -- BLS
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_equals      $ mkBuiltin PLC.Bls12_381_G1_equal
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_add         $ mkBuiltin PLC.Bls12_381_G1_add
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_neg         $ mkBuiltin PLC.Bls12_381_G1_neg
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_scalarMul   $ mkBuiltin PLC.Bls12_381_G1_scalarMul
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_compress    $ mkBuiltin PLC.Bls12_381_G1_compress
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_uncompress  $ mkBuiltin PLC.Bls12_381_G1_uncompress
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_hashToGroup $ mkBuiltin PLC.Bls12_381_G1_hashToGroup
-    -- The next two constants are both 48 bytes long, so in fact we probably don't want to inline them.
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_zero        $ PIR.mkConstant annMayInline BLS12_381.G1.zero
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_generator   $ PIR.mkConstant annMayInline BLS12_381.G1.generator
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_equals      $ mkBuiltin PLC.Bls12_381_G2_equal
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_add         $ mkBuiltin PLC.Bls12_381_G2_add
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_scalarMul   $ mkBuiltin PLC.Bls12_381_G2_scalarMul
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_neg         $ mkBuiltin PLC.Bls12_381_G2_neg
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_compress    $ mkBuiltin PLC.Bls12_381_G2_compress
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_uncompress  $ mkBuiltin PLC.Bls12_381_G2_uncompress
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_hashToGroup $ mkBuiltin PLC.Bls12_381_G2_hashToGroup
-    -- The next two constants are both 96 bytes long, so in fact we probably don't want to inline them.
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_zero        $ PIR.mkConstant annMayInline BLS12_381.G2.zero
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_generator   $ PIR.mkConstant annMayInline BLS12_381.G2.generator
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_millerLoop     $ mkBuiltin PLC.Bls12_381_millerLoop
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_mulMlResult    $ mkBuiltin PLC.Bls12_381_mulMlResult
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_finalVerify    $ mkBuiltin PLC.Bls12_381_finalVerify
+    -- The next two constants are 96 bytes long, so in fact we may not want to inline them.
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_compressed_generator $
+        PIR.mkConstant annMayInline BLS12_381.G2.compressed_generator
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_compressed_zero $
+        PIR.mkConstant annMayInline BLS12_381.G2.compressed_zero
 
+    -- See Note [Builtin terms and values]
+    for_ enumerate $ \fun ->
+        let defineBuiltinInl impl = defineBuiltinTerm annMayInline impl $ mkBuiltin fun
+        in case fun of
+            PLC.IfThenElse -> defineBuiltinInl 'Builtins.ifThenElse
+            PLC.ChooseUnit -> defineBuiltinInl 'Builtins.chooseUnit
+
+            -- Bytestrings
+            PLC.AppendByteString -> defineBuiltinInl 'Builtins.appendByteString
+            PLC.ConsByteString -> defineBuiltinInl 'Builtins.consByteString
+            PLC.SliceByteString -> defineBuiltinInl 'Builtins.sliceByteString
+            PLC.LengthOfByteString -> defineBuiltinInl 'Builtins.lengthOfByteString
+            PLC.IndexByteString -> defineBuiltinInl 'Builtins.indexByteString
+            PLC.Sha2_256 -> defineBuiltinInl 'Builtins.sha2_256
+            PLC.Sha3_256 -> defineBuiltinInl 'Builtins.sha3_256
+            PLC.Blake2b_224 -> defineBuiltinInl 'Builtins.blake2b_224
+            PLC.Blake2b_256 -> defineBuiltinInl 'Builtins.blake2b_256
+            PLC.Keccak_256 -> defineBuiltinInl 'Builtins.keccak_256
+            PLC.EqualsByteString -> defineBuiltinInl 'Builtins.equalsByteString
+            PLC.LessThanByteString -> defineBuiltinInl 'Builtins.lessThanByteString
+            PLC.LessThanEqualsByteString -> defineBuiltinInl 'Builtins.lessThanEqualsByteString
+            PLC.DecodeUtf8 -> defineBuiltinInl 'Builtins.decodeUtf8
+
+            -- Strings and chars
+            PLC.AppendString -> defineBuiltinInl 'Builtins.appendString
+            PLC.EqualsString -> defineBuiltinInl 'Builtins.equalsString
+            PLC.EncodeUtf8 -> defineBuiltinInl 'Builtins.encodeUtf8
+
+            -- Crypto
+            PLC.VerifyEd25519Signature -> defineBuiltinInl 'Builtins.verifyEd25519Signature
+            PLC.VerifyEcdsaSecp256k1Signature -> defineBuiltinInl 'Builtins.verifyEcdsaSecp256k1Signature
+            PLC.VerifySchnorrSecp256k1Signature -> defineBuiltinInl 'Builtins.verifySchnorrSecp256k1Signature
+
+            -- Integers
+            PLC.AddInteger -> defineBuiltinInl 'Builtins.addInteger
+            PLC.SubtractInteger -> defineBuiltinInl 'Builtins.subtractInteger
+            PLC.MultiplyInteger -> defineBuiltinInl 'Builtins.multiplyInteger
+            PLC.DivideInteger -> defineBuiltinInl 'Builtins.divideInteger
+            PLC.ModInteger -> defineBuiltinInl 'Builtins.modInteger
+            PLC.QuotientInteger -> defineBuiltinInl 'Builtins.quotientInteger
+            PLC.RemainderInteger -> defineBuiltinInl 'Builtins.remainderInteger
+            PLC.LessThanInteger -> defineBuiltinInl 'Builtins.lessThanInteger
+            PLC.LessThanEqualsInteger -> defineBuiltinInl 'Builtins.lessThanEqualsInteger
+            PLC.EqualsInteger -> defineBuiltinInl 'Builtins.equalsInteger
+
+            -- Tracing
+            PLC.Trace -> defineBuiltinInl 'Builtins.trace
+
+            -- Pairs
+            PLC.FstPair -> defineBuiltinInl 'Builtins.fst
+            PLC.SndPair -> defineBuiltinInl 'Builtins.snd
+            PLC.MkPairData -> defineBuiltinInl 'Builtins.mkPairData
+
+            -- List
+            PLC.NullList -> defineBuiltinInl 'Builtins.null
+            PLC.HeadList -> defineBuiltinInl 'Builtins.head
+            PLC.TailList -> defineBuiltinInl 'Builtins.tail
+            PLC.ChooseList -> defineBuiltinInl 'Builtins.chooseList
+            PLC.MatchList -> defineBuiltinInl 'Builtins.chooseList
+            PLC.MkNilData -> defineBuiltinInl 'Builtins.mkNilData
+            PLC.MkNilPairData -> defineBuiltinInl 'Builtins.mkNilPairData
+            PLC.MkCons -> defineBuiltinInl 'Builtins.mkCons
+
+            -- Data
+            PLC.ChooseData -> defineBuiltinInl 'Builtins.chooseData
+            PLC.EqualsData -> defineBuiltinInl 'Builtins.equalsData
+            PLC.ConstrData -> defineBuiltinInl 'Builtins.mkConstr
+            PLC.MapData -> defineBuiltinInl 'Builtins.mkMap
+            PLC.ListData -> defineBuiltinInl 'Builtins.mkList
+            PLC.IData -> defineBuiltinInl 'Builtins.mkI
+            PLC.BData -> defineBuiltinInl 'Builtins.mkB
+            PLC.UnConstrData -> defineBuiltinInl 'Builtins.unsafeDataAsConstr
+            PLC.UnMapData -> defineBuiltinInl 'Builtins.unsafeDataAsMap
+            PLC.UnListData -> defineBuiltinInl 'Builtins.unsafeDataAsList
+            PLC.UnBData -> defineBuiltinInl 'Builtins.unsafeDataAsB
+            PLC.UnIData -> defineBuiltinInl 'Builtins.unsafeDataAsI
+            PLC.SerialiseData -> defineBuiltinInl 'Builtins.serialiseData
+
+            -- BLS
+            PLC.Bls12_381_G1_equal -> defineBuiltinInl 'Builtins.bls12_381_G1_equals
+            PLC.Bls12_381_G1_add -> defineBuiltinInl 'Builtins.bls12_381_G1_add
+            PLC.Bls12_381_G1_neg -> defineBuiltinInl 'Builtins.bls12_381_G1_neg
+            PLC.Bls12_381_G1_scalarMul -> defineBuiltinInl 'Builtins.bls12_381_G1_scalarMul
+            PLC.Bls12_381_G1_compress -> defineBuiltinInl 'Builtins.bls12_381_G1_compress
+            PLC.Bls12_381_G1_uncompress -> defineBuiltinInl 'Builtins.bls12_381_G1_uncompress
+            PLC.Bls12_381_G1_hashToGroup -> defineBuiltinInl 'Builtins.bls12_381_G1_hashToGroup
+
+            PLC.Bls12_381_G2_equal -> defineBuiltinInl 'Builtins.bls12_381_G2_equals
+            PLC.Bls12_381_G2_add -> defineBuiltinInl 'Builtins.bls12_381_G2_add
+            PLC.Bls12_381_G2_scalarMul -> defineBuiltinInl 'Builtins.bls12_381_G2_scalarMul
+            PLC.Bls12_381_G2_neg -> defineBuiltinInl 'Builtins.bls12_381_G2_neg
+            PLC.Bls12_381_G2_compress -> defineBuiltinInl 'Builtins.bls12_381_G2_compress
+            PLC.Bls12_381_G2_uncompress -> defineBuiltinInl 'Builtins.bls12_381_G2_uncompress
+            PLC.Bls12_381_G2_hashToGroup -> defineBuiltinInl 'Builtins.bls12_381_G2_hashToGroup
+
+            PLC.Bls12_381_millerLoop -> defineBuiltinInl 'Builtins.bls12_381_millerLoop
+            PLC.Bls12_381_mulMlResult -> defineBuiltinInl 'Builtins.bls12_381_mulMlResult
+            PLC.Bls12_381_finalVerify -> defineBuiltinInl 'Builtins.bls12_381_finalVerify
+
+            -- Bitwise operations
+            PLC.IntegerToByteString -> defineBuiltinInl 'Builtins.integerToByteString
+            PLC.ByteStringToInteger -> defineBuiltinInl 'Builtins.byteStringToInteger
+
+            -- Logical operations
+            PLC.AndByteString -> defineBuiltinInl 'Builtins.andByteString
+            PLC.OrByteString -> defineBuiltinInl 'Builtins.orByteString
+            PLC.XorByteString -> defineBuiltinInl 'Builtins.xorByteString
+            PLC.ComplementByteString -> defineBuiltinInl 'Builtins.complementByteString
+            PLC.ReadBit -> defineBuiltinInl 'Builtins.readBit
+            PLC.WriteBits -> defineBuiltinInl 'Builtins.writeBits
+            PLC.ReplicateByte -> defineBuiltinInl 'Builtins.replicateByte
+
+            -- Other bitwise ops
+            PLC.ShiftByteString -> defineBuiltinInl 'Builtins.shiftByteString
+            PLC.RotateByteString -> defineBuiltinInl 'Builtins.rotateByteString
+            PLC.CountSetBits -> defineBuiltinInl 'Builtins.countSetBits
+            PLC.FindFirstSetBit -> defineBuiltinInl 'Builtins.findFirstSetBit
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m ann

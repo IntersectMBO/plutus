@@ -1,6 +1,9 @@
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE DerivingVia     #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module PlutusLedgerApi.Common.SerialisedScript (
   SerialisedScript,
@@ -29,8 +32,8 @@ import UntypedPlutusCore qualified as UPLC
 import PlutusCore.DeBruijn.Internal (FakeNamedDeBruijn (FakeNamedDeBruijn))
 
 import Codec.CBOR.Decoding qualified as CBOR
-import Codec.CBOR.Extras as CBOR.Extras
 import Codec.CBOR.Read qualified as CBOR
+import Codec.Extras.SerialiseViaFlat as CBOR.Extras
 import Codec.Serialise
 import Control.Arrow ((>>>))
 import Control.DeepSeq (NFData)
@@ -39,7 +42,7 @@ import Control.Lens
 import Control.Monad (unless, when)
 import Control.Monad.Error.Lens
 import Control.Monad.Except (MonadError)
-import Data.ByteString.Lazy as BSL (ByteString, fromStrict, toStrict)
+import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short
 import Data.Coerce
 import Data.Set as Set
@@ -65,7 +68,9 @@ data ScriptDecodeError
       }
   | PlutusCoreLanguageNotAvailableError
       { sdeAffectedVersion :: !UPLC.Version
-      -- ^ the script's Plutus Core language version
+      -- ^ the Plutus Core language of the script under execution.
+      , sdeThisLang        :: !PlutusLedgerLanguage
+      -- ^ the Plutus ledger language of the script under execution.
       , sdeThisPv          :: !MajorProtocolVersion
       -- ^ the current protocol version
       }
@@ -73,6 +78,30 @@ data ScriptDecodeError
   deriving anyclass (Exception)
 
 makeClassyPrisms ''ScriptDecodeError
+
+instance Pretty ScriptDecodeError where
+  pretty = \case
+    CBORDeserialiseError e ->
+      "Failed to deserialise a script:" <+> pretty e
+    RemainderError bs ->
+      "Script was successfully deserialised, but"
+        <+> pretty (BSL.length bs)
+        <+> "more bytes were encountered after the script's position."
+    LedgerLanguageNotAvailableError{..} ->
+      "Your script has a Plutus Ledger Language version of"
+        <+> pretty sdeAffectedLang <> "."
+        <+> "This is not yet supported by the current major protocol version"
+        <+> pretty sdeThisPv <> "."
+        <+> "The major protocol version that introduces \
+            \this Plutus Ledger Language is"
+        <+> pretty sdeIntroPv <> "."
+    PlutusCoreLanguageNotAvailableError{..} ->
+      "Your script has a Plutus Core version of"
+        <+> pretty sdeAffectedVersion <> "."
+        <+> "This is not supported in"
+        <+> pretty sdeThisLang
+        <+> "and major protocol version"
+        <+> pretty sdeThisPv <> "."
 
 {- Note [Size checking of constants in PLC programs]
 We impose a 64-byte *on-the-wire* limit on the constants inside PLC programs. This prevents
@@ -130,9 +159,8 @@ serialiseUPLC =
 ledger-language-version-specific checks like for allowable builtins.
 -}
 uncheckedDeserialiseUPLC :: SerialisedScript -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
-uncheckedDeserialiseUPLC = unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
-  where
-    unSerialiseViaFlat (SerialiseViaFlat (UPLC.UnrestrictedProgram a)) = a
+uncheckedDeserialiseUPLC =
+    UPLC.unUnrestrictedProgram . unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
 
 -- | A script with named de-bruijn indices.
 newtype ScriptNamedDeBruijn
@@ -166,9 +194,9 @@ scriptCBORDecoder ::
   PlutusLedgerLanguage ->
   MajorProtocolVersion ->
   CBOR.Decoder s ScriptNamedDeBruijn
-scriptCBORDecoder lv pv =
-  -- See Note [New builtins and protocol versions]
-  let availableBuiltins = builtinsAvailableIn lv pv
+scriptCBORDecoder ll pv =
+  -- See Note [New builtins/language versions and protocol versions]
+  let availableBuiltins = builtinsAvailableIn ll pv
       flatDecoder = UPLC.decodeProgram checkBuiltin
       -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
       checkBuiltin f | f `Set.member` availableBuiltins = Nothing
@@ -177,13 +205,13 @@ scriptCBORDecoder lv pv =
           "Builtin function "
             ++ show f
             ++ " is not available in language "
-            ++ show (pretty lv)
+            ++ show (pretty ll)
             ++ " at and protocol version "
             ++ show (pretty pv)
    in do
         -- Deserialise using 'FakeNamedDeBruijn' to get the fake names added
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <-
-          decodeViaFlat flatDecoder
+          decodeViaFlatWith flatDecoder
         pure $ coerce p
 
 {- | The deserialization from a serialised script into a `ScriptForEvaluation`,
@@ -217,7 +245,7 @@ deserialiseScript ll pv sScript = do
     deserialiseSScript :: SerialisedScript -> m (BSL.ByteString, ScriptNamedDeBruijn)
     deserialiseSScript =
       fromShort
-        >>> fromStrict
+        >>> BSL.fromStrict
         >>> CBOR.deserialiseFromBytes (scriptCBORDecoder ll pv)
         -- lift the underlying cbor error to our custom error
         >>> either (throwing _ScriptDecodeError . toScripDecodeError) pure

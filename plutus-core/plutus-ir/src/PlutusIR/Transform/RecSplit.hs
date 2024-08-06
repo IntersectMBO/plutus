@@ -3,9 +3,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 module PlutusIR.Transform.RecSplit
-    (recSplit) where
+    (recSplit, recSplitPass) where
 
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR
 import PlutusIR.Subst
 
@@ -15,14 +15,17 @@ import Algebra.Graph.NonEmpty.AdjacencyMap qualified as AMN
 import Algebra.Graph.ToGraph (isAcyclic)
 import Control.Lens
 import Data.Either
-import Data.Foldable (foldl')
+import Data.Foldable qualified as Foldable (foldl')
 import Data.List (nub)
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as M
 import Data.Semigroup.Foldable
 import Data.Set qualified as S
 import Data.Set.Lens (setOf)
+import PlutusCore qualified as PLC
 import PlutusIR.MkPir (mkLet)
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
 import PlutusPrelude ((<^>))
 
 {- Note [LetRec splitting pass]
@@ -55,7 +58,7 @@ Currently the implementation relies on 'Unique's, so there is the assumption of 
 However, the algorithm could be changed to work without this assumption (has not been tested).
 -}
 
-{- NOTE [Principal id]
+{- Note [Principal id]
 The algorihtm identifies & stores bindings and their corresponding rhs'es in some intermediate tables.
 To identify/store each binding to such tables, we need to "key" them by a single unique identifier.
 
@@ -66,11 +69,17 @@ and the 'principal' function arbitrarily chooses between one of these introduced
 to represent the "principal" id of the whole datatype binding so it can be used as "the key".
 -}
 
+recSplitPass
+  :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
+  => TC.PirTCConfig uni fun
+  -> Pass m TyName Name uni fun a
+recSplitPass tcconfig = simplePass "recursive let split" tcconfig recSplit
+
 {-|
 Apply letrec splitting, recursively in bottom-up fashion.
 -}
 recSplit :: forall uni fun a name tyname.
-           (Ord name, Ord tyname, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+           (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
          => Term tyname name uni fun a
          -> Term tyname name uni fun a
 recSplit = transformOf termSubterms recSplitStep
@@ -79,7 +88,7 @@ recSplit = transformOf termSubterms recSplitStep
 Apply splitting for a single letrec group.
 -}
 recSplitStep :: forall uni fun a name tyname.
-               (Ord name, Ord tyname, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+               (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
              => Term tyname name uni fun a -> Term tyname name uni fun a
 recSplitStep = \case
     -- See Note [LetRec splitting pass]
@@ -97,7 +106,7 @@ recSplitStep = \case
                 (if isAcyclic scc then NonRec else Rec)
                 (M.elems . M.restrictKeys bindingsTable $ AMN.vertexSet scc)
                 acc
-        in foldl' genLetFromScc t hereSccs
+        in Foldable.foldl' genLetFromScc t hereSccs
     t  -> t
 
 {-|
@@ -111,7 +120,7 @@ This local graph may contain loops:
 - Any other loop indicates mutual-recursive bindings.
 -}
 buildLocalDepGraph :: forall uni fun a name tyname.
-                     (Ord name, Ord tyname, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+                     (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
                    => NE.NonEmpty (Binding tyname name uni fun a) -> AM.AdjacencyMap PLC.Unique
 buildLocalDepGraph bs =
     -- join together

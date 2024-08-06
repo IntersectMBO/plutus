@@ -63,7 +63,7 @@ it directly, we would have to provide the type of the *result* term, which we ma
 Here we merely have to provide it with the types of the f_is, which we *do* know.
 -}
 
- -- See note [Recursive lets]
+ -- See Note [Recursive lets]
 -- | Compile a mutually recursive list of var decls bound in a body.
 compileRecTerms
     :: Compiling m e uni fun a
@@ -98,15 +98,16 @@ mkFixpoint bs = do
           name <- liftQuote $ toProgramName fixByKey
           let (fixByTerm, fixByType) = Function.fixByAndType
           pure (PLC.Def (PLC.VarDecl noProvenance name (noProvenance <$ fixByType)) (noProvenance <$ fixByTerm, Strict), mempty)
-    fixBy <- lookupOrDefineTerm p0 fixByKey mkFixByDef
 
     let mkFixNDef = do
           name <- liftQuote $ toProgramName fixNKey
-          let ((fixNTerm, fixNType), fixNDeps) =
-                  if arity == 1
-                  then (Function.fixAndType, mempty)
+          ((fixNTerm, fixNType), fixNDeps) <-
+              if arity == 1
+                  then pure (Function.fixAndType, mempty)
                   -- fixN depends on fixBy
-                  else (Function.fixNAndType arity (void fixBy), Set.singleton fixByKey)
+                  else do
+                      fixBy <- lookupOrDefineTerm p0 fixByKey mkFixByDef
+                      pure (Function.fixNAndType arity (void fixBy), Set.singleton fixByKey)
           pure (PLC.Def (PLC.VarDecl noProvenance name (noProvenance <$ fixNType)) (noProvenance <$ fixNTerm, Strict), fixNDeps)
     fixN <- lookupOrDefineTerm p0 fixNKey mkFixNDef
 

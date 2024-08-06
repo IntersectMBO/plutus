@@ -1,35 +1,30 @@
-{-# LANGUAGE TypeApplications #-}
 module PlutusIR.Transform.CaseOfCase.Tests where
 
 import Test.Tasty
 import Test.Tasty.Extras
 
-import Control.Lens
-import PlutusCore qualified as PLC
-import PlutusCore.Name
 import PlutusCore.Quote
-import PlutusIR.Analysis.Builtins
-import PlutusIR.Error as PIR
 import PlutusIR.Parser
+import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.CaseOfCase qualified as CaseOfCase
-import PlutusIR.TypeCheck as TC
 import PlutusPrelude
+import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_caseOfCase :: TestTree
-test_caseOfCase = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "CaseOfCase" $
+test_caseOfCase =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "CaseOfCase"] $
         map
-            (goldenPirM goldenCoCTC pTerm)
+            (goldenPir (runQuote . runTestPass
+                        (\tc -> CaseOfCase.caseOfCasePassSC tc def True mempty)) pTerm)
             [ "basic"
             , "builtinBool"
             , "largeExpr"
             , "exponential"
+            , "twoTyArgs"
             ]
-    where
-      binfo = def & set' biMatcherLike defaultUniMatcherLike
-      goldenCoCTC t = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
-        let newT = runQuote $ CaseOfCase.caseOfCase binfo True mempty t
-        -- make sure the floated result typechecks
-        _ <- runQuoteT . flip inferType (() <$ newT) =<< TC.getDefTypeCheckConfig ()
-        pure newT
+
+prop_caseOfCase :: Property
+prop_caseOfCase =
+  withMaxSuccess numTestsForPassProp $
+    testPassProp runQuote $ \tc -> CaseOfCase.caseOfCasePassSC tc def True mempty

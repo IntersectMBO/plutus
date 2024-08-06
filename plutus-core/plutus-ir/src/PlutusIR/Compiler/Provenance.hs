@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -9,7 +10,9 @@ import PlutusIR
 
 import PlutusCore.Pretty qualified as PLC
 
+import Data.Hashable
 import Data.Set qualified as S
+import GHC.Generics (Generic)
 import Prettyprinter ((<+>))
 import Prettyprinter qualified as PP
 
@@ -28,7 +31,8 @@ data Provenance a = Original a
                   | DatatypeComponent DatatypeComponent (Provenance a)
                   -- | Added for accumulating difference provenances when floating lets
                   | MultipleSources (S.Set (Provenance a))
-                  deriving stock (Show, Eq, Ord, Foldable)
+                  deriving stock (Show, Eq, Ord, Foldable, Generic)
+                  deriving anyclass (Hashable)
 
 instance Ord a => Semigroup (Provenance a) where
     x <> y = MultipleSources (toSet x `S.union` toSet y)
@@ -50,7 +54,8 @@ data DatatypeComponent = Constructor
                        | DestructorType
                        | DatatypeType
                        | PatternFunctor
-                       deriving stock (Show, Eq, Ord)
+                       deriving stock (Show, Eq, Ord, Generic)
+                       deriving anyclass (Hashable)
 
 instance PP.Pretty DatatypeComponent where
     pretty = \case

@@ -1,1 +1,17 @@
-(unwrap (iwrap (con integer) (con integer) (con integer 1)))
+(abs a (type)
+  (unwrap
+    (iwrap
+      (lam list (fun (type) (type)) (lam a (type) (all r (type) (fun r (fun (fun a (fun [list a] r)) r)))))
+	  a
+      (abs r (type)
+        (lam z r
+          (lam
+            f
+            (fun a (fun (ifix (lam list (fun (type) (type)) (lam a (type) (all r (type) (fun r (fun (fun a (fun [list a] r)) r))))) a) r))
+            z
+          )
+        )
+      )
+    )
+  )
+)

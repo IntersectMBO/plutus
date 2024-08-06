@@ -8,7 +8,7 @@ module PlutusCore.Check.Uniques
 import PlutusCore.Analysis.Definitions
 import PlutusCore.Core
 import PlutusCore.Error
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Control.Monad (when)
 import Control.Monad.Error.Lens

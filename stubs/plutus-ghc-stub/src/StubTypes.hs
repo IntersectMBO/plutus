@@ -90,7 +90,7 @@ data Literal
                                   -- binding is absent and has type
                                   -- @forall (a :: 'TYPE' 'UnliftedRep'). a@.
                                   -- May be lowered by code-gen to any possible
-                                  -- value. Also see Note [Rubbish literals]
+                                  -- value. Also see GHC:Note [Rubbish literals]
 
     | LitFloat   Rational         -- ^ @Float#@. Create with 'mkMachFloat'
     | LitDouble  Rational         -- ^ @Double#@. Create with 'mkMachDouble'
@@ -110,8 +110,8 @@ data Literal
 
 -- | Numeric literal type
 data LitNumType
-    = LitNumInteger -- ^ @Integer@ (see Note [Integer literals])
-    | LitNumNatural -- ^ @Natural@ (see Note [Natural literals])
+    = LitNumInteger -- ^ @Integer@ (see GHC:Note [Integer literals])
+    | LitNumNatural -- ^ @Natural@ (see GHC:Note [Natural literals])
     | LitNumInt     -- ^ @Int#@ - according to target machine
     | LitNumInt64   -- ^ @Int64#@ - exactly 64 bits
     | LitNumWord    -- ^ @Word#@ - according to target machine
@@ -168,7 +168,7 @@ data AltCon
 
     | LitAlt  Literal   -- ^ A literal: @case e of { 1 -> ... }@
                         -- Invariant: always an *unlifted* literal
-                        -- See Note [Literal alternatives]
+                        -- See GHC:Note [Literal alternatives]
 
     | DEFAULT           -- ^ Trivial alternative: @case e of { _ -> ... }@
         deriving (Data, Outputable)

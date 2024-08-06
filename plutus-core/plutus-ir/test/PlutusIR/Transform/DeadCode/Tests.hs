@@ -7,7 +7,7 @@ import PlutusCore.Default
 import PlutusCore.Quote
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Parser
-import PlutusIR.Properties.Typecheck
+import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.DeadCode
 import PlutusPrelude
@@ -16,10 +16,10 @@ import Test.Tasty.QuickCheck
 
 
 test_deadCode :: TestTree
-test_deadCode = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "DeadCode" $
+test_deadCode =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "DeadCode"] $
         map
-            (goldenPir (runQuote . removeDeadBindings def) pTerm)
+            (goldenPir (runQuote . runTestPass (\tc -> removeDeadBindingsPassSC tc def)) pTerm)
             [ "typeLet"
             , "termLet"
             , "strictLet"
@@ -39,11 +39,12 @@ test_deadCode = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
             ]
 
 -- FIXME this test sometimes fails so ignoring it to make CI pass.
--- | Check that a term typechecks after a `PlutusIR.Transform.DeadCode.removeDeadBindings` pass.
 typecheckRemoveDeadBindingsProp :: BuiltinSemanticsVariant DefaultFun -> Property
 typecheckRemoveDeadBindingsProp biVariant =
-  withMaxSuccess 50000 $ nonPureTypecheckProp $ removeDeadBindings $
-     def {_biSemanticsVariant = biVariant}
-test_TypecheckRemoveDeadBindings :: TestTree
-test_TypecheckRemoveDeadBindings =
-  ignoreTest $ testProperty "typechecking" typecheckRemoveDeadBindingsProp
+  withMaxSuccess (3 * numTestsForPassProp) $
+    testPassProp
+      runQuote
+      $ \tc -> removeDeadBindingsPassSC tc (def {_biSemanticsVariant = biVariant})
+test_deadCodeP :: TestTree
+test_deadCodeP =
+  ignoreTest $ testProperty "deadCode" typecheckRemoveDeadBindingsProp

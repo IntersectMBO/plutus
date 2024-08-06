@@ -3,6 +3,7 @@ module Main (main) where
 
 import CriterionExtensions (BenchmarkingPhase (Continue, Start), criterionMainWith)
 
+import Benchmarks.Bitwise qualified
 import Benchmarks.Bool qualified
 import Benchmarks.ByteStrings qualified
 import Benchmarks.Crypto qualified
@@ -45,25 +46,21 @@ main = do
   criterionMainWith
        Start
        defaultConfig $
-            Benchmarks.Bool.makeBenchmarks        gen
-        <>  Benchmarks.ByteStrings.makeBenchmarks gen
-        <>  Benchmarks.Crypto.makeBenchmarks      gen
-        <>  Benchmarks.Data.makeBenchmarks        gen
-        <>  Benchmarks.Integers.makeBenchmarks    gen
-        <>  Benchmarks.Lists.makeBenchmarks       gen
-        <>  Benchmarks.Misc.makeBenchmarks        gen
-        <>  Benchmarks.Pairs.makeBenchmarks       gen
-        <>  Benchmarks.Strings.makeBenchmarks     gen
-        <>  Benchmarks.Tracing.makeBenchmarks     gen
-        <>  Benchmarks.Unit.makeBenchmarks        gen
+           Benchmarks.Bitwise.makeBenchmarks
+        <> Benchmarks.Bool.makeBenchmarks        gen
+        <> Benchmarks.ByteStrings.makeBenchmarks gen
+        <> Benchmarks.Crypto.makeBenchmarks      gen
+        <> Benchmarks.Data.makeBenchmarks        gen
+        <> Benchmarks.Integers.makeBenchmarks    gen
+        <> Benchmarks.Lists.makeBenchmarks       gen
+        <> Benchmarks.Misc.makeBenchmarks        gen
+        <> Benchmarks.Pairs.makeBenchmarks       gen
+        <> Benchmarks.Strings.makeBenchmarks     gen
+        <> Benchmarks.Tracing.makeBenchmarks     gen
+        <> Benchmarks.Unit.makeBenchmarks        gen
 
   {- Run the nop benchmarks with a large time limit (30 seconds) in an attempt to
      get accurate results. -}
-  -- FIXME: this doesn't quite work.  If you specify a benchmark name on the
-  -- command line and it's in the first group then it'll run but you'll get an
-  -- error when the argument gets passed to the nop benchmarks below (but the
-  -- data will still be generated and saved in benching.csv).
-
   criterionMainWith
        Continue
        (defaultConfig { C.timeLimit = 30 }) $

@@ -16,18 +16,17 @@
 {-# LANGUAGE StrictData             #-}
 
 module PlutusCore.Builtin.KnownType
-    ( KnownTypeError
-    , throwKnownTypeErrorWithCause
+    ( BuiltinError
+    , throwBuiltinErrorWithCause
     , KnownBuiltinTypeIn
     , KnownBuiltinType
-    , MakeKnownM (..)
+    , BuiltinResult (..)
     , ReadKnownM
-    , liftReadKnownM
-    , readKnownConstant
     , Spine (..)
     , HeadSpine (..)
     , noSpine
     , MakeKnownIn (..)
+    , readKnownConstant
     , MakeKnown
     , ReadKnownIn (..)
     , ReadKnown
@@ -37,21 +36,17 @@ module PlutusCore.Builtin.KnownType
 
 import PlutusPrelude
 
-import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.Polymorphism
+import PlutusCore.Builtin.Result
 import PlutusCore.Core
-import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.ErrorWithCause
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
-import Control.Lens.TH (makeClassyPrisms)
-import Control.Monad.Except
-import Data.DList (DList)
 import Data.Either.Extras
 import Data.Functor.Identity
 import Data.String
-import Data.Text (Text)
 import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
 import Prettyprinter
@@ -69,13 +64,13 @@ type KnownBuiltinType val a = KnownBuiltinTypeIn (UniOf val) val a
 {- Note [Performance of ReadKnownIn and MakeKnownIn instances]
 It's critically important that 'readKnown' runs in the concrete 'Either' rather than a general
 'MonadError'. Changing from the latter to the former gave us a speedup of up to 19%, see
-https://github.com/input-output-hk/plutus/pull/4307
+https://github.com/IntersectMBO/plutus/pull/4307
 
 Replacing the @AsUnliftingError err, AsEvaluationFailure err@ constraints with the dedicated
-'KnownTypeError' data type gave us a speedup of up to 4%.
+'BuiltinError' data type gave us a speedup of up to 4%.
 
 All the same considerations apply to 'makeKnown':
-https://github.com/input-output-hk/plutus/pull/4421
+https://github.com/IntersectMBO/plutus/pull/4421
 
 It's beneficial to inline 'readKnown' and 'makeKnown' not only because we use them directly over
 concrete types once 'toBuiltinsRuntime' is inlined, but also because otherwise GHC compiles each of
@@ -148,7 +143,7 @@ deal with polymorphic built-in types (e.g. @id@, @ifThenElse@ etc). That would m
 write a function from a @[a]@ for some arbitrary built-in @a@ to @[Opaque val a]@. Which is really
 easy to do: it's just @map makeKnown@. But the problem is, unlifting is supposed to be cheap and
 that @map@ is O(n), so for example 'MkCons' would become an O(n) operation making perfectly linear
-algorithms quadratic. See https://github.com/input-output-hk/plutus/pull/4215 for how that would
+algorithms quadratic. See https://github.com/IntersectMBO/plutus/pull/4215 for how that would
 look like.
 
 So the problem is that we can't convert in O(1) time a @[a]@ coming from a constant of
@@ -246,100 +241,19 @@ Lifting is allowed to the following classes of types:
    one, and for another example define an instance for 'Void' in tests
 -}
 
--- | Attach a @cause@ to a 'KnownTypeError' and throw that.
--- Note that an evaluator might require the cause to be computed lazily for best performance on the
--- happy path, hence this function must not force its first argument.
--- TODO: wrap @cause@ in 'Lazy' once we have it.
-throwKnownTypeErrorWithCause
-    :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err)
-    => cause -> KnownTypeError -> m void
-throwKnownTypeErrorWithCause cause = \case
-    KnownTypeUnliftingError unlErr -> throwingWithCause _UnliftingError unlErr $ Just cause
-    KnownTypeEvaluationFailure     -> throwingWithCause _EvaluationFailure () $ Just cause
-
 typeMismatchError
     :: PrettyParens (SomeTypeIn uni)
     => uni (Esc a)
     -> uni (Esc b)
-    -> UnliftingError
-typeMismatchError uniExp uniAct = fromString $ concat
-    [ "Type mismatch: "
-    , "expected: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniExp)
-    , "; actual: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniAct)
-    ]
--- Just for tidier Core to get generated, we don't care about performance here, since it's just a
--- failure message and evaluation is about to be shut anyway.
-{-# NOINLINE typeMismatchError #-}
-
--- | The monad that 'makeKnown' runs in.
--- Equivalent to @ExceptT KnownTypeError Emitter@, except optimized in two ways:
---
--- 1. everything is strict
--- 2. has the 'MakeKnownSuccess' constructor that is used for returning a value with no logs
---    attached, which is the most common case for us, so it helps a lot not to construct and
---    deconstruct a redundant tuple
---
--- Moving from @ExceptT KnownTypeError Emitter@ to this data type gave us a speedup of 8% of total
--- evaluation time.
---
--- Logs are represented as a 'DList', because we don't particularly care about the efficiency of
--- logging, since there's no logging on the chain and builtins don't emit much anyway. Otherwise
--- we'd have to use @text-builder@ or @text-builder-linear@ or something of this sort.
-data MakeKnownM a
-    = MakeKnownFailure (DList Text) KnownTypeError
-    | MakeKnownSuccess a
-    | MakeKnownSuccessWithLogs (DList Text) a
-
-makeClassyPrisms ''MakeKnownM
-
-instance AsEvaluationFailure (MakeKnownM a) where
-    _EvaluationFailure = _MakeKnownFailure . _EvaluationFailureVia (pure KnownTypeEvaluationFailure)
-    {-# INLINE _EvaluationFailure #-}
-
--- | Prepend logs to a 'MakeKnownM' computation.
-withLogs :: DList Text -> MakeKnownM a -> MakeKnownM a
-withLogs logs1 = \case
-    MakeKnownFailure logs2 err       -> MakeKnownFailure (logs1 <> logs2) err
-    MakeKnownSuccess x               -> MakeKnownSuccessWithLogs logs1 x
-    MakeKnownSuccessWithLogs logs2 x -> MakeKnownSuccessWithLogs (logs1 <> logs2) x
-{-# INLINE withLogs #-}
-
-instance Functor MakeKnownM where
-    fmap _ (MakeKnownFailure logs err)       = MakeKnownFailure logs err
-    fmap f (MakeKnownSuccess x)              = MakeKnownSuccess (f x)
-    fmap f (MakeKnownSuccessWithLogs logs x) = MakeKnownSuccessWithLogs logs (f x)
-    {-# INLINE fmap #-}
-
-    -- Written out explicitly just in case (see @fmap@ above for what the case might be).
-    _ <$ MakeKnownFailure logs err       = MakeKnownFailure logs err
-    x <$ MakeKnownSuccess _              = MakeKnownSuccess x
-    x <$ MakeKnownSuccessWithLogs logs _ = MakeKnownSuccessWithLogs logs x
-    {-# INLINE (<$) #-}
-
-instance Applicative MakeKnownM where
-    pure = MakeKnownSuccess
-    {-# INLINE pure #-}
-
-    MakeKnownFailure logs err       <*> _ = MakeKnownFailure logs err
-    MakeKnownSuccess f              <*> a = fmap f a
-    MakeKnownSuccessWithLogs logs f <*> a = withLogs logs $ fmap f a
-    {-# INLINE (<*>) #-}
-
-    -- Better than the default implementation, because the value in the 'MakeKnownSuccess' case
-    -- doesn't need to be retained.
-    MakeKnownFailure logs err       *> _ = MakeKnownFailure logs err
-    MakeKnownSuccess _              *> a = a
-    MakeKnownSuccessWithLogs logs _ *> a = withLogs logs a
-    {-# INLINE (*>) #-}
-
-instance Monad MakeKnownM where
-    MakeKnownFailure logs err       >>= _ = MakeKnownFailure logs err
-    MakeKnownSuccess x              >>= f = f x
-    MakeKnownSuccessWithLogs logs x >>= f = withLogs logs $ f x
-    {-# INLINE (>>=) #-}
-
-    (>>) = (*>)
-    {-# INLINE (>>) #-}
+    -> UnliftingEvaluationError
+typeMismatchError uniExp uniAct =
+    MkUnliftingEvaluationError . StructuralEvaluationError . fromString $ concat
+        [ "Type mismatch: "
+        , "expected: " ++ displayBy botRenderContext (SomeTypeIn uniExp)
+        , "; actual: " ++ displayBy botRenderContext (SomeTypeIn uniAct)
+        ]
+-- See Note [INLINE and OPAQUE on error-related definitions].
+{-# OPAQUE typeMismatchError #-}
 
 -- Normally it's a good idea for an exported abstraction not to be a type synonym, since a @newtype@
 -- is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we
@@ -348,18 +262,12 @@ instance Monad MakeKnownM where
 -- user code), which can be non-trivial for such performance-sensitive code (see e.g. 'coerceVia'
 -- and 'coerceArg') and there is no abstraction barrier anyway.
 -- | The monad that 'readKnown' runs in.
-type ReadKnownM = Either KnownTypeError
+type ReadKnownM = Either BuiltinError
 
--- | Lift a 'ReadKnownM' computation into 'MakeKnownM'.
-liftReadKnownM :: ReadKnownM a -> MakeKnownM a
-liftReadKnownM (Left err) = MakeKnownFailure mempty err
-liftReadKnownM (Right x)  = MakeKnownSuccess x
-{-# INLINE liftReadKnownM #-}
-
--- See Note [Unlifting values of built-in types].
+-- See Note [Unlifting a term as a value of a built-in type].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
 readKnownConstant :: forall val a. KnownBuiltinType val a => val -> ReadKnownM a
--- Note [Performance of ReadKnownIn and MakeKnownIn instances]
+-- See Note [Performance of ReadKnownIn and MakeKnownIn instances]
 readKnownConstant val = asConstant val >>= oneShot \case
     Some (ValueOf uniAct x) -> do
         let uniExp = knownUni @_ @(UniOf val) @a
@@ -368,7 +276,7 @@ readKnownConstant val = asConstant val >>= oneShot \case
         -- optimize some of the matching away.
         case uniExp `geq` uniAct of
             Just Refl -> pure x
-            Nothing   -> Left . KnownTypeUnliftingError $ typeMismatchError uniExp uniAct
+            Nothing   -> throwing _UnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
 data Spine a
@@ -399,8 +307,8 @@ noSpine x = HeadSpine x NilSpine
 class uni ~ UniOf val => MakeKnownIn uni val a where
     -- | Convert a Haskell value to the corresponding PLC value.
     -- The inverse of 'readKnown'.
-    makeKnown :: a -> MakeKnownM (HeadSpine val)
-    default makeKnown :: KnownBuiltinType val a => a -> MakeKnownM (HeadSpine val)
+    makeKnown :: a -> BuiltinResult (HeadSpine val)
+    default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult (HeadSpine val)
     -- Everything on evaluation path has to be strict in production, so in theory we don't need to
     -- force anything here. In practice however all kinds of weird things happen in tests and @val@
     -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
@@ -429,23 +337,20 @@ type ReadKnown val = ReadKnownIn (UniOf val) val
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
 makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult (HeadSpine val)
 makeKnownOrFail x = case makeKnown x of
-    MakeKnownFailure _ _           -> EvaluationFailure
-    MakeKnownSuccess val           -> EvaluationSuccess val
-    MakeKnownSuccessWithLogs _ val -> EvaluationSuccess val
+    BuiltinSuccess val           -> EvaluationSuccess val
+    BuiltinSuccessWithLogs _ val -> EvaluationSuccess val
+    BuiltinFailure _ _           -> EvaluationFailure
 {-# INLINE makeKnownOrFail #-}
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
 readKnownSelf
-    :: ( ReadKnown val a
-       , AsUnliftingError err, AsEvaluationFailure err
-       )
+    :: (ReadKnown val a, AsUnliftingEvaluationError err, AsEvaluationFailure err)
     => val -> Either (ErrorWithCause err val) a
-readKnownSelf val = fromRightM (throwKnownTypeErrorWithCause val) $ readKnown val
+readKnownSelf val = fromRightM (throwBuiltinErrorWithCause val) $ readKnown val
 {-# INLINE readKnownSelf #-}
 
-instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
-    makeKnown EvaluationFailure     = evaluationFailure
-    makeKnown (EvaluationSuccess x) = makeKnown x
+instance MakeKnownIn uni val a => MakeKnownIn uni val (BuiltinResult a) where
+    makeKnown res = res >>= makeKnown
     {-# INLINE makeKnown #-}
 
 -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
@@ -455,24 +360,24 @@ instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
 -- I.e. it would essentially allow us to catch errors and handle them in a programmable way.
 -- We forbid this, because it complicates code and isn't supported by evaluation engines anyway.
 instance
-        ( TypeError ('Text "‘EvaluationResult’ cannot appear in the type of an argument")
+        ( TypeError ('Text "‘BuiltinResult’ cannot appear in the type of an argument")
         , uni ~ UniOf val
-        ) => ReadKnownIn uni val (EvaluationResult a) where
-    readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
-    -- Just for 'readKnown' not to appear in the generated Core.
+        ) => ReadKnownIn uni val (BuiltinResult a) where
+    readKnown _ = throwUnderTypeError
     {-# INLINE readKnown #-}
 
-instance MakeKnownIn uni val a => MakeKnownIn uni val (Emitter a) where
-    makeKnown a = case runEmitter a of
-        (x, logs) -> withLogs logs $ makeKnown x
+instance
+        ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘EvaluationResult’")
+        , uni ~ UniOf val
+        ) => MakeKnownIn uni val (EvaluationResult a) where
+    makeKnown _ = throwUnderTypeError
     {-# INLINE makeKnown #-}
 
 instance
-        ( TypeError ('Text "‘Emitter’ cannot appear in the type of an argument")
+        ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘EvaluationResult’")
         , uni ~ UniOf val
-        ) => ReadKnownIn uni val (Emitter a) where
-    readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
-    -- Just for 'readKnown' not to appear in the generated Core.
+        ) => ReadKnownIn uni val (EvaluationResult a) where
+    readKnown _ = throwUnderTypeError
     {-# INLINE readKnown #-}
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where

@@ -5,7 +5,7 @@ module PlutusIR.Mark (
 ) where
 
 import PlutusCore.Core qualified as PLC
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 
 import PlutusCore.Quote
 

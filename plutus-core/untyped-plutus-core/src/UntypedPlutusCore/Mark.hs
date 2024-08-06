@@ -6,7 +6,7 @@ module UntypedPlutusCore.Mark
 
 import Data.Set.Lens (setOf)
 import PlutusCore.Core (HasUniques)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import UntypedPlutusCore.Core
 

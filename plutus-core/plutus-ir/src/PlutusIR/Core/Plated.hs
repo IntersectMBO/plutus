@@ -10,6 +10,8 @@ module PlutusIR.Core.Plated
     , termSubkinds
     , termBindings
     , termVars
+    , termConstants
+    , termConstantsDeep
     , typeSubtypes
     , typeSubtypesDeep
     , typeSubkinds
@@ -28,6 +30,7 @@ module PlutusIR.Core.Plated
     , termUniquesDeep
     , varDeclSubtypes
     , underBinders
+    , _Constant
     ) where
 
 import PlutusCore qualified as PLC
@@ -35,19 +38,24 @@ import PlutusCore.Arity
 import PlutusCore.Core (tyVarDeclSubkinds, typeSubkinds, typeSubtypes, typeSubtypesDeep,
                         typeUniques, typeUniquesDeep, varDeclSubtypes)
 import PlutusCore.Flat ()
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 
 import PlutusIR.Core.Type
 
 import Control.Lens hiding (Strict, (<.>))
 import Data.Functor.Apply
 import Data.Functor.Bind.Class
+import Universe
 
 infixr 6 <^>
 
 -- | Compose two folds to make them run in parallel. The results are concatenated.
 (<^>) :: Fold s a -> Fold s a -> Fold s a
 (f1 <^> f2) g s = f1 g s *> f2 g s
+
+-- | View a term as a constant.
+_Constant :: Prism' (Term tyname name uni fun a) (a, PLC.Some (PLC.ValueOf uni))
+_Constant = prism' (uncurry Constant) (\case { Constant a v -> Just (a, v); _ -> Nothing })
 
 {-# INLINE bindingSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Binding'.
@@ -109,6 +117,23 @@ bindingIds f = \case
                     <.*> traverse1Maybe ((PLC.tyVarDeclName . PLC.theUnique) f) tvdecls
                     <.> PLC.theUnique f n
                     <.*> traverse1Maybe ((PLC.varDeclName . PLC.theUnique) f) vdecls)
+
+-- | Get all the direct constants of the given 'Term' from 'Constant's.
+termConstants :: Traversal' (Term tyname name uni fun ann) (Some (ValueOf uni))
+termConstants f term0 = case term0 of
+    Constant ann val -> Constant ann <$> f val
+    Let{}            -> pure term0
+    Var{}            -> pure term0
+    TyAbs{}          -> pure term0
+    LamAbs{}         -> pure term0
+    TyInst{}         -> pure term0
+    IWrap{}          -> pure term0
+    Error{}          -> pure term0
+    Apply{}          -> pure term0
+    Unwrap{}         -> pure term0
+    Builtin{}        -> pure term0
+    Constr{}         -> pure term0
+    Case{}           -> pure term0
 
 {-# INLINE termSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'Term'.
@@ -203,6 +228,10 @@ termVars :: Traversal' (Term tyname name uni fun ann) name
 termVars f term0 = case term0 of
     Var ann n -> Var ann <$> f n
     t         -> pure t
+
+-- | Get all the transitive child 'Constant's of the given 'Term'.
+termConstantsDeep :: Fold (Term tyname name uni fun ann) (Some (ValueOf uni))
+termConstantsDeep = termSubtermsDeep . termConstants
 
 -- | Get all the transitive child 'Unique's of the given 'Term' (including the type-level ones).
 termUniquesDeep

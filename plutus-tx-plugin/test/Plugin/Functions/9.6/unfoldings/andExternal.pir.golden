@@ -1,45 +1,23 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl Bool (type))
-
-        Bool_match
-        (vardecl True Bool) (vardecl False Bool)
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl andExternal (fun Bool (fun Bool Bool)))
-      (lam
-        a
-        Bool
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl a Bool) a)
-          (lam
-            b
-            Bool
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl b Bool) b)
-              {
-                [
-                  [
-                    { [ Bool_match a ] (all dead (type) Bool) }
-                    (abs dead (type) b)
-                  ]
-                  (abs dead (type) False)
-                ]
-                (all dead (type) dead)
-              }
-            )
-          )
-        )
-      )
-    )
-    [ [ andExternal True ] False ]
-  )
-)
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
+    ~andExternal : Bool -> Bool -> Bool
+      = \(a : Bool) ->
+          let
+            !a : Bool = a
+          in
+          \(b : Bool) ->
+            let
+              !b : Bool = b
+            in
+            Bool_match
+              a
+              {all dead. Bool}
+              (/\dead -> b)
+              (/\dead -> False)
+              {all dead. dead}
+  in
+  andExternal True False)

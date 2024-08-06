@@ -10,7 +10,7 @@ module UntypedPlutusCore.Rename.Internal
 import UntypedPlutusCore.Core
 
 import PlutusCore.Core (HasUniques)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename.Monad as Export
 

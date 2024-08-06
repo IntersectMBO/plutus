@@ -4,12 +4,15 @@
 {-# LANGUAGE TypeApplications  #-}
 module Main(main) where
 
+import Blueprint.Definition.Spec qualified
 import Codec.CBOR.FlatTerm qualified as FlatTerm
 import Codec.Serialise (deserialiseOrFail, serialise)
 import Codec.Serialise qualified as Serialise
 import Control.Exception (ErrorCall, catch)
+import Control.Monad (unless)
 import Data.ByteString qualified as BS
 import Data.Either (isLeft)
+import Data.List (intercalate)
 import Data.Word (Word64)
 import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
 import Hedgehog.Gen qualified as Gen
@@ -25,9 +28,8 @@ import Prelude hiding (Enum (..), Rational, negate, recip)
 import Rational.Laws (lawsTests)
 import Show.Spec qualified
 import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.Extras (runTestNestedIn)
 import Test.Tasty.Hedgehog (testPropertyNamed)
-import Test.Tasty.HUnit (Assertion, testCase, (@?=))
+import Test.Tasty.HUnit (Assertion, assertFailure, testCase, (@?=))
 
 main :: IO ()
 main = defaultMain tests
@@ -42,7 +44,8 @@ tests = testGroup "plutus-tx" [
     , listTests
     , lawsTests
     , Show.Spec.propertyTests
-    , runTestNestedIn ["test"] Show.Spec.goldenTests
+    , Show.Spec.goldenTests
+    , Blueprint.Definition.Spec.tests
     ]
 
 sqrtTests :: TestTree
@@ -252,7 +255,7 @@ dropByteStringTests = testGroup "dropByteString"
 
 enumTests :: TestTree
 enumTests = testGroup "Enum"
-  [ enumFromToTests ]
+  [ enumFromToTests, enumFromThenToTests ]
 
 enumFromToTests :: TestTree
 enumFromToTests = testGroup "enumFromTo"
@@ -260,3 +263,50 @@ enumFromToTests = testGroup "enumFromTo"
   , testCase "enumFromTo 2 (-2) == []" $ enumFromTo @Integer 2 (-2) @?= []
   , testCase "enumFromTo 42 42 == [42]" $ enumFromTo @Integer 42 42 @?= [42]
   ]
+
+enumFromThenToTests :: TestTree
+enumFromThenToTests = testGroup "enumFromThenTo"
+  [ testCase "enumFromThenTo 1 2 100  == [1..100]"              $ enumFromThenTo @Integer 1 2 100       @?=* [1..100]
+  , testCase "enumFromThenTo 1 2 100  == [1,2..100]"            $ enumFromThenTo @Integer 1 2 100       @?=* [1,2..100]
+  , testCase "enumFromThenTo 100 99 1 == [100,99..1]"           $ enumFromThenTo @Integer 100 99 1      @?=* [100,99..1]
+  , testCase "enumFromThenTo 100 17 (-700) == [100,17..(-700)]" $ enumFromThenTo @Integer 100 17 (-700) @?=* [100,17..(-700)]
+  , testCase "enumFromThenTo 0 5 99   == [0,5..99]"             $ enumFromThenTo @Integer 0 5 99        @?=* [0,5..99]
+  , testCase "enumFromThenTo 0 5 100  == [0,5..100]"            $ enumFromThenTo @Integer 0 5 100       @?=* [0,5..100]
+  , testCase "enumFromThenTo 0 5 101  == [0,5..101]"            $ enumFromThenTo @Integer 0 5 101       @?=* [0,5..101]
+  , testCase "enumFromThenTo 100 95 0 == [100,95..0]"           $ enumFromThenTo @Integer 100 95 0      @?=* [100,95..0]
+  , testCase "enumFromThenTo 100 95 (-9) == [100,95..(-9)]"     $ enumFromThenTo @Integer 100 95 (-9)   @?=* [100,95..(-9)]
+  , testCase "enumFromThenTo 100 95 (-10) == [100,95..(-10)]"   $ enumFromThenTo @Integer 100 95 (-10)  @?=* [100,95..(-10)]
+  , testCase "enumFromThenTo 100 95 (-11) == [100,95..(-11)]"   $ enumFromThenTo @Integer 100 95 (-11)  @?=* [100,95..(-11)]
+  , testCase "enumFromThenTo 42 42 41 == []"                    $ enumFromThenTo @Integer 42 42 41      @?=* []
+  , testCase "enumFromThenTo 42 42 42 == [42*]"                 $ enumFromThenTo @Integer 42 42 42      @?=* [42,42..42]
+  , testCase "enumFromThenTo 42 42 43 == [42*]"                 $ enumFromThenTo @Integer 42 42 43      @?=* [42,42..43]
+  , testCase "enumFromThenTo False False False == [False*]"     $ enumFromThenTo False False False      @?=* [False, False .. False]
+  , testCase "enumFromThenTo False False True  == [False*]"     $ enumFromThenTo False False True       @?=* [False, False .. True ]
+  , testCase "enumFromThenTo False True  False == [False]"      $ enumFromThenTo False True  False      @?=* [False, True  .. False]
+  , testCase "enumFromThenTo False True  True  == [False,True]" $ enumFromThenTo False True  True       @?=* [False, True  .. True ]
+  , testCase "enumFromThenTo True  False False == [True,False]" $ enumFromThenTo True  False False      @?=* [True,  False .. False]
+  , testCase "enumFromThenTo True  False True  == [True]"       $ enumFromThenTo True  False True       @?=* [True,  False .. True ]
+  , testCase "enumFromThenTo True  True  False == []"           $ enumFromThenTo True  True  False      @?=* [True,  True  .. False]
+  , testCase "enumFromThenTo True  True  True  == [True*]"      $ enumFromThenTo True  True  True       @?=* [True,  True  .. True ]
+  , testCase "enumFromThenTo () () () == [()*]"                 $ enumFromThenTo () () ()               @?=* [(),()..()]
+  ]
+    {- Check (approximately) that two possibly infinite lists are equal.  We can get infinite lists from
+       `enumFromThenTo`, both legitimately and because of implementation errors (which are exactly
+       what we're testing for here).  If we just use @?= then (a) it won't terminate if we give it
+       two equal infinite lists, and (b) if it fails and one of the lists is infinite then it'll try
+       to generate an infinite error message, again leading to non-termination.  To deal with this,
+       if an argument has more than 1000 elements then we assume it's infinite and just include an
+       initial segment in any error message, and when we're comparing two such "infinite" lists we
+       just compare the first 1000 elements.  The only infinite lists that enumFromThenTo can
+       generate are of the form [x,x,x,...], so this is definitely a safe strategy in this context.
+     -}
+    where l1 @?=* l2 =
+              case (possiblyInfinite l1, possiblyInfinite l2) of
+                (False, False) -> l1 @?= l2
+                (True, False)  -> failWith (showInit l1) (show l2)
+                (False, True)  -> failWith (show l1) (showInit l2)
+                (True, True)   -> unless (take 1000 l1 == take 1000 l2) (failWith (showInit l1) (showInit l2))
+                where possiblyInfinite l = drop 1000 l /= []
+                      showInit l = "[" ++ intercalate "," (fmap show (take 5 l)) ++ ",...]"
+                      failWith expected actual = assertFailure  ("expected: " ++ expected ++ "\n but got: " ++ actual)
+

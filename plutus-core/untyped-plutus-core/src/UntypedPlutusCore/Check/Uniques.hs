@@ -9,7 +9,7 @@ import UntypedPlutusCore.Analysis.Definitions
 import UntypedPlutusCore.Core
 
 import PlutusCore.Error
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Control.Monad (when)
 import Control.Monad.Error.Lens

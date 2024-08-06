@@ -82,7 +82,7 @@ convT (TyApp _ _A _B)               = RTyApp (convT _A) (convT _B)
 convT (TyBuiltin ann (SomeTypeIn (DefaultUniApply f x))) =
      RTyApp (convT (TyBuiltin ann (SomeTypeIn f)))
             (convT (TyBuiltin ann (SomeTypeIn x)))
-convT (TyBuiltin _ b)               = convTyCon b
+convT (TyBuiltin _ someUni)         = convTyCon someUni
 convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
 convT (TySOP _ xss)                 = RTySOP (map (map convT) xss)
 
@@ -99,23 +99,6 @@ convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult)   = RTyCon (RTyConAtom ATyCo
 convTyCon (SomeTypeIn DefaultUniProtoList)            = RTyCon RTyConList
 convTyCon (SomeTypeIn DefaultUniProtoPair)            = RTyCon RTyConPair
 convTyCon (SomeTypeIn (DefaultUniApply _ _))          = error "unsupported builtin type application"
-
-
-{-
-convTyCon :: DefaultUni (Esc a) -> RType
-convTyCon DefaultUniInteger              = RTyCon (RTyConAtom ATyConInt)
-convTyCon DefaultUniByteString           = RTyCon (RTyConAtom ATyConBS)
-convTyCon DefaultUniString               = RTyCon (RTyConAtom ATyConStr)
-convTyCon DefaultUniBool                 = RTyCon (RTyConAtom ATyConBool)
-convTyCon DefaultUniUnit                 = RTyCon (RTyConAtom ATyConUnit)
-convTyCon DefaultUniData                 = RTyCon (RTyConAtom ATyConData)
-convTyCon DefaultUniBLS12_381_G1_Element = RTyCon (RTyConAtom ATyConBLS12_381_G1_Element)
-convTyCon DefaultUniBLS12_381_G2_Element = RTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
-convTyCon DefaultUniBLS12_381_MlResult   = RTyCon (RTyConAtom ATyConBLS12_381_MlResult)
-convTyCon DefaultUniProtoList            = RTyCon RTyConList
-convTyCon DefaultUniProtoPair            = RTyCon RTyConPair
-convTyCon (DefaultUniApply _ _)          = error "unsupported builtin type application"
--}
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
@@ -198,6 +181,7 @@ data ERROR = TypeError T.Text
            | ParseError ParserErrorBundle
            | ScopeError ScopeError
            | RuntimeError RuntimeError
+           | JsonError T.Text
            deriving Show
 
 data ScopeError = DeBError|FreeVariableError FreeVariableError deriving Show

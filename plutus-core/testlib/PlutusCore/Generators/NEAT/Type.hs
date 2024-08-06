@@ -73,13 +73,13 @@ ext _ FZ     = FZ
 ext f (FS x) = FS (f x)
 
 ren :: (m -> n) -> TypeG m -> TypeG n
-ren f (TyVarG x)          = TyVarG (f x)
-ren f (TyFunG ty1 ty2)    = TyFunG (ren f ty1) (ren f ty2)
-ren f (TyIFixG ty1 k ty2) = TyIFixG (ren f ty1) k (ren f ty2)
-ren f (TyForallG k ty)    = TyForallG k (ren (ext f) ty)
-ren _ (TyBuiltinG b)      = TyBuiltinG b
-ren f (TyLamG ty)         = TyLamG (ren (ext f) ty)
-ren f (TyAppG ty1 ty2 k)  = TyAppG (ren f ty1) (ren f ty2) k
+ren f (TyVarG x)           = TyVarG (f x)
+ren f (TyFunG ty1 ty2)     = TyFunG (ren f ty1) (ren f ty2)
+ren f (TyIFixG ty1 k ty2)  = TyIFixG (ren f ty1) k (ren f ty2)
+ren f (TyForallG k ty)     = TyForallG k (ren (ext f) ty)
+ren _ (TyBuiltinG someUni) = TyBuiltinG someUni
+ren f (TyLamG ty)          = TyLamG (ren (ext f) ty)
+ren f (TyAppG ty1 ty2 k)   = TyAppG (ren f ty1) (ren f ty2) k
 
 exts :: (n -> TypeG m) -> S n -> TypeG (S m)
 exts _ FZ     = TyVarG FZ

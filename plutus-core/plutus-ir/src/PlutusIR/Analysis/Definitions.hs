@@ -13,7 +13,7 @@ import Control.Monad (forM_)
 import Control.Monad.State (MonadState, execStateT)
 import Control.Monad.Writer (MonadWriter, runWriterT)
 import PlutusCore.Error (UniqueError)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusIR.Core.Plated
 import PlutusIR.Core.Type
 

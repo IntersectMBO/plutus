@@ -9,7 +9,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report.
-        Please check the existing issues, [Plutus Docs](https://plutus.readthedocs.io/en/latest/) and [Cardano Stack Exchange](https://cardano.stackexchange.com/) before raising.
+        Please check the existing issues, [Plutus Docs](https://plutus.cardano.intersectmbo.org/docs) and [Cardano Stack Exchange](https://cardano.stackexchange.com/) before raising.
   - type: textarea
     id: summary
     attributes:
@@ -18,7 +18,7 @@ body:
         A clear and specific description of what the bug is.
         If applicable, add screenshots, config files and/or logs to help explain the problem.
     validations:
-      required: true
+      required: false
   - type: textarea
     id: steps-to-reproduce
     attributes:
@@ -28,7 +28,7 @@ body:
         2. Click on '...'
         3. Scroll down to '...'
     validations:
-      required: true
+      required: false
   - type: textarea
     id: actual-result
     attributes:
@@ -36,7 +36,7 @@ body:
       description: What is the reproducible outcome?
       placeholder: See error...
     validations:
-      required: true
+      required: false
   - type: textarea
     id: expected-result
     attributes:
@@ -44,11 +44,11 @@ body:
       description: A clear and concise description of what you expected to happen.
       placeholder: No errors observed.
     validations:
-      required: true
+      required: false
   - type: textarea
     id: fix-it-yourself
     attributes:
-      label: Describe the approach you would take to fix this 
+      label: Describe the approach you would take to fix this
       description: If you would like to work on this yourself (optional!), then let us know what approach you would take so we can advise you.
     validations:
       required: false
@@ -61,5 +61,4 @@ body:
         Version: [e.g. 20.04]
         Plutus: version or commit hash
     validations:
-      required: true
-
+      required: false

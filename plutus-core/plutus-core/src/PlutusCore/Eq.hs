@@ -20,7 +20,7 @@ module PlutusCore.Eq
 
 import PlutusPrelude
 
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Rename.Monad
 
 import Control.Lens

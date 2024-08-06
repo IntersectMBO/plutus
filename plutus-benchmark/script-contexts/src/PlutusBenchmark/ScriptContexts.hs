@@ -7,23 +7,31 @@ module PlutusBenchmark.ScriptContexts where
 
 import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Value
-import PlutusLedgerApi.V3
-import PlutusTx qualified as PlutusTx
+import PlutusLedgerApi.V3 (OutputDatum (NoOutputDatum), PubKeyHash (..), Redeemer (..),
+                           ScriptContext (..), ScriptInfo (SpendingScript), TxId (..), TxInfo (..),
+                           TxOut (..), TxOutRef (..), always)
+import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
 -- | A very crude deterministic generator for 'ScriptContext's with size
 -- approximately proportional to the input integer.
 mkScriptContext :: Int -> ScriptContext
-mkScriptContext i = ScriptContext (mkTxInfo i) (Spending (TxOutRef (TxId "") 0))
+mkScriptContext i =
+  ScriptContext
+    (mkTxInfo i)
+    (Redeemer (PlutusTx.toBuiltinData (1 :: Integer)))
+    (SpendingScript (TxOutRef (TxId "") 0) Nothing)
+
 
 mkTxInfo :: Int -> TxInfo
 mkTxInfo i = TxInfo {
   txInfoInputs=mempty,
   txInfoReferenceInputs=mempty,
   txInfoOutputs=fmap mkTxOut [1..i],
-  txInfoFee=mempty,
+  txInfoFee=10000,
   txInfoMint=mempty,
   txInfoTxCerts=mempty,
   txInfoWdrl=Map.empty,
@@ -59,7 +67,7 @@ checkScriptContext1 d =
   -- Bang pattern to ensure this is forced, probably not necesssary
   -- since we do use it later
   let !sc = PlutusTx.unsafeFromBuiltinData d
-      (ScriptContext txi _) = sc
+      ScriptContext txi _ _ = sc
   in
   if PlutusTx.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
   then ()
@@ -113,7 +121,7 @@ for comparison.
 -- costed cheaply).
 {-# INLINABLE scriptContextEqualityData #-}
 scriptContextEqualityData :: ScriptContext -> PlutusTx.BuiltinData -> ()
--- See note [Redundant arguments to equality benchmarks]
+-- See Note [Redundant arguments to equality benchmarks]
 scriptContextEqualityData _ d =
   if PlutusTx.equalsData d d
   then ()
@@ -126,26 +134,8 @@ mkScriptContextEqualityDataCode sc =
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
 
--- This example checks the script context for equality (with itself) when encoded
--- as a normal (i.e. Scott-encoded) term, using the normal (i.e. typeclass-based) equality
--- functions. This can be quite expensive for a large structure!
-{-# INLINABLE scriptContextEqualityTerm #-}
-scriptContextEqualityTerm :: ScriptContext -> PlutusTx.BuiltinData -> ()
--- See note [Redundant arguments to equality benchmarks]
-scriptContextEqualityTerm sc _ =
-  if sc PlutusTx.== sc
-  then ()
-  else PlutusTx.traceError "The argument is not equal to itself"
-
-mkScriptContextEqualityTermCode :: ScriptContext -> PlutusTx.CompiledCode ()
-mkScriptContextEqualityTermCode sc =
-  let d = PlutusTx.toBuiltinData sc
-  in $$(PlutusTx.compile [|| scriptContextEqualityTerm ||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
-
 -- This example is just the overhead from the previous two
--- See note [Redundant arguments to equality benchmarks]
+-- See Note [Redundant arguments to equality benchmarks]
 {-# INLINABLE scriptContextEqualityOverhead #-}
 scriptContextEqualityOverhead :: ScriptContext -> PlutusTx.BuiltinData -> ()
 scriptContextEqualityOverhead _ _ = ()

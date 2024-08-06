@@ -1,10 +1,153 @@
 
+<a id='changelog-1.30.0.0'></a>
+# 1.30.0.0 — 2024-06-17
+
+## Added
+
+- Added a new `Value` type backed by `Data`. This is currently experimental and not yet used in the ledger API.
+
+- Exported the following from `PlutusLedgerApi.Common` in #6178:
+  + `ExCPU (..)`
+  + `ExMemory (..)`
+  + `SatInt (unSatInt)`
+  + `fromSatInt`
+  + `toOpaque,
+  + `fromOpaque`
+  + `BuiltinData (..)`
+  + `ToData (..)`
+  + `FromData (..)`
+  + `UnsafeFromData (..)`
+  + `toData`
+  + `fromData`
+  + `unsafeFromData`
+  + `dataToBuiltinData`
+  + `builtinDataToData`
+
+## Fixed
+
+- Fixed the `Pretty` instance for `ScriptContext` to display the redemeer as well.
+
+<a id='changelog-1.29.0.0'></a>
+# 1.29.0.0 — 2024-06-04
+
+## Added
+
+- A new cost model for PlutusV3.
+
+## Changed
+
+- The `ScriptContext` type for Plutus V3 is modified to contain an optional datum for
+  spending scripts, in the `scriptContextScriptInfo` field. The redeemer is now also
+  part of `ScriptContext`. As a result, all Plutus V3 scripts, regardless of the purpose,
+  take a single argument: `ScriptContext`.
+- Datum is now optional for Plutus V3 spending scripts.
+
+- We now have configurable cost models which allow different costs for different Plutus language versions and protocol versions.
+- The `mkEvaluationContext` functions in `plutus-ledger-api` (which provide
+  version-dependent on-chain configuration of the Plutus Core evaluator) now
+  select appropriate cost models as well.
+
+- `evaluateScriptRestricting` and `evaluateScriptCounting` now require Plutus V3
+  scripts to return `BuiltinUnit`, otherwise the evaluation is considered to
+  have failed, and a `InvalidReturnValue` error is thrown. There is no such
+  requirement on Plutus V1 and V2 scripts.
+
+<a id='changelog-1.27.0.0'></a>
+# 1.27.0.0 — 2024-04-30
+
+## Removed
+
+- `Codec.CBOR.Extras` module is migrated from here to `plutus-core`.
+
+## Changed
+
+- `mkEvaluationContext` now takes `[Int64]` (instead of `[Integer]`).
+
+`EvaluationContext` now contains:
+
+- `PlutusLedgerLanguage` -- a ledger language
+- `MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun` -- a function returning a semantics variant for every protocol version
+- `[(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]` -- a cache of machine parameters for each semantics variant supported by the ledger language
+
+Similarly, `mkDynEvaluationContext` now takes additional arguments:
+
+- `PlutusLedgerLanguage` -- same as above
+- `[BuiltinSemanticsVariant DefaultFun]` -- a list of semantics variants supported by the ledger language
+- `MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun` -- same as above
+
+All this allows us to improve the accuracy of costing in future protocol versions without introducing new ledger languages.
+
+<a id='changelog-1.22.0.0'></a>
+# 1.22.0.0 — 2024-02-21
+
+## Added
+
+- PlutusV3 cost model parameter names updated for `ByteStringToInteger` and `IntegerToByteString`.
+
+- `PlutusLedgerApi.V1.Value.currencySymbolValueOf`, which calculates the total amount for
+  the given `CurrencySymbol`.
+
+## Changed
+
+- Changed the `TxId`'s `BuiltingData` representation:
+  removed a newtype constructor wrapping the underlying `BuiltinByteString`.
+
+<a id='changelog-1.20.0.0'></a>
+# 1.20.0.0 — 2024-01-15
+
+## Changed
+
+- More fields in the V3 script context use `Lovelace`
+
+- Removed `GovernanceActionId` from the `Voting` script purpose. It is not needed because
+  the script for a given voter will be run only once for all votes.
+
+- Updated the `Certifying` and `Proposing` script purposes, whose arguments now consist of
+  both an integer index and the actual argument (`TxCert` and `ProposalProcedure`).
+
+- Updated the `NewCommittee` variant of `GovernanceAction` to `UpdateCommittee`.
+
+<a id='changelog-1.19.0.0'></a>
+# 1.19.0.0 — 2023-12-23
+
+## Added
+
+- Added functions for converting between `Lovelace` and `Value`: `lovelaceValue`
+  and `lovelaceValueOf`.
+
+- Added some helper functions for Plutus V3 ScriptContext.
+
+## Changed
+
+- Improved the efficiency of `PlutusLedgerApi.V1.Value.leq` and `PlutusLedgerApi.V1.Value.geq`.
+
+- Use `Lovelace` instead of `Value` in `txInfoFee`, `txInfoCurrentTreasuryAmount`
+  and `txInfoTreasuryDonation` for Plutus V3.
+
+- Added constitution script hash to `ParameterChange` and `TreasuryWithdrawals`
+  in the `ScriptContext` of Plutus V3.
+
+<a id='changelog-1.18.0.0'></a>
+# 1.18.0.0 — 2023-12-06
+
+## Changed
+
+- Added two constructors, `TxCertPoolRegister` and `TxCertPoolRetire`, to
+  `PlutusLedgerApi.V3.Contexts.TxCert`.
+
+<a id='changelog-1.17.0.0'></a>
+# 1.17.0.0 — 2023-11-22
+
+## Added
+
+- Exposed `unSatInt` and `fromSatInt` from `plutus-ledger-api`. Added `NFData` and `NoThunks` for `CostModelApplyError`.
+
 <a id='changelog-1.16.0.0'></a>
 # 1.16.0.0 — 2023-11-10
 
 ## Changed
 
-- Optimized equality checking of `Value`s in [#5593](https://github.com/input-output-hk/plutus/pull/5593)
+- Optimized equality checking of `Value`s in [#5593](https://github.com/IntersectMBO/plutus/pull/5593)
 
 <a id='changelog-1.14.0.0'></a>
 # 1.14.0.0 — 2023-09-28

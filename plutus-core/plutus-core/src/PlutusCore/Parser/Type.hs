@@ -16,7 +16,7 @@ import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.MkPlc (mkIterTyApp)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Parser.ParserCommon
 
 import Control.Monad

@@ -41,7 +41,7 @@ import PlutusIR qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusIR.MkPir qualified as PIR
 
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 
 import Control.Monad.Extra
 import Control.Monad.Reader
@@ -186,7 +186,7 @@ compileTyCon tc
 
               -- Type variables are in scope for the rest of the definition
               -- We remove 'RuntimeRep' type variables with 'dropRuntimeRepVars'
-              -- to compile unboxed tuples type constructor, see Note [Unboxed tuples]
+              -- to compile unboxed tuples type constructor, see Note [Runtime reps]
               withTyVarsScoped (dropRuntimeRepVars $ GHC.tyConTyVars tc) $ \tvs -> do
                 constructors <- for dcs $ \dc -> do
                   name <- compileNameFresh (GHC.getName dc)
@@ -343,7 +343,7 @@ getMatchInstantiated t =
   traceCompilation 3 ("Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
       match <- getMatch tc
-      -- We drop 'RuntimeRep' arguments, see Note [Unboxed tuples]
+      -- We drop 'RuntimeRep' arguments, see Note [Runtime reps]
       args' <- mapM compileTypeNorm (GHC.dropRuntimeRepArgs args)
       pure $ PIR.mkIterInst match $ (annMayInline,) <$> args'
     -- must be a TC app

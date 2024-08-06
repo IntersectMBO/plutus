@@ -142,7 +142,7 @@ below show that this is not a good strategy.
 
 The following table shows what happens if we Merklise all of the types
 in the validators for our [use
-cases](https://github.com/input-output-hk/plutus/tree/master/plutus-use-cases),
+cases](https://github.com/IntersectMBO/plutus/tree/master/plutus-use-cases),
 leaving terms untouched.  The first two columns show the total number
 of nodes in the validator AST and the number used by types, and the
 final two columns show the serialised sizes of the original AST and
@@ -270,7 +270,7 @@ size of the AST substantially.
 Our ASTs contain a lot of type information: the earlier table shows
 that typically 70% or more of the nodes in an AST are accounted for by
 types.  The table in
-https://github.com/input-output-hk/plutus/blob/master/docs/plutus-core/Merklisation/Erasure.md
+https://github.com/IntersectMBO/plutus/blob/master/docs/plutus-core/Merklisation/Erasure.md
 shows that a great deal of space can be saved if we use an untyped
 representation.
 

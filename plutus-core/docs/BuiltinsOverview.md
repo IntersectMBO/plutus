@@ -11,25 +11,25 @@ Before you proceed, make sure that you understand the high-level concepts at pla
 The module alignment of the built-in functions machinery (sans most of costing, which we'll include in a separate section):
 
 <pre>
-<code>                             <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters/Default.hs">Evaluation.Machine.MachineParameters.Default</a>
+<code>                             <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters/Default.hs">Evaluation.Machine.MachineParameters.Default</a>
                                        /       |       \
                                       /        |        \
-<a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs">Evaluation.Machine.ExBudgetingDefaults</a>  <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs">Default.Builtins</a> <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters.hs">Evaluation.Machine.MachineParameters</a>
+<a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs">Evaluation.Machine.ExBudgetingDefaults</a>  <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs">Default.Builtins</a> <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters.hs">Evaluation.Machine.MachineParameters</a>
                   |                            |        /
                   |                            |       /
-        [other_costing_stuff]           <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Meaning.hs">Builtin.Meaning</a> ## <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Elaborate.hs">Builtin.Elaborate</a>
+        [other_costing_stuff]           <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Meaning.hs">Builtin.Meaning</a> ## <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Elaborate.hs">Builtin.Elaborate</a>
                                        *       |       #         #
                                       *        |        #       #
-                    <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/TypeScheme.hs">Builtin.TypeScheme</a>  <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Runtime.hs">Builtin.Runtime</a>  <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Debug.hs">Builtin.Debug</a>
+                    <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/TypeScheme.hs">Builtin.TypeScheme</a>  <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Runtime.hs">Builtin.Runtime</a>  <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Debug.hs">Builtin.Debug</a>
                    *       *          *        |
                   *        *           *       |
- <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/KnownKind.hs">Builtin.KnownKind</a> <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/KnownTypeAst.hs">Builtin.KnownTypeAst</a> <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/KnownType.hs">Builtin.KnownType</a> -- <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Emitter.hs">Builtin.Emitter</a>
+ <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/KnownKind.hs">Builtin.KnownKind</a> <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/KnownTypeAst.hs">Builtin.KnownTypeAst</a> <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/KnownType.hs">Builtin.KnownType</a> -- <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Emitter.hs">Builtin.Emitter</a>
                                       *        |
                                        *       |
-                                        <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Polymorphism.hs">Builtin.Polymorphism</a>
+                                        <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Polymorphism.hs">Builtin.Polymorphism</a>
                                                |
                                                |
-                                        <a href="https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/HasConstant.hs">Builtin.HasConstant</a></code>
+                                        <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/HasConstant.hs">Builtin.HasConstant</a></code>
 </pre>
 
 Legend:
@@ -97,7 +97,7 @@ And that's it, you'll get everything else automatically, including general tests
 
 `Default.Builtins` contains extensive documentation on how to add a built-in function, what is allowed and what should be avoided, make sure to read everything if you want to add a built-in function.
 
-In practice, adding new builtins is more complicated than that, because some of the tests and Plutus Tx definitions need to be amended/created manually, see [this](https://github.com/input-output-hk/plutus/commit/173dce5ee85cb8038563dd39299abb550ea13b88) commit for an example. This is on top of costing requiring a lot of manual labor (see [this](https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/cost-model/CostModelGeneration.md) document for details).
+In practice, adding new builtins is more complicated than that, because some of the tests and Plutus Tx definitions need to be amended/created manually, see [this](https://github.com/IntersectMBO/plutus/commit/173dce5ee85cb8038563dd39299abb550ea13b88) commit for an example. This is on top of costing requiring a lot of manual labor (see [this](https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/cost-model/CostModelGeneration.md) document for details).
 
 ### Builtin meanings
 
@@ -111,7 +111,7 @@ toBuiltinMeaning
     -> BuiltinMeaning val (CostingPart uni fun)
 ```
 
-i.e. in order to construct a `BuiltinMeaning` one needs not only a built-in function, but also a semantics variant (a "version") of the set of built-in functions. You can read more about versioning of builtins and everything else in [CIP-35](https://cips.cardano.org/cips/cip35) and in Chapter 4 of the Plutus Core [specification](https://ci.iog.io/build/834321/download/1/plutus-core-specification.pdf).
+i.e. in order to construct a `BuiltinMeaning` one needs not only a built-in function, but also a semantics variant (a "version") of the set of built-in functions. You can read more about versioning of builtins and everything else in [CIP-35](https://cips.cardano.org/cips/cip35) and in Chapter 4 of the Plutus Core [specification](https://plutus.cardano.intersectmbo.org/resources/plutus-core-spec.pdf#page=8).
 
 We do not construct `BuiltinMeaning`s manually, because that would be extremely laborious. Instead, we use an auxiliary function that does the heavy lifting for us. Here's its type signature with a few lines of constraints omitted for clarity:
 
@@ -132,7 +132,7 @@ makeBuiltinMeaning
     (runCostingFunThreeArguments . paramIfThenElse)
 ```
 
-The denotation can be arbitrary Haskell code as long as the type of that function is supported by the builtins machinery. There's plenty of restrictions, but as you can see polymorphism is not one of them, so do read the docs in `Default.Builtins` if you want to learn more, in particular [this](https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L430) one.
+The denotation can be arbitrary Haskell code as long as the type of that function is supported by the builtins machinery. There's plenty of restrictions, but as you can see polymorphism is not one of them, so do read the docs in `Default.Builtins` if you want to learn more, in particular [this](https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L430) one.
 
 So what's that `BuiltinMeaning` returned by `toBuiltinMeaning`? It's this:
 
@@ -257,7 +257,7 @@ class KnownTypeAst tyname uni x where
 
 However unlike `KnownKind` it also contains a bunch of associated type families, which guide the elaborator from `PlutusCore.Builtin.Elaborate`, whose purpose is to ensure that the Plutus type of a built-in function can be inferred from its denotation without it being necessary to manually write out complex Haskell types representing Plutus types.
 
-In particular, the elaborator monomorphizes types of polymorphic functions, e.g. here's what it does to the type of `fst` (which can't be a built-in function at the moment for reasons explained in [this](https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L965) Note):
+In particular, the elaborator monomorphizes types of polymorphic functions, e.g. here's what it does to the type of `fst` (which can't be a built-in function at the moment for reasons explained in [this](https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L965) Note):
 
 ```
 >>> :t elaborateDebug fst

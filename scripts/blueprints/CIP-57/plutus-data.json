@@ -1,0 +1,176 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://cips.cardano.org/cips/cip57/schemas/plutus-data.json",
+    "$vocabulary": {
+        "https://json-schema.org/draft/2020-12/vocab/core": true,
+        "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+        "https://json-schema.org/draft/2020-12/vocab/validation": true,
+        "https://cips.cardano.org/cips/cip57": true
+    },
+    "allOf": [
+        {
+            "$ref": "#/$defs/annotation"
+        },
+        {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/primitive"
+                },
+                {
+                    "$ref": "#/$defs/applicator"
+                }
+            ]
+        }
+    ],
+    "$defs": {
+        "primitive": {
+            "oneOf": [
+                {
+                    "$ref": "#/$defs/integer"
+                },
+                {
+                    "$ref": "#/$defs/bytes"
+                },
+                {
+                    "$ref": "#/$defs/list"
+                },
+                {
+                    "$ref": "#/$defs/map"
+                },
+                {
+                    "$ref": "#/$defs/constructor"
+                }
+            ]
+        },
+        "integer": {
+            "type": "object",
+            "required": [
+                "dataType"
+            ],
+            "properties": {
+                "dataType": {
+                    "type": "string",
+                    "const": "integer"
+                }
+            }
+        },
+        "bytes": {
+            "type": "object",
+            "required": [
+                "dataType"
+            ],
+            "properties": {
+                "dataType": {
+                    "type": "string",
+                    "const": "bytes"
+                }
+            }
+        },
+        "list": {
+            "type": "object",
+            "required": [
+                "dataType",
+                "items"
+            ],
+            "properties": {
+                "dataType": {
+                    "type": "string",
+                    "const": "list"
+                },
+                "items": {
+                    "oneOf": [
+                        {
+                            "$ref": "#"
+                        },
+                        {
+                            "type": "array",
+                            "items": { "$ref": "#" }
+                        }
+                    ]
+                }
+            }
+        },
+        "map": {
+            "type": "object",
+            "dataType": "object",
+            "required": [
+                "dataType",
+                "keys",
+                "values"
+            ],
+            "properties": {
+                "dataType": {
+                    "type": "string",
+                    "const": "map"
+                },
+                "keys": {
+                    "$ref": "#"
+                },
+                "values": {
+                    "$ref": "#"
+                }
+            }
+        },
+        "constructor": {
+            "type": "object",
+            "required": [
+                "dataType",
+                "index",
+                "fields"
+            ],
+            "properties": {
+                "dataType": {
+                    "type": "string",
+                    "const": "constructor"
+                },
+                "index": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#"
+                    }
+                }
+            }
+        },
+        "annotation": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                }
+            }
+        },
+        "applicator": {
+            "type": "object",
+            "maxProperties": 1,
+            "minProperties": 1,
+            "properties": {
+                "allOf": {
+                    "$ref": "#/$defs/schemaArray"
+                },
+                "anyOf": {
+                    "$ref": "#/$defs/schemaArray"
+                },
+                "oneOf": {
+                    "$ref": "#/$defs/schemaArray"
+                },
+                "not": {
+                    "$ref": "#"
+                }
+            }
+        },
+        "schemaArray": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "$ref": "#"
+            }
+        }
+    }
+}

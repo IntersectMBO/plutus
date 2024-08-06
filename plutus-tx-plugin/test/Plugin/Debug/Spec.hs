@@ -8,6 +8,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 
 module Plugin.Debug.Spec where
 
@@ -23,13 +24,12 @@ import Data.Proxy
 
 debug :: TestNested
 debug =
-    testNestedGhc
-        "Debug"
+    testNested "Debug" . pure $ testNestedGhc
         [ goldenPirBy config "letFun" letFun
         , goldenPirBy config "fib" fib
         ]
   where
-    config = PrettyConfigClassic defPrettyConfigName True
+    config = PrettyConfigClassic prettyConfigName True
 
 letFun :: CompiledCode (Integer -> Integer -> Bool)
 letFun =

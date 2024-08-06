@@ -16,12 +16,11 @@ import PlutusCore.MkPlc (mkConstant)
 import PlutusCore.Pretty qualified as PP
 import PlutusPrelude
 
-import Control.DeepSeq (rnf)
 import Data.ByteString.Lazy qualified as BSL (readFile)
 import Data.Text.IO qualified as T
 import Flat (unflat)
 import Options.Applicative
-import System.Exit (exitSuccess)
+import System.Exit (exitFailure, exitSuccess)
 
 plcHelpText :: String
 plcHelpText = helpText "Typed Plutus Core"
@@ -35,7 +34,6 @@ data EvalOptions =
       Input
       Format
       PrintMode
-      TimingMode
       (BuiltinSemanticsVariant PLC.DefaultFun)
 data EraseOptions     = EraseOptions Input Format Output Format PrintMode
 
@@ -50,7 +48,7 @@ data Command = Apply       ApplyOptions
              | Example     ExampleOptions
              | Erase       EraseOptions
              | Eval        EvalOptions
-             | DumpModel
+             | DumpModel   (BuiltinSemanticsVariant PLC.DefaultFun)
              | PrintBuiltinSignatures
 
 ---------------- Option parsers ----------------
@@ -63,7 +61,7 @@ eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <
 
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions <$> input <*> inputformat <*> printmode <*> timingmode <*> builtinSemanticsVariant
+  EvalOptions <$> input <*> inputformat <*> printmode <*> builtinSemanticsVariant
 
 plutus ::
   -- | The @helpText@
@@ -116,8 +114,8 @@ plutusOpts = hsubparser $
     <> command "evaluate"
            (info (Eval <$> evalOpts)
             (progDesc "Evaluate a typed Plutus Core program using the CK machine."))
-    <> command "dump-model"
-           (info (pure DumpModel)
+    <> command "dump-cost-model"
+           (info (DumpModel <$> builtinSemanticsVariant)
             (progDesc "Dump the cost model parameters."))
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
@@ -170,9 +168,9 @@ runTypecheck (TypecheckOptions inp fmt) = do
     PLC.inferTypeOfProgram tcConfig (void prog)
     of
       Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
-        errorWithoutStackTrace $ PP.displayPlcDef e
+        errorWithoutStackTrace $ PP.displayPlc e
       Right ty                                               ->
-        T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
+        T.putStrLn (PP.displayPlc ty) >> exitSuccess
 
 ---------------- Optimisation ----------------
 
@@ -186,21 +184,17 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt printMode timingMode semvar) = do
+runEval (EvalOptions inp ifmt printMode semvar) = do
   prog <- readProgram ifmt inp
   let evaluate = Ck.evaluateCkNoEmit (PLC.defaultBuiltinsRuntimeForSemanticsVariant semvar)
       term = void $ prog ^. PLC.progTerm
-      !_ = rnf term
-      -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
-      -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
-  case timingMode of
-    NoTiming -> evaluate term & handleEResult printMode
-    Timing n -> timeEval n evaluate term >>= handleTimingResults term
+  case evaluate term of
+    Right v  -> print (getPrintMethod printMode v) >> exitSuccess
+    Left err -> print err *> exitFailure
 
 ----------------- Print examples -----------------------
 
-runPlcPrintExample ::
-    ExampleOptions -> IO ()
+runPlcPrintExample :: ExampleOptions -> IO ()
 runPlcPrintExample = runPrintExample getPlcExamples
 
 ---------------- Erasure ----------------
@@ -229,5 +223,5 @@ main = do
         Erase       opts       -> runErase            opts
         Print       opts       -> runPrint   @PlcProg opts
         Convert     opts       -> runConvert @PlcProg opts
-        DumpModel              -> runDumpModel
+        DumpModel   opts       -> runDumpModel        opts
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

@@ -14,35 +14,37 @@
 
  Some of these test vectors were produced using https://github.com/input-output-hk/bls-e2e-testvectors
  -}
-module PlutusBenchmark.BLS12_381.Scripts ( checkGroth16Verify_Haskell
-                                         , listOfSizedByteStrings
-                                         , mkGroth16VerifyScript
-                                         , mkHashAndAddG1Script
-                                         , mkHashAndAddG2Script
-                                         , mkPairingScript
-                                         , mkUncompressAndAddG1Script
-                                         , mkUncompressAndAddG2Script
-                                         , mkVerifyBlsSimplePolicy
-                                         , checkVerifyBlsSimpleScript
-                                         , mkVrfBlsPolicy
-                                         , checkVrfBlsScript
-                                         , mkG1VerifyPolicy
-                                         , checkG1VerifyScript
-                                         , mkG2VerifyPolicy
-                                         , checkG2VerifyScript
-                                         , mkAggregateSingleKeyG1Policy
-                                         , checkAggregateSingleKeyG1Script
-                                         , mkAggregateMultiKeyG2Policy
-                                         , checkAggregateMultiKeyG2Script
-                                         , mkSchnorrG1VerifyPolicy
-                                         , checkSchnorrG1VerifyScript
-                                         , mkSchnorrG2VerifyPolicy
-                                         , checkSchnorrG2VerifyScript
-                                        )
+module PlutusBenchmark.BLS12_381.Scripts
+    ( checkGroth16Verify_Haskell
+    , listOfByteStringsOfLength
+    , mkGroth16VerifyScript
+    , mkHashAndAddG1Script
+    , mkHashAndAddG2Script
+    , mkPairingScript
+    , mkUncompressAndAddG1Script
+    , mkUncompressAndAddG2Script
+    , mkVerifyBlsSimplePolicy
+    , checkVerifyBlsSimpleScript
+    , mkVrfBlsPolicy
+    , checkVrfBlsScript
+    , mkG1VerifyPolicy
+    , checkG1VerifyScript
+    , mkG2VerifyPolicy
+    , checkG2VerifyScript
+    , mkAggregateSingleKeyG1Policy
+    , checkAggregateSingleKeyG1Script
+    , mkAggregateMultiKeyG2Policy
+    , checkAggregateMultiKeyG2Script
+    , mkSchnorrG1VerifyPolicy
+    , checkSchnorrG1VerifyScript
+    , mkSchnorrG2VerifyPolicy
+    , checkSchnorrG2VerifyScript
+    )
 where
 import PlutusCore (DefaultFun, DefaultUni)
 import PlutusLedgerApi.V1.Bytes qualified as P (bytes, fromHex)
 import PlutusTx qualified as Tx
+import PlutusTx.Plugin ()
 import UntypedPlutusCore qualified as UPLC
 
 import PlutusTx.Prelude as Tx hiding (sort, (<>))
@@ -51,6 +53,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as C8
 import Data.Semigroup ((<>))
+import GHC.ByteOrder (ByteOrder (LittleEndian))
 import Hedgehog.Internal.Gen qualified as G
 import Hedgehog.Internal.Range qualified as R
 import System.IO.Unsafe (unsafePerformIO)
@@ -58,9 +61,9 @@ import System.IO.Unsafe (unsafePerformIO)
 import Prelude (fromIntegral)
 
 -- Create a list containing n bytestrings of length l.  This could be better.
-{-# NOINLINE listOfSizedByteStrings #-}
-listOfSizedByteStrings :: Integer -> Integer -> [ByteString]
-listOfSizedByteStrings n l = unsafePerformIO . G.sample $
+{-# NOINLINE listOfByteStringsOfLength #-}
+listOfByteStringsOfLength :: Integer -> Integer -> [ByteString]
+listOfByteStringsOfLength n l = unsafePerformIO . G.sample $
                              G.list (R.singleton $ fromIntegral n)
                                   (G.bytes (R.singleton $ fromIntegral l))
 
@@ -78,16 +81,10 @@ blsSigBls12381G2XmdSha256SswuRoNul = toBuiltin $ C8.pack "BLS_SIG_BLS12381G2_XMD
 byteString16Null :: BuiltinByteString
 byteString16Null = bytesFromHex "00000000000000000000000000000000"
 
--- workaround the lack of ByteString to Integer interpretation
--- replace with builtin when available, see https://github.com/input-output-hk/plutus/pull/4733
-byteStringToInteger  :: BuiltinByteString -> Integer
-byteStringToInteger b =
-  go 0
-    where len = Tx.lengthOfByteString b
-          go i =
-              if i >= len
-              then 0
-              else (Tx.indexByteString b i) + 256 * (go (i + 1))
+-- Little-endian bytestring to integer conversion
+{-# INLINABLE byteStringToIntegerLE #-}
+byteStringToIntegerLE :: BuiltinByteString -> Integer
+byteStringToIntegerLE = Tx.byteStringToInteger LittleEndian
 
 ---------------- Examples ----------------
 
@@ -95,9 +92,8 @@ byteStringToInteger b =
 
 {-# INLINABLE hashAndAddG1 #-}
 hashAndAddG1 :: [BuiltinByteString] -> BuiltinBLS12_381_G1_Element
-hashAndAddG1 [] = error ()
-hashAndAddG1 (p:ps) =
-    go ps (Tx.bls12_381_G1_hashToGroup p emptyByteString)
+hashAndAddG1 l =
+    go l (Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_zero)
     where go [] !acc     = acc
           go (q:qs) !acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_hashToGroup q emptyByteString) acc
 
@@ -109,9 +105,8 @@ mkHashAndAddG1Script l =
 -- Hash some bytestrings onto G2 and add them all together
 {-# INLINABLE hashAndAddG2 #-}
 hashAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
-hashAndAddG2 [] = error ()
-hashAndAddG2 (p:ps) =
-    go ps (Tx.bls12_381_G2_hashToGroup p emptyByteString)
+hashAndAddG2 l =
+    go l (Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_zero)
     where go [] !acc     = acc
           go (q:qs) !acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_hashToGroup q emptyByteString) acc
 
@@ -123,9 +118,8 @@ mkHashAndAddG2Script l =
 -- Uncompress a list of compressed G1 points and add them all together
 {-# INLINABLE uncompressAndAddG1 #-}
 uncompressAndAddG1 :: [BuiltinByteString] -> BuiltinBLS12_381_G1_Element
-uncompressAndAddG1 [] = error ()
-uncompressAndAddG1 (p:ps) =
-    go ps (Tx.bls12_381_G1_uncompress p)
+uncompressAndAddG1 l =
+    go l (Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_zero)
     where go [] acc     = acc
           go (q:qs) acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_uncompress q) acc
 
@@ -138,9 +132,8 @@ mkUncompressAndAddG1Script l =
 -- Uncompress a list of compressed G1 points and add them all together
 {-# INLINABLE uncompressAndAddG2 #-}
 uncompressAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
-uncompressAndAddG2 [] = error ()
-uncompressAndAddG2 (p:ps) =
-    go ps (Tx.bls12_381_G2_uncompress p)
+uncompressAndAddG2 l =
+    go l (Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_zero)
     where go [] acc     = acc
           go (q:qs) acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_uncompress q) acc
 
@@ -156,14 +149,14 @@ mkUncompressAndAddG2Script l =
 -- Miller loop to (p1,q1) and (p2,q2), and then call finalVerify on the results.
 {-# INLINABLE runPairingFunctions #-}
 runPairingFunctions
-    :: Tx.BuiltinBLS12_381_G1_Element
-    -> Tx.BuiltinBLS12_381_G2_Element
-    -> Tx.BuiltinBLS12_381_G1_Element
-    -> Tx.BuiltinBLS12_381_G2_Element
+    :: BuiltinByteString  -- G1
+    -> BuiltinByteString  -- G2
+    -> BuiltinByteString  -- G1
+    -> BuiltinByteString  -- G2
     -> Bool
 runPairingFunctions p1 q1 p2 q2 =
-    let r1 = Tx.bls12_381_millerLoop p1 q1
-        r2 = Tx.bls12_381_millerLoop p2 q2
+    let r1 = Tx.bls12_381_millerLoop (Tx.bls12_381_G1_uncompress p1) (Tx.bls12_381_G2_uncompress q1)
+        r2 = Tx.bls12_381_millerLoop (Tx.bls12_381_G1_uncompress p2) (Tx.bls12_381_G2_uncompress q2)
     in Tx.bls12_381_finalVerify r1 r2
 
 mkPairingScript
@@ -174,10 +167,10 @@ mkPairingScript
     -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkPairingScript p1 q1 p2 q2 =
     Tx.getPlcNoAnn $ $$(Tx.compile [|| runPairingFunctions ||])
-          `Tx.unsafeApplyCode` Tx.liftCodeDef p1
-          `Tx.unsafeApplyCode` Tx.liftCodeDef q1
-          `Tx.unsafeApplyCode` Tx.liftCodeDef p2
-          `Tx.unsafeApplyCode` Tx.liftCodeDef q2
+          `Tx.unsafeApplyCode` (Tx.liftCodeDef $ Tx.bls12_381_G1_compress p1)
+          `Tx.unsafeApplyCode` (Tx.liftCodeDef $ Tx.bls12_381_G2_compress q1)
+          `Tx.unsafeApplyCode` (Tx.liftCodeDef $ Tx.bls12_381_G1_compress p2)
+          `Tx.unsafeApplyCode` (Tx.liftCodeDef $ Tx.bls12_381_G2_compress q2)
 
 
 ---------------- Groth16 verification ----------------
@@ -270,8 +263,7 @@ groth16Verify (Tx.bls12_381_G1_uncompress -> alpha)
               (Tx.bls12_381_G1_uncompress -> a)
               (Tx.bls12_381_G2_uncompress -> b)
               (Tx.bls12_381_G1_uncompress -> c)
-              s =
-                  let l1 = Tx.bls12_381_millerLoop a b
+              s = let l1 = Tx.bls12_381_millerLoop a b
                       l2 = Tx.bls12_381_millerLoop alpha beta
                       l3 = Tx.bls12_381_millerLoop c delta
                       p  = Tx.bls12_381_G1_add  abc1 (Tx.bls12_381_G1_scalarMul s abc2)
@@ -302,6 +294,8 @@ checkGroth16Verify_Haskell =
     groth16Verify (g1 groth16alpha) (g2 groth16beta) (g2 groth16gamma) (g2 groth16delta)
                       (g1 groth16gamma_abc_1) (g1 groth16gamma_abc_2) (g1 groth16a) (g2 groth16b) (g1 groth16c) groth16scalar
 
+
+
 ---------------- Simple Sign and Verify ----------------
 
 {-# INLINABLE simpleVerifyPrivKey #-}
@@ -314,20 +308,20 @@ simpleVerifyMessage  = "I am a message"
 
 {-# INLINABLE verifyBlsSimpleScript #-}
 verifyBlsSimpleScript :: Integer -> BuiltinByteString -> Bool
-verifyBlsSimpleScript privKey message = do
-  let
-    -- calculate public key
-    pubKey = Tx.bls12_381_G1_scalarMul privKey Tx.bls12_381_G1_generator
+verifyBlsSimpleScript privKey message =
+  let g1generator = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
 
-    -- Hash this msg to the G2
-    msgToG2 = Tx.bls12_381_G2_hashToGroup message Tx.emptyByteString
+      -- calculate public key
+      pubKey = Tx.bls12_381_G1_scalarMul privKey g1generator
 
-    -- Create signature artifact in G2 with private key
-    sigma = Tx.bls12_381_G2_scalarMul privKey msgToG2
+      -- Hash this msg to the G2
+      msgToG2 = Tx.bls12_381_G2_hashToGroup message Tx.emptyByteString
+
+      -- Create signature artifact in G2 with private key
+      sigma = Tx.bls12_381_G2_scalarMul privKey msgToG2
 
   -- verify the msg with signature sigma with the check e(g1,sigma)=e(pub,msgToG2)
-  Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop Tx.bls12_381_G1_generator sigma) (Tx.bls12_381_millerLoop pubKey msgToG2)
-  --False
+  in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop g1generator sigma) (Tx.bls12_381_millerLoop pubKey msgToG2)
 
 checkVerifyBlsSimpleScript :: Bool
 checkVerifyBlsSimpleScript = verifyBlsSimpleScript simpleVerifyPrivKey simpleVerifyMessage
@@ -354,7 +348,7 @@ vrfMessage :: BuiltinByteString
 vrfMessage = "I am a message" :: BuiltinByteString
 
 data VrfProof = VrfProof
-  { vrfProofGamma :: BuiltinBLS12_381_G2_Element -- requires Typeable and ToData instances (TODO: to be added on master before merge)
+  { vrfProofGamma :: BuiltinByteString
   , vrfProofC     :: BuiltinByteString
   , vrfProofS     :: Integer
   }
@@ -369,76 +363,82 @@ Tx.makeLift ''VrfProofWithOutput
 Tx.unstableMakeIsData ''VrfProofWithOutput
 
 {-# INLINABLE vrfBlsScript #-}
-vrfBlsScript :: BuiltinByteString -> BuiltinBLS12_381_G2_Element -> VrfProofWithOutput -> Bool
-vrfBlsScript message pubKey (VrfProofWithOutput beta (VrfProof gamma c s)) = do
+vrfBlsScript :: BuiltinByteString -> BuiltinByteString -> VrfProofWithOutput -> Bool
+vrfBlsScript message pubKey (VrfProofWithOutput beta (VrfProof gamma c s)) =
   let
-    -- cofactor of G2
-    f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
+      -- cofactor of G2
+      f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
 
-    -- The proof of that the VRF hash of input alpha under our priv key is beta
-    -- To verify a VRF hash given an
-    --        input alpha
-    --        output beta
-    --        proof pi (gamma, c, s)
-    --        pubkey pub
-    -- do the following calculation
-    u = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToInteger c) pubKey) (Tx.bls12_381_G2_scalarMul s Tx.bls12_381_G2_generator)
-    h = Tx.bls12_381_G2_hashToGroup message emptyByteString
-    v = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToInteger c) gamma) (Tx.bls12_381_G2_scalarMul s h)
-
+      -- The proof of that the VRF hash of input alpha under our priv key is beta
+      -- To verify a VRF hash given an
+      --        input alpha
+      --        output beta
+      --        proof pi (gamma, c, s)
+      --        pubkey pub
+      -- do the following calculation
+      pubKey' = Tx.bls12_381_G2_uncompress pubKey
+      g2generator = Tx.bls12_381_G2_uncompress bls12_381_G2_compressed_generator
+      u = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToIntegerLE c) pubKey') (Tx.bls12_381_G2_scalarMul s g2generator)
+      h = Tx.bls12_381_G2_hashToGroup message emptyByteString
+      v = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToIntegerLE c) (Tx.bls12_381_G2_uncompress gamma)) (Tx.bls12_381_G2_scalarMul s h)
     -- and check
 
-  c == (sha2_256 . mconcat $ Tx.bls12_381_G2_compress <$> [Tx.bls12_381_G2_generator, h, pubKey, gamma, u, v])
-    &&
-      beta == (sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f gamma)
+  in c == (sha2_256 . mconcat $ Tx.bls12_381_G2_compress <$> [g2generator, h, pubKey', Tx.bls12_381_G2_uncompress gamma, u, v])
+         &&
+         beta == (sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f (Tx.bls12_381_G2_uncompress gamma))
 
 -- used offchain to generate the vrf proof output
 generateVrfProof :: Integer -> BuiltinByteString -> VrfProofWithOutput
-generateVrfProof privKey message = do
-  let
-    -- calculate public key
-    pub = Tx.bls12_381_G2_scalarMul privKey Tx.bls12_381_G2_generator
+generateVrfProof privKey message =
+  let g2generator = Tx.bls12_381_G2_uncompress bls12_381_G2_compressed_generator
 
-    -- hash this msg to G2
-    h = Tx.bls12_381_G2_hashToGroup message emptyByteString
+      -- calculate public key
+      pub = Tx.bls12_381_G2_scalarMul privKey g2generator
 
-    -- define first element of the proof of correct VRF
-    gamma = Tx.bls12_381_G2_scalarMul privKey h
-    -- gammaComp = Tx.bls12_381_G2_compress gamma
+      -- hash this msg to G2
+      h = Tx.bls12_381_G2_hashToGroup message emptyByteString
 
-    -- for this signed hash with preimage alpha, define a ephemeral interger (for each signature take a new one)
-    -- Random 32 byte int
-    k = 108204667002115086588596846168569722098834602153875763359385781912495445631691 :: Integer
+      -- define first element of the proof of correct VRF
+      gamma = Tx.bls12_381_G2_scalarMul privKey h
+      -- gammaComp = Tx.bls12_381_G2_compress gamma
 
-    -- define second element of the proof of correct VRF
-    -- the paper notes that this can actually be truncated to 128 bits without loss of the 128 bits security.
-    -- truncating this will allow for smaller proof sizes.
-    c =
-      sha2_256 . mconcat $
-        Tx.bls12_381_G2_compress
-          <$> [Tx.bls12_381_G2_generator, h, pub, gamma, Tx.bls12_381_G2_scalarMul k Tx.bls12_381_G2_generator, Tx.bls12_381_G2_scalarMul k h]
+      -- for this signed hash with preimage alpha, define a ephemeral interger (for each signature take a new one)
+      -- Random 32 byte int
+      k = 108204667002115086588596846168569722098834602153875763359385781912495445631691 :: Integer
 
-    -- define the third and last element of a proof of correct VRF
-    s = (k - (byteStringToInteger c) * privKey) `modulo` 52435875175126190479447740508185965837690552500527637822603658699938581184513
+      -- define second element of the proof of correct VRF
+      -- the paper notes that this can actually be truncated to 128 bits without loss of the 128 bits security.
+      -- truncating this will allow for smaller proof sizes.
+      c = sha2_256 . mconcat $
+          Tx.bls12_381_G2_compress
+                <$> [g2generator, h, pub, gamma, Tx.bls12_381_G2_scalarMul k g2generator, Tx.bls12_381_G2_scalarMul k h]
 
-    -- cofactor of G2
-    f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
+      -- define the third and last element of a proof of correct VRF
+      s = (k - (byteStringToIntegerLE c) * privKey) `modulo` 52435875175126190479447740508185965837690552500527637822603658699938581184513
 
-    -- create our VRF hash output
-    beta = sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f gamma
+      -- cofactor of G2
+      f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
 
-  VrfProofWithOutput beta (VrfProof gamma c s)
+      -- create our VRF hash output
+      beta = sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f gamma
+
+  in VrfProofWithOutput beta (VrfProof (Tx.bls12_381_G2_compress gamma) c s)
 
 checkVrfBlsScript :: Bool
-checkVrfBlsScript = vrfBlsScript vrfMessage (Tx.bls12_381_G2_scalarMul vrfPrivKey Tx.bls12_381_G2_generator) (generateVrfProof vrfPrivKey vrfMessage)
+checkVrfBlsScript = let g2generator = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator
+                        pk = Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul vrfPrivKey g2generator
+                    in vrfBlsScript vrfMessage pk (generateVrfProof vrfPrivKey vrfMessage)
 
 mkVrfBlsPolicy :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkVrfBlsPolicy =
-  Tx.getPlcNoAnn $
-    $$(Tx.compile [||vrfBlsScript||])
-      `Tx.unsafeApplyCode` Tx.liftCodeDef vrfMessage
-      `Tx.unsafeApplyCode` Tx.liftCodeDef (Tx.bls12_381_G2_scalarMul vrfPrivKey Tx.bls12_381_G2_generator)
-      `Tx.unsafeApplyCode` Tx.liftCodeDef (generateVrfProof vrfPrivKey vrfMessage)
+    let g2generator = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator
+    in Tx.getPlcNoAnn $
+           $$(Tx.compile [|| vrfBlsScript ||])
+                 `Tx.unsafeApplyCode` Tx.liftCodeDef vrfMessage
+                 `Tx.unsafeApplyCode` Tx.liftCodeDef (Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul vrfPrivKey g2generator)
+                 `Tx.unsafeApplyCode` Tx.liftCodeDef (generateVrfProof vrfPrivKey vrfMessage)
+
+
 
 ---------------- Verify over G1 ----------------
 
@@ -472,13 +472,14 @@ g1VerifyScript ::
   -> BuiltinByteString
   -> BuiltinByteString
   -> Bool
-g1VerifyScript message pubKey signature dst = do
-  let
-    pkDeser = Tx.bls12_381_G1_uncompress pubKey
-    sigDeser = Tx.bls12_381_G2_uncompress signature
-    hashedMsg = Tx.bls12_381_G2_hashToGroup message dst
+g1VerifyScript message pubKey signature dst =
+  let g1generator = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
+      pkDeser = Tx.bls12_381_G1_uncompress pubKey
+      sigDeser = Tx.bls12_381_G2_uncompress signature
+      hashedMsg = Tx.bls12_381_G2_hashToGroup message dst
 
-  Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop pkDeser hashedMsg) (Tx.bls12_381_millerLoop Tx.bls12_381_G1_generator sigDeser)
+  in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop pkDeser hashedMsg)
+         (Tx.bls12_381_millerLoop g1generator sigDeser)
 
 checkG1VerifyScript :: Bool
 checkG1VerifyScript = g1VerifyScript g1VerifyMessage g1VerifyPubKey g1VerifySignature blsSigBls12381G2XmdSha256SswuRoNul
@@ -523,13 +524,13 @@ g2VerifyScript ::
   -> BuiltinByteString
   -> BuiltinByteString
   -> Bool
-g2VerifyScript message pubKey signature dst = do
-  let
-    pkDeser = Tx.bls12_381_G2_uncompress pubKey
-    sigDeser = Tx.bls12_381_G1_uncompress signature
-    hashedMsg = Tx.bls12_381_G1_hashToGroup message dst
+g2VerifyScript message pubKey signature dst =
+  let g2generator = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator
+      pkDeser = Tx.bls12_381_G2_uncompress pubKey
+      sigDeser = Tx.bls12_381_G1_uncompress signature
+      hashedMsg = Tx.bls12_381_G1_hashToGroup message dst
 
-  Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop hashedMsg pkDeser) (Tx.bls12_381_millerLoop sigDeser Tx.bls12_381_G2_generator)
+  in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop hashedMsg pkDeser) (Tx.bls12_381_millerLoop sigDeser g2generator)
 
 checkG2VerifyScript :: Bool
 checkG2VerifyScript =
@@ -585,20 +586,20 @@ aggregateSingleKeyG1Signature = bytesFromHex
                                   "1acf6bedc44bd4354f9d36d4f20f66318f39116428fabb88")
 
 {-# INLINABLE aggregateSingleKeyG1Script #-}
-aggregateSingleKeyG1Script ::
-     [BuiltinByteString]
-  -> BuiltinByteString
-  -> BuiltinByteString
-  -> BuiltinByteString
-  -> Bool
-aggregateSingleKeyG1Script messages pubKey aggregateSignature dst = do
-  let
-    hashedMsgs = Tx.map (\x -> Tx.bls12_381_G2_hashToGroup x dst) messages
-    pkDeser = Tx.bls12_381_G1_uncompress pubKey
-    aggrSigDeser = Tx.bls12_381_G2_uncompress aggregateSignature
-    aggrMsg = foldl1 Tx.bls12_381_G2_add hashedMsgs
+aggregateSingleKeyG1Script
+    :: [BuiltinByteString]
+    -> BuiltinByteString
+    -> BuiltinByteString
+    -> BuiltinByteString
+    -> Bool
+aggregateSingleKeyG1Script messages pubKey aggregateSignature dst =
+  let g1generator = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
+      hashedMsgs = Tx.map (\x -> Tx.bls12_381_G2_hashToGroup x dst) messages
+      pkDeser = Tx.bls12_381_G1_uncompress pubKey
+      aggrSigDeser = Tx.bls12_381_G2_uncompress aggregateSignature
+      aggrMsg = foldl1 Tx.bls12_381_G2_add hashedMsgs
 
-  Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop pkDeser aggrMsg) (Tx.bls12_381_millerLoop Tx.bls12_381_G1_generator aggrSigDeser)
+  in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop pkDeser aggrMsg) (Tx.bls12_381_millerLoop g1generator aggrSigDeser)
     where
       -- PlutusTx.Foldable has no foldl1
       foldl1 :: (a -> a -> a) -> [a] -> a
@@ -606,9 +607,14 @@ aggregateSingleKeyG1Script messages pubKey aggregateSignature dst = do
       foldl1 _ [_]    = traceError "foldr1: only one element in list"
       foldl1 f (x:xs) = Tx.foldl f x xs
 
+
 checkAggregateSingleKeyG1Script :: Bool
-checkAggregateSingleKeyG1Script = aggregateSingleKeyG1Script aggregateSingleKeyG1Messages aggregateSingleKeyG1PubKey
-                                    aggregateSingleKeyG1Signature blsSigBls12381G2XmdSha256SswuRoNul
+checkAggregateSingleKeyG1Script =
+    aggregateSingleKeyG1Script
+      aggregateSingleKeyG1Messages
+      aggregateSingleKeyG1PubKey
+      aggregateSingleKeyG1Signature
+      blsSigBls12381G2XmdSha256SswuRoNul
 
 mkAggregateSingleKeyG1Policy :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkAggregateSingleKeyG1Policy =
@@ -678,24 +684,24 @@ aggregateMultiKeyG2Signature = bytesFromHex ("b24d876661d0d1190c796bf7eaa7e02b80
                                              "6289d4de0477f6c17afb487275cb9de44325016edfeda042")
 
 {-# INLINABLE aggregateMultiKeyG2Script #-}
-aggregateMultiKeyG2Script ::
-     BuiltinByteString
-  -> [BuiltinByteString]
-  -> BuiltinByteString
-  -> BuiltinByteString
-  -> BuiltinByteString
-  -> Bool
-aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst = do
-  let
-    hashedMsg = Tx.bls12_381_G1_hashToGroup message dst
-    pksDeser = Tx.map Tx.bls12_381_G2_uncompress pubKeys
-    -- scalar calcuates to (142819114285630344964654001480828217341 :: Integer)
-    dsScalar = byteStringToInteger (Tx.sliceByteString 0 16
-               (Tx.sha2_256 (foldl1 Tx.appendByteString pubKeys)) `Tx.appendByteString` bs16Null)
-    aggrSigDeser = Tx.bls12_381_G1_uncompress aggregateSignature
-    aggrPk = calcAggregatedPubkeys dsScalar pksDeser
+aggregateMultiKeyG2Script
+    :: BuiltinByteString
+    -> [BuiltinByteString]
+    -> BuiltinByteString
+    -> BuiltinByteString
+    -> BuiltinByteString
+    -> Bool
+aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst =
+  let g2generator = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator
+      hashedMsg = Tx.bls12_381_G1_hashToGroup message dst
+      pksDeser = Tx.map Tx.bls12_381_G2_uncompress pubKeys
+      -- scalar calcuates to (142819114285630344964654001480828217341 :: Integer)
+      dsScalar = byteStringToIntegerLE (Tx.sliceByteString 0 16
+                    (Tx.sha2_256 (foldl1 Tx.appendByteString pubKeys)) `Tx.appendByteString` bs16Null)
+      aggrSigDeser = Tx.bls12_381_G1_uncompress aggregateSignature
+      aggrPk = calcAggregatedPubkeys dsScalar pksDeser
 
-  Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop hashedMsg aggrPk) (Tx.bls12_381_millerLoop aggrSigDeser Tx.bls12_381_G2_generator)
+  in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop hashedMsg aggrPk) (Tx.bls12_381_millerLoop aggrSigDeser g2generator)
     where
       -- PlutusTx.Foldable has no foldl1
       foldl1 :: (a -> a -> a) -> [a] -> a
@@ -704,9 +710,9 @@ aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst = do
       foldl1 f (x:xs) = Tx.foldl f x xs
 
       calcAggregatedPubkeys :: Integer -> [BuiltinBLS12_381_G2_Element] -> BuiltinBLS12_381_G2_Element
-      calcAggregatedPubkeys dsScalar' pksDeser' = do
-        let dsScalars = calcDsScalars pksDeser' [dsScalar']
-        go 1 (drop 1 pksDeser') (drop 1 dsScalars) (calcAggregatedPubkey (head pksDeser') (head dsScalars))
+      calcAggregatedPubkeys dsScalar' pksDeser' =
+          let dsScalars = calcDsScalars pksDeser' [dsScalar']
+          in go 1 (drop 1 pksDeser') (drop 1 dsScalars) (calcAggregatedPubkey (head pksDeser') (head dsScalars))
 
       calcDsScalars :: [BuiltinBLS12_381_G2_Element] -> [Integer] -> [Integer]
       calcDsScalars [] acc              = acc
@@ -742,8 +748,12 @@ aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst = do
 
 checkAggregateMultiKeyG2Script :: Bool
 checkAggregateMultiKeyG2Script =
-  aggregateMultiKeyG2Script aggregateMultiKeyG2Message aggregateMultiKeyG2PubKeys aggregateMultiKeyG2Signature
-    byteString16Null blsSigBls12381G2XmdSha256SswuRoNul
+  aggregateMultiKeyG2Script
+    aggregateMultiKeyG2Message
+    aggregateMultiKeyG2PubKeys
+    aggregateMultiKeyG2Signature
+    byteString16Null
+    blsSigBls12381G2XmdSha256SswuRoNul
 
 mkAggregateMultiKeyG2Policy :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkAggregateMultiKeyG2Policy =
@@ -753,6 +763,7 @@ mkAggregateMultiKeyG2Policy =
       `Tx.unsafeApplyCode` Tx.liftCodeDef aggregateMultiKeyG2Signature
       `Tx.unsafeApplyCode` Tx.liftCodeDef byteString16Null
       `Tx.unsafeApplyCode` Tx.liftCodeDef blsSigBls12381G2XmdSha256SswuRoNul
+
 
 ---------------- Schnorr signature in G1 ----------------
 
@@ -788,22 +799,23 @@ schnorrG1VerifyScript ::
   -> (BuiltinByteString, BuiltinByteString)
   -> BuiltinByteString
   -> Bool
-schnorrG1VerifyScript message pubKey signature bs16Null = do
-  let
-    a = Tx.fst signature
-    r = Tx.snd signature
-    c = byteStringToInteger (Tx.sliceByteString 0 16
-      (Tx.sha2_256 (a `Tx.appendByteString` pubKey `Tx.appendByteString` message)) `Tx.appendByteString` bs16Null)
-    pkDeser = Tx.bls12_381_G1_uncompress pubKey
-    aDeser = Tx.bls12_381_G1_uncompress a
-    rDeser = byteStringToInteger r
-  (rDeser `Tx.bls12_381_G1_scalarMul` Tx.bls12_381_G1_generator) `Tx.bls12_381_G1_equals`
-    (aDeser `Tx.bls12_381_G1_add` (c `Tx.bls12_381_G1_scalarMul` pkDeser))
+schnorrG1VerifyScript message pubKey signature bs16Null =
+  let a = Tx.fst signature
+      r = Tx.snd signature
+      c = byteStringToIntegerLE (Tx.sliceByteString 0 16
+            (Tx.sha2_256 (a `Tx.appendByteString` pubKey `Tx.appendByteString` message)) `Tx.appendByteString` bs16Null)
+      pkDeser = Tx.bls12_381_G1_uncompress pubKey
+      aDeser = Tx.bls12_381_G1_uncompress a
+      rDeser = byteStringToIntegerLE r
+      g1generator = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
+  in (rDeser `Tx.bls12_381_G1_scalarMul` g1generator) ==
+         (aDeser `Tx.bls12_381_G1_add` (c `Tx.bls12_381_G1_scalarMul` pkDeser))
   -- additional check using negation is for testing the function
   -- it can be removed to improve performance
-    &&
-      (rDeser `Tx.bls12_381_G1_scalarMul` Tx.bls12_381_G1_generator) `Tx.bls12_381_G1_add` (Tx.bls12_381_G1_neg aDeser)
-        == (c `Tx.bls12_381_G1_scalarMul` pkDeser)
+         &&
+         (rDeser `Tx.bls12_381_G1_scalarMul` g1generator)
+         `Tx.bls12_381_G1_add` (Tx.bls12_381_G1_neg aDeser)
+              == c `Tx.bls12_381_G1_scalarMul` pkDeser
 
 checkSchnorrG1VerifyScript :: Bool
 checkSchnorrG1VerifyScript = schnorrG1VerifyScript schnorrG1VerifyMessage schnorrG1VerifyPubKey
@@ -853,22 +865,23 @@ schnorrG2VerifyScript ::
   -> (BuiltinByteString, BuiltinByteString)
   -> BuiltinByteString
   -> Bool
-schnorrG2VerifyScript message pubKey signature bs16Null = do
-  let
-    a = Tx.fst signature
-    r = Tx.snd signature
-    c = byteStringToInteger (Tx.sliceByteString 0 16
-      (Tx.sha2_256 (a `Tx.appendByteString` pubKey `Tx.appendByteString` message)) `Tx.appendByteString` bs16Null)
-    pkDeser = Tx.bls12_381_G2_uncompress pubKey
-    aDeser = Tx.bls12_381_G2_uncompress a
-    rDeser = byteStringToInteger r
-  (rDeser `Tx.bls12_381_G2_scalarMul` Tx.bls12_381_G2_generator) ==
-    (aDeser `Tx.bls12_381_G2_add` (c `Tx.bls12_381_G2_scalarMul` pkDeser))
-  -- additional check using negation is for testing the function
-  -- it can be removed to improve performance
+schnorrG2VerifyScript message pubKey signature bs16Null =
+  let a = Tx.fst signature
+      r = Tx.snd signature
+      c = byteStringToIntegerLE (Tx.sliceByteString 0 16
+          (Tx.sha2_256 (a `Tx.appendByteString` pubKey `Tx.appendByteString` message)) `Tx.appendByteString` bs16Null)
+      pkDeser = Tx.bls12_381_G2_uncompress pubKey
+      aDeser = Tx.bls12_381_G2_uncompress a
+      rDeser = byteStringToIntegerLE r
+      g2generator = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator
+  in rDeser `Tx.bls12_381_G2_scalarMul` g2generator ==
+         (aDeser `Tx.bls12_381_G2_add` (c `Tx.bls12_381_G2_scalarMul` pkDeser))
+    -- additional check using negation is for testing the function
+    -- it can be removed to improve performance
     &&
-      (rDeser `Tx.bls12_381_G2_scalarMul` Tx.bls12_381_G2_generator) `Tx.bls12_381_G2_add` (Tx.bls12_381_G2_neg aDeser)
-        `Tx.bls12_381_G2_equals` (c `Tx.bls12_381_G2_scalarMul` pkDeser)
+    (rDeser `Tx.bls12_381_G2_scalarMul` g2generator)
+    `Tx.bls12_381_G2_add` (Tx.bls12_381_G2_neg aDeser)
+         == c `Tx.bls12_381_G2_scalarMul` pkDeser
 
 checkSchnorrG2VerifyScript :: Bool
 checkSchnorrG2VerifyScript = schnorrG2VerifyScript schnorrG2VerifyMessage schnorrG2VerifyPubKey

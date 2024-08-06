@@ -1,4 +1,3 @@
-
 -- editorconfig-checker-disable-file
 
 
@@ -35,20 +34,27 @@
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE ViewPatterns          #-}
 
-{-# OPTIONS_GHC -fno-specialise #-}  -- A big hammer, but it helps.
+{-# OPTIONS_GHC -O0 #-}
+-- the biggest hammer :(
+-- truly mysterious issues here
+{-# OPTIONS_GHC -fmax-simplifier-iterations=0 #-}
+-- O0 turns these off
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-warn-orphans       #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
+{-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 
 module PlutusBenchmark.Marlowe.Core.V1.Semantics
   ( -- * Semantics
-    MarloweData(..)
+    MarloweData(MarloweData, marloweParams, marloweState, marloweContract)
   , MarloweParams(..)
   , Payment(..)
   , TransactionInput(..)
@@ -93,19 +99,13 @@ module PlutusBenchmark.Marlowe.Core.V1.Semantics
   , totalBalance
   ) where
 
-
 import Data.Data (Data)
 import GHC.Generics (Generic)
-import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types (AccountId, Accounts, Action (..), Case (..),
-                                                        Contract (..), Environment (..), Input (..),
-                                                        InputContent (..), IntervalError (..),
-                                                        IntervalResult (..), Money,
-                                                        Observation (..), Party, Payee (..),
-                                                        State (..), TimeInterval, Token (..),
-                                                        Value (..), ValueId, emptyState, getAction,
-                                                        getInputContent, inBounds)
+import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
 import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..))
-import PlutusTx (makeIsDataIndexed)
+import PlutusTx (FromData, ToData, UnsafeFromData)
+import PlutusTx.AsData (asData)
+import PlutusTx.IsData (makeIsDataIndexed)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude (AdditiveGroup ((-)), AdditiveSemigroup ((+)), Bool (..), Eq (..), Integer,
                          Maybe (..), MultiplicativeSemigroup ((*)),
@@ -116,31 +116,6 @@ import PlutusLedgerApi.V2 qualified as Val
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as Builtins
 import Prelude qualified as Haskell
-
-
--- Functions that used in Plutus Core must be inlineable,
--- so their code is available for PlutusTx compiler.
-{-# INLINABLE fixInterval #-}
-{-# INLINABLE evalValue #-}
-{-# INLINABLE evalObservation #-}
-{-# INLINABLE refundOne #-}
-{-# INLINABLE moneyInAccount #-}
-{-# INLINABLE updateMoneyInAccount #-}
-{-# INLINABLE addMoneyToAccount #-}
-{-# INLINABLE giveMoney #-}
-{-# INLINABLE reduceContractStep #-}
-{-# INLINABLE reduceContractUntilQuiescent #-}
-{-# INLINABLE applyAction #-}
-{-# INLINABLE getContinuation #-}
-{-# INLINABLE applyCases #-}
-{-# INLINABLE applyInput #-}
-{-# INLINABLE convertReduceWarnings #-}
-{-# INLINABLE applyAllInputs #-}
-{-# INLINABLE isClose #-}
-{-# INLINABLE notClose #-}
-{-# INLINABLE computeTransaction #-}
-{-# INLINABLE contractLifespanUpperBound #-}
-{-# INLINABLE totalBalance #-}
 
 
 {-| Payment occurs during 'Pay' contract evaluation, and
@@ -244,18 +219,25 @@ data TransactionOutput =
   deriving stock (Haskell.Show, Data)
 
 
--- | This data type is a content of a contract's /Datum/
-data MarloweData = MarloweData {
-        marloweParams   :: MarloweParams,
-        marloweState    :: State,
-        marloweContract :: Contract
-    } deriving stock (Haskell.Show, Haskell.Eq, Generic, Data)
-
-
 -- | Parameters constant during the course of a contract.
 newtype MarloweParams = MarloweParams { rolesCurrency :: CurrencySymbol }
   deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord, Data)
 
+makeIsDataIndexed ''MarloweParams [('MarloweParams, 0)]
+
+asData
+  [d|
+  -- | This data type is a content of a contract's /Datum/
+  data MarloweData = MarloweData {
+          marloweParams   :: MarloweParams,
+          marloweState    :: State,
+          marloweContract :: Contract
+      }
+      deriving stock (Generic, Data)
+      deriving newtype (ToData, FromData, UnsafeFromData, Haskell.Show, Haskell.Eq)
+  |]
+
+{-# INLINABLE MarloweData #-}
 
 -- | Checks 'interval' and trims it if necessary.
 fixInterval :: TimeInterval -> State -> IntervalResult
@@ -346,12 +328,12 @@ refundOne accounts = case Map.toList accounts of
     -- Isabelle semantics in that it returns the least-recently
     -- added account-token combination rather than the first
     -- lexicographically ordered one. Also, the sequence
-    -- `Map.fromList . tail . Map.toList` preserves the
+    -- `Map.unsafeFromList . tail . Map.toList` preserves the
     -- invariants of order and non-duplication.
     ((accId, token), balance) : rest ->
         if balance > 0
-        then Just ((accId, token, balance), Map.fromList rest)
-        else refundOne (Map.fromList rest)
+        then Just ((accId, token, balance), Map.unsafeFromList rest)
+        else refundOne (Map.unsafeFromList rest)
 
 
 -- | Obtains the amount of money available an account.
@@ -738,6 +720,30 @@ instance Eq ReduceEffect where
     ReduceWithPayment p1 == ReduceWithPayment p2 = p1 == p2
     ReduceWithPayment _ == _                     = False
 
+-- Functions that used in Plutus Core must be inlineable,
+-- so their code is available for PlutusTx compiler.
+{-# INLINABLE fixInterval #-}
+{-# INLINABLE evalValue #-}
+{-# INLINABLE evalObservation #-}
+{-# INLINABLE refundOne #-}
+{-# INLINABLE moneyInAccount #-}
+{-# INLINABLE updateMoneyInAccount #-}
+{-# INLINABLE addMoneyToAccount #-}
+{-# INLINABLE giveMoney #-}
+{-# INLINABLE reduceContractStep #-}
+{-# INLINABLE reduceContractUntilQuiescent #-}
+{-# INLINABLE applyAction #-}
+{-# INLINABLE getContinuation #-}
+{-# INLINABLE applyCases #-}
+{-# INLINABLE applyInput #-}
+{-# INLINABLE convertReduceWarnings #-}
+{-# INLINABLE applyAllInputs #-}
+{-# INLINABLE isClose #-}
+{-# INLINABLE notClose #-}
+{-# INLINABLE computeTransaction #-}
+{-# INLINABLE contractLifespanUpperBound #-}
+{-# INLINABLE totalBalance #-}
+
 
 -- Lifting data types to Plutus Core
 makeLift ''IntervalError
@@ -753,7 +759,5 @@ makeLift ''TransactionWarning
 makeLift ''ApplyAllResult
 makeLift ''TransactionError
 makeLift ''TransactionOutput
-makeIsDataIndexed ''MarloweParams [('MarloweParams,0)]
-makeIsDataIndexed ''MarloweData [('MarloweData,0)]
 makeLift ''MarloweParams
 makeLift ''MarloweData

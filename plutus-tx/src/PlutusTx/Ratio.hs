@@ -28,7 +28,6 @@ module PlutusTx.Ratio(
     , half
     , fromGHC
     , toGHC
-    , reduce
     , gcd
     ) where
 
@@ -56,6 +55,11 @@ import Prelude qualified as Haskell
 import Prettyprinter (Pretty (..), (<+>))
 
 -- | Represents an arbitrary-precision ratio.
+--
+-- The following two invariants are maintained:
+--
+-- 1. The denominator is greater than zero.
+-- 2. The numerator and denominator are coprime.
 data Rational = Rational Integer Integer
   deriving stock (
     Haskell.Eq,
@@ -65,11 +69,6 @@ data Rational = Rational Integer Integer
 
 instance Pretty Rational where
   pretty (Rational a b) = "Rational:" <+> pretty a <+> pretty b
-
--- We maintain two invariants for Rational:
---
--- 1. The denominator is greater than zero.
--- 2. The numerator and denominator are coprime.
 
 instance P.Eq Rational where
   {-# INLINABLE (==) #-}
@@ -186,7 +185,7 @@ instance FromJSON Rational where
 {-# INLINABLE unsafeRatio #-}
 unsafeRatio :: Integer -> Integer -> Rational
 unsafeRatio n d
-  | d P.== P.zero = Builtins.error ()
+  | d P.== P.zero = P.traceError P.ratioHasZeroDenominatorError
   | d P.< P.zero = unsafeRatio (P.negate n) (P.negate d)
   | P.True =
     let gcd' = euclid n d
@@ -202,9 +201,9 @@ ratio n d
   | d P.< P.zero = P.Just (unsafeRatio (P.negate n) (P.negate d))
   | P.True =
     let gcd' = euclid n d
-     in P.Just P..
-        Rational (n `Builtins.quotientInteger` gcd') P.$
-        d `Builtins.quotientInteger` gcd'
+     in P.Just P.$
+          Rational (n `Builtins.quotientInteger` gcd')
+                   (d `Builtins.quotientInteger` gcd')
 
 -- | Converts a 'Rational' to a GHC 'Ratio.Rational', preserving value. Does not
 -- work on-chain.
@@ -293,7 +292,7 @@ properFraction (Rational n d) =
 {-# INLINABLE recip #-}
 recip :: Rational -> Rational
 recip (Rational n d)
-  | n P.== P.zero = Builtins.error ()
+  | n P.== P.zero = P.traceError P.reciprocalOfZeroError
   | n P.< P.zero = Rational (P.negate d) (P.negate n)
   | P.True = Rational d n
 
@@ -330,18 +329,6 @@ gcd a b = gcd' (P.abs a) (P.abs b) where
         | b' P.== P.zero = a'
         | P.True         = gcd' b' (a' `Builtins.remainderInteger` b')
 
--- From GHC.Real
--- | Given a numerator and denominator, produces a 'Rational' by dividing both
--- numerator and denominator by their greatest common divisor.
-{-# INLINABLE reduce #-}
-reduce :: Integer -> Integer -> Rational
-reduce x y
-    | y P.== 0 = P.traceError P.ratioHasZeroDenominatorError
-    | P.True     =
-        let d = gcd x y in
-          Rational (x `Builtins.quotientInteger` d)
-                   (y `Builtins.quotientInteger` d)
-
 -- Helpers
 
 -- Euclid's algorithm
@@ -360,7 +347,7 @@ P.makeLift ''Rational
 An important invariant is that the denominator is always positive. This is
 enforced by
 
-* Construction of 'Rational' numbers with 'unsafeRational' (the constructor
+* Construction of 'Rational' numbers with 'unsafeRatio' (the constructor
   of 'Rational' is not exposed)
 * Normalizing after every numeric operation.
 
@@ -370,7 +357,7 @@ The 'StdLib.Spec' module has some property tests that check the behaviour of
 
 -}
 
-{- NOTE [Integer division operations]
+{- Note [Integer division operations]
 
 Plutus Core provides built-in functions 'divideInteger', 'modInteger',
 'quotientInteger' and 'remainderInteger' which are implemented as the Haskell

@@ -10,6 +10,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
@@ -29,9 +30,9 @@ import PlutusTx.Test
 import Data.Proxy
 
 functions :: TestNested
-functions = testNestedGhc "Functions" [
-    recursiveFunctions
-    , unfoldings
+functions = testNested "Functions" . pure $ testNestedGhc
+  [ recursiveFunctions
+  , unfoldings
   ]
 
 recursiveFunctions :: TestNested

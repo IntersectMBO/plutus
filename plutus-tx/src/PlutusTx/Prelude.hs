@@ -28,6 +28,8 @@ module PlutusTx.Prelude (
     module Base,
     -- * Tracing functions
     module Trace,
+    -- * Unit
+    BI.BuiltinUnit,
     -- * String
     BuiltinString,
     appendString,
@@ -64,6 +66,17 @@ module PlutusTx.Prelude (
     indexByteString,
     emptyByteString,
     decodeUtf8,
+    Builtins.andByteString,
+    Builtins.orByteString,
+    Builtins.xorByteString,
+    Builtins.complementByteString,
+    -- ** Bit operations
+    Builtins.readBit,
+    Builtins.writeBits,
+    Builtins.shiftByteString,
+    Builtins.rotateByteString,
+    Builtins.countSetBits,
+    Builtins.findFirstSetBit,
     -- * Hashes and Signatures
     sha2_256,
     sha3_256,
@@ -90,8 +103,8 @@ module PlutusTx.Prelude (
     bls12_381_G1_compress,
     bls12_381_G1_uncompress,
     bls12_381_G1_hashToGroup,
-    bls12_381_G1_zero,
-    bls12_381_G1_generator,
+    bls12_381_G1_compressed_zero,
+    bls12_381_G1_compressed_generator,
     BuiltinBLS12_381_G2_Element,
     bls12_381_G2_equals,
     bls12_381_G2_add,
@@ -100,15 +113,19 @@ module PlutusTx.Prelude (
     bls12_381_G2_compress,
     bls12_381_G2_uncompress,
     bls12_381_G2_hashToGroup,
-    bls12_381_G2_zero,
-    bls12_381_G2_generator,
+    bls12_381_G2_compressed_zero,
+    bls12_381_G2_compressed_generator,
     BuiltinBLS12_381_MlResult,
     bls12_381_millerLoop,
     bls12_381_mulMlResult,
     bls12_381_finalVerify,
     -- * Conversions
     fromBuiltin,
-    toBuiltin
+    toBuiltin,
+    fromOpaque,
+    toOpaque,
+    integerToByteString,
+    byteStringToInteger
     ) where
 
 import Data.String (IsString (..))
@@ -119,21 +136,24 @@ import PlutusTx.Bool as Bool
 import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
                           BuiltinBLS12_381_MlResult, BuiltinByteString, BuiltinData, BuiltinString,
                           Integer, appendByteString, appendString, blake2b_224, blake2b_256,
-                          bls12_381_G1_add, bls12_381_G1_compress, bls12_381_G1_equals,
-                          bls12_381_G1_generator, bls12_381_G1_hashToGroup, bls12_381_G1_neg,
-                          bls12_381_G1_scalarMul, bls12_381_G1_uncompress, bls12_381_G1_zero,
-                          bls12_381_G2_add, bls12_381_G2_compress, bls12_381_G2_equals,
-                          bls12_381_G2_generator, bls12_381_G2_hashToGroup, bls12_381_G2_neg,
-                          bls12_381_G2_scalarMul, bls12_381_G2_uncompress, bls12_381_G2_zero,
-                          bls12_381_finalVerify, bls12_381_millerLoop, bls12_381_mulMlResult,
-                          consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8,
-                          equalsByteString, equalsString, error, fromBuiltin, greaterThanByteString,
-                          indexByteString, keccak_256, lengthOfByteString, lessThanByteString,
-                          sha2_256, sha3_256, sliceByteString, toBuiltin, trace,
+                          bls12_381_G1_add, bls12_381_G1_compress,
+                          bls12_381_G1_compressed_generator, bls12_381_G1_compressed_zero,
+                          bls12_381_G1_equals, bls12_381_G1_hashToGroup, bls12_381_G1_neg,
+                          bls12_381_G1_scalarMul, bls12_381_G1_uncompress, bls12_381_G2_add,
+                          bls12_381_G2_compress, bls12_381_G2_compressed_generator,
+                          bls12_381_G2_compressed_zero, bls12_381_G2_equals,
+                          bls12_381_G2_hashToGroup, bls12_381_G2_neg, bls12_381_G2_scalarMul,
+                          bls12_381_G2_uncompress, bls12_381_finalVerify, bls12_381_millerLoop,
+                          bls12_381_mulMlResult, byteStringToInteger, consByteString, decodeUtf8,
+                          emptyByteString, emptyString, encodeUtf8, equalsByteString, equalsString,
+                          error, fromBuiltin, fromOpaque, greaterThanByteString, indexByteString,
+                          integerToByteString, keccak_256, lengthOfByteString, lessThanByteString,
+                          sha2_256, sha3_256, sliceByteString, toBuiltin, toOpaque, trace,
                           verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
                           verifySchnorrSecp256k1Signature)
 
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Either as Either
 import PlutusTx.Enum as Enum
 import PlutusTx.Eq as Eq
@@ -172,8 +192,8 @@ import Prelude qualified as Haskell (return, (=<<), (>>), (>>=))
 
 {-# INLINABLE check #-}
 -- | Checks a 'Bool' and aborts if it is false.
-check :: Bool -> ()
-check b = if b then () else traceError checkHasFailedError
+check :: Bool -> BI.BuiltinUnit
+check b = if b then BI.unitval else traceError checkHasFailedError
 
 {-# INLINABLE divide #-}
 -- | Integer division, rounding downwards
@@ -223,12 +243,12 @@ odd n = if even n then False else True
 {-# INLINABLE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.
 takeByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-takeByteString n bs = Builtins.sliceByteString 0 (toBuiltin n) bs
+takeByteString n bs = Builtins.sliceByteString 0 n bs
 
 {-# INLINABLE dropByteString #-}
 -- | Returns the suffix of a 'ByteString' after n elements.
 dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-dropByteString n bs = Builtins.sliceByteString (toBuiltin n) (Builtins.lengthOfByteString bs - n) bs
+dropByteString n bs = Builtins.sliceByteString n (Builtins.lengthOfByteString bs - n) bs
 
 {- Note [-fno-full-laziness in Plutus Tx]
 GHC's full-laziness optimization moves computations inside a lambda that don't depend on

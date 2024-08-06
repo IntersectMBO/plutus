@@ -1,15 +1,7 @@
-(let
-  (nonrec)
-  (termbind (strict) (vardecl x (con integer)) (con integer 42))
-  (termbind
-    (strict)
-    (vardecl simple (con integer))
-    [ (lam y (con integer) y) (con integer 1) ]
-  )
-  (termbind
-    (strict)
-    (vardecl variableCapture (con integer))
-    [ (lam y (con integer) x) (con integer 24) ]
-  )
-  x
-)
+let
+  !simple : integer = (\(y : integer) -> y) 1
+in
+let
+  !variableCapture : integer = (\(y : integer) -> 42) 24
+in
+42

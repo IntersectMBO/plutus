@@ -1,4 +1,7 @@
-
+---
+title: Utils.Decidable
+layout: page
+---
 ```
 module Utils.Decidable where
 ```

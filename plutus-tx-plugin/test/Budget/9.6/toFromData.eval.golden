@@ -1,2 +1,1 @@
-({cpu: 9631413
-| mem: 26696})
+(constr 1 (constr 0 (constr 0 (constr 0) (con integer 1) (constr 1))))

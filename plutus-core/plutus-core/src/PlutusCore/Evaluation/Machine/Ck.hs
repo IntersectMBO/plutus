@@ -17,12 +17,11 @@ module PlutusCore.Evaluation.Machine.Ck
     , CkEvaluationException
     , CkM
     , CkValue
-    , extractEvaluationResult
     , runCk
+    , extractEvaluationResult
+    , unsafeToEvaluationResult
     , evaluateCk
     , evaluateCkNoEmit
-    , unsafeEvaluateCk
-    , unsafeEvaluateCkNoEmit
     , readKnownCk
     ) where
 
@@ -33,7 +32,7 @@ import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Result
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.Subst
 
@@ -101,6 +100,9 @@ type CkM uni fun s =
 
 instance AsEvaluationFailure CkUserError where
     _EvaluationFailure = _EvaluationFailureVia CkEvaluationFailure
+
+instance AsUnliftingError CkUserError where
+    _UnliftingError = _UnliftingErrorVia CkEvaluationFailure
 
 instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
@@ -181,7 +183,7 @@ stack |> Constr _ ty i es               = case es of
     t : ts -> FrameConstr ty i ts [] : stack |> t
 stack |> Case _ _ arg cs         = FrameCase cs : stack |> arg
 _     |> Error{}                 =
-    throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) Nothing
+    throwingWithCause _EvaluationError (OperationalEvaluationError CkEvaluationFailure) Nothing
 _     |> var@Var{}               =
     throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var
 
@@ -238,16 +240,15 @@ returnCkHeadSpine stack (HeadSpine f xs) = pushArgs xs stack <| f
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
 -- fully saturated or not.
 evalBuiltinApp
-    :: Context uni fun
-    -> Term TyName Name uni fun ()
+    :: Term TyName Name uni fun ()
     -> BuiltinRuntime (CkValue uni fun)
-    -> CkM uni fun s (Term TyName Name uni fun ())
-evalBuiltinApp stack term runtime = case runtime of
-    BuiltinResult _ getX -> case getX of
-        MakeKnownFailure logs err         -> emitCkM logs *> throwKnownTypeErrorWithCause term err
-        MakeKnownSuccess fXs              -> returnCkHeadSpine stack fXs
-        MakeKnownSuccessWithLogs logs fXs -> emitCkM logs *> returnCkHeadSpine stack fXs
-    _ -> stack <| VBuiltin term runtime
+    -> CkM uni fun s (CkValue uni fun)
+evalBuiltinApp term runtime = case runtime of
+    BuiltinCostedResult _ getFXs -> case getX of
+        BuiltinSuccess getFXs              -> returnCkHeadSpine stack fXs
+        BuiltinSuccessWithLogs logs getFXs -> emitCkM logs $> returnCkHeadSpine stack fXs
+        BuiltinFailure logs err            -> emitCkM logs *> throwBuiltinErrorWithCause term err
+    _ -> pure $ VBuiltin term runtime
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is builtin application
@@ -318,22 +319,6 @@ evaluateCkNoEmit
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) (Term TyName Name uni fun ())
 evaluateCkNoEmit runtime = fst . runCk runtime False
-
--- | Evaluate a term using the CK machine with logging enabled. May throw a 'CkEvaluationException'.
-unsafeEvaluateCk
-    :: ThrowableBuiltins uni fun
-    => BuiltinsRuntime fun (CkValue uni fun)
-    -> Term TyName Name uni fun ()
-    -> (EvaluationResult (Term TyName Name uni fun ()), [Text])
-unsafeEvaluateCk runtime = first unsafeExtractEvaluationResult . evaluateCk runtime
-
--- | Evaluate a term using the CK machine with logging disabled. May throw a 'CkEvaluationException'.
-unsafeEvaluateCkNoEmit
-    :: ThrowableBuiltins uni fun
-    => BuiltinsRuntime fun (CkValue uni fun)
-    -> Term TyName Name uni fun ()
-    -> EvaluationResult (Term TyName Name uni fun ())
-unsafeEvaluateCkNoEmit runtime = unsafeExtractEvaluationResult . evaluateCkNoEmit runtime
 
 -- | Unlift a value using the CK machine.
 readKnownCk

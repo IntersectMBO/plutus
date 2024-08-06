@@ -1,6 +1,9 @@
 let
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !`$mInts` :
      all r.
        data ->
@@ -14,9 +17,13 @@ let
           let
             !tup : pair integer (list data) = unConstrData scrut
           in
-          ifThenElse
+          Bool_match
+            (ifThenElse
+               {Bool}
+               (equalsInteger 0 (fstPair {integer} {list data} tup))
+               True
+               False)
             {all dead. r}
-            (equalsInteger 0 (fstPair {integer} {list data} tup))
             (/\dead ->
                let
                  !l : list data = sndPair {integer} {list data} tup
@@ -30,35 +37,59 @@ let
                  (unIData (headList {data} (tailList {data} l))))
             (/\dead -> fail ())
             {all dead. dead}
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
+  !int : data -> integer
+    = \(ds : data) ->
+        `$mInts`
+          {integer}
+          ds
+          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
+          (\(void : unit) -> error {integer})
+  !int : data -> integer
+    = \(ds : data) ->
+        `$mInts`
+          {integer}
+          ds
+          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
+          (\(void : unit) -> error {integer})
+  !int : data -> integer
+    = \(ds : data) ->
+        `$mInts`
+          {integer}
+          ds
+          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
+          (\(void : unit) -> error {integer})
+  !int : data -> integer
+    = \(ds : data) ->
+        `$mInts`
+          {integer}
+          ds
+          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
+          (\(void : unit) -> error {integer})
+  !lessThanInteger : integer -> integer -> Bool
+    = \(x : integer) (y : integer) ->
+        ifThenElse {Bool} (lessThanInteger x y) True False
 in
 \(d : data) ->
   let
-    !x : integer
-      = `$mInts`
-          {integer}
-          d
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
-    !y : integer
-      = `$mInts`
-          {integer}
-          d
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
-    !z : integer
-      = `$mInts`
-          {integer}
-          d
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
-    !w : integer
-      = `$mInts`
-          {integer}
-          d
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
+    !x : integer = int d
+    !y : integer = int d
+    !z : integer = int d
+    !w : integer = int d
   in
-  addInteger (addInteger (addInteger x y) z) w
+  addInteger
+    (addInteger
+       (addInteger (addInteger (addInteger x y) z) w)
+       (Bool_match
+          (lessThanInteger (addInteger y z) (addInteger x w))
+          {all dead. integer}
+          (/\dead -> addInteger x z)
+          (/\dead -> addInteger y w)
+          {all dead. dead}))
+    (Bool_match
+       (lessThanInteger
+          (addInteger (int d) (int d))
+          (addInteger (int d) (int d)))
+       {all dead. integer}
+       (/\dead -> addInteger (int d) (int d))
+       (/\dead -> addInteger (int d) (int d))
+       {all dead. dead})

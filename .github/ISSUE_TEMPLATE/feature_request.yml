@@ -1,7 +1,6 @@
 name: Feature Request
 description: Submit a feature request
 #title: ""
-labels: ["enhancement"]
 #assignees:
 #  -
 body:
@@ -9,7 +8,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this feature request.
-        Please check the existing issues, [Plutus Docs](https://plutus.readthedocs.io/en/latest/) and [Cardano Stack Exchange](https://cardano.stackexchange.com/) before raising.
+        Please check the existing issues and [Plutus Docs](https://plutus.cardano.intersectmbo.org/docs) before raising.
   - type: textarea
     id: description
     attributes:

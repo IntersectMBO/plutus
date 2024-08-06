@@ -11,11 +11,11 @@ module PlutusLedgerApi.V3.EvaluationContext
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V3.ParamName as V3
 
-import PlutusCore.Default as Plutus (BuiltinSemanticsVariant (DefaultFunSemanticsVariant2))
+import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantC))
 
 import Control.Monad
-import Control.Monad.Except
 import Control.Monad.Writer.Strict
+import Data.Int (Int64)
 
 {-|  Build the 'EvaluationContext'.
 
@@ -30,8 +30,13 @@ IMPORTANT: The evaluation context of every Plutus version must be recreated upon
 a protocol update with the updated cost model parameters.
 -}
 mkEvaluationContext :: (MonadError CostModelApplyError m, MonadWriter [CostModelApplyWarn] m)
-                    => [Integer] -- ^ the (updated) cost model parameters of the protocol
+                    => [Int64] -- ^ the (updated) cost model parameters of the protocol
                     -> m EvaluationContext
-mkEvaluationContext = tagWithParamNames @V3.ParamName
-                    >=> pure . toCostModelParams
-                    >=> mkDynEvaluationContext Plutus.DefaultFunSemanticsVariant2
+mkEvaluationContext =
+    tagWithParamNames @V3.ParamName
+    >=> pure . toCostModelParams
+    >=> mkDynEvaluationContext
+        PlutusV3
+        [DefaultFunSemanticsVariantC]
+        -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
+        (const DefaultFunSemanticsVariantC)

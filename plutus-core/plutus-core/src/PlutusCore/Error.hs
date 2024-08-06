@@ -34,7 +34,7 @@ import PlutusPrelude
 
 import PlutusCore.Core
 import PlutusCore.DeBruijn.Internal
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import Prettyprinter.Custom (sexp)
 
@@ -55,8 +55,7 @@ throwingEither r e = case e of
 
 -- | An error encountered during parsing.
 data ParserError
-    = UnknownBuiltinType !T.Text !SourcePos
-    | BuiltinTypeNotAStar !T.Text !SourcePos
+    = BuiltinTypeNotAStar !T.Text !SourcePos
     | UnknownBuiltinFunction !T.Text !SourcePos ![T.Text]
     | InvalidBuiltinConstant !T.Text !T.Text !SourcePos
     deriving stock (Eq, Ord, Generic)
@@ -171,8 +170,6 @@ instance Pretty SourcePos where
     pretty = pretty . sourcePosPretty
 
 instance Pretty ParserError where
-    pretty (UnknownBuiltinType s loc)       =
-        "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
     pretty (BuiltinTypeNotAStar ty loc)     =
         "Expected a type of kind star (to later parse a constant), but got:" <+>
             squotes (pretty ty) <+> "at" <+> pretty loc

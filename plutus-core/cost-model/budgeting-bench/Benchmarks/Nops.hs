@@ -22,13 +22,13 @@ import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage)
 import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Evaluation.Result (evaluationFailure)
 import PlutusCore.Pretty
 import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Criterion.Main (Benchmark, bgroup)
 
-import Data.Char (toLower)
 import Data.Ix (Ix)
 import System.Random (StdGen)
 
@@ -81,9 +81,7 @@ data NopFun
     deriving anyclass (PrettyBy PrettyConfigPlc)
 
 instance Pretty NopFun where
-    pretty fun = pretty $ case show fun of
-        ""    -> ""
-        c : s -> toLower c : s
+    pretty fun = pretty $ lowerInitialChar $ show fun
 
 data NopCostModel =
     NopCostModel
@@ -126,7 +124,7 @@ nopCostModel =
 nopCostParameters :: MachineParameters CekMachineCosts NopFun (CekValue DefaultUni NopFun ())
 nopCostParameters =
     mkMachineParameters def $
-        CostModel defaultCekMachineCosts nopCostModel
+        CostModel defaultCekMachineCostsForTesting nopCostModel
 
 -- This is just to avoid some deeply nested case expressions for the NopNc
 -- functions below.  There is a Monad instance for EvaluationResult, but that
@@ -135,27 +133,28 @@ nopCostParameters =
 infixr >:
 (>:) :: uni ~ DefaultUni
      => SomeConstant uni Integer
-     -> EvaluationResult Integer
-     -> EvaluationResult Integer
+     -> BuiltinResult Integer
+     -> BuiltinResult Integer
 n >: k =
     case n of
       SomeConstant (Some (ValueOf DefaultUniInteger _)) -> k
-      _                                                 -> EvaluationFailure
+      _                                                 -> evaluationFailure
 
 {- | The meanings of the builtins.  Each one takes a number of arguments and
    returns a result without doing any other work.  A builtin can process its
    arguments in several different ways (see Note [How to add a built-in
-   function]), and these have different costs.  We measure all of these here to
-   facilitate exploration of their different contributions to execution costs
-   (which may change if there are changes in the builtin machinery in future).
-   Most of the builtins take Integers since we can easily change the sizes of
-   these to check that the size doesn't influence the cost; we also have some
-   nops over Bool to check that the type doesn't influence the cost either.
+   function: simple cases] etc.), and these have different costs.  We measure
+   all of these here to facilitate exploration of their different contributions
+   to execution costs (which may change if there are changes in the builtin
+   machinery in future).  Most of the builtins take Integers since we can easily
+   change the sizes of these to check that the size doesn't influence the cost;
+   we also have some nops over Bool to check that the type doesn't influence the
+   cost either.
 -}
 instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
     type CostingPart uni NopFun = NopCostModel
 
-    data BuiltinSemanticsVariant NopFun = NopFunSemanticsVariant1
+    data BuiltinSemanticsVariant NopFun = NopFunSemanticsVariantX
 
     -- Built-in Bools
     toBuiltinMeaning
@@ -227,27 +226,27 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
     -- Integers unlifted via SomeConstant
     toBuiltinMeaning _semvar Nop1c =
         makeBuiltinMeaning
-             (\c1 -> c1 >: EvaluationSuccess 11)
+             (\c1 -> c1 >: BuiltinSuccess 11)
              (runCostingFunOneArgument . paramNop1)
     toBuiltinMeaning _semvar Nop2c =
         makeBuiltinMeaning
-             (\c1 c2 -> c1 >: c2 >: EvaluationSuccess 22)
+             (\c1 c2 -> c1 >: c2 >: BuiltinSuccess 22)
              (runCostingFunTwoArguments . paramNop2)
     toBuiltinMeaning _semvar Nop3c =
         makeBuiltinMeaning
-             (\c1 c2 c3 -> c1 >: c2 >: c3 >: EvaluationSuccess 33)
+             (\c1 c2 c3 -> c1 >: c2 >: c3 >: BuiltinSuccess 33)
              (runCostingFunThreeArguments . paramNop3)
     toBuiltinMeaning _semvar Nop4c =
         makeBuiltinMeaning
-             (\c1 c2 c3 c4 -> c1 >: c2 >: c3 >: c4 >: EvaluationSuccess 44)
+             (\c1 c2 c3 c4 -> c1 >: c2 >: c3 >: c4 >: BuiltinSuccess 44)
              (runCostingFunFourArguments . paramNop4)
     toBuiltinMeaning _semvar Nop5c =
         makeBuiltinMeaning
-             (\c1 c2 c3 c4 c5 -> c1 >: c2 >: c3 >: c4 >: c5 >: EvaluationSuccess 55)
+             (\c1 c2 c3 c4 c5 -> c1 >: c2 >: c3 >: c4 >: c5 >: BuiltinSuccess 55)
              (runCostingFunFiveArguments . paramNop5)
     toBuiltinMeaning _semvar Nop6c =
         makeBuiltinMeaning
-             (\c1 c2 c3 c4 c5 c6 -> c1 >: c2 >: c3 >: c4 >: c5 >: c6 >: EvaluationSuccess 66)
+             (\c1 c2 c3 c4 c5 c6 -> c1 >: c2 >: c3 >: c4 >: c5 >: c6 >: BuiltinSuccess 66)
              (runCostingFunSixArguments . paramNop6)
     -- Opaque Integers
     toBuiltinMeaning _semvar Nop1o =
@@ -289,7 +288,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
              (runCostingFunSixArguments . paramNop6)
 
 instance Default (BuiltinSemanticsVariant NopFun) where
-    def = NopFunSemanticsVariant1
+    def = NopFunSemanticsVariantX
 
 ---------------- Benchmarks ----------------
 

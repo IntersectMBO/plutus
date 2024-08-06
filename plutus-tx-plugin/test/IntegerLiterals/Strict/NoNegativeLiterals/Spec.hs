@@ -1,21 +1,14 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE BangPatterns       #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE TemplateHaskell    #-}
 
-{-# LANGUAGE NoNegativeLiterals    #-}
-{-# LANGUAGE Strict                #-}
+{-# LANGUAGE NoNegativeLiterals #-}
+{-# LANGUAGE Strict             #-}
 
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-
--- | This module tests that integer literals are handled correctly, when @Strict@ is on
+-- | This module tests that integer literals are handled correctly when @Strict@ is on
 -- and @NegativeLiterals@ is off. These two extensions affect the Core we get.
 --
--- See Note [Running PIR and UPLC Simplifiers in Integer literals Tests].
+-- See Note [Running PIR and UPLC Simplifiers in Integer Literal Tests].
 module IntegerLiterals.Strict.NoNegativeLiterals.Spec where
 
 import PlutusTx.Code
@@ -26,7 +19,7 @@ import PlutusTx.TH (compile)
 import Test.Tasty.Extras
 
 tests :: TestNested
-tests = testNestedGhc "IntegerLiterals"
+tests = testNested "IntegerLiterals" . pure $ testNestedGhc
   [ goldenPir "integerLiterals-Strict-NoNegativeLiterals" integerLiterals
   ]
 

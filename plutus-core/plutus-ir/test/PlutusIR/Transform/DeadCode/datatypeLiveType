@@ -8,5 +8,5 @@
       (vardecl Nothing [Maybe a]) (vardecl Just (fun a [Maybe a]))
     )
   )
-  (error Maybe)
+  (error [Maybe (con integer)])
 )

@@ -27,7 +27,7 @@ import PlutusCore.Quote
 import PlutusCore.StdLib.Type qualified as Types
 import PlutusCore.TypeCheck.Internal qualified as PLC
 import PlutusCore.Version qualified as PLC
-import PlutusIR.Transform.RewriteRules
+import PlutusIR.Transform.RewriteRules.Internal (RewriteRules)
 import PlutusPrelude
 
 import Control.Monad.Error.Lens (throwing)
@@ -65,7 +65,7 @@ data DatatypeStyle = ScottEncoding | SumsOfProducts
 instance Pretty DatatypeStyle where
   pretty = viaShow
 
-data DatatypeCompilationOpts = DatatypeCompilationOpts
+newtype DatatypeCompilationOpts = DatatypeCompilationOpts
     { _dcoStyle :: DatatypeStyle
     } deriving stock (Show)
 
@@ -75,29 +75,32 @@ defaultDatatypeCompilationOpts :: DatatypeCompilationOpts
 defaultDatatypeCompilationOpts = DatatypeCompilationOpts SumsOfProducts
 
 data CompilationOpts a = CompilationOpts {
-    _coOptimize                        :: Bool
-    , _coPedantic                      :: Bool
-    , _coVerbose                       :: Bool
-    , _coDebug                         :: Bool
-    , _coDatatypes                     :: DatatypeCompilationOpts
+    _coOptimize                         :: Bool
+    , _coTypecheck                      :: Bool
+    , _coPedantic                       :: Bool
+    , _coVerbose                        :: Bool
+    , _coDebug                          :: Bool
+    , _coDatatypes                      :: DatatypeCompilationOpts
     -- Simplifier passes
-    , _coMaxSimplifierIterations       :: Int
-    , _coDoSimplifierUnwrapCancel      :: Bool
-    , _coDoSimplifierCaseReduce        :: Bool
-    , _coDoSimplifierRewrite           :: Bool
-    , _coDoSimplifierBeta              :: Bool
-    , _coDoSimplifierInline            :: Bool
-    , _coDoSimplifierKnownCon          :: Bool
-    , _coDoSimplifierCaseOfCase        :: Bool
-    , _coDoSimplifierEvaluateBuiltins  :: Bool
-    , _coDoSimplifierStrictifyBindings :: Bool
-    , _coInlineHints                   :: InlineHints PLC.Name (Provenance a)
+    , _coMaxSimplifierIterations        :: Int
+    , _coDoSimplifierUnwrapCancel       :: Bool
+    , _coDoSimplifierCaseReduce         :: Bool
+    , _coDoSimplifierRewrite            :: Bool
+    , _coDoSimplifierBeta               :: Bool
+    , _coDoSimplifierInline             :: Bool
+    , _coDoSimplifierKnownCon           :: Bool
+    , _coDoSimplifierCaseOfCase         :: Bool
+    , _coDoSimplifierEvaluateBuiltins   :: Bool
+    , _coDoSimplifierStrictifyBindings  :: Bool
+    , _coDoSimplifierRemoveDeadBindings :: Bool
+    , _coInlineHints                    :: InlineHints PLC.Name (Provenance a)
+    , _coInlineConstants                :: Bool
     -- Profiling
-    , _coProfile                       :: Bool
-    , _coRelaxedFloatin                :: Bool
-    , _coCaseOfCaseConservative        :: Bool
+    , _coProfile                        :: Bool
+    , _coRelaxedFloatin                 :: Bool
+    , _coCaseOfCaseConservative         :: Bool
     -- | Whether to try and preserve the logging beahviour of the program.
-    , _coPreserveLogging               :: Bool
+    , _coPreserveLogging                :: Bool
     } deriving stock (Show)
 
 makeLenses ''CompilationOpts
@@ -105,6 +108,7 @@ makeLenses ''CompilationOpts
 defaultCompilationOpts :: CompilationOpts a
 defaultCompilationOpts = CompilationOpts
   { _coOptimize = True -- synonymous with max-simplifier-iterations=0
+  , _coTypecheck = True
   , _coPedantic = False
   , _coVerbose = False
   , _coDebug = False
@@ -120,17 +124,19 @@ defaultCompilationOpts = CompilationOpts
   , _coDoSimplifierEvaluateBuiltins = True
   , _coDoSimplifierStrictifyBindings = True
   , _coInlineHints = mempty
+  , _coInlineConstants = True
   , _coProfile = False
   , _coRelaxedFloatin = True
   , _coCaseOfCaseConservative = True
   , _coPreserveLogging = False
+  , _coDoSimplifierRemoveDeadBindings = True
   }
 
 data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts               :: CompilationOpts a
     , _ccEnclosing        :: Provenance a
     -- | Decide to either typecheck (passing a specific tcconfig) or not by passing 'Nothing'.
-    , _ccTypeCheckConfig  :: Maybe (PirTCConfig uni fun)
+    , _ccTypeCheckConfig  :: PirTCConfig uni fun
     , _ccBuiltinsInfo     :: BuiltinsInfo uni fun
     , _ccBuiltinCostModel :: PLC.CostingPart uni fun
     , _ccRewriteRules     :: RewriteRules uni fun
@@ -145,7 +151,7 @@ toDefaultCompilationCtx
 toDefaultCompilationCtx configPlc = CompilationCtx
        { _ccOpts = defaultCompilationOpts
        , _ccEnclosing = noProvenance
-       , _ccTypeCheckConfig = Just $ PirTCConfig configPlc YesEscape
+       , _ccTypeCheckConfig = PirTCConfig configPlc YesEscape
        , _ccBuiltinsInfo = def
        , _ccBuiltinCostModel = def
        , _ccRewriteRules = def

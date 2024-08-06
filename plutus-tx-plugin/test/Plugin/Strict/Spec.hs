@@ -23,8 +23,8 @@ import PlutusTx.Test
 import Data.Proxy
 
 strict :: TestNested
-strict = testNestedGhc "Strict" [
-    goldenPirReadable "strictAdd" strictAdd
+strict = testNested "Strict" . pure $ testNestedGhc
+  [ goldenPirReadable "strictAdd" strictAdd
   , goldenPirReadable "strictAppend" strictAppend
   , goldenPirReadable "strictAppend2" strictAppend2
   , goldenPirReadable "strictAppendString" strictAppendString
@@ -36,7 +36,7 @@ strict = testNestedGhc "Strict" [
   -- TODO: the Cek log of this test case is currently unexpected and doesn't match
   -- what the user would expect. Originally, both GHC and ourselves are culprits
   -- in this instance (see
-  -- https://github.com/input-output-hk/plutus/pull/5371#discussion_r1285087508),
+  -- https://github.com/IntersectMBO/plutus/pull/5371#discussion_r1285087508),
   -- however we have now fixed the bug on our side so it's just GHC being annoying.
   , goldenEvalCekLog "issue4645" [ issue4645 ]
   ]

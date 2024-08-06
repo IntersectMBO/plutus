@@ -21,22 +21,22 @@ import Prelude (IO, mapM_)
 
 printCosts_HashAndAddG1 :: Handle -> Integer -> IO ()
 printCosts_HashAndAddG1 h n =
-    let script = mkHashAndAddG1Script (listOfSizedByteStrings n 4)
+    let script = mkHashAndAddG1Script (listOfByteStringsOfLength n 4)
     in printSizeStatistics h (TestSize n) script
 
 printCosts_HashAndAddG2 :: Handle -> Integer -> IO ()
 printCosts_HashAndAddG2 h n =
-    let script = mkHashAndAddG2Script (listOfSizedByteStrings n 4)
+    let script = mkHashAndAddG2Script (listOfByteStringsOfLength n 4)
     in printSizeStatistics h (TestSize n) script
 
 printCosts_UncompressAndAddG1 :: Handle -> Integer -> IO ()
 printCosts_UncompressAndAddG1 h n =
-    let script = mkUncompressAndAddG1Script (listOfSizedByteStrings n 4)
+    let script = mkUncompressAndAddG1Script (listOfByteStringsOfLength n 4)
     in printSizeStatistics h (TestSize n) script
 
 printCosts_UncompressAndAddG2 :: Handle -> Integer -> IO ()
 printCosts_UncompressAndAddG2 h n =
-    let script = mkUncompressAndAddG2Script (listOfSizedByteStrings n 4)
+    let script = mkUncompressAndAddG2Script (listOfByteStringsOfLength n 4)
     in printSizeStatistics h (TestSize n) script
 
 printCosts_Pairing :: Handle -> IO ()
@@ -152,3 +152,4 @@ runTests h = do
   if checkSchnorrG2VerifyScript
   then hPrintf h "Schnorr G2 Verify succeeded\n"
   else hPrintf h "Schnorr G2 Verify failed\n"
+

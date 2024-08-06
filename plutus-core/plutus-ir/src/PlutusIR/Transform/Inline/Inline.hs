@@ -10,30 +10,32 @@ in the paper 'Secrets of the GHC Inliner'.
 (2) call site inlining of fully applied functions. See `Inline.CallSiteInline.hs`
 -}
 
-module PlutusIR.Transform.Inline.Inline (inline, InlineHints (..)) where
+module PlutusIR.Transform.Inline.Inline (inline, inlinePass, inlinePassSC, InlineHints (..)) where
+import PlutusCore qualified as PLC
 import PlutusCore.Annotation
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
 import PlutusIR
+import PlutusIR.Analysis.Builtins
+import PlutusIR.Analysis.Size (termSize)
 import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.Analysis.VarInfo qualified as VarInfo
+import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
 import PlutusIR.MkPir (mkLet)
+import PlutusIR.Pass
+import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Rename ()
+import PlutusIR.TypeCheck qualified as TC
 import PlutusPrelude
 
 import Control.Lens (forMOf, traverseOf)
 import Control.Monad.Extra
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (evalStateT, modify')
-
 import Control.Monad.State.Class (gets)
-import PlutusIR.Analysis.Builtins
-import PlutusIR.Analysis.Size (termSize)
-import PlutusIR.Analysis.VarInfo qualified as VarInfo
-import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
-import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
-import Witherable (Witherable (wither))
+import Data.Maybe
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
 The approach we take is more-or-less exactly taken from 'Secrets of the GHC Inliner'.
@@ -154,18 +156,48 @@ But we don't really care about the costs listed there: it's easy for us to get a
 supply, and the performance cost does not currently seem relevant. So it's fine.
 -}
 
+inlinePassSC
+    :: forall uni fun ann m
+    . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
+    => Bool
+    -- ^ should we inline constants?
+    -> TC.PirTCConfig uni fun
+    -> InlineHints Name ann
+    -> BuiltinsInfo uni fun
+    -> Pass m TyName Name uni fun ann
+inlinePassSC ic tcconfig hints binfo =
+    renamePass <> inlinePass ic tcconfig hints binfo
+
+inlinePass
+    :: forall uni fun ann m
+    . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
+    => Bool
+    -- ^ should we inline constants?
+    -> TC.PirTCConfig uni fun
+    -> InlineHints Name ann
+    -> BuiltinsInfo uni fun
+    -> Pass m TyName Name uni fun ann
+inlinePass ic tcconfig hints binfo =
+  NamedPass "inline" $
+    Pass
+      (inline ic hints binfo )
+      [GloballyUniqueNames, Typechecks tcconfig]
+      [ConstCondition GloballyUniqueNames, ConstCondition (Typechecks tcconfig)]
+
 -- | Inline non-recursive bindings. Relies on global uniqueness, and preserves it.
 -- See Note [Inlining and global uniqueness]
 inline
     :: forall tyname name uni fun ann m
     . ExternalConstraints tyname name uni fun m
-    => InlineHints name ann
+    => Bool
+    -- ^ should we inline constants?
+    -> InlineHints name ann
     -> BuiltinsInfo uni fun
     -> Term tyname name uni fun ann
     -> m (Term tyname name uni fun ann)
-inline hints binfo t = let
+inline ic hints binfo t = let
         inlineInfo :: InlineInfo tyname name uni fun ann
-        inlineInfo = InlineInfo vinfo usgs hints binfo
+        inlineInfo = InlineInfo vinfo usgs hints binfo ic
         vinfo = VarInfo.termVarInfo t
         usgs :: Usages.Usages
         usgs = Usages.termUsages t
@@ -185,6 +217,18 @@ TODO: merge them or figure out a way to share more work, especially since there'
 This might mean reinventing GHC's OccAnal...
 -}
 
+{- Note [Processing multi-lets]
+
+When we process a term in the inliner, if it is a multi-let, we split it and process the
+bindings one by one, because the bindings after `b` need to be considered to determine
+whether `b` can be unconditionally inlined. Consider e.g.
+`let !x = <effectful>; !y = <effectful> in x`, we need to look at the binding for
+`y` to know that inlining `x` would change the order of effects.
+It's awkward to do this when they are part of the same term, (we would be
+looking at "the let term but only considering all the bindings after x") and
+much easier when they are just separate terms.
+-}
+
 -- | Run the inliner on a `Core.Type.Term`.
 processTerm
     :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
@@ -196,21 +240,24 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
     handleTerm = \case
         v@(Var _ n) -> fromMaybe v <$> substName n
-        Let ann NonRec bs t -> do
-            -- Process bindings, eliminating those which will be inlined unconditionally,
-            -- and accumulating the new substitutions.
-            -- See Note [Removing inlined bindings]
-            -- Note that we don't *remove* the bindings or scope the state, so the state will carry
-            -- over into "sibling" terms. This is fine because we have global uniqueness
-            -- (see Note [Inlining and global uniqueness]), if somewhat wasteful.
-            bs' <- wither (processSingleBinding t) (toList bs)
-            t' <- processTerm t
-            -- Use 'mkLet': we're using lists of bindings rather than NonEmpty since we might
-            -- actually have got rid of all of them!
-            pure $ mkLet ann NonRec bs' t'
+        Let ann NonRec bs t -> case bs of
+            b :| [] -> do
+                -- Process the binding, eliminating it if it will be inlined unconditionally,
+                -- and accumulating the new substitutions.
+                -- See Note [Removing inlined bindings]
+                -- Note that we don't *remove* the binding or scope the state, so the state will
+                -- carry over into "sibling" terms. This is fine because we have global uniqueness
+                -- (see Note [Inlining and global uniqueness]), if somewhat wasteful.
+                b' <- processSingleBinding t b
+                t' <- processTerm t
+                -- Use 'mkLet': which takes a possibly empty list of bindings (rather than
+                -- a non-empty list)
+                pure $ mkLet ann NonRec (maybeToList b') t'
+            -- See Note [Processing multi-lets]
+            b :| rest -> handleTerm (Let ann NonRec (pure b) (mkLet ann NonRec rest t))
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> do
-            -- See note [Processing order of call site inlining]
+            -- See Note [Processing order of call site inlining]
             let (hd, args) = splitApplication t
                 processArgs ::
                     AppContext tyname name uni fun ann ->

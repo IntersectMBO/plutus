@@ -1,37 +1,18 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl MyPolyData (fun (type) (fun (type) (type))))
-        (tyvardecl a (type)) (tyvardecl b (type))
-        MyPolyData_match
-        (vardecl Poly (fun a (fun b [ [ MyPolyData a ] b ])))
-        (vardecl Poly (fun a [ [ MyPolyData a ] b ]))
-      )
-    )
-    (lam
+    data (MyPolyData :: * -> * -> *) a b | MyPolyData_match where
+      Poly : a -> b -> MyPolyData a b
+      Poly : a -> MyPolyData a b
+  in
+  \(ds : MyPolyData integer integer) ->
+    let
+      !ds : MyPolyData integer integer = ds
+    in
+    MyPolyData_match
+      {integer}
+      {integer}
       ds
-      [ [ MyPolyData (con integer) ] (con integer) ]
-      (let
-        (nonrec)
-        (termbind
-          (strict)
-          (vardecl ds [ [ MyPolyData (con integer) ] (con integer) ])
-          ds
-        )
-        [
-          [
-            {
-              [ { { MyPolyData_match (con integer) } (con integer) } ds ]
-              (con integer)
-            }
-            (lam ipv (con integer) (lam ipv (con integer) (con integer 1)))
-          ]
-          (lam i (con integer) i)
-        ]
-      )
-    )
-  )
-)
+      {integer}
+      (\(ipv : integer) (ipv : integer) -> 1)
+      (\(i : integer) -> i))

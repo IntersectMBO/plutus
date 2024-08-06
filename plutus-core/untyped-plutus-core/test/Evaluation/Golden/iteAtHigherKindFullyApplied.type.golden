@@ -4,4 +4,4 @@ Expected a type of kind
 But found one of kind
   '(fun (type) (type))'
 Namely,
-  '(lam a_1 (type) (fun a_1 a_1))')
+  '(lam a (type) (fun a a))')

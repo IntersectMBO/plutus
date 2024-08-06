@@ -1,87 +1,32 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (builtin addInteger)
-    )
-    (termbind
-      (nonstrict)
-      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (lam
-        x
-        (con integer)
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl x (con integer)) x)
-          (lam
-            y
-            (con integer)
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl y (con integer)) y)
-              [
-                [
-                  [
-                    { (builtin trace) (fun (con unit) (con integer)) }
-                    (con string "entering addInteger")
-                  ]
-                  (lam
-                    thunk
-                    (con unit)
-                    [
-                      [
-                        { (builtin trace) (con integer) }
-                        (con string "exiting addInteger")
-                      ]
-                      [ [ addInteger x ] y ]
-                    ]
-                  )
-                ]
-                (con unit ())
-              ]
-            )
-          )
-        )
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl addInt (fun (con integer) (fun (con integer) (con integer))))
-      (lam
-        x
-        (con integer)
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl x (con integer)) x)
-          [
-            [
-              [
-                {
-                  (builtin trace)
-                  (fun (con unit) (fun (con integer) (con integer)))
-                }
-                (con string "entering addInt")
-              ]
-              (lam
-                thunk
-                (con unit)
-                [
-                  [
-                    { (builtin trace) (fun (con integer) (con integer)) }
-                    (con string "exiting addInt")
-                  ]
-                  [ addInteger x ]
-                ]
-              )
-            ]
-            (con unit ())
-          ]
-        )
-      )
-    )
-    addInt
-  )
-)
+    !addInteger : integer -> integer -> integer = addInteger
+    ~addInteger : integer -> integer -> integer
+      = \(x : integer) ->
+          let
+            !x : integer = x
+          in
+          \(y : integer) ->
+            let
+              !y : integer = y
+            in
+            trace
+              {unit -> integer}
+              "entering addInteger-129"
+              (\(thunk : unit) ->
+                 trace {integer} "exiting addInteger-129" (addInteger x y))
+              ()
+    ~addInt : integer -> integer -> integer
+      = \(x : integer) ->
+          let
+            !x : integer = x
+          in
+          trace
+            {unit -> integer -> integer}
+            "entering addInt-126"
+            (\(thunk : unit) ->
+               trace {integer -> integer} "exiting addInt-126" (addInteger x))
+            ()
+  in
+  addInt)

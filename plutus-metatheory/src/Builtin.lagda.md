@@ -13,9 +13,10 @@ module Builtin where
 
 ```
 open import Data.Bool using (Bool;true;false)
+open import Data.List using (List)
 open import Data.Nat using (ℕ;suc)
 open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
-open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse)
+open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse;length)
 open import Data.Product using (Σ;proj₁;proj₂)
 open import Relation.Binary using (DecidableEquality)
 
@@ -30,7 +31,7 @@ open _⊢♯ renaming (pair to bpair; list to blist)
 open _/_⊢⋆
 open import Builtin.Constant.AtomicType 
 
-open import Utils.Reflection using (defDec)
+open import Utils.Reflection using (defDec;defShow;defListConstructors)
 ```
 
 ## Built-in functions
@@ -128,6 +129,20 @@ data Builtin : Set where
   -- Keccak-256, Blake2b-224
   keccak-256                      : Builtin
   blake2b-224                     : Builtin
+  -- Bitwise operations
+  byteStringToInteger             : Builtin
+  integerToByteString             : Builtin
+  andByteString                   : Builtin
+  orByteString                    : Builtin
+  xorByteString                   : Builtin
+  complementByteString            : Builtin
+  readBit                         : Builtin
+  writeBits                       : Builtin
+  replicateByte                   : Builtin
+  shiftByteString                 : Builtin
+  rotateByteString                : Builtin
+  countSetBits                    : Builtin
+  findFirstSetBit                 : Builtin
 ```
 
 ## Signatures
@@ -180,24 +195,24 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
     
     list :  ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
     list a = (blist a) ↑
-    ```
+```
     
-    ###Operators for constructing signatures
-   
-    The following operators are used to express signatures in a familiar way,
-    but ultimately, they construct a Sig 
+### Operators for constructing signatures
 
-    An expression 
-      n⋆×n♯ [ t₁ , t₂ , t₃ ]⟶ tᵣ
-    
-    is actually parsed as
-      (((n⋆×n♯ [ t₁) , t₂) , t₃) ]⟶ tᵣ
-    
-    and constructs a signature
+The following operators are used to express signatures in a familiar way,
+but ultimately, they construct a Sig 
 
-    sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
+An expression 
+  n⋆×n♯ [ t₁ , t₂ , t₃ ]⟶ tᵣ
 
-    ```
+is actually parsed as
+  (((n⋆×n♯ [ t₁) , t₂) , t₃) ]⟶ tᵣ
+
+and constructs a signature
+
+sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
+
+```
     ArgSet : Set
     ArgSet = Σ (ℕ × ℕ) (λ { (n⋆ ,, n♯) → Args n⋆ n♯}) 
 
@@ -215,11 +230,11 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
     infix 8 _]⟶_
     _]⟶_ : (p : ArgSet) → ArgTy p → Sig
     _]⟶_ ((n⋆ ,, n♯) ,, as) res = sig n⋆ n♯ as res
-    ```
+```
 
     The signature of each builtin
 
-    ```
+```
     signature : Builtin → Sig
     signature addInteger                      = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑ 
     signature subtractInteger                 = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
@@ -294,8 +309,25 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
     signature bls12-381-millerLoop            = ∙ [ bls12-381-g1-element ↑ , bls12-381-g2-element ↑ ]⟶ bls12-381-mlresult ↑
     signature bls12-381-mulMlResult           = ∙ [ bls12-381-mlresult ↑ , bls12-381-mlresult ↑ ]⟶ bls12-381-mlresult ↑
     signature bls12-381-finalVerify           = ∙ [ bls12-381-mlresult ↑ , bls12-381-mlresult ↑ ]⟶ bool ↑
+    signature byteStringToInteger             = ∙ [ bool ↑ , bytestring ↑ ]⟶ integer ↑
+    signature integerToByteString             = ∙ [ bool ↑ , integer ↑ , integer ↑ ]⟶  bytestring ↑
+    signature andByteString                   = ∙ [ bool ↑ , bytestring ↑ , bytestring ↑ ]⟶  bytestring ↑
+    signature orByteString                    = ∙ [ bool ↑ , bytestring ↑ , bytestring ↑ ]⟶  bytestring ↑
+    signature xorByteString                   = ∙ [ bool ↑ , bytestring ↑ , bytestring ↑ ]⟶  bytestring ↑
+    signature complementByteString            = ∙ [ bytestring ↑ ]⟶  bytestring ↑
+    signature readBit                         = ∙ [ bytestring ↑ , integer ↑ ]⟶  bool ↑
+    signature writeBits                       = ∙ [ bytestring ↑ , list integer , list bool ]⟶  bytestring ↑
+    signature replicateByte                   = ∙ [ integer ↑ , integer ↑ ]⟶  bytestring ↑
+    signature shiftByteString                 = ∙ [ bytestring ↑ , integer ↑ ]⟶  bytestring ↑
+    signature rotateByteString                = ∙ [ bytestring ↑ , integer ↑ ]⟶  bytestring ↑
+    signature countSetBits                    = ∙ [ bytestring ↑ ]⟶  integer ↑
+    signature findFirstSetBit                 = ∙ [ bytestring ↑ ]⟶  integer ↑
 
 open SugaredSignature using (signature) public
+
+-- The arity of a builtin, according to its signature.
+arity : Builtin → ℕ 
+arity b = length (Sig.args (signature b))
 
 ```
 
@@ -378,6 +410,19 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | Bls12_381_finalVerify
                                           | Keccak_256
                                           | Blake2b_224
+                                          | ByteStringToInteger
+                                          | IntegerToByteString
+                                          | AndByteString
+                                          | OrByteString
+                                          | XorByteString
+                                          | ComplementByteString
+                                          | ReadBit
+                                          | WriteBits
+                                          | ReplicateByte
+                                          | ShiftByteString
+                                          | RotateByteString
+                                          | CountSetBits
+                                          | FindFirstSetBit
                                           ) #-}
 ```
 
@@ -431,6 +476,19 @@ postulate
   BLS12-381-finalVerify     : Bls12-381-MlResult → Bls12-381-MlResult → Bool
   KECCAK-256                : ByteString → ByteString
   BLAKE2B-224               : ByteString → ByteString
+  BStoI                     : Bool -> ByteString -> Int
+  ItoBS                     : Bool -> Int -> Int -> Maybe ByteString
+  andBYTESTRING             : Bool -> ByteString -> ByteString -> ByteString
+  orBYTESTRING              : Bool -> ByteString -> ByteString -> ByteString
+  xorBYTESTRING             : Bool -> ByteString -> ByteString -> ByteString
+  complementBYTESTRING      : ByteString -> ByteString
+  readBIT                   : ByteString -> Int -> Maybe Bool
+  writeBITS                 : ByteString -> List Int -> List Bool -> Maybe ByteString
+  replicateBYTE             : Int -> Int -> Maybe ByteString
+  shiftBYTESTRING           : ByteString -> Int -> ByteString
+  rotateBYTESTRING          : ByteString -> Int -> ByteString
+  countSetBITS              : ByteString -> Int
+  findFirstSetBIT           : ByteString -> Int
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
@@ -479,19 +537,20 @@ postulate
 {-# FOREIGN GHC import PlutusCore.Crypto.Ed25519 #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.Secp256k1 #-}
 
--- The Vasil verification functions return results wrapped in Emitters, which
+-- The Vasil verification functions return results wrapped in BuiltinResult, which
 -- may perform a side-effect such as writing some text to a log.  The code below
--- provides an adaptor function which turns an Emitter (EvaluationResult r) into
+-- provides an adaptor function which turns a BuiltinResult r into
 -- Just r, where r is the real return type of the builtin.
 -- TODO: deal directly with emitters in Agda?
 
-{-# FOREIGN GHC import PlutusCore.Builtin (runEmitter) #-}
-{-# FOREIGN GHC import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationSuccess, EvaluationFailure)) #-}
-{-# FOREIGN GHC emitterResultToMaybe = \e -> case fst e of {EvaluationSuccess r -> Just r; EvaluationFailure -> Nothing} #-}
+{-# FOREIGN GHC import PlutusPrelude (reoption) #-}
+{-# FOREIGN GHC import PlutusCore.Builtin (BuiltinResult) #-}
+{-# FOREIGN GHC builtinResultToMaybe :: BuiltinResult a -> Maybe a #-}
+{-# FOREIGN GHC builtinResultToMaybe = reoption #-}
 
-{-# COMPILE GHC verifyEd25519Sig = \k m s -> emitterResultToMaybe . runEmitter $ verifyEd25519Signature_V2 k m s #-}
-{-# COMPILE GHC verifyEcdsaSecp256k1Sig = \k m s -> emitterResultToMaybe . runEmitter $ verifyEcdsaSecp256k1Signature k m s #-}
-{-# COMPILE GHC verifySchnorrSecp256k1Sig = \k m s -> emitterResultToMaybe . runEmitter $ verifySchnorrSecp256k1Signature k m s #-}
+{-# COMPILE GHC verifyEd25519Sig = \k m s -> builtinResultToMaybe $ verifyEd25519Signature_V2 k m s #-}
+{-# COMPILE GHC verifyEcdsaSecp256k1Sig = \k m s -> builtinResultToMaybe $ verifyEcdsaSecp256k1Signature k m s #-}
+{-# COMPILE GHC verifySchnorrSecp256k1Sig = \k m s -> builtinResultToMaybe $ verifySchnorrSecp256k1Signature k m s #-}
 
 {-# COMPILE GHC ENCODEUTF8 = encodeUtf8 #-}
 {-# COMPILE GHC DECODEUTF8 = eitherToMaybe . decodeUtf8' #-}
@@ -520,6 +579,21 @@ postulate
 {-# COMPILE GHC KECCAK-256 = Hash.keccak_256 #-}
 {-# COMPILE GHC BLAKE2B-224 = Hash.blake2b_224 #-}
 
+{-# FOREIGN GHC import PlutusCore.Bitwise qualified as Bitwise #-}
+{-# COMPILE GHC BStoI = Bitwise.byteStringToIntegerWrapper #-}
+{-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Bitwise.integerToByteStringWrapper e w n #-}
+{-# COMPILE GHC andBYTESTRING = Bitwise.andByteString #-}
+{-# COMPILE GHC orBYTESTRING = Bitwise.orByteString #-}
+{-# COMPILE GHC xorBYTESTRING = Bitwise.xorByteString #-}
+{-# COMPILE GHC complementBYTESTRING = Bitwise.complementByteString #-}
+{-# COMPILE GHC readBIT = \s n -> builtinResultToMaybe $ Bitwise.readBit s (fromIntegral n) #-}
+{-# COMPILE GHC writeBITS = \s ps us -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) us #-}
+{-# COMPILE GHC replicateBYTE = \n w8 -> builtinResultToMaybe $ Bitwise.replicateByte (fromIntegral n) (fromIntegral w8) #-}
+{-# COMPILE GHC shiftBYTESTRING = \s n -> Bitwise.shiftByteString s (fromIntegral n) #-}
+{-# COMPILE GHC rotateBYTESTRING = \s n -> Bitwise.rotateByteString s (fromIntegral n) #-}
+{-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits s #-}
+{-# COMPILE GHC findFirstSetBIT = \s -> fromIntegral $ Bitwise.findFirstSetBit s #-}
+
 -- no binding needed for appendStr
 -- no binding needed for traceStr
 ```
@@ -531,4 +605,18 @@ comparing expected with actual results.
 ```
 decBuiltin : DecidableEquality Builtin
 unquoteDef decBuiltin = defDec (quote Builtin) decBuiltin
+```
+
+We define a show function for Builtins
+
+```
+showBuiltin : Builtin → String 
+unquoteDef showBuiltin = defShow (quote Builtin) showBuiltin 
+```
+
+`builtinList` is a list with all builtins. 
+
+```
+builtinList : List Builtin 
+unquoteDef builtinList = defListConstructors (quote Builtin) builtinList
 ```

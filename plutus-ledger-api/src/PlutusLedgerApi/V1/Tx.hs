@@ -5,6 +5,7 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -25,8 +26,8 @@ module PlutusLedgerApi.V1.Tx
     , outAddress
     , outValue
     , txOutPubKey
-    ,txOutDatum
-    ,pubKeyHashTxOut
+    , txOutDatum
+    , pubKeyHashTxOut
     ) where
 
 import Control.DeepSeq (NFData)
@@ -52,7 +53,7 @@ import PlutusLedgerApi.V1.Value
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
+ [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)

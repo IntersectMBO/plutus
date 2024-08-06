@@ -4,23 +4,21 @@ import Test.Tasty
 import Test.Tasty.Extras
 
 import PlutusIR.Parser
+import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.Unwrap
 
-import PlutusIR.Properties.Typecheck
+import Data.Functor.Identity
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_unwrap :: TestTree
-test_unwrap = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "Unwrap" $
+test_unwrap =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "Unwrap"] $
         map
-            (goldenPir unwrapCancel pTerm)
-            -- Note: these examples don't typecheck, but we don't care
+            (goldenPir (runIdentity . runTestPass unwrapCancelPass) pTerm)
             [ "unwrapWrap"
-            , "wrapUnwrap"
             ]
 
--- | Check that a term typechecks after a `PlutusIR.Transform.Unwrap.unwrapCancel` pass.
-prop_TypecheckUnwrap :: Property
-prop_TypecheckUnwrap =
-    withMaxSuccess 3000 (pureTypecheckProp unwrapCancel)
+prop_unwrap :: Property
+prop_unwrap =
+  withMaxSuccess numTestsForPassProp $ testPassProp runIdentity unwrapCancelPass

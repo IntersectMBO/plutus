@@ -6,6 +6,7 @@ module PlutusCore.Crypto.Secp256k1 (
    verifySchnorrSecp256k1Signature
    ) where
 
+import PlutusCore.Builtin.Result
 import PlutusCore.Crypto.Utils
 
 import Cardano.Crypto.DSIGN.Class qualified as DSIGN
@@ -13,8 +14,6 @@ import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, toMessageHash)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Data.ByteString qualified as BS
 import Data.Text (Text)
-import PlutusCore.Builtin.Emitter (Emitter)
-import PlutusCore.Evaluation.Result (EvaluationResult)
 
 -- | Verify an ECDSA signature made using the SECP256k1 curve.
 --
@@ -42,7 +41,7 @@ verifyEcdsaSecp256k1Signature
   :: BS.ByteString -- ^ Public key   (33 bytes)
   -> BS.ByteString -- ^ Message hash (32 bytes)
   -> BS.ByteString -- ^ Signature    (64 bytes)
-  -> Emitter (EvaluationResult Bool)
+  -> BuiltinResult Bool
 verifyEcdsaSecp256k1Signature pk msg sig =
   case DSIGN.rawDeserialiseVerKeyDSIGN @EcdsaSecp256k1DSIGN pk of
     Nothing -> failWithMessage loc "Invalid verification key."
@@ -50,7 +49,7 @@ verifyEcdsaSecp256k1Signature pk msg sig =
       Nothing -> failWithMessage loc "Invalid signature."
       Just sig' -> case toMessageHash msg of
         Nothing -> failWithMessage loc "Invalid message hash."
-        Just msg' -> pure . pure $ case DSIGN.verifyDSIGN () pk' msg' sig' of
+        Just msg' -> pure $ case DSIGN.verifyDSIGN () pk' msg' sig' of
           Left _   -> False
           Right () -> True
   where
@@ -78,13 +77,13 @@ verifySchnorrSecp256k1Signature
   :: BS.ByteString -- ^ Public key (32 bytes)
   -> BS.ByteString -- ^ Message    (arbitrary length)
   -> BS.ByteString -- ^ Signature  (64 bytes)
-  -> Emitter (EvaluationResult Bool)
+  -> BuiltinResult Bool
 verifySchnorrSecp256k1Signature pk msg sig =
   case DSIGN.rawDeserialiseVerKeyDSIGN @SchnorrSecp256k1DSIGN pk of
     Nothing -> failWithMessage loc "Invalid verification key."
     Just pk' -> case DSIGN.rawDeserialiseSigDSIGN @SchnorrSecp256k1DSIGN sig of
       Nothing -> failWithMessage loc "Invalid signature."
-      Just sig' -> pure . pure $ case DSIGN.verifyDSIGN () pk' msg sig' of
+      Just sig' -> pure $ case DSIGN.verifyDSIGN () pk' msg sig' of
         Left _   -> False
         Right () -> True
   where

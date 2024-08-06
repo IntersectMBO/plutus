@@ -9,7 +9,7 @@ import PlutusLedgerApi.V1
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.List qualified as ListTx
 
-import PlutusCore.Generators.QuickCheck.Utils (multiSplit, uniqueVectorOf)
+import PlutusCore.Generators.QuickCheck.Utils (multiSplit0, uniqueVectorOf)
 
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BS8
@@ -18,7 +18,7 @@ import Test.QuickCheck
 
 -- | Convert a list representation of a 'Value' to the 'Value'.
 listsToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> Value
-listsToValue = Value . AssocMap.fromList . ListTx.map (fmap AssocMap.fromList)
+listsToValue = Value . AssocMap.unsafeFromList . ListTx.map (fmap AssocMap.unsafeFromList)
 
 -- | Convert a 'Value' to its list representation.
 valueToLists :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]
@@ -84,7 +84,7 @@ instance Arbitrary Value where
     arbitrary = do
         -- Generate values for all of the 'TokenName's in the final 'Value' and split them into a
         -- list of lists.
-        faceValues <- multiSplit 0.2 . map unFaceValue =<< arbitrary
+        faceValues <- multiSplit0 0.2 . map unFaceValue =<< arbitrary
         -- Generate 'TokenName's and 'CurrencySymbol's.
         currencies <- uniqueNames CurrencySymbol =<< traverse (uniqueNames TokenName) faceValues
         pure $ listsToValue currencies

@@ -8,7 +8,7 @@ import PlutusCore.Generators.QuickCheck.ShrinkTypes
 import PlutusCore.Generators.QuickCheck.Utils
 
 import PlutusCore.Default
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusIR
 import PlutusIR.Subst
 

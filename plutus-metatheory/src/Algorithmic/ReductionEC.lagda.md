@@ -1,3 +1,7 @@
+---
+title: Algorithmic.ReductionEC
+layout: page
+---
 ```
 module Algorithmic.ReductionEC where
 ```

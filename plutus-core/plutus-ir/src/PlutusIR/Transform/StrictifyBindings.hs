@@ -3,7 +3,8 @@
 Pass to convert pointlessly non-strict bindings into strict bindings, which have less overhead.
 -}
 module PlutusIR.Transform.StrictifyBindings (
-  strictifyBindings
+  strictifyBindings,
+  strictifyBindingsPass
   ) where
 
 import PlutusCore.Builtin
@@ -11,9 +12,12 @@ import PlutusIR
 import PlutusIR.Purity
 
 import Control.Lens (transformOf)
-import PlutusCore.Name qualified as PLC
+import PlutusCore qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
 
 strictifyBindingsStep
     :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
@@ -40,3 +44,16 @@ strictifyBindings binfo term =
     termSubterms
     (strictifyBindingsStep binfo (termVarInfo term))
     term
+
+strictifyBindingsPass ::
+    forall m uni fun a.
+    (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m) =>
+    TC.PirTCConfig uni fun ->
+    BuiltinsInfo uni fun ->
+    Pass m TyName Name uni fun a
+strictifyBindingsPass tcconfig binfo =
+  NamedPass "strictify bindings" $
+    Pass
+      (pure . strictifyBindings binfo)
+      [Typechecks tcconfig]
+      [ConstCondition (Typechecks tcconfig)]

@@ -1,28 +1,11 @@
-(program
+program
   1.1.0
-  [
-    [
-      [
-        (force
-          (delay
-            (lam
-              `Lift.Spec.WrappedBS_i0`
-              (lam `match_Lift.Spec.WrappedBS_i0` `Lift.Spec.WrappedBS_i2`)
-            )
-          )
-        )
-        (lam arg_0_i0 (constr 0 arg_0_i1))
-      ]
-      (lam
-        x_i0
-        (delay
-          (lam
-            `case_Lift.Spec.WrappedBS_i0`
-            (case x_i2 `case_Lift.Spec.WrappedBS_i1`)
-          )
-        )
-      )
-    ]
-    (con bytestring #68656c6c6f)
-  ]
-)
+  (force
+     (delay
+        (\`Lift.Spec.WrappedBS` `match_Lift.Spec.WrappedBS` ->
+           `Lift.Spec.WrappedBS`))
+     (\arg_0 -> constr 0 [arg_0])
+     (\x ->
+        delay
+          (\`case_Lift.Spec.WrappedBS` -> case x [`case_Lift.Spec.WrappedBS`]))
+     #68656c6c6f)

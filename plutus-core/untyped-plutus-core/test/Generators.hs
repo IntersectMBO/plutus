@@ -17,17 +17,20 @@ import PlutusCore.Generators.Hedgehog (forAllPretty)
 import PlutusCore.Generators.Hedgehog.AST (AstGen, runAstGen)
 import PlutusCore.Generators.Hedgehog.AST qualified as AST
 import PlutusCore.Parser (defaultUni, parseGen)
-import PlutusCore.Pretty (displayPlcDef)
+import PlutusCore.Pretty (displayPlc)
 import PlutusCore.Quote (QuoteT, runQuoteT)
+import PlutusCore.Test (isSerialisable)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Core.Type (Program (Program), Term (..), progTerm, termAnn)
+import UntypedPlutusCore.Generators.Hedgehog (discardIfAnyConstant)
 import UntypedPlutusCore.Parser (parseProgram, parseTerm)
 
 import Control.Lens (view)
 import Data.Text (Text)
 import Data.Text qualified as T
+import Data.Vector qualified as V
 
-import Hedgehog (annotate, failure, property, tripping, (===))
+import Hedgehog (annotate, annotateShow, failure, property, tripping, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree, testGroup)
@@ -58,7 +61,7 @@ compareTerm (Delay _ t ) (Delay _ t')         = compareTerm t t'
 compareTerm (Constant _ x) (Constant _ y)     = x == y
 compareTerm (Builtin _ bi) (Builtin _ bi')    = bi == bi'
 compareTerm (Constr _ i es) (Constr _ i' es') = i == i' && maybe False (all (uncurry compareTerm)) (zipExact es es')
-compareTerm (Case _ arg cs) (Case _ arg' cs') = compareTerm arg arg' && maybe False (all (uncurry compareTerm)) (zipExact cs cs')
+compareTerm (Case _ arg cs) (Case _ arg' cs') = compareTerm arg arg' && maybe False (all (uncurry compareTerm)) (zipExact (V.toList cs) (V.toList cs'))
 compareTerm (Error _ ) (Error _ )             = True
 compareTerm _ _                               = False
 
@@ -72,13 +75,15 @@ genProgram = fmap eraseProgram AST.genProgram
 
 propFlat :: TestTree
 propFlat = testPropertyNamed "Flat" "Flat" $ property $ do
-    prog <- forAllPretty $ runAstGen (Generators.genProgram @DefaultFun)
+    prog <- forAllPretty . runAstGen $
+        discardIfAnyConstant (not . isSerialisable) $ Generators.genProgram @DefaultFun
     tripping prog (Flat.flat . UPLC.UnrestrictedProgram) (fmap UPLC.unUnrestrictedProgram . Flat.unflat)
 
 propParser :: TestTree
 propParser = testPropertyNamed "Parser" "parser" $ property $ do
-    prog <- TextualProgram <$> forAllPretty (runAstGen Generators.genProgram)
-    tripping prog (displayPlcDef . unTextualProgram)
+    prog <- TextualProgram <$>
+        forAllPretty (runAstGen $ discardIfAnyConstant (not . isSerialisable) Generators.genProgram)
+    tripping prog (displayPlc . unTextualProgram)
                 (\p -> fmap (TextualProgram . void) (parseProg p))
     where
         parseProg
@@ -92,10 +97,11 @@ propTermSrcSpan = testPropertyNamed
     "propTermSrcSpan"
     . property
     $ do
-        code <-
-            display
-                <$> forAllPretty
-                    (view progTerm <$> runAstGen (Generators.genProgram @DefaultFun))
+        code <- display <$>
+            forAllPretty (view progTerm <$>
+                runAstGen (discardIfAnyConstant (not . isSerialisable)
+                    (Generators.genProgram @DefaultFun)))
+        annotateShow code
         let (endingLine, endingCol) = length &&& T.length . last $ T.lines code
         trailingSpaces <- forAllPretty $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])
         case runQuoteT . parseTerm @ParserErrorBundle $ code <> trailingSpaces of

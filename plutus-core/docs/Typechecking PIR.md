@@ -146,7 +146,7 @@ The typing rules for a possibly recursive single-term-binding `let` and a possib
                  [check| G !- (let D :: K = D_body in e) : target]
 ```
 
-This uses the notation described [here](https://github.com/input-output-hk/plutus/blob/bea0b9abd9554c792b6d0f667c5b4711c790b44c/language-plutus-core/src/Language/PlutusCore/TypeCheck/Internal.hs#L54-L71). Except we now use `[check| G !- x : Just A]` instead of `[check| G !- x : A]`, because we now also allow `[check| G !- x : Nothing]`.
+This uses the notation described [here](https://github.com/IntersectMBO/plutus/blob/bea0b9abd9554c792b6d0f667c5b4711c790b44c/language-plutus-core/src/Language/PlutusCore/TypeCheck/Internal.hs#L54-L71). Except we now use `[check| G !- x : Just A]` instead of `[check| G !- x : A]`, because we now also allow `[check| G !- x : Nothing]`.
 
 So `[check| G !- x : target]` denotes `checkType target x` where `target :: Maybe Type`.
 

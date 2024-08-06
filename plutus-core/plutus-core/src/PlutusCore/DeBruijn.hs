@@ -40,14 +40,14 @@ module PlutusCore.DeBruijn
 import PlutusCore.DeBruijn.Internal
 
 import PlutusCore.Core.Type
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import Control.Lens hiding (Index, Level, index)
 import Control.Monad.Except
 import Control.Monad.Reader
 
-{- NOTE: [DeBruijn indices of Binders]
+{- Note [DeBruijn indices of Binders]
 In a debruijnijfied Term AST, the Binders have a debruijn index
 at their the specific AST location.
 During *undebruijnification* we ignore such binders' indices because they are meaningless,
@@ -143,7 +143,7 @@ deBruijnTyWithM h = go
         TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
         TySOP ann tyls -> TySOP ann <$> (traverse . traverse) go tyls
         -- boring non-recursive cases
-        TyBuiltin ann con -> pure $ TyBuiltin ann con
+        TyBuiltin ann someUni -> pure $ TyBuiltin ann someUni
 
 deBruijnTermWithM
     :: forall m uni fun ann. (MonadReader LevelInfo m)
@@ -192,12 +192,12 @@ unDeBruijnTyWithM h = go
       TyVar ann n -> TyVar ann <$> deBruijnToTyName h n
       -- binder cases
       TyForall ann tn k ty ->
-          -- See NOTE: [DeBruijn indices of Binders]
+          -- See Note [DeBruijn indices of Binders]
           declareBinder $ do
             tn' <- deBruijnToTyName h $ set index deBruijnInitIndex tn
             withScope $ TyForall ann tn' k <$> go ty
       TyLam ann tn k ty ->
-          -- See NOTE: [DeBruijn indices of Binders]
+          -- See Note [DeBruijn indices of Binders]
           declareBinder $ do
             tn' <- deBruijnToTyName h $ set index deBruijnInitIndex tn
             withScope $ TyLam ann tn' k <$> go ty
@@ -207,7 +207,7 @@ unDeBruijnTyWithM h = go
       TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
       TySOP ann tyls -> TySOP ann <$> (traverse . traverse) go tyls
       -- boring non-recursive cases
-      TyBuiltin ann con -> pure $ TyBuiltin ann con
+      TyBuiltin ann someUni -> pure $ TyBuiltin ann someUni
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWithM
@@ -226,12 +226,12 @@ unDeBruijnTermWithM h = go
         Var ann n -> Var ann <$> deBruijnToName h n
         -- binder cases
         TyAbs ann tn k t ->
-            -- See NOTE: [DeBruijn indices of Binders]
+            -- See Note [DeBruijn indices of Binders]
             declareBinder $ do
               tn' <- deBruijnToTyName h $ set index deBruijnInitIndex tn
               withScope $ TyAbs ann tn' k <$> go t
         LamAbs ann n ty t ->
-            -- See NOTE: [DeBruijn indices of Binders]
+            -- See Note [DeBruijn indices of Binders]
             declareBinder $ do
               n' <- deBruijnToName h $ set index deBruijnInitIndex n
               withScope $ LamAbs ann n' <$> goT ty <*> go t

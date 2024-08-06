@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeOperators     #-}
 
 module PlutusCore.Builtin.HasConstant
-    ( KnownTypeError (..)
+    ( BuiltinError (..)
     , throwNotAConstant
     , HasConstant (..)
     , HasConstantIn
@@ -12,19 +12,19 @@ module PlutusCore.Builtin.HasConstant
     , fromValue
     ) where
 
+import PlutusCore.Builtin.Result
 import PlutusCore.Core
-import PlutusCore.Evaluation.Machine.Exception
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Universe
 
 {- Note [Existence of HasConstant]
 We don't really need 'HasConstant' and could get away with only having 'HasConstantIn', however
 defining the latter directly as a @class@ instead of a type synonym in terms of the former is
-detrimental to performance, see the comments in https://github.com/input-output-hk/plutus/pull/4417
+detrimental to performance, see the comments in https://github.com/IntersectMBO/plutus/pull/4417
 
 This is likely due to the same reason as in 'mkMachineParameters',
-see Note [The equality constraint in mkMachineParameters].
+see Note [The CostingPart constraint in mkMachineParameters].
 -}
 
 -- See Note [Existence of HasConstant].
@@ -35,7 +35,7 @@ class HasConstant term where
     -- Switching from 'MonadError' to 'Either' here gave us a speedup of 2-4%.
     -- | Unwrap from a 'Constant'-like constructor throwing an 'UnliftingError' if the provided
     -- @term@ is not a wrapped Haskell value.
-    asConstant :: term -> Either KnownTypeError (Some (ValueOf (UniOf term)))
+    asConstant :: term -> Either BuiltinError (Some (ValueOf (UniOf term)))
 
     -- | Wrap a Haskell value as a @term@.
     fromConstant :: Some (ValueOf (UniOf term)) -> term
@@ -45,12 +45,12 @@ class HasConstant term where
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
 -- | Wrap a Haskell value (given its explicit type tag) as a @term@.
-fromValueOf :: HasConstant term => UniOf term (Esc a) -> a -> term
+fromValueOf :: forall a term. HasConstant term => UniOf term (Esc a) -> a -> term
 fromValueOf uni = fromConstant . someValueOf uni
 {-# INLINE fromValueOf #-}
 
 -- | Wrap a Haskell value (provided its type is in the universe) as a @term@.
-fromValue :: (HasConstant term, UniOf term `HasTermLevel` a) => a -> term
+fromValue :: forall a term. (HasConstant term, UniOf term `HasTermLevel` a) => a -> term
 fromValue = fromValueOf knownUni
 {-# INLINE fromValue #-}
 

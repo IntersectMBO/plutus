@@ -46,6 +46,8 @@ in
     pkgs.bzip2
     pkgs.gawk
     pkgs.scriv
+    pkgs.fswatch
+    pkgs.linkchecker
 
     # Needed to make building things work, not for commands
     pkgs.zlib
@@ -53,6 +55,9 @@ in
 
     # Needed for the cabal CLI to download under https
     pkgs.curl
+
+    # Node JS
+    pkgs.nodejs_20
   ];
 
 
@@ -75,6 +80,7 @@ in
     exec = repoRoot.scripts."update-version.sh";
     group = "changelog";
   };
+
 
   shellHook = ''
     ${builtins.readFile certEnv}

@@ -1,3 +1,7 @@
+---
+title: Algorithmic.CEK
+layout: page
+---
 # CEK machine that discharges builtin args
 
 ```
@@ -32,7 +36,7 @@ open _⊢_
 open _∋_
 open import Algorithmic.RenamingSubstitution using (Sub;sub;exts;exts⋆;_[_];_[_]⋆)
 open import Builtin
-open import Utils hiding (List;length)
+open import Utils hiding (List;length) renaming (_,_ to _,,_)
 
 open import Builtin.Constant.AtomicType
 open import Builtin.Constant.Type using (TyCon)
@@ -253,7 +257,7 @@ BUILTIN unIData (base $ V-con (iDATA i)) = inj₂ (V-con i)
 BUILTIN unIData (base $ V-con _) = inj₁ (con (ne (^ (atomic aData))))
 BUILTIN unBData (base $ V-con (bDATA b)) = inj₂ (V-con b)
 BUILTIN unBData (base $ V-con _) = inj₁ (con (ne (^ (atomic aData))))
-BUILTIN unConstrData (base $ V-con (ConstrDATA i xs)) = inj₂ (V-con (i , xs)) 
+BUILTIN unConstrData (base $ V-con (ConstrDATA i xs)) = inj₂ (V-con (i ,, xs)) 
 BUILTIN unConstrData (base $ V-con _) = inj₁ (con (ne (^ (atomic aData))))
 BUILTIN unMapData (base $ V-con (MapDATA x)) = inj₂ (V-con x)
 BUILTIN unMapData (base $ V-con _) =  inj₁ (con (ne (^ (atomic aData))))
@@ -264,12 +268,12 @@ BUILTIN mkNilData (base $ V-con _) = inj₂ (V-con [])
 BUILTIN mkNilPairData (base $ V-con _) = inj₂ (V-con [])
 BUILTIN chooseUnit (Λ̂ A $ x $ V-con _) = inj₂ x
 BUILTIN equalsData (base $ V-con d $ V-con d') = inj₂ (V-con (eqDATA d d'))
-BUILTIN mkPairData (base $ V-con x $ V-con y) = inj₂ (V-con (x , y))
+BUILTIN mkPairData (base $ V-con x $ V-con y) = inj₂ (V-con (x ,, y))
 BUILTIN constrData (base $ V-con i $ V-con xs) = inj₂ (V-con (ConstrDATA i xs)) 
 BUILTIN mapData (base $ V-con xs) = inj₂ (V-con (MapDATA xs))
 BUILTIN listData (base $ V-con xs) = inj₂ (V-con (ListDATA xs))
-BUILTIN fstPair (Λ̂ A ● B $ V-con (x , _)) = inj₂ (V-con x)
-BUILTIN sndPair (Λ̂ A ● B $ V-con (_ , y)) = inj₂ (V-con y)
+BUILTIN fstPair (Λ̂ A ● B $ V-con (x ,, _)) = inj₂ (V-con x)
+BUILTIN sndPair (Λ̂ A ● B $ V-con (_ ,, y)) = inj₂ (V-con y)
 BUILTIN chooseList (Λ̂ A ● B $ V-con [] $ n $ c) = inj₂ n
 BUILTIN chooseList (Λ̂ A ● B  $ V-con (x ∷ xs) $ n $ c) = inj₂ c
 BUILTIN chooseList (() $$ _ $$ _ $ _ $ _)
@@ -311,6 +315,27 @@ BUILTIN bls12-381-G2-uncompress (base $ V-con b) with BLS12-381-G2-uncompress b
 BUILTIN bls12-381-millerLoop (base $ V-con e1 $ V-con e2) = inj₂ (V-con (BLS12-381-millerLoop e1 e2))
 BUILTIN bls12-381-mulMlResult (base $ V-con r $ V-con r') = inj₂ (V-con (BLS12-381-mulMlResult r r'))
 BUILTIN bls12-381-finalVerify (base $ V-con r $ V-con r') = inj₂ (V-con (BLS12-381-finalVerify r r'))
+BUILTIN byteStringToInteger (base $ V-con e $ V-con s) = inj₂ (V-con (BStoI e s))
+BUILTIN integerToByteString (base $ V-con e $ V-con w $ V-con n) with ItoBS e w n
+... | just s = inj₂ (V-con s)
+... | nothing = inj₁ (con (ne (^ (atomic aBytestring))))
+BUILTIN andByteString (base  $ V-con b $ V-con s $ V-con s') = inj₂ (V-con (andBYTESTRING b s s'))
+BUILTIN orByteString  (base  $ V-con b $ V-con s $ V-con s') = inj₂ (V-con (orBYTESTRING b s s'))
+BUILTIN xorByteString (base  $ V-con b $ V-con s $ V-con s') = inj₂ (V-con (xorBYTESTRING b s s'))
+BUILTIN complementByteString (base $ V-con s) = inj₂ (V-con (complementBYTESTRING s))
+BUILTIN readBit (base $ V-con s $ V-con i) with readBIT s i
+... | just r = inj₂ (V-con r)
+... | nothing  = inj₁ (con (ne (^ (atomic aBool))))
+BUILTIN writeBits (base $ V-con s $ V-con ps $ V-con us) with writeBITS s (toList ps) (toList us)
+... | just r = inj₂ (V-con r)
+... | nothing  = inj₁ (con (ne (^ (atomic aBytestring))))
+BUILTIN replicateByte (base  $ V-con l $ V-con w) with replicateBYTE l w 
+... | just r = inj₂ (V-con r)
+... | nothing  = inj₁ (con (ne (^ (atomic aBytestring))))
+BUILTIN shiftByteString (base $ V-con s $ V-con i) = inj₂ (V-con (shiftBYTESTRING s i))
+BUILTIN rotateByteString (base $ V-con s $ V-con i) = inj₂ (V-con (rotateBYTESTRING s i))
+BUILTIN countSetBits (base $ V-con  s) = inj₂ (V-con (countSetBITS s))
+BUILTIN findFirstSetBit (base $ V-con s) = inj₂ (V-con (findFirstSetBIT s))
 
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
@@ -427,5 +452,3 @@ stepper (suc n) st | (s ; ρ ▻ M) = stepper n (s ; ρ ▻ M)
 stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
--- -}
-    

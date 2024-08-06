@@ -1,6 +1,4 @@
-{- | Benchmarking for the Plutus versions of the Plutus nofib benchmarks. -}
-{-# OPTIONS_GHC -fwarn-unused-imports #-}
-
+{- | Benchmarking for the Haskell versions of the Plutus nofib benchmarks. -}
 module Main (main) where
 
 import Shared (mkBenchMarks)

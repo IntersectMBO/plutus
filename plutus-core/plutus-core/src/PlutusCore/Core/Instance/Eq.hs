@@ -17,12 +17,10 @@ import PlutusPrelude
 import PlutusCore.Core.Type
 import PlutusCore.DeBruijn
 import PlutusCore.Eq
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Rename.Monad
 
 import Universe
-
-import Data.Foldable (for_)
 
 instance (GEq uni, Eq ann) => Eq (Type TyName uni ann) where
     ty1 == ty2 = runEqRename @TypeRenaming $ eqTypeM ty1 ty2
@@ -59,6 +57,26 @@ deriving stock instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq an
 
 type EqRenameOf ren a = HasUniques a => a -> a -> EqRename ren
 
+{- Note [No catch-all]
+Catch-all clauses like @f _x = <...>@ have the disadvantage that if somebody adds a new constructor
+to the definition of the type of @_x@, then GHC will not warn us about @f@ potentially no longer
+being defined correctly. This is especially pronounced for equality checking functions, having
+
+    _ == _ = False
+
+as the last clause of '(==)' makes it much trickier to spot that a new clause needs to be added if
+the type of the arguments get extended with a new constructor. For this reason in equality checking
+functions we always match on the first argument exhaustively even if it means having a wall of
+
+    C1 == _ = False
+    C2 == _ = False
+    <...>
+    Cn == _ = False
+
+This way we get a warning from GHC about non-exhaustive pattern matching if the type of the
+arguments gets extended with additional constructors.
+-}
+
 -- See Note [Modulo alpha].
 -- See Note [Scope tracking]
 -- See Note [Side tracking]
@@ -88,9 +106,9 @@ eqTypeM (TyFun ann1 dom1 cod1) (TyFun ann2 dom2 cod2) = do
     eqM ann1 ann2
     eqTypeM dom1 dom2
     eqTypeM cod1 cod2
-eqTypeM (TyBuiltin ann1 bi1) (TyBuiltin ann2 bi2) = do
+eqTypeM (TyBuiltin ann1 someUni1) (TyBuiltin ann2 someUni2) = do
     eqM ann1 ann2
-    eqM bi1 bi2
+    eqM someUni1 someUni2
 eqTypeM (TySOP ann1 tyls1) (TySOP ann2 tyls2) = do
     eqM ann1 ann2
     case zipExact tyls1 tyls2 of

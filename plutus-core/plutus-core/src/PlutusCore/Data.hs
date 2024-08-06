@@ -31,7 +31,7 @@ import Prelude
 import Prettyprinter
 
 -- Attempting to make this strict made code slower by 2%,
--- see https://github.com/input-output-hk/plutus/pull/4622
+-- see https://github.com/IntersectMBO/plutus/pull/4622
 -- | A generic "data" type.
 --
 -- The main constructor 'Constr' represents a datatype value in sum-of-products
@@ -44,7 +44,7 @@ data Data =
     | List [Data]
     | I Integer
     | B BS.ByteString
-    deriving stock (Show, Eq, Ord, Generic, Data.Data.Data)
+    deriving stock (Show, Read, Eq, Ord, Generic, Data.Data.Data)
     deriving anyclass (Hashable, NFData, NoThunks)
 
 instance Pretty Data where
@@ -209,7 +209,7 @@ CBOR is annoying and you can have both definite (with a fixed length) and indefi
 etc.
 
 So we have to be careful to handle both cases when decoding. When encoding we mostly don't make
-the indefinite kinds, but see Note [Avoiding the 64-byte limit] for some cases where we do.
+the indefinite kinds, but see Note [Evading the 64-byte limit] for some cases where we do.
 -}
 
 -- | Turn a CBOR Term into Data if possible.
@@ -288,7 +288,7 @@ decodeMap = CBOR.decodeMapLenOrIndef >>= \case
   where
   decodePair = (,) <$> decodeData <*> decodeData
 
--- See note [CBOR alternative tags] for the encoding scheme.
+-- See Note [CBOR alternative tags] for the encoding scheme.
 decodeConstr :: Decoder s Data
 decodeConstr = CBOR.decodeTag64 >>= \case
   102 -> decodeConstrExtended

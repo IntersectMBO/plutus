@@ -1,0 +1,7 @@
+Type mismatch at test:2:4-2:38
+Expected a term of type
+  '(sop [] ...)'
+But found one of type
+  '(sop [(con integer)] [])'
+Namely,
+  '(constr (sop [(con integer)] []) 0)'

@@ -7,6 +7,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 
 module Plugin.Laziness.Spec where
@@ -24,10 +25,10 @@ import PlutusTx.Test
 import Data.Proxy
 
 laziness :: TestNested
-laziness = testNestedGhc "Laziness" [
-    goldenPir "joinError" joinErrorPir
-    , goldenUEval "joinErrorEval" [ toUPlc joinErrorPir, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False]
-    , goldenPir "lazyDepUnit" lazyDepUnit
+laziness = testNested "Laziness" . pure $ testNestedGhc
+  [ goldenPir "joinError" joinErrorPir
+  , goldenUEval "joinErrorEval" [ toUPlc joinErrorPir, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False]
+  , goldenPir "lazyDepUnit" lazyDepUnit
   ]
 
 joinErrorPir :: CompiledCode (Bool -> Bool -> ())

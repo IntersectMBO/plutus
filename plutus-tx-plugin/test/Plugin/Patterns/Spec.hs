@@ -9,6 +9,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
@@ -55,7 +56,7 @@ psymRec = plc (Proxy @"psymRec") (
   )
 
 patterns :: TestNested
-patterns = testNestedGhc "Patterns" [
-    goldenPirReadable "psym1" psym1
-    , goldenPirReadable "psymRec" psymRec
+patterns = testNested "Patterns" Prelude.. Prelude.pure Prelude.$ testNestedGhc
+  [ goldenPirReadable "psym1" psym1
+  , goldenPirReadable "psymRec" psymRec
   ]

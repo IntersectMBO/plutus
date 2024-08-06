@@ -47,8 +47,8 @@ data SynExample = SynExample { unSE :: Syn }
 Lift.makeLift ''SynExample
 
 tests :: TestNested
-tests = testNestedGhc "Lift" [
-    goldenUPlc "int" (snd (Lift.liftProgramDef (1::Integer)))
+tests = testNested "Lift" . pure $ testNestedGhc
+    [ goldenUPlc "int" (snd (Lift.liftProgramDef (1::Integer)))
     , goldenUPlc "tuple" (snd (Lift.liftProgramDef (1::Integer, 2::Integer)))
     , goldenUPlc "mono" (snd (Lift.liftProgramDef (Mono2 2)))
     , goldenUEval "monoInterop" [ getPlcNoAnn monoCase, snd (Lift.liftProgramDef (Mono1 1 2)) ]

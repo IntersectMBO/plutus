@@ -1,0 +1,26 @@
+{- 
+The following program should be transformed into '3 + (3 + 5)',
+by substituting the values of 'x' and 'y' into the expression.
+
+let 
+  x :: Integer 
+  x = 3
+  y :: Integer
+  y = x + 5
+in x + y
+-}
+
+(let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl x (con integer))
+      (con integer 3)
+    )
+    (termbind
+      (strict)
+      (vardecl y (con integer))
+      [(builtin addInteger) x (con integer 5)]
+    )
+    [(builtin addInteger) x y]
+)

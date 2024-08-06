@@ -53,14 +53,14 @@ data CekMachineCostsBase f =
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)
 
-deriving via CustomJSON '[FieldLabelModifier LowerIntialCharacter]
+deriving via CustomJSON '[FieldLabelModifier LowerInitialCharacter]
              (CekMachineCostsBase Identity) instance ToJSON (CekMachineCostsBase Identity)
-deriving via CustomJSON '[FieldLabelModifier LowerIntialCharacter]
+deriving via CustomJSON '[FieldLabelModifier LowerInitialCharacter]
              (CekMachineCostsBase Identity) instance FromJSON (CekMachineCostsBase Identity)
 
 -- This instance will omit the generation of JSON for Nothing fields,
 -- (any functors which have Maybe functor at the outer layer)
-deriving via CustomJSON '[OmitNothingFields, FieldLabelModifier LowerIntialCharacter]
+deriving via CustomJSON '[OmitNothingFields, FieldLabelModifier LowerInitialCharacter]
              (CekMachineCostsBase Maybe) instance ToJSON (CekMachineCostsBase Maybe)
 
 deriving stock instance AllBF Show f CekMachineCostsBase => Show (CekMachineCostsBase f)
@@ -74,17 +74,18 @@ deriving anyclass instance AllBF NoThunks f CekMachineCostsBase => NoThunks (Cek
 -- a different version of CekMachineCosts: see ExBudgetingDefaults.defaultCekMachineCosts.
 unitCekMachineCosts :: CekMachineCosts
 unitCekMachineCosts =
-    CekMachineCostsBase { cekStartupCost = zeroCost
-                    , cekVarCost     = unitCost
-                    , cekConstCost   = unitCost
-                    , cekLamCost     = unitCost
-                    , cekDelayCost   = unitCost
-                    , cekForceCost   = unitCost
-                    , cekApplyCost   = unitCost
-                    , cekBuiltinCost = unitCost
-                    , cekConstrCost = unitCost
-                    , cekCaseCost = unitCost
-                    }
-        where
-          zeroCost = Identity $ ExBudget 0 0
-          unitCost = Identity $ ExBudget 1 0
+    CekMachineCostsBase
+    { cekStartupCost = zeroCost
+    , cekVarCost     = unitCost
+    , cekConstCost   = unitCost
+    , cekLamCost     = unitCost
+    , cekDelayCost   = unitCost
+    , cekForceCost   = unitCost
+    , cekApplyCost   = unitCost
+    , cekBuiltinCost = unitCost
+    , cekConstrCost  = unitCost
+    , cekCaseCost    = unitCost
+    }
+  where
+    zeroCost = Identity $ ExBudget 0 0
+    unitCost = Identity $ ExBudget 1 0

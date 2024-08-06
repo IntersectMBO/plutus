@@ -1,69 +1,21 @@
-(let
-  (rec)
-  (datatypebind
-    (datatype
-      (tyvardecl List (fun (type) (type)))
-      (tyvardecl a (type))
-      match_List
-      (vardecl Nil [ List a ])
-      (vardecl Cons (fun a (fun [ List a ] [ List a ])))
-    )
-  )
-  (let
-    (rec)
-    (termbind
-      (nonstrict)
-      (vardecl
-        foldl
-        (all
-          a
-          (type)
-          (all b (type) (fun (fun a (fun b a)) (fun a (fun [ List b ] a))))
-        )
-      )
-      (lam
-        f
-        (fun a (fun b a))
-        (lam
-          acc
-          a
-          (lam
+letrec
+  data (List :: * -> *) a | match_List where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+letrec
+  ~foldl : all a b. (b -> a -> b) -> b -> List a -> b
+    = /\a b ->
+        \(f : b -> a -> b) (acc : b) (lst : List a) ->
+          match_List
+            {a}
             lst
-            [ List b ]
-            [
-              [ [ { match_List a } lst ] acc ]
-              (lam
-                x
-                b
-                (lam
-                  xs
-                  [ List b ]
-                  [
-                    [ { (builtin trace) a } (con string "hello") ]
-                    [ [ [ foldl f ] [ [ f acc ] x ] ] xs ]
-                  ]
-                )
-              )
-            ]
-          )
-        )
-      )
-    )
-    (let
-      (nonrec)
-      (termbind
-        (strict)
-        (vardecl
-          foldl
-          (all
-            a
-            (type)
-            (all b (type) (fun (fun a (fun b a)) (fun a (fun [ List b ] a))))
-          )
-        )
-        foldl
-      )
-      foldl
-    )
-  )
-)
+            {b}
+            acc
+            (\(x : a) (xs : List a) ->
+               trace {b} "hello" (foldl {a} {b} f (f acc x) xs))
+in
+let
+  !foldl : all a b. (b -> a -> b) -> b -> List a -> b = foldl
+in
+foldl

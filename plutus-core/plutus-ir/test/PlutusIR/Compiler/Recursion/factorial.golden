@@ -1,43 +1,10 @@
-(program
+program
   1.1.0
-  [
-    [
-      (lam s_800 [ s_800 s_800 ])
-      (lam
-        s_801
-        (lam
-          x_802
-          [
-            (lam
-              factorial_803
-              [
-                [
-                  [
-                    [
-                      (force (builtin ifThenElse))
-                      [ [ (builtin equalsInteger) (con integer 0) ] x_802 ]
-                    ]
-                    (lam u_804 (con integer 1))
-                  ]
-                  (lam
-                    u_805
-                    [
-                      [ (builtin multiplyInteger) x_802 ]
-                      [
-                        factorial_803
-                        [ [ (builtin subtractInteger) x_802 ] (con integer 1) ]
-                      ]
-                    ]
-                  )
-                ]
-                (con unit ())
-              ]
-            )
-            [ s_801 s_801 ]
-          ]
-        )
-      )
-    ]
-    (con integer 5)
-  ]
-)
+  ((\s -> s s)
+     (\s i ->
+        force ifThenElse
+          (equalsInteger 0 i)
+          (\u -> 1)
+          (\u -> multiplyInteger i ((\x -> s s x) (subtractInteger i 1)))
+          ())
+     5)

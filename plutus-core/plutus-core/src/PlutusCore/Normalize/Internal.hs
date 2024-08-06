@@ -13,20 +13,22 @@ module PlutusCore.Normalize.Internal (
   normalizeTypesInM,
 ) where
 
-import PlutusCore.Core
+import PlutusCore.Core.Plated (termSubterms, termSubtypes)
+import PlutusCore.Core.Type (Normalized (..), Term, Type (..))
 import PlutusCore.MkPlc (mkTyBuiltinOf)
-import PlutusCore.Name
-import PlutusCore.Quote
-import PlutusCore.Rename
-import PlutusPrelude
+import PlutusCore.Name.Unique (HasUnique, TypeUnique (TypeUnique), Unique (Unique))
+import PlutusCore.Name.UniqueMap (UniqueMap, insertByName, lookupName)
+import PlutusCore.Quote (MonadQuote)
+import PlutusCore.Rename (Dupable, dupable, liftDupable)
+import PlutusPrelude (Alternative, over, (<<$>>), (<<*>>))
 
-import Control.Lens
-import Control.Monad
-import Control.Monad.Reader
-import Control.Monad.State
-import Universe
+import Control.Lens (makeLenses, transformMOf)
+import Control.Monad (MonadPlus)
+import Control.Monad.Reader (MonadReader (local), ReaderT (..), asks)
+import Control.Monad.State (MonadState)
+import Universe.Core (Esc, HasUniApply (matchUniApply), SomeTypeIn (SomeTypeIn))
 
-{- Note [Global uniqueness]
+{- Note [Global uniqueness in the normalizer]
 WARNING: everything in this module works under the assumption that the global uniqueness condition
 is satisfied. The invariant is not checked, enforced or automatically fulfilled. So you must ensure
 that the global uniqueness condition is satisfied before calling ANY function from this module.
@@ -81,7 +83,7 @@ separated from implementation-specific details. (This used to be more important 
 to deal with gas, and could maybe be changed now.)
 -}
 
--- See Note [NormalizedTypeT].
+-- See Note [NormalizeTypeT].
 -- | The monad transformer that type normalization runs in.
 newtype NormalizeTypeT m tyname uni ann a = NormalizeTypeT
   { unNormalizeTypeT :: ReaderT (NormalizeTypeEnv tyname uni ann) m a
@@ -173,7 +175,7 @@ Hence we do the opposite, which is straightforward.
 {- | Normalize a built-in type by replacing each application inside the universe with regular
 type application.
 -}
-normalizeUni :: forall k (a :: k) uni tyname. (HasUniApply uni) => uni (Esc a) -> Type tyname uni ()
+normalizeUni :: forall k (a :: k) uni tyname. HasUniApply uni => uni (Esc a) -> Type tyname uni ()
 normalizeUni uni =
   matchUniApply
     uni

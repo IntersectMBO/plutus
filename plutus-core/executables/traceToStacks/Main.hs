@@ -1,12 +1,12 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-{- | Executable for profiling. See note [Profiling instructions]-}
+{- | Executable for profiling. See Note [Profiling instructions]-}
 
 {- Note [Profiling instructions]
 Workflow for profiling evaluation time:
 1. Compile your program with the Plutus Tx plugin option profile-all
 2. Get the program you want to run, either by extracting it from the emulator logs,
-or by using the Plutus Tx plugin option 'dump-plc' if you have a self-contained program.
+or by using the Plutus Tx plugin option 'dump-uplc' if you have a self-contained program.
 3. Run the dumped program with 'uplc --trace-mode LogsWithTimestamps -o logs'
 4. Run 'cat logs | traceToStacks | flamegraph.pl > out.svg'
 5. Open out.svg in your viewer of choice e.g. firefox.

@@ -1,0 +1,4 @@
+let
+  !x : integer = 3
+in
+addInteger x (addInteger x 5)

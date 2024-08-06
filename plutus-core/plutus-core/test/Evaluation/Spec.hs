@@ -19,6 +19,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream (..))
 import PlutusCore.Generators.Hedgehog (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
 import PlutusCore.Pretty
+import PlutusCore.Test
 import PlutusPrelude
 
 import Control.Exception
@@ -36,7 +37,7 @@ import Type.Reflection
 type Term uni fun = PLC.Term TyName Name uni fun ()
 
 {- | Evaluating a builtin function should never throw any exception (the evaluation is allowed
- to fail with a `KnownTypeError`, of course).
+ to fail with a `BuiltinError`, of course).
 
  The test covers both succeeding and failing evaluations and verifies that in either case
  no exception is thrown. The failing cases use arbitrary `Term` arguments (which doesn't
@@ -50,14 +51,15 @@ test_builtinsDon'tThrow =
     testGroup "Builtins don't throw" $
         enumerate @(BuiltinSemanticsVariant DefaultFun) <&> \semvar ->
             testGroup (fromString . render $ "Version: " <> pretty semvar) $
-                let runtimes = toBuiltinsRuntime semvar defaultBuiltinCostModel
+                let runtimes = toBuiltinsRuntime semvar defaultBuiltinCostModelForTesting
                 in enumerate @DefaultFun <&> \fun ->
                     -- Perhaps using @maxBound@ (with @Enum@, @Bounded@) is indeed better than
                     -- @Default@ for BuiltinSemanticsVariants
                     testPropertyNamed
                         (display fun)
                         (fromString $ display fun)
-                        (prop_builtinEvaluation runtimes fun gen f)
+                        (mapTestLimitAtLeast 99 (`div` 50) $
+                            prop_builtinEvaluation runtimes fun gen f)
   where
     gen bn = Gen.choice [genArgsWellTyped def bn, genArgsArbitrary def bn]
     f bn args = \case
@@ -79,7 +81,7 @@ instance Pretty AlwaysThrows where
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
     type CostingPart uni AlwaysThrows = ()
-    data BuiltinSemanticsVariant AlwaysThrows = AlwaysThrowsSemanticsVariant1
+    data BuiltinSemanticsVariant AlwaysThrows = AlwaysThrowsSemanticsVariantX
 
     toBuiltinMeaning _semvar AlwaysThrows = makeBuiltinMeaning f $ \_ _ -> ExBudgetLast mempty
       where
@@ -87,7 +89,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
         f _ = error "This builtin function always throws an exception."
 
 instance Default (BuiltinSemanticsVariant AlwaysThrows) where
-    def = AlwaysThrowsSemanticsVariant1
+    def = AlwaysThrowsSemanticsVariantX
 
 {- | This test verifies that if evaluating a builtin function actually throws an exception,
  we'd get a `Left` value, which would cause `test_builtinsDon'tThrow` to fail.
@@ -100,7 +102,7 @@ test_alwaysThrows =
             prop_builtinEvaluation @_ @AlwaysThrows runtimes AlwaysThrows (genArgsWellTyped semvar) f
         ]
   where
-    semvar = AlwaysThrowsSemanticsVariant1
+    semvar = AlwaysThrowsSemanticsVariantX
     runtimes = toBuiltinsRuntime semvar ()
     f bn args = \case
         Left _ -> success
@@ -121,7 +123,7 @@ prop_builtinEvaluation ::
     -- outcome, and decides whether to pass or fail the property.
     (fun ->
         [Term uni fun] ->
-        Either SomeException (MakeKnownM (HeadSpine (Term uni fun))) ->
+        Either SomeException (BuiltinResult (HeadSpine (Term uni fun))) ->
         PropertyT IO ()) ->
     Property
 prop_builtinEvaluation runtimes bn mkGen f = property $ do
@@ -130,15 +132,15 @@ prop_builtinEvaluation runtimes bn mkGen f = property $ do
         eval ::
             [Term uni fun] ->
             BuiltinRuntime (Term uni fun) ->
-            MakeKnownM (HeadSpine (Term uni fun))
-        eval [] (BuiltinResult _ getX) =
-            getX
+            BuiltinResult (HeadSpine (Term uni fun))
+        eval [] (BuiltinCostedResult _ getFxs) =
+            getFxs
         eval (arg : args) (BuiltinExpectArgument toRuntime) =
             eval args (toRuntime arg)
         eval args (BuiltinExpectForce runtime) =
             eval args runtime
         eval _ _ =
-            -- TODO: can we make this function run in @GenT MakeKnownM@ and generate arguments
+            -- TODO: can we make this function run in @GenT BuiltinResult@ and generate arguments
             -- on the fly to avoid this error case?
             error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
         runtime0 = lookupBuiltin bn runtimes

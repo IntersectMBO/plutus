@@ -7,11 +7,11 @@
 {-# LANGUAGE ViewPatterns      #-}
 
 -- | Float bindings inwards.
-module PlutusIR.Transform.LetFloatIn (floatTerm) where
+module PlutusIR.Transform.LetFloatIn (floatTerm, floatTermPass, floatTermPassSC) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Purity
@@ -28,6 +28,8 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
 
 {- Note [Float-in]
 
@@ -179,22 +181,49 @@ data FloatInContext = FloatInContext
 
 makeLenses ''FloatInContext
 
+floatTermPassSC ::
+    forall m uni fun a.
+    ( PLC.Typecheckable uni fun, PLC.GEq uni, Ord a
+    , PLC.MonadQuote m
+    ) =>
+    TC.PirTCConfig uni fun ->
+    BuiltinsInfo uni fun ->
+    Bool ->
+    Pass m TyName Name uni fun a
+floatTermPassSC tcconfig binfo relaxed =
+    renamePass <> floatTermPass tcconfig binfo relaxed
+
+floatTermPass ::
+    forall m uni fun a.
+    ( PLC.Typecheckable uni fun, PLC.GEq uni, Ord a
+    , Applicative m
+    ) =>
+    TC.PirTCConfig uni fun ->
+    BuiltinsInfo uni fun ->
+    -- | Whether to float-in more aggressively. See Note [Float-in] #6
+    Bool ->
+    Pass m TyName Name uni fun a
+floatTermPass tcconfig binfo relaxed =
+  NamedPass "let float-in" $
+    Pass
+      (pure . floatTerm binfo relaxed)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]
+
 -- | Float bindings in the given `Term` inwards.
 floatTerm ::
-  forall m tyname name uni fun a.
+  forall tyname name uni fun a.
   ( PLC.HasUnique name PLC.TermUnique
   , PLC.HasUnique tyname PLC.TypeUnique
   , PLC.ToBuiltinMeaning uni fun
-  , PLC.MonadQuote m
   ) =>
   BuiltinsInfo uni fun ->
   -- | Whether to float-in more aggressively. See Note [Float-in] #6
   Bool ->
   Term tyname name uni fun a ->
-  m (Term tyname name uni fun a)
-floatTerm binfo relaxed t0 = do
-  t1 <- PLC.rename t0
-  pure . fmap fst $ floatTermInner (Usages.termUsages t1) (termVarInfo t1) t1
+  Term tyname name uni fun a
+floatTerm binfo relaxed t0 =
+  fmap fst $ floatTermInner (Usages.termUsages t0) (termVarInfo t0) t0
   where
     floatTermInner ::
       Usages.Usages ->

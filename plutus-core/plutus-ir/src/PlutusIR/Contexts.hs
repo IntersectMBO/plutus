@@ -8,9 +8,10 @@
 module PlutusIR.Contexts where
 
 import Control.Lens
+import Data.DList qualified as DList
 import Data.Functor (void)
 import PlutusCore.Arity
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR.Analysis.VarInfo
 import PlutusIR.Core
 import PlutusIR.MkPir
@@ -114,7 +115,7 @@ saturates (TypeAppContext _ _ ctx) (TypeParam:arities) = saturates ctx arities
 -- Param/arg mismatch
 saturates (TermAppContext{}) (TypeParam:_)             = Nothing
 saturates (TypeAppContext{}) (TermParam:_)             = Nothing
--- Arguments lef - undersaturated
+-- Arguments left - undersaturated
 saturates (TermAppContext{}) []                        = Just Oversaturated
 saturates (TypeAppContext{}) []                        = Just Oversaturated
 
@@ -132,11 +133,16 @@ data SplitMatchContext tyname name uni fun a = SplitMatchContext
   , smBranches  :: AppContext tyname name uni fun a
   }
 
+-- | Extract the type application arguments from an 'AppContext'.
+-- Returns 'Nothing' if the context contains a TermAppContext.
+-- See 'test_extractTyArgs'
 extractTyArgs :: AppContext tyname name uni fun a -> Maybe [Type tyname uni a]
-extractTyArgs = go []
-  where go acc (TypeAppContext ty _ ctx) = go (ty:acc) ctx
-        go _ (TermAppContext{})          = Nothing
-        go acc AppContextEnd             = Just acc
+extractTyArgs = go DList.empty
+  where
+    go acc = \case
+      TypeAppContext ty _ann ctx -> go (DList.snoc acc ty) ctx
+      TermAppContext{}           -> Nothing
+      AppContextEnd              -> Just (DList.toList acc)
 
 -- | Split a normal datatype 'match'.
 splitNormalDatatypeMatch

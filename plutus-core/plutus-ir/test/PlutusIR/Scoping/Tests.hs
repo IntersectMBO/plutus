@@ -38,23 +38,23 @@ test_names = testGroup "names"
       -- because the scope checking machinery doesn't create unused bindings, every binding
       -- gets referenced at some point at least once (usually very close to the binding site).
       -- So this test doesn't really test much.
-      T.test_scopingGood "dead code elimination" genTerm T.BindingRemovalNotOk T.PrerenameNo $
+      T.test_scopingGood "dead code elimination" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         removeDeadBindings def
     , T.test_scopingGood "constant folding" genTerm T.BindingRemovalNotOk T.PrerenameYes $
-        pure . evaluateBuiltins False def defaultBuiltinCostModel
+        pure . evaluateBuiltins False def defaultBuiltinCostModelForTesting
     , -- At the moment the inliner does not preserve global uniqueness (contrary to what it
       -- promises) due to the lack of marking in it (or initial renaming of the entire program,
       -- which would perform marking too).
       T.test_scopingBad "inlining" genTerm T.BindingRemovalOk T.PrerenameYes $
-        Inline.inline mempty def
+        Inline.inline True mempty def
     , T.test_scopingGood
         "match-against-known-constructor"
         genTerm
         T.BindingRemovalNotOk
-        T.PrerenameNo $
-        knownCon
-    , T.test_scopingGood "floating bindings inwards" genTerm T.BindingRemovalNotOk T.PrerenameNo $
-        In.floatTerm def True
+        T.PrerenameYes $
+        (pure . knownCon)
+    , T.test_scopingGood "floating bindings inwards" genTerm T.BindingRemovalNotOk T.PrerenameYes $
+        (pure . In.floatTerm def True)
     -- Can't test 'Out.floatTerm', because it requires the type of annotations to implement
     -- 'Semigroup' and it's not clear what that means for 'NameAnn'.
     , T.test_scopingGood "merging lets" genTerm T.BindingRemovalNotOk T.PrerenameYes $

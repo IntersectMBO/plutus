@@ -1,6 +1,4 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
   data (Tuple3 :: * -> * -> * -> *) a b c | Tuple3_match where
     Tuple3 : a -> b -> c -> Tuple3 a b c
   data Bool | Bool_match where
@@ -12,8 +10,11 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  !reconstructCaseError : string = "PT1"
-  !unitval : unit = ()
+  data Unit | Unit_match where
+    Unit : Unit
+  !traceError : all a. string -> a
+    = /\a ->
+        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
   !d : data
     = (let
           b = Maybe (Tuple3 Bool integer Bool)
@@ -27,13 +28,8 @@ let
             ds
             {data}
             (\(arg : integer) ->
-               constrData
-                 0
-                 (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
-            (\(arg : b) ->
-               constrData
-                 1
-                 (mkCons {data} (`$dToData` arg) (mkNilData unitval))))
+               constrData 0 (mkCons {data} (`$dToData` arg) []))
+            (\(arg : b) -> constrData 1 (mkCons {data} (`$dToData` arg) [])))
         (\(i : integer) -> iData i)
         ((let
              a = Tuple3 Bool integer Bool
@@ -44,11 +40,8 @@ let
                ds
                {all dead. data}
                (\(arg : a) ->
-                  /\dead ->
-                    constrData
-                      0
-                      (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
-               (/\dead -> constrData 1 (mkNilData unitval))
+                  /\dead -> constrData 0 (mkCons {data} (`$dToData` arg) []))
+               (/\dead -> Constr 1 [])
                {all dead. dead})
            (\(ds : Tuple3 Bool integer Bool) ->
               Tuple3_match
@@ -65,8 +58,8 @@ let
                         (Bool_match
                            arg
                            {all dead. data}
-                           (/\dead -> constrData 1 (mkNilData unitval))
-                           (/\dead -> constrData 0 (mkNilData unitval))
+                           (/\dead -> Constr 1 [])
+                           (/\dead -> Constr 0 [])
                            {all dead. dead})
                         (mkCons
                            {data}
@@ -76,10 +69,10 @@ let
                               (Bool_match
                                  arg
                                  {all dead. data}
-                                 (/\dead -> constrData 1 (mkNilData unitval))
-                                 (/\dead -> constrData 0 (mkNilData unitval))
+                                 (/\dead -> Constr 1 [])
+                                 (/\dead -> Constr 0 [])
                                  {all dead. dead})
-                              (mkNilData unitval)))))))
+                              []))))))
         (Right
            {integer}
            {Maybe (Tuple3 Bool integer Bool)}
@@ -96,33 +89,21 @@ in
     let
       !tup : pair integer (list data) = unConstrData d
       !index : integer = fstPair {integer} {list data} tup
+      !args : list data = sndPair {integer} {list data} tup
     in
-    ifThenElse
-      {unit -> Either integer b}
-      (equalsInteger 1 index)
-      (\(ds : unit) ->
-         Right
-           {integer}
-           {b}
-           (`$dUnsafeFromData`
-              (headList {data} (sndPair {integer} {list data} tup))))
-      (\(ds : unit) ->
-         ifThenElse
-           {unit -> Either integer b}
-           (equalsInteger 0 index)
-           (\(ds : unit) ->
-              Left
-                {integer}
-                {b}
-                (`$dUnsafeFromData`
-                   (headList {data} (sndPair {integer} {list data} tup))))
-           (\(ds : unit) ->
-              let
-                !x : Unit = trace {Unit} reconstructCaseError Unit
-              in
-              error {Either integer b})
-           unitval)
-      unitval)
+    Bool_match
+      (ifThenElse {Bool} (equalsInteger 0 index) True False)
+      {all dead. Either integer b}
+      (/\dead -> Left {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
+      (/\dead ->
+         Bool_match
+           (ifThenElse {Bool} (equalsInteger 1 index) True False)
+           {all dead. Either integer b}
+           (/\dead ->
+              Right {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
+           (/\dead -> traceError {Either integer b} "PT1")
+           {all dead. dead})
+      {all dead. dead})
   unIData
   ((let
        a = Tuple3 Bool integer Bool
@@ -131,91 +112,74 @@ in
        let
          !tup : pair integer (list data) = unConstrData d
          !index : integer = fstPair {integer} {list data} tup
+         !args : list data = sndPair {integer} {list data} tup
        in
-       ifThenElse
-         {unit -> Maybe a}
-         (equalsInteger 0 index)
-         (\(ds : unit) ->
-            Just
-              {a}
-              (`$dUnsafeFromData`
-                 (headList {data} (sndPair {integer} {list data} tup))))
-         (\(ds : unit) ->
-            ifThenElse
-              {unit -> Maybe a}
-              (equalsInteger 1 index)
-              (\(ds : unit) -> Nothing {a})
-              (\(ds : unit) ->
-                 let
-                   !x : Unit = trace {Unit} reconstructCaseError Unit
-                 in
-                 error {Maybe a})
-              unitval)
-         unitval)
+       Bool_match
+         (ifThenElse {Bool} (equalsInteger 1 index) True False)
+         {all dead. Maybe a}
+         (/\dead -> Nothing {a})
+         (/\dead ->
+            Bool_match
+              (ifThenElse {Bool} (equalsInteger 0 index) True False)
+              {all dead. Maybe a}
+              (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
+              (/\dead -> traceError {Maybe a} "PT1")
+              {all dead. dead})
+         {all dead. dead})
      (\(d : data) ->
         let
           !tup : pair integer (list data) = unConstrData d
+          !index : integer = fstPair {integer} {list data} tup
+          !args : list data = sndPair {integer} {list data} tup
         in
-        ifThenElse
-          {unit -> Tuple3 Bool integer Bool}
-          (equalsInteger 0 (fstPair {integer} {list data} tup))
-          (\(ds : unit) ->
+        Bool_match
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
+          {all dead. Tuple3 Bool integer Bool}
+          (/\dead ->
              let
-               !t : list data = sndPair {integer} {list data} tup
-               !arg : data = headList {data} t
-               !t : list data = tailList {data} t
-               !arg : data = headList {data} t
-               !arg : data = headList {data} (tailList {data} t)
+               !l : list data = tailList {data} args
              in
              Tuple3
                {Bool}
                {integer}
                {Bool}
                (let
-                 !index : integer
-                   = fstPair {integer} {list data} (unConstrData arg)
+                 !tup : pair integer (list data)
+                   = unConstrData (headList {data} args)
+                 !index : integer = fstPair {integer} {list data} tup
+                 !args : list data = sndPair {integer} {list data} tup
                in
-               ifThenElse
-                 {unit -> Bool}
-                 (equalsInteger 1 index)
-                 (\(ds : unit) -> True)
-                 (\(ds : unit) ->
-                    ifThenElse
-                      {unit -> Bool}
-                      (equalsInteger 0 index)
-                      (\(ds : unit) -> False)
-                      (\(ds : unit) ->
-                         let
-                           !x : Unit = trace {Unit} reconstructCaseError Unit
-                         in
-                         error {Bool})
-                      unitval)
-                 unitval)
-               (unIData arg)
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                 {all dead. Bool}
+                 (/\dead -> False)
+                 (/\dead ->
+                    Bool_match
+                      (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                      {all dead. Bool}
+                      (/\dead -> True)
+                      (/\dead -> traceError {Bool} "PT1")
+                      {all dead. dead})
+                 {all dead. dead})
+               (unIData (headList {data} l))
                (let
-                 !index : integer
-                   = fstPair {integer} {list data} (unConstrData arg)
+                 !tup : pair integer (list data)
+                   = unConstrData (headList {data} (tailList {data} l))
+                 !index : integer = fstPair {integer} {list data} tup
+                 !args : list data = sndPair {integer} {list data} tup
                in
-               ifThenElse
-                 {unit -> Bool}
-                 (equalsInteger 1 index)
-                 (\(ds : unit) -> True)
-                 (\(ds : unit) ->
-                    ifThenElse
-                      {unit -> Bool}
-                      (equalsInteger 0 index)
-                      (\(ds : unit) -> False)
-                      (\(ds : unit) ->
-                         let
-                           !x : Unit = trace {Unit} reconstructCaseError Unit
-                         in
-                         error {Bool})
-                      unitval)
-                 unitval))
-          (\(ds : unit) ->
-             let
-               !x : Unit = trace {Unit} reconstructCaseError Unit
-             in
-             error {Tuple3 Bool integer Bool})
-          unitval))
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                 {all dead. Bool}
+                 (/\dead -> False)
+                 (/\dead ->
+                    Bool_match
+                      (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                      {all dead. Bool}
+                      (/\dead -> True)
+                      (/\dead -> traceError {Bool} "PT1")
+                      {all dead. dead})
+                 {all dead. dead}))
+          (/\dead -> traceError {Tuple3 Bool integer Bool} "PT1")
+          {all dead. dead}))
   d

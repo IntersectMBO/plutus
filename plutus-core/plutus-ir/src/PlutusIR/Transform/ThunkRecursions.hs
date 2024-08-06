@@ -3,10 +3,10 @@
 {-# LANGUAGE LambdaCase       #-}
 -- | Implements a PIR-to-PIR transformation that makes all recursive term definitions
 -- compilable to PLC. See Note [Thunking recursions] for details.
-module PlutusIR.Transform.ThunkRecursions (thunkRecursions) where
+module PlutusIR.Transform.ThunkRecursions (thunkRecursions, thunkRecursionsPass) where
 
 import PlutusCore.Builtin
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo
@@ -15,6 +15,9 @@ import PlutusIR.Purity
 
 import Control.Lens hiding (Strict)
 import Data.List.NonEmpty qualified as NE
+import PlutusCore qualified as PLC
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
 
 {- Note [Thunking recursions]
 Our fixpoint combinators in Plutus Core know how to handle mutually recursive values
@@ -166,3 +169,10 @@ thunkRecursions
     -> Term tyname name uni fun a
     -> Term tyname name uni fun a
 thunkRecursions binfo t = transformOf termSubterms (thunkRecursionsStep binfo (termVarInfo t)) t
+
+thunkRecursionsPass
+  :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
+  => TC.PirTCConfig uni fun
+  -> BuiltinsInfo uni fun
+  -> Pass m TyName Name uni fun a
+thunkRecursionsPass tcconfig binfo = simplePass "thunk recursions" tcconfig (thunkRecursions binfo)

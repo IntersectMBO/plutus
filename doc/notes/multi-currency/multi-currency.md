@@ -28,7 +28,7 @@ data Tx = Tx {
     }
 ```
 
-Note the `txValidRange` field. This field contains an interval of slot numbers during which the transaction may be validated. The value of a transaction's `txValidRange` is passed to any validator scripts that are run during validation of that transaction's inputs, in order to make Plutus scripts deterministic. See [here](https://github.com/input-output-hk/fm-ledger-rules/issues/139) for the planned work to integrate this into the formal ledger rules for the Shelley release. The `SlotRange` type is defined in [`Ledger.Interval`](../../wallet-api/src/Ledger/Interval.hs).
+Note the `txValidRange` field. This field contains an interval of slot numbers during which the transaction may be validated. The value of a transaction's `txValidRange` is passed to any validator scripts that are run during validation of that transaction's inputs, in order to make Plutus scripts deterministic. See [here](https://github.com/IntersectMBO/cardano-ledger/issues/139) for the planned work to integrate this into the formal ledger rules for the Shelley release. The `SlotRange` type is defined in [`Ledger.Interval`](../../wallet-api/src/Ledger/Interval.hs).
 
 The `Value` and `Ada` types represent currency in the mockchain. `Ada` is the designated currency in which fees are paid, and `Value` a map of currency identifiers to quantities, following Def. 1 in [2].
 
@@ -267,7 +267,7 @@ To create a new currency with a maximum supply of 10000 and an initial supply of
 4. Create a transaction `tx2`. `tx2` spends `cur1` and `res1`, using the redeemer `r = (Circulating hRes hCur 0, Initialise hRes hCur)` for both outputs. `tx2` also spends `txout` and potentially other outputs that are needed to cover the fee. `tx2` produces pay-to-script outputs `cur2` and `res2`. The address of `cur2` is `hCur` and the address of `res2` is `hRes`. The outputs `cur2` and `res2` have the same data script: `r`, and their value is zero. In addition `tx2` produces an output `o` of `10000 hRes` to a pubkey address owned by us. The `valueForged` field of `tx2` is `{ hResror -> 10000 }`.
 5. To issue `100 hCur` currency, create a transaction `tx3`. `tx3` spends `o` as well as `cur2` and `res2`, using the redeemer `r = (Circulating hRes hCur 100, Forge 100)`. `tx3` produces outputs `cur3` and `res3` to the addresses `hCur` and `hRes` respectively, using the data script `r`. In addition, `tx3` produces an output `p` with a value of `100 hCur`, and an output `q` with a value of `9900 hRes`. The address of `q` is a public key address owned by us. The address of `p` can be any public key or script address (wherever we want to send the new currency). The `valueForged` field of `tx3` is `{ hRes -> -100, hCur -> 100 }`.
 
-The reason why the data and redeemer scripts used in steps 2-5 are of the form `(state, input)` is that this is currently the only way we have of [validating the next data script](https://github.com/input-output-hk/plutus/issues/426). The linked github issue explains the encoding under the heading "Possible Solutions", third item.
+The reason why the data and redeemer scripts used in steps 2-5 are of the form `(state, input)` is that this is currently the only way we have of [validating the next data script](https://github.com/IntersectMBO/plutus/issues/426). The linked github issue explains the encoding under the heading "Possible Solutions", third item.
 
 #### A different monetary policy
 

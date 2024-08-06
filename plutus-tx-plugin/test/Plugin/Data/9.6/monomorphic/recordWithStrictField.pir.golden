@@ -1,40 +1,20 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (typebind (tyvardecl RecordNewtype (type)) (all a (type) (fun a a)))
-    (typebind (tyvardecl MyMonoRecord (type)) (all a (type) (fun a a)))
-    (datatypebind
-      (datatype
-        (tyvardecl RecordWithStrictField (type))
-
-        RecordWithStrictField_match
-        (vardecl
-          RecordWithStrictField
-          (fun MyMonoRecord (fun RecordNewtype RecordWithStrictField))
-        )
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl strictField (fun RecordWithStrictField RecordNewtype))
-      (lam
-        ds
-        RecordWithStrictField
-        [
-          { [ RecordWithStrictField_match ds ] RecordNewtype }
-          (lam ds MyMonoRecord (lam ds RecordNewtype ds))
-        ]
-      )
-    )
-    (lam
-      ds
-      RecordWithStrictField
-      (let
-        (nonrec)
-        (termbind (strict) (vardecl ds RecordWithStrictField) ds)
-        [ strictField ds ]
-      )
-    )
-  )
-)
+    RecordNewtype = all a. a -> a
+    MyMonoRecord = all a. a -> a
+    data RecordWithStrictField | RecordWithStrictField_match where
+      RecordWithStrictField :
+        MyMonoRecord -> RecordNewtype -> RecordWithStrictField
+    ~strictField : RecordWithStrictField -> RecordNewtype
+      = \(ds : RecordWithStrictField) ->
+          RecordWithStrictField_match
+            ds
+            {RecordNewtype}
+            (\(ds : MyMonoRecord) (ds : RecordNewtype) -> ds)
+  in
+  \(ds : RecordWithStrictField) ->
+    let
+      !ds : RecordWithStrictField = ds
+    in
+    strictField ds)

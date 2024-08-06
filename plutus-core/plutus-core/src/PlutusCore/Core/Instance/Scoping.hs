@@ -8,7 +8,7 @@ module PlutusCore.Core.Instance.Scoping () where
 
 import PlutusCore.Check.Scoping
 import PlutusCore.Core.Type
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 -- In the three instances below the added variable is always the last field of a constructor.
@@ -47,7 +47,7 @@ instance tyname ~ TyName => EstablishScoping (Type tyname uni) where
     establishScoping (TyVar _ nameDup) = do
         name <- freshenTyName nameDup
         pure $ TyVar (registerFree name) name
-    establishScoping (TyBuiltin _ fun) = pure $ TyBuiltin NotAName fun
+    establishScoping (TyBuiltin _ someUni) = pure $ TyBuiltin NotAName someUni
     establishScoping (TySOP _ tyls) =
         TySOP NotAName <$> (traverse . traverse) establishScoping tyls
 

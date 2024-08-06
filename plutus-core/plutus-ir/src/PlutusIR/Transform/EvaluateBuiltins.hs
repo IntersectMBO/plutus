@@ -7,6 +7,7 @@
 -- arbitrary builtins.
 module PlutusIR.Transform.EvaluateBuiltins
     ( evaluateBuiltins
+    , evaluateBuiltinsPass
     ) where
 
 import PlutusCore.Builtin
@@ -15,7 +16,24 @@ import PlutusIR.Core
 
 import Control.Lens (transformOf, (^.))
 import Data.Functor (void)
+import PlutusCore qualified as PLC
 import PlutusIR.Analysis.Builtins
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
+
+evaluateBuiltinsPass :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
+  => TC.PirTCConfig uni fun
+  -> Bool
+  -- ^ Whether to be conservative and try to retain logging behaviour.
+  -> BuiltinsInfo uni fun
+  -> CostingPart uni fun
+  -> Pass m TyName Name uni fun a
+evaluateBuiltinsPass tcconfig preserveLogging binfo costModel =
+  NamedPass "evaluate builtins" $
+    Pass
+      (pure . evaluateBuiltins preserveLogging binfo costModel)
+      [Typechecks tcconfig]
+      [ConstCondition (Typechecks tcconfig)]
 
 evaluateBuiltins
   :: forall tyname name uni fun a
@@ -28,28 +46,27 @@ evaluateBuiltins
   -> CostingPart uni fun
   -> Term tyname name uni fun a
   -> Term tyname name uni fun a
-evaluateBuiltins conservative binfo costModel = transformOf termSubterms processTerm
+evaluateBuiltins preserveLogging binfo costModel = transformOf termSubterms processTerm
   where
     -- Nothing means "leave the original term as it was"
     eval
       :: BuiltinRuntime (Term tyname name uni fun ())
       -> AppContext tyname name uni fun a
       -> Maybe (Term tyname name uni fun ())
-    eval (BuiltinResult _ getX) AppContextEnd =
+    eval (BuiltinCostedResult _ getX) AppContextEnd =
         case getX of
-            MakeKnownSuccess (HeadSpine f xs) -> Just $ foldl (Apply ()) f xs
+            BuiltinSuccess (HeadSpine f xs) -> Just $ foldl (Apply ()) f xs
             -- Evaluates successfully, but does logging. If we're being conservative
             -- then we should leave these in, so we don't remove people's logging!
             -- Otherwise `trace "hello" x` is a prime candidate for evaluation!
-            MakeKnownSuccessWithLogs _ (HeadSpine f xs) ->
-                if conservative then Nothing else Just $ foldl (Apply ()) f xs
+            BuiltinSuccessWithLogs _ term   -> if preserveLogging then Nothing else Just term
             -- Evaluation failure. This can mean that the evaluation legitimately
             -- failed (e.g. `divideInteger 1 0`), or that it failed because the
             -- argument terms are not currently in the right form (because they're
             -- not evaluated, we're in the middle of a term here!). Since we can't
             -- distinguish these, we have to assume it's the latter case and just leave
             -- things alone.
-            MakeKnownFailure{} -> Nothing
+            BuiltinFailure{}                -> Nothing
     eval (BuiltinExpectArgument toRuntime) (TermAppContext arg _ ctx) =
         -- Builtin evaluation does not work with annotations, so we have to throw
         -- the argument annotation away here
@@ -69,6 +86,7 @@ evaluateBuiltins conservative binfo costModel = transformOf termSubterms process
            -- suboptimal, e.g. in `ifThenElse True x y`, we will get back `x`, but
            -- with the annotation that was on the `ifThenElse` node. But we can't
            -- easily do better.
-           Just t' -> x <$ t'
-           Nothing -> t
+           -- See Note [Unserializable constants]
+           Just t' | termIsSerializable binfo t' -> x <$ t'
+           _                                     -> t
     processTerm t = t

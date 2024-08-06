@@ -39,15 +39,14 @@ module UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
     )
 where
 
-import Control.Monad.Primitive
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusPrelude
-import Universe
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
                                                                  CekMachineCostsBase (..))
@@ -57,13 +56,15 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens hiding (Context)
 import Control.Monad
-import Data.List.Extras (wix)
+import Control.Monad.Primitive
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.Semigroup (stimes)
 import Data.Text (Text)
+import Data.Vector qualified as V
 import Data.Word (Word64)
 import GHC.TypeNats
+import Universe
 
 {- Note [Debuggable vs Original versions of CEK]
 
@@ -99,7 +100,7 @@ data Context uni fun ann
     | FrameAwaitFunValue ann !(CekValue uni fun ann) !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
     | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
-    | FrameCases ann !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
+    | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
     | NoFrame
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -154,7 +155,7 @@ computeCek !ctx !env (Constr ann i es) = do
     stepAndMaybeSpend BConstr
     case es of
         (t : rest) -> computeCek (FrameConstr ann env i rest EmptyStack ctx) env t
-        _          -> returnCek ctx $ VConstr i EmptyStack
+        []         -> returnCek ctx $ VConstr i EmptyStack
 -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
 computeCek !ctx !env (Case ann scrut cs) = do
     stepAndMaybeSpend BCase
@@ -192,10 +193,16 @@ returnCek (FrameConstr ann env i todo done ctx) e = do
     let done' = ConsStack e done
     case todo of
         (next : todo') -> computeCek (FrameConstr ann env i todo' done' ctx) env next
-        _              -> returnCek ctx $ VConstr i done'
+        []             -> returnCek ctx $ VConstr i done'
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
 returnCek (FrameCases ann env cs ctx) e = case e of
-    (VConstr i args) -> case cs ^? wix i of
+    -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
+    -- As it happens, this will currently never trigger, since i is a Word64, and the largest
+    -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
+    -- "apparently good" value.
+    (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
+                    throwingDischarged _MachineError (MissingCaseBranch i) e
+    (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
         Just t  ->
               let ctx' = transferArgStack ann args ctx
               in computeCek ctx' env t
@@ -277,7 +284,7 @@ runCekDeBruijn
     -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
-        spendBudgetCek BStartup $ runIdentity $ cekStartupCost ?cekCosts
+        spendBudget BStartup $ runIdentity $ cekStartupCost ?cekCosts
         enterComputeCek NoFrame Env.empty term
 
 -- See Note [Compilation peculiarities].
@@ -436,22 +443,25 @@ evalBuiltinApp
     -> BuiltinRuntime (CekValue uni fun ann)
     -> CekM uni fun s (CekValue uni fun ann)
 evalBuiltinApp fun term runtime = case runtime of
-    BuiltinResult budgets getX -> do
-        spendBudgetStreamCek (BBuiltinApp fun) budgets
-        case getX of
-            MakeKnownFailure logs err       -> do
+    BuiltinCostedResult budgets0 getX -> do
+        let exCat = BBuiltinApp fun
+            spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
+            spendBudgets (ExBudgetCons budget budgets) =
+                spendBudget exCat budget *> spendBudgets budgets
+        spendBudgets budgets0
+        case getFxs of
+            MakeKnownSuccess fXs              -> pure undefined
+            MakeKnownSuccessWithLogs logs fXs -> ?cekEmitter logs $> undefined
+            BuiltinFailure logs err           -> do
                 ?cekEmitter logs
-                throwKnownTypeErrorWithCause term err
-            MakeKnownSuccess x              -> pure undefined
-            MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> undefined
+                throwBuiltinErrorWithCause term err
     _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
-spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
-spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
+spendBudget :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
+spendBudget = unCekBudgetSpender ?cekBudgetSpender
 
 -- | Spend the budget that has been accumulated for a number of machine steps.
---
 spendAccumulatedBudget :: (GivenCekReqs uni fun ann s) => CekM uni fun s ()
 spendAccumulatedBudget = do
     let ctr = ?cekStepCounter
@@ -464,7 +474,7 @@ spendAccumulatedBudget = do
     -- See Note [Structure of the step counter]
     {-# INLINE spend #-}
     spend !i !w = unless (i == (fromIntegral $ natVal $ Proxy @TotalCountIndex)) $
-      let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
+      let kind = toEnum i in spendBudget (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
 
 -- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
 stepAndMaybeSpend :: (GivenCekReqs uni fun ann s) => StepKind -> CekM uni fun s ()

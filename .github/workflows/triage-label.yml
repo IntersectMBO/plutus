@@ -1,0 +1,53 @@
+# Whenever a new issue is opened, this job adds the "status: needs triage" 
+# label, unless the issue already has one of the INTERNAL_LABELS.
+  
+name: "🏷️ Triage Label"
+
+on:
+  issues:
+    types: [ opened, reopened ]
+
+jobs:
+  add:
+    name: Add
+    runs-on: [ubuntu-latest]
+    permissions:
+      issues: write
+    steps:
+      - name: Add Label
+        uses: actions/github-script@main
+        with:
+          script: | 
+            const INTERNAL_LABELS = ["Internal", "status: triaged"];
+
+            async function getIssueLabels() {
+              const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number
+              });
+              return labels.map(label => label.name);
+            }
+
+            async function issueHasInternalLabels() {
+              const labels = await getIssueLabels();
+              return INTERNAL_LABELS.some(item => labels.includes(item));
+            }
+
+            async function addNeedsTriageLabelToIssue() {
+              await github.rest.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: ["status: needs triage"]
+              });
+            }
+
+            try {
+              if (!await issueHasInternalLabels()) {
+                await addNeedsTriageLabelToIssue();
+              }
+            } catch (error) {
+              core.setFailed(`Error: ${error}`);
+            } 
+

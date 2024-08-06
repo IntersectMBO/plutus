@@ -17,7 +17,7 @@ import PlutusCore.Builtin.Meaning as Export
 import PlutusCore.Builtin.Polymorphism as Export
 import PlutusCore.Core as Export
 import PlutusCore.Default as Export
-import PlutusCore.Name as Export
+import PlutusCore.Name.Unique as Export
 
 -- | Instantiate type variables in the type of a value using 'ElaborateFromTo'. Example usages:
 --

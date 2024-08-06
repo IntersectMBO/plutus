@@ -5,7 +5,7 @@ module Main (main) where
 import Data.Text qualified as Text
 
 import Test.Tasty
-import Test.Tasty.Extras (TestNested, runTestGroupNestedGhc)
+import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
 import Test.Tasty.HUnit
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm, runTermCek, unsafeRunTermCek)
@@ -17,15 +17,15 @@ import PlutusTx.Test qualified as Tx
 
 -- Make a set of golden tests with results stored in subdirectories determined
 -- by the GHC version.
-testGroupGhc :: [TestNested] -> TestTree
-testGroupGhc = runTestGroupNestedGhc ["script-contexts", "test"]
+runTestGhc :: [TestNested] -> TestTree
+runTestGhc = runTestNested ["script-contexts", "test"] . pure . testNestedGhc
 
 assertSucceeded :: Term -> Assertion
 assertSucceeded t =
     case runTermCek t of
         (Right _, _)  -> pure ()
         (Left err, logs) -> assertFailure . Text.unpack . Text.intercalate "\n" $
-            [ render (prettyPlcClassicDebug err)
+            [ render (prettyPlcClassicSimple err)
             , "Cek logs:"
             ] ++ logs
 
@@ -43,14 +43,18 @@ testCheckSc1 = testGroup "checkScriptContext1"
         compiledCodeToTerm $ mkCheckScriptContext1Code (mkScriptContext 4)
     , testCase "fails on 5" . assertFailed $
         compiledCodeToTerm $ mkCheckScriptContext1Code (mkScriptContext 5)
-    , testGroupGhc [ Tx.goldenSize "checkScriptContext1" $
+    , runTestGhc [ Tx.goldenSize "checkScriptContext1" $
                         mkCheckScriptContext1Code (mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext1" $
                         mkCheckScriptContext1Code (mkScriptContext 1)
                    , Tx.goldenBudget "checkScriptContext1-4" $
                         mkCheckScriptContext1Code (mkScriptContext 4)
+                   , Tx.goldenEvalCekCatch "checkScriptContext1-4" $
+                        [mkCheckScriptContext1Code (mkScriptContext 4)]
                    , Tx.goldenBudget "checkScriptContext1-20" $
                         mkCheckScriptContext1Code (mkScriptContext 20)
+                   , Tx.goldenEvalCekCatch "checkScriptContext1-20" $
+                        [mkCheckScriptContext1Code (mkScriptContext 20)]
           ]
     ]
 
@@ -60,25 +64,31 @@ testCheckSc2 = testGroup "checkScriptContext2"
           compiledCodeToTerm $ mkCheckScriptContext2Code (mkScriptContext 4)
     , testCase "succeed on 5" . assertSucceeded $
           compiledCodeToTerm $ mkCheckScriptContext2Code (mkScriptContext 5)
-    , testGroupGhc [ Tx.goldenSize "checkScriptContext2" $
+    , runTestGhc [ Tx.goldenSize "checkScriptContext2" $
                         mkCheckScriptContext2Code (mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext2" $
                         mkCheckScriptContext2Code (mkScriptContext 1)
                    , Tx.goldenBudget "checkScriptContext2-4" $
                         mkCheckScriptContext2Code (mkScriptContext 4)
+                   , Tx.goldenEvalCekCatch "checkScriptContext2-4" $
+                        [mkCheckScriptContext2Code (mkScriptContext 4)]
                    , Tx.goldenBudget "checkScriptContext2-20" $
                         mkCheckScriptContext2Code (mkScriptContext 20)
+                   , Tx.goldenEvalCekCatch "checkScriptContext2-20" $
+                        [mkCheckScriptContext2Code (mkScriptContext 20)]
                    ]
     ]
 
 testCheckScEquality :: TestTree
 testCheckScEquality = testGroup "checkScriptContextEquality"
-    [ testGroupGhc [ Tx.goldenBudget "checkScriptContextEqualityData-20" $
+    [ runTestGhc [ Tx.goldenBudget "checkScriptContextEqualityData-20" $
                         mkScriptContextEqualityDataCode (mkScriptContext 20)
-                   , Tx.goldenBudget "checkScriptContextEqualityTerm-20" $
-                        mkScriptContextEqualityTermCode (mkScriptContext 20)
+                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityData-20" $
+                        [mkScriptContextEqualityDataCode (mkScriptContext 20)]
                    , Tx.goldenBudget "checkScriptContextEqualityOverhead-20" $
                         mkScriptContextEqualityOverheadCode (mkScriptContext 20)
+                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityOverhead-20" $
+                        [mkScriptContextEqualityOverheadCode (mkScriptContext 20)]
                    ]
     ]
 

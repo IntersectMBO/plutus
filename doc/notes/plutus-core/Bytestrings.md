@@ -128,7 +128,7 @@ Haskell functions.
 (January 2021)
 
 After some discussion, we decided on the following.
-See also the comments on [PR #2480](https://github.com/input-output-hk/plutus/pull/2480).
+See also the comments on [PR #2480](https://github.com/IntersectMBO/plutus/pull/2480).
 
 I'll write signatures of PLC builtins like this: `<integer, integer, bystetring> -> integer`.
 

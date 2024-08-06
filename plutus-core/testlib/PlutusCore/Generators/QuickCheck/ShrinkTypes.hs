@@ -16,7 +16,7 @@ import PlutusCore.Generators.QuickCheck.GenTm
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.Subst
 
@@ -235,9 +235,9 @@ shrinkKindAndType ctx (k0, ty) =
           | b' <- shrinkType (Map.insert x ka ctx) b
           ]
         ]
-    TyBuiltin _ builtin ->
+    TyBuiltin _ someUni ->
         [ (kindOfBuiltinType uni', TyBuiltin () $ SomeTypeIn uni')
-        | SomeTypeIn uni' <- shrinkBuiltinType builtin
+        | SomeTypeIn uni' <- shrinkBuiltinType someUni
         ]
     TyIFix _ pat arg  -> map (Type (), ) $ concat
         [ [ fixKind ctx pat $ Type ()

@@ -22,6 +22,8 @@ module PlutusPrelude
     , fromMaybe
     , guard
     , foldl'
+    , for_
+    , traverse_
     , fold
     , for
     , throw
@@ -96,6 +98,7 @@ module PlutusPrelude
     , distinct
     , unsafeFromRight
     , tryError
+    , lowerInitialChar
     ) where
 
 import Control.Applicative
@@ -109,13 +112,16 @@ import Control.Monad.Except (MonadError, catchError)
 import Control.Monad.Reader (MonadReader, ask)
 import Data.Array (Array, Ix, listArray)
 import Data.Bifunctor (first, second)
+import Data.Char (toLower)
 import Data.Coerce (Coercible, coerce)
 import Data.Default.Class
 import Data.Either (fromRight, isLeft, isRight)
-import Data.Foldable (fold, toList)
+import Data.Foldable (fold, for_, toList, traverse_)
 import Data.Function (on)
 import Data.Functor (($>))
+#if ! MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
+#endif
 import Data.List.Extra (enumerate)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe (fromMaybe, isJust, isNothing)
@@ -239,7 +245,6 @@ showText = T.pack . show
 -- the same length.
 zipExact :: [a] -> [b] -> Maybe [(a,b)]
 zipExact [] []         = Just []
-zipExact [a] [b]       = Just [(a,b)]
 zipExact (a:as) (b:bs) = (:) (a, b) <$> zipExact as bs
 zipExact _ _           = Nothing
 
@@ -266,3 +271,7 @@ allSame (x:xs) = all (x ==) xs
 
 distinct :: Eq a => [a] -> Bool
 distinct = not . allSame
+
+lowerInitialChar :: String -> String
+lowerInitialChar []     = []
+lowerInitialChar (c:cs) = toLower c : cs

@@ -2,6 +2,7 @@
 
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -42,7 +43,7 @@ evaluationFailure :: AsEvaluationFailure err => err
 evaluationFailure = _EvaluationFailure # ()
 {-# INLINE evaluationFailure #-}
 
--- | Construct a 'Prism' focusing on the @*EvaluationFailure@ part of @err@ by taking
+-- | Construct a prism focusing on the @*EvaluationFailure@ part of @err@ by taking
 -- that @*EvaluationFailure@ and
 --
 -- 1. returning it for the setter part of the prism
@@ -60,6 +61,21 @@ data EvaluationResult a
     deriving stock (Show, Eq, Generic, Functor, Foldable, Traversable)
     deriving anyclass (NFData)
 
+-- >>> evaluationFailure :: EvaluationResult Bool
+-- EvaluationFailure
+--
+-- >>> import Control.Lens
+-- >>> matching _EvaluationFailure (EvaluationFailure :: EvaluationResult Bool)
+-- Right ()
+--
+-- >>> matching _EvaluationFailure $ EvaluationSuccess True
+-- Left (EvaluationSuccess True)
+instance AsEvaluationFailure (EvaluationResult a) where
+    _EvaluationFailure = prism (const EvaluationFailure) $ \case
+        a@EvaluationSuccess{} -> Left a
+        EvaluationFailure     -> Right ()
+    {-# INLINE _EvaluationFailure #-}
+
 -- This and the next one are two instances that allow us to write the following:
 --
 -- >>> import Control.Monad.Error.Lens
@@ -71,9 +87,11 @@ instance AsEvaluationFailure () where
 
 instance MonadError () EvaluationResult where
     throwError () = EvaluationFailure
+    {-# INLINE throwError #-}
 
     catchError EvaluationFailure f = f ()
     catchError x                 _ = x
+    {-# INLINE catchError #-}
 
 instance Applicative EvaluationResult where
     pure = EvaluationSuccess
@@ -83,17 +101,24 @@ instance Applicative EvaluationResult where
     EvaluationFailure   <*> _ = EvaluationFailure
     {-# INLINE (<*>) #-}
 
+    EvaluationSuccess _ *> b = b
+    EvaluationFailure   *> _ = EvaluationFailure
+    {-# INLINE (*>) #-}
+
 instance Monad EvaluationResult where
     EvaluationSuccess x >>= f = f x
     EvaluationFailure   >>= _ = EvaluationFailure
     {-# INLINE (>>=) #-}
 
+    (>>) = (*>)
+    {-# INLINE (>>) #-}
+
 instance Alternative EvaluationResult where
     empty = EvaluationFailure
     {-# INLINE empty #-}
 
-    EvaluationSuccess x <|> _ = EvaluationSuccess x
-    EvaluationFailure   <|> a = a
+    a@EvaluationSuccess{} <|> _ = a
+    EvaluationFailure     <|> b = b
     {-# INLINE (<|>) #-}
 
 instance MonadFail EvaluationResult where
@@ -105,7 +130,7 @@ instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
     prettyBy _      EvaluationFailure     = "Failure"
 
 instance PrettyClassic a => Pretty (EvaluationResult a) where
-    pretty = prettyClassicDef
+    pretty = prettyClassic
 
 -- | Check whether an 'EvaluationResult' is an 'EvaluationSuccess'.
 isEvaluationSuccess :: EvaluationResult a -> Bool

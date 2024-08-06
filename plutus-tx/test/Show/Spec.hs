@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -10,7 +9,7 @@ import PlutusTx.Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Show
 
-import Control.Monad.Trans.Reader as Reader
+import Control.Monad.Reader as Reader
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as Char8
 import Data.Text qualified as Text
@@ -42,7 +41,7 @@ goldenShow :: forall a. Show a => TestName -> a -> TestNested
 goldenShow name x = do
     path <- ask
     let fp = foldr (</>) (name ++ ".show.golden") path
-    pure $ goldenVsText name fp . fromBuiltin $ show x
+    embed $ goldenVsText name fp . fromBuiltin $ show x
 
 data ProductD = ProductC Integer [Bool]
 deriveShow ''ProductD
@@ -71,8 +70,7 @@ deriveShow ''GadtD
 
 propertyTests :: TestTree
 propertyTests =
-    testGroup
-        "PlutusTx.Show property-based tests"
+    testGroup "PlutusTx.Show property-based tests"
         [ testPropertyNamed
             "PlutusTx.Show @Integer"
             "PlutusTx.Show @Integer"
@@ -83,10 +81,9 @@ propertyTests =
             showByteStringBase16
         ]
 
-goldenTests :: TestNested
+goldenTests :: TestTree
 goldenTests =
-    testNested
-        "Show"
+    runTestNested ["test", "Show", "Golden"]
         [ goldenShow "product-type" (ProductC 3 [True, False])
         , goldenShow "product-type-2" ((:-:) [-300] False)
         , goldenShow "sum-type-1" SumC1

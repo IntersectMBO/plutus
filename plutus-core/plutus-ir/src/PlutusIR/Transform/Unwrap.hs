@@ -8,12 +8,16 @@ and should anyway better be handled by something like case-of-known constructor.
 But it's so simple we might as well include it just in case.
 -}
 module PlutusIR.Transform.Unwrap (
-  unwrapCancel
+  unwrapCancel,
+  unwrapCancelPass
   ) where
 
 import PlutusIR
 
 import Control.Lens (transformOf)
+import PlutusCore qualified as PLC
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
 
 {-|
 A single non-recursive application of wrap/unwrap cancellation.
@@ -32,3 +36,9 @@ unwrapCancel
     :: Term tyname name uni fun a
     -> Term tyname name uni fun a
 unwrapCancel = transformOf termSubterms unwrapCancelStep
+
+unwrapCancelPass
+  :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
+  => TC.PirTCConfig uni fun
+  -> Pass m TyName Name uni fun a
+unwrapCancelPass tcconfig = simplePass "wrap-unwrap cancel" tcconfig unwrapCancel

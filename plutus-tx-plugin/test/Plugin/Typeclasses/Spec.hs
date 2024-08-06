@@ -7,6 +7,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-typecheck #-}
 
@@ -26,17 +27,17 @@ import PlutusTx.Test
 import Data.Proxy
 
 typeclasses :: TestNested
-typeclasses = testNestedGhc "Typeclasses" [
-    goldenPir "sizedBasic" sizedBasic
-    , goldenPir "sizedPair" sizedPair
-    , goldenPir "multiFunction" multiFunction
-    , goldenPir "defaultMethods" defaultMethods
-    , goldenPir "partialApplication" partialApplication
-    , goldenPir "sequenceTest" sequenceTest
-    , goldenPir "compareTest" compareTest
-    , goldenPir "concatTest" concatTest
-    , goldenPir "sumTest" sumTest
-    , goldenPir "fmapDefaultTest" fmapDefaultTest
+typeclasses = testNested "Typeclasses" . pure $ testNestedGhc
+  [ goldenPir "sizedBasic" sizedBasic
+  , goldenPir "sizedPair" sizedPair
+  , goldenPir "multiFunction" multiFunction
+  , goldenPir "defaultMethods" defaultMethods
+  , goldenPir "partialApplication" partialApplication
+  , goldenPir "sequenceTest" sequenceTest
+  , goldenPir "compareTest" compareTest
+  , goldenPir "concatTest" concatTest
+  , goldenPir "sumTest" sumTest
+  , goldenPir "fmapDefaultTest" fmapDefaultTest
   ]
 
 class Sized a where

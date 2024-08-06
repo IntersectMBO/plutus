@@ -468,7 +468,7 @@ Good:
 
 [source,Haskell]
 ----
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 ----
 
 ==== Reasoning

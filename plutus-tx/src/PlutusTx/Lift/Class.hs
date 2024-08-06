@@ -30,8 +30,9 @@ import PlutusCore.Data
 import PlutusCore.Quote
 import PlutusIR.MkPir
 import PlutusTx.Builtins
-import PlutusTx.Builtins.Class (FromBuiltin)
-import PlutusTx.Builtins.Internal (BuiltinList)
+import PlutusTx.Builtins.HasBuiltin (FromBuiltin, HasFromBuiltin)
+import PlutusTx.Builtins.Internal (BuiltinBool, BuiltinInteger, BuiltinList, BuiltinPair,
+                                   BuiltinUnit)
 
 import Language.Haskell.TH qualified as TH hiding (newName)
 
@@ -73,22 +74,21 @@ inline all the definitions so that the overall expression can have the right con
 
 type RTCompile uni fun = DefT TH.Name uni fun () Quote
 
--- TODO: try and make this work with type applications
--- | Class for types which have a corresponding Plutus IR type. Instances should always be derived, do not write
--- your own instance!
+-- | Class for types which have a corresponding Plutus IR type. Instances should always be derived,
+-- do not write your own instance!
 class Typeable uni (a :: k) where
     -- | Get the Plutus IR type corresponding to this type.
     typeRep :: Proxy a -> RTCompile uni fun (Type TyName uni ())
 
-
--- | Class for types which can be lifted into Plutus IR. Instances should be derived, do not write your
--- own instance!
+-- | Class for types which can be lifted into Plutus IR. Instances should be derived, do not write
+-- your own instance!
 class Lift uni a where
     -- | Get a Plutus IR term corresponding to the given value.
     lift :: a -> RTCompile uni fun (Term TyName Name uni fun ())
 
--- This instance ensures that we can apply typeable type constructors to typeable arguments and get a typeable
--- type. We need the kind variable, so that partial application of type constructors works.
+-- This instance ensures that we can apply typeable type constructors to typeable arguments and get
+-- a typeable type. We need the kind variable, so that partial application of type constructors
+-- works.
 instance (Typeable uni (f :: GHC.Type -> k), Typeable uni (a :: GHC.Type)) => Typeable uni (f a) where
     typeRep _ = TyApp () <$> typeRep (Proxy :: Proxy f) <*> typeRep (Proxy :: Proxy a)
 
@@ -115,7 +115,7 @@ instance Typeable uni (->) where
 -- Primitives
 
 typeRepBuiltin
-    :: forall (a :: GHC.Type) uni fun. uni `PLC.HasTypeLevel` a
+    :: forall k (a :: k) uni fun. uni `PLC.HasTypeLevel` a
     => Proxy a -> RTCompile uni fun (Type TyName uni ())
 typeRepBuiltin (_ :: Proxy a) = pure $ mkTyBuiltin @_ @a ()
 
@@ -132,59 +132,113 @@ instance (TypeError ('Text "Int is not supported, use Integer instead"))
     => Lift uni Int where
     lift = Haskell.error "unsupported"
 
-instance uni `PLC.HasTypeLevel` Integer => Typeable uni Integer where
+instance uni `PLC.HasTypeLevel` Integer => Typeable uni BuiltinInteger where
     typeRep = typeRepBuiltin
 
-instance uni `PLC.HasTermLevel` Integer => Lift uni Integer where
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTermLevel` Integer => Lift uni BuiltinInteger where
     lift = liftBuiltin
 
-instance uni `PLC.HasTypeLevel` BS.ByteString => Typeable uni BS.ByteString where
-    typeRep = typeRepBuiltin
-
-instance uni `PLC.HasTermLevel` BS.ByteString => Lift uni BS.ByteString where
-    lift = liftBuiltin
-
-instance uni `PLC.HasTypeLevel` Data => Typeable uni BuiltinData where
-    typeRep _ = typeRepBuiltin (Proxy @Data)
-
-instance uni `PLC.HasTermLevel` Data => Lift uni BuiltinData where
-    lift = liftBuiltin . builtinDataToData
-
+-- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTypeLevel` BS.ByteString => Typeable uni BuiltinByteString where
-    typeRep _proxyPByteString = typeRepBuiltin (Proxy @BS.ByteString)
+    typeRep _ = typeRepBuiltin (Proxy @BS.ByteString)
 
+-- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTermLevel` BS.ByteString => Lift uni BuiltinByteString where
     lift = liftBuiltin . fromBuiltin
 
+-- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTypeLevel` T.Text => Typeable uni BuiltinString where
-    typeRep _proxyPByteString = typeRepBuiltin (Proxy @T.Text)
+    typeRep _ = typeRepBuiltin (Proxy @T.Text)
 
+-- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTermLevel` T.Text => Lift uni BuiltinString where
     lift = liftBuiltin . fromBuiltin
 
-instance (FromBuiltin arep a, uni `PLC.HasTermLevel` [a]) => Lift uni (BuiltinList arep) where
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTypeLevel` () => Typeable uni BuiltinUnit where
+    typeRep _ = typeRepBuiltin (Proxy @())
+
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTermLevel` () => Lift uni BuiltinUnit where
     lift = liftBuiltin . fromBuiltin
 
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTypeLevel` Bool => Typeable uni BuiltinBool where
+    typeRep _ = typeRepBuiltin (Proxy @Bool)
+
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTermLevel` Bool => Lift uni BuiltinBool where
+    lift = liftBuiltin . fromBuiltin
+
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTypeLevel` [] => Typeable uni BuiltinList where
+    typeRep _ = typeRepBuiltin (Proxy @[])
+
+-- See Note [Lift and Typeable instances for builtins]
+instance (HasFromBuiltin arep, uni `PLC.HasTermLevel` [FromBuiltin arep]) =>
+        Lift uni (BuiltinList arep) where
+    lift = liftBuiltin . fromBuiltin
+
+instance uni `PLC.HasTypeLevel` (,) => Typeable uni BuiltinPair where
+    typeRep _ = typeRepBuiltin (Proxy @(,))
+
+instance
+        ( HasFromBuiltin arep, HasFromBuiltin brep
+        , uni `PLC.HasTermLevel` (FromBuiltin arep, FromBuiltin brep)
+        ) => Lift uni (BuiltinPair arep brep) where
+    lift = liftBuiltin . fromBuiltin
+
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTypeLevel` Data => Typeable uni BuiltinData where
+    typeRep _ = typeRepBuiltin (Proxy @Data)
+
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTermLevel` Data => Lift uni BuiltinData where
+    lift = liftBuiltin . fromBuiltin
+
+-- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.G1.Element =>
         Typeable uni BuiltinBLS12_381_G1_Element where
     typeRep _ = typeRepBuiltin (Proxy @PlutusCore.Crypto.BLS12_381.G1.Element)
 
+-- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTermLevel` PlutusCore.Crypto.BLS12_381.G1.Element =>
         Lift uni BuiltinBLS12_381_G1_Element where
     lift = liftBuiltin . fromBuiltin
 
+-- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.G2.Element =>
         Typeable uni BuiltinBLS12_381_G2_Element where
     typeRep _ = typeRepBuiltin (Proxy @PlutusCore.Crypto.BLS12_381.G2.Element)
 
+-- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTermLevel` PlutusCore.Crypto.BLS12_381.G2.Element =>
         Lift uni BuiltinBLS12_381_G2_Element where
     lift = liftBuiltin . fromBuiltin
 
+-- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.Pairing.MlResult =>
         Typeable uni BuiltinBLS12_381_MlResult where
     typeRep _ = typeRepBuiltin (Proxy @PlutusCore.Crypto.BLS12_381.Pairing.MlResult)
 
+-- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTermLevel` PlutusCore.Crypto.BLS12_381.Pairing.MlResult =>
         Lift uni BuiltinBLS12_381_MlResult where
     lift = liftBuiltin . fromBuiltin
+
+{- Note [Lift and Typeable instances for builtins]
+We can, generally, lift builtin values. We just make a constant with the value inside.
+However, in Plutus Tx we use opaque types for most builtin types to avoid people
+trying to pattern match on them. So the types don't quite match up with what we need
+to put inside the constant.
+
+Fortunately, we have To/FromBuiltin, which happen to do what we want.
+See Note [Built-in types and their Haskell counterparts].
+This is arguably slightly an abuse: the versions of the types that we want in
+Plutus Tx source code and the versions that we use as the implementations of
+the builtin types in the universe could be different. But in practice they
+aren't. So we can write fairly straightforward instances for most types.
+
+Similarly, for Typeable we may have to use a different type from the opaque one.
+-}

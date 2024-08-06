@@ -10,6 +10,7 @@ import PlutusCore.Builtin.KnownType
 import PlutusCore.Evaluation.Machine.ExBudgetStream
 
 import Control.DeepSeq
+import Control.Monad.Except (throwError)
 import NoThunks.Class
 
 -- | A 'BuiltinRuntime' represents a possibly partial builtin application, including an empty
@@ -18,18 +19,18 @@ import NoThunks.Class
 -- Applying or type-instantiating a builtin peels off the corresponding constructor from its
 -- 'BuiltinRuntime'.
 --
--- 'BuiltinResult' contains the cost (an 'ExBudget') and the result (a @MakeKnownM val@) of the
--- builtin application. The cost is stored strictly, since the evaluator is going to look at it
+-- 'BuiltinCostedResult' contains the cost (an 'ExBudget') and the result (a @BuiltinResult val@) of
+-- the builtin application. The cost is stored strictly, since the evaluator is going to look at it
 -- and the result is stored lazily, since it's not supposed to be forced before accounting for the
 -- cost of the application. If the cost exceeds the available budget, the evaluator discards the
--- the result of the builtin application without ever forcing it and terminates with evaluation
+-- result of the builtin application without ever forcing it and terminates with evaluation
 -- failure. Allowing the user to compute something that they don't have the budget for would be a
 -- major bug.
 --
 -- Evaluators that ignore the entire concept of costing (e.g. the CK machine) may of course force
 -- the result of the builtin application unconditionally.
 data BuiltinRuntime val
-    = BuiltinResult ExBudgetStream ~(MakeKnownM (HeadSpine val))
+    = BuiltinCostedResult ExBudgetStream ~(BuiltinResult (HeadSpine val))
     | BuiltinExpectArgument (val -> BuiltinRuntime val)
     | BuiltinExpectForce (BuiltinRuntime val)
 
@@ -37,11 +38,11 @@ instance NoThunks (BuiltinRuntime val) where
     wNoThunks ctx = \case
         -- Unreachable, because we don't allow nullary builtins and the 'BuiltinArrow' case only
         -- checks for WHNF without recursing. Hence we can throw if we reach this clause somehow.
-        BuiltinResult _ _          -> pure . Just $ ThunkInfo ctx
+        BuiltinCostedResult _ _    -> pure . Just . ThunkInfo $ Left ctx
         -- This one doesn't do much. It only checks that the function stored in the 'BuiltinArrow'
         -- is in WHNF. The function may contain thunks inside of it. Not sure if it's possible to do
-        -- better, since the final 'BuiltinResult' contains a thunk for the result of the builtin
-        -- application anyway.
+        -- better, since the final 'BuiltinCostedResult' contains a thunk for the result of the
+        -- builtin application anyway.
         BuiltinExpectArgument f    -> noThunks ctx f
         BuiltinExpectForce runtime -> noThunks ctx runtime
 
@@ -55,7 +56,7 @@ instance NFData (BuiltinRuntime val) where
 -- | A @data@ wrapper around a function returning the 'BuiltinRuntime' of a built-in function.
 -- We use @data@ rather than @newtype@, because GHC is able to see through @newtype@s and may break
 -- carefully set up optimizations, see
--- https://github.com/input-output-hk/plutus/pull/4914#issuecomment-1396306606
+-- https://github.com/IntersectMBO/plutus/pull/4914#issuecomment-1396306606
 --
 -- Using @data@ may make things more expensive, however it was verified at the time of writing that
 -- the wrapper is removed before the CEK machine starts, leaving the stored function to be used
@@ -77,6 +78,11 @@ instance (Bounded fun, Enum fun) => NoThunks (BuiltinsRuntime fun val) where
     -- forcing it, see https://stackoverflow.com/q/63441862).
     wNoThunks ctx (BuiltinsRuntime env) = allNoThunks $ map (wNoThunks ctx . env) enumerate
     showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinsRuntime"
+
+builtinRuntimeFailure :: BuiltinError -> BuiltinRuntime val
+builtinRuntimeFailure = BuiltinCostedResult (ExBudgetLast mempty) . throwError
+-- See Note [INLINE and OPAQUE on error-related definitions].
+{-# OPAQUE builtinRuntimeFailure #-}
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin :: fun -> BuiltinsRuntime fun val -> BuiltinRuntime val

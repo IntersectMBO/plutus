@@ -11,8 +11,9 @@ module PlutusCore.Crypto.BLS12_381.G2
     , hashToGroup
     , compress
     , uncompress
-    , zero
-    , generator
+    , offchain_zero
+    , compressed_zero
+    , compressed_generator
     , memSizeBytes
     , compressedSizeBytes
     ) where
@@ -41,14 +42,17 @@ instance Show Element where
 instance Pretty Element where
     pretty = pretty . show
 instance PrettyBy ConstConfig Element
+{- | We don't support direct flat encoding of G1 elements because of the expense
+   of on-chain uncompression.  Users should convert between G1 elements and
+   bytestrings using `compress` and `uncompress`: the bytestrings can be
+   flat-encoded in the usual way. -}
 instance Flat Element where
-    decode = do
-        x <- decode
-        case uncompress x of
-             Left err -> fail $ show err
-             Right e  -> pure e
-    encode = encode . compress
-    size = size . compress
+    -- This might happen on the chain, so `fail` rather than `error`.
+    decode = fail "Flat decoding is not supported for objects of type bls12_381_G2_element: use bls12_381_G2_uncompress on a bytestring instead."
+    -- This will be a Haskell runtime error, but encoding doesn't happen on chain,
+    -- so it's not too bad.
+    encode = error "Flat encoding is not supported for objects of type bls12_381_G2_element: use bls12_381_G2_compress to obtain a bytestring instead."
+    size _ = id
 instance NFData Element where
     rnf (Element x) = rwhnf x  -- Just to be on the safe side.
 
@@ -99,14 +103,20 @@ hashToGroup msg dst =
     then Left HashToCurveDstTooBig
     else Right . Element $ BlstBindings.blsHash msg (Just dst) Nothing
 
--- | The zero element of G2
-zero :: Element
-zero = coerce BlstBindings.Internal.blsZero
+-- | The zero element of G2.  This cannot be flat-serialised and is provided
+-- only for off-chain testing.
+offchain_zero :: Element
+offchain_zero = coerce BlstBindings.Internal.blsZero
 
--- | The standard generator of G2
-generator :: Element
-generator = coerce BlstBindings.Internal.blsGenerator
+-- | The zero element of G2 compressed into a bytestring.  This is provided for
+-- convenience in PlutusTx and is not exported as a builtin.
+compressed_zero :: ByteString
+compressed_zero = compress $ coerce BlstBindings.Internal.blsZero
 
+-- | The standard generator of G2 compressed into a bytestring.  This is
+-- provided for convenience in PlutusTx and is not exported as a builtin.
+compressed_generator :: ByteString
+compressed_generator = compress $ coerce BlstBindings.Internal.blsGenerator
 
 -- Utilities (not exposed as builtins)
 

@@ -5,21 +5,44 @@ We begin with some notation which will be used throughout the document.
 \label{sec:notation-sets}
 \begin{itemize}
   \item The symbol $\disj$ denotes a disjoint union of sets;  for emphasis we often use this
-    to denote the union of sets which we know to be disjoint.
+    to denote the union of sets which we know to be disjoint.%
+    \nomenclature[Azz]{$\disj$}{Disjoint union of sets}%
+
   \item Given a set $X$, $X^*$ denotes the set of finite sequences of elements of $X$:
     $$
     X^*= \bigdisj{\{X^n: n \in \mathbb{N}\}}.
-    $$
-  \item $\N = \{0,1,2,3,\ldots\}$.
-  \item $\Nplus = \{1,2,3,\ldots\}$.
-  \item $\Nab{a}{b} = \{n \in \N: a \leq n \leq b\}$.
-  \item $\B = \Nab{0}{255}$, the set of 8-bit bytes.
-  \item $\B^*$ is the set of all bytestrings.
-  \item $\Z = \{\ldots, -2, -1, 0, 1, 2, \ldots\}$.
-  \item $\mathbb{F}_q$ denotes a finite field with $q$ elements ($q$ a prime power).
-  \item $\mathbb{F}_q^*$ denotes the multiplicative group of nonzero elements of $\mathbb{F}_q$.
-  \item $\U$ denotes the set of Unicode scalar values, as defined in~\cite[Definition D76]{Unicode-standard}.
-  \item $\U^*$ is the set of all Unicode strings.
+    $$%
+    \nomenclature[Azz]{$X^*$}{The set of all finite sequences of elements of a set $X$}
+  \item $\N = \{0,1,2,3,\ldots\}$.%
+    \nomenclature[An1]{$\N$}{$\{0,1,2,3,\ldots\}$}
+
+  \item $\Nplus = \{1,2,3,\ldots\}$.%
+    \nomenclature[An2]{$\Nplus$}{$\{1,2,3,\ldots\}$}
+
+  \item $\Nab{a}{b} = \{n \in \N: a \leq n \leq b\}$.%
+    \nomenclature[An3]{$\Nab{a}{b}$}{$\{n \in \N: a \leq n \leq b\}$}
+
+  \item $\B = \Nab{0}{255}$, the set of 8-bit bytes.%
+    \nomenclature[Ab1]{$\B$}{$\{n \in \Z: 0 \leq n \leq 255\}$}%
+
+  \item $\B^*$ is the set of all bytestrings.%
+    \nomenclature[Ab2]{$\B^*$}{The set of all bytestrings}
+
+  \item $\Z = \{\ldots, -2, -1, 0, 1, 2, \ldots\}$.%
+    \nomenclature[Aw]{$\Z$}{$\{\ldots, -2, -1, 0, 1, 2, \ldots\}$}
+
+  \item $\mathbb{F}_q$ denotes a finite field with $q$ elements ($q$ a prime power).%
+    \nomenclature[Af]{$\mathbb{F}_q$}{The finite field with $q$ elements}
+
+  \item $\mathbb{F}_q^*$ denotes the multiplicative group of nonzero elements of $\mathbb{F}_q$.%
+    \nomenclature[Af]{$\mathbb{F}_q^*$}{The multiplicative group of $\mathbb{F}_q$}%
+
+  \item $\U$ denotes the set of Unicode scalar values, as defined in~\cite[Definition D76]{Unicode-standard}.%
+    \nomenclature[Au1]{$\U$}{The set of Unicode scalar values}%
+
+  \item $\U^*$ is the set of all Unicode strings.%
+    \nomenclature[Au2]{$\U^*$}{The set of Unicode strings}%
+
   \item We assume that there is a special symbol $\errorX$ which does not appear
     in any other set we mention.  The symbol $\errorX$ is used to indicate that
     some sort of error condition has occurred, and we will often need to consider
@@ -27,48 +50,43 @@ We begin with some notation which will be used throughout the document.
     For brevity, if $S$ is a set then we define
     $$
     \withError{S} := S \disj \{\errorX\}.
-    $$
+    $$%
+    \nomenclature[Ax]{$\withError{S}$}{$S \disj \{\errorX\}$ ($S$ a set)}%
 \end{itemize}%
-\nomenclature[An1]{$\N$}{$\{0,1,2,3,\ldots\}$}%
-\nomenclature[An2]{$\Nplus$}{$\{1,2,3,\ldots\}$}%
-\nomenclature[An3]{$\Nab{a}{b}$}{$\{n \in \N: a \leq n \leq b\}$}%
-\nomenclature[Aw]{$\Z$}{$\{\ldots, -2, -1, 0, 1, 2, \ldots\}$}%
-\nomenclature[Af]{$\mathbb{F}_q$}{The finite field with $q$ elements}%
-\nomenclature[Af]{$\mathbb{F}_q^*$}{The multiplicative group of $\mathbb{F}_q$}%
-\nomenclature[Ab]{$\B$}{$\{n \in \Z: 0 \leq n \leq 255\}$}%
-\nomenclature[Ab]{$\B^*$}{The set of all bytestrings}%
-\nomenclature[Au]{$\U$}{The set of Unicode scalar values}%
-\nomenclature[Au]{$\U^*$}{The set of Unicode strings}%
-\nomenclature[Ax]{$\withError{S}$}{$S \disj \{\errorX\}$ ($S$ a set)}%
-\nomenclature[Azz]{$\disj$}{Disjoint union of sets}%
-\nomenclature[Azz]{$X^*$}{The set of all finite sequences of elements of a set $X$}
 
 \subsection{Lists}
 \label{sec:notation-lists}
 \begin{itemize}
-\item  The symbol $[]$ denotes an empty list.
+\item  The symbol $[]$ denotes an empty list.%
+  \nomenclature[B1]{$[]$}{The empty list}%
+
 \item The notation $[x_m, \ldots, x_n]$ denotes a list containing the elements
-  $x_m, \ldots, x_n$.  If $m>n$ then the list is empty.
-\item The length of a list $L$ is denoted by $\length(L)$.
-\item Given two lists $L = [x_1,\ldots, x_m]$ and $L' = [y_1,\ldots, y_n]$, $L\cdot L'$ 
-denotes their concatenation  $[x_1,\ldots, x_m,$ $y_1, \ldots, y_n]$.  % Broken in the middle to keep it out of the margin.
+  $x_m, \ldots, x_n$.  If $m>n$ then the list is empty.%
+
+\item The length of a list $L$ is denoted by $\length(L)$.%
+\nomenclature[B6]{$\length(\cdot)$}{Length of a list or bytestring}
+
+\item Given two lists $L = [x_1,\ldots, x_m]$ and $L' = [y_1,\ldots, y_n]$, $L\cdot L'$
+  denotes their concatenation  $[x_1,\ldots, x_m,$ $y_1, \ldots, y_n]$.  % Broken in the middle to keep it out of the margin.%
+  \nomenclature[B2]{$L \cdot L'$}{Concatenation of lists $L$ and $L'$}%
+
 \item Given an object $x$ and a list $L = [x_1,\ldots, x_n]$,
-we denote the list $[x,x_1,\ldots, x_n]$ by $x \cons L$.
+  we denote the list $[x,x_1,\ldots, x_n]$ by $x \cons L$.%
+  \nomenclature[B3]{$x \cdot L$}{$[x] \cdot L$}%
+
 \item Given a list $L = [x_1, \ldots, x_n]$ and an object $x$,
-we denote the list $[x_1, \ldots, x_n, x]$ by $L \snoc x$.
+  we denote the list $[x_1, \ldots, x_n, x]$ by $L \snoc x$.%
+  \nomenclature[B4]{$L \cdot x$}{$L \cdot [x]$}%
+
 %%\item We say that the list $L'$ is a \textit{proper prefix} of the list
 %%  $L = [x_1, \ldots, x_n]$, and
 %%  write $L' \prec L$,  if $L' = [x_1, \ldots, x_m]$ for some $m<n$.
 \item In the special case of bitstrings (ie, lists of elements of $\{0,1\}$) we
   sometimes use notation such as \texttt{101110} to denote the list
   $[1,0,1,1,1,0]$; we use a teletype font to avoid confusion with decimal
-  numbers.  
+  numbers.
+
 \item Given a syntactic category $V$, the symbol $\repetition{V}$ denotes a
-  possibly empty list $[V_1,\ldots, V_n]$ of elements $V_i \in V$.
-\end{itemize}%
-\nomenclature[B1]{$[]$}{The empty list}%
-\nomenclature[B2]{$L \cdot L'$}{Concatenation of lists $L$ and $L'$}%
-\nomenclature[B3]{$x \cdot L$}{$[x] \cdot L$}%
-\nomenclature[B4]{$L \cdot x$}{$L \cdot [x]$}%
-\nomenclature[B5]{$\repetition{V}$}{A sequence $[V_1,\ldots, V_n]$}%
-\nomenclature[B6]{$\length(\cdot)$}{Length of a list or bytestring}
+  possibly empty list $[V_1,\ldots, V_n]$ of elements $V_i \in V$.%
+  \nomenclature[B5]{$\repetition{V}$}{A sequence $[V_1,\ldots, V_n]$}%
+\end{itemize}

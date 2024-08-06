@@ -83,7 +83,7 @@ less than about 50 and for datum objects it is typically less than about 200.
 
 We spent some time thinking about the costs of `equalsData` and `serialiseData`
 a while ago: see the comments for
-[PR #4480](https://github.com/input-output-hk/plutus/pull/4480).  The experiments
+[PR #4480](https://github.com/IntersectMBO/plutus/pull/4480).  The experiments
 there used inputs of size up to 80,000, which is considerably larger than the
 200 units we're likely to see in practice.  For an object of size 200, the CPU
 cost of `equalsData` according to the current cost model is 1,073,158 ExCPU

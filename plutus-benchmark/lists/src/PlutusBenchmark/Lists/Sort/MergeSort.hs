@@ -2,12 +2,15 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+
 {- | Simple merge sort implementation -}
 module PlutusBenchmark.Lists.Sort.MergeSort where
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import PlutusTx qualified as Tx
+import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 
 {-# INLINABLE merge #-}

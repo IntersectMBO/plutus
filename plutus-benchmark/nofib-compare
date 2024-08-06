@@ -38,7 +38,7 @@ trap 'rm -f "$TMP1" "$TMP2"' EXIT
 awk 'afterHdr >= 1 { print} /-------/ {afterHdr = 1}' "$INPUT1" > "$TMP1"
 awk 'afterHdr >= 1 { print} /-------/ {afterHdr = 1}' "$INPUT2" > "$TMP2"
       
-paste "$TMP1" "$TMP2" |
+paste -d " " "$TMP1" "$TMP2" |
    awk '
       function diff (n1, n2) {
         d = (n2-n1)/n1 * 100

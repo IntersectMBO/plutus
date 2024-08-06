@@ -1,3 +1,7 @@
+---
+title: Untyped.CEK
+layout: page
+---
 ```
 {-# OPTIONS --type-in-type #-}
 
@@ -17,7 +21,6 @@ open import Data.Empty using (⊥)
 open import Agda.Builtin.String using (primStringAppend; primStringEquality)
 open import Relation.Nullary using (yes;no)
 open import Relation.Binary.PropositionalEquality using (refl;sym;trans;cong)
-open import Data.Nat using (ℕ;suc)
 open import Data.List using (List;[];_∷_)
 open import Data.Product using (_,_)
 
@@ -55,13 +58,13 @@ data Value where
   V-con : (ty : TyTag) → ⟦ ty ⟧tag → Value
   V-delay : ∀{X} → Env X → X ⊢ → Value
   V-constr : (i : ℕ) → (vs : Stack Value) → Value
-  V-I⇒ : ∀ b {tn} 
-       → {pt : tn ∔ 0 ≣ fv (signature b)} 
+  V-I⇒ : ∀ b {tn}
+       → {pt : tn ∔ 0 ≣ fv (signature b)}
        → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
        → BApp b pt pa
        → Value
-  V-IΠ : ∀ b 
-       → ∀{tn tm}{pt : tn ∔ (suc tm) ≣ fv (signature b)} 
+  V-IΠ : ∀ b
+       → ∀{tn tm}{pt : tn ∔ (suc tm) ≣ fv (signature b)}
        → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
        → BApp b pt pa
        → Value
@@ -69,13 +72,13 @@ data Value where
 data BApp b where
   base : BApp b (start (fv (signature b))) (start (args♯ (signature b)))
   app : ∀{tn}
-      {pt : tn ∔ 0 ≣ fv (signature b)} 
+      {pt : tn ∔ 0 ≣ fv (signature b)}
     → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
     → BApp b pt pa
     → Value
     → BApp b pt (bubble pa)
-  app⋆ : 
-      ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv (signature b)} 
+  app⋆ :
+      ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv (signature b)}
     → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
     → BApp b pt pa
     → BApp b (bubble pt) pa
@@ -128,7 +131,7 @@ lookup : ∀{Γ} → Env Γ → Γ → Value
 lookup (ρ ∷ v) nothing  = v
 lookup (ρ ∷ v) (just x) = lookup ρ x
 
-V-I : ∀ b 
+V-I : ∀ b
     → ∀{tn tm} {pt : tn ∔ tm ≣ fv (signature b)}
     → ∀{an am} {pa : an ∔ suc am ≣ args♯ (signature b)}
     → BApp b pt pa
@@ -136,14 +139,15 @@ V-I : ∀ b
 V-I b {tm = zero}   bt = V-I⇒ b bt
 V-I b {tm = suc tm} bt = V-IΠ b bt
 
+
+fullyAppliedBuiltin : ∀ b → Set
+fullyAppliedBuiltin b = BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b)))
+
 {-
 The BUILTIN function provides the semantics of builtin functions.
-
-WARNING: This untyped BUILTIN function implements all builtin functions, but not all of them have been tested.
-This WARNING will be removed once the tests are done.
 -}
 
-BUILTIN : ∀ b → BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b))) → Either RuntimeError Value
+BUILTIN : ∀ b → fullyAppliedBuiltin b → Either RuntimeError Value
 BUILTIN addInteger = λ
   { (app (app base (V-con integer i)) (V-con integer i')) -> inj₂ (V-con integer (i + i'))
   ; _ -> inj₁ userError
@@ -278,10 +282,10 @@ BUILTIN bData = λ
   { (app base (V-con bytestring b)) -> inj₂ (V-con pdata (bDATA b))
   ; _ -> inj₁ userError
   }
-BUILTIN consByteString (app (app base (V-con integer i)) (V-con bytestring b))  with cons i b 
+BUILTIN consByteString (app (app base (V-con integer i)) (V-con bytestring b))  with cons i b
 ... | just b' = inj₂ (V-con bytestring b')
 ... | nothing = inj₁ userError
-BUILTIN consByteString _ = inj₁ userError  
+BUILTIN consByteString _ = inj₁ userError
 BUILTIN sliceByteString = λ
   { (app (app (app base (V-con integer st)) (V-con integer n)) (V-con bytestring b)) -> inj₂ (V-con bytestring (slice st n b))
   ; _ -> inj₁ userError
@@ -330,12 +334,12 @@ BUILTIN sndPair = λ
   ; _ -> inj₁ userError
   }
 BUILTIN chooseList = λ
-  { (app (app (app (app⋆ (app⋆ base)) (V-con (list _) [])) (V-con t n)) (V-con _ c)) → inj₂ (V-con t n)
-  ; (app (app (app (app⋆ (app⋆ base)) (V-con (list _) (_ ∷ _))) (V-con _ n)) (V-con t c)) → inj₂ (V-con t c)
+  { (app (app (app (app⋆ (app⋆ base)) (V-con (list _) [])) v) _) → inj₂ v
+  ; (app (app (app (app⋆ (app⋆ base)) (V-con (list _) (_ ∷ _))) _) v) → inj₂ v
   ; _ -> inj₁ userError
   }
-BUILTIN mkCons (app (app (app⋆ base) (V-con t x)) (V-con (list ts) xs)) with decTag t ts 
-... | yes refl = inj₂ (V-con (list ts) (x ∷ xs)) 
+BUILTIN mkCons (app (app (app⋆ base) (V-con t x)) (V-con (list ts) xs)) with decTag t ts
+... | yes refl = inj₂ (V-con (list ts) (x ∷ xs))
 ... | no _     = inj₁ userError
 BUILTIN mkCons _ = inj₁ userError
 BUILTIN headList = λ
@@ -352,11 +356,11 @@ BUILTIN nullList = λ
   ; _ -> inj₁ userError
   }
 BUILTIN chooseData = λ
-  { (app (app (app (app (app (app (app⋆ base) (V-con pdata (ConstrDATA x₁ x₂))) (V-con t v)) (V-con _ w)) (V-con _ x)) (V-con _ y)) (V-con _ z)) → inj₂ (V-con t v)
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (MapDATA x₁))) (V-con _ v)) (V-con t w)) (V-con _ x)) (V-con _ y)) (V-con _ z)) → inj₂ (V-con t w)
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (ListDATA x₁))) (V-con _ v)) (V-con _ w)) (V-con t x)) (V-con _ y)) (V-con _ z)) → inj₂ (V-con t x)
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (iDATA x₁))) (V-con _ v)) (V-con _ w)) (V-con _ x)) (V-con t y)) (V-con _ z)) → inj₂ (V-con t y)
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (bDATA x₁))) (V-con _ v)) (V-con _ w)) (V-con _ x)) (V-con _ y)) (V-con t z)) → inj₂ (V-con t z)
+  { (app (app (app (app (app (app (app⋆ base) (V-con pdata (ConstrDATA x₁ x₂))) v) _) _) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (MapDATA x₁))) _) v) _) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (ListDATA x₁))) _) _) v) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (iDATA x₁))) _) _) _) v) _) → inj₂ v
+  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (bDATA x₁))) _) _) _) _) v) → inj₂ v
   ; _ -> inj₁ userError
   }
 BUILTIN constrData = λ
@@ -365,12 +369,12 @@ BUILTIN constrData = λ
   ; _ -> inj₁ userError
   }
 BUILTIN mapData = λ
-  { (app base (V-con (list (pair pdata pdata)) xs)) → do 
+  { (app base (V-con (list (pair pdata pdata)) xs)) → do
      return (V-con pdata (MapDATA xs))
   ; _ -> inj₁ userError
   }
 BUILTIN listData = λ
-  { (app base (V-con (list pdata) xs)) → do 
+  { (app base (V-con (list pdata) xs)) → do
      return (V-con pdata (ListDATA xs))
   ; _ -> inj₁ userError
   }
@@ -387,7 +391,7 @@ BUILTIN unListData = λ
   ; _ -> inj₁ userError
   }
 BUILTIN equalsData = λ
-  {  
+  {
     (app (app base (V-con pdata x)) (V-con pdata y)) → inj₂ (V-con bool (eqDATA x y))
   ;  _ -> inj₁ userError
   }
@@ -420,7 +424,7 @@ BUILTIN bls12-381-G1-equal = λ
   ; _ -> inj₁ userError
   }
 BUILTIN bls12-381-G1-hashToGroup = λ
-  { (app (app base (V-con bytestring msg)) (V-con bytestring dst)) -> case BLS12-381-G1-hashToGroup msg dst of λ 
+  { (app (app base (V-con bytestring msg)) (V-con bytestring dst)) -> case BLS12-381-G1-hashToGroup msg dst of λ
      { (just p) -> inj₂ (V-con bls12-381-g1-element p)
      ; nothing  -> inj₁ userError
      }
@@ -430,7 +434,7 @@ BUILTIN bls12-381-G1-compress = λ
   { (app base (V-con bls12-381-g1-element e)) -> inj₂ (V-con bytestring (BLS12-381-G1-compress e))
   ; _ -> inj₁ userError
   }
-BUILTIN bls12-381-G1-uncompress = λ 
+BUILTIN bls12-381-G1-uncompress = λ
   { (app base (V-con bytestring b)) -> case  BLS12-381-G1-uncompress b of λ
      { (just e) -> inj₂ (V-con bls12-381-g1-element e)
      ; nothing  -> inj₁ userError
@@ -454,7 +458,7 @@ BUILTIN bls12-381-G2-equal = λ
   ; _ -> inj₁ userError
   }
 BUILTIN bls12-381-G2-hashToGroup = λ
-  { (app (app base (V-con bytestring msg)) (V-con bytestring dst)) -> case BLS12-381-G2-hashToGroup msg dst of λ 
+  { (app (app base (V-con bytestring msg)) (V-con bytestring dst)) -> case BLS12-381-G2-hashToGroup msg dst of λ
      { (just p) -> inj₂ (V-con bls12-381-g2-element p)
      ; nothing  -> inj₁ userError
      }
@@ -464,7 +468,7 @@ BUILTIN bls12-381-G2-compress = λ
   { (app base (V-con bls12-381-g2-element e)) -> inj₂ (V-con bytestring (BLS12-381-G2-compress e))
   ; _ -> inj₁ userError
   }
-BUILTIN bls12-381-G2-uncompress = λ 
+BUILTIN bls12-381-G2-uncompress = λ
   { (app base (V-con bytestring b)) -> case  BLS12-381-G2-uncompress b of λ
      { (just e) -> inj₂ (V-con bls12-381-g2-element e)
      ; nothing  -> inj₁ userError
@@ -491,18 +495,88 @@ BUILTIN blake2b-224 = λ
   { (app base (V-con bytestring b)) -> inj₂ (V-con bytestring (BLAKE2B-224 b))
   ; _ -> inj₁ userError
   }
+BUILTIN byteStringToInteger = λ
+  { (app (app base (V-con bool e)) (V-con bytestring s)) -> inj₂ (V-con integer (BStoI e s))
+  ; _ -> inj₁ userError
+  }
+BUILTIN integerToByteString = λ
+  { (app (app (app base (V-con bool e)) (V-con integer w)) (V-con integer n)) -> case ItoBS e w n of λ
+      { (just s) -> inj₂ (V-con bytestring s)
+      ; nothing -> inj₁ userError
+      }
+  ; _ -> inj₁ userError
+  }
+BUILTIN andByteString = λ
+  { (app (app (app base (V-con bool b)) (V-con bytestring s)) (V-con bytestring s')) -> inj₂ (V-con bytestring (andBYTESTRING b s s'))
+  ; _ -> inj₁ userError
+  }
+BUILTIN orByteString = λ
+  { (app (app (app base (V-con bool b)) (V-con bytestring s)) (V-con bytestring s')) -> inj₂ (V-con bytestring (orBYTESTRING b s s'))
+  ; _ -> inj₁ userError
+  }
+BUILTIN xorByteString = λ
+  { (app (app (app base (V-con bool b)) (V-con bytestring s)) (V-con bytestring s')) -> inj₂ (V-con bytestring (xorBYTESTRING b s s'))
+  ; _ -> inj₁ userError
+  }
+BUILTIN complementByteString = λ
+  { (app base (V-con bytestring s)) -> inj₂ (V-con bytestring (complementBYTESTRING s))
+  ; _ -> inj₁ userError
+  }
+BUILTIN readBit = λ
+  { (app (app base (V-con bytestring s)) (V-con integer i)) -> case readBIT s i of λ
+     { (just r) -> inj₂ (V-con bool r)
+     ; nothing  -> inj₁ userError
+     }
+  ; _ -> inj₁ userError
+  }
+BUILTIN writeBits = λ
+  { (app (app (app base (V-con bytestring s)) (V-con (list integer) ps)) (V-con (list bool) us)) ->
+     case writeBITS s (toList ps) (toList us) of λ
+       { (just r) -> inj₂ (V-con bytestring r)
+       ; nothing  -> inj₁ userError
+       }
+  ; _ -> inj₁ userError
+  }
+BUILTIN replicateByte = λ
+  { (app (app base (V-con integer l)) (V-con integer w)) -> case replicateBYTE l w of λ
+     { (just r) -> inj₂ (V-con bytestring r)
+     ; nothing  -> inj₁ userError
+     }
+  ; _ -> inj₁ userError
+  }
+BUILTIN shiftByteString = λ
+  { (app (app base (V-con bytestring s)) (V-con integer i)) -> inj₂ (V-con bytestring (shiftBYTESTRING s i))
+  ; _ -> inj₁ userError
+  }
+BUILTIN rotateByteString = λ
+  { (app (app base (V-con bytestring s)) (V-con integer i)) -> inj₂ (V-con bytestring (rotateBYTESTRING s i))
+  ; _ -> inj₁ userError
+  }
+BUILTIN countSetBits  = λ
+  { (app base (V-con bytestring s)) -> inj₂ (V-con integer (countSetBITS s))
+  ; _ -> inj₁ userError
+  }
+BUILTIN findFirstSetBit  = λ
+  { (app base (V-con bytestring s)) -> inj₂ (V-con integer (findFirstSetBIT s))
+  ; _ -> inj₁ userError
+  }
 
+-- Take an apparently more general index and show that it is a fully applied builtin.
+mkFullyAppliedBuiltin : ∀ { b }
+  → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
+  → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
+  → BApp b pt pa
+  → fullyAppliedBuiltin b
+mkFullyAppliedBuiltin {b} {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
+... | refl | refl with unique∔ pt (alldone (fv (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
+... | refl | refl = bt
 
 BUILTIN' : ∀ b
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
   → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
   → BApp b pt pa
-  → ⊥ ⊢
-BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
-... | refl | refl with unique∔ pt (alldone (fv (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
-... | refl | refl with BUILTIN b bt
-... | inj₁ _ = error
-... | inj₂ V = discharge V
+  → Either RuntimeError Value
+BUILTIN' b bt =  BUILTIN b (mkFullyAppliedBuiltin bt)
 
 ival : Builtin → Value
 ival b = V-I b base
@@ -551,13 +625,12 @@ step ((s , case- ρ ts) ◅ V-con _ _)        = ◆ -- case of constant
 step ((s , case- ρ ts) ◅ V-delay _ _)      = ◆ -- case of delay
 step ((s , case- ρ ts) ◅ V-I⇒ _ _)         = ◆ -- case of builtin value
 step ((s , case- ρ ts) ◅ V-IΠ _ _)         = ◆ -- case of delqyed builtin
-step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = s ; [] ▻ BUILTIN' b (app bapp v)
+step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = either (BUILTIN' b (app bapp v)) (λ _ → ◆) (s ◅_)
 step ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) = s ◅ V-I b (app bapp v)
 
 step (□ v)               = □ v
 step ◆                   = ◆
 
-open import Function
 stepper : ℕ → (t : State) → Either RuntimeError State
 stepper 0       s = inj₁ gasError
 stepper (suc n) s with step s

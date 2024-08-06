@@ -1,9 +1,9 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module PlutusIR.Transform.KnownCon (knownCon) where
+module PlutusIR.Transform.KnownCon (knownCon, knownConPass, knownConPassSC) where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR
 import PlutusIR.Contexts
 import PlutusIR.Transform.Rename ()
@@ -11,6 +11,30 @@ import PlutusIR.Transform.Rename ()
 import Control.Lens hiding (cons)
 import Data.List.Extra qualified as List
 import PlutusIR.Analysis.VarInfo
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
+
+knownConPassSC ::
+    forall m uni fun a.
+    ( PLC.Typecheckable uni fun, PLC.GEq uni, Ord a
+    , PLC.MonadQuote m
+    )
+    => TC.PirTCConfig uni fun
+    -> Pass m TyName Name uni fun a
+knownConPassSC tcconfig = renamePass <> knownConPass tcconfig
+
+knownConPass ::
+    forall m uni fun a.
+    ( PLC.Typecheckable uni fun, PLC.GEq uni, Ord a
+    , Applicative m)
+    => TC.PirTCConfig uni fun
+    -> Pass m TyName Name uni fun a
+knownConPass tcconfig =
+  NamedPass "case of known constructor" $
+    Pass
+      (pure . knownCon)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]
 
 {- | Simplify destructor applications, if the scrutinee is a constructor application.
 
@@ -33,20 +57,16 @@ As an example, given
 @
 -}
 knownCon ::
-    forall m tyname name uni fun a.
+    forall tyname name uni fun a.
     ( PLC.HasUnique name PLC.TermUnique
     , PLC.HasUnique tyname PLC.TypeUnique
     , Eq name
-    , PLC.MonadQuote m
     ) =>
     Term tyname name uni fun a ->
-    m (Term tyname name uni fun a)
-knownCon t0 = do
-    -- We are going to record information about variables in a global map, so we
-    -- need global uniqueness
-    t <- PLC.rename t0
+    Term tyname name uni fun a
+knownCon t =
     let vinfo = termVarInfo t
-    pure $ transformOf termSubterms (processTerm vinfo) t
+    in transformOf termSubterms (processTerm vinfo) t
 
 processTerm ::
     forall tyname name uni fun a .

@@ -3,9 +3,9 @@
 pkgs.haskell-nix.hackage-project {
   name = "Agda";
 
-  version = "2.6.2.2";
+  version = "2.6.4";
 
-  compiler-nix-name = "ghc92";
+  compiler-nix-name = "ghc96";
 
   cabalProjectLocal = ''
     extra-packages: ieee754, filemanip
