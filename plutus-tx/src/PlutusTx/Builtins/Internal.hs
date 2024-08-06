@@ -32,7 +32,7 @@ import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import GHC.Generics (Generic)
-import PlutusCore.Bitwise.Convert qualified as Convert
+import PlutusCore.Bitwise qualified as Bitwise
 import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -258,10 +258,10 @@ keccak_256 (BuiltinByteString b) = BuiltinByteString $ Hash.keccak_256 b
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Ed25519.verifyEd25519Signature_V1 vk msg sig of
-    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
-        Haskell.error "Ed25519 signature verification errored."
     BuiltinSuccess b              -> BuiltinBool b
     BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
+    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
+        Haskell.error "Ed25519 signature verification errored."
 
 {-# NOINLINE verifyEcdsaSecp256k1Signature #-}
 verifyEcdsaSecp256k1Signature ::
@@ -271,10 +271,10 @@ verifyEcdsaSecp256k1Signature ::
   BuiltinBool
 verifyEcdsaSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Secp256k1.verifyEcdsaSecp256k1Signature vk msg sig of
-    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
-        Haskell.error "ECDSA SECP256k1 signature verification errored."
     BuiltinSuccess b              -> BuiltinBool b
     BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
+    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
+        Haskell.error "ECDSA SECP256k1 signature verification errored."
 
 {-# NOINLINE verifySchnorrSecp256k1Signature #-}
 verifySchnorrSecp256k1Signature ::
@@ -284,10 +284,10 @@ verifySchnorrSecp256k1Signature ::
   BuiltinBool
 verifySchnorrSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Secp256k1.verifySchnorrSecp256k1Signature vk msg sig of
-    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
-        Haskell.error "Schnorr SECP256k1 signature verification errored."
     BuiltinSuccess b              -> BuiltinBool b
     BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
+    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
+        Haskell.error "Schnorr SECP256k1 signature verification errored."
 
 traceAll :: forall (a :: Type) (f :: Type -> Type) .
   (Foldable f) => f Text -> a -> a
@@ -693,11 +693,11 @@ integerToByteString
     -> BuiltinInteger
     -> BuiltinByteString
 integerToByteString (BuiltinBool endiannessArg) paddingArg input =
-  case Convert.integerToByteStringWrapper endiannessArg paddingArg input of
-    BuiltinFailure logs err        -> traceAll (logs <> pure (display err)) $
-        Haskell.error "Integer to ByteString conversion errored."
+  case Bitwise.integerToByteStringWrapper endiannessArg paddingArg input of
     BuiltinSuccess bs              -> BuiltinByteString bs
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
+    BuiltinFailure logs err        -> traceAll (logs <> pure (display err)) $
+        Haskell.error "Integer to ByteString conversion errored."
 
 {-# NOINLINE byteStringToInteger #-}
 byteStringToInteger
@@ -705,4 +705,112 @@ byteStringToInteger
     -> BuiltinByteString
     -> BuiltinInteger
 byteStringToInteger (BuiltinBool statedEndianness) (BuiltinByteString input) =
-  Convert.byteStringToIntegerWrapper statedEndianness input
+  Bitwise.byteStringToIntegerWrapper statedEndianness input
+
+{-
+BITWISE
+-}
+
+{-# NOINLINE shiftByteString #-}
+shiftByteString ::
+  BuiltinByteString ->
+  BuiltinInteger ->
+  BuiltinByteString
+shiftByteString (BuiltinByteString bs) =
+  BuiltinByteString . Bitwise.shiftByteStringWrapper bs
+
+{-# NOINLINE rotateByteString #-}
+rotateByteString ::
+  BuiltinByteString ->
+  BuiltinInteger ->
+  BuiltinByteString
+rotateByteString (BuiltinByteString bs) =
+  BuiltinByteString . Bitwise.rotateByteStringWrapper bs
+
+{-# NOINLINE countSetBits #-}
+countSetBits ::
+  BuiltinByteString ->
+  BuiltinInteger
+countSetBits (BuiltinByteString bs) = fromIntegral . Bitwise.countSetBits $ bs
+
+{-# NOINLINE findFirstSetBit #-}
+findFirstSetBit ::
+  BuiltinByteString ->
+  BuiltinInteger
+findFirstSetBit (BuiltinByteString bs) =
+  fromIntegral . Bitwise.findFirstSetBit $ bs
+
+{-
+LOGICAL
+-}
+
+{-# NOINLINE andByteString #-}
+andByteString ::
+  BuiltinBool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+andByteString (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
+  BuiltinByteString . Bitwise.andByteString isPaddingSemantics data1 $ data2
+
+{-# NOINLINE orByteString #-}
+orByteString ::
+  BuiltinBool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+orByteString (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
+  BuiltinByteString . Bitwise.orByteString isPaddingSemantics data1 $ data2
+
+{-# NOINLINE xorByteString #-}
+xorByteString ::
+  BuiltinBool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+xorByteString (BuiltinBool isPaddingSemantics) (BuiltinByteString data1) (BuiltinByteString data2) =
+  BuiltinByteString . Bitwise.xorByteString isPaddingSemantics data1 $ data2
+
+{-# NOINLINE complementByteString #-}
+complementByteString ::
+  BuiltinByteString ->
+  BuiltinByteString
+complementByteString (BuiltinByteString bs) =
+  BuiltinByteString . Bitwise.complementByteString $ bs
+
+{-# NOINLINE readBit #-}
+readBit ::
+  BuiltinByteString ->
+  BuiltinInteger ->
+  BuiltinBool
+readBit (BuiltinByteString bs) i =
+  case Bitwise.readBit bs (fromIntegral i) of
+    BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
+      Haskell.error "readBit errored."
+    BuiltinSuccess b -> BuiltinBool b
+    BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
+
+{-# NOINLINE writeBits #-}
+writeBits ::
+  BuiltinByteString ->
+  BuiltinList BuiltinInteger ->
+  BuiltinList BuiltinBool ->
+  BuiltinByteString
+writeBits (BuiltinByteString bs) (BuiltinList ixes) (BuiltinList bits) =
+  case Bitwise.writeBits bs ixes (fmap (\(BuiltinBool b) -> b) bits) of
+    BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
+      Haskell.error "writeBits errored."
+    BuiltinSuccess bs' -> BuiltinByteString bs'
+    BuiltinSuccessWithLogs logs bs' -> traceAll logs $ BuiltinByteString bs'
+
+{-# NOINLINE replicateByte #-}
+replicateByte ::
+  BuiltinInteger ->
+  BuiltinInteger ->
+  BuiltinByteString
+replicateByte n w8 =
+  case Bitwise.replicateByte n (fromIntegral w8) of
+    BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
+      Haskell.error "byteStringReplicate errored."
+    BuiltinSuccess bs -> BuiltinByteString bs
+    BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs

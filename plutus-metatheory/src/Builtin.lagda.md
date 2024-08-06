@@ -132,6 +132,17 @@ data Builtin : Set where
   -- Bitwise operations
   byteStringToInteger             : Builtin
   integerToByteString             : Builtin
+  andByteString                   : Builtin
+  orByteString                    : Builtin
+  xorByteString                   : Builtin
+  complementByteString            : Builtin
+  readBit                         : Builtin
+  writeBits                       : Builtin
+  replicateByte                   : Builtin
+  shiftByteString                 : Builtin
+  rotateByteString                : Builtin
+  countSetBits                    : Builtin
+  findFirstSetBit                 : Builtin
 ```
 
 ## Signatures
@@ -184,24 +195,24 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
     
     list :  ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
     list a = (blist a) ↑
-    ```
+```
     
-    ###Operators for constructing signatures
-   
-    The following operators are used to express signatures in a familiar way,
-    but ultimately, they construct a Sig 
+### Operators for constructing signatures
 
-    An expression 
-      n⋆×n♯ [ t₁ , t₂ , t₃ ]⟶ tᵣ
-    
-    is actually parsed as
-      (((n⋆×n♯ [ t₁) , t₂) , t₃) ]⟶ tᵣ
-    
-    and constructs a signature
+The following operators are used to express signatures in a familiar way,
+but ultimately, they construct a Sig 
 
-    sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
+An expression 
+  n⋆×n♯ [ t₁ , t₂ , t₃ ]⟶ tᵣ
 
-    ```
+is actually parsed as
+  (((n⋆×n♯ [ t₁) , t₂) , t₃) ]⟶ tᵣ
+
+and constructs a signature
+
+sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
+
+```
     ArgSet : Set
     ArgSet = Σ (ℕ × ℕ) (λ { (n⋆ ,, n♯) → Args n⋆ n♯}) 
 
@@ -219,11 +230,11 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
     infix 8 _]⟶_
     _]⟶_ : (p : ArgSet) → ArgTy p → Sig
     _]⟶_ ((n⋆ ,, n♯) ,, as) res = sig n⋆ n♯ as res
-    ```
+```
 
     The signature of each builtin
 
-    ```
+```
     signature : Builtin → Sig
     signature addInteger                      = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑ 
     signature subtractInteger                 = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
@@ -300,6 +311,17 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
     signature bls12-381-finalVerify           = ∙ [ bls12-381-mlresult ↑ , bls12-381-mlresult ↑ ]⟶ bool ↑
     signature byteStringToInteger             = ∙ [ bool ↑ , bytestring ↑ ]⟶ integer ↑
     signature integerToByteString             = ∙ [ bool ↑ , integer ↑ , integer ↑ ]⟶  bytestring ↑
+    signature andByteString                   = ∙ [ bool ↑ , bytestring ↑ , bytestring ↑ ]⟶  bytestring ↑
+    signature orByteString                    = ∙ [ bool ↑ , bytestring ↑ , bytestring ↑ ]⟶  bytestring ↑
+    signature xorByteString                   = ∙ [ bool ↑ , bytestring ↑ , bytestring ↑ ]⟶  bytestring ↑
+    signature complementByteString            = ∙ [ bytestring ↑ ]⟶  bytestring ↑
+    signature readBit                         = ∙ [ bytestring ↑ , integer ↑ ]⟶  bool ↑
+    signature writeBits                       = ∙ [ bytestring ↑ , list integer , list bool ]⟶  bytestring ↑
+    signature replicateByte                   = ∙ [ integer ↑ , integer ↑ ]⟶  bytestring ↑
+    signature shiftByteString                 = ∙ [ bytestring ↑ , integer ↑ ]⟶  bytestring ↑
+    signature rotateByteString                = ∙ [ bytestring ↑ , integer ↑ ]⟶  bytestring ↑
+    signature countSetBits                    = ∙ [ bytestring ↑ ]⟶  integer ↑
+    signature findFirstSetBit                 = ∙ [ bytestring ↑ ]⟶  integer ↑
 
 open SugaredSignature using (signature) public
 
@@ -390,6 +412,17 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | Blake2b_224
                                           | ByteStringToInteger
                                           | IntegerToByteString
+                                          | AndByteString
+                                          | OrByteString
+                                          | XorByteString
+                                          | ComplementByteString
+                                          | ReadBit
+                                          | WriteBits
+                                          | ReplicateByte
+                                          | ShiftByteString
+                                          | RotateByteString
+                                          | CountSetBits
+                                          | FindFirstSetBit
                                           ) #-}
 ```
 
@@ -445,6 +478,17 @@ postulate
   BLAKE2B-224               : ByteString → ByteString
   BStoI                     : Bool -> ByteString -> Int
   ItoBS                     : Bool -> Int -> Int -> Maybe ByteString
+  andBYTESTRING             : Bool -> ByteString -> ByteString -> ByteString
+  orBYTESTRING              : Bool -> ByteString -> ByteString -> ByteString
+  xorBYTESTRING             : Bool -> ByteString -> ByteString -> ByteString
+  complementBYTESTRING      : ByteString -> ByteString
+  readBIT                   : ByteString -> Int -> Maybe Bool
+  writeBITS                 : ByteString -> List Int -> List Bool -> Maybe ByteString
+  replicateBYTE             : Int -> Int -> Maybe ByteString
+  shiftBYTESTRING           : ByteString -> Int -> ByteString
+  rotateBYTESTRING          : ByteString -> Int -> ByteString
+  countSetBITS              : ByteString -> Int
+  findFirstSetBIT           : ByteString -> Int
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
@@ -535,9 +579,20 @@ postulate
 {-# COMPILE GHC KECCAK-256 = Hash.keccak_256 #-}
 {-# COMPILE GHC BLAKE2B-224 = Hash.blake2b_224 #-}
 
-{-# FOREIGN GHC import PlutusCore.Bitwise.Convert qualified as Convert #-}
-{-# COMPILE GHC BStoI = Convert.byteStringToIntegerWrapper #-}
-{-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Convert.integerToByteStringWrapper e w n #-}
+{-# FOREIGN GHC import PlutusCore.Bitwise qualified as Bitwise #-}
+{-# COMPILE GHC BStoI = Bitwise.byteStringToIntegerWrapper #-}
+{-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Bitwise.integerToByteStringWrapper e w n #-}
+{-# COMPILE GHC andBYTESTRING = Bitwise.andByteString #-}
+{-# COMPILE GHC orBYTESTRING = Bitwise.orByteString #-}
+{-# COMPILE GHC xorBYTESTRING = Bitwise.xorByteString #-}
+{-# COMPILE GHC complementBYTESTRING = Bitwise.complementByteString #-}
+{-# COMPILE GHC readBIT = \s n -> builtinResultToMaybe $ Bitwise.readBit s (fromIntegral n) #-}
+{-# COMPILE GHC writeBITS = \s ps us -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) us #-}
+{-# COMPILE GHC replicateBYTE = \n w8 -> builtinResultToMaybe $ Bitwise.replicateByte (fromIntegral n) (fromIntegral w8) #-}
+{-# COMPILE GHC shiftBYTESTRING = \s n -> Bitwise.shiftByteString s (fromIntegral n) #-}
+{-# COMPILE GHC rotateBYTESTRING = \s n -> Bitwise.rotateByteString s (fromIntegral n) #-}
+{-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits s #-}
+{-# COMPILE GHC findFirstSetBIT = \s -> fromIntegral $ Bitwise.findFirstSetBit s #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr

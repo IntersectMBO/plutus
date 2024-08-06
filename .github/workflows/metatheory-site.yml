@@ -1,0 +1,35 @@
+# This workflow builds and publishes the metatheory site to:
+# https://plutus.cardano.intersectmbo.org/metatheory
+
+name: "🔮 Metatheory Site"
+
+on:
+  workflow_dispatch:
+  push: 
+    branches: 
+      - master 
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: [self-hosted, plutus-shared]
+    permissions:
+      contents: write
+    environment:
+      name: github-pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Build Site
+        run: | 
+          nix build --accept-flake-config .#plutus-metatheory-site
+          mkdir _site
+          cp -RL result/* _site
+
+      - name: Deploy Site
+        uses: JamesIves/github-pages-deploy-action@v4.6.3
+        with:
+          folder: _site
+          target-folder: metatheory
+          single-commit: true

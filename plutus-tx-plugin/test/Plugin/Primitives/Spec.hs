@@ -25,8 +25,8 @@ import PlutusTx.Test
 import Data.Proxy
 
 primitives :: TestNested
-primitives = testNestedGhc "Primitives" [
-    goldenPir "string" string
+primitives = testNested "Primitives" . pure $ testNestedGhc
+  [ goldenPir "string" string
   , goldenPir "int" int
   , goldenPir "int2" int2
   , goldenPir "bool" bool
@@ -74,6 +74,7 @@ primitives = testNestedGhc "Primitives" [
   , goldenPir "deconstructorData2" deconstructData2
   , goldenUEval "deconstructData2" [ toUPlc deconstructData2, toUPlc constructData2 ]
   , goldenUEval "deconstructData3" [ toUPlc deconstructData3, toUPlc constructData3 ]
+  , goldenUEval "writeBits-integerToByteString" [ writeBitsIntegerToByteString ]
   ]
 
 string :: CompiledCode Builtins.BuiltinString
@@ -190,3 +191,7 @@ deconstructData3 = plc (Proxy @"deconstructData2") (\(d :: Builtins.BuiltinData)
 
 matchData1 :: CompiledCode (Builtins.BuiltinData -> Maybe Integer)
 matchData1 = plc (Proxy @"matchData1") (\(d :: Builtins.BuiltinData) -> (Builtins.matchData d (\_ _ -> Nothing) (const Nothing) (const Nothing) (Just) (const Nothing)))
+
+writeBitsIntegerToByteString :: CompiledCode (P.BuiltinByteString)
+writeBitsIntegerToByteString = plc (Proxy @"writeBitsIntegerToByteString")
+    (P.writeBits (P.integerToByteString Builtins.BigEndian 6 15) [0, 2, 5] [True, False, True])

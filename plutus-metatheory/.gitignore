@@ -2,3 +2,8 @@
 *.lagda~
 *.agda~
 src/MAlonzo
+html/_site
+html/.jekyll-cache
+html/*.html
+html/*.md
+html/*.css

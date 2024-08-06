@@ -1,0 +1,15 @@
+let
+  data (d12 :: (* -> *) -> * -> *) (a3 :: * -> *) a10 | m11 where
+    c6 : unit -> d12 a3 a10
+in
+let
+  !k_caseOfCase : d12 list unit -> unit
+    = \(scrutinee : d12 list unit) ->
+        m11 {list} {unit} scrutinee {unit} (error {unit -> unit})
+in
+m11
+  {list}
+  {unit}
+  (error {d12 list unit})
+  {unit}
+  (\(x23 : unit) -> k_caseOfCase (error {d12 list unit}))

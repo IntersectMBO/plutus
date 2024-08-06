@@ -15,7 +15,7 @@ let
       src = ../.;
 
       shell = {
-        withHoogle = false;
+        withHoogle = true;
         # We would expect R to be pulled in automatically as it's a dependency of
         # plutus-core, but it appears it is not, so we need to be explicit about
         # the dependency on R here. Adding it as a buildInput will ensure it's
@@ -31,6 +31,7 @@ let
         }];
         ghc810.compiler-nix-name = "ghc810";
         ghc98.compiler-nix-name = "ghc98";
+        ghc910.compiler-nix-name = "ghc910";
       };
 
       inputMap = { "https://chap.intersectmbo.org/" = inputs.iogx.inputs.CHaP; };
@@ -62,6 +63,7 @@ let
         (lib.mkIf isCrossCompiling {
           packages = {
             # Things that need plutus-tx-plugin
+            docusaurus-examples.package.buildable = false;
             plutus-benchmark.package.buildable = false;
             plutus-tx-plugin.package.buildable = false;
             plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.buildable = lib.mkForce false;
@@ -80,16 +82,6 @@ let
         # Common 
         {
           packages = {
-            # Packages we just don't want docs for
-            plutus-benchmark.doHaddock = false;
-
-            # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
-            plutus-tx-plugin.doHaddock = false;
-
-            # Something goes wrong with the custom setup
-            # https://github.com/input-output-hk/haskell.nix/issues/2019
-            prettyprinter-configurable.doHaddock = false;
-
             # In this case we can just propagate the native dependencies for the build of
             # the test executable, which are actually set up right (we have a
             # build-tool-depends on the executable we need)
@@ -141,6 +133,17 @@ let
                 ssreflect
                 equations
               ];
+
+            plutus-core.components.tests.plutus-core-test.postInstall = ''
+              wrapProgram $out/bin/plutus-core-test --set PATH ${lib.makeBinPath [ pkgs.diffutils ]}
+            '';
+
+            plutus-core.components.tests.plutus-ir-test.postInstall = ''
+              wrapProgram $out/bin/plutus-ir-test --set PATH ${lib.makeBinPath [ pkgs.diffutils ]}
+            '';
+
+            # We want to build it but not run the tests in CI.
+            cardano-constitution.doCheck = false;
           };
         }
 
@@ -177,23 +180,6 @@ let
   project = lib.iogx.mkHaskellProject {
     inherit cabalProject;
     shellArgs = repoRoot.nix.shell;
-    readTheDocs = {
-      enable = true;
-      siteFolder = "doc/read-the-docs-site";
-    };
-    combinedHaddock = {
-      enable = true;
-      prologue = ''
-        = Combined documentation for all the public Plutus libraries
-
-        == Handy module entrypoints
-
-          * "PlutusTx": Compiling Haskell to PLC (Plutus Core; on-chain code).
-          * "PlutusTx.Prelude": Haskell prelude replacement compatible with PLC.
-          * "PlutusCore": Programming language in which scripts on the Cardano blockchain are written.
-          * "UntypedPlutusCore": On-chain Plutus code.
-      '';
-    };
   };
 
 in

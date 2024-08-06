@@ -1,5 +1,5 @@
-pure work-free: (\n -> n 1 1)
-pure work-free: m
+pure work-free: \n-0 -> n-0 1 1
+pure work-free: m-1
 pure work-free: 1
-pure maybe work?: (m 1)
+pure maybe work?: m-1 1
 <unknown>

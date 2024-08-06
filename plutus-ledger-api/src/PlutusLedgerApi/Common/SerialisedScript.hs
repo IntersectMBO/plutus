@@ -32,8 +32,8 @@ import UntypedPlutusCore qualified as UPLC
 import PlutusCore.DeBruijn.Internal (FakeNamedDeBruijn (FakeNamedDeBruijn))
 
 import Codec.CBOR.Decoding qualified as CBOR
-import Codec.CBOR.Extras as CBOR.Extras
 import Codec.CBOR.Read qualified as CBOR
+import Codec.Extras.SerialiseViaFlat as CBOR.Extras
 import Codec.Serialise
 import Control.Arrow ((>>>))
 import Control.DeepSeq (NFData)
@@ -159,9 +159,8 @@ serialiseUPLC =
 ledger-language-version-specific checks like for allowable builtins.
 -}
 uncheckedDeserialiseUPLC :: SerialisedScript -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
-uncheckedDeserialiseUPLC = unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
-  where
-    unSerialiseViaFlat (SerialiseViaFlat (UPLC.UnrestrictedProgram a)) = a
+uncheckedDeserialiseUPLC =
+    UPLC.unUnrestrictedProgram . unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
 
 -- | A script with named de-bruijn indices.
 newtype ScriptNamedDeBruijn
@@ -195,9 +194,9 @@ scriptCBORDecoder ::
   PlutusLedgerLanguage ->
   MajorProtocolVersion ->
   CBOR.Decoder s ScriptNamedDeBruijn
-scriptCBORDecoder lv pv =
+scriptCBORDecoder ll pv =
   -- See Note [New builtins/language versions and protocol versions]
-  let availableBuiltins = builtinsAvailableIn lv pv
+  let availableBuiltins = builtinsAvailableIn ll pv
       flatDecoder = UPLC.decodeProgram checkBuiltin
       -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
       checkBuiltin f | f `Set.member` availableBuiltins = Nothing
@@ -206,13 +205,13 @@ scriptCBORDecoder lv pv =
           "Builtin function "
             ++ show f
             ++ " is not available in language "
-            ++ show (pretty lv)
+            ++ show (pretty ll)
             ++ " at and protocol version "
             ++ show (pretty pv)
    in do
         -- Deserialise using 'FakeNamedDeBruijn' to get the fake names added
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <-
-          decodeViaFlat flatDecoder
+          decodeViaFlatWith flatDecoder
         pure $ coerce p
 
 {- | The deserialization from a serialised script into a `ScriptForEvaluation`,

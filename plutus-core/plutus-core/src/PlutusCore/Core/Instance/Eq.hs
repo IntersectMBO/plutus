@@ -22,8 +22,6 @@ import PlutusCore.Rename.Monad
 
 import Universe
 
-import Data.Foldable (for_)
-
 instance (GEq uni, Eq ann) => Eq (Type TyName uni ann) where
     ty1 == ty2 = runEqRename @TypeRenaming $ eqTypeM ty1 ty2
 
@@ -108,9 +106,9 @@ eqTypeM (TyFun ann1 dom1 cod1) (TyFun ann2 dom2 cod2) = do
     eqM ann1 ann2
     eqTypeM dom1 dom2
     eqTypeM cod1 cod2
-eqTypeM (TyBuiltin ann1 bi1) (TyBuiltin ann2 bi2) = do
+eqTypeM (TyBuiltin ann1 someUni1) (TyBuiltin ann2 someUni2) = do
     eqM ann1 ann2
-    eqM bi1 bi2
+    eqM someUni1 someUni2
 eqTypeM (TySOP ann1 tyls1) (TySOP ann2 tyls2) = do
     eqM ann1 ann2
     case zipExact tyls1 tyls2 of

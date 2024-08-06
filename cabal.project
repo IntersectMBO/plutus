@@ -14,11 +14,11 @@ repository cardano-haskell-packages
 -- update either of these.
 index-state:
   -- Bump both the following dates if you need newer packages from Hackage
-  , hackage.haskell.org 2024-01-08T22:38:30Z
+  , hackage.haskell.org 2024-06-23T03:51:23Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2024-01-16T11:00:00Z
+  , cardano-haskell-packages 2024-06-19T21:42:15Z
 
-packages: doc/read-the-docs-site
+packages: cardano-constitution
           plutus-benchmark
           plutus-conformance
           plutus-core
@@ -26,8 +26,10 @@ packages: doc/read-the-docs-site
           plutus-metatheory
           plutus-tx
           plutus-tx-plugin
+          plutus-tx-test-util
           prettyprinter-configurable
           stubs/plutus-ghc-stub
+          doc/docusaurus/docusaurus-examples.cabal
 
 -- We never, ever, want this.
 write-ghc-environment-files: never
@@ -81,3 +83,13 @@ allow-newer:
   , inline-r:bytestring
   , inline-r:containers
   , inline-r:primitive
+
+
+-- -------------------------------------------------------------------------------------------------
+-- Following currently required for building with ghc-9.10.
+
+constraints:
+  -- The API has changed for version 2.2, ledger depends on the old version and ledger will not
+  -- be updated until after the Conway release.
+  , cardano-crypto-class ^>= 2.1
+

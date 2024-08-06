@@ -112,8 +112,8 @@ fieldAccessor :: CompiledCode (RecordConstructor Integer -> Integer)
 fieldAccessor = plc (Proxy @"fieldAccessor") (\r -> x r)
 
 tests :: TestNested
-tests = testNestedGhc "IsData" [
-    goldenUEval "int" [plc (Proxy @"int") (isDataRoundtrip (1::Integer))]
+tests = testNested "IsData" . pure $ testNestedGhc
+    [ goldenUEval "int" [plc (Proxy @"int") (isDataRoundtrip (1::Integer))]
     , goldenUEval "tuple" [plc (Proxy @"tuple") (isDataRoundtrip (1::Integer, 2::Integer))]
     , goldenUEval "tupleInterop" [
             getPlcNoAnn (plc (Proxy @"tupleInterop") (\(d :: P.BuiltinData) -> case IsData.fromBuiltinData d of { Just t -> t P.== (1::Integer, 2::Integer); Nothing -> False}))

@@ -17,7 +17,7 @@ module Main (main) where
 
 import Prelude qualified as Haskell
 
-import PlutusBenchmark.Common (benchTermCek, mkEvalCtx)
+import PlutusBenchmark.Common (benchTermCek, mkMostRecentEvalCtx)
 import PlutusCore
 import PlutusCore.Pretty qualified as PP
 import PlutusLedgerApi.Common (EvaluationContext)
@@ -26,7 +26,6 @@ import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 import UntypedPlutusCore as UPLC
 
-import Control.DeepSeq (force)
 import Control.Exception
 import Control.Lens
 import Control.Monad.Except
@@ -83,12 +82,12 @@ writePlc p =
         traverseOf UPLC.progTerm UPLC.unDeBruijnTerm p
     of
       Left e   -> throw e
-      Right p' -> Haskell.print . PP.prettyPlcClassicDebug $ p'
+      Right p' -> Haskell.print . PP.prettyPlcClassicSimple $ p'
 
 
 main1 :: Haskell.IO ()
 main1 = do
-  evalCtx <- evaluate $ force mkEvalCtx
+  evalCtx <- evaluate mkMostRecentEvalCtx
   defaultMainWith
       (defaultConfig { C.csvFile = Just "cek-lists.csv" })
       [mkListBMs evalCtx [0,10..1000]]

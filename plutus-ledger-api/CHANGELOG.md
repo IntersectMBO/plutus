@@ -1,4 +1,82 @@
 
+<a id='changelog-1.30.0.0'></a>
+# 1.30.0.0 — 2024-06-17
+
+## Added
+
+- Added a new `Value` type backed by `Data`. This is currently experimental and not yet used in the ledger API.
+
+- Exported the following from `PlutusLedgerApi.Common` in #6178:
+  + `ExCPU (..)`
+  + `ExMemory (..)`
+  + `SatInt (unSatInt)`
+  + `fromSatInt`
+  + `toOpaque,
+  + `fromOpaque`
+  + `BuiltinData (..)`
+  + `ToData (..)`
+  + `FromData (..)`
+  + `UnsafeFromData (..)`
+  + `toData`
+  + `fromData`
+  + `unsafeFromData`
+  + `dataToBuiltinData`
+  + `builtinDataToData`
+
+## Fixed
+
+- Fixed the `Pretty` instance for `ScriptContext` to display the redemeer as well.
+
+<a id='changelog-1.29.0.0'></a>
+# 1.29.0.0 — 2024-06-04
+
+## Added
+
+- A new cost model for PlutusV3.
+
+## Changed
+
+- The `ScriptContext` type for Plutus V3 is modified to contain an optional datum for
+  spending scripts, in the `scriptContextScriptInfo` field. The redeemer is now also
+  part of `ScriptContext`. As a result, all Plutus V3 scripts, regardless of the purpose,
+  take a single argument: `ScriptContext`.
+- Datum is now optional for Plutus V3 spending scripts.
+
+- We now have configurable cost models which allow different costs for different Plutus language versions and protocol versions.
+- The `mkEvaluationContext` functions in `plutus-ledger-api` (which provide
+  version-dependent on-chain configuration of the Plutus Core evaluator) now
+  select appropriate cost models as well.
+
+- `evaluateScriptRestricting` and `evaluateScriptCounting` now require Plutus V3
+  scripts to return `BuiltinUnit`, otherwise the evaluation is considered to
+  have failed, and a `InvalidReturnValue` error is thrown. There is no such
+  requirement on Plutus V1 and V2 scripts.
+
+<a id='changelog-1.27.0.0'></a>
+# 1.27.0.0 — 2024-04-30
+
+## Removed
+
+- `Codec.CBOR.Extras` module is migrated from here to `plutus-core`.
+
+## Changed
+
+- `mkEvaluationContext` now takes `[Int64]` (instead of `[Integer]`).
+
+`EvaluationContext` now contains:
+
+- `PlutusLedgerLanguage` -- a ledger language
+- `MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun` -- a function returning a semantics variant for every protocol version
+- `[(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]` -- a cache of machine parameters for each semantics variant supported by the ledger language
+
+Similarly, `mkDynEvaluationContext` now takes additional arguments:
+
+- `PlutusLedgerLanguage` -- same as above
+- `[BuiltinSemanticsVariant DefaultFun]` -- a list of semantics variants supported by the ledger language
+- `MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun` -- same as above
+
+All this allows us to improve the accuracy of costing in future protocol versions without introducing new ledger languages.
+
 <a id='changelog-1.22.0.0'></a>
 # 1.22.0.0 — 2024-02-21
 

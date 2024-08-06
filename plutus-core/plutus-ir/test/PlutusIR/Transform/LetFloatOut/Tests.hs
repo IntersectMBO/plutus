@@ -19,8 +19,8 @@ import PlutusPrelude
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_letFloatOut :: TestTree
-test_letFloatOut = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "LetFloatOut" $
+test_letFloatOut =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "LetFloatOut"] $
         map
             (goldenPir (runQuote . runTestPass testPass) pTerm)
             [ "letInLet"
@@ -64,8 +64,8 @@ test_letFloatOut = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"
       <> RecSplit.recSplitPass tcconfig
       <> LetMerge.letMergePass tcconfig
 
-prop_floatIn :: BuiltinSemanticsVariant PLC.DefaultFun -> Property
-prop_floatIn biVariant = withMaxSuccess (3 * numTestsForPassProp) $ testPassProp runQuote testPass
+prop_floatOut :: BuiltinSemanticsVariant PLC.DefaultFun -> Property
+prop_floatOut biVariant = withMaxSuccess numTestsForPassProp $ testPassProp runQuote testPass
   where
     testPass tcconfig =
       LetFloatOut.floatTermPassSC

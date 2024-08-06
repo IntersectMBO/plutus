@@ -122,9 +122,8 @@ benchUnBData = createOneTermBuiltinBench UnBData [] bdata
 -- the costs of sub-components.
 benchEqualsData :: Benchmark
 benchEqualsData =
-    createTwoTermBuiltinBenchElementwise EqualsData [] args1 args2
-        where args1 = dataSampleForEq -- 400 elements: should take about 35 minutes to benchmark
-              args2 = fmap copyData args1
+    createTwoTermBuiltinBenchElementwise EqualsData [] $ pairWith copyData dataSampleForEq
+    -- 400 elements: should take about 35 minutes to benchmark
 
 benchSerialiseData :: Benchmark
 benchSerialiseData =

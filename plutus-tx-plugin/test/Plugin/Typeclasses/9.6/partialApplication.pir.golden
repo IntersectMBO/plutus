@@ -1,108 +1,40 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl Bool (type))
-
-        Bool_match
-        (vardecl True Bool) (vardecl False Bool)
-      )
-    )
-    (datatypebind
-      (datatype
-        (tyvardecl Ordering (type))
-
-        Ordering_match
-        (vardecl EQ Ordering) (vardecl GT Ordering) (vardecl LT Ordering)
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl equalsInteger (fun (con integer) (fun (con integer) (con bool))))
-      (builtin equalsInteger)
-    )
-    (termbind
-      (strict)
-      (vardecl ifThenElse (all a (type) (fun (con bool) (fun a (fun a a)))))
-      (builtin ifThenElse)
-    )
-    (termbind
-      (strict)
-      (vardecl
-        lessThanEqualsInteger (fun (con integer) (fun (con integer) (con bool)))
-      )
-      (builtin lessThanEqualsInteger)
-    )
-    (termbind
-      (nonstrict)
-      (vardecl
-        `$fOrdInteger_$ccompare`
-        (fun (con integer) (fun (con integer) Ordering))
-      )
-      (lam
-        eta
-        (con integer)
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl x (con integer)) eta)
-          (lam
-            eta
-            (con integer)
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl y (con integer)) eta)
-              (termbind
-                (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ]
-              )
-              {
-                [
-                  [
-                    {
-                      [
-                        Bool_match [ [ [ { ifThenElse Bool } b ] True ] False ]
-                      ]
-                      (all dead (type) Ordering)
-                    }
-                    (abs dead (type) EQ)
-                  ]
-                  (abs
-                    dead
-                    (type)
-                    (let
-                      (nonrec)
-                      (termbind
-                        (strict)
-                        (vardecl b (con bool))
-                        [ [ lessThanEqualsInteger x ] y ]
-                      )
-                      {
-                        [
-                          [
-                            {
-                              [
-                                Bool_match
-                                [ [ [ { ifThenElse Bool } b ] True ] False ]
-                              ]
-                              (all dead (type) Ordering)
-                            }
-                            (abs dead (type) LT)
-                          ]
-                          (abs dead (type) GT)
-                        ]
-                        (all dead (type) dead)
-                      }
-                    )
-                  )
-                ]
-                (all dead (type) dead)
-              }
-            )
-          )
-        )
-      )
-    )
-    `$fOrdInteger_$ccompare`
-  )
-)
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
+    data Ordering | Ordering_match where
+      EQ : Ordering
+      GT : Ordering
+      LT : Ordering
+    !equalsInteger : integer -> integer -> bool = equalsInteger
+    !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+    !lessThanEqualsInteger : integer -> integer -> bool = lessThanEqualsInteger
+    ~`$fOrdInteger_$ccompare` : integer -> integer -> Ordering
+      = \(eta : integer) ->
+          let
+            !x : integer = eta
+          in
+          \(eta : integer) ->
+            let
+              !y : integer = eta
+              !b : bool = equalsInteger x y
+            in
+            Bool_match
+              (ifThenElse {Bool} b True False)
+              {all dead. Ordering}
+              (/\dead -> EQ)
+              (/\dead ->
+                 let
+                   !b : bool = lessThanEqualsInteger x y
+                 in
+                 Bool_match
+                   (ifThenElse {Bool} b True False)
+                   {all dead. Ordering}
+                   (/\dead -> LT)
+                   (/\dead -> GT)
+                   {all dead. dead})
+              {all dead. dead}
+  in
+  `$fOrdInteger_$ccompare`)

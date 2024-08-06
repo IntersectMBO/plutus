@@ -17,6 +17,7 @@ import PlutusCore.Evaluation.Machine.CostModelInterface
 import Control.Monad.Except
 import Control.Monad.Writer.Strict
 import Data.Char (toLower)
+import Data.Int (Int64)
 import Data.List as List (lookup)
 import Data.Map qualified as Map
 import Data.Text qualified as Text
@@ -86,7 +87,7 @@ tagWithParamNames :: forall k m. (Enum k, Bounded k,
                             -- OPTIMIZE: MonadWriter.CPS is probably better than MonadWriter.Strict but needs mtl>=2.3
                             -- OPTIMIZE: using List [] as the log datatype is worse than others (DList/Endo) but does not matter much here
                             MonadWriter [CostModelApplyWarn] m)
-                  => [Integer] -> m [(k, Integer)]
+                  => [Int64] -> m [(k, Int64)]
 tagWithParamNames ledgerParams =
     let paramNames = enumerate @k
         lenExpected = length paramNames
@@ -96,14 +97,16 @@ tagWithParamNames ledgerParams =
             pure $ zip paramNames ledgerParams
         LT -> do
             -- See Note [Cost model parameters from the ledger's point of view]
-            tell [CMTooManyParamsWarn {cmTooManyExpected = lenExpected, cmTooManyActual = lenActual}]
+            tell [CMTooManyParamsWarn {cmExpected = lenExpected, cmActual = lenActual}]
             -- zip will truncate/ignore any extraneous parameter values
             pure $ zip paramNames ledgerParams
-        GT ->
+        GT -> do
+            -- Too few parameters - substitute a large number for the missing parameters
             -- See Note [Cost model parameters from the ledger's point of view]
-            throwError $ CMTooFewParamsError {cmTooFewExpected = lenExpected, cmTooFewActual = lenActual }
+            tell [CMTooFewParamsWarn {cmExpected = lenExpected, cmActual = lenActual}]
+            pure $ zip paramNames (ledgerParams ++ repeat maxBound)
 
 -- | Untags the plutus version from the typed cost model parameters and returns their raw textual form
 -- (internally used by CostModelInterface).
-toCostModelParams :: IsParamName p => [(p, Integer)] -> CostModelParams
+toCostModelParams :: IsParamName p => [(p, Int64)] -> CostModelParams
 toCostModelParams = Map.fromList . fmap (first showParamName)

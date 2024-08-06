@@ -1,4 +1,5 @@
 {-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -6,18 +7,20 @@
 
 module Plugin.NoTrace.Lib where
 
-import Control.Lens (universeOf, (^.))
-import Data.Int (Int)
-import Data.List (length)
+import Prelude hiding (Show, show, (+))
+
+import Control.Lens (universeOf, (&), (^.))
 import GHC.Exts (noinline)
-import PlutusCore.Builtin.Debug qualified as Builtin
-import PlutusTx.Bool (Bool)
-import PlutusTx.Builtins (BuiltinString, Integer, appendString)
-import PlutusTx.Code (CompiledCode, getPlcNoAnn)
+import PlutusCore.Default.Builtins qualified as Builtin
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
+import PlutusTx.Builtins (BuiltinString, appendString, error)
+import PlutusTx.Code (CompiledCode, getPlc, getPlcNoAnn)
 import PlutusTx.Numeric ((+))
 import PlutusTx.Show.TH (Show (show))
 import PlutusTx.Trace (trace, traceError)
 import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek (counting, noEmitter)
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (runCekDeBruijn)
 
 data Arg = MkArg
 
@@ -31,6 +34,16 @@ countTraces code =
     | let term = getPlcNoAnn code ^. UPLC.progTerm
     , subterm@(UPLC.Builtin _ Builtin.Trace) <- universeOf UPLC.termSubterms term
     ]
+
+evaluatesToError :: CompiledCode a -> Bool
+evaluatesToError = not . evaluatesWithoutError
+
+evaluatesWithoutError :: CompiledCode a -> Bool
+evaluatesWithoutError code =
+  runCekDeBruijn defaultCekParametersForTesting counting noEmitter
+  (getPlc code ^. UPLC.progTerm) & \case
+    (Left _exception, _counter, _logs) -> False
+    (Right _result, _counter, _logs) -> True
 
 ----------------------------------------------------------------------------------------------------
 -- Functions that contain traces -------------------------------------------------------------------
@@ -62,3 +75,6 @@ traceRepeatedly =
       i2 = trace "Making my second int" (2 :: Integer)
       i3 = trace "Adding them up" (i1 + i2)
    in i3
+
+traceImpure :: ()
+traceImpure = trace ("Message: " `appendString` PlutusTx.Builtins.error ()) ()

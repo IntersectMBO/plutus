@@ -129,3 +129,16 @@ isCommutative = \case
   MkNilPairData                   -> False
   IntegerToByteString             -> False
   ByteStringToInteger             -> False
+  -- Currently, this requires commutativity in all arguments, which the
+  -- logical and bitwise operations are not.
+  AndByteString                   -> False
+  OrByteString                    -> False
+  XorByteString                   -> False
+  ComplementByteString            -> False
+  ReadBit                         -> False
+  WriteBits                       -> False
+  ReplicateByte                   -> False
+  ShiftByteString                 -> False
+  RotateByteString                -> False
+  CountSetBits                    -> False
+  FindFirstSetBit                 -> False

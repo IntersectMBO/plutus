@@ -1,15 +1,4 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl c (con integer))
-    [ [ (builtin addInteger) (con integer 10) ] (con integer 10) ]
-  )
-  [
-    [
-      (builtin addInteger)
-      [ [ (builtin addInteger) (con integer 10) ] (con integer 7) ]
-    ]
-    (con integer 7)
-  ]
-)
+let
+  !c : integer = addInteger 10 10
+in
+addInteger (addInteger 10 7) 7

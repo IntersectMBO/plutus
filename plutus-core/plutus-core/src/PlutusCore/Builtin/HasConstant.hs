@@ -45,12 +45,12 @@ class HasConstant term where
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
 -- | Wrap a Haskell value (given its explicit type tag) as a @term@.
-fromValueOf :: HasConstant term => UniOf term (Esc a) -> a -> term
+fromValueOf :: forall a term. HasConstant term => UniOf term (Esc a) -> a -> term
 fromValueOf uni = fromConstant . someValueOf uni
 {-# INLINE fromValueOf #-}
 
 -- | Wrap a Haskell value (provided its type is in the universe) as a @term@.
-fromValue :: (HasConstant term, UniOf term `HasTermLevel` a) => a -> term
+fromValue :: forall a term. (HasConstant term, UniOf term `HasTermLevel` a) => a -> term
 fromValue = fromValueOf knownUni
 {-# INLINE fromValue #-}
 

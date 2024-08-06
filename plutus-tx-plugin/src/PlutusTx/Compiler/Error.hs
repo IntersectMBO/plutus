@@ -74,7 +74,7 @@ data Error uni fun a
 makeClassyPrisms ''Error
 
 instance (PLC.PrettyUni uni, PP.Pretty fun, PP.Pretty a) => PP.Pretty (Error uni fun a) where
-    pretty = PLC.prettyPlcClassicDebug
+    pretty = PLC.prettyPlcClassicSimple
 
 instance
     (uni1 ~ uni2, b ~ PIR.Provenance a) =>

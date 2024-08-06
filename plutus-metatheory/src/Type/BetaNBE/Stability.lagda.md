@@ -1,3 +1,7 @@
+---
+title: Type.BetaNBE.Stability
+layout: page
+---
 ```
 module Type.BetaNBE.Stability where
 ```

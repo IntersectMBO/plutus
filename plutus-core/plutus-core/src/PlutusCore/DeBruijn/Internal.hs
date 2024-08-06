@@ -9,41 +9,41 @@
 {-# OPTIONS_GHC -Wno-identities #-}
 
 -- | Support for using de Bruijn indices for term and type names.
-module PlutusCore.DeBruijn.Internal (
-  Index (..),
-  HasIndex (..),
-  DeBruijn (..),
-  NamedDeBruijn (..),
+module PlutusCore.DeBruijn.Internal
+  ( Index (..)
+  , HasIndex (..)
+  , DeBruijn (..)
+  , NamedDeBruijn (..)
   -- we follow the same approach as Renamed: expose the constructor from Internal module,
   -- but hide it in the parent module.
-  FakeNamedDeBruijn (..),
-  TyDeBruijn (..),
-  NamedTyDeBruijn (..),
-  FreeVariableError (..),
-  AsFreeVariableError (..),
-  Level (..),
-  LevelInfo (..),
-  declareUnique,
-  declareBinder,
-  withScope,
-  getIndex,
-  getUnique,
-  unNameDeBruijn,
-  unNameTyDeBruijn,
-  fakeNameDeBruijn,
-  fakeTyNameDeBruijn,
-  nameToDeBruijn,
-  tyNameToDeBruijn,
-  deBruijnToName,
-  deBruijnToTyName,
-  freeIndexThrow,
-  freeIndexAsConsistentLevel,
-  freeUniqueThrow,
-  runDeBruijnT,
-  deBruijnInitIndex,
-  toFake,
-  fromFake,
-) where
+  , FakeNamedDeBruijn (..)
+  , TyDeBruijn (..)
+  , NamedTyDeBruijn (..)
+  , FreeVariableError (..)
+  , AsFreeVariableError (..)
+  , Level (..)
+  , LevelInfo (..)
+  , declareUnique
+  , declareBinder
+  , withScope
+  , getIndex
+  , getUnique
+  , unNameDeBruijn
+  , unNameTyDeBruijn
+  , fakeNameDeBruijn
+  , fakeTyNameDeBruijn
+  , nameToDeBruijn
+  , tyNameToDeBruijn
+  , deBruijnToName
+  , deBruijnToTyName
+  , freeIndexThrow
+  , freeIndexAsConsistentLevel
+  , freeUniqueThrow
+  , runDeBruijnT
+  , deBruijnInitIndex
+  , toFake
+  , fromFake
+  ) where
 
 import PlutusCore.Name.Unique
 import PlutusCore.Pretty
@@ -95,7 +95,7 @@ the optimized `Flat DeBruijn` instance. This is ok, because `FND<->D` are
 isomorphic.
 -}
 
-{-| A relative index used for de Bruijn identifiers.
+{- | A relative index used for de Bruijn identifiers.
 
 FIXME: downside of using newtype+Num instead of type-synonym is that `-Woverflowed-literals`
 does not work, e.g.: `DeBruijn (-1)` has no warning. To trigger the warning you have to bypass
@@ -116,14 +116,14 @@ data NamedDeBruijn = NamedDeBruijn {ndbnString :: !T.Text, ndbnIndex :: !Index}
   deriving stock (Show, Generic, Read)
   deriving anyclass (Hashable, NFData)
 
-{-| A wrapper around `NamedDeBruijn` that *must* hold the invariant of name=`fakeName`.
+{- | A wrapper around `NamedDeBruijn` that *must* hold the invariant of name=`fakeName`.
 
 We do not export the `FakeNamedDeBruijn` constructor: the projection `FND->ND` is safe
 but injection `ND->FND` is unsafe, thus they are not isomorphic.
 
 See Note [Why newtype FakeNamedDeBruijn]
 -}
-newtype FakeNamedDeBruijn = FakeNamedDeBruijn { unFakeNamedDeBruijn :: NamedDeBruijn }
+newtype FakeNamedDeBruijn = FakeNamedDeBruijn {unFakeNamedDeBruijn :: NamedDeBruijn}
   deriving newtype (Show, Eq, Hashable, NFData, PrettyBy config)
 
 toFake :: DeBruijn -> FakeNamedDeBruijn
@@ -164,15 +164,14 @@ instance Wrapped TyDeBruijn
 
 instance (HasPrettyConfigName config) => PrettyBy config NamedDeBruijn where
   prettyBy config (NamedDeBruijn txt (Index ix))
-    -- See Note [Pretty-printing names with uniques]
-    | showsUnique = pretty . toPrintedName $ txt <> "_i" <> render (pretty ix)
+    | showsUnique = pretty $ toPrintedName txt <> "!" <> render (pretty ix)
     | otherwise = pretty $ toPrintedName txt
     where
       PrettyConfigName showsUnique = toPrettyConfigName config
 
 instance (HasPrettyConfigName config) => PrettyBy config DeBruijn where
   prettyBy config (DeBruijn (Index ix))
-    | showsUnique = "i" <> pretty ix
+    | showsUnique = "!" <> pretty ix
     | otherwise = ""
     where
       PrettyConfigName showsUnique = toPrettyConfigName config
@@ -304,12 +303,12 @@ getUnique ix h = do
       -- (absolute) level.
       h ix
 
-unNameDeBruijn ::
-  NamedDeBruijn -> DeBruijn
+unNameDeBruijn
+  :: NamedDeBruijn -> DeBruijn
 unNameDeBruijn (NamedDeBruijn _ ix) = DeBruijn ix
 
-unNameTyDeBruijn ::
-  NamedTyDeBruijn -> TyDeBruijn
+unNameTyDeBruijn
+  :: NamedTyDeBruijn -> TyDeBruijn
 unNameTyDeBruijn (NamedTyDeBruijn db) = TyDeBruijn $ unNameDeBruijn db
 
 fakeNameDeBruijn :: DeBruijn -> NamedDeBruijn
@@ -318,32 +317,32 @@ fakeNameDeBruijn = coerce . toFake
 fakeTyNameDeBruijn :: TyDeBruijn -> NamedTyDeBruijn
 fakeTyNameDeBruijn (TyDeBruijn n) = NamedTyDeBruijn $ fakeNameDeBruijn n
 
-nameToDeBruijn ::
-  (MonadReader LevelInfo m) =>
-  (Unique -> m Index) ->
-  Name ->
-  m NamedDeBruijn
+nameToDeBruijn
+  :: (MonadReader LevelInfo m)
+  => (Unique -> m Index)
+  -> Name
+  -> m NamedDeBruijn
 nameToDeBruijn h (Name str u) = NamedDeBruijn str <$> getIndex u h
 
-tyNameToDeBruijn ::
-  (MonadReader LevelInfo m) =>
-  (Unique -> m Index) ->
-  TyName ->
-  m NamedTyDeBruijn
+tyNameToDeBruijn
+  :: (MonadReader LevelInfo m)
+  => (Unique -> m Index)
+  -> TyName
+  -> m NamedTyDeBruijn
 tyNameToDeBruijn h (TyName n) = NamedTyDeBruijn <$> nameToDeBruijn h n
 
-deBruijnToName ::
-  (MonadReader LevelInfo m) =>
-  (Index -> m Unique) ->
-  NamedDeBruijn ->
-  m Name
+deBruijnToName
+  :: (MonadReader LevelInfo m)
+  => (Index -> m Unique)
+  -> NamedDeBruijn
+  -> m Name
 deBruijnToName h (NamedDeBruijn str ix) = Name str <$> getUnique ix h
 
-deBruijnToTyName ::
-  (MonadReader LevelInfo m) =>
-  (Index -> m Unique) ->
-  NamedTyDeBruijn ->
-  m TyName
+deBruijnToTyName
+  :: (MonadReader LevelInfo m)
+  => (Index -> m Unique)
+  -> NamedTyDeBruijn
+  -> m TyName
 deBruijnToTyName h (NamedTyDeBruijn n) = TyName <$> deBruijnToName h n
 
 -- | The default handler of throwing an error upon encountering a free name (unique).
@@ -362,10 +361,10 @@ These generated uniques remain free; i.e.  if the original term was open, it wil
 after applying this handler.
 These generated free uniques are consistent across the open term (by using a state cache).
 -}
-freeIndexAsConsistentLevel ::
-  (MonadReader LevelInfo m, MonadState (M.Map Level Unique) m, MonadQuote m) =>
-  Index ->
-  m Unique
+freeIndexAsConsistentLevel
+  :: (MonadReader LevelInfo m, MonadState (M.Map Level Unique) m, MonadQuote m)
+  => Index
+  -> m Unique
 freeIndexAsConsistentLevel ix = do
   cache <- get
   LevelInfo current _ <- ask

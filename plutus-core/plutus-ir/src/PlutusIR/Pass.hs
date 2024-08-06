@@ -12,13 +12,12 @@ import PlutusIR.TypeCheck qualified as TC
 import PlutusCore qualified as PLC
 import PlutusCore.Name.Unique
 
-import Control.Monad (when)
+import Control.Monad (void, when)
 import Control.Monad.Except
 import Control.Monad.Trans.Class (lift)
 import Data.Foldable
 import Data.Text (Text)
 import PlutusCore.Quote
-import PlutusPrelude
 
 -- | A condition on a 'Term'.
 data Condition tyname name uni fun a where

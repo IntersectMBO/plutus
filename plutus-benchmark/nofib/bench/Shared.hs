@@ -2,11 +2,10 @@
 module Shared (
     benchWith
     , mkBenchMarks
-    , mkEvalCtx
     , benchTermCek
     ) where
 
-import PlutusBenchmark.Common (Term, benchTermCek, getConfig, mkEvalCtx)
+import PlutusBenchmark.Common (Term, benchTermCek, getConfig)
 
 import PlutusBenchmark.NoFib.Clausify qualified as Clausify
 import PlutusBenchmark.NoFib.Knights qualified as Knights
@@ -39,11 +38,8 @@ mkBenchMarks (benchClausify, benchKnights, benchPrime, benchQueens) = [
                      , bench "8x8" $ benchKnights 100 8
                      ]
   , bgroup "primetest" [ bench "05digits" $ benchPrime Prime.P5
-                       , bench "08digits" $ benchPrime Prime.P8
                        , bench "10digits" $ benchPrime Prime.P10
-                       , bench "20digits" $ benchPrime Prime.P20
                        , bench "30digits" $ benchPrime Prime.P30
-                       , bench "40digits" $ benchPrime Prime.P40
                        , bench "50digits" $ benchPrime Prime.P50
                        -- Larger primes are available in Primes.hs, but may take a long time.
                        ]

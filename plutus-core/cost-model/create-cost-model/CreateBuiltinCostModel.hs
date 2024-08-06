@@ -112,6 +112,17 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramKeccak_256                      = "keccak_256Model"
   , paramIntegerToByteString             = "integerToByteStringModel"
   , paramByteStringToInteger             = "byteStringToIntegerModel"
+  , paramAndByteString                   = "andByteStringModel"
+  , paramOrByteString                    = "orByteStringModel"
+  , paramXorByteString                   = "xorByteStringModel"
+  , paramComplementByteString            = "complementByteStringModel"
+  , paramReadBit                         = "readBitModel"
+  , paramWriteBits                       = "writeBitsModel"
+  , paramReplicateByte                   = "replicateByteModel"
+  , paramShiftByteString                 = "shiftByteStringModel"
+  , paramRotateByteString                = "rotateByteStringModel"
+  , paramCountSetBits                    = "countSetBitsModel"
+  , paramFindFirstSetBit                 = "findFirstSetBitModel"
   }
 
 
@@ -238,6 +249,17 @@ createBuiltinCostModel bmfile rfile = do
   -- Bitwise operations
   paramByteStringToInteger             <- getParams readCF2 paramByteStringToInteger
   paramIntegerToByteString             <- getParams readCF3 paramIntegerToByteString
+  paramAndByteString                   <- getParams readCF3 paramAndByteString
+  paramOrByteString                    <- getParams readCF3 paramOrByteString
+  paramXorByteString                   <- getParams readCF3 paramXorByteString
+  paramComplementByteString            <- getParams readCF1 paramComplementByteString
+  paramReadBit                         <- getParams readCF2 paramReadBit
+  paramWriteBits                       <- getParams readCF3 paramWriteBits
+  paramReplicateByte                   <- getParams readCF2 paramReplicateByte
+  paramShiftByteString                 <- getParams readCF2 paramShiftByteString
+  paramRotateByteString                <- getParams readCF2 paramRotateByteString
+  paramCountSetBits                    <- getParams readCF1 paramCountSetBits
+  paramFindFirstSetBit                 <- getParams readCF1 paramFindFirstSetBit
 
   pure $ BuiltinCostModelBase {..}
 
@@ -289,13 +311,19 @@ readOneVariableFunConstOr e = do
   nonConstantPart <- readCF1AtType subtype e
   pure $ ModelConstantOrOneArgument constantPart nonConstantPart
 
--- | A costing function of the form a+sx.
 readOneVariableQuadraticFunction :: MonadR m => String -> SomeSEXP (Region m) -> m OneVariableQuadraticFunction
 readOneVariableQuadraticFunction var e = do
-  coeff0 <- Coefficient0 <$> getCoeff "(Intercept)" e
-  coeff1 <- Coefficient1 <$> getCoeff (printf "I(%s)" var) e
-  coeff2 <- Coefficient2 <$> getCoeff (printf "I(%s^2)" var) e
-  pure $ OneVariableQuadraticFunction coeff0 coeff1 coeff2
+  c0 <- Coefficient0 <$> getCoeff "(Intercept)" e
+  c1 <- Coefficient1 <$> getCoeff (printf "I(%s)" var) e
+  c2 <- Coefficient2 <$> getCoeff (printf "I(%s^2)" var) e
+  pure $ OneVariableQuadraticFunction c0 c1 c2
+
+readTwoVariableFunLinearOnDiagonal :: MonadR m => String -> SomeSEXP (Region m) -> m ModelConstantOrLinear
+readTwoVariableFunLinearOnDiagonal var e = do
+  constantPart <- getExtraParam "constant" e
+  intercept <- Intercept <$> getCoeff "(Intercept)" e
+  slope <- Slope <$> getCoeff var e
+  pure $ ModelConstantOrLinear constantPart intercept slope
 
 -- | A costing function of the form a+sx+ty
 readTwoVariableLinearFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableLinearFunction
@@ -304,6 +332,17 @@ readTwoVariableLinearFunction var1 var2 e = do
   slopeX <- Slope <$> getCoeff var1 e
   slopeY <- Slope <$> getCoeff var2 e
   pure $ TwoVariableLinearFunction intercept slopeX slopeY
+
+readTwoVariableQuadraticFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableQuadraticFunction
+readTwoVariableQuadraticFunction var1 var2 e = do
+  minVal <- getExtraParam "minimum" e
+  c00 <- Coefficient00 <$> getCoeff "(Intercept)" e
+  c10 <- Coefficient10 <$> getCoeff (printf "I(%s)" var1) e
+  c01 <- Coefficient01 <$> getCoeff (printf "I(%s)" var2) e
+  c20 <- Coefficient20 <$> getCoeff (printf "I(%s^2)" var1) e
+  c11 <- Coefficient11 <$> getCoeff (printf "I(%s * %s)" var1 var2) e
+  c02 <- Coefficient02 <$> getCoeff (printf "I(%s^2)" var2) e
+  pure $ TwoVariableQuadraticFunction minVal c00 c10 c01 c20 c11 c02
 
 -- | A two-variable costing function which is constant on one region of the
 -- plane and something else elsewhere.
@@ -348,10 +387,13 @@ readCF2AtType ty e = do
     "multiplied_sizes"     -> ModelTwoArgumentsMultipliedSizes    <$> readOneVariableLinearFunction "I(x_mem * y_mem)" e
     "min_size"             -> ModelTwoArgumentsMinSize            <$> readOneVariableLinearFunction "pmin(x_mem, y_mem)" e
     "max_size"             -> ModelTwoArgumentsMaxSize            <$> readOneVariableLinearFunction "pmax(x_mem, y_mem)" e
+    -- See Note [Backward compatibility for costing functions] for linear_on_diagonal
+    "linear_on_diagonal"   -> ModelTwoArgumentsLinearOnDiagonal   <$> readTwoVariableFunLinearOnDiagonal "x_mem" e
     "const_below_diagonal" -> ModelTwoArgumentsConstBelowDiagonal <$> readTwoVariableFunConstOr e
     "const_above_diagonal" -> ModelTwoArgumentsConstAboveDiagonal <$> readTwoVariableFunConstOr e
     "const_off_diagonal"   -> ModelTwoArgumentsConstOffDiagonal   <$> readOneVariableFunConstOr e
     "quadratic_in_y"       -> ModelTwoArgumentsQuadraticInY       <$> readOneVariableQuadraticFunction "y_mem" e
+    "quadratic_in_x_and_y" -> ModelTwoArgumentsQuadraticInXAndY   <$> readTwoVariableQuadraticFunction "x_mem" "y_mem" e
     _                      -> error $ "Unknown two-variable model type: " ++ ty
 
 readCF2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments
@@ -368,6 +410,7 @@ readCF3 e = do
     "linear_in_y"                 -> ModelThreeArgumentsLinearInY             <$> readOneVariableLinearFunction "y_mem" e
     "linear_in_z"                 -> ModelThreeArgumentsLinearInZ             <$> readOneVariableLinearFunction "z_mem" e
     "quadratic_in_z"              -> ModelThreeArgumentsQuadraticInZ          <$> readOneVariableQuadraticFunction "z_mem" e
+    "linear_in_y_and_z"           -> ModelThreeArgumentsLinearInYAndZ         <$> readTwoVariableLinearFunction "y_mem" "z_mem" e
     "literal_in_y_or_linear_in_z" -> ModelThreeArgumentsLiteralInYOrLinearInZ <$> error "literal"
     _                             -> error $ "Unknown three-variable model type: " ++ ty
 

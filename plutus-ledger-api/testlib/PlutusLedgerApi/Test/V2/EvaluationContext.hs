@@ -9,24 +9,26 @@ module PlutusLedgerApi.Test.V2.EvaluationContext
     ) where
 
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusLedgerApi.Test.Common.EvaluationContext as Common
 import PlutusLedgerApi.Test.V3.EvaluationContext qualified as V3
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusPrelude
 
+import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Maybe
 
 -- | Example values of costs for @PlutusV2@, in expected ledger order.
 -- Suitable to be used in testing.
-costModelParamsForTesting :: [(V2.ParamName, Integer)]
+costModelParamsForTesting :: [(V2.ParamName, Int64)]
 costModelParamsForTesting = Map.toList $ fromJust $
     Common.extractCostModelParamsLedgerOrder mCostModel
 
 -- | The PlutusV2 "cost model" is constructed by the v3 "cost model", by clearing v3 introductions.
 mCostModel :: MCostModel
-mCostModel = V3.mCostModel
+mCostModel = toMCostModel defaultCekCostModelForTestingB
            & machineCostModel
            %~ V3.clearMachineCostModel
            & builtinCostModel
@@ -51,4 +53,6 @@ clearBuiltinCostModel r = r
                { paramSerialiseData = mempty
                , paramVerifyEcdsaSecp256k1Signature = mempty
                , paramVerifySchnorrSecp256k1Signature = mempty
+               , paramIntegerToByteString = mempty
+               , paramByteStringToInteger = mempty
                }

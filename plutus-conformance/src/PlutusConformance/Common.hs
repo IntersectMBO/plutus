@@ -10,7 +10,7 @@ import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParams)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParamsForTesting)
 import PlutusCore.Name.Unique (Name)
 import PlutusCore.Quote (runQuoteT)
 import PlutusPrelude (Pretty (pretty), display, void)
@@ -75,11 +75,16 @@ discoverTests
   :: UplcEvaluator -- ^ The evaluator to be tested.
   -> CostModelParams
   -> (FilePath -> Bool)
-  -- ^ A function that takes a test name and returns
-  -- whether it should be labelled as `ExpectedFailure`.
-  -> FilePath -- ^ The directory to search for tests.
+  -- ^ A function that takes a test directory and returns a Bool indicating
+  -- whether the evaluation test for the file in that directory is expected to
+  -- fail.
+  -> (FilePath -> Bool)
+  -- ^ A function that takes a test directory and returns a Bool indicating
+  -- whether the budget test for the file in that directory is expected to fail.
+  -> FilePath
+  -- ^ The directory to search for tests.
   -> IO TestTree
-discoverTests eval modelParams expectedFailureFn = go
+discoverTests eval modelParams evaluationFailureExpected budgetFailureExpected = go
   where
     go dir = do
         let name = takeBaseName dir
@@ -97,35 +102,36 @@ discoverTests eval modelParams expectedFailureFn = go
                         , testForBudget dir name (fmap snd . f modelParams)
                         ]
                     UplcEvaluatorWithoutCosting f -> testForEval dir name f
-            in
-                -- if the test is expected to fail, mark it so.
-                if expectedFailureFn dir
-                then pure $ expectFail tests
-                -- the test isn't expected to fail, make the `TestTree` as usual.
-                else pure tests
+            in pure tests
         -- has children, so it's a grouping directory
         else testGroup name <$> traverse go subdirs
     testForEval :: FilePath -> String -> UplcEvaluatorFun UplcProg -> TestTree
     testForEval dir name e =
         let goldenFilePath = dir </> name <.> "uplc.expected"
-        in goldenTest
-            (name ++ " (evaluation)")
-            -- get the golden test value
-            (expectedToProg <$> T.readFile goldenFilePath)
-            -- get the tested value
-            (getTestedValue e dir)
-            (\ x y -> pure $ compareAlphaEq x y) -- comparison function
-            (updateGoldenFile goldenFilePath) -- update the golden file
-
+            test = goldenTest
+                   (name ++ " (evaluation)")
+                   -- get the golden test value
+                   (expectedToProg <$> T.readFile goldenFilePath)
+                   -- get the tested value
+                   (getTestedValue e dir)
+                   (\ x y -> pure $ compareAlphaEq x y) -- comparison function
+                   (updateGoldenFile goldenFilePath) -- update the golden file
+        in possiblyFailingTest (evaluationFailureExpected dir) test
     testForBudget :: FilePath -> String -> UplcEvaluatorFun ExBudget -> TestTree
     testForBudget dir name e =
         let goldenFilePath = dir </> name <.> "uplc.budget.expected"
             prettyEither (Left l)  = pretty l
             prettyEither (Right r) = pretty r
-        in goldenVsDocM
-            (name ++ " (budget)")
-            goldenFilePath
-            (prettyEither <$> getTestedValue e dir)
+            test =  goldenVsDocM
+                    (name ++ " (budget)")
+                    goldenFilePath
+                    (prettyEither <$> getTestedValue e dir)
+        in possiblyFailingTest (budgetFailureExpected dir) test
+    possiblyFailingTest :: Bool -> TestTree -> TestTree
+    possiblyFailingTest failureExpected test =
+        if failureExpected
+        then expectFail test
+        else test
 
 -- | Turn the expected file content in text to a `UplcProg` unless the expected result
 -- is a parse or evaluation error.
@@ -217,14 +223,18 @@ runUplcEvalTests ::
     -> (FilePath -> Bool)
     -- ^ A function that takes a test name and returns
     -- whether it should labelled as `ExpectedFailure`.
+    -> (FilePath -> Bool)
+    -- ^ A function that takes a test name and returns
+    -- whether it should labelled as `ExpectedBudgetFailure`.
     -> IO ()
-runUplcEvalTests eval expectedFailTests = do
-    let params = fromJust defaultCostModelParams
+runUplcEvalTests eval expectedFailTests expectedBudgetFailTests = do
+    let params = fromJust defaultCostModelParamsForTesting
     tests <-
         discoverTests
             eval
             params
             expectedFailTests
+            expectedBudgetFailTests
             "test-cases/uplc/evaluation"
     defaultMain $ testGroup "UPLC evaluation tests" [tests]
 

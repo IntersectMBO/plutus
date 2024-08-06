@@ -15,8 +15,8 @@ import Test.Tasty (TestTree)
 
 -- | Tests of the inliner, include global uniqueness test.
 test_inline :: TestTree
-test_inline = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "Inline" $
+test_inline =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "Inline"] $
         map
             (runTest withConstantInlining)
             [ "var"
@@ -72,7 +72,7 @@ test_inline = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
 prop_inline ::
     BuiltinSemanticsVariant DefaultFun -> Property
 prop_inline biVariant =
-  withMaxSuccess (3 * numTestsForPassProp) $
+  withMaxSuccess numTestsForPassProp $
     testPassProp
       runQuote
       $ \tc -> inlinePassSC True tc mempty (def {_biSemanticsVariant = biVariant})

@@ -1,3 +1,7 @@
+---
+title: Algorithmic.ReductionEC.Progress
+layout: page
+---
 ```
 module Algorithmic.ReductionEC.Progress where
 ```

@@ -1,1 +1,1 @@
-(\b_5 -> (\x_8 y_9 -> x_8 x_8) (delay (error 1)))
+\b -> (\x y -> x x) (delay (error 1))

@@ -68,7 +68,11 @@ module PlutusTx.Builtins (
                          -- * Pairs
                          , pairToPair
                          -- * Lists
+                         , mkNil
+                         , mkNilOpaque
+                         , null
                          , matchList
+                         , matchList'
                          , headMaybe
                          , BI.head
                          , BI.tail
@@ -102,16 +106,35 @@ module PlutusTx.Builtins (
                          , bls12_381_mulMlResult
                          , bls12_381_finalVerify
                          -- * Conversions
+                         , fromOpaque
+                         , toOpaque
+                         , useToOpaque
+                         , useFromOpaque
                          , fromBuiltin
                          , toBuiltin
+                         -- * Logical
+                         , ByteOrder (..)
                          , integerToByteString
                          , byteStringToInteger
+                         , andByteString
+                         , orByteString
+                         , xorByteString
+                         , complementByteString
+                         , readBit
+                         , writeBits
+                         , replicateByte
+                         -- * Bitwise
+                         , shiftByteString
+                         , rotateByteString
+                         , countSetBits
+                         , findFirstSetBit
                          ) where
 
 import Data.Maybe
 import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
-import PlutusTx.Builtins.Class
+import PlutusTx.Builtins.HasBuiltin
+import PlutusTx.Builtins.HasOpaque
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
                                    BuiltinBLS12_381_G2_Element (..), BuiltinBLS12_381_MlResult (..),
                                    BuiltinByteString (..), BuiltinData, BuiltinString)
@@ -128,12 +151,12 @@ appendByteString = BI.appendByteString
 {-# INLINABLE consByteString #-}
 -- | Adds a byte to the front of a 'ByteString'.
 consByteString :: Integer -> BuiltinByteString -> BuiltinByteString
-consByteString n bs = BI.consByteString (toBuiltin n) bs
+consByteString n bs = BI.consByteString (toOpaque n) bs
 
 {-# INLINABLE sliceByteString #-}
 -- | Returns the substring of a 'ByteString' from index 'start' of length 'n'.
 sliceByteString :: Integer -> Integer -> BuiltinByteString -> BuiltinByteString
-sliceByteString start n bs = BI.sliceByteString (toBuiltin start) (toBuiltin n) bs
+sliceByteString start n bs = BI.sliceByteString (toOpaque start) (toOpaque n) bs
 
 {-# INLINABLE lengthOfByteString #-}
 -- | Returns the length of a 'ByteString'.
@@ -143,7 +166,7 @@ lengthOfByteString = BI.lengthOfByteString
 {-# INLINABLE indexByteString #-}
 -- | Returns the byte of a 'ByteString' at index.
 indexByteString :: BuiltinByteString -> Integer -> Integer
-indexByteString b n = BI.indexByteString b (toBuiltin n)
+indexByteString b n = BI.indexByteString b (toOpaque n)
 
 {-# INLINABLE emptyByteString #-}
 -- | An empty 'ByteString'.
@@ -184,22 +207,23 @@ verifyEd25519Signature
     -> BuiltinByteString  -- ^ Message    (arbirtary length)
     -> BuiltinByteString  -- ^ Signature  (64 bytes)
     -> Bool
-verifyEd25519Signature pubKey message signature = fromBuiltin (BI.verifyEd25519Signature pubKey message signature)
+verifyEd25519Signature pubKey message signature =
+    fromOpaque (BI.verifyEd25519Signature pubKey message signature)
 
 {-# INLINABLE equalsByteString #-}
 -- | Check if two 'ByteString's are equal.
 equalsByteString :: BuiltinByteString -> BuiltinByteString -> Bool
-equalsByteString x y = fromBuiltin (BI.equalsByteString x y)
+equalsByteString x y = fromOpaque (BI.equalsByteString x y)
 
 {-# INLINABLE lessThanByteString #-}
 -- | Check if one 'ByteString' is less than another.
 lessThanByteString :: BuiltinByteString -> BuiltinByteString -> Bool
-lessThanByteString x y = fromBuiltin (BI.lessThanByteString x y)
+lessThanByteString x y = fromOpaque (BI.lessThanByteString x y)
 
 {-# INLINABLE lessThanEqualsByteString #-}
 -- | Check if one 'ByteString' is less than or equal to another.
 lessThanEqualsByteString :: BuiltinByteString -> BuiltinByteString -> Bool
-lessThanEqualsByteString x y = fromBuiltin (BI.lessThanEqualsByteString x y)
+lessThanEqualsByteString x y = fromOpaque (BI.lessThanEqualsByteString x y)
 
 {-# INLINABLE greaterThanByteString #-}
 -- | Check if one 'ByteString' is greater than another.
@@ -257,7 +281,7 @@ verifyEcdsaSecp256k1Signature
   -> BuiltinByteString -- ^ Signature (64 bytes)
   -> Bool
 verifyEcdsaSecp256k1Signature vk msg sig =
-  fromBuiltin (BI.verifyEcdsaSecp256k1Signature vk msg sig)
+  fromOpaque (BI.verifyEcdsaSecp256k1Signature vk msg sig)
 
 {-# INLINEABLE verifySchnorrSecp256k1Signature #-}
 -- | Given a Schnorr SECP256k1 verification key, a Schnorr SECP256k1 signature,
@@ -291,47 +315,47 @@ verifySchnorrSecp256k1Signature
   -> BuiltinByteString -- ^ Signature (64 bytes)
   -> Bool
 verifySchnorrSecp256k1Signature vk msg sig =
-  fromBuiltin (BI.verifySchnorrSecp256k1Signature vk msg sig)
+  fromOpaque (BI.verifySchnorrSecp256k1Signature vk msg sig)
 
 {-# INLINABLE addInteger #-}
 -- | Add two 'Integer's.
 addInteger :: Integer -> Integer -> Integer
-addInteger x y = fromBuiltin (BI.addInteger (toBuiltin x) (toBuiltin y))
+addInteger x y = fromOpaque (BI.addInteger (toOpaque x) (toOpaque y))
 
 {-# INLINABLE subtractInteger #-}
 -- | Subtract two 'Integer's.
 subtractInteger :: Integer -> Integer -> Integer
-subtractInteger x y = fromBuiltin (BI.subtractInteger (toBuiltin x) (toBuiltin y))
+subtractInteger x y = fromOpaque (BI.subtractInteger (toOpaque x) (toOpaque y))
 
 {-# INLINABLE multiplyInteger #-}
 -- | Multiply two 'Integer's.
 multiplyInteger :: Integer -> Integer -> Integer
-multiplyInteger x y = fromBuiltin (BI.multiplyInteger (toBuiltin x) (toBuiltin y))
+multiplyInteger x y = fromOpaque (BI.multiplyInteger (toOpaque x) (toOpaque y))
 
 {-# INLINABLE divideInteger #-}
 -- | Divide two integers.
 divideInteger :: Integer -> Integer -> Integer
-divideInteger x y = fromBuiltin (BI.divideInteger (toBuiltin x) (toBuiltin y))
+divideInteger x y = fromOpaque (BI.divideInteger (toOpaque x) (toOpaque y))
 
 {-# INLINABLE modInteger #-}
 -- | Integer modulo operation.
 modInteger :: Integer -> Integer -> Integer
-modInteger x y = fromBuiltin (BI.modInteger (toBuiltin x) (toBuiltin y))
+modInteger x y = fromOpaque (BI.modInteger (toOpaque x) (toOpaque y))
 
 {-# INLINABLE quotientInteger #-}
 -- | Quotient of two integers.
 quotientInteger :: Integer -> Integer -> Integer
-quotientInteger x y = fromBuiltin (BI.quotientInteger (toBuiltin x) (toBuiltin y))
+quotientInteger x y = fromOpaque (BI.quotientInteger (toOpaque x) (toOpaque y))
 
 {-# INLINABLE remainderInteger #-}
 -- | Take the remainder of dividing two 'Integer's.
 remainderInteger :: Integer -> Integer -> Integer
-remainderInteger x y = fromBuiltin (BI.remainderInteger (toBuiltin x) (toBuiltin y))
+remainderInteger x y = fromOpaque (BI.remainderInteger (toOpaque x) (toOpaque y))
 
 {-# INLINABLE greaterThanInteger #-}
 -- | Check whether one 'Integer' is greater than another.
 greaterThanInteger :: Integer -> Integer -> Bool
-greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqualsInteger x y ) False True
+greaterThanInteger x y = BI.ifThenElse (BI.lessThanEqualsInteger x y) False True
 
 {-# INLINABLE greaterThanEqualsInteger #-}
 -- | Check whether one 'Integer' is greater than or equal to another.
@@ -341,22 +365,22 @@ greaterThanEqualsInteger x y = BI.ifThenElse (BI.lessThanInteger x y) False True
 {-# INLINABLE lessThanInteger #-}
 -- | Check whether one 'Integer' is less than another.
 lessThanInteger :: Integer -> Integer -> Bool
-lessThanInteger x y = fromBuiltin (BI.lessThanInteger (toBuiltin x) (toBuiltin y))
+lessThanInteger x y = fromOpaque (BI.lessThanInteger (toOpaque x) (toOpaque y))
 
 {-# INLINABLE lessThanEqualsInteger #-}
 -- | Check whether one 'Integer' is less than or equal to another.
 lessThanEqualsInteger :: Integer -> Integer -> Bool
-lessThanEqualsInteger x y = fromBuiltin (BI.lessThanEqualsInteger (toBuiltin x) (toBuiltin y))
+lessThanEqualsInteger x y = fromOpaque (BI.lessThanEqualsInteger (toOpaque x) (toOpaque y))
 
 {-# INLINABLE equalsInteger #-}
 -- | Check if two 'Integer's are equal.
 equalsInteger :: Integer -> Integer -> Bool
-equalsInteger x y = fromBuiltin (BI.equalsInteger (toBuiltin x) (toBuiltin y))
+equalsInteger x y = fromOpaque (BI.equalsInteger (toOpaque x) (toOpaque y))
 
 {-# INLINABLE error #-}
 -- | Aborts evaluation with an error.
 error :: () -> a
-error x = BI.error (toBuiltin x)
+error x = BI.error (toOpaque x)
 
 {-# INLINABLE appendString #-}
 -- | Append two 'String's.
@@ -371,7 +395,7 @@ emptyString = BI.emptyString
 {-# INLINABLE equalsString #-}
 -- | Check if two strings are equal
 equalsString :: BuiltinString -> BuiltinString -> Bool
-equalsString x y = fromBuiltin (BI.equalsString x y)
+equalsString x y = fromOpaque (BI.equalsString x y)
 
 {-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.
@@ -383,18 +407,27 @@ trace = BI.trace
 encodeUtf8 :: BuiltinString -> BuiltinByteString
 encodeUtf8 = BI.encodeUtf8
 
+{-# INLINABLE null #-}
+null :: forall a. BI.BuiltinList a -> Bool
+null l = fromOpaque (BI.null l)
+
 {-# INLINABLE matchList #-}
-matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
+matchList :: forall a r . BI.BuiltinList a -> (() -> r) -> (a -> BI.BuiltinList a -> r) -> r
+matchList l nilCase consCase = BI.chooseList l nilCase (\_ -> consCase (BI.head l) (BI.tail l)) ()
+
+{-# INLINABLE matchList' #-}
+-- | Like `matchList` but evaluates @nilCase@ strictly.
+matchList' :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
+matchList' l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
 
 {-# INLINE headMaybe #-}
 headMaybe :: BI.BuiltinList a -> Maybe a
-headMaybe l = matchList l Nothing (\h _ -> Just h)
+headMaybe l = matchList' l Nothing (\h _ -> Just h)
 
 {-# INLINE uncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
 uncons :: BI.BuiltinList a -> Maybe (a, BI.BuiltinList a)
-uncons l = matchList l Nothing (\h t -> Just (h, t))
+uncons l = matchList' l Nothing (\h t -> Just (h, t))
 
 {-# INLINE unsafeUncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
@@ -420,17 +453,17 @@ serialiseData = BI.serialiseData
 {-# INLINABLE mkConstr #-}
 -- | Constructs a 'BuiltinData' value with the @Constr@ constructor.
 mkConstr :: Integer -> [BuiltinData] -> BuiltinData
-mkConstr i args = BI.mkConstr (toBuiltin i) (toBuiltin args)
+mkConstr i args = BI.mkConstr (toOpaque i) (toOpaque args)
 
 {-# INLINABLE mkMap #-}
 -- | Constructs a 'BuiltinData' value with the @Map@ constructor.
 mkMap :: [(BuiltinData, BuiltinData)] -> BuiltinData
-mkMap es = BI.mkMap (toBuiltin es)
+mkMap es = BI.mkMap (toOpaque es)
 
 {-# INLINABLE mkList #-}
 -- | Constructs a 'BuiltinData' value with the @List@ constructor.
 mkList :: [BuiltinData] -> BuiltinData
-mkList l = BI.mkList (toBuiltin l)
+mkList l = BI.mkList (toOpaque l)
 
 {-# INLINABLE mkI #-}
 -- | Constructs a 'BuiltinData' value with the @I@ constructor.
@@ -445,22 +478,22 @@ mkB = BI.mkB
 {-# INLINABLE unsafeDataAsConstr #-}
 -- | Deconstructs a 'BuiltinData' as a @Constr@, or fails if it is not one.
 unsafeDataAsConstr :: BuiltinData -> (Integer, [BuiltinData])
-unsafeDataAsConstr d = fromBuiltin (BI.unsafeDataAsConstr d)
+unsafeDataAsConstr d = fromOpaque (BI.unsafeDataAsConstr d)
 
 {-# INLINABLE unsafeDataAsMap #-}
 -- | Deconstructs a 'BuiltinData' as a @Map@, or fails if it is not one.
 unsafeDataAsMap :: BuiltinData -> [(BuiltinData, BuiltinData)]
-unsafeDataAsMap d = fromBuiltin (BI.unsafeDataAsMap d)
+unsafeDataAsMap d = fromOpaque (BI.unsafeDataAsMap d)
 
 {-# INLINABLE unsafeDataAsList #-}
 -- | Deconstructs a 'BuiltinData' as a @List@, or fails if it is not one.
 unsafeDataAsList :: BuiltinData -> [BuiltinData]
-unsafeDataAsList d = fromBuiltin (BI.unsafeDataAsList d)
+unsafeDataAsList d = fromOpaque (BI.unsafeDataAsList d)
 
 {-# INLINABLE unsafeDataAsI #-}
 -- | Deconstructs a 'BuiltinData' as an @I@, or fails if it is not one.
 unsafeDataAsI :: BuiltinData -> Integer
-unsafeDataAsI d = fromBuiltin (BI.unsafeDataAsI d)
+unsafeDataAsI d = fromOpaque (BI.unsafeDataAsI d)
 
 {-# INLINABLE unsafeDataAsB #-}
 -- | Deconstructs a 'BuiltinData' as a @B@, or fails if it is not one.
@@ -470,7 +503,7 @@ unsafeDataAsB = BI.unsafeDataAsB
 {-# INLINABLE equalsData #-}
 -- | Check if two 'BuiltinData's are equal.
 equalsData :: BuiltinData -> BuiltinData -> Bool
-equalsData d1 d2 = fromBuiltin (BI.equalsData d1 d2)
+equalsData d1 d2 = fromOpaque (BI.equalsData d1 d2)
 
 {-# INLINABLE matchData #-}
 -- | Given a 'BuiltinData' value and matching functions for the five constructors,
@@ -517,7 +550,7 @@ matchData' d constrCase mapCase listCase iCase bCase =
 -- G1 --
 {-# INLINABLE bls12_381_G1_equals #-}
 bls12_381_G1_equals :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element -> Bool
-bls12_381_G1_equals a b = fromBuiltin (BI.bls12_381_G1_equals a b)
+bls12_381_G1_equals a b = fromOpaque (BI.bls12_381_G1_equals a b)
 
 {-# INLINABLE bls12_381_G1_add #-}
 bls12_381_G1_add :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
@@ -554,7 +587,7 @@ bls12_381_G1_compressed_generator = BI.bls12_381_G1_compressed_generator
 -- G2 --
 {-# INLINABLE bls12_381_G2_equals #-}
 bls12_381_G2_equals :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element -> Bool
-bls12_381_G2_equals a b = fromBuiltin (BI.bls12_381_G2_equals a b)
+bls12_381_G2_equals a b = fromOpaque (BI.bls12_381_G2_equals a b)
 
 {-# INLINABLE bls12_381_G2_add #-}
 bls12_381_G2_add :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
@@ -599,7 +632,7 @@ bls12_381_mulMlResult = BI.bls12_381_mulMlResult
 
 {-# INLINABLE bls12_381_finalVerify #-}
 bls12_381_finalVerify :: BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> Bool
-bls12_381_finalVerify a b = fromBuiltin (BI.bls12_381_finalVerify a b)
+bls12_381_finalVerify a b = fromOpaque (BI.bls12_381_finalVerify a b)
 
 -- Bitwise conversions
 
@@ -608,10 +641,10 @@ bls12_381_finalVerify a b = fromBuiltin (BI.bls12_381_finalVerify a b)
 byteOrderToBool :: ByteOrder -> Bool
 byteOrderToBool BigEndian    = True
 byteOrderToBool LittleEndian = False
-
+{-# INLINABLE byteOrderToBool #-}
 
 -- | Convert a 'BuiltinInteger' into a 'BuiltinByteString', as described in
--- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
+-- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
 -- The first argument indicates the endianness of the conversion and the third
 -- argument is the integer to be converted, which must be non-negative.  The
 -- second argument must also be non-negative and it indicates the required width
@@ -626,14 +659,189 @@ byteOrderToBool LittleEndian = False
 -- fit into a bytestring of length 8192.
 {-# INLINABLE integerToByteString #-}
 integerToByteString :: ByteOrder -> Integer -> Integer -> BuiltinByteString
-integerToByteString endianness = BI.integerToByteString (toBuiltin (byteOrderToBool endianness))
+integerToByteString endianness = BI.integerToByteString (toOpaque (byteOrderToBool endianness))
 
 -- | Convert a 'BuiltinByteString' to a 'BuiltinInteger', as described in
--- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
+-- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
 -- The first argument indicates the endianness of the conversion and the second
 -- is the bytestring to be converted.  There is no limitation on the size of
 -- the bytestring.  The empty bytestring is converted to the integer 0.
 {-# INLINABLE byteStringToInteger #-}
 byteStringToInteger :: ByteOrder -> BuiltinByteString -> Integer
 byteStringToInteger endianness =
-  BI.byteStringToInteger (toBuiltin (byteOrderToBool endianness))
+  BI.byteStringToInteger (toOpaque (byteOrderToBool endianness))
+
+-- Bitwise operations
+
+-- | Shift a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+{-# INLINEABLE shiftByteString #-}
+shiftByteString :: BuiltinByteString -> Integer -> BuiltinByteString
+shiftByteString = BI.shiftByteString
+
+-- | Rotate a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+{-# INLINEABLE rotateByteString #-}
+rotateByteString :: BuiltinByteString -> Integer -> BuiltinByteString
+rotateByteString = BI.rotateByteString
+
+-- | Count the set bits in a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+{-# INLINEABLE countSetBits #-}
+countSetBits :: BuiltinByteString -> Integer
+countSetBits = BI.countSetBits
+
+-- | Find the lowest index of a set bit in a 'BuiltinByteString', as per
+-- [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+--
+-- If given a 'BuiltinByteString' which consists only of zero bytes (including the empty
+-- 'BuiltinByteString', this returns @-1@.
+{-# INLINEABLE findFirstSetBit #-}
+findFirstSetBit :: BuiltinByteString -> Integer
+findFirstSetBit = BI.findFirstSetBit
+
+-- Logical operations
+
+-- | Perform logical AND on two 'BuiltinByteString' arguments, as described in
+-- [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bitwiselogicaland).
+--
+-- The first argument indicates whether padding semantics should be used or not;
+-- if 'False', truncation semantics will be used instead.
+--
+-- = See also
+--
+-- * [Padding and truncation
+-- semantics](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#padding-versus-truncation-semantics)
+-- * [Bit indexing
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
+{-# INLINEABLE andByteString #-}
+andByteString ::
+  Bool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+andByteString b = BI.andByteString (toOpaque b)
+
+-- | Perform logical OR on two 'BuiltinByteString' arguments, as described
+-- [here](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bitwiselogicalor).
+--
+-- The first argument indicates whether padding semantics should be used or not;
+-- if 'False', truncation semantics will be used instead.
+--
+-- = See also
+--
+-- * [Padding and truncation
+-- semantics](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#padding-versus-truncation-semantics)
+-- * [Bit indexing
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
+{-# INLINEABLE orByteString #-}
+orByteString ::
+  Bool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+orByteString b = BI.orByteString (toOpaque b)
+
+-- | Perform logical XOR on two 'BuiltinByteString' arguments, as described
+-- [here](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bitwiselogicalxor).
+--
+-- The first argument indicates whether padding semantics should be used or not;
+-- if 'False', truncation semantics will be used instead.
+--
+-- = See also
+--
+-- * [Padding and truncation
+-- semantics](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#padding-versus-truncation-semantics)
+-- * [Bit indexing
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
+{-# INLINEABLE xorByteString #-}
+xorByteString ::
+  Bool ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString
+xorByteString b = BI.xorByteString (toOpaque b)
+
+-- | Perform logical complement on a 'BuiltinByteString', as described
+-- [here](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bitwiselogicalcomplement).
+--
+-- = See also
+--
+-- * [Bit indexing
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
+{-# INLINEABLE complementByteString #-}
+complementByteString ::
+  BuiltinByteString ->
+  BuiltinByteString
+complementByteString = BI.complementByteString
+
+-- | Read a bit at the _bit_ index given by the 'Integer' argument in the
+-- 'BuiltinByteString' argument. The result will be 'True' if the corresponding bit is set, and
+-- 'False' if it is clear. Will error if given an out-of-bounds index argument; that is, if the
+-- index is either negative, or equal to or greater than the total number of bits in the
+-- 'BuiltinByteString' argument.
+--
+-- = See also
+--
+-- * [Bit indexing
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
+-- * [Operation
+-- description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#readbit)
+{-# INLINEABLE readBit #-}
+readBit ::
+  BuiltinByteString ->
+  Integer ->
+  Bool
+readBit bs i = fromOpaque (BI.readBit bs i)
+
+-- | Given a 'BuiltinByteString', a list of indexes to change, and a list of values to change those
+-- indexes to, set the /bit/ at each of the specified index as follows:
+--
+-- * If the corresponding entry in the list of values is 'True', set that bit;
+-- * Otherwise, clear that bit.
+--
+-- Will error if any of the indexes are out-of-bounds: that is, if the index is either negative, or
+-- equal to or greater than the total number of bits in the 'BuiltinByteString' argument.
+--
+-- If the two list arguments have mismatched lengths, the longer argument will be truncated to match
+-- the length of the shorter one:
+--
+-- * @writeBits bs [0, 1, 4] [True]@ is the same as @writeBits bs [0] [True]@
+-- * @writeBits bs [0] [True, False, True]@ is the same as @writeBits bs [0] [True]@
+--
+-- = Note
+--
+-- This differs slightly from the description of the [corresponding operation in
+-- CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#writebits); instead of a
+-- single changelist argument comprised of pairs, we instead pass two lists, one for indexes to
+-- change, and one for the values to change those indexes to. Effectively, we are passing the
+-- changelist argument \'unzipped\'.
+--
+-- = See also
+--
+-- * [Bit indexing
+-- scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
+-- * [Operation
+-- description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#writebits)
+{-# INLINEABLE writeBits #-}
+writeBits ::
+  BuiltinByteString ->
+  [Integer] ->
+  [Bool] ->
+  BuiltinByteString
+writeBits bs ixes bits = BI.writeBits bs (toOpaque ixes) (toOpaque bits)
+
+-- | Given a length (first argument) and a byte (second argument), produce a 'BuiltinByteString' of
+-- that length, with that byte in every position. Will error if given a negative length, or a second
+-- argument that isn't a byte (less than 0, greater than 255).
+--
+-- = See also
+--
+-- * [Operation
+-- description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#replicateByteString)
+{-# INLINEABLE replicateByte #-}
+replicateByte ::
+  Integer ->
+  Integer ->
+  BuiltinByteString
+replicateByte = BI.replicateByte

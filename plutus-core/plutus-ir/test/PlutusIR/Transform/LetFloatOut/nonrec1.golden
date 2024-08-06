@@ -1,11 +1,6 @@
-(let
-  (nonrec)
-  (termbind (strict) (vardecl j (con integer)) (con integer 3))
-  (termbind (strict) (vardecl i2 (con integer)) (con integer 3))
-  (termbind
-    (strict)
-    (vardecl i1 (con integer))
-    [ [ (builtin addInteger) i2 ] (con integer 3) ]
-  )
-  [ [ (builtin addInteger) (con integer 5) ] [ [ (builtin addInteger) j ] i2 ] ]
-)
+let
+  !j : integer = 3
+  !i2 : integer = 3
+  !i1 : integer = addInteger i2 3
+in
+addInteger 5 (addInteger j i2)

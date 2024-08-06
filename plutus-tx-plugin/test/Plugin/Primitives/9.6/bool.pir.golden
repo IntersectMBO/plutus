@@ -1,15 +1,8 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl Bool (type))
-
-        Bool_match
-        (vardecl True Bool) (vardecl False Bool)
-      )
-    )
-    True
-  )
-)
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
+  in
+  True)

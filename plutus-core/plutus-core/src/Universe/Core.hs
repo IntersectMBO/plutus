@@ -547,13 +547,12 @@ these constraints on arguments do not get used in the polymorphic case only mean
 get ignored.
 -}
 type Permits :: forall k. (Type -> Constraint) -> k -> Constraint
-type family Permits
+type family Permits constr
 
--- Implicit pattern matching on the kind.
-type instance Permits = Permits0
-type instance Permits = Permits1
-type instance Permits = Permits2
-type instance Permits = Permits3
+type instance Permits @Type                           constr = Permits0 constr
+type instance Permits @(Type -> Type)                 constr = Permits1 constr
+type instance Permits @(Type -> Type -> Type)         constr = Permits2 constr
+type instance Permits @(Type -> Type -> Type -> Type) constr = Permits3 constr
 
 -- We can't use @All (Everywhere uni) constrs@, because 'Everywhere' is an associated type family
 -- and can't be partially applied, so we have to inline the definition here.

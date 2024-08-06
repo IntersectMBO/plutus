@@ -23,8 +23,8 @@ module PlutusCore.Name.UniqueMap (
 import Control.Lens (view)
 import Control.Lens.Getter ((^.))
 import Data.Coerce (Coercible, coerce)
-import Data.Foldable (foldl')
 import Data.IntMap.Strict qualified as IM
+import Data.List as List (foldl')
 import PlutusCore.Name.Unique (HasText (..), HasUnique (..), Named (Named), Unique (Unique))
 import PlutusCore.Name.UniqueSet (UniqueSet (UniqueSet))
 import Prelude hiding (foldr)
@@ -83,7 +83,7 @@ fromFoldable ::
   (i -> a -> UniqueMap unique a -> UniqueMap unique a) ->
   f (i, a) ->
   UniqueMap unique a
-fromFoldable ins = foldl' (flip $ uncurry ins) mempty
+fromFoldable ins = List.foldl' (flip $ uncurry ins) mempty
 
 -- | Convert a 'Foldable' with uniques into a 'UniqueMap'.
 fromUniques :: (Foldable f) => (Coercible Unique unique) => f (unique, a) -> UniqueMap unique a

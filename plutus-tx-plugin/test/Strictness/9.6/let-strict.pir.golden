@@ -9,9 +9,9 @@ in
   let
     !n : all t. t = /\t -> error {integer -> t} m
   in
-  ifThenElse
+  Bool_match
+    (ifThenElse {Bool} (lessThanInteger m 0) True False)
     {all dead. integer}
-    (lessThanInteger m 0)
     (/\dead -> addInteger (n {integer}) (n {integer}))
     (/\dead -> m)
     {all dead. dead}

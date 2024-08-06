@@ -20,12 +20,20 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     , Coefficient0(..)
     , Coefficient1(..)
     , Coefficient2(..)
+    , Coefficient00(..)
+    , Coefficient10(..)
+    , Coefficient01(..)
+    , Coefficient20(..)
+    , Coefficient11(..)
+    , Coefficient02(..)
     , OneVariableLinearFunction(..)
     , OneVariableQuadraticFunction(..)
     , TwoVariableLinearFunction(..)
+    , TwoVariableQuadraticFunction(..)
     , ModelSubtractedSizes(..)
     , ModelConstantOrOneArgument(..)
     , ModelConstantOrTwoArguments(..)
+    , ModelConstantOrLinear(..)  -- Deprecated: see Note [Backward compatibility for costing functions]
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)
@@ -161,6 +169,17 @@ data BuiltinCostModelBase f =
     -- Bitwise operations
     , paramIntegerToByteString             :: f ModelThreeArguments
     , paramByteStringToInteger             :: f ModelTwoArguments
+    , paramAndByteString                   :: f ModelThreeArguments
+    , paramOrByteString                    :: f ModelThreeArguments
+    , paramXorByteString                   :: f ModelThreeArguments
+    , paramComplementByteString            :: f ModelOneArgument
+    , paramReadBit                         :: f ModelTwoArguments
+    , paramWriteBits                       :: f ModelThreeArguments
+    , paramReplicateByte                   :: f ModelTwoArguments
+    , paramShiftByteString                 :: f ModelTwoArguments
+    , paramRotateByteString                :: f ModelTwoArguments
+    , paramCountSetBits                    :: f ModelOneArgument
+    , paramFindFirstSetBit                 :: f ModelOneArgument
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)

@@ -1,13 +1,1 @@
-(lam
-  x
-  (con integer)
-  (let
-    (nonrec)
-    (termbind
-      (nonstrict)
-      (vardecl y (con integer))
-      [ [ (builtin addInteger) (con integer 3) ] x ]
-    )
-    [ [ (builtin addInteger) x ] y ]
-  )
-)
+\(x : integer) -> let ~y : integer = addInteger 3 x in addInteger x y

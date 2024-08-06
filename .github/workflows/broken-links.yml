@@ -1,0 +1,24 @@
+# This job checks for broken links in various files in the repo.
+
+name: "🔗 Broken Links"
+
+on:
+  workflow_dispatch: # Or manually dispatch the job
+  push:
+    branches:
+      master
+      
+jobs:
+  check:
+    name: Check
+    runs-on: [plutus-shared, self-hosted]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Run Linkchecker
+        run: |
+          nix develop --no-warn-dirty --accept-flake-config --command ./scripts/check-broken-links.sh
+
+  
+

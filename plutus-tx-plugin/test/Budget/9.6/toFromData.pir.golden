@@ -91,14 +91,14 @@ in
       !index : integer = fstPair {integer} {list data} tup
       !args : list data = sndPair {integer} {list data} tup
     in
-    ifThenElse
+    Bool_match
+      (ifThenElse {Bool} (equalsInteger 0 index) True False)
       {all dead. Either integer b}
-      (equalsInteger 0 index)
       (/\dead -> Left {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
       (/\dead ->
-         ifThenElse
+         Bool_match
+           (ifThenElse {Bool} (equalsInteger 1 index) True False)
            {all dead. Either integer b}
-           (equalsInteger 1 index)
            (/\dead ->
               Right {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
            (/\dead -> traceError {Either integer b} "PT1")
@@ -114,14 +114,14 @@ in
          !index : integer = fstPair {integer} {list data} tup
          !args : list data = sndPair {integer} {list data} tup
        in
-       ifThenElse
+       Bool_match
+         (ifThenElse {Bool} (equalsInteger 1 index) True False)
          {all dead. Maybe a}
-         (equalsInteger 1 index)
          (/\dead -> Nothing {a})
          (/\dead ->
-            ifThenElse
+            Bool_match
+              (ifThenElse {Bool} (equalsInteger 0 index) True False)
               {all dead. Maybe a}
-              (equalsInteger 0 index)
               (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
               (/\dead -> traceError {Maybe a} "PT1")
               {all dead. dead})
@@ -132,9 +132,9 @@ in
           !index : integer = fstPair {integer} {list data} tup
           !args : list data = sndPair {integer} {list data} tup
         in
-        ifThenElse
+        Bool_match
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
           {all dead. Tuple3 Bool integer Bool}
-          (equalsInteger 0 index)
           (/\dead ->
              let
                !l : list data = tailList {data} args
@@ -149,14 +149,14 @@ in
                  !index : integer = fstPair {integer} {list data} tup
                  !args : list data = sndPair {integer} {list data} tup
                in
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
                  {all dead. Bool}
-                 (equalsInteger 0 index)
                  (/\dead -> False)
                  (/\dead ->
-                    ifThenElse
+                    Bool_match
+                      (ifThenElse {Bool} (equalsInteger 1 index) True False)
                       {all dead. Bool}
-                      (equalsInteger 1 index)
                       (/\dead -> True)
                       (/\dead -> traceError {Bool} "PT1")
                       {all dead. dead})
@@ -168,14 +168,14 @@ in
                  !index : integer = fstPair {integer} {list data} tup
                  !args : list data = sndPair {integer} {list data} tup
                in
-               ifThenElse
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
                  {all dead. Bool}
-                 (equalsInteger 0 index)
                  (/\dead -> False)
                  (/\dead ->
-                    ifThenElse
+                    Bool_match
+                      (ifThenElse {Bool} (equalsInteger 1 index) True False)
                       {all dead. Bool}
-                      (equalsInteger 1 index)
                       (/\dead -> True)
                       (/\dead -> traceError {Bool} "PT1")
                       {all dead. dead})

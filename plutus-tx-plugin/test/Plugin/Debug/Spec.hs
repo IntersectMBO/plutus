@@ -24,13 +24,12 @@ import Data.Proxy
 
 debug :: TestNested
 debug =
-    testNestedGhc
-        "Debug"
+    testNested "Debug" . pure $ testNestedGhc
         [ goldenPirBy config "letFun" letFun
         , goldenPirBy config "fib" fib
         ]
   where
-    config = PrettyConfigClassic defPrettyConfigName True
+    config = PrettyConfigClassic prettyConfigName True
 
 letFun :: CompiledCode (Integer -> Integer -> Bool)
 letFun =

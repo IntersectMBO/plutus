@@ -1,4 +1,22 @@
 
+<a id='changelog-1.27.0.0'></a>
+# 1.27.0.0 — 2024-04-30
+
+
+<a id='changelog-1.26.0.0'></a>
+# 1.26.0.0 — 2024-04-19
+
+## Added
+
+- Added two Plutus Tx compiler options, `preserve-logging` and `inline-constants`.
+  Option `conservative-optimisation` implies (or negates) `relaxed-float-in`,
+  `inline-constants` and `preserve-logging`, but previously only `relaxed-float-in` is
+  a plugin option by itself.
+
+## Fixed
+
+- Compiler flag `simplifier-remove-dead-bindings` does what it should now.
+
 <a id='changelog-1.25.0.0'></a>
 # 1.25.0.0 — 2024-04-03
 

@@ -13,10 +13,10 @@ import PlutusIR.Test
 import PlutusPrelude
 
 test_retainedSize :: TestTree
-test_retainedSize = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Analysis"] $
-    testNested "RetainedSize" $
+test_retainedSize =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Analysis", "RetainedSize"] $
         map
-            (goldenPir renameAndAnnotate pTerm)
+            (goldenPirUnique renameAndAnnotate pTerm)
             [ "typeLet"
             , "termLet"
             , "strictLet"
@@ -38,7 +38,7 @@ test_retainedSize = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Analysis"
             , "recBindingComplex"
             ]
   where
-    displayAnnsConfig = PLC.PrettyConfigClassic PLC.defPrettyConfigName True
+    displayAnnsConfig = PLC.PrettyConfigClassic PLC.prettyConfigNameSimple True
     renameAndAnnotate =
         PLC.AttachPrettyConfig displayAnnsConfig
             . RetainedSize.annotateWithRetainedSize def

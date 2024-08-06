@@ -8,8 +8,8 @@ license-files:
 
 maintainer:    michael.peyton-jones@iohk.io
 author:        Plutus Core Team
-homepage:      https://github.com/iohk/plutus#readme
-bug-reports:   https://github.com/iohk/plutus/issues
+homepage:      https://github.com/IntersectMBO/plutus
+bug-reports:   https://github.com/IntersectMBO/plutus/issues
 description:
   Please see the README on GitHub at <https://github.com/IntersectMBO/plutus#readme>
 
@@ -22,7 +22,7 @@ data-files:
 
 source-repository head
   type:     git
-  location: https://github.com/iohk/plutus
+  location: https://github.com/IntersectMBO/plutus
 
 -- Any files that use a `$$(...)` splice from the plugin should mention
 -- `PlutusTx.Plugin()` somewhere, even if it's just `import PlutusTx.Plugin()`.
@@ -83,20 +83,19 @@ library plutus-benchmark-common
 
   other-modules:   Paths_plutus_benchmark
   build-depends:
-    , base               >=4.9   && <5
+    , base                 >=4.9   && <5
     , bytestring
     , criterion
     , deepseq
     , directory
     , filepath
-    , flat               ^>=0.6
-    , plutus-core        ^>=1.25
-    , plutus-ledger-api  ^>=1.25
-    , plutus-tx          ^>=1.25
+    , flat                 ^>=0.6
+    , plutus-core          ^>=1.31
+    , plutus-ledger-api    ^>=1.31
+    , plutus-tx-test-util
     , tasty
     , tasty-golden
     , temporary
-    , text
 
 ---------------- nofib ----------------
 
@@ -119,9 +118,9 @@ library nofib-internal
     , base                     >=4.9   && <5
     , deepseq
     , plutus-benchmark-common
-    , plutus-core              ^>=1.25
-    , plutus-tx                ^>=1.25
-    , plutus-tx-plugin         ^>=1.25
+    , plutus-core              ^>=1.31
+    , plutus-tx                ^>=1.31
+    , plutus-tx-plugin         ^>=1.31
 
 executable nofib-exe
   import:         lang, ghc-version-support
@@ -135,8 +134,8 @@ executable nofib-exe
     , nofib-internal
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core              ^>=1.25
-    , plutus-tx                ^>=1.25
+    , plutus-core              ^>=1.31
+    , plutus-tx                ^>=1.31
     , prettyprinter
     , transformers
 
@@ -149,7 +148,6 @@ benchmark nofib
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
-    , deepseq
     , nofib-internal
     , plutus-benchmark-common
 
@@ -175,8 +173,8 @@ test-suite plutus-benchmark-nofib-tests
     , base                                            >=4.9   && <5
     , nofib-internal
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.25
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.25
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.31
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.31
     , tasty
     , tasty-hunit
     , tasty-quickcheck
@@ -202,9 +200,9 @@ library lists-internal
     , base                     >=4.9   && <5
     , mtl
     , plutus-benchmark-common
-    , plutus-core              ^>=1.25
-    , plutus-tx                ^>=1.25
-    , plutus-tx-plugin         ^>=1.25
+    , plutus-core              ^>=1.31
+    , plutus-tx                ^>=1.31
+    , plutus-tx-plugin         ^>=1.31
 
 executable list-sort-exe
   import:         lang, ghc-version-support
@@ -215,7 +213,7 @@ executable list-sort-exe
     , lists-internal
     , monoidal-containers
     , plutus-benchmark-common
-    , plutus-core              ^>=1.25
+    , plutus-core              ^>=1.31
 
 benchmark lists
   import:         lang, ghc-version-support
@@ -225,10 +223,9 @@ benchmark lists
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
-    , deepseq
     , lists-internal
     , plutus-benchmark-common
-    , plutus-ledger-api
+    , plutus-ledger-api        ^>=1.31
 
 test-suite plutus-benchmark-lists-tests
   import:         lang, ghc-version-support
@@ -245,8 +242,8 @@ test-suite plutus-benchmark-lists-tests
     , base                             >=4.9   && <5
     , lists-internal
     , plutus-benchmark-common
-    , plutus-core:plutus-core-testlib  ^>=1.25
-    , plutus-tx:plutus-tx-testlib      ^>=1.25
+    , plutus-core:plutus-core-testlib  ^>=1.31
+    , plutus-tx:plutus-tx-testlib      ^>=1.31
     , tasty
     , tasty-quickcheck
 
@@ -262,13 +259,13 @@ benchmark validation
     , base                     >=4.9     && <5
     , bytestring
     , criterion                >=1.5.9.0
-    , deepseq
     , directory
     , filepath
     , flat                     ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core              ^>=1.25
+    , plutus-core              ^>=1.31
+    , plutus-ledger-api        ^>=1.31
 
 ---------------- validation-decode ----------------
 
@@ -288,8 +285,8 @@ benchmark validation-decode
     , flat                     ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core              ^>=1.25
-    , plutus-ledger-api        ^>=1.25
+    , plutus-core              ^>=1.31
+    , plutus-ledger-api        ^>=1.31
 
 ---------------- validation-full ----------------
 
@@ -309,8 +306,8 @@ benchmark validation-full
     , flat                     ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core              ^>=1.25
-    , plutus-ledger-api        ^>=1.25
+    , plutus-core              ^>=1.31
+    , plutus-ledger-api        ^>=1.31
 
 ---------------- Cek cost model calibration ----------------
 
@@ -323,14 +320,13 @@ benchmark cek-calibration
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
-    , deepseq
     , lens
     , mtl
     , plutus-benchmark-common
-    , plutus-core              ^>=1.25
-    , plutus-ledger-api        ^>=1.25
-    , plutus-tx                ^>=1.25
-    , plutus-tx-plugin         ^>=1.25
+    , plutus-core              ^>=1.31
+    , plutus-ledger-api        ^>=1.31
+    , plutus-tx                ^>=1.31
+    , plutus-tx-plugin         ^>=1.31
 
 ---------------- Signature verification throughput ----------------
 
@@ -346,9 +342,9 @@ executable ed25519-costs
     , cardano-crypto-class
     , hedgehog
     , plutus-benchmark-common
-    , plutus-core              ^>=1.25
-    , plutus-tx                ^>=1.25
-    , plutus-tx-plugin         ^>=1.25
+    , plutus-core              ^>=1.31
+    , plutus-tx                ^>=1.31
+    , plutus-tx-plugin         ^>=1.31
 
 -- Calculate the predicted costs of sequences of ed25519 signature verification
 -- operations and compare them with a golden file.
@@ -365,9 +361,9 @@ test-suite ed25519-costs-test
     , cardano-crypto-class
     , hedgehog
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.25
-    , plutus-tx                                       ^>=1.25
-    , plutus-tx-plugin                                ^>=1.25
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.31
+    , plutus-tx                                       ^>=1.31
+    , plutus-tx-plugin                                ^>=1.31
 
 ---------------- BLS12-381 experiments ----------------
 
@@ -385,10 +381,10 @@ library bls12-381lib-internal
     , bytestring
     , hedgehog
     , plutus-benchmark-common
-    , plutus-core              ^>=1.25
-    , plutus-ledger-api        ^>=1.25
-    , plutus-tx                ^>=1.25
-    , plutus-tx-plugin         ^>=1.25
+    , plutus-core              ^>=1.31
+    , plutus-ledger-api        ^>=1.31
+    , plutus-tx                ^>=1.31
+    , plutus-tx-plugin         ^>=1.31
 
 -- Print out predicted costs of various scripts involving BLS12-381 operations
 executable bls12-381-costs
@@ -412,7 +408,7 @@ test-suite bls12-381-costs-test
     , base                             >=4.9   && <5
     , bls12-381lib-internal
     , plutus-benchmark-common
-    , plutus-core:plutus-core-testlib  ^>=1.25
+    , plutus-core:plutus-core-testlib  ^>=1.31
 
 -- Run benchmarks for various scripts involving BLS12-381 operations
 benchmark bls12-381-benchmarks
@@ -425,10 +421,9 @@ benchmark bls12-381-benchmarks
     , bls12-381lib-internal
     , bytestring
     , criterion                >=1.5.9.0
-    , deepseq
     , plutus-benchmark-common
-    , plutus-ledger-api        ^>=1.25
-    , plutus-tx                ^>=1.25
+    , plutus-ledger-api        ^>=1.31
+    , plutus-tx                ^>=1.31
 
 ---------------- script contexts ----------------
 
@@ -438,9 +433,9 @@ library script-contexts-internal
   exposed-modules: PlutusBenchmark.ScriptContexts
   build-depends:
     , base               >=4.9   && <5
-    , plutus-ledger-api  ^>=1.25
-    , plutus-tx          ^>=1.25
-    , plutus-tx-plugin   ^>=1.25
+    , plutus-ledger-api  ^>=1.31
+    , plutus-tx          ^>=1.31
+    , plutus-tx-plugin   ^>=1.31
 
 test-suite plutus-benchmark-script-contexts-tests
   import:         lang, ghc-version-support
@@ -452,8 +447,8 @@ test-suite plutus-benchmark-script-contexts-tests
   build-depends:
     , base                                            >=4.9   && <5
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.25
-    , plutus-tx:plutus-tx-testlib                     ^>=1.25
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.31
+    , plutus-tx:plutus-tx-testlib                     ^>=1.31
     , script-contexts-internal
     , tasty
     , tasty-hunit
@@ -476,16 +471,16 @@ library marlowe-internal
   build-depends:
     , base
     , bytestring
-    , cardano-crypto-class                            >=2.0.0.1 && <2.3
+    , cardano-crypto-class                            >=2.0.0.1 && <2.2
     , directory
     , filepath
     , mtl
     , newtype-generics
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.25
-    , plutus-ledger-api                               ^>=1.25
-    , plutus-tx                                       ^>=1.25
-    , plutus-tx-plugin                                ^>=1.25
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.31
+    , plutus-ledger-api                               ^>=1.31
+    , plutus-tx                                       ^>=1.31
+    , plutus-tx-plugin                                ^>=1.31
     , serialise
 
 executable marlowe-validators
@@ -505,8 +500,8 @@ executable marlowe-validators
     , cardano-binary
     , marlowe-internal
     , plutus-benchmark-common
-    , plutus-ledger-api        ^>=1.25
-    , plutus-tx                ^>=1.25
+    , plutus-ledger-api        ^>=1.31
+    , plutus-tx                ^>=1.31
     , serialise
 
 benchmark marlowe
@@ -518,11 +513,10 @@ benchmark marlowe
   build-depends:
     , base                     >=4.9   && <5
     , criterion
-    , deepseq
     , marlowe-internal
     , plutus-benchmark-common
-    , plutus-ledger-api        ^>=1.25
-    , plutus-tx                ^>=1.25
+    , plutus-ledger-api        ^>=1.31
+    , plutus-tx                ^>=1.31
 
 test-suite plutus-benchmark-marlowe-tests
   import:         lang, ghc-version-support
@@ -534,9 +528,9 @@ test-suite plutus-benchmark-marlowe-tests
   build-depends:
     , base                                            >=4.9   && <5
     , marlowe-internal
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.25
-    , plutus-ledger-api                               ^>=1.25
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.25
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.31
+    , plutus-ledger-api                               ^>=1.31
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.31
     , tasty
 
 ---------------- agda evaluators ----------------
@@ -550,7 +544,7 @@ library agda-internal
   build-depends:
     , base               >=4.9   && <5
     , criterion
-    , plutus-core        ^>=1.25
+    , plutus-core        ^>=1.31
     , plutus-metatheory
 
 benchmark validation-agda-cek
@@ -570,7 +564,7 @@ benchmark validation-agda-cek
     , flat                     ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core              ^>=1.25
+    , plutus-core              ^>=1.31
 
 benchmark nofib-agda-cek
   import:         lang, ghc-version-support
@@ -597,5 +591,37 @@ benchmark marlowe-agda-cek
     , criterion
     , marlowe-internal
     , plutus-benchmark-common
-    , plutus-ledger-api        ^>=1.25
-    , plutus-tx                ^>=1.25
+    , plutus-ledger-api        ^>=1.31
+    , plutus-tx                ^>=1.31
+
+-------------------- bitwise-----------------------
+
+library bitwise-internal
+  import:          lang, ghc-version-support
+  hs-source-dirs:  bitwise/src
+  exposed-modules: PlutusBenchmark.NQueens
+  build-depends:   plutus-tx ^>=1.31
+
+test-suite bitwise-test
+  import:         lang, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: bitwise/test
+  build-depends:
+    , base              >=4.9 && <5
+    , bitwise-internal
+    , tasty
+    , tasty-hunit
+
+benchmark bitwise-bench
+  import:         lang, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: bitwise/bench
+  build-depends:
+    , base                     >=4.9   && <5
+    , bitwise-internal
+    , criterion
+    , plutus-benchmark-common
+    , plutus-tx                ^>=1.31
+    , plutus-tx-plugin         ^>=1.31

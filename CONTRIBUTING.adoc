@@ -14,7 +14,7 @@ If you _really_ cannot use Nix and still want to contribute to Plutus then xref:
 
 === Installing and setting up Nix
 
-For instructions on how to install and configure nix (including how to enable access to our binary caches), refer to link:https://github.com/input-output-hk/iogx/blob/main/doc/nix-setup-guide.md[this document]. 
+For instructions on how to install and configure nix (including how to enable access to our binary caches), refer to link:https://github.com/input-output-hk/iogx/blob/main/doc/nix-setup-guide.md[this document].
 
 If you already have nix installed and setup, you may enter the development shell by running `nix develop`.
 
@@ -204,20 +204,20 @@ There are various tools for visualizing the resulting profile, e.g. https://hack
 We have a set of supported GHC major versions, which are built in CI and which we commit to keeping working.
 
 We also have a primary development version.
-This is the version we use in the default dev shell, and the one we use day-to-day. 
+This is the version we use in the default dev shell, and the one we use day-to-day.
 The primary development version should be whichever version the Cardano node is using (or migrating towards using).
 Supported versions older than the primary development version are deprecated, and we can drop them as soon as the Cardano node has moved to a later GHC version.
 
 At the moment, our supported GHC versions are:
 - 8.10 (deprecated)
 - 9.6 (primary)
-- 9.8 
+- 9.8
 
 === Plugin support
 
 Making `plutus-tx-plugin` work on multiple GHC versions can be painful, because it uses a lot of GHC internals.
 Since the plugin is not in the dependency closure of the Cardano node, we don't _need_ to support all the GHC versions, which is helpful.
-We mostly commit to supporting our primary development version, but we _may_ support other versions as well if it is easy. 
+We mostly commit to supporting our primary development version, but we _may_ support other versions as well if it is easy.
 
 The plugin and its dependents should be marked as unbuildable with cabal conditionals on any non-supported major GHC versions.
 This makes cabal behave reasonably well (it will ignore them and not try and fail to build them).
@@ -415,7 +415,7 @@ The amount of time it's worth spending doing this is probably much more than you
 
 PRs should target `master` unless there is a very good reason not to.
 The only PRs to release branches should be backport PRs which should consist only of cherry-picks of commits from master (and any fixups that are needed).
-For more details, see link:./doc/read-the-docs-site/RELEASE{outfilesuffix}[Plutus Release Process].
+For more details, see link:./RELEASE{outfilesuffix}[Plutus Release Process].
 
 ==== What changes to include, and pull request sizes
 
@@ -605,12 +605,10 @@ If your PR contains a dozen drive-by refactorings, it's unlikely to be merged as
 
 === Continuous integration
 
-We have a few sources of CI checks at the moment:
+We have two sources of CI checks at the moment:
 
 - Hydra
-- ReadTheDocs
 - Github Actions
-- Buildkite
 
 The CI will report statuses on your PRs with links to the logs in case of failure.
 Pull requests cannot be merged without at least the Hydra CI check being green.
@@ -632,16 +630,11 @@ These will be automatically retried, but if you're in a hurry Michael has permis
 Nondeterministic failures are very annoying.
 Michael also has permissions to restart failed builds.
 
-==== ReadTheDocs
+==== Docusaurus
 
-The documentation site is built on ReadTheDocs.
-It will build a preview for each PR which is linked from the PR status.
-It's useful to take a look if you're changing any of the documentation.
+The documentation site is built with Docusaurus.
 
-Enter the development shell using `nix develop`.
-If you get a segfault, run `GC_DONT_GC=1 nix develop` instead.
-
-Then you can run `serve-docs` to host a local instance at http://0.0.0.0:8002 (Haddock is at http://0.0.0.0:8002/haddock).
+Refer to the [README.md](doc/docusaurus/README.md) for more information.
 
 ==== Github Actions
 
@@ -650,14 +643,13 @@ These perform some of the same checks as Hydra, but Github Actions is often more
 == Project roles and responsibilities
 
 - The regular contributors to the Haskell code, all of whom can review and merge PRs are:
-    - @michaelpj
+    - @ana-pantilie
+    - @bezirg
     - @effectfully
     - @kwxm
-    - @bezirg
-    - @thealmarty
+    - @Unisay
     - @zliu41
-- The maintainer of the documentation is @joseph-fajen.
 - The maintainer of the Agda code is @jmchapman, @effectfully can help with small issues.
-- If you have a technical dispute that you need help resolving, you can ask @michaelpj.
-- For problems with the developer environment setup, builds, or CI, you can ask @zeme-iohk, @Pacman99, or @michaelpj.
-- The regular contributors take turns releasing our software, but if you have a specific problem ask @zliu41 or @michaelpj.
+- If you have a technical dispute that you need help resolving, you can ask @zliu41.
+- For problems with the developer environment setup, builds, or CI, you can ask @zeme-iohk or @zliu41.
+- The regular contributors take turns releasing our software, but if you have a specific problem ask @zliu41.

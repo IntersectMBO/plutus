@@ -22,6 +22,7 @@ module PlutusLedgerApi.Common.Eval
     ) where
 
 import PlutusCore
+import PlutusCore.Builtin (readKnown)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -53,6 +54,7 @@ data EvaluationError =
     | CodecError !ScriptDecodeError -- ^ A deserialisation error
     -- TODO: make this error more informative when we have more information about what went wrong
     | CostModelParameterMismatch -- ^ An error indicating that the cost model parameters didn't match what we expected
+    | InvalidReturnValue -- ^ The script evaluated to a value that is not a valid return value.
     deriving stock (Show, Eq)
 makeClassyPrisms ''EvaluationError
 
@@ -60,10 +62,14 @@ instance AsScriptDecodeError EvaluationError where
     _ScriptDecodeError = _CodecError
 
 instance Pretty EvaluationError where
-    pretty (CekError e)               = prettyClassicDef e
+    pretty (CekError e)               = prettyClassic e
     pretty (DeBruijnError e)          = pretty e
     pretty (CodecError e)             = pretty e
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
+    pretty InvalidReturnValue         =
+        "The evaluation finished but the result value is not valid. "
+        <> "Plutus V3 scripts must return BuiltinUnit. "
+        <> "Returning any other value is considered a failure."
 
 -- | A simple toggle indicating whether or not we should accumulate logs during script execution.
 data VerboseMode =
@@ -106,37 +112,79 @@ mkTermToEvaluate ll pv script args = do
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
 toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachineParameters
-toMachineParameters _ = machineParameters
+toMachineParameters pv (EvaluationContext ll toSemVar machParsList) =
+    case lookup (toSemVar pv) machParsList of
+        Nothing -> error $ Prelude.concat
+            ["Internal error: ", show ll, " does not support protocol version ", show pv]
+        Just machPars -> machPars
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
-script.  This is so that they can be computed once and cached, rather than being recomputed on every
+script. This is so that they can be computed once and cached, rather than being recomputed on every
 evaluation.
+
+Different protocol versions may require different bundles of machine parameters, which allows us for
+example to tweak the shape of the costing function of a builtin, so that the builtin costs less.
+Currently this means that we have to create multiple 'DefaultMachineParameters' per language
+version, which we put into a cache (represented by an association list) in order to avoid costly
+recomputation of machine parameters.
+
+In order to get the appropriate 'DefaultMachineParameters' at validation time we look it up in the
+cache using a semantics variant as a key. We compute the semantics variant from the protocol
+version using the stored function. Note that the semantics variant depends on the language version
+too, but the latter is known statically (because each language version has its own evaluation
+context), hence there's no reason to require it to be provided at runtime.
+
+To say it differently, there's a matrix of semantics variants indexed by (LL, PV) pairs and we
+cache its particular row corresponding to the statically given LL in an 'EvaluationContext'.
+
+The reason why we associate a 'DefaultMachineParameters' with a semantics variant rather than a
+protocol version are
+
+1. generally there are far more protocol versions than semantics variants supported by a specific
+   language version, so we save on pointless duplication of bundles of machine parameters
+2. builtins don't know anything about protocol versions, only semantics variants. It is therefore
+   more semantically precise to associate bundles of machine parameters with semantics variants than
+   with protocol versions
 -}
-newtype EvaluationContext = EvaluationContext
-    { machineParameters :: DefaultMachineParameters
+data EvaluationContext = EvaluationContext
+    { _evalCtxLedgerLang    :: PlutusLedgerLanguage
+      -- ^ Specifies what language versions the 'EvaluationContext' is for.
+    , _evalCtxToSemVar      :: MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun
+      -- ^ Specifies how to get a semantics variant for this ledger language given a
+      -- 'MajorProtocolVersion'.
+    , _evalCtxMachParsCache :: [(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]
+      -- ^ The cache of 'DefaultMachineParameters' for each semantics variant supported by the
+      -- current language version.
     }
     deriving stock Generic
     deriving anyclass (NFData, NoThunks)
 
-{-|  Create an 'EvaluationContext' for a given builtin semantics variant.
+{-|  Create an 'EvaluationContext' given all builtin semantics variants supported by the provided
+language version.
 
 The input is a `Map` of `Text`s to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
 See Note [Inlining meanings of builtins].
+
+IMPORTANT: the 'toSemVar' argument computes the semantics variant for each 'MajorProtocolVersion'
+and it must only return semantics variants from the 'semVars' list, as well as cover ANY
+'MajorProtocolVersion', including those that do not exist yet (i.e. 'toSemVar' must never fail).
 
 IMPORTANT: The evaluation context of every Plutus version must be recreated upon a protocol update
 with the updated cost model parameters.
 -}
 mkDynEvaluationContext
     :: MonadError CostModelApplyError m
-    => BuiltinSemanticsVariant DefaultFun
+    => PlutusLedgerLanguage
+    -> [BuiltinSemanticsVariant DefaultFun]
+    -> (MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun)
     -> Plutus.CostModelParams
     -> m EvaluationContext
-mkDynEvaluationContext semvar newCMP =
-    EvaluationContext <$> mkMachineParametersFor semvar newCMP
+mkDynEvaluationContext ll semVars toSemVar newCMP =
+    EvaluationContext ll toSemVar <$> mkMachineParametersFor semVars newCMP
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
-assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModel
+assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModelForTesting
 
 -- | Evaluate a fully-applied term using the CEK machine. Useful for mimicking the behaviour of the
 -- on-chain evaluator.
@@ -184,8 +232,7 @@ evaluateScriptRestricting ll pv verbose ectx budget p args = swap $ runWriter @L
     appliedTerm <- mkTermToEvaluate ll pv p args
     let (res, UPLC.RestrictingSt (ExRestrictingBudget final), logs) =
             evaluateTerm (UPLC.restricting $ ExRestrictingBudget budget) pv verbose ectx appliedTerm
-    tell logs
-    liftEither $ first CekError $ void res
+    processLogsAndErrors ll logs res
     pure (budget `minusExBudget` final)
 
 {-| Evaluates a script, returning the minimum budget that the script would need
@@ -207,9 +254,35 @@ evaluateScriptCounting ll pv verbose ectx p args = swap $ runWriter @LogOutput $
     appliedTerm <- mkTermToEvaluate ll pv p args
     let (res, UPLC.CountingSt final, logs) =
             evaluateTerm UPLC.counting pv verbose ectx appliedTerm
-    tell logs
-    liftEither $ first CekError $ void res
+    processLogsAndErrors ll logs res
     pure final
+
+processLogsAndErrors ::
+    forall m.
+    (MonadError EvaluationError m, MonadWriter LogOutput m) =>
+    PlutusLedgerLanguage ->
+    LogOutput ->
+    Either
+        (UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+        (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()) ->
+    m ()
+processLogsAndErrors ll logs res = do
+    tell logs
+    case res of
+        Left e  -> throwError (CekError e)
+        Right v -> unless (isResultValid ll v) (throwError InvalidReturnValue)
+{-# INLINE processLogsAndErrors #-}
+
+isResultValid ::
+    PlutusLedgerLanguage ->
+    UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () ->
+    Bool
+isResultValid ll res = ll == PlutusV1 || ll == PlutusV2 || isBuiltinUnit res
+    where
+        isBuiltinUnit t = case readKnown t of
+            Right () -> True
+            _        -> False
+{-# INLINE isResultValid #-}
 
 {- Note [Checking the Plutus Core language version]
 Since long ago this check has been in `mkTermToEvaluate`, which makes it a phase 2 failure.

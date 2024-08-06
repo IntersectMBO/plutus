@@ -22,6 +22,8 @@ module PlutusPrelude
     , fromMaybe
     , guard
     , foldl'
+    , for_
+    , traverse_
     , fold
     , for
     , throw
@@ -114,10 +116,12 @@ import Data.Char (toLower)
 import Data.Coerce (Coercible, coerce)
 import Data.Default.Class
 import Data.Either (fromRight, isLeft, isRight)
-import Data.Foldable (fold, toList)
+import Data.Foldable (fold, for_, toList, traverse_)
 import Data.Function (on)
 import Data.Functor (($>))
+#if ! MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
+#endif
 import Data.List.Extra (enumerate)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe (fromMaybe, isJust, isNothing)

@@ -1,0 +1,8 @@
+{
+    "label": "Reference",
+    "position": 70,
+    "link": {
+      "type": "generated-index",
+      "description": "The Reference section covers Haddock documentation, Plutus Tx compiler options, script optimization techniques, common weaknesses, Plutus language changes, and how upgrading to Vasil can impact script addresses."
+    }
+  }

@@ -35,6 +35,7 @@ cabal-dev
 cabal.sandbox.config
 cabal.config
 cabal.project.local
+cabal.project.freeze
 
 # Stack
 .stack-work
@@ -74,6 +75,9 @@ pkgs/.stack
 *.code-workspace
 .*.sw*
 
+# Doc site
+yarn.lock
+
 # Misc
 act-event.json
 .history/
@@ -99,6 +103,8 @@ node.sock
 .pre-commit-config.yaml
 secrets/*/.gpg-id
 ghcid.txt
+haddock
+linkchecker-out.txt
 plutus-pab/test-node/testnet/db
 plutus-pab/test-node/alonzo-purple/db
 *.actual.json
@@ -106,4 +112,3 @@ plutus-pab/test-node/alonzo-purple/db
 *.timelog
 *.stacks
 .nvimrc
-

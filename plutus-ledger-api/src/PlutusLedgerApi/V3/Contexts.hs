@@ -29,6 +29,7 @@ module PlutusLedgerApi.V3.Contexts
   , GovernanceAction (..)
   , ProposalProcedure (..)
   , ScriptPurpose (..)
+  , ScriptInfo (..)
   , TxInInfo (..)
   , TxInfo (..)
   , ScriptContext (..)
@@ -67,6 +68,7 @@ newtype ColdCommitteeCredential = ColdCommitteeCredential V2.Credential
   deriving (Pretty) via (PrettyShow ColdCommitteeCredential)
   deriving newtype
     ( Haskell.Eq
+    , Haskell.Ord
     , Haskell.Show
     , PlutusTx.Eq
     , PlutusTx.ToData
@@ -79,6 +81,7 @@ newtype HotCommitteeCredential = HotCommitteeCredential V2.Credential
   deriving (Pretty) via (PrettyShow HotCommitteeCredential)
   deriving newtype
     ( Haskell.Eq
+    , Haskell.Ord
     , Haskell.Show
     , PlutusTx.Eq
     , PlutusTx.ToData
@@ -91,6 +94,7 @@ newtype DRepCredential = DRepCredential V2.Credential
   deriving (Pretty) via (PrettyShow DRepCredential)
   deriving newtype
     ( Haskell.Eq
+    , Haskell.Ord
     , Haskell.Show
     , PlutusTx.Eq
     , PlutusTx.ToData
@@ -102,7 +106,7 @@ data DRep
   = DRep DRepCredential
   | DRepAlwaysAbstain
   | DRepAlwaysNoConfidence
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving (Pretty) via (PrettyShow DRep)
 
 instance PlutusTx.Eq DRep where
@@ -116,7 +120,7 @@ data Delegatee
   = DelegStake V2.PubKeyHash
   | DelegVote DRep
   | DelegStakeVote V2.PubKeyHash DRep
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving (Pretty) via (PrettyShow Delegatee)
 
 instance PlutusTx.Eq Delegatee where
@@ -154,7 +158,7 @@ data TxCert
   | -- | Authorize a Hot credential for a specific Committee member's cold credential
     TxCertAuthHotCommittee ColdCommitteeCredential HotCommitteeCredential
   | TxCertResignColdCommittee ColdCommitteeCredential
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving (Pretty) via (PrettyShow TxCert)
 
 instance PlutusTx.Eq TxCert where
@@ -183,7 +187,7 @@ data Voter
   = CommitteeVoter HotCommitteeCredential
   | DRepVoter DRepCredential
   | StakePoolVoter V2.PubKeyHash
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving (Pretty) via (PrettyShow Voter)
 
 instance PlutusTx.Eq Voter where
@@ -216,7 +220,7 @@ data GovernanceActionId = GovernanceActionId
   { gaidTxId        :: V3.TxId
   , gaidGovActionIx :: Haskell.Integer
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 instance Pretty GovernanceActionId where
   pretty GovernanceActionId{..} =
@@ -236,7 +240,7 @@ data Committee = Committee
   , committeeQuorum  :: PlutusTx.Rational
   -- ^ Quorum of the committee that is necessary for a successful vote
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 instance Pretty Committee where
   pretty Committee{..} =
@@ -245,17 +249,12 @@ instance Pretty Committee where
       , "committeeQuorum:" <+> pretty committeeQuorum
       ]
 
-instance PlutusTx.Eq Committee where
-  {-# INLINEABLE (==) #-}
-  Committee a b == Committee a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-
 -- | A constitution. The optional anchor is omitted.
 newtype Constitution = Constitution
   { constitutionScript :: Haskell.Maybe V2.ScriptHash
   }
   deriving stock (Generic)
-  deriving newtype (Haskell.Show, Haskell.Eq)
+  deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 instance Pretty Constitution where
   pretty (Constitution script) = "constitutionScript:" <+> pretty script
@@ -268,7 +267,7 @@ data ProtocolVersion = ProtocolVersion
   { pvMajor :: Haskell.Integer
   , pvMinor :: Haskell.Integer
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 instance Pretty ProtocolVersion where
   pretty ProtocolVersion{..} =
@@ -321,27 +320,8 @@ data GovernanceAction
       Rational -- ^ New quorum
   | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
   | InfoAction
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving (Pretty) via (PrettyShow GovernanceAction)
-
-instance PlutusTx.Eq GovernanceAction where
-  {-# INLINEABLE (==) #-}
-  ParameterChange a b c == ParameterChange a' b' c' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
-  HardForkInitiation a b == HardForkInitiation a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  TreasuryWithdrawals a b == TreasuryWithdrawals a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  NoConfidence a == NoConfidence a' = a PlutusTx.== a'
-  UpdateCommittee a b c d == UpdateCommittee a' b' c' d' =
-    a PlutusTx.== a'
-      PlutusTx.&& b PlutusTx.== b'
-      PlutusTx.&& c PlutusTx.== c'
-      PlutusTx.&& d PlutusTx.== d'
-  NewConstitution a b == NewConstitution a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  InfoAction == InfoAction = Haskell.True
-  _ == _ = Haskell.False
 
 -- | A proposal procedure. The optional anchor is omitted.
 data ProposalProcedure = ProposalProcedure
@@ -349,7 +329,7 @@ data ProposalProcedure = ProposalProcedure
   , ppReturnAddr       :: V2.Credential
   , ppGovernanceAction :: GovernanceAction
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 instance Pretty ProposalProcedure where
   pretty ProposalProcedure{..} =
@@ -359,13 +339,7 @@ instance Pretty ProposalProcedure where
       , "ppGovernanceAction:" <+> pretty ppGovernanceAction
       ]
 
-instance PlutusTx.Eq ProposalProcedure where
-  {-# INLINEABLE (==) #-}
-  ProposalProcedure a b c == ProposalProcedure a' b' c' =
-    a PlutusTx.== a'
-      PlutusTx.&& b PlutusTx.== b'
-      PlutusTx.&& c PlutusTx.== c'
-
+-- | A `ScriptPurpose` uniquely identifies a Plutus script within a transaction.
 data ScriptPurpose
   = Minting V2.CurrencySymbol
   | Spending V3.TxOutRef
@@ -379,24 +353,25 @@ data ScriptPurpose
       Haskell.Integer
       -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
       ProposalProcedure
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
-instance PlutusTx.Eq ScriptPurpose where
-  {-# INLINEABLE (==) #-}
-  Minting a == Minting a' =
-    a PlutusTx.== a'
-  Spending a == Spending a' =
-    a PlutusTx.== a'
-  Rewarding a == Rewarding a' =
-    a PlutusTx.== a'
-  Certifying a b == Certifying a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  Voting a == Voting a' =
-    a PlutusTx.== a'
-  Proposing a b == Proposing a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  _ == _ = Haskell.False
+-- | Like `ScriptPurpose` but with an optional datum for spending scripts.
+data ScriptInfo
+  = MintingScript V2.CurrencySymbol
+  | SpendingScript V3.TxOutRef (Haskell.Maybe V2.Datum)
+  | RewardingScript V2.Credential
+  | CertifyingScript
+      Haskell.Integer
+      -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
+      TxCert
+  | VotingScript Voter
+  | ProposingScript
+      Haskell.Integer
+      -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
+      ProposalProcedure
+  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving (Pretty) via (PrettyShow ScriptInfo)
 
 -- | An input of a pending transaction.
 data TxInInfo = TxInInfo
@@ -459,47 +434,25 @@ instance Pretty TxInfo where
       , "Treasury Donation:" <+> pretty txInfoTreasuryDonation
       ]
 
-instance PlutusTx.Eq TxInfo where
-  {-# INLINEABLE (==) #-}
-  TxInfo a b c d e f g h i j k l m n o p
-    == TxInfo a' b' c' d' e' f' g' h' i' j' k' l' m' n' o' p' =
-      a PlutusTx.== a'
-        PlutusTx.&& b PlutusTx.== b'
-        PlutusTx.&& c PlutusTx.== c'
-        PlutusTx.&& d PlutusTx.== d'
-        PlutusTx.&& e PlutusTx.== e'
-        PlutusTx.&& f PlutusTx.== f'
-        PlutusTx.&& g PlutusTx.== g'
-        PlutusTx.&& h PlutusTx.== h'
-        PlutusTx.&& i PlutusTx.== i'
-        PlutusTx.&& j PlutusTx.== j'
-        PlutusTx.&& k PlutusTx.== k'
-        PlutusTx.&& l PlutusTx.== l'
-        PlutusTx.&& m PlutusTx.== m'
-        PlutusTx.&& n PlutusTx.== n'
-        PlutusTx.&& o PlutusTx.== o'
-        PlutusTx.&& p PlutusTx.== p'
-
 -- | The context that the currently-executing script can access.
 data ScriptContext = ScriptContext
-  { scriptContextTxInfo  :: TxInfo
+  { scriptContextTxInfo     :: TxInfo
   -- ^ information about the transaction the currently-executing script is included in
-  , scriptContextPurpose :: ScriptPurpose
-  -- ^ the purpose of the currently-executing script
+  , scriptContextRedeemer   :: V2.Redeemer
+  -- ^ Redeemer for the currently-executing script
+  , scriptContextScriptInfo :: ScriptInfo
+  -- ^ the purpose of the currently-executing script, along with information associated
+  -- with the purpose
   }
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
 
 instance Pretty ScriptContext where
   pretty ScriptContext{..} =
     vsep
-      [ "Purpose:" <+> pretty scriptContextPurpose
+      [ "ScriptInfo:" <+> pretty scriptContextScriptInfo
       , nest 2 (vsep ["TxInfo:", pretty scriptContextTxInfo])
+      , nest 2 (vsep ["Redeemer:", pretty scriptContextRedeemer])
       ]
-
-instance PlutusTx.Eq ScriptContext where
-  {-# INLINEABLE (==) #-}
-  ScriptContext a b == ScriptContext a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
 {-# INLINEABLE findOwnInput #-}
 
@@ -508,7 +461,7 @@ findOwnInput :: ScriptContext -> Haskell.Maybe TxInInfo
 findOwnInput
   ScriptContext
     { scriptContextTxInfo = TxInfo{txInfoInputs}
-    , scriptContextPurpose = Spending txOutRef
+    , scriptContextScriptInfo = SpendingScript txOutRef _
     } =
     PlutusTx.find
       (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== txOutRef)
@@ -616,7 +569,7 @@ valueProduced = PlutusTx.foldMap V2.txOutValue PlutusTx.. txInfoOutputs
 
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: ScriptContext -> V2.CurrencySymbol
-ownCurrencySymbol ScriptContext{scriptContextPurpose = Minting cs} = cs
+ownCurrencySymbol ScriptContext{scriptContextScriptInfo = MintingScript cs} = cs
 ownCurrencySymbol _ =
   -- "Can't get currency symbol of the current validator script"
   PlutusTx.traceError "Lh"
@@ -724,6 +677,17 @@ PlutusTx.makeIsDataIndexed
   , ('Certifying, 3)
   , ('Voting, 4)
   , ('Proposing, 5)
+  ]
+
+PlutusTx.makeLift ''ScriptInfo
+PlutusTx.makeIsDataIndexed
+  ''ScriptInfo
+  [ ('MintingScript, 0)
+  , ('SpendingScript, 1)
+  , ('RewardingScript, 2)
+  , ('CertifyingScript, 3)
+  , ('VotingScript, 4)
+  , ('ProposingScript, 5)
   ]
 
 PlutusTx.makeLift ''TxInInfo

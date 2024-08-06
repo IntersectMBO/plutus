@@ -43,6 +43,18 @@ deriving newtype instance FromJSON Coefficient1
 deriving newtype instance ToJSON   Coefficient1
 deriving newtype instance FromJSON Coefficient2
 deriving newtype instance ToJSON   Coefficient2
+deriving newtype instance FromJSON Coefficient00
+deriving newtype instance ToJSON   Coefficient00
+deriving newtype instance FromJSON Coefficient10
+deriving newtype instance ToJSON   Coefficient10
+deriving newtype instance FromJSON Coefficient01
+deriving newtype instance ToJSON   Coefficient01
+deriving newtype instance FromJSON Coefficient20
+deriving newtype instance ToJSON   Coefficient20
+deriving newtype instance FromJSON Coefficient11
+deriving newtype instance ToJSON   Coefficient11
+deriving newtype instance FromJSON Coefficient02
+deriving newtype instance ToJSON   Coefficient02
 
 deriving via ModelArgumentJSON "ModelOneArgument" ModelOneArgument
     instance FromJSON ModelOneArgument
@@ -85,6 +97,10 @@ deriving via ModelJSON "oneVariableQuadraticFunction" OneVariableQuadraticFuncti
     instance FromJSON OneVariableQuadraticFunction
 deriving via ModelJSON "oneVariableQuadraticFunction" OneVariableQuadraticFunction
     instance ToJSON OneVariableQuadraticFunction
+deriving via ModelJSON "twoVariableQuadraticFunction" TwoVariableQuadraticFunction
+    instance FromJSON TwoVariableQuadraticFunction
+deriving via ModelJSON "twoVariableQuadraticFunction" TwoVariableQuadraticFunction
+    instance ToJSON TwoVariableQuadraticFunction
 deriving via ModelJSON "modelConstantOrOneArgument" ModelConstantOrOneArgument
     instance FromJSON ModelConstantOrOneArgument
 deriving via ModelJSON "modelConstantOrOneArgument" ModelConstantOrOneArgument
@@ -93,3 +109,8 @@ deriving via ModelJSON "modelConstantOrTwoArguments" ModelConstantOrTwoArguments
     instance FromJSON ModelConstantOrTwoArguments
 deriving via ModelJSON "modelConstantOrTwoArguments" ModelConstantOrTwoArguments
     instance ToJSON ModelConstantOrTwoArguments
+-- See Note [Backward compatibility for costing functions] for ModelConstantOrLinear
+deriving via ModelJSON "modelConstantOrLinear" ModelConstantOrLinear
+    instance FromJSON ModelConstantOrLinear
+deriving via ModelJSON "modelConstantOrLinear" ModelConstantOrLinear
+    instance ToJSON ModelConstantOrLinear

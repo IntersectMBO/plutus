@@ -1,39 +1,19 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (termbind (nonstrict) (vardecl defaultBody (con integer)) (con integer 2))
-    (datatypebind
-      (datatype
-        (tyvardecl MyMonoData (type))
-
-        MyMonoData_match
-        (vardecl Mono (fun (con integer) (fun (con integer) MyMonoData)))
-        (vardecl Mono (fun (con integer) MyMonoData))
-        (vardecl Mono (fun (con integer) MyMonoData))
-      )
-    )
-    (lam
+    ~defaultBody : integer = 2
+    data MyMonoData | MyMonoData_match where
+      Mono : integer -> integer -> MyMonoData
+      Mono : integer -> MyMonoData
+      Mono : integer -> MyMonoData
+  in
+  \(ds : MyMonoData) ->
+    let
+      !ds : MyMonoData = ds
+    in
+    MyMonoData_match
       ds
-      MyMonoData
-      (let
-        (nonrec)
-        (termbind (strict) (vardecl ds MyMonoData) ds)
-        [
-          [
-            [
-              { [ MyMonoData_match ds ] (con integer) }
-              (lam
-                default_arg0
-                (con integer)
-                (lam default_arg1 (con integer) defaultBody)
-              )
-            ]
-            (lam default_arg0 (con integer) defaultBody)
-          ]
-          (lam a (con integer) a)
-        ]
-      )
-    )
-  )
-)
+      {integer}
+      (\(default_arg0 : integer) (default_arg1 : integer) -> defaultBody)
+      (\(default_arg0 : integer) -> defaultBody)
+      (\(a : integer) -> a))

@@ -147,14 +147,12 @@ benchTwoTextStrings name =
         s2 = makeSizedTextStrings seedB twoArgumentSizes
     in createTwoTermBuiltinBench name [] s1 s2
 
-
 -- Benchmark times for a function applied to equal arguments.  This is used for
--- benchmarking EqualsString on the diagonal.
--- Copy the bytestring here, because otherwise it'll be exactly the same and
--- the equality will short-circuit.
+-- benchmarking EqualsString on the diagonal.  Copy the string here, because
+-- otherwise it'll be exactly the same and the equality will short-circuit.
 benchSameTwoTextStrings :: DefaultFun -> Benchmark
 benchSameTwoTextStrings name =
-    createTwoTermBuiltinBenchElementwise name [] inputs (fmap T.copy inputs)
+    createTwoTermBuiltinBenchElementwise name [] $ pairWith T.copy inputs
     where inputs = makeSizedTextStrings seedA oneArgumentSizes
 
 makeBenchmarks :: StdGen -> [Benchmark]

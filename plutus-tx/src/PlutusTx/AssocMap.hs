@@ -39,7 +39,7 @@ module PlutusTx.AssocMap (
 
 import Prelude qualified as Haskell
 
-import PlutusTx.Builtins qualified as P
+import PlutusTx.Builtins qualified as P hiding (null)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData
 import PlutusTx.Lift (makeLift)
@@ -49,6 +49,8 @@ import PlutusTx.These
 
 import Control.DeepSeq (NFData)
 import Data.Data
+import Data.Function (on)
+import Data.Map.Strict qualified as HMap
 import GHC.Generics (Generic)
 import Language.Haskell.TH.Syntax as TH (Lift)
 import Prettyprinter (Pretty (..))
@@ -70,8 +72,16 @@ import Prettyprinter (Pretty (..))
 -- Take care when using 'fromBuiltinData' and 'unsafeFromBuiltinData', as neither function performs
 -- deduplication of the input collection and may create invalid 'Map's!
 newtype Map k v = Map {unMap :: [(k, v)]}
-  deriving stock (Generic, Haskell.Eq, Haskell.Show, Data, TH.Lift)
-  deriving newtype (Eq, Ord, NFData)
+  deriving stock (Generic, Haskell.Show, Data, TH.Lift)
+  deriving newtype (NFData)
+
+instance (Haskell.Ord k, Haskell.Eq v) => Haskell.Eq (Map k v) where
+  Map l == Map r =
+    on (Haskell.==) HMap.fromList l r
+
+instance (Haskell.Ord k, Haskell.Ord v) => Haskell.Ord (Map k v) where
+  Map l <= Map r =
+    on (Haskell.<=) HMap.fromList l r
 
 -- | Hand-written instances to use the underlying 'Map' type in 'Data', and
 -- to be reasonably efficient.
@@ -83,7 +93,7 @@ instance (ToData k, ToData v) => ToData (Map k v) where
       mapToBuiltin = go
         where
           go :: [(k, v)] -> BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData)
-          go []            = BI.mkNilPairData BI.unitval
+          go []            = P.mkNil
           go ((k, v) : xs) = BI.mkCons (BI.mkPairData (toBuiltinData k) (toBuiltinData v)) (go xs)
 
 -- | A hand-written transformation from 'Data' to 'Map'. Compared to 'unsafeFromBuiltinData',

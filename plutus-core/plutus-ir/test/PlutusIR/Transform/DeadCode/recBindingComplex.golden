@@ -1,9 +1,4 @@
-(let
-  (rec)
-  (termbind
-    (strict)
-    (vardecl unitval (all a (type) (fun a a)))
-    (abs a (type) (lam x a x))
-  )
-  unitval
-)
+letrec
+  !unitval : all a. a -> a = /\a -> \(x : a) -> x
+in
+unitval

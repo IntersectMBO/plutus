@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.25.0.0
+version:         1.31.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -83,8 +83,8 @@ library
     , flat                                  ^>=0.6
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.25
-    , plutus-tx                             ^>=1.25
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.31
+    , plutus-tx                             ^>=1.31
     , prettyprinter
     , PyF                                   >=0.11.1.0
     , template-haskell
@@ -109,7 +109,7 @@ executable gen-plugin-opts-doc
     , containers
     , lens
     , optparse-applicative
-    , plutus-tx-plugin      ^>=1.25
+    , plutus-tx-plugin      ^>=1.31
     , prettyprinter
     , PyF                   >=0.11.1.0
     , text
@@ -128,6 +128,7 @@ test-suite plutus-tx-plugin-tests
   other-modules:
     AsData.Budget.Spec
     AsData.Budget.Types
+    AssocMap.Spec
     Blueprint.Tests
     Blueprint.Tests.Lib
     Blueprint.Tests.Lib.AsData.Blueprint
@@ -154,6 +155,7 @@ test-suite plutus-tx-plugin-tests
     Plugin.NoTrace.Lib
     Plugin.NoTrace.Spec
     Plugin.NoTrace.WithoutTraces
+    Plugin.NoTrace.WithPreservedLogging
     Plugin.NoTrace.WithTraces
     Plugin.Optimization.Spec
     Plugin.Patterns.Spec
@@ -182,9 +184,10 @@ test-suite plutus-tx-plugin-tests
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.25
-    , plutus-tx-plugin                                ^>=1.25
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.25
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.31
+    , plutus-tx-plugin                                ^>=1.31
+    , plutus-tx-test-util
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.31
     , serialise
     , tasty
     , tasty-golden
@@ -192,6 +195,7 @@ test-suite plutus-tx-plugin-tests
     , tasty-hunit
     , template-haskell
     , text
+    , these
 
   default-extensions: Strict
   ghc-options:        -threaded -rtsopts -with-rtsopts=-N
@@ -212,9 +216,9 @@ test-suite size
   hs-source-dirs:     test/size
   build-depends:
     , base                                            >=4.9   && <5.0
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.25
-    , plutus-tx-plugin                                ^>=1.25
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.25
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.31
+    , plutus-tx-plugin                                ^>=1.31
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.31
     , tagged
     , tasty
 

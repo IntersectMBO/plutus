@@ -43,7 +43,7 @@ evaluationFailure :: AsEvaluationFailure err => err
 evaluationFailure = _EvaluationFailure # ()
 {-# INLINE evaluationFailure #-}
 
--- | Construct a 'Prism' focusing on the @*EvaluationFailure@ part of @err@ by taking
+-- | Construct a prism focusing on the @*EvaluationFailure@ part of @err@ by taking
 -- that @*EvaluationFailure@ and
 --
 -- 1. returning it for the setter part of the prism
@@ -74,6 +74,7 @@ instance AsEvaluationFailure (EvaluationResult a) where
     _EvaluationFailure = prism (const EvaluationFailure) $ \case
         a@EvaluationSuccess{} -> Left a
         EvaluationFailure     -> Right ()
+    {-# INLINE _EvaluationFailure #-}
 
 -- This and the next one are two instances that allow us to write the following:
 --
@@ -129,7 +130,7 @@ instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
     prettyBy _      EvaluationFailure     = "Failure"
 
 instance PrettyClassic a => Pretty (EvaluationResult a) where
-    pretty = prettyClassicDef
+    pretty = prettyClassic
 
 -- | Check whether an 'EvaluationResult' is an 'EvaluationSuccess'.
 isEvaluationSuccess :: EvaluationResult a -> Bool

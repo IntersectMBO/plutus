@@ -1,9 +1,4 @@
-(let
-  (rec)
-  (termbind
-    (strict)
-    (vardecl j (con integer))
-    [ [ (builtin addInteger) (con integer 3) ] j ]
-  )
-  (con integer 1)
-)
+letrec
+  !j : integer = addInteger 3 j
+in
+1

@@ -1,12 +1,8 @@
 -- editorconfig-checker-disable-file
-
--- | The universe used by default and its instances.
-
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
--- on 9.2.4 this is the flag that suppresses the above
--- warning
+-- on 9.2.4 this is the flag that suppresses the above warning
 {-# OPTIONS -Wno-missing-signatures #-}
--- 9.6 notices that all the constraints on TestTypesFromTheUniverseAreAllKnown
+-- 9.6 notices that all the constraints on 'TestTypesFromTheUniverseAreAllKnown'
 -- are redundant (which they are), but we don't care because it only exists
 -- to test that some constraints are solvable
 {-# OPTIONS -Wno-redundant-constraints #-}
@@ -14,6 +10,7 @@
 {-# LANGUAGE BlockArguments           #-}
 {-# LANGUAGE CPP                      #-}
 {-# LANGUAGE ConstraintKinds          #-}
+{-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE InstanceSigs             #-}
@@ -35,6 +32,7 @@
 -- performance, but it's not clear why. This needs to be investigated.
 {-# OPTIONS_GHC -O2 #-}
 
+-- | The universe used by default and its instances.
 module PlutusCore.Default.Universe
     ( DefaultUni (..)
     , pattern DefaultUniList
@@ -43,25 +41,26 @@ module PlutusCore.Default.Universe
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
+import PlutusPrelude
+
 import PlutusCore.Builtin
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (LiteralByteSize (..))
-import PlutusCore.Evaluation.Result
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
+                                                    ListCostedByLength (..),
+                                                    NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra
 
-import Control.Applicative
-import Data.Bits (toIntegralSized)
 import Data.ByteString (ByteString)
 import Data.Int
 import Data.Proxy
 import Data.Text (Text)
+import Data.Text qualified as Text
+import Data.Typeable (typeRep)
 import Data.Word
 import GHC.Exts (inline, oneShot)
-import Text.Pretty
-import Text.PrettyBy
 import Text.PrettyBy.Fixity
 import Universe as Export
 
@@ -339,90 +338,176 @@ instance TestTypesFromTheUniverseAreAllKnown DefaultUni
 
 {- Note [Integral types as Integer]
 Technically our universe only contains 'Integer', but many of the builtin functions that we would
-like to use work over 'Int' and 'Word8'.
+like to use work over 'Int', 'Word8' etc.
 
 This is inconvenient and also error-prone: dealing with a function that takes an 'Int' or 'Word8'
 means carefully downcasting the 'Integer', running the function, potentially upcasting at the end.
-And it's easy to get wrong by e.g. blindly using 'fromInteger'.
+And it's easy to get wrong by e.g. blindly using 'fromInteger' or 'fromIntegral'.
 
 Moreover, there is a latent risk here: if we *were* to build on a 32-bit architecture, then programs
 which use arguments between @maxBound :: Int32@ and @maxBound :: Int64@ would behave differently!
 
 So, what to do? We adopt the following strategy:
-- We allow lifting/unlifting 'Word8' via 'Integer', including a safe downcast in 'readKnown'.
-- We allow lifting/unlifting 'Int64' via 'Integer', including a safe downcast in 'readKnown'.
-- We allow lifting/unlifting 'Int' via 'Int64', constraining the conversion between them to
-64-bit architectures where this conversion is safe.
+- We allow lifting/unlifting bounded integral types such as 'Word8' or 'Int64' via 'Integer',
+  including a safe upcast in 'makeKnown' (which we could have on any architecture, but we only add
+  it for 64-bit for uniformity) and a safe checked downcast in 'readKnown'.
+- We allow lifting/unlifting 'Int' via 'Int64' and 'Word' via 'Word64', constraining the conversion
+  between them to 64-bit architectures where this conversion is safe.
 
 Doing this effectively bans builds on 32-bit systems, but that's fine, since we don't care about
 supporting 32-bit systems anyway, and this way any attempts to build on them will fail fast.
 -}
 
-instance KnownTypeAst tyname DefaultUni Int64 where
-    toTypeAst _ = toTypeAst $ Proxy @Integer
+-- | For deriving 'KnownTypeAst', 'MakeKnown' and 'ReadKnown' instances via 'Integer'.
+newtype AsInteger a = AsInteger
+    { unAsInteger :: a
+    }
 
--- See Note [Integral types as Integer].
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int64 where
-    makeKnown = makeKnown . toInteger
+instance KnownTypeAst tyname DefaultUni (AsInteger a) where
+    type IsBuiltin _ _ = 'False
+    type ToHoles _ _ = '[]
+    type ToBinds _ acc _ = acc
+    typeAst = toTypeAst $ Proxy @Integer
+
+instance (KnownBuiltinTypeIn DefaultUni term Integer, Integral a) =>
+        MakeKnownIn DefaultUni term (AsInteger a) where
+    makeKnown = makeKnown . toInteger . unAsInteger
     {-# INLINE makeKnown #-}
 
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 where
+instance (KnownBuiltinTypeIn DefaultUni term Integer, Integral a, Bounded a, Typeable a) =>
+        ReadKnownIn DefaultUni term (AsInteger a) where
     readKnown term =
         -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
         -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
         -- (go figure why).
         inline readKnownConstant term >>= oneShot \(i :: Integer) ->
-            -- We don't make use here of `toIntegralSized` because of performance considerations,
+            -- We don't make use here of 'toIntegralSized' because of performance considerations,
             -- see: https://gitlab.haskell.org/ghc/ghc/-/issues/19641
-            -- OPTIMIZE: benchmark an alternative `integerToIntMaybe`, modified from 'ghc-bignum'
-            if fromIntegral (minBound :: Int64) <= i && i <= fromIntegral (maxBound :: Int64)
-                then pure $ fromIntegral i
-                else throwing_ _EvaluationFailure
+            -- TODO: benchmark an alternative 'integerToIntMaybe', modified from @ghc-bignum@
+            if fromIntegral (minBound :: a) <= i && i <= fromIntegral (maxBound :: a)
+                then pure . AsInteger $ fromIntegral i
+                else throwing _OperationalUnliftingError . MkUnliftingError $ fold
+                        [ Text.pack $ show i
+                        , " is not within the bounds of "
+                        , Text.pack . show . typeRep $ Proxy @a
+                        ]
     {-# INLINE readKnown #-}
 
 #if WORD_SIZE_IN_BITS == 64
 -- See Note [Integral types as Integer].
-
-instance KnownTypeAst tyname DefaultUni Int where
-    toTypeAst _ = toTypeAst $ Proxy @Integer
-
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
-    -- Convert Int-to-Integer via Int64.  We could go directly `toInteger`, but this way
-    -- is more explicit and it'll turn into the same thing anyway.
-    -- Although this conversion is safe regardless of the CPU arch (unlike the opposite conversion),
-    -- we constrain it to 64-bit for the sake of uniformity.
-    makeKnown = makeKnown . fromIntegral @Int @Int64
-    {-# INLINE makeKnown #-}
-
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
-    -- Convert Integer-to-Int via Int64. This instance is safe only for 64-bit architecture
-    -- where Int===Int64 (i.e. no truncation happening).
+deriving via AsInteger Int instance
+    KnownTypeAst tyname DefaultUni Int
+deriving via AsInteger Int instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term Int
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Int where
     readKnown term = fromIntegral @Int64 @Int <$> readKnown term
+    {-# INLINE readKnown #-}
+
+deriving via AsInteger Word instance
+    KnownTypeAst tyname DefaultUni Word
+deriving via AsInteger Word instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term Word
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Word where
+    readKnown term = fromIntegral @Word64 @Word <$> readKnown term
     {-# INLINE readKnown #-}
 #endif
 
-instance KnownTypeAst tyname DefaultUni Word8 where
-    toTypeAst _ = toTypeAst $ Proxy @Integer
+deriving via AsInteger Int8 instance
+    KnownTypeAst tyname DefaultUni Int8
+deriving via AsInteger Int8 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term Int8
+deriving via AsInteger Int8 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    ReadKnownIn DefaultUni term Int8
 
--- See Note [Integral types as Integer].
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Word8 where
-    makeKnown = makeKnown . toInteger
-    {-# INLINE makeKnown #-}
+deriving via AsInteger Int16 instance
+    KnownTypeAst tyname DefaultUni Int16
+deriving via AsInteger Int16 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term Int16
+deriving via AsInteger Int16 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    ReadKnownIn DefaultUni term Int16
 
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word8 where
+deriving via AsInteger Int32 instance
+    KnownTypeAst tyname DefaultUni Int32
+deriving via AsInteger Int32 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term Int32
+deriving via AsInteger Int32 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    ReadKnownIn DefaultUni term Int32
+
+deriving via AsInteger Int64 instance
+    KnownTypeAst tyname DefaultUni Int64
+deriving via AsInteger Int64 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term Int64
+deriving via AsInteger Int64 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    ReadKnownIn DefaultUni term Int64
+
+deriving via AsInteger Word8 instance
+    KnownTypeAst tyname DefaultUni Word8
+deriving via AsInteger Word8 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term Word8
+deriving via AsInteger Word8 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    ReadKnownIn DefaultUni term Word8
+
+deriving via AsInteger Word16 instance
+    KnownTypeAst tyname DefaultUni Word16
+deriving via AsInteger Word16 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term Word16
+deriving via AsInteger Word16 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    ReadKnownIn DefaultUni term Word16
+
+deriving via AsInteger Word32 instance
+    KnownTypeAst tyname DefaultUni Word32
+deriving via AsInteger Word32 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term Word32
+deriving via AsInteger Word32 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    ReadKnownIn DefaultUni term Word32
+
+deriving via AsInteger Word64 instance
+    KnownTypeAst tyname DefaultUni Word64
+deriving via AsInteger Word64 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term Word64
+deriving via AsInteger Word64 instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    ReadKnownIn DefaultUni term Word64
+
+deriving newtype instance
+    KnownTypeAst tyname DefaultUni NumBytesCostedAsNumWords
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term NumBytesCostedAsNumWords
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    ReadKnownIn DefaultUni term NumBytesCostedAsNumWords
+
+deriving newtype instance
+    KnownTypeAst tyname DefaultUni IntegerCostedLiterally
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term IntegerCostedLiterally
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    ReadKnownIn DefaultUni term IntegerCostedLiterally
+
+deriving newtype instance KnownTypeAst tyname DefaultUni a =>
+    KnownTypeAst tyname DefaultUni (ListCostedByLength a)
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
+    MakeKnownIn DefaultUni term (ListCostedByLength a)
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
+    ReadKnownIn DefaultUni term (ListCostedByLength a)
+
+deriving via AsInteger Natural instance
+    KnownTypeAst tyname DefaultUni Natural
+deriving via AsInteger Natural instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term Natural
+instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni term Natural where
     readKnown term =
+        -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
+        -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
+        -- (go figure why).
         inline readKnownConstant term >>= oneShot \(i :: Integer) ->
-           case toIntegralSized i of
-               Just w8 -> pure w8
-               _       -> throwing_ _EvaluationFailure
+            -- TODO: benchmark alternatives:signumInteger,integerIsNegative,integerToNaturalThrow
+            if i >= 0
+            -- TODO: benchmark alternatives: ghc8.10 naturalFromInteger, ghc>=9 integerToNatural
+            then pure $ fromInteger i
+            else throwing _OperationalUnliftingError . MkUnliftingError $ fold
+                 [ Text.pack $ show i
+                 , " is not within the bounds of Natural"
+                 ]
     {-# INLINE readKnown #-}
-
--- deriving newtype doesn't work here (or at least not easily), so we have an explicit instance.
-instance KnownTypeAst tyname DefaultUni LiteralByteSize where
-     toTypeAst _ = toTypeAst $ Proxy @Integer
-
-deriving newtype instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term LiteralByteSize
-deriving newtype instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term LiteralByteSize
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the

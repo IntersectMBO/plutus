@@ -57,4 +57,3 @@ verifyEd25519Signature_V2 pk msg sig =
   where
     loc :: Text
     loc = "Ed25519 signature verification"
-

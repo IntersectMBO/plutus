@@ -26,7 +26,7 @@ import PlutusTx.Blueprint.Validator (ValidatorBlueprint)
 
 The 'referencedTypes' type variable is used to track the types used in the contract
 making sure their schemas are included in the blueprint and that they are referenced
-in a type-safe way. See the note ["Unrolling" types] for more details.
+in a type-safe way. See Note ["Unrolling" types] for more details.
 -}
 data ContractBlueprint where
   MkContractBlueprint ::

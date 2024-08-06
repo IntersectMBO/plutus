@@ -1,103 +1,37 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl Bool (type))
-
-        Bool_match
-        (vardecl True Bool) (vardecl False Bool)
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl equalsInteger (fun (con integer) (fun (con integer) (con bool))))
-      (builtin equalsInteger)
-    )
-    (termbind
-      (strict)
-      (vardecl ifThenElse (all a (type) (fun (con bool) (fun a (fun a a)))))
-      (builtin ifThenElse)
-    )
-    (termbind
-      (strict)
-      (vardecl
-        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
-      )
-      (builtin subtractInteger)
-    )
-    (let
-      (rec)
-      (termbind
-        (nonstrict)
-        (vardecl evenDirect (fun (con integer) Bool))
-        (lam
-          n
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl n (con integer)) n)
-            (termbind
-              (strict)
-              (vardecl b (con bool))
-              [ [ equalsInteger n ] (con integer 0) ]
-            )
-            {
-              [
-                [
-                  {
-                    [ Bool_match [ [ [ { ifThenElse Bool } b ] True ] False ] ]
-                    (all dead (type) Bool)
-                  }
-                  (abs dead (type) True)
-                ]
-                (abs
-                  dead
-                  (type)
-                  [ oddDirect [ [ subtractInteger n ] (con integer 1) ] ]
-                )
-              ]
-              (all dead (type) dead)
-            }
-          )
-        )
-      )
-      (termbind
-        (nonstrict)
-        (vardecl oddDirect (fun (con integer) Bool))
-        (lam
-          n
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl n (con integer)) n)
-            (termbind
-              (strict)
-              (vardecl b (con bool))
-              [ [ equalsInteger n ] (con integer 0) ]
-            )
-            {
-              [
-                [
-                  {
-                    [ Bool_match [ [ [ { ifThenElse Bool } b ] True ] False ] ]
-                    (all dead (type) Bool)
-                  }
-                  (abs dead (type) False)
-                ]
-                (abs
-                  dead
-                  (type)
-                  [ evenDirect [ [ subtractInteger n ] (con integer 1) ] ]
-                )
-              ]
-              (all dead (type) dead)
-            }
-          )
-        )
-      )
-      [ evenDirect (con integer 4) ]
-    )
-  )
-)
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
+    !equalsInteger : integer -> integer -> bool = equalsInteger
+    !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+    !subtractInteger : integer -> integer -> integer = subtractInteger
+  in
+  letrec
+    ~evenDirect : integer -> Bool
+      = \(n : integer) ->
+          let
+            !n : integer = n
+            !b : bool = equalsInteger n 0
+          in
+          Bool_match
+            (ifThenElse {Bool} b True False)
+            {all dead. Bool}
+            (/\dead -> True)
+            (/\dead -> oddDirect (subtractInteger n 1))
+            {all dead. dead}
+    ~oddDirect : integer -> Bool
+      = \(n : integer) ->
+          let
+            !n : integer = n
+            !b : bool = equalsInteger n 0
+          in
+          Bool_match
+            (ifThenElse {Bool} b True False)
+            {all dead. Bool}
+            (/\dead -> False)
+            (/\dead -> evenDirect (subtractInteger n 1))
+            {all dead. dead}
+  in
+  evenDirect 4)

@@ -14,29 +14,30 @@ import Test.Tasty.Extras
 import Test.Tasty
 
 prettyConfigReadable :: PrettyConfigPlc
-prettyConfigReadable
-    = PrettyConfigPlc defPrettyConfigPlcOptions
+prettyConfigReadable =
+  PrettyConfigPlc prettyConfigPlcOptions
     . PrettyConfigPlcReadable
-    $ botPrettyConfigReadable defPrettyConfigName def
+    $ botPrettyConfigReadable prettyConfigNameSimple def
 
-testReadable :: PrettyPlc a => TestName -> a -> TestNested
+testReadable :: (PrettyPlc a) => TestName -> a -> TestNested
 testReadable name = nestedGoldenVsDoc name "" . prettyBy prettyConfigReadable
 
 test_PrettyReadable :: TestTree
 test_PrettyReadable =
-    testGroup "Bundles"
-        [ folder stdLib
-        , folder examples
-        ]
+  testGroup
+    "Bundles"
+    [ folder stdLib
+    , folder examples
+    ]
   where
     folder :: Pretty fun => PlcFolderContents DefaultUni fun -> TestTree
     folder
-        = runTestNestedIn ["plutus-core", "test", "Pretty", "Golden"]
-        . testNested "Readable"
+        = runTestNested ["plutus-core", "test", "Pretty", "Golden", "Readable"]
         . foldPlcFolderContents testNested testReadable testReadable
 
 test_Pretty :: TestTree
 test_Pretty =
-    testGroup "pretty"
-        [ test_PrettyReadable
-        ]
+  testGroup
+    "pretty"
+    [ test_PrettyReadable
+    ]

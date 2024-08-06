@@ -1,3 +1,8 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
 letrec
   data (List :: * -> *) a | List_match where
     Nil : List a
@@ -6,17 +11,12 @@ in
 letrec
   !go : integer -> List integer
     = \(n : integer) ->
-        ifThenElse
+        Bool_match
+          (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
           {all dead. List integer}
-          (lessThanEqualsInteger n 0)
           (/\dead -> Nil {integer})
           (/\dead -> Cons {integer} 0 (go (subtractInteger n 1)))
           {all dead. dead}
-in
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
 in
 letrec
   !recursiveAll : all a. (a -> Bool) -> List a -> Bool

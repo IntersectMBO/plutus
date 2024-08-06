@@ -18,8 +18,7 @@ import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_letFloatInConservative :: TestTree
 test_letFloatInConservative =
-    runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform", "LetFloatIn"] $
-    testNested "conservative" $
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "LetFloatIn", "conservative"] $
         map
             (goldenPir (runQuote . runTestPass testPass) pTerm)
             [ "avoid-floating-into-lam"
@@ -32,8 +31,7 @@ test_letFloatInConservative =
 
 test_letFloatInRelaxed :: TestTree
 test_letFloatInRelaxed =
-    runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform", "LetFloatIn"] $
-    testNested "relaxed" $
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "LetFloatIn", "relaxed"] $
         map
             (goldenPir (runQuote . runTestPass testPass) pTerm)
             [ "avoid-floating-into-RHS"
@@ -61,7 +59,7 @@ test_letFloatInRelaxed =
 prop_floatIn ::
   BuiltinSemanticsVariant PLC.DefaultFun -> Bool -> Property
 prop_floatIn biVariant conservative =
-  withMaxSuccess (3 * 2 * numTestsForPassProp) $ testPassProp runQuote testPass
+  withMaxSuccess numTestsForPassProp $ testPassProp runQuote testPass
   where
     testPass tcconfig =
       LetFloatIn.floatTermPassSC

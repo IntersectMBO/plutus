@@ -14,8 +14,8 @@ import PlutusPrelude
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_evaluateBuiltins :: TestTree
-test_evaluateBuiltins = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    testNested "EvaluateBuiltins" $
+test_evaluateBuiltins =
+    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "EvaluateBuiltins"] $
       conservative ++ nonConservative
     where
       conservative =
@@ -41,10 +41,9 @@ test_evaluateBuiltins = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Trans
             , "uncompressAndEqualBlsNonConservative"
             ]
 
-prop_evaluateBuiltins ::
-    Bool -> BuiltinSemanticsVariant DefaultFun -> Property
+prop_evaluateBuiltins :: Bool -> BuiltinSemanticsVariant DefaultFun -> Property
 prop_evaluateBuiltins conservative biVariant =
-  withMaxSuccess (2 * 3 * numTestsForPassProp) $
+  withMaxSuccess numTestsForPassProp $
     testPassProp
       runIdentity
       $ \tc -> evaluateBuiltinsPass tc conservative (def {_biSemanticsVariant = biVariant}) def

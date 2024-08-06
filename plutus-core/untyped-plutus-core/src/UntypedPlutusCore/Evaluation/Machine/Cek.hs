@@ -7,14 +7,11 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     runCek
     , runCekDeBruijn
     , runCekNoEmit
-    , unsafeRunCekNoEmit
     , evaluateCek
     , evaluateCekNoEmit
-    , unsafeEvaluateCek
-    , unsafeEvaluateCekNoEmit
     , EvaluationResult(..)
     , extractEvaluationResult
-    , unsafeExtractEvaluationResult
+    , unsafeToEvaluationResult
     -- * Errors
     , CekUserError(..)
     , ErrorWithCause(..)
@@ -43,7 +40,8 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , logWithTimeEmitter
     , logWithBudgetEmitter
     -- * Misc
-    , CekValue(..)
+    , BuiltinsRuntime (..)
+    , CekValue (..)
     , readKnownCek
     , Hashable
     , ThrowableBuiltins
@@ -58,7 +56,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 import UntypedPlutusCore.Evaluation.Machine.CommonAPI qualified as Common
 
 import PlutusCore.Builtin
-import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Name.Unique
 
@@ -87,18 +84,6 @@ runCekNoEmit
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost)
 runCekNoEmit = Common.runCekNoEmit runCekDeBruijn
 
-{-| Unsafely evaluate a term using the CEK machine with logging disabled and keep track of costing.
-May throw a 'CekMachineException'.
-*THIS FUNCTION IS PARTIAL if the input term contains free variables*
--}
-unsafeRunCekNoEmit
-    :: ThrowableBuiltins uni fun
-    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-    -> ExBudgetMode cost uni fun
-    -> Term Name uni fun ann
-    -> (EvaluationResult (Term Name uni fun ()), cost)
-unsafeRunCekNoEmit = Common.unsafeRunCekNoEmit runCekDeBruijn
-
 -- | Evaluate a term using the CEK machine with logging enabled.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 evaluateCek
@@ -117,25 +102,6 @@ evaluateCekNoEmit
     -> Term Name uni fun ann
     -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
 evaluateCekNoEmit = Common.evaluateCekNoEmit runCekDeBruijn
-
--- | Evaluate a term using the CEK machine with logging enabled. May throw a 'CekMachineException'.
--- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
-unsafeEvaluateCek
-    :: ThrowableBuiltins uni fun
-    => EmitterMode uni fun
-    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-    -> Term Name uni fun ann
-    -> (EvaluationResult (Term Name uni fun ()), [Text])
-unsafeEvaluateCek = Common.unsafeEvaluateCek runCekDeBruijn
-
--- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.
--- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
-unsafeEvaluateCekNoEmit
-    :: ThrowableBuiltins uni fun
-    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-    -> Term Name uni fun ann
-    -> EvaluationResult (Term Name uni fun ())
-unsafeEvaluateCekNoEmit = Common.unsafeEvaluateCekNoEmit runCekDeBruijn
 
 -- | Unlift a value using the CEK machine.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*

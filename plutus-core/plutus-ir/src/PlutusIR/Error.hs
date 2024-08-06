@@ -19,6 +19,7 @@ module PlutusIR.Error
     ) where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Error qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import PlutusIR qualified as PIR
 import PlutusPrelude
@@ -57,6 +58,9 @@ instance PLC.AsFreeVariableError (Error uni fun a) where
 instance PLC.AsUniqueError (Error uni fun a) a where
     _UniqueError = _PLCError . PLC._UniqueError
 
+instance PLC.AsParserErrorBundle (Error uni fun a) where
+    _ParserErrorBundle = _PLCError . PLC._ParseErrorE
+
 -- Pretty-printing
 ------------------
 
@@ -75,7 +79,7 @@ deriving anyclass instance
     (PLC.ThrowableBuiltins uni fun, PP.Pretty ann, Typeable ann) => Exception (Error uni fun ann)
 
 instance (PLC.PrettyUni uni, Pretty fun, Pretty ann) => Pretty (Error uni fun ann) where
-    pretty = PLC.prettyPlcClassicDef
+    pretty = PLC.prettyPlcClassic
 
 
 instance (PLC.PrettyUni uni, Pretty fun, Pretty ann) =>

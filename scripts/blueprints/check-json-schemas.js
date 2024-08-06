@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+// Remember to run 'npm install' from inside this directory first. 
+
 const log = console.log;
 const acmeGolden = "../../plutus-tx-plugin/test/Blueprint/Acme.golden.json";
 const Ajv2020 = require("ajv/dist/2020");

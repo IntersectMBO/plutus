@@ -69,7 +69,6 @@ import PlutusIR.Compiler.Types
 import PlutusIR.Error
 import PlutusIR.Pass qualified as P
 import PlutusIR.Transform.Beta qualified as Beta
-import PlutusIR.Transform.CaseOfCase qualified as CaseOfCase
 import PlutusIR.Transform.CaseReduce qualified as CaseReduce
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
@@ -136,14 +135,12 @@ simplifierIteration suffix = do
   costModel <- view ccBuiltinCostModel
   hints <- view (ccOpts . coInlineHints)
   preserveLogging <- view (ccOpts . coPreserveLogging)
-  cocConservative <- view (ccOpts . coCaseOfCaseConservative)
   rules <- view ccRewriteRules
   ic <- view (ccOpts . coInlineConstants)
 
   pure $ P.NamedPass ("simplifier" ++ suffix) $ fold
       [ mwhen (opts ^. coDoSimplifierUnwrapCancel) $ Unwrap.unwrapCancelPass tcconfig
       , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseReduce.caseReducePass tcconfig
-      , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseOfCase.caseOfCasePassSC tcconfig binfo cocConservative noProvenance
       , mwhen (opts ^. coDoSimplifierKnownCon) $ KnownCon.knownConPassSC tcconfig
       , mwhen (opts ^. coDoSimplifierBeta) $ Beta.betaPassSC tcconfig
       , mwhen (opts ^. coDoSimplifierStrictifyBindings ) $ StrictifyBindings.strictifyBindingsPass tcconfig binfo

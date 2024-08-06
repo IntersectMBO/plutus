@@ -1,6 +1,9 @@
 module PlutusIR (
     -- * AST
     Term (..),
+    progAnn,
+    progVer,
+    progTerm,
     termSubterms,
     termSubtypes,
     termBindings,

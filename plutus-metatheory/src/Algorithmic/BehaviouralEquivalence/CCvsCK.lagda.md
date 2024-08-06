@@ -1,3 +1,7 @@
+---
+title: Algorithmic.BehaviouralEquivalence.CCvsCK
+layout: page
+---
 # CK machine
 
 ```
