@@ -15,7 +15,7 @@ open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
 open _⊢⋆_
 open import Type.Equality using (_≡β_;≡2β)
 open _≡β_
-open import Type.RenamingSubstitution 
+open import Type.RenamingSubstitution
       using (Ren;ren;ext;ren-comp;sub;sub-id;sub-comp;sub-cong;exts;sub-ren;weaken;sub-∅)
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;embNf;weakenNf;ren-embNf)
 open _⊢Nf⋆_
@@ -23,7 +23,7 @@ open _⊢Ne⋆_
 open import Type.BetaNormal.Equality using (renNf-comp)
 open import Type.BetaNBE using (reify;reflect;Env;eval;nf;renVal;idEnv;_,,⋆_;fresh;exte)
 open import Type.BetaNBE.Soundness using (soundness)
-open import Type.BetaNBE.Completeness 
+open import Type.BetaNBE.Completeness
    using (EnvCR;CR;fund;ren-reify;idext;idCR;reifyCR;renCR;transCR;reflectCR;renVal-eval;renVal-reflect;symCR;ren-eval;sub-eval;completeness)
 open import Type.BetaNBE.Stability using (stability)
 ```
@@ -49,7 +49,7 @@ evalCRSubst : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
   → {t t' : Φ ⊢⋆ K}
   → t ≡ t'
   → CR K (eval t η) (eval t' η')
-evalCRSubst p {t = t} q = fund p (≡2β q) 
+evalCRSubst p {t = t} q = fund p (≡2β q)
 ```
 
 ```
@@ -148,7 +148,7 @@ subNf-∋ : ∀ {Φ Ψ J}
   → (ρ : SubNf Φ Ψ)
   → (α : Φ ∋⋆ J)
   → subNf ρ (ne (` α)) ≡ ρ α
-subNf-∋ ρ α = stability (ρ α) 
+subNf-∋ ρ α = stability (ρ α)
 ```
 
 
@@ -231,7 +231,7 @@ Substitution of one variable
 ```
 _[_]Nf : ∀ {Φ J K}
         → Φ ,⋆ K ⊢Nf⋆ J
-        → Φ ⊢Nf⋆ K 
+        → Φ ⊢Nf⋆ K
           ------
         → Φ ⊢Nf⋆ J
 A [ B ]Nf = subNf (subNf-cons (ne ∘ `) B) A
@@ -341,7 +341,7 @@ sub[]Nf ρ A B = trans
     (subNf-cong
       {f = subNf ρ ∘ subNf-cons (ne ∘ `) A}
       {g = subNf (subNf-cons (ne ∘ `) (subNf ρ A)) ∘ extsNf ρ}
-      (λ { Z     → sym (subNf-∋ (subNf-cons (ne ∘ `) (subNf ρ A)) Z) 
+      (λ { Z     → sym (subNf-∋ (subNf-cons (ne ∘ `) (subNf ρ A)) Z)
          ; (S α) → trans
               (trans (subNf-∋ ρ α) (sym (subNf-id (ρ α))))
               (subNf-renNf
@@ -476,7 +476,7 @@ sub-nf-μ σ⋆ A B = trans
 ```
 
 ```
-subNf-cons-[]Nf : ∀{Φ K Ψ'}{σ : SubNf Ψ' Φ}{A : Φ ⊢Nf⋆ K}(X : Ψ' ,⋆ K ⊢Nf⋆ *) → 
+subNf-cons-[]Nf : ∀{Φ K Ψ'}{σ : SubNf Ψ' Φ}{A : Φ ⊢Nf⋆ K}(X : Ψ' ,⋆ K ⊢Nf⋆ *) →
   subNf (subNf-cons σ A) X
   ≡
   reify (eval (sub (exts (embNf ∘ σ)) (embNf X)) (exte (idEnv Φ))) [ A ]Nf
@@ -490,7 +490,7 @@ subNf-cons-[]Nf {σ = σ}{A} X = trans
 ```
 
 ```
--- A version of subNf that is definitionally the identity on the empty context 
+-- A version of subNf that is definitionally the identity on the empty context
 subNf∅ : ∀{Φ K} → ∅ ⊢Nf⋆ K → Φ ⊢Nf⋆ K
 subNf∅ {∅} t = t
 subNf∅ {Φ ,⋆ x} t = subNf (λ()) t

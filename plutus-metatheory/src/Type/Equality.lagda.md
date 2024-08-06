@@ -24,7 +24,7 @@ open import Relation.Binary.PropositionalEquality
 open import Utils using (*;♯;J;K)
 open import Type using (Ctx⋆;_,⋆_;Φ;Ψ;_⊢⋆_;A;A';B;B';C)
 open _⊢⋆_
-open import Type.RenamingSubstitution 
+open import Type.RenamingSubstitution
    using (_[_];Ren;ren;Sub;sub;ext;sub-ren;ren-sub;sub-cong;ren-sub-cons;exts;sub-comp)
    using (sub-sub-cons;ren-List;ren-VecList;sub-List;sub-VecList)
 ```
@@ -57,7 +57,7 @@ data _≡β_ : Φ ⊢⋆ J → Φ ⊢⋆ J → Set where
   refl≡β : (A : Φ ⊢⋆ J)
            ------------
          → A ≡β A
-    
+
   sym≡β : A ≡β B
           ------
         → B ≡β A
@@ -70,25 +70,25 @@ data _≡β_ : Φ ⊢⋆ J → Φ ⊢⋆ J → Set where
   -- congruence rules
 
   -- (no variable rule is needed)
- 
+
   ⇒≡β : A ≡β A'
       → B ≡β B'
         -----------------
       → A ⇒ B ≡β A' ⇒ B'
-    
+
   Π≡β : B ≡β B'
         -----------
       → Π B ≡β Π B'
-    
+
   ƛ≡β : B ≡β B'
         -----------
       → ƛ B ≡β ƛ B'
-    
+
   ·≡β : A ≡β A'
       → B ≡β B'
         --------------------
       → A · B ≡β A' · B'
-    
+
   μ≡β : A ≡β A'
       → B ≡β B'
         ----------------
@@ -98,7 +98,7 @@ data _≡β_ : Φ ⊢⋆ J → Φ ⊢⋆ J → Set where
         → c ≡β c'
           -----------
         → con c ≡β con c'
-  
+
   SOP≡β : ∀{n}{Tss Tss' : Vec (List (Φ ⊢⋆ *)) n}
         → Tss ⟨[≡]⟩β Tss'
          ---------------
@@ -110,7 +110,7 @@ data _≡β_ : Φ ⊢⋆ J → Φ ⊢⋆ J → Set where
         ------------------
       → ƛ B · A ≡β B [ A ]
 
-data _[≡]β_ where 
+data _[≡]β_ where
   nil[≡]β : _[≡]β_ {Φ} [] []
 
   cons[≡]β : ∀{A A' : Φ ⊢⋆ *}{As As' : List (Φ ⊢⋆ *)}
@@ -119,7 +119,7 @@ data _[≡]β_ where
              ----------------
            → (A ∷ As) [≡]β (A' ∷ As')
 
-data _⟨[≡]⟩β_ where 
+data _⟨[≡]⟩β_ where
   nil⟨[≡]⟩β : _⟨[≡]⟩β_ {Φ} [] []
 
   cons⟨[≡]⟩β : ∀{n}{As As' : List (Φ ⊢⋆ *)}{Tss Tss' : Vec (List (Φ ⊢⋆ *)) n}
@@ -169,7 +169,7 @@ ren≡β ρ (SOP≡β p)   = SOP≡β (ren≡β-VecList ρ p)
 ren≡β-List ρ nil[≡]β = nil[≡]β
 ren≡β-List ρ (cons[≡]β x p) = cons[≡]β (ren≡β ρ x) (ren≡β-List ρ p)
 ren≡β-VecList ρ nil⟨[≡]⟩β = nil⟨[≡]⟩β
-ren≡β-VecList ρ (cons⟨[≡]⟩β x p) = cons⟨[≡]⟩β (ren≡β-List ρ x) (ren≡β-VecList ρ p) 
+ren≡β-VecList ρ (cons⟨[≡]⟩β x p) = cons⟨[≡]⟩β (ren≡β-List ρ x) (ren≡β-VecList ρ p)
 ```
 
 ## Substitution for proofs of type equality
@@ -188,10 +188,10 @@ sub≡β-VecList : ∀{n}{Tss Bss : Vec (List (Φ ⊢⋆ *)) n}(σ : Sub Φ Ψ)
       → Tss ⟨[≡]⟩β Bss
         ------------------
       → sub-VecList σ Tss ⟨[≡]⟩β sub-VecList σ Bss
-  
+
 sub≡β σ (refl≡β A)    = refl≡β (sub σ A)
 sub≡β σ (sym≡β p)     = sym≡β (sub≡β σ p)
-sub≡β σ (trans≡β p q) = trans≡β (sub≡β σ p) (sub≡β σ q) 
+sub≡β σ (trans≡β p q) = trans≡β (sub≡β σ p) (sub≡β σ q)
 sub≡β σ (⇒≡β p q)     = ⇒≡β (sub≡β σ p) (sub≡β σ q)
 sub≡β σ (Π≡β p)       = Π≡β (sub≡β (exts σ) p)
 sub≡β σ (ƛ≡β p)       = ƛ≡β (sub≡β (exts σ) p)
@@ -203,11 +203,11 @@ sub≡β σ (β≡β B A)     = trans≡β
                      (sub-cong (sub-sub-cons σ A) B))
               (sub-comp B)))
 sub≡β ρ (con≡β p)     = con≡β (sub≡β ρ p)
-sub≡β σ (SOP≡β p)   = SOP≡β (sub≡β-VecList σ p) 
+sub≡β σ (SOP≡β p)   = SOP≡β (sub≡β-VecList σ p)
 
 sub≡β-List σ nil[≡]β = nil[≡]β
 sub≡β-List σ (cons[≡]β x xs) = cons[≡]β (sub≡β σ x) (sub≡β-List σ xs)
 sub≡β-VecList σ nil⟨[≡]⟩β = nil⟨[≡]⟩β
-sub≡β-VecList σ (cons⟨[≡]⟩β x p) = cons⟨[≡]⟩β (sub≡β-List σ x) (sub≡β-VecList σ p)     
+sub≡β-VecList σ (cons⟨[≡]⟩β x p) = cons⟨[≡]⟩β (sub≡β-List σ x) (sub≡β-VecList σ p)
 ```
 

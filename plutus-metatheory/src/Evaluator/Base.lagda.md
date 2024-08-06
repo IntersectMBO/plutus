@@ -3,7 +3,7 @@ title: Base
 layout: page
 ---
 ```
-module Evaluator.Base where 
+module Evaluator.Base where
 
 ```
 
@@ -15,9 +15,9 @@ open import Data.String using (String;_++_)
 
 open import Check using (TypeError)
 open TypeError
-open import Scoped using (FreeVariableError;ScopeError;extricateScopeTy) 
+open import Scoped using (FreeVariableError;ScopeError;extricateScopeTy)
 open import Scoped.Extrication using (extricateNf⋆)
-open import Raw using (RawTm;RawTy) 
+open import Raw using (RawTm;RawTy)
 import RawU as U using (Untyped)
 open import Utils using (RuntimeError)
 open RuntimeError

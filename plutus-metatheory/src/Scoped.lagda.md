@@ -8,7 +8,7 @@ module Scoped where
 
 ```
 open import Data.Nat using (ℕ;zero;suc;∣_-_∣)
-open import Data.Fin using (Fin;zero;suc;toℕ) 
+open import Data.Fin using (Fin;zero;suc;toℕ)
 open import Data.Integer.Show using () renaming (show to ishow)
 open import Data.Vec using (Vec;[];_∷_)
 open import Data.Bool using (Bool)
@@ -20,7 +20,7 @@ open import Data.String using (String;_++_)
 open import Builtin using (Builtin)
 open Builtin.Builtin
 
-open import Builtin.Signature using (_⊢♯;integer;bytestring) 
+open import Builtin.Signature using (_⊢♯;integer;bytestring)
 open import Builtin.Constant.Type
 open import Builtin.Constant.AtomicType using (aBool)
 
@@ -286,19 +286,19 @@ scopeCheckTy (μ A B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (μ A B)
-scopeCheckTy (SOP xss) = do 
-      A ← scopeCheckTyListList xss  
+scopeCheckTy (SOP xss) = do
+      A ← scopeCheckTyListList xss
       return (SOP A)
 
 scopeCheckTyList [] = return []
-scopeCheckTyList (x ∷ xs) = do 
-      A  ← scopeCheckTy x 
+scopeCheckTyList (x ∷ xs) = do
+      A  ← scopeCheckTy x
       As ← scopeCheckTyList xs
       return (A ∷ As)
 
 scopeCheckTyListList [] = return []
-scopeCheckTyListList (xs ∷ xss) = do 
-      Ts  ← scopeCheckTyList xs 
+scopeCheckTyListList (xs ∷ xss) = do
+      Ts  ← scopeCheckTyList xs
       Tss ← scopeCheckTyListList xss
       return (Ts ∷ Tss)
 
@@ -328,20 +328,20 @@ scopeCheckTm (wrap A B t) = do
   t ← scopeCheckTm t
   return (wrap A B t)
 scopeCheckTm (unwrap t) = fmap unwrap (scopeCheckTm t)
-scopeCheckTm (constr A i cs) = do 
-  A  ← scopeCheckTy A 
+scopeCheckTm (constr A i cs) = do
+  A  ← scopeCheckTy A
   cs ← scopeCheckTmList cs
   return (constr A i cs)
-scopeCheckTm (case A t cs) = do 
+scopeCheckTm (case A t cs) = do
   A  ← scopeCheckTy A
   t  ← scopeCheckTm t
   cs ← scopeCheckTmList cs
   return (case A t cs)
 
 scopeCheckTmList [] = return []
-scopeCheckTmList (x ∷ xs) = do 
-  x  ← scopeCheckTm x 
-  xs ← scopeCheckTmList xs 
+scopeCheckTmList (x ∷ xs) = do
+  x  ← scopeCheckTm x
+  xs ← scopeCheckTmList xs
   return (x ∷ xs)
 ```
 
