@@ -164,6 +164,7 @@ isForceDelay? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation (FD 
 isFD? : {X : Set} {{_ : DecEq X}} → (n nₐ : ℕ) → Binary.Decidable (FD n nₐ {X})
 
 isFD? n nₐ ast ast' with isForce? isTerm? ast
+
 -- If it doesn't start with force then it isn't going to match this translation, unless we have some delays left
 isFD? zero nₐ ast ast' | no ¬force = no λ { (forcefd .zero .nₐ x .ast' xx) → ¬force (isforce (isterm x)) ; (multiappliedfd .zero .nₐ x y x' y' x₁ xx) → ¬force (isforce (isterm (x · y))) ; (multiabstractfd .zero nₐ x x' xx) → ¬force (isforce (isterm (ƛ x))) }
 isFD? (suc n) nₐ ast ast' | no ¬force with (isDelay? isTerm? ast)
@@ -192,8 +193,7 @@ isFD? n (suc nₐ ) ast ast' | yes (isforce (isterm t)) | no ¬isApp | yes (isla
 -- If we have zero in the application counter then we can't descend further
 isFD? n zero ast ast' | yes (isforce (isterm t)) | no ¬isApp | yes (islambda (isterm t₂)) = no λ { (forcefd .n .zero .(ƛ t₂) .ast' ()) }
 
--- If we have matched none of the patterns then we need to consider nesting, which requires the
--- sub-term to start with force
+-- If we have matched none of the patterns then we need to consider nesting.
 isFD? n nₐ ast ast' | yes (isforce (isterm t)) | no ¬isApp | no ¬ƛ with isFD? (suc n) nₐ t ast'
 ... | yes p = yes (forcefd n nₐ t ast' p)
 ... | no ¬p = no λ { (forcefd .n .nₐ .t .ast' x) → ¬p x ; (multiappliedfd .n .nₐ x y x' y' x₁ x₂) → ¬isApp (isapp (isterm x) (isterm y)) ; (multiabstractfd .n nₐ x x' x₁) → ¬ƛ (islambda (isterm x)) }
