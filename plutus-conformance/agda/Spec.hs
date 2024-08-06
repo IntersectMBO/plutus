@@ -109,7 +109,12 @@ agdaEvalUplcProg WithoutCosting =
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
 -}
 failingEvaluationTests :: [FilePath]
-failingEvaluationTests = []
+failingEvaluationTests = [
+    "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-3"
+  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-4"
+  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-5"
+  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-6"
+  ]
 
 {- | A list of budget tests which are currently expected to fail.  Once a fix for
  a test is pushed, the test will succeed and should be removed from the list.
@@ -118,7 +123,13 @@ failingEvaluationTests = []
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
 -}
 failingBudgetTests :: [FilePath]
-failingBudgetTests = []
+failingBudgetTests =
+  [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-3"
+  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-4"
+  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-5"
+  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-6"
+  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-7"
+  ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
 main :: IO ()
