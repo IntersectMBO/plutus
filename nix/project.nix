@@ -38,7 +38,6 @@ let
 
       sha256map = {
         "https://github.com/jaccokrijnen/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" = "0srqvx0b819b5crrbsa9hz2fnr50ahqizvvm0wdmyq2bbpk2rka7";
-        "https://github.com/paluh/cardano-base"."ea31e27ae4c9715232fa20e2e91f23e5bd967d65" = "sha256-R/uqcScLbkFhYL8x0FL7eQ2UIJY30o6ec312I/E7KdU=";
       };
 
       # TODO: move this into the cabalib.project using the new conditional support?
