@@ -117,6 +117,10 @@ integerToByteString endiannessArg lengthArg input
           evaluationFailure
       Right result -> pure result
 
+-- | Conversion from 'Integer' to 'ByteString', as per
+-- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
+--
+
 -- | Structured type to help indicate conversion errors.
 data IntegerToByteStringError =
   NegativeInput |
@@ -238,6 +242,9 @@ unsafeIntegerToByteString requestedByteOrder requestedLength input
     padBE acc = let paddingLength = requestedLength - Builder.builderLength acc in
       Builder.bytes (BS.replicate paddingLength 0x0) <> acc
 
+-- | Conversion from 'ByteString' to 'Integer', as per
+-- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
+
 -- | Wrapper for 'unsafeByteStringToInteger' to make it more convenient to define as a builtin.
 byteStringToInteger ::
   Bool -> ByteString -> Integer
@@ -245,14 +252,8 @@ byteStringToInteger statedEndiannessArg input =
   let endianness = endiannessArgToByteOrder statedEndiannessArg in
     unsafeByteStringToInteger endianness input
 
--- | Conversion from 'Integer' to 'ByteString', as per
--- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
---
--- | Conversion from 'ByteString' to 'Integer', as per
--- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
---
 -- For clarity, the stated endianness argument uses 'ByteOrder'.
--- This may not actually be unsafe, but it shouldn't be used outside this module.
+-- This function may not actually be unsafe, but it shouldn't be used outside this module.
 unsafeByteStringToInteger :: ByteOrder -> ByteString -> Integer
   -- We use manual specialization to ensure as few branches in loop bodies as we can. See Note
   -- [Manual specialization] for details.
