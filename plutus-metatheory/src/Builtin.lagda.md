@@ -589,8 +589,8 @@ postulate
 {-# COMPILE GHC readBIT = \s n -> builtinResultToMaybe $ Bitwise.readBit s (fromIntegral n) #-}
 {-# COMPILE GHC writeBITS = \s ps us -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) us #-}
 {-# COMPILE GHC replicateBYTE = \n w8 -> builtinResultToMaybe $ Bitwise.replicateByte (fromIntegral n) (fromIntegral w8) #-}
-{-# COMPILE GHC shiftBYTESTRING = \s n -> Bitwise.shiftByteString s (fromIntegral n) #-}
-{-# COMPILE GHC rotateBYTESTRING = \s n -> Bitwise.rotateByteString s (fromIntegral n) #-}
+{-# COMPILE GHC shiftBYTESTRING = Bitwise.shiftByteStringWrapper #-}
+{-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteStringWrapper #-}
 {-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits s #-}
 {-# COMPILE GHC findFirstSetBIT = \s -> fromIntegral $ Bitwise.findFirstSetBit s #-}
 
