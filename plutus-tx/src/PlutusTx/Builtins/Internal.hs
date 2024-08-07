@@ -693,7 +693,7 @@ integerToByteString
     -> BuiltinInteger
     -> BuiltinByteString
 integerToByteString (BuiltinBool endiannessArg) paddingArg input =
-  case Bitwise.integerToByteStringWrapper endiannessArg paddingArg input of
+  case Bitwise.integerToByteString endiannessArg paddingArg input of
     BuiltinSuccess bs              -> BuiltinByteString bs
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
     BuiltinFailure logs err        -> traceAll (logs <> pure (display err)) $
@@ -705,7 +705,7 @@ byteStringToInteger
     -> BuiltinByteString
     -> BuiltinInteger
 byteStringToInteger (BuiltinBool statedEndianness) (BuiltinByteString input) =
-  Bitwise.byteStringToIntegerWrapper statedEndianness input
+  Bitwise.byteStringToInteger statedEndianness input
 
 {-
 BITWISE
@@ -717,7 +717,7 @@ shiftByteString ::
   BuiltinInteger ->
   BuiltinByteString
 shiftByteString (BuiltinByteString bs) =
-  BuiltinByteString . Bitwise.shiftByteStringWrapper bs
+  BuiltinByteString . Bitwise.shiftByteString bs
 
 {-# NOINLINE rotateByteString #-}
 rotateByteString ::
@@ -725,7 +725,7 @@ rotateByteString ::
   BuiltinInteger ->
   BuiltinByteString
 rotateByteString (BuiltinByteString bs) =
-  BuiltinByteString . Bitwise.rotateByteStringWrapper bs
+  BuiltinByteString . Bitwise.rotateByteString bs
 
 {-# NOINLINE countSetBits #-}
 countSetBits ::
