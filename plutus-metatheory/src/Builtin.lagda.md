@@ -494,16 +494,15 @@ postulate
 ### What builtin operations should be compiled to if we compile to Haskell
 
 ```
--- NOTE.  Many of the denotations in PlutusCore.Default.Builtins involve
--- arguments which are of fixed-width integral types such as Int or Word8. These
--- all appear as `integer` in Plutus Core, and the builtin machinery handles the
--- conversion from Haskell's `Integer` (the underlying type of `integer`) to the
--- appropriate type automatically.  If a argument of this kind doesn't fit into
--- the bounds of the relevant type then *an error will occur* at run-time; this
--- happens for example with `consByteString`, where the first argument must be
--- in the range [0..255].  To preserve the semantics here, a bounds check must
--- be performed on `Int` arguments to builtins which expect an argument of some
--- fixed-width argument; this can be done using `toIntegralSized`, for example.
+-- NOTE [Fixed-width integral types in builtins in Agda].  Many of the denotations in
+-- PlutusCore.Default.Builtins involve arguments which are of fixed-width integral types such as Int
+-- or Word8. These all appear as `integer` in Plutus Core, and the builtin machinery handles the
+-- conversion from Haskell's `Integer` (the underlying type of `integer`) to the appropriate type
+-- automatically.  If a argument of this kind doesn't fit into the bounds of the relevant type then
+-- *an error will occur* at run-time; this happens for example with `consByteString`, where the
+-- first argument must be in the range [0..255].  To preserve the semantics here, a bounds check
+-- must be performed on `Int` arguments to builtins which expect an argument of some fixed-width
+-- argument; this can be done using `toIntegralSized`, for example.
 
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
 {-# FOREIGN GHC import Control.Composition ((.*)) #-}
