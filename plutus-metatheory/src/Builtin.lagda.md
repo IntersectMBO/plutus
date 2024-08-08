@@ -494,6 +494,17 @@ postulate
 ### What builtin operations should be compiled to if we compile to Haskell
 
 ```
+-- NOTE.  Many of the denotations in PlutusCore.Default.Builtins involve
+-- arguments which are of fixed-width integral types such as Int or Word8. These
+-- all appear as `integer` in Plutus Core, and the builtin machinery handles the
+-- conversion from Haskell's `Integer` (the underlying type of `integer`) to the
+-- appropriate type automatically.  If a argument of this kind doesn't fit into
+-- the bounds of the relevant type then *an error will occur* at run-time; this
+-- happens for example with `consByteString`, where the first argument must be
+-- in the range [0..255].  To preserve the semantics here, a bounds check must
+-- be performed on `Int` arguments to builtins which expect an argument of some
+-- fixed-width argument; this can be done using `toIntegralSized`, for example.
+
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
 {-# FOREIGN GHC import Control.Composition ((.*)) #-}
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
@@ -537,10 +548,9 @@ postulate
 {-# FOREIGN GHC import PlutusCore.Crypto.Ed25519 #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.Secp256k1 #-}
 
--- The Vasil verification functions return results wrapped in BuiltinResult, which
--- may perform a side-effect such as writing some text to a log.  The code below
--- provides an adaptor function which turns a BuiltinResult r into
--- Just r, where r is the real return type of the builtin.
+-- Some builtins return results wrapped in BuiltinResult, which may perform a side-effect such as
+-- writing some text to a log.  The code below provides an adaptor function which turns a
+-- BuiltinResult r into Just r, where r is the real return type of the builtin.
 -- TODO: deal directly with emitters in Agda?
 
 {-# FOREIGN GHC import PlutusPrelude (reoption) #-}
@@ -588,7 +598,12 @@ postulate
 {-# COMPILE GHC complementBYTESTRING = Bitwise.complementByteString #-}
 {-# COMPILE GHC readBIT = \s n -> builtinResultToMaybe $ Bitwise.readBit s (fromIntegral n) #-}
 {-# COMPILE GHC writeBITS = \s ps us -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) us #-}
-{-# COMPILE GHC replicateBYTE = \n w8 -> builtinResultToMaybe $ Bitwise.replicateByte (fromIntegral n) (fromIntegral w8) #-}
+-- The Plutus Core version of `replicateByte n w` can fail in two ways: if n < 0 or n >= 8192 then
+-- the implementation PlutusCore.Bitwise will return BuiltinFailure; if w < 0 or w >= 256 then the
+-- denotation in `PlutusCore.Default.Builtins` will fail when the builtin machinery tries to convert
+-- it to a Word8.  We have to replicate this behaviour here. -}
+{-# COMPILE GHC replicateBYTE = \n w8 ->
+        case toIntegralSized w8 of { Nothing -> Nothing; Just w -> builtinResultToMaybe $ Bitwise.replicateByte n w } #-}
 {-# COMPILE GHC shiftBYTESTRING = Bitwise.shiftByteStringWrapper #-}
 {-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteStringWrapper #-}
 {-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits s #-}

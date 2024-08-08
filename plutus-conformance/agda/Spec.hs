@@ -109,12 +109,7 @@ agdaEvalUplcProg WithoutCosting =
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
 -}
 failingEvaluationTests :: [FilePath]
-failingEvaluationTests = [
-    "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-3"
-  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-4"
-  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-5"
-  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-6"
-  ]
+failingEvaluationTests = []
 
 {- | A list of budget tests which are currently expected to fail.  Once a fix for
  a test is pushed, the test will succeed and should be removed from the list.
@@ -124,11 +119,12 @@ failingEvaluationTests = [
 -}
 failingBudgetTests :: [FilePath]
 failingBudgetTests =
-  [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-3"
-  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-4"
-  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-5"
-  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-6"
-  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-7"
+  -- These currently fail because the Agda code doesn't know about alternative
+  -- size measures used by `replicateByte` and `writeBits`: see
+  -- https://github.com/IntersectMBO/plutus/pull/6368.  Some of the budget tests
+  -- do pass, either because evaluation fails or because two different size
+  -- measures happen to be the same for small inputs.
+  [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-7"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-11"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-12"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-13"
