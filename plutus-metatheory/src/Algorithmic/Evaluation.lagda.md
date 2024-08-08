@@ -35,12 +35,12 @@ When our evaluator returns a term `N`, it will either give evidence that
 ```
 data Finished {A : ∅ ⊢Nf⋆ *} :  (N : ∅ ⊢ A) →  Set where
 
-   done : ∀ N → 
+   done : ∀ N →
        Value N
        ----------
      → Finished N
 
-   out-of-gas : ∀{N} → 
+   out-of-gas : ∀{N} →
        ----------
        Finished N
 
@@ -89,4 +89,4 @@ stepper {A} t n with eval (gas n) t
 ... | steps x (error _)   = return (error A)
 
 ```
- 
+

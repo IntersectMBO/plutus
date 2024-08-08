@@ -3,7 +3,7 @@ title: Cost.Base
 layout: page
 ---
 ```
-module Cost.Base where 
+module Cost.Base where
 
 ```
 
@@ -24,45 +24,45 @@ open import Builtin using (Builtin;arity)
 open import Untyped.CEK using (Value)
 ```
 
-We will represent costs with Naturals. In the implementation `SatInt` is used, (integers that don't overflow, but saturate). 
+We will represent costs with Naturals. In the implementation `SatInt` is used, (integers that don't overflow, but saturate).
 As long as the budget is less than the maxInt then the result should be the same.
 
 ```
-CostingNat : Set 
+CostingNat : Set
 CostingNat = ℕ
 ```
 
 We define one constructor for each possible type of node in a UPLC term.
 
 ```
-data StepKind : Set where 
-    BConst 
+data StepKind : Set where
+    BConst
       BVar
       BLamAbs
       BApply
       BDelay
       BForce
       BBuiltin -- Cost of evaluating a Builtin AST node, not the function itself
-      BConstr 
+      BConstr
       BCase : StepKind
 ```
 
 We define a show function for StepKinds
 
 ```
-showStepKind' : StepKind → String 
-unquoteDef showStepKind' = defShow (quote StepKind) showStepKind' 
+showStepKind' : StepKind → String
+unquoteDef showStepKind' = defShow (quote StepKind) showStepKind'
 
-showStepKind : StepKind → String 
-showStepKind s = fromMaybe "" (tail (showStepKind' s))   
+showStepKind : StepKind → String
+showStepKind s = fromMaybe "" (tail (showStepKind' s))
 ```
 
 and a list of constructors names
 
-``` 
+```
 stepKindList : List StepKind
-unquoteDef stepKindList = defListConstructors (quote StepKind) stepKindList 
-``` 
+unquoteDef stepKindList = defListConstructors (quote StepKind) stepKindList
+```
 
 ## Recording expenditure
 
@@ -75,7 +75,7 @@ data ExBudgetCategory : Set where
     BStep       : StepKind → ExBudgetCategory
 
      -- Cost of evaluating a fully applied builtin function
-    BBuiltinApp : (b : Builtin) → Vec Value (arity b) → ExBudgetCategory  
+    BBuiltinApp : (b : Builtin) → Vec Value (arity b) → ExBudgetCategory
 
     -- Startup Cost
     BStartup    : ExBudgetCategory
@@ -93,6 +93,6 @@ record MachineParameters (Cost : Set) : Set where
       _∙_ : Cost → Cost → Cost
       costMonoid : IsMonoid _≡_ _∙_ ε
 
-    startupCost : Cost 
+    startupCost : Cost
     startupCost = cekMachineCost BStartup
-``` 
+```

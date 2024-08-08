@@ -37,7 +37,7 @@ Zero = Λ (ƛ (ƛ (` (S (Z )))))
 -- : N → N
 
 Succ : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ N
-Succ = ƛ (Λ (ƛ (ƛ 
+Succ = ƛ (Λ (ƛ (ƛ
   (` Z · (wrap0 (ƛ G) (conv (sym≡β (β≡β _ _)) (` (S (S (T Z))))))))))
 
 --FoldNat : ∀{Φ}{Γ : Ctx Φ} → {!!}

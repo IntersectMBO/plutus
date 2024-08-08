@@ -28,11 +28,11 @@ We have nine base types referred to as atomic type constants:
 ```
 data AtomicTyCon : Set where
   aInteger              : AtomicTyCon
-  aBytestring           : AtomicTyCon 
-  aString               : AtomicTyCon 
-  aUnit                 : AtomicTyCon 
+  aBytestring           : AtomicTyCon
+  aString               : AtomicTyCon
+  aUnit                 : AtomicTyCon
   aBool                 : AtomicTyCon
-  aData                 : AtomicTyCon 
+  aData                 : AtomicTyCon
   aBls12-381-g1-element : AtomicTyCon
   aBls12-381-g2-element : AtomicTyCon
   aBls12-381-mlresult   : AtomicTyCon

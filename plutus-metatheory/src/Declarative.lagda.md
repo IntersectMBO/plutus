@@ -30,7 +30,7 @@ open import Builtin.Constant.Type using (TyCon)
 open TyCon
 
 open import Builtin.Signature using ()
-open Builtin.Signature.FromSig  (_⊢⋆_) (_⊢⋆_) (λ x → x) (`) _·_ ^ con _⇒_ Π 
+open Builtin.Signature.FromSig  (_⊢⋆_) (_⊢⋆_) (λ x → x) (`) _·_ ^ con _⇒_ Π
           using (sig2type;sig2type⇒;sig2typeΠ;⊢♯2TyNe♯;mkTy) public
 open import Type.BetaNBE using (nf)
 open import Algorithmic using (⟦_⟧;ty2sty)
@@ -120,7 +120,7 @@ We define it this way because it is easier to define the meaning of a normalised
 
 ```
 ty2TyTag : ∀ (A : ∅ ⊢⋆ ♯) → TyTag
-ty2TyTag A = ty2sty (nf A) 
+ty2TyTag A = ty2sty (nf A)
 ```
 
 ## Terms
@@ -132,11 +132,11 @@ application.
 
 ```
 mkCaseType : ∀{Φ} (A : Φ ⊢⋆ *) → List (Φ ⊢⋆ *) → Φ ⊢⋆ *
-mkCaseType A [] = A 
+mkCaseType A [] = A
 mkCaseType A (x ∷ xs) = x ⇒ (mkCaseType A xs)
 
 ConstrArgs : (Γ : Ctx Φ) → List (Φ ⊢⋆ *) → Set
-data Cases (Γ : Ctx Φ) (B : Φ ⊢⋆ *) : ∀{n} → Vec (List (Φ ⊢⋆ *)) n → Set 
+data Cases (Γ : Ctx Φ) (B : Φ ⊢⋆ *) : ∀{n} → Vec (List (Φ ⊢⋆ *)) n → Set
 
 data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
@@ -184,7 +184,7 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
       → (t : Γ ⊢ SOP Tss)
       → (cases : Cases Γ A Tss)
         --------------------------
-      → Γ ⊢ A  
+      → Γ ⊢ A
 
   conv : A ≡β B
        → Γ ⊢ A
@@ -207,12 +207,12 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
 ConstrArgs Γ = IList (Γ ⊢_)
 
-data Cases Γ B where 
+data Cases Γ B where
    []  : Cases Γ B []
    _∷_ : ∀{n}{Ts}{Tss : Vec _ n}(
-         c : Γ ⊢ (mkCaseType B Ts)) 
+         c : Γ ⊢ (mkCaseType B Ts))
        → (cs : Cases Γ B Tss)
-         --------------------- 
+         ---------------------
        → Cases Γ B (Ts ∷ Tss)
 
 ```
