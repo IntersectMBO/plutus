@@ -53,8 +53,8 @@ CekM = Writer Budget
 ### Spending operations
 
 As opposed to the production implemention, our `spend` function does not implement slippage.
-Slippage is an optimization that allows the interpreter to only add costs every n steps. 
-Slippage is only semantically relevant in restricting mode (not currently implemented in agda), 
+Slippage is an optimization that allows the interpreter to only add costs every n steps.
+Slippage is only semantically relevant in restricting mode (not currently implemented in agda),
 so we do not need to consider it here.
 
 ```
@@ -65,15 +65,15 @@ spendStartupCost : CekM ⊤
 spendStartupCost = tell startupCost
 ```
 
-In order to calculate the cost of executing a builtin, we obtain a vector with 
-the size of each constant argument using `extractArgSizes`. 
+In order to calculate the cost of executing a builtin, we obtain a vector with
+the size of each constant argument using `extractArgSizes`.
 
 Non-constant argument should only occur in places where the builtin is polymorphic
-and should be ignored by the cost model of the corresponding builtin. Therefore, 
+and should be ignored by the cost model of the corresponding builtin. Therefore,
 they are added with a size of 0.
 
-The function `extractArgSizes` get the arguments in inverse order, so we reverse 
-them in the `spendBuiltin` function. 
+The function `extractArgSizes` get the arguments in inverse order, so we reverse
+them in the `spendBuiltin` function.
 
 ```
 extractConstants : ∀{b}
@@ -82,7 +82,7 @@ extractConstants : ∀{b}
           → BApp b pt pa → Vec Value an
 extractConstants base = []
 extractConstants (app bapp v) = v ∷ extractConstants bapp
-extractConstants (app⋆ bapp) = extractConstants bapp 
+extractConstants (app⋆ bapp) = extractConstants bapp
 
 spendBuiltin : (b : Builtin) → fullyAppliedBuiltin b → CekM ⊤
 spendBuiltin b bapp = tell (cekMachineCost (BBuiltinApp b argsizes))
@@ -108,22 +108,22 @@ stepC (s ; ρ ▻ (t · u))           = do
 stepC (s ; ρ ▻ force t)           = do
     spend BForce
     return ((s , force-) ; ρ ▻ t)
-stepC (s ; ρ ▻ delay t)           = do 
+stepC (s ; ρ ▻ delay t)           = do
     spend BDelay
     return (s ◅ V-delay ρ t)
-stepC (s ; ρ ▻ con (tmCon t c))   = do 
+stepC (s ; ρ ▻ con (tmCon t c))   = do
     spend BConst
     return (s ◅ V-con t c)
 stepC (s ; ρ ▻ constr i [])       = do
-    spend BConstr    
+    spend BConstr
     return (s ◅ V-constr i ε)
-stepC (s ; ρ ▻ constr i (x ∷ xs)) = do 
+stepC (s ; ρ ▻ constr i (x ∷ xs)) = do
     spend BConstr
     return ((s , constr- i ε ρ xs); ρ ▻ x)
-stepC (s ; ρ ▻ case t ts)         = do 
+stepC (s ; ρ ▻ case t ts)         = do
     spend BCase
     return ((s , case- ρ ts) ; ρ ▻ t)
-stepC (s ; ρ ▻ builtin b)         = do 
+stepC (s ; ρ ▻ builtin b)         = do
     spend BBuiltin
     return (s ◅ ival b)
 stepC (s ; ρ ▻ error)             = return ◆
@@ -139,7 +139,7 @@ stepC ((s , (V-IΠ b bapp ·-)) ◅ v)          = return ◆ -- delayed builtin 
 stepC ((s , (V-constr i vs ·-)) ◅ v)        = return ◆ -- SOP in function position
 stepC ((s , force-) ◅ V-IΠ b bapp)          = return (s ◅ V-I b (app⋆ bapp))
 stepC ((s , force-) ◅ V-delay ρ t)          = stepC (s ; ρ ▻ t) -- this recursive call could be inlined
-                                                                -- in order to make evident that this is a single step 
+                                                                -- in order to make evident that this is a single step
                                                                 -- but this would make the definition much longer.
 stepC ((s , force-) ◅ V-ƛ _ _)              = return ◆ -- lambda in delay position
 stepC ((s , force-) ◅ V-con _ _)            = return ◆ -- constant in delay position
@@ -155,7 +155,7 @@ stepC ((s , case- ρ ts) ◅ V-I⇒ _ _)         = return ◆ -- case of builtin
 stepC ((s , case- ρ ts) ◅ V-IΠ _ _)         = return ◆ -- case of delayed builtin
 stepC ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = do --fully applied builtin function
           let bapp' = mkFullyAppliedBuiltin (app bapp v) -- proof that b is fully applied
-          spendBuiltin b bapp' 
+          spendBuiltin b bapp'
           return (either (BUILTIN b bapp') (λ _ →  ◆) (s ◅_))
 stepC ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) =  --partially applied builtin function
           return (s ◅ V-I b (app bapp v))
@@ -166,7 +166,7 @@ stepC ◆                   = return ◆
 stepperC-internal : ℕ → (s : State) → CekM (Either RuntimeError State)
 stepperC-internal 0       s = return (inj₁ gasError)
 stepperC-internal (suc n) s = do
-       s' ← stepC s 
+       s' ← stepC s
        go s'
     where
        go : (t : State) → CekM (Either RuntimeError State)
@@ -175,15 +175,15 @@ stepperC-internal (suc n) s = do
        go s'    = stepperC-internal n s'
 
 stepperC : ℕ → (s : State) → CekM (Either RuntimeError State)
-stepperC n s = do 
-       spendStartupCost 
+stepperC n s = do
+       spendStartupCost
        stepperC-internal n s
 ```
 
 ## Proof of equivalence between CEK machine with and without costs
 
 ```
-cekStepEquivalence : ∀ (s : State) → step s ≡ wrvalue (stepC s) 
+cekStepEquivalence : ∀ (s : State) → step s ≡ wrvalue (stepC s)
 cekStepEquivalence (s ; ρ ▻ ` _) = refl
 cekStepEquivalence (s ; ρ ▻ ƛ _) = refl
 cekStepEquivalence (s ; ρ ▻ (_ · _)) = refl
@@ -224,11 +224,11 @@ cekStepEquivalence ((s , case- _ _) ◅ V-IΠ _ _) = refl
 cekStepEquivalence (□ _) = refl
 cekStepEquivalence ◆ = refl
 
-cekStepperEquivalence : ∀ n s → stepper n s ≡ wrvalue (stepperC n s) 
-cekStepperEquivalence zero s = refl 
-cekStepperEquivalence (suc n) s rewrite sym (cekStepEquivalence s) with step s 
+cekStepperEquivalence : ∀ n s → stepper n s ≡ wrvalue (stepperC n s)
+cekStepperEquivalence zero s = refl
+cekStepperEquivalence (suc n) s rewrite sym (cekStepEquivalence s) with step s
 ... | s ; ρ ▻ t = cekStepperEquivalence n (s ; ρ ▻ t)
 ... | s ◅ v = cekStepperEquivalence n  (s ◅ v)
 ... | □ x = refl
 ... | ◆ = refl
-``` 
+```

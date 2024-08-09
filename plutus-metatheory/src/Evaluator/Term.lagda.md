@@ -8,10 +8,10 @@ This module contains functions that are meant to be called from Haskell code.
 It is mainly used by different testing programs.
 
 ```
-module Evaluator.Term where 
+module Evaluator.Term where
 ```
 
-## Imports 
+## Imports
 
 ```
 open import Agda.Builtin.Nat using (Nat)
@@ -27,7 +27,7 @@ open import Check using (TypeError;inferType;inferKind;decKind;checkKind;checkTy
 open TypeError
 
 open import Scoped using (extricateScopeTy;Weirdℕ;scopeCheckTm;shifter;unshifter;extricateScope;unshifterTy;scopeCheckTy;shifterTy;FreeVariableError)
-open Weirdℕ 
+open Weirdℕ
 open import Scoped.Extrication using (extricateNf⋆;extricate)
 open import Utils using (Either;inj₁;inj₂;withE;Kind;*;Maybe;nothing;just;Monad;RuntimeError;dec2Either;_×_;_,_)
 open RuntimeError
@@ -206,7 +206,7 @@ runTL t = do
   return (unconvTm (unshifter Z (extricateScope (extricate t))))
 
 {-# COMPILE GHC runTL as runTLAgda #-}
-``` 
+```
 
 Note the interfaces to evaluation below catch userErrors and replace them with error terms
 
@@ -243,7 +243,7 @@ runTCEK t = do
 ```
 
 Note that according to the specification ◆ should reduce to an error term,
-but here the untyped PLC term evaluator matches the behaviour of the 
+but here the untyped PLC term evaluator matches the behaviour of the
 Haskell implementation: an error is thrown with ◆.
 
 ```
@@ -258,7 +258,7 @@ runUValue t = do
 runU : TermU → Either ERROR TermU
 runU t = do
   tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
-  V   ← runUValue tDB 
+  V   ← runUValue tDB
   return (unconvTmU (U.extricateU0 (U.discharge V)))
 
 {-# COMPILE GHC runU as runUAgda #-}
@@ -269,19 +269,19 @@ Run an untyped term with costing in Counting mode.
 From Haskell, this function should be called as `runUCountingAgda`
 where the first argument is a `CostModel`, as defined in
 `plutus-metatheory/src/Opts.hs` and the second argument is a
-`Term NamedDeBruijn DefaultUni DefaultFun ()`. 
+`Term NamedDeBruijn DefaultUni DefaultFun ()`.
 
-From Haskell, the return type is either an error or a tuple 
+From Haskell, the return type is either an error or a tuple
 `(Term NamedDeBruijn DefaultUni DefaultFun (), (Integer, Integer))` consisting
 of the result of evalution, and a pair of the CPU costs and the memory costs,
 respectively.
 
 ```
 runUCounting : RawCostModel → TermU → Either ERROR (TermU × (Nat × Nat))
-runUCounting (cekMachineCosts , rawmodel) t with createMap rawmodel 
-... | just model = do 
+runUCounting (cekMachineCosts , rawmodel) t with createMap rawmodel
+... | just model = do
         tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
-        let machineParameters = machineParameters (cekMachineCosts , model) 
+        let machineParameters = machineParameters (cekMachineCosts , model)
             (ev , exBudget) = U.stepperC machineParameters maxsteps (ε ; [] ▻ tDB)
         □ V ← withE runtimeError ev
             where
@@ -338,6 +338,6 @@ alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTmU plc1' | deBru
 alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = U.decUTm (convTmU plc1'') (convTmU plc2'')
 alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
 alphaU plc1 plc2 | _ | _ = Bool.false
- 
+
 {-# COMPILE GHC alphaU as alphaU #-}
 ```

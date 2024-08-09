@@ -383,6 +383,8 @@ instance Check (TypeG n) TermConstantG where
   check _                          _                 = false
 
 
+-- | DEPRECATED: No Need to Update for a new Builtin.
+-- NEAT tests are useless for builtins, see https://github.com/IntersectMBO/plutus/issues/6075
 defaultFunTypes :: Ord tyname => Map.Map (TypeG tyname) [DefaultFun]
 defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
                    ,[AddInteger,SubtractInteger,MultiplyInteger,DivideInteger,QuotientInteger,RemainderInteger,ModInteger])

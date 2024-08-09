@@ -36,7 +36,7 @@ dcong₂ : ∀ {α β γ} {A : Set α} {B : Set β} {C : Set γ} {x₁ x₂ y₁
        → Dec (y₁ ≡ y₂)
        → Dec (f x₁ y₁ ≡ f x₂ y₂)
 dcong₂ f inj (yes refl) (yes refl) = yes refl
-dcong₂ f inj (yes _) (no ¬q) = no (λ x → ¬q (proj₂ (inj x))) 
+dcong₂ f inj (yes _) (no ¬q) = no (λ x → ¬q (proj₂ (inj x)))
 dcong₂ f inj (no ¬p) _ = no (λ x → ¬p (proj₁ (inj x)))
 
 dhcong : ∀ {α β γ} {A : Set α} {B : A → Set β} {C : Set γ} {x₁ x₂ y₁ y₂}

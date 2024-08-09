@@ -11,12 +11,12 @@ module Type.RenamingSubstitution where
 
 ```
 open import Data.Fin using (Fin;zero;suc)
-open import Data.Vec using (Vec;[];_∷_;lookup) 
+open import Data.Vec using (Vec;[];_∷_;lookup)
 open import Data.List using (List;[];_∷_)
 open import Function using (id;_∘_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; cong₂; trans; sym)
-  renaming (subst to substEq) 
+  renaming (subst to substEq)
 
 open import Utils using (*;J;K)
 open import Type using (Ctx⋆;_,⋆_;∅;Φ;Ψ;_⊢⋆_;_∋⋆_;S;Z)
@@ -66,7 +66,7 @@ ext ρ (S α)  =  S (ρ α)
 # Apply a type renaming to a type.
 
 This is defined by recursion on the type. Observe that we lift the renaming when
-we go under a binder and actually apply the renaming when we hit a variable. 
+we go under a binder and actually apply the renaming when we hit a variable.
 
 ```
 ren : Ren Φ Ψ
@@ -85,7 +85,7 @@ ren ρ (A ⇒ B)     = ren ρ A ⇒ ren ρ B
 ren ρ (ƛ B)       = ƛ (ren (ext ρ) B)
 ren ρ (μ A B)     = μ (ren ρ A) (ren ρ B)
 ren ρ (^ x)       = ^ x
-ren ρ (con c)     = con (ren ρ c) 
+ren ρ (con c)     = con (ren ρ c)
 ren ρ (A · B)     = ren ρ A · ren ρ B
 ren ρ (SOP xss)   = SOP (ren-VecList ρ xss)
 
@@ -172,14 +172,14 @@ First functor law for `ren`
 ren-id : (A : Φ ⊢⋆ J)
          ------------
        → ren id A ≡ A
-ren-id-List : 
+ren-id-List :
          (As : List (Φ ⊢⋆ J))
          --------------------
-       → ren-List id As ≡ As       
+       → ren-List id As ≡ As
 ren-id-VecList : ∀{n}
          (Tss : Vec (List (Φ ⊢⋆ J)) n)
          --------------------
-       → ren-VecList id Tss ≡ Tss  
+       → ren-VecList id Tss ≡ Tss
 
 ren-id (` α)     = refl
 ren-id (Π A)     = cong Π (trans (ren-cong ext-id A) (ren-id A))
@@ -189,7 +189,7 @@ ren-id (A · B)   = cong₂ _·_ (ren-id A) (ren-id B)
 ren-id (μ A B)   = cong₂ μ (ren-id A) (ren-id B)
 ren-id (^ x)     = refl
 ren-id (con c)   = cong con (ren-id c)
-ren-id (SOP xss) = cong SOP (ren-id-VecList xss) 
+ren-id (SOP xss) = cong SOP (ren-id-VecList xss)
 
 ren-id-List [] = refl
 ren-id-List (x ∷ xs) = cong₂ _∷_ (ren-id x) (ren-id-List xs)
@@ -284,7 +284,7 @@ sub σ (A · B) = sub σ A · sub σ B
 sub σ (μ A B) = μ (sub σ A) (sub σ B)
 sub σ (^ x)   = ^ x
 sub σ (con c) = con (sub σ c)
-sub σ (SOP xss) = SOP (sub-VecList σ xss) 
+sub σ (SOP xss) = SOP (sub-VecList σ xss)
 
 sub-List σ [] = []
 sub-List σ (x ∷ xs) = sub σ x ∷ sub-List σ xs
@@ -307,7 +307,7 @@ sub-cons f A (S x) = f x
 A special case is substitution a type for the outermost free variable:
 ```
 _[_] : Φ ,⋆ K ⊢⋆ J
-     → Φ ⊢⋆ K 
+     → Φ ⊢⋆ K
        -----------
      → Φ ⊢⋆ J
 B [ A ] =  sub (sub-cons ` A) B
@@ -320,7 +320,7 @@ Extending the identity substitution yields the identity substitution
 ```
 exts-id : (α : Φ ,⋆ K ∋⋆ J)
           -----------------
-        → exts ` α ≡ ` α 
+        → exts ` α ≡ ` α
 exts-id Z     = refl
 exts-id (S α) = refl
 ```
@@ -359,7 +359,7 @@ sub-cong p (ƛ A)   = cong ƛ (sub-cong (exts-cong p) A)
 sub-cong p (A · B) = cong₂ _·_ (sub-cong p A) (sub-cong p B)
 sub-cong p (μ A B) = cong₂ μ (sub-cong p A) (sub-cong p B)
 sub-cong p (^ x)   = refl
-sub-cong p (con c) = cong con (sub-cong p c) 
+sub-cong p (con c) = cong con (sub-cong p c)
 sub-cong p (SOP xss) = cong SOP (sub-cong-VecList p xss)
 
 sub-cong-List p [] = refl
@@ -374,11 +374,11 @@ First relative monad `law` for `sub`
 sub-id : (A : Φ ⊢⋆ J)
          ------------
        → sub ` A ≡ A
-sub-id-List : 
+sub-id-List :
          (As : List (Φ ⊢⋆ J))
          --------------------
        → sub-List ` As ≡ As
-sub-id-VecList : ∀{n} 
+sub-id-VecList : ∀{n}
          (Tss : Vec (List (Φ ⊢⋆ J)) n)
          --------------------
        → sub-VecList ` Tss ≡ Tss
@@ -390,7 +390,7 @@ sub-id (ƛ A)      = cong ƛ (trans (sub-cong exts-id A) (sub-id A))
 sub-id (A · B)    = cong₂ _·_ (sub-id A) (sub-id B)
 sub-id (μ A B)    = cong₂ μ (sub-id A) (sub-id B)
 sub-id (^ x)      = refl
-sub-id (con c)    = cong con (sub-id c) 
+sub-id (con c)    = cong con (sub-id c)
 sub-id (SOP xss)  = cong SOP (sub-id-VecList xss)
 
 sub-id-List [] = refl
@@ -434,7 +434,7 @@ sub-ren (A · B)   = cong₂ _·_ (sub-ren A) (sub-ren B)
 sub-ren (μ A B)   = cong₂ μ (sub-ren A) (sub-ren B)
 sub-ren (^ x)     = refl
 sub-ren (con c)   = cong con (sub-ren c)
-sub-ren (SOP xss) = cong SOP (sub-ren-VecList xss) 
+sub-ren (SOP xss) = cong SOP (sub-ren-VecList xss)
 
 sub-ren-List [] = refl
 sub-ren-List (x ∷ xs) = cong₂ _∷_ (sub-ren x) (sub-ren-List xs)
@@ -477,7 +477,7 @@ ren-sub (A · B)   = cong₂ _·_ (ren-sub A) (ren-sub B)
 ren-sub (μ A B)   = cong₂ μ (ren-sub A) (ren-sub B)
 ren-sub (^ x)     = refl
 ren-sub (con c)   = cong con (ren-sub c)
-ren-sub (SOP xss) = cong SOP (ren-sub-VecList xss) 
+ren-sub (SOP xss) = cong SOP (ren-sub-VecList xss)
 
 ren-sub-List [] = refl
 ren-sub-List (x ∷ xs) = cong₂ _∷_ (ren-sub x) (ren-sub-List xs)
@@ -502,14 +502,14 @@ Fusion of substitutions/third relative monad law for `sub`
 sub-comp : ∀{J}(A : Φ ⊢⋆ J)
            -------------------------------------
          → sub (sub σ ∘ σ') A ≡ sub σ (sub σ' A)
-sub-com-List : ∀ {J} 
+sub-com-List : ∀ {J}
                 (As : List (Φ ⊢⋆ J))
-                ------------------------------------------------------------------     
+                ------------------------------------------------------------------
               → sub-List (sub σ ∘ σ') As ≡ sub-List σ (sub-List σ' As)
 
-sub-com-VecList : ∀ {n J} 
-                (Tss : Vec (List (Φ ⊢⋆ J)) n) 
-                ------------------------------------------------------------------     
+sub-com-VecList : ∀ {n J}
+                (Tss : Vec (List (Φ ⊢⋆ J)) n)
+                ------------------------------------------------------------------
               → sub-VecList (sub σ ∘ σ') Tss ≡ sub-VecList σ (sub-VecList σ' Tss)
 
 
@@ -521,7 +521,7 @@ sub-comp (A · B)    = cong₂ _·_ (sub-comp A) (sub-comp B)
 sub-comp (μ A B)    = cong₂ μ (sub-comp A) (sub-comp B)
 sub-comp (^ x)      = refl
 sub-comp (con c)    = cong con (sub-comp c)
-sub-comp (SOP xss)  = cong SOP (sub-com-VecList xss) 
+sub-comp (SOP xss)  = cong SOP (sub-com-VecList xss)
 
 sub-com-List [] = refl
 sub-com-List (x ∷ xs) = cong₂ _∷_ (sub-comp x) (sub-com-List xs)
@@ -615,7 +615,7 @@ If we start from a type in an empty context, we may weaken it to any context,
 and then we have two lemmas.
 ```
 sub∅ : ∀{Φ K} → ∅ ⊢⋆ K → Φ ⊢⋆ K
-sub∅ t = sub (λ()) t 
+sub∅ t = sub (λ()) t
 
 sub∅-ren : ∀{K} (t : ∅ ⊢⋆ K) (ρ : Ren Φ Ψ) → sub∅ t ≡ ren ρ (sub∅ t)
 sub∅-ren t ρ = trans (sub-cong (λ ()) t) (ren-sub t)

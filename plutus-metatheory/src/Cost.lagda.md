@@ -9,7 +9,7 @@ This module contains the basic definitions and structures for modelling costs.
 
 ```
 
-module Cost where 
+module Cost where
 
 ```
 
@@ -38,8 +38,8 @@ open import Text.Printf using (printf)
 open import Relation.Binary using (StrictTotalOrder)
 open import Data.Char using (_≈ᵇ_)
 open import Data.String.Properties using (<-strictTotalOrder-≈)
-open import Data.Tree.AVL.Map <-strictTotalOrder-≈ as AVL 
-          using (Map;empty;unionWith;singleton) 
+open import Data.Tree.AVL.Map <-strictTotalOrder-≈ as AVL
+          using (Map;empty;unionWith;singleton)
           renaming (lookup to lookupAVL)
 
 open import Utils using (_×_;_,_)
@@ -63,14 +63,14 @@ An execution budget consist of two costs: CPU and memory costs.
 
 ```
 record ExBudget : Set where
-  constructor mkExBudget 
+  constructor mkExBudget
   field
     ExCPU : CostingNat -- CPU usage
     ExMem : CostingNat -- Memory usage
 
 open ExBudget
 
-fromHExBudget : HExBudget → ExBudget 
+fromHExBudget : HExBudget → ExBudget
 fromHExBudget hb = mkExBudget (getCPUCost hb) (getMemoryCost hb)
 ```
 
@@ -79,34 +79,34 @@ We show that this is the case for `ExBudget`.
 
 ```
 -- unit of the monoid
-ε€ : ExBudget 
-ε€ = mkExBudget 0 0 
+ε€ : ExBudget
+ε€ = mkExBudget 0 0
 
 -- binary operation
-_∙€_ : ExBudget → ExBudget → ExBudget 
+_∙€_ : ExBudget → ExBudget → ExBudget
 (mkExBudget xCPU xMem) ∙€ (mkExBudget yCPU yMem) = mkExBudget (xCPU + yCPU) (xMem + yMem)
 
 -- Note: working with `Monoid` instances would imply working in Set₁, so we avoid it
 -- and just state that `ExBudget` is a Monoid
 
 isMonoidExBudget : IsMonoid _≡_ _∙€_ ε€
-isMonoidExBudget = record { 
-       isSemigroup = record { 
-           isMagma = record { isEquivalence = isEquivalence ; ∙-cong = λ {refl refl → refl }} 
-           ; assoc = λ x y z → cong₂ mkExBudget (+-assoc (ExCPU x) (ExCPU y) (ExCPU z)) 
-                                                (+-assoc (ExMem x) (ExMem y) (ExMem z)) } 
+isMonoidExBudget = record {
+       isSemigroup = record {
+           isMagma = record { isEquivalence = isEquivalence ; ∙-cong = λ {refl refl → refl }}
+           ; assoc = λ x y z → cong₂ mkExBudget (+-assoc (ExCPU x) (ExCPU y) (ExCPU z))
+                                                (+-assoc (ExMem x) (ExMem y) (ExMem z)) }
      ; identity = (λ x → refl) ,, λ x → cong₂ mkExBudget (+-identityʳ (ExCPU x)) (+-identityʳ (ExMem x)) }
-``` 
+```
 
 ## Cost of executing a builtin
 
-To calculate the cost of a builtin we obtain the corresponding builtin model, 
+To calculate the cost of a builtin we obtain the corresponding builtin model,
 and run the cpu and memory model using the vector of argument sizes.
 
 ```
 builtinCost : (b : Builtin) → BuiltinModel (arity b) → Vec Value (arity b) → ExBudget
 builtinCost b bc cs = mkExBudget (runModel (costingCPU bc) cs) (runModel (costingMem bc) cs)
-``` 
+```
 
 
 ## Default Machine Parameters
@@ -127,7 +127,7 @@ cekMachineCostFunction mc BBuiltin = fromHExBudget (getCekBuiltinCost mc)
 cekMachineCostFunction mc BConstr = fromHExBudget (getCekConstCost mc)
 cekMachineCostFunction mc BCase = fromHExBudget (getCekCaseCost mc)
 
-exBudgetCategoryCost : CostModel → ExBudgetCategory → ExBudget 
+exBudgetCategoryCost : CostModel → ExBudgetCategory → ExBudget
 exBudgetCategoryCost (cekMc , _) (BStep x) = cekMachineCostFunction cekMc x
 exBudgetCategoryCost (_ , ma) (BBuiltinApp b cs) = builtinCost b (ma b) cs
 exBudgetCategoryCost (cekMc , _) BStartup = fromHExBudget (getCekStartupCost cekMc)
@@ -138,41 +138,41 @@ machineParameters costmodel = record {
   ; ε = ε€
   ; _∙_ = _∙€_
   ; costMonoid = isMonoidExBudget
- } 
+ }
 
-countingReport : ExBudget → String 
-countingReport (mkExBudget cpu mem) = 
-      "\nCPU budget:    " ++ showℕ cpu 
+countingReport : ExBudget → String
+countingReport (mkExBudget cpu mem) =
+      "\nCPU budget:    " ++ showℕ cpu
    ++ "\nMemory budget: " ++ showℕ mem
 ```
- ## Tallying budget 
+ ## Tallying budget
 
 These functions define a type for Budgets that can record detailed cost information
 about nodes and builtins.
 
-We need a map from `ExBudgetCategory` into `ExBudget`. 
-It's not the most efficient, but the simplest thing to do is to 
+We need a map from `ExBudgetCategory` into `ExBudget`.
+It's not the most efficient, but the simplest thing to do is to
 transform `ExBudgetCategory` into a string, and use that as keys.
 
 ```
-mkKeyFromExBudgetCategory : ExBudgetCategory → String 
+mkKeyFromExBudgetCategory : ExBudgetCategory → String
 mkKeyFromExBudgetCategory (BStep x) = "0" ++ showStepKind x
 mkKeyFromExBudgetCategory (BBuiltinApp x _) = "1"++ showBuiltin x
 mkKeyFromExBudgetCategory BStartup = "2"
 
-TallyingBudget : Set 
+TallyingBudget : Set
 TallyingBudget = Map ExBudget × ExBudget
 
 lookup : Map ExBudget → ExBudgetCategory → ExBudget
-lookup m k with lookupAVL (mkKeyFromExBudgetCategory k) m 
+lookup m k with lookupAVL (mkKeyFromExBudgetCategory k) m
 ... | just x = x
 ... | nothing = ε€
 ```
 
-As required, `TallyingBudget` is a monoid. 
+As required, `TallyingBudget` is a monoid.
 
 ```
---unit of TallyingBudget 
+--unit of TallyingBudget
 εT : TallyingBudget
 εT = empty , ε€
 
@@ -188,28 +188,28 @@ postulate TallyingBudget-assoc : Algebra.Associative _≡_ _∙T_
 postulate Tallying-budget-identityʳ : Algebra.RightIdentity _≡_ εT _∙T_
 
 isMonoidTallyingBudget : IsMonoid _≡_ _∙T_ εT
-isMonoidTallyingBudget = record { 
-       isSemigroup = record { 
-           isMagma = record { isEquivalence = isEquivalence 
-                            ; ∙-cong = λ {refl refl → refl }} 
-           ; assoc = TallyingBudget-assoc } 
+isMonoidTallyingBudget = record {
+       isSemigroup = record {
+           isMagma = record { isEquivalence = isEquivalence
+                            ; ∙-cong = λ {refl refl → refl }}
+           ; assoc = TallyingBudget-assoc }
      ; identity = (λ x → refl) ,, Tallying-budget-identityʳ }
 
 tallyingCekMachineCost : CostModel → ExBudgetCategory → TallyingBudget
-tallyingCekMachineCost cm k = 
-      let spent = exBudgetCategoryCost cm k 
+tallyingCekMachineCost cm k =
+      let spent = exBudgetCategoryCost cm k
       in singleton (mkKeyFromExBudgetCategory k) spent , spent
 
 tallyingMachineParameters : CostModel → MachineParameters TallyingBudget
-tallyingMachineParameters cm = record { 
+tallyingMachineParameters cm = record {
         cekMachineCost = tallyingCekMachineCost cm
       ; ε = εT
       ; _∙_ = _∙T_
       ; costMonoid = isMonoidTallyingBudget
-      } 
+      }
 
 tallyingReport : TallyingBudget → String
-tallyingReport (mp , budget) =  
+tallyingReport (mp , budget) =
        countingReport budget
     ++ "\n"
     ++ "\n"
@@ -219,47 +219,47 @@ tallyingReport (mp , budget) =
     ++ "compute    " ++ budgetToString totalComputeCost ++ "\n"
     -- ++ "AST nodes  " ++ ++ "\n"
     ++ "\n\n"
-    ++ printBuiltinReport mp 
-    ++ "\n" 
+    ++ printBuiltinReport mp
+    ++ "\n"
     ++ "Total builtin costs:   " ++ budgetToString totalBuiltinCosts ++ "\n"
-     -- We would like to be able to print the following  number as "%4.2f" 
+     -- We would like to be able to print the following  number as "%4.2f"
      -- but Agda's printf currently doesn't support it.
     ++ printf "Time spent executing builtins:  %f%%\n" (fromℕ 100 *f (getCPU totalBuiltinCosts) ÷ (getCPU budget)) ++ "\n"
     ++ "\n"
     ++ "Total budget spent:    " ++ budgetToString budget ++ "\n"
     ++  "Predicted execution time: " ++ formatTimePicoseconds (getCPU budget)
-  where 
-    totalComputeCost totalBuiltinCosts : ExBudget 
+  where
+    totalComputeCost totalBuiltinCosts : ExBudget
     totalComputeCost = L.foldr (λ x acc → (lookup mp (BStep x)) ∙€ acc) ε€ stepKindList
     totalBuiltinCosts = L.foldr _∙€_ ε€ (L.map (lookup mp ∘ (λ b → BBuiltinApp b (replicate (V-con (atomic aUnit) tt)))) builtinList)
 
     getCPU : ExBudget → Float
-    getCPU n = fromℕ (ExCPU n)   
+    getCPU n = fromℕ (ExCPU n)
 
-    budgetToString : ExBudget → String 
-    budgetToString (mkExBudget cpu mem) = padLeft ' ' 15 (showℕ cpu) ++ "  " 
+    budgetToString : ExBudget → String
+    budgetToString (mkExBudget cpu mem) = padLeft ' ' 15 (showℕ cpu) ++ "  "
                                        ++ padLeft ' ' 15 (showℕ mem)
 
     printStepCost : StepKind → ExBudget → String
-    printStepCost sk budget = padRight ' ' 10 (showStepKind sk) ++ " " 
+    printStepCost sk budget = padRight ' ' 10 (showStepKind sk) ++ " "
                            ++ padLeft ' ' 20 (budgetToString budget) ++ "\n"
 
-    printStepReport : Map ExBudget → String 
+    printStepReport : Map ExBudget → String
     printStepReport mp = L.foldr (λ s xs → printStepCost s (lookup mp (BStep s)) ++ xs)
-                               "" 
+                               ""
                                stepKindList
 
-    printBuiltinCost : Builtin → ExBudget → String 
-    printBuiltinCost b (mkExBudget 0 0) = "" 
-    printBuiltinCost b budget = padRight ' ' 22 (showBuiltin b) ++ " " 
+    printBuiltinCost : Builtin → ExBudget → String
+    printBuiltinCost b (mkExBudget 0 0) = ""
+    printBuiltinCost b budget = padRight ' ' 22 (showBuiltin b) ++ " "
                              ++ budgetToString budget ++ "\n"
 
-    printBuiltinReport : Map ExBudget → String 
-    printBuiltinReport mp = 
-        L.foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b (replicate (V-con (atomic aUnit) tt)))) ++ xs) 
-              "" 
-              builtinList     
-    
+    printBuiltinReport : Map ExBudget → String
+    printBuiltinReport mp =
+        L.foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b (replicate (V-con (atomic aUnit) tt)))) ++ xs)
+              ""
+              builtinList
+
     formatTimePicoseconds : Float → String
     formatTimePicoseconds t = if 1e12 ≤ᵇ t then (printf "%f s" (t ÷ 1e12)) else
                               if 1e9 ≤ᵇ t then  (printf "%f ms" (t ÷ 1e9)) else
