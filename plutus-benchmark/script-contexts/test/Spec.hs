@@ -143,7 +143,7 @@ testCheckDataScEquality = testGroup "checkScriptContextEquality"
     [ runTestGhcData [ Tx.goldenBudget "checkScriptContextEqualityData-20" $
                         Data.SC.mkScriptContextEqualityDataCode (Data.SC.mkScriptContext 20)
                    , Tx.goldenEvalCekCatch "checkScriptContextEqualityData-20" $
-                        [mkScriptContextEqualityDataCode (mkScriptContext 20)]
+                        [Data.SC.mkScriptContextEqualityDataCode (Data.SC.mkScriptContext 20)]
                    , Tx.goldenBudget "checkScriptContextEqualityOverhead-20" $
                         Data.SC.mkScriptContextEqualityOverheadCode (Data.SC.mkScriptContext 20)
                    , Tx.goldenEvalCekCatch "checkScriptContextEqualityOverhead-20" $
