@@ -51,11 +51,16 @@ main = defaultMain . testGroup "bitwise" $ [
 -- Cases
 
 sha512Case :: IO ()
-sha512Case = do
-  let testBS = "hello world"
-  let expected = SHA512Ref.hash testBS
-  let actual = fromBuiltin . sha512 . toBuiltin $ testBS
-  assertEqual "" expected actual
+sha512Case =
+  let test bs =
+        let expected = SHA512Ref.hash bs
+            actual = fromBuiltin . sha512 . toBuiltin $ bs
+        in assertEqual "" expected actual
+  in do
+    test ""
+    test "x"
+    test "hello world"
+    test "EJFWROIFJOIWEIJjoofjewgjorewg:OwoejJVNklvklKgOGIRi8gu79wrg9t678dvtsduivh&W*t5r2348yfhikjdhvjdv"
 
 ed25519Case :: IO ()
 ed25519Case = do

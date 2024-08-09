@@ -599,8 +599,6 @@ benchmark marlowe-agda-cek
 library bitwise-internal
   import:          lang, ghc-version-support
   hs-source-dirs:  bitwise/src
-  exposed-modules: PlutusBenchmark.NQueens
-  build-depends:   plutus-tx ^>=1.32
   exposed-modules:
     PlutusBenchmark.Ed25519
     PlutusBenchmark.Ed25519.Compiled
@@ -639,4 +637,3 @@ benchmark bitwise-bench
     , criterion
     , plutus-benchmark-common
     , plutus-tx                ^>=1.32
-    , plutus-tx-plugin         ^>=1.32
