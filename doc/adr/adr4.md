@@ -1,14 +1,10 @@
----
-sidebar_position: 25
----
-
 # ADR 4: Deferred unlifting in Plutus Core
 
 Date: 2022-11
 
 ## Authors
 
-[Michael Peyton Jones](mailto:michael.peyton-jones@iohk.io) 
+[Michael Peyton Jones](mailto:michael.peyton-jones@iohk.io)
 
 ## Status
 
@@ -24,7 +20,7 @@ This is necessary in order to apply the denotation of the builtin being applied,
 However, unlifting can fail: we cannot unlift a _string_ constant into a Haskell integer.
 This failure is visible in program execution, since it terminates the program with an error.
 
-The original design of the builtin application machinery performed unlifting of an argument as soon as it was received. 
+The original design of the builtin application machinery performed unlifting of an argument as soon as it was received.
 This meant that unlifting failures would surface at that point, whereas most of the errors that relate to builtin evaluation can only occur once the builtin has all its arguments, since that's when we run the actual function.
 
 For example:
@@ -57,7 +53,7 @@ Consequently, we felt that it was safe to change the default unlifting behaviour
 
 However, in order to gain the full benefit of simplification, we would like to remove the existence of immediate unlifting entirely.
 If historical script evaluations on the chain still rely on immediate unlifting, then we must support it (and specify it) forever.
-However, once the default has changed, if the history of the chain still validates with _deferred_ unlifting, then we know that no historical script evaluations relied on that behaviour. 
+However, once the default has changed, if the history of the chain still validates with _deferred_ unlifting, then we know that no historical script evaluations relied on that behaviour.
 At that point we can _unconditionally_ enable deferred unlifting without worrying about not being able to validate the chain.
 
 In theory, there could be outputs locked with script hashes whose behaviour would (if they are ever spent) rely on inmmediate unlifting.

@@ -1,7 +1,3 @@
----
-sidebar_position: 10
----
-
 # ADR 1: Record architectural decisions
 
 Date: 2022-06-08
@@ -16,7 +12,7 @@ Accepted
 
 ## Context
 
-We are in search for a means to document our architectural and design decisions for all of our components. 
+We are in search for a means to document our architectural and design decisions for all of our components.
 To do that, there is a practice called architectural decision records (ADR) that we can
 integrate into our workflow.
 
@@ -36,7 +32,7 @@ For each decision, it is important to consider the following factors:
 
 - We will use ADRs to document, propose, and discuss any important or significant architectural and design decisions.
 - The ADR format will follow the format described in the [Implications](#implications) section.
-- We will follow the convention of storing those ADRs as rST or Markdown formatted documents stored under the [docs/adr] directory, as exemplified in Nat Pryce's [adr-tools](https://github.com/npryce/adr-tools). 
+- We will follow the convention of storing those ADRs as rST or Markdown formatted documents stored under the [docs/adr] directory, as exemplified in Nat Pryce's [adr-tools](https://github.com/npryce/adr-tools).
 This does not imply that we will be using [adr-tools] itself, as we might diverge from the proposed structure.
 - We will keep rejected ADRs.
 - We will strive, if possible, to create an ADR as early as possible in relation to the actual implementation.
@@ -95,7 +91,7 @@ Explain alternatives with sufficient detail to judge their suitability; refer to
 
 ### Implications (or consequences)
 
-Describe the decision’s implications. For example, it may: 
+Describe the decision’s implications. For example, it may:
 
 * Introduce a need to make other decisions
 * Create new requirements
