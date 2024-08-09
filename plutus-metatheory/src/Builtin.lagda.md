@@ -580,8 +580,8 @@ postulate
 {-# COMPILE GHC BLAKE2B-224 = Hash.blake2b_224 #-}
 
 {-# FOREIGN GHC import PlutusCore.Bitwise qualified as Bitwise #-}
-{-# COMPILE GHC BStoI = Bitwise.byteStringToIntegerWrapper #-}
-{-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Bitwise.integerToByteStringWrapper e w n #-}
+{-# COMPILE GHC BStoI = Bitwise.byteStringToInteger #-}
+{-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Bitwise.integerToByteString e w n #-}
 {-# COMPILE GHC andBYTESTRING = Bitwise.andByteString #-}
 {-# COMPILE GHC orBYTESTRING = Bitwise.orByteString #-}
 {-# COMPILE GHC xorBYTESTRING = Bitwise.xorByteString #-}
@@ -589,8 +589,8 @@ postulate
 {-# COMPILE GHC readBIT = \s n -> builtinResultToMaybe $ Bitwise.readBit s (fromIntegral n) #-}
 {-# COMPILE GHC writeBITS = \s ps us -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) us #-}
 {-# COMPILE GHC replicateBYTE = \n w8 -> builtinResultToMaybe $ Bitwise.replicateByte (fromIntegral n) (fromIntegral w8) #-}
-{-# COMPILE GHC shiftBYTESTRING = Bitwise.shiftByteStringWrapper #-}
-{-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteStringWrapper #-}
+{-# COMPILE GHC shiftBYTESTRING = Bitwise.shiftByteString #-}
+{-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteString #-}
 {-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits s #-}
 {-# COMPILE GHC findFirstSetBIT = \s -> fromIntegral $ Bitwise.findFirstSetBit s #-}
 
