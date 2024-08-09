@@ -430,7 +430,10 @@ benchmark bls12-381-benchmarks
 library script-contexts-internal
   import:          lang, ghc-version-support
   hs-source-dirs:  script-contexts/src
-  exposed-modules: PlutusBenchmark.ScriptContexts
+  exposed-modules:
+    PlutusBenchmark.Data.ScriptContexts
+    PlutusBenchmark.ScriptContexts
+
   build-depends:
     , base               >=4.9   && <5
     , plutus-ledger-api  ^>=1.32
