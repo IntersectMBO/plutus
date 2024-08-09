@@ -95,7 +95,7 @@ The logic of the validator script, then, is as follows:
 The Cardano ledger currently has a few different kinds of validator scripts:
 
 - The "simple" script language (introduced in the Allegra hard fork), which allows basic checks such as time locks
-- Various Plutus language versions (see [Plutus language versions](language-versions.md))
+- Various ledger language versions (see [Different Notions of Version](versions.md))
 
 ## Further reading
 

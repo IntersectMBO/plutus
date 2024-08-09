@@ -45,7 +45,7 @@ Going forward we expect the launch of new ledger eras to be the only reason for 
 Plutus Core version is the usual sense of version pertaining to programming languages - in this instance the Plutus Core language.
 So far there have been two Plutus Core versions: 1.0.0 and 1.1.0.
 1.1.0 adds sums-of-products to the language by introducing two new AST node types: `Case` and `Constr`.
-See CIP-85 for more details.
+See [CIP-85](https://cips.cardano.org/cip/CIP-0085) for more details.
 
 Note that adding new builtin functions does not require a new Plutus Core version.
 Once a new builtin function is added, one can simply start using the new builtin function with an existing Plutus Core version.
@@ -53,7 +53,7 @@ Once a new builtin function is added, one can simply start using the new builtin
 ## Builtin Semantics Variant
 
 Depending on the protocol version or the ledger language version, we may want to have different behavior of a particular builtin function.
-For example, we might want to fix a bug but need to retain the old buggy behavior for old evaluations, so we have to have a way of knowing which regime we are in.
+For example, we might want to fix a bug but need to retain the old buggy behavior for old evaluations of already-submitted scripts, so we have to have a way of knowing which regime we are in.
 
 One example is the builtin function `consByteString`.
 If the first argument is outside of the range of `Word8`, the original behavior is to wrap it around.
@@ -65,4 +65,4 @@ When evaluating a standalone program using the `uplc` executable, flag `-S` or `
 
 Several Plutus components are regularly released as libraries, such as `plutus-core`, `plutus-ledger-api` and `plutus-tx-plugin`.
 These packages are published on the [Cardano Haskell Package repository](https://github.com/IntersectMBO/cardano-haskell-packages) (CHaP), rather than Hackage, Haskell's default package archive.
-Each release has a version, and this is completely orthogonal and irrelevant to all other aformentioned notions of version.
+Each release has a version following a standard release versioning scheme, and this is completely orthogonal and irrelevant to all other aformentioned notions of version.
