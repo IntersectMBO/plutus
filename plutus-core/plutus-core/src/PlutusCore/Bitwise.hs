@@ -606,7 +606,7 @@ replicateByte len w8
       evaluationFailure
   | otherwise = pure . BS.replicate (fromIntegral len) $ w8
 
--- | Wrapper for calling 'unsafesSiftByteString' safely. Specifically, we avoid various edge cases:
+-- | Wrapper for calling 'unsafesShiftByteString' safely. Specifically, we avoid various edge cases:
 --
 -- * Empty 'ByteString's and zero moves don't do anything
 -- * Bit moves whose absolute value is larger than the bit length produce all-zeroes
@@ -628,14 +628,12 @@ shiftByteString bs bitMove
 -- | Wrapper for calling 'unsafeRotateByteString' safely. Specifically, we avoid various edge cases:
 --
 -- * Empty 'ByteString's and zero moves don't do anything
--- * Bit moves whose absolute value is larger than the bit length gets modulo reduced
+-- * Bit moves whose absolute value is larger than the bit length are reduced modulo the length
 --
 -- Furthermore, we can convert all rotations into positive rotations, by noting that a rotation by @b@
 -- is the same as a rotation by @b `mod` bitLen@, where @bitLen@ is the length of the 'ByteString'
 -- argument in bits. This value is always non-negative, and if we get 0, we have nothing to do. This
 -- reduction also helps us avoid integer overflow issues.
--- This is defintely unsafe: calling it with bitMove = minBound::Int can cause a
--- segmentation fault.  It must not be used outside this module.
 rotateByteString :: ByteString -> Integer -> ByteString
 rotateByteString bs bitMove
   | BS.null bs = bs
@@ -704,6 +702,7 @@ of 8, we can be _much_ faster, as Step 2 becomes unnecessary in that case.
 -}
 
 -- | Shifts, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+-- This may not actually be unsafe, but it shouldn't be used outside this module.
 unsafeShiftByteString :: ByteString -> Int -> ByteString
 unsafeShiftByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
       BSI.create len $ \dstPtr -> do
@@ -773,6 +772,8 @@ unsafeShiftByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $
         pokeByteOff dstPtr (copyLen - 1) (lastByte `Bits.unsafeShiftL` smallShift)
 
 -- | Rotations, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+-- This is defintely unsafe: calling it with bitMove = minBound::Int can cause a
+-- segmentation fault.  It must not be used outside this module.
 unsafeRotateByteString :: ByteString -> Int -> ByteString
 unsafeRotateByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
   BSI.create len $ \dstPtr -> do
