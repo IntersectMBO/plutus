@@ -14,7 +14,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;co
 open import Data.Empty using (⊥)
 open import Data.Fin using (Fin)
 open import Data.Product using (_×_)
-open import Data.Vec as Vec using (Vec;[];_∷_;lookup) 
+open import Data.Vec as Vec using (Vec;[];_∷_;lookup)
 open import Data.List.Properties using (foldr-++)
 
 open import Utils renaming (_×_ to _U×_; List to UList; map to umap)
@@ -101,7 +101,7 @@ data _∋_ : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
       -------------------
     → Γ ,⋆ K ∋ weakenNf A
 ```
-          
+
 ## Semantic of constant terms
 
 We define a predicate ♯Kinded for kinds that ultimately end in ♯.
@@ -112,7 +112,7 @@ data ♯Kinded : Kind → Set where
    K♯ : ∀{K J} → ♯Kinded J → ♯Kinded (K ⇒ J)
 ```
 
-There is no type of a ♯Kinded kind which takes more than two type arguments. 
+There is no type of a ♯Kinded kind which takes more than two type arguments.
 
 ```
 lemma♯Kinded : ∀ {K K₁ K₂ J} → ♯Kinded J → ∅ ⊢Ne⋆ (K₂ ⇒ (K₁ ⇒ (K ⇒ J))) → ⊥
@@ -123,7 +123,7 @@ Closed types can be mapped into the signature universe and viceversa.
 
 ```
 ty2sty : ∅ ⊢Nf⋆ ♯ → 0 ⊢♯
-ty2sty (ne (((f · _) · _) · _)) with lemma♯Kinded ♯ f 
+ty2sty (ne (((f · _) · _) · _)) with lemma♯Kinded ♯ f
 ... | ()
 ty2sty (ne ((^ pair · x) · y)) = pair (ty2sty x) (ty2sty y)
 ty2sty (ne (^ list · x)) = list (ty2sty x)
@@ -141,7 +141,7 @@ ty≅sty₁ : ∀ (A : ∅ ⊢Nf⋆ ♯) → A ≡ sty2ty (ty2sty A)
 ty≅sty₁ (ne (((f · _) · _) · _)) with  lemma♯Kinded ♯ f
 ... | ()
 ty≅sty₁ (ne ((^ pair · x) · y))  = cong ne (cong₂ _·_ (cong (^ pair ·_) (ty≅sty₁ x)) (ty≅sty₁ y))
-ty≅sty₁ (ne (^ list · x))        = cong ne (cong (^ list ·_) (ty≅sty₁ x)) 
+ty≅sty₁ (ne (^ list · x))        = cong ne (cong (^ list ·_) (ty≅sty₁ x))
 ty≅sty₁ (ne (^ (atomic x)))      = refl
 
 ty≅sty₂ : ∀ (A : 0 ⊢♯) →  A ≡ ty2sty (sty2ty A)
@@ -150,20 +150,20 @@ ty≅sty₂ (list A) = cong list (ty≅sty₂ A)
 ty≅sty₂ (pair A B) = cong₂ pair (ty≅sty₂ A) (ty≅sty₂ B)
 ```
 
-The semantics of closed types of kind ♯ is given by the following 
+The semantics of closed types of kind ♯ is given by the following
 interpretation function
 
 ```
 ⟦_⟧ : (ty : ∅ ⊢Nf⋆ ♯) → Set
-⟦ ne (((f · _) · _) · _) ⟧ with lemma♯Kinded ♯ f 
+⟦ ne (((f · _) · _) · _) ⟧ with lemma♯Kinded ♯ f
 ... | ()
 ⟦ ne ((^ pair · x) · y) ⟧ = ⟦ x ⟧ U× ⟦ y ⟧
 ⟦ ne (^ list · x) ⟧ = UList ⟦ x ⟧
 ⟦ ne (^ (atomic x)) ⟧ = ⟦ x ⟧at
 ```
 
-All these types need to be able to be interfaced with Haskell, as this 
-interpretation function is used everywhere of type or a type tag needs to be 
+All these types need to be able to be interfaced with Haskell, as this
+interpretation function is used everywhere of type or a type tag needs to be
 interpreted. It is precisely because they need to be interfaced with Haskell
 that we use the version of product and list from the Utils module.
 
@@ -171,14 +171,14 @@ that we use the version of product and list from the Utils module.
 
 A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, a type
-application, a wrapping or unwrapping of a recursive type, a constructor, 
+application, a wrapping or unwrapping of a recursive type, a constructor,
 a case expression, a constant, a builtin function, or an error.
 
 Constants of a builtin type A are given directly by its meaning ⟦ A ⟧, where
 A is restricted to kind ♯.
 
 The type of cases if a function consuming every type in a list.
-We construct it with the following function: 
+We construct it with the following function:
 ```
 mkCaseType : ∀{Φ} (A : Φ ⊢Nf⋆ *) → List (Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
 mkCaseType A = foldr _⇒_ A
@@ -189,7 +189,7 @@ for constructor arguments and cases.
 
 ```
 ConstrArgs : (Γ : Ctx Φ) → List (Φ ⊢Nf⋆ *) → Set
-data Cases (Γ : Ctx Φ) (B : Φ ⊢Nf⋆ *) : ∀{n} → Vec (List (Φ ⊢Nf⋆ *)) n → Set 
+data Cases (Γ : Ctx Φ) (B : Φ ⊢Nf⋆ *) : ∀{n} → Vec (List (Φ ⊢Nf⋆ *)) n → Set
 ```
 
 The actual type of terms
@@ -246,14 +246,14 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
   constr : ∀{n}
       → (i : Fin n)                     -- The tag
 
-      → (Tss : Vec (List (Φ ⊢Nf⋆ *)) n) -- The types of the sum of products. 
-                                        -- We make it a Vector of lists, so that 
+      → (Tss : Vec (List (Φ ⊢Nf⋆ *)) n) -- The types of the sum of products.
+                                        -- We make it a Vector of lists, so that
                                         -- the tag is statically correct.
-                                        -- We use the name `Tss` as it stands for a 
+                                        -- We use the name `Tss` as it stands for a
                                         -- a container of containers of types.
-      
+
       → ∀ {ts} → ts ≡ lookup Tss i      -- The reason to define it like this, rather than
-      → ConstrArgs Γ ts                 -- simply ConstrArgs Γ (lookup Tss i) is so that it 
+      → ConstrArgs Γ ts                 -- simply ConstrArgs Γ (lookup Tss i) is so that it
                                         -- is easier to construct terms (helps to avoid the use of subst)
                                         -- as often the result of a function will not match definitionally
                                         -- with (lookup Tss i) but only propositionally.
@@ -286,15 +286,15 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
 -- The type of arguments to a `constr` constructor
 ConstrArgs Γ = IList (Γ ⊢_)
 
--- Cases is indexed by a vector 
+-- Cases is indexed by a vector
 -- so it can't be an IList
-data Cases Γ B where 
+data Cases Γ B where
    []  : Cases Γ B []
    _∷_ : ∀{n}{Ts}{Tss : Vec _ n}(
-         c : Γ ⊢ (mkCaseType B Ts)) 
+         c : Γ ⊢ (mkCaseType B Ts))
        → (cs : Cases Γ B Tss)
-         --------------------- 
-       → Cases Γ B (Ts ∷ Tss) 
+         ---------------------
+       → Cases Γ B (Ts ∷ Tss)
 ```
 
 Utility functions
@@ -322,9 +322,9 @@ bwdMkCaseType : ∀{Φ} → Bwd (Φ ⊢Nf⋆ *) → (A : Φ ⊢Nf⋆ *) → Φ �
 bwdMkCaseType bs A = bwd-foldr _⇒_ A bs
 
 lemma-bwdfwdfunction' : ∀{Φ} {B : Φ ⊢Nf⋆ *} Ts → mkCaseType B Ts ≡ bwdMkCaseType ([] <>< Ts) B
-lemma-bwdfwdfunction' {B = B} Ts = trans (cong (mkCaseType B) (sym (lemma<>1 [] Ts))) (lemma-bwd-foldr _⇒_ B ([] <>< Ts))         
+lemma-bwdfwdfunction' {B = B} Ts = trans (cong (mkCaseType B) (sym (lemma<>1 [] Ts))) (lemma-bwd-foldr _⇒_ B ([] <>< Ts))
 
-constr-cong :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{Tss : Vec (List (Φ ⊢Nf⋆ *)) n}{ts} 
+constr-cong :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{Tss : Vec (List (Φ ⊢Nf⋆ *)) n}{ts}
             → (p : ts ≡ lookup Tss i)
             → {cs : ConstrArgs Γ ts}
             → {cs' : ConstrArgs Γ (lookup Tss i)}
@@ -332,7 +332,7 @@ constr-cong :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{Tss : Vec (List (Φ ⊢Nf⋆ *)) n
             → constr i Tss refl cs' ≡ constr i Tss p cs
 constr-cong refl refl = refl
 
-constr-cong' :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{A : Vec (List (Φ ⊢Nf⋆ *)) n}{ts}{ts'} 
+constr-cong' :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{A : Vec (List (Φ ⊢Nf⋆ *)) n}{ts}{ts'}
             → (p : ts ≡ lookup A i)(p' : ts' ≡ lookup A i)
             → {cs : ConstrArgs Γ ts}
             → {cs' : ConstrArgs Γ ts'}

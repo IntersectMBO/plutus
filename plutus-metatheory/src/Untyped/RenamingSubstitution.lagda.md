@@ -84,7 +84,7 @@ ren-cong p (constr i xs) = cong (constr i) (renList-cong p xs)
 ren-cong p (case t ts)   = cong₂ case (ren-cong p t) (renList-cong p ts)
 
 renList-cong p [] = refl
-renList-cong p (x ∷ xs) = cong₂ _∷_ (ren-cong p x) (renList-cong p xs) 
+renList-cong p (x ∷ xs) = cong₂ _∷_ (ren-cong p x) (renList-cong p xs)
 
 lift-id : ∀{X}(x : Maybe X) → id x ≡ lift id x
 lift-id nothing  = refl
@@ -98,10 +98,10 @@ lift-comp g f (just x) = refl
 renList-id : ∀{X}(ts : List (X ⊢)) → ts ≡ renList id ts
 ren-id : ∀{X}(t : X ⊢) → t ≡ ren id t
 ren-id (` x)         = refl
-ren-id (ƛ t)         = cong ƛ (trans (ren-id t) (ren-cong lift-id t)) 
+ren-id (ƛ t)         = cong ƛ (trans (ren-id t) (ren-cong lift-id t))
 ren-id (t · u)       = cong₂ _·_ (ren-id t) (ren-id u)
 ren-id (force t)     = cong force (ren-id t)
-ren-id (delay t)     = cong delay (ren-id t) 
+ren-id (delay t)     = cong delay (ren-id t)
 ren-id (con c)       = refl
 ren-id (builtin b)   = refl
 ren-id error         = refl
@@ -146,7 +146,7 @@ lifts ρ (just x) = ren just (ρ x)
 subList : {X Y : Set} → Sub X Y → List (X ⊢) → List (Y ⊢)
 sub : {X Y : Set} → Sub X Y → X ⊢ → Y ⊢
 sub σ (` x)         = σ x
-sub σ (ƛ t)         = ƛ (sub (lifts σ) t) 
+sub σ (ƛ t)         = ƛ (sub (lifts σ) t)
 sub σ (t · u)       = sub σ t · sub σ u
 sub σ (force t)     = force (sub σ t)
 sub σ (delay t)     = delay (sub σ t)
@@ -175,7 +175,7 @@ lifts-cong : ∀{X Y}{σ σ' : Sub X Y}
   → (x : Maybe X)
   → lifts σ x ≡ lifts σ' x
 lifts-cong p nothing  = refl
-lifts-cong p (just x) = cong (ren just) (p x) 
+lifts-cong p (just x) = cong (ren just) (p x)
 
 subList-cong : ∀{X Y}{σ σ' : Sub X Y}
   → (∀ x → σ x ≡ σ' x)
@@ -232,7 +232,7 @@ sub-ren ρ σ (` x)         = refl
 sub-ren ρ σ (ƛ t)         = cong ƛ (trans
   (sub-cong (lifts-lift ρ σ) t)
   (sub-ren (lift ρ) (lifts σ) t))
-sub-ren ρ σ (t · u)       = cong₂ _·_ (sub-ren ρ σ t) (sub-ren ρ σ u) 
+sub-ren ρ σ (t · u)       = cong₂ _·_ (sub-ren ρ σ t) (sub-ren ρ σ u)
 sub-ren ρ σ (force t)     = cong force (sub-ren ρ σ t)
 sub-ren ρ σ (delay t)     = cong delay (sub-ren ρ σ t)
 sub-ren ρ σ (con c)       = refl
@@ -252,14 +252,14 @@ ren-lift-lifts g f (just x) = trans
   (ren-comp just (lift f) (g x))
 
 renList-sub : ∀{X Y Z}(σ : Sub X Y)(ρ : Ren Y Z)(xs : List (X ⊢))
-            → subList (ren ρ ∘ σ) xs ≡ renList ρ (subList σ xs) 
+            → subList (ren ρ ∘ σ) xs ≡ renList ρ (subList σ xs)
 ren-sub : ∀{X Y Z}(σ : Sub X Y)(ρ : Ren Y Z)(t : X ⊢)
   → sub (ren ρ ∘ σ) t ≡ ren ρ (sub σ t)
 ren-sub σ ρ (` x)         = refl
 ren-sub σ ρ (ƛ t)         = cong ƛ (trans
   (sub-cong (ren-lift-lifts σ ρ) t)
   (ren-sub (lifts σ) (lift ρ) t))
-ren-sub σ ρ (t · u)       = cong₂ _·_ (ren-sub σ ρ t) (ren-sub σ ρ u) 
+ren-sub σ ρ (t · u)       = cong₂ _·_ (ren-sub σ ρ t) (ren-sub σ ρ u)
 ren-sub σ ρ (force t)     = cong force (ren-sub σ ρ t)
 ren-sub σ ρ (delay t)     = cong delay (ren-sub σ ρ t)
 ren-sub σ ρ (con c)       = refl

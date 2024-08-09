@@ -29,7 +29,7 @@ open import Data.String using (String;_++_)
 open import Data.Empty using (⊥)
 open import Utils using (_×_;_,_)
 open import RawU using (TagCon;Tag;decTagCon;TmCon;TyTag;Untyped;tmCon;tmCon2TagCon;tagCon2TmCon)
-open import Builtin.Signature using (_⊢♯;integer;bool;string;pdata;bytestring;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult) 
+open import Builtin.Signature using (_⊢♯;integer;bool;string;pdata;bytestring;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯
 open import Builtin.Constant.AtomicType using (AtomicTyCon)
 open AtomicTyCon
@@ -157,14 +157,14 @@ scopeCheckU g (UBuiltin b)   = return (builtin b)
 scopeCheckU g (UDelay t)     = fmap delay (scopeCheckU g t)
 scopeCheckU g (UForce t)     = fmap force (scopeCheckU g t)
 scopeCheckU g (UConstr i ts) = fmap (constr i) (scopeCheckUList g ts)
-scopeCheckU g (UCase t ts)   = do 
-                 u  ← scopeCheckU g t 
+scopeCheckU g (UCase t ts)   = do
+                 u  ← scopeCheckU g t
                  us ← scopeCheckUList g ts
                  return (case u us)
-                 
+
 scopeCheckUList g [] = inj₂ L.[]
-scopeCheckUList g (x ∷ xs) = do 
-                 u  ← scopeCheckU g x 
+scopeCheckUList g (x ∷ xs) = do
+                 u  ← scopeCheckU g x
                  us ← scopeCheckUList g xs
                  return (u L.∷ us)
 

@@ -12,10 +12,10 @@ open import Data.Nat using (zero;suc)
 open import Data.Fin using (Fin;zero;suc)
 open import Data.Vec as Vec using ([];_∷_;lookup)
 open import Data.Product using (Σ;_×_) renaming (_,_ to _,,_)
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;subst)  
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;subst)
 
 open import Utils using (*;bubble;≡-subst-removable)
-open import Utils.List 
+open import Utils.List
 open import Type using (Ctx⋆;∅)
 open import Algorithmic using (Ctx;_⊢_;ConstrArgs;constr-cong)
 open Ctx
@@ -48,17 +48,17 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
     → Progress M
 ```
 
-## Progress for lists 
+## Progress for lists
 
 When processing constructors, we need to know the progress of a list of terms.
 A ProgressList is a zipper consisting of:
   * a typed backwards list of constructors already evaluated (vs),
-  * Progress on the current term M of type H  
+  * Progress on the current term M of type H
   * a (typed) lists of terms to be evaluated (ts)
 
 ```
-data FocusedProgDissect : ∀{tot}(itot : IList (∅ ⊢_) tot) → Set 
-     where 
+data FocusedProgDissect : ∀{tot}(itot : IList (∅ ⊢_) tot) → Set
+     where
      done  : ∀{bs}{ibs : IBwd (∅ ⊢_) bs}{tot}{itot : IList (∅ ⊢_) tot}
               {idx : tot ≣ bs <>> []}
              (x : (itot ≣I ibs <>> []) idx)
@@ -67,7 +67,7 @@ data FocusedProgDissect : ∀{tot}(itot : IList (∅ ⊢_) tot) → Set
      step  :  ∀{tot}{itot : IList (∅ ⊢_) tot}
            → ∀{bs}{ibs : IBwd (∅ ⊢_) bs}(vs : VList ibs) --evaluated
            → ∀{A : ∅ ⊢Nf⋆ *} {M : ∅ ⊢ A}{N : ∅ ⊢ A} → (st : M —→ N)  --current step
-           → ∀ {ls : List (∅ ⊢Nf⋆ *)}(cs : ConstrArgs ∅ ls) 
+           → ∀ {ls : List (∅ ⊢Nf⋆ *)}(cs : ConstrArgs ∅ ls)
            → {idx : tot ≣ bs <>> (A ∷ ls)}
            → (x : (itot ≣I ibs <>> (M ∷ cs)) idx)
            → FocusedProgDissect itot
@@ -76,13 +76,13 @@ progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
 
 -- Walk the list to look for the first term than can make progress or is an error.
 progress-focus : ∀{tot}{itot : IList (∅ ⊢_) tot}{bs}{ibs : IBwd (∅ ⊢_) bs}
-                  {ls}{idx : tot ≣ bs <>> ls} 
+                  {ls}{idx : tot ≣ bs <>> ls}
                → (cs : IList (∅ ⊢_) ls)
                → (iidx : (itot ≣I ibs <>> cs) idx)
                → VList ibs
                → FocusedProgDissect itot
 progress-focus [] x Vs = done x Vs
-progress-focus (c ∷ cs) x Vs with progress c 
+progress-focus (c ∷ cs) x Vs with progress c
 ... | step st = step Vs st cs x
 ... | done V = progress-focus cs (bubble x) (Vs :< V)
 
@@ -119,28 +119,28 @@ progress (con c refl)      = done (V-con c)
 progress (builtin b / refl ) = done (ival b)
 progress (error A)    = step (ruleErr [] refl)
 progress (constr i Tss refl cs)  with progress-focus cs start []
-... | done {bs}{ibs}{idx = idx} x Vs = done (V-constr i 
-                                                     Tss 
-                                                     refl 
-                                                     (trans (sym (lemma<>2 bs [])) (cong ([] <><_) (sym (lem-≣-<>> idx)))) 
-                                                     Vs 
+... | done {bs}{ibs}{idx = idx} x Vs = done (V-constr i
+                                                     Tss
+                                                     refl
+                                                     (trans (sym (lemma<>2 bs [])) (cong ([] <><_) (sym (lem-≣-<>> idx))))
+                                                     Vs
                                                      (trans (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I [])) (sym (lem-≣I-<>>1' x))))
-... | step Vs (ruleEC E p refl refl) cs {idx} x = 
-                     step (ruleEC (constr i Tss refl {idx} Vs cs E) 
-                           p 
-                           (constr-cong (trans (sym (lem-≣-<>> idx)) refl) 
-                                         (trans (lem-≣I-<>>1' x) 
+... | step Vs (ruleEC E p refl refl) cs {idx} x =
+                     step (ruleEC (constr i Tss refl {idx} Vs cs E)
+                           p
+                           (constr-cong (trans (sym (lem-≣-<>> idx)) refl)
+                                         (trans (lem-≣I-<>>1' x)
                                                 (≡-subst-removable (IList (_⊢_ ∅)) (sym (lem-≣-<>> idx)) (trans (sym (lem-≣-<>> idx)) refl) _)))
                            refl)
-... | step Vs (ruleErr E refl) cs {idx} x = 
-             step (ruleErr (constr i Tss refl {idx} Vs cs E) 
-                    (constr-cong (trans (sym (lem-≣-<>> idx)) refl) 
-                                 (trans (lem-≣I-<>>1' x) 
-                                        (≡-subst-removable (IList (_⊢_ ∅)) (sym (lem-≣-<>> idx)) (trans (sym (lem-≣-<>> idx)) refl) _))) 
+... | step Vs (ruleErr E refl) cs {idx} x =
+             step (ruleErr (constr i Tss refl {idx} Vs cs E)
+                    (constr-cong (trans (sym (lem-≣-<>> idx)) refl)
+                                 (trans (lem-≣I-<>>1' x)
+                                        (≡-subst-removable (IList (_⊢_ ∅)) (sym (lem-≣-<>> idx)) (trans (sym (lem-≣-<>> idx)) refl) _)))
                   )
-progress (case M cases)  with progress M 
+progress (case M cases)  with progress M
 ... | step (ruleEC E p refl refl) = step (ruleEC (case cases E) p refl refl)
 ... | step (ruleErr E refl) = step (ruleErr (case cases E) refl)
 ... | done (V-constr e Tss refl refl vs refl) = step (ruleEC [] (β-case e Tss refl vs refl cases) refl refl)
 
- 
+

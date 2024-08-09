@@ -30,9 +30,9 @@ perturb the expression.
 stability : ∀{K}(n : Φ ⊢Nf⋆ K) → nf (embNf n) ≡ n
 stabilityNe : (n : Φ ⊢Ne⋆ K) → CR K (eval (embNe n) (idEnv _)) (reflect n)
 
-stability-List : ∀(xs : List (Φ ⊢Nf⋆ *)) → 
+stability-List : ∀(xs : List (Φ ⊢Nf⋆ *)) →
   eval-List (embNf-List xs) (λ x → reflect (` x)) ≡ xs
-stability-VecList : ∀{n}(xss : Vec (List (Φ ⊢Nf⋆ *)) n) → 
+stability-VecList : ∀{n}(xss : Vec (List (Φ ⊢Nf⋆ *)) n) →
   eval-VecList (embNf-VecList xss) (λ x → reflect (` x)) ≡ xss
 
 stability (Π B) =

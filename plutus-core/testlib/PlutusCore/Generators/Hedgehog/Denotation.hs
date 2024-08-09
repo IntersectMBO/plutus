@@ -116,6 +116,9 @@ insertBuiltin fun =
                 insertDenotation tr $ Denotation fun (Builtin ()) meta sch
 
 -- | A 'DenotationContext' that consists of 'DefaultFun's.
+--
+-- DEPRECATED: No need to update for a new builtin.
+-- Outdated, since we moved to quickcheck generators.
 typedBuiltins
     :: DenotationContext (Term TyName Name DefaultUni DefaultFun ())
 typedBuiltins

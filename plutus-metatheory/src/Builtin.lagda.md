@@ -29,7 +29,7 @@ open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;Args)
                  using (integer;string;bytestring;unit;bool;pdata;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯ renaming (pair to bpair; list to blist)
 open _/_⊢⋆
-open import Builtin.Constant.AtomicType 
+open import Builtin.Constant.AtomicType
 
 open import Utils.Reflection using (defDec;defShow;defListConstructors)
 ```
@@ -155,13 +155,13 @@ private module SugaredSignature where
 Syntactic sugar for writing the signature of built-ins.
 This is defined in its own module so that these definitions are not exported.
 
-Signature types can have two kinds of polymorphic variables: variables that 
-range over arbitrary types (of kind *) and variables that range over builtin 
+Signature types can have two kinds of polymorphic variables: variables that
+range over arbitrary types (of kind *) and variables that range over builtin
 types (of kind ♯). In order to distinguish them in the sugares syntax we write
 with an uppercase variables of kind *, and with lowercase variables of kind ♯.
 
-The arguments of signature types (argument types) are of type `n⋆ / n♯ ⊢⋆`, for 
-n⋆ free variables of kind *, and n♯ free variables of kind ♯. However, 
+The arguments of signature types (argument types) are of type `n⋆ / n♯ ⊢⋆`, for
+n⋆ free variables of kind *, and n♯ free variables of kind ♯. However,
 shorthands for types, such  as `integer`, `bool`, etc are of type `n♯ ⊢♯`, and
 hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructor `↑`.
 
@@ -192,17 +192,17 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
 
     pair : ∀{n⋆ n♯} → n♯ ⊢♯ → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
     pair a b = (bpair a b) ↑
-    
+
     list :  ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
     list a = (blist a) ↑
 ```
-    
+
 ### Operators for constructing signatures
 
 The following operators are used to express signatures in a familiar way,
-but ultimately, they construct a Sig 
+but ultimately, they construct a Sig
 
-An expression 
+An expression
   n⋆×n♯ [ t₁ , t₂ , t₃ ]⟶ tᵣ
 
 is actually parsed as
@@ -214,14 +214,14 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
 
 ```
     ArgSet : Set
-    ArgSet = Σ (ℕ × ℕ) (λ { (n⋆ ,, n♯) → Args n⋆ n♯}) 
+    ArgSet = Σ (ℕ × ℕ) (λ { (n⋆ ,, n♯) → Args n⋆ n♯})
 
     ArgTy : ArgSet → Set
-    ArgTy ((n⋆ ,, n♯) ,, _) = n⋆ / n♯ ⊢⋆ 
+    ArgTy ((n⋆ ,, n♯) ,, _) = n⋆ / n♯ ⊢⋆
 
     infix 12 _[_
     _[_ : (nn : ℕ × ℕ)  → proj₁ nn / proj₂ nn ⊢⋆ → ArgSet
-    _[_ (n⋆ ,, n♯) x = (n⋆ ,, n♯) ,, [ x ]  
+    _[_ (n⋆ ,, n♯) x = (n⋆ ,, n♯) ,, [ x ]
 
     infixl 10 _,_
     _,_ : (p : ArgSet) → ArgTy p → ArgSet
@@ -236,7 +236,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
 
 ```
     signature : Builtin → Sig
-    signature addInteger                      = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑ 
+    signature addInteger                      = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
     signature subtractInteger                 = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
     signature multiplyInteger                 = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
     signature divideInteger                   = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
@@ -284,7 +284,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature bData                           = ∙ [ bytestring ↑ ]⟶ pdata ↑
     signature unConstrData                    = ∙ [ pdata ↑ ]⟶ pair integer (blist pdata)
     signature unMapData                       = ∙ [ pdata ↑ ]⟶ list (bpair pdata pdata)
-    signature unListData                      = ∙ [ pdata ↑ ]⟶ list pdata 
+    signature unListData                      = ∙ [ pdata ↑ ]⟶ list pdata
     signature unIData                         = ∙ [ pdata ↑ ]⟶ integer ↑
     signature unBData                         = ∙ [ pdata ↑ ]⟶ bytestring ↑
     signature equalsData                      = ∙ [ pdata ↑ , pdata ↑ ]⟶ bool ↑
@@ -326,7 +326,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
 open SugaredSignature using (signature) public
 
 -- The arity of a builtin, according to its signature.
-arity : Builtin → ℕ 
+arity : Builtin → ℕ
 arity b = length (Sig.args (signature b))
 
 ```
@@ -610,13 +610,13 @@ unquoteDef decBuiltin = defDec (quote Builtin) decBuiltin
 We define a show function for Builtins
 
 ```
-showBuiltin : Builtin → String 
-unquoteDef showBuiltin = defShow (quote Builtin) showBuiltin 
+showBuiltin : Builtin → String
+unquoteDef showBuiltin = defShow (quote Builtin) showBuiltin
 ```
 
-`builtinList` is a list with all builtins. 
+`builtinList` is a list with all builtins.
 
 ```
-builtinList : List Builtin 
+builtinList : List Builtin
 unquoteDef builtinList = defListConstructors (quote Builtin) builtinList
 ```

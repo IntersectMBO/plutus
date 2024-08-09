@@ -182,7 +182,7 @@ module _ where
   open import Data.Vec using (lookup)
   open import Relation.Binary.PropositionalEquality using (_≡_;refl; cong; cong₂)
 
-  
+
   lookup-eval-VecList : ∀ {Φ Ψ n}
               → (e : Fin n)
               → (Tss : Vec (List (Ψ ⊢⋆ *)) n)

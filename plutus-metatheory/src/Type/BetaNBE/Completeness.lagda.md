@@ -13,7 +13,7 @@ open import Data.Sum using (inj₁;inj₂)
 open import Function using (_∘_;id)
 open import Data.Vec using (Vec;[];_∷_)
 open import Data.List using (List;[];_∷_)
-open import Relation.Binary.PropositionalEquality 
+open import Relation.Binary.PropositionalEquality
    using (_≡_;refl;sym;trans;cong;cong₂)
 
 open import Utils using (*;♯;_⇒_;J;K)
@@ -133,8 +133,8 @@ reifyCR : ∀{K}{v v' : Val Φ K}
 reifyCR {K = *    }                    p              = p
 reifyCR {K = ♯    }                    p              = p
 reifyCR {K = K ⇒ J} {inj₁ n} {inj₁ n'} p              = cong ne p
-reifyCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ()             
-reifyCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ()             
+reifyCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ()
+reifyCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ()
 reifyCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} (p , p' , p'') =
   cong ƛ (reifyCR (p'' S (reflectCR refl)))
 ```
@@ -143,7 +143,7 @@ reifyCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} (p , p' , p'') =
 
 ```
 EnvCR : ∀ {Φ Ψ} → (η η' : Env Φ Ψ) →  Set
-EnvCR η η' = ∀{K}(α : _ ∋⋆ K) → CR K (η α) (η' α) 
+EnvCR η η' = ∀{K}(α : _ ∋⋆ K) → CR K (η α) (η' α)
 ```
 
 Closure under environment extension
@@ -162,7 +162,7 @@ CR,,⋆ p q (S α) = p α
 Closure under application
 
 ```
-AppCR : 
+AppCR :
     {f f' : Val Φ (K ⇒ J)}
   → CR (K ⇒ J) f f'
   → {v v' : Val Φ K}
@@ -200,17 +200,17 @@ ren-reify : ∀{K}{v v' : Val Φ K}
 ren-reify {K = *} p ρ =
   cong (renNf ρ) p
 ren-reify {K = ♯} p ρ =
-  cong (renNf ρ) p  
+  cong (renNf ρ) p
 ren-reify {K = K ⇒ J} {v = inj₁ n} {inj₁ n'} p ρ =
   cong (ne ∘ renNe ρ) p
 ren-reify {K = K ⇒ J} {v = inj₁ n} {inj₂ f'} () ρ
 ren-reify {K = K ⇒ J} {v = inj₂ f} {inj₁ n'} () ρ
 ren-reify {K = K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'') ρ = cong ƛ
   (trans (ren-reify (p'' S (reflectCR refl)) (ext ρ))
-         (reifyCR ((transCR ( p' S (ext ρ) _ _ (reflectCR refl)) 
-                            (AppCR {f = renVal (S ∘ ρ) (inj₂ f')}{renVal (S ∘ ρ) (inj₂ f')} 
-                                   ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) ,  λ ρ' q → proj₂ (proj₂ (reflCR {v = inj₂ f'}{v' = inj₂ f} (symCR {v = inj₂ f}{v' = inj₂ f'}(p , p' , p'')))) 
-                                                                                                                                     (ρ' ∘ S ∘ ρ) q) 
+         (reifyCR ((transCR ( p' S (ext ρ) _ _ (reflectCR refl))
+                            (AppCR {f = renVal (S ∘ ρ) (inj₂ f')}{renVal (S ∘ ρ) (inj₂ f')}
+                                   ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) ,  λ ρ' q → proj₂ (proj₂ (reflCR {v = inj₂ f'}{v' = inj₂ f} (symCR {v = inj₂ f}{v' = inj₂ f'}(p , p' , p''))))
+                                                                                                                                     (ρ' ∘ S ∘ ρ) q)
                                    (renVal-reflect (ext ρ) (` Z)))))))
 ```
 
@@ -225,7 +225,7 @@ renVal-id {K = *} p = trans (renNf-id _) p
 renVal-id {K = ♯} p = trans (renNf-id _) p
 renVal-id {K = K ⇒ J} {v = inj₁ n} {inj₁ n'} p = trans (renNe-id _) p
 renVal-id {K = K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
-renVal-id {K = K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
+renVal-id {K = K ⇒ J} {v = inj₂ f} {inj₁ n'} ()
 renVal-id {K = K ⇒ J} {v = inj₂ f} {inj₂ f'} p = p
 ```
 
@@ -287,7 +287,7 @@ renVal·V :
   → CR J (renVal ρ (f ·V v)) (renVal ρ f' ·V renVal ρ v')
 renVal·V {J = *} ρ {inj₁ n} {inj₁ n'} p {v}{v'}  q =
   cong₂ (λ x y → ne (x · y)) (cong (renNe ρ) p) (ren-reify q ρ)
-renVal·V {J = ♯} ρ {inj₁ n} {inj₁ n'} p q =  
+renVal·V {J = ♯} ρ {inj₁ n} {inj₁ n'} p q =
   cong₂ (λ x y → ne (x · y)) (cong (renNe ρ) p) (ren-reify q ρ)
 renVal·V {J = J ⇒ K} ρ {inj₁ n} {inj₁ n'} p      q = cong₂ _·_
   (cong (renNe ρ) p)
@@ -309,12 +309,12 @@ idext : ∀{K}{η η' : Env Φ Ψ}
 
 idext-List : ∀{η η' : Env Φ Ψ}
   → EnvCR η η'
-  → (xs : List (Φ ⊢⋆ *)) 
+  → (xs : List (Φ ⊢⋆ *))
   → eval-List xs η ≡ eval-List xs η'
 
 idext-VecList : ∀{η η' : Env Φ Ψ}{n}
   → EnvCR η η'
-  → (xss : Vec (List (Φ ⊢⋆ *)) n) 
+  → (xss : Vec (List (Φ ⊢⋆ *)) n)
   → eval-VecList xss η ≡ eval-VecList xss η'
 
 renVal-eval : ∀{Φ Ψ Θ K}
@@ -432,7 +432,7 @@ ren-eval-List :
   (ts : List (Θ ⊢⋆ *))
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
   (p : EnvCR η η')
-  (ρ : Ren Θ Ψ) → 
+  (ρ : Ren Θ Ψ) →
   ---------------------------------------------------
   eval-List (ren-List ρ ts) η ≡ eval-List ts (η' ∘ ρ)
 
@@ -440,7 +440,7 @@ ren-eval-VecList : ∀{n}
   (Tss : Vec (List (Θ ⊢⋆ *)) n)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
   (p : EnvCR η η')
-  (ρ : Ren Θ Ψ) → 
+  (ρ : Ren Θ Ψ) →
   --------------------------------------------------------------
   eval-VecList (ren-VecList ρ Tss) η ≡ eval-VecList Tss (η' ∘ ρ)
 
@@ -452,7 +452,7 @@ ren-eval (Π B) p ρ =
                           (reflectCR refl)) (ext ρ))
        (idext (λ{ Z     → reflectCR refl
                 ; (S x) → (renCR S ∘ reflCR ∘ symCR ∘ p) (ρ x)}) B))
-ren-eval (A ⇒ B) p ρ = cong₂ _⇒_ (ren-eval A p ρ) (ren-eval B p ρ) 
+ren-eval (A ⇒ B) p ρ = cong₂ _⇒_ (ren-eval A p ρ) (ren-eval B p ρ)
 ren-eval (ƛ B) p ρ =
   (λ ρ' ρ'' v v' q → transCR
      (renVal-eval (ren (ext ρ) B) (CR,,⋆ (renCR ρ' ∘ reflCR ∘ p) q) ρ'')
@@ -601,7 +601,7 @@ fund p (ƛ≡β {B = B}{B'} q) =
   ,
   λ ρ r → fund (CR,,⋆ (renCR ρ ∘ p) r) q
 fund p (·≡β q r) = AppCR (fund p q) (fund p r)
-fund p (μ≡β q r) = cong₂ μ (reifyCR (fund p q)) (reifyCR (fund p r)) 
+fund p (μ≡β q r) = cong₂ μ (reifyCR (fund p q)) (reifyCR (fund p r))
 fund p (β≡β B A) =
   transCR (idext (λ { Z     → idext (reflCR ∘ p) A
                     ; (S x) → renVal-id (reflCR (p x))})
