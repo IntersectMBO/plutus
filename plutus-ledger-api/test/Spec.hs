@@ -11,6 +11,10 @@ import PlutusPrelude
 import Spec.CBOR.DeserialiseFailureInfo qualified
 import Spec.ContextDecoding qualified
 import Spec.CostModelParams qualified
+import Spec.Data.ContextDecoding qualified
+import Spec.Data.CostModelParams qualified
+import Spec.Data.Eval qualified
+import Spec.Data.Versions qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
 import Spec.ScriptDecodeError qualified
@@ -121,11 +125,15 @@ tests = testGroup "plutus-ledger-api"[
     ]
     , Spec.Interval.tests
     , Spec.Eval.tests
+    , Spec.Data.Eval.tests
     , Spec.Versions.tests
+    , Spec.Data.Versions.tests
     , Spec.CostModelParams.tests
+    , Spec.Data.CostModelParams.tests
     , Spec.CBOR.DeserialiseFailureInfo.tests
     , Spec.ScriptDecodeError.tests
     , Spec.ContextDecoding.tests
+    , Spec.Data.ContextDecoding.tests
     , Value.test_Value
     , Data.Value.test_Value
     ]
