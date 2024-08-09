@@ -12,10 +12,10 @@ module Algorithmic.BehaviouralEquivalence.ReductionvsCC where
 
 ```
 open import Data.Nat using (suc;zero)
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;subst;inspect;cong;sym;trans) 
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;subst;inspect;cong;sym;trans)
                                                   renaming ([_] to I[_])
 open import Data.Sum using (_⊎_;inj₁;inj₂)
-open import Data.Product using (Σ;_×_;∃) 
+open import Data.Product using (Σ;_×_;∃)
                          renaming (_,_ to _,,_)
 open import Data.List using (_∷_;[])
 open import Data.Empty using (⊥;⊥-elim)
@@ -163,7 +163,7 @@ postulate lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : EC A B) → (E ▻ M) 
 {-
 lemV .(ƛ M) (V-ƛ M) E = step* refl base
 lemV .(Λ M) (V-Λ M) E = step* refl base
-lemV .(wrap _ _ _) (V-wrap V) E = step* refl (step** (lemV _ V (extEC E wrap-)) 
+lemV .(wrap _ _ _) (V-wrap V) E = step* refl (step** (lemV _ V (extEC E wrap-))
                                                      (step* (cong (stepV V) (dissect-lemma E wrap-)) base))
 lemV .(con cn) (V-con cn) E = step* refl base
 lemV M (V-I⇒ b {am = am} bt) E =  {! am  !}
@@ -214,30 +214,30 @@ unwindVE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
       → (compEC' E E' ◅ VM) -→s (E ◅ VN)
 unwindVE A B E E' refl VM VN with dissect E' | inspect dissect E'
 ... | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E' refl eq rewrite uniqueVal A VM VN = base
-... | inj₂ (_ ,, E'' ,, (V-ƛ M ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-ƛ M ·-) eq 
+... | inj₂ (_ ,, E'' ,, (V-ƛ M ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-ƛ M ·-) eq
     = ⊥-elim (lemVβ (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (V-ƛ M ·-) A) VN)))
-... | inj₂ (_ ,, E'' ,, (V-I⇒ b {am = zero} x ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-I⇒ b x ·-) eq 
+... | inj₂ (_ ,, E'' ,, (V-I⇒ b {am = zero} x ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-I⇒ b x ·-) eq
     = ⊥-elim (valred (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (V-I⇒ b x ·-) A) VN)) (β-builtin b (deval (V-I⇒ b x)) x A VM))
-... | inj₂ (_ ,, E'' ,, (V-I⇒ b {am = suc am} x ·-)) | I[ eq ]  rewrite dissect-inj₂ E' E'' (V-I⇒ b x ·-) eq  
-    = step* (trans (cong (λ E → stepV VM (dissect E)) (compEC'-extEC E E'' (V-I⇒ b x ·-))) (cong (stepV VM) (dissect-lemma (compEC' E E'') (V-I⇒ b x ·-)))) 
+... | inj₂ (_ ,, E'' ,, (V-I⇒ b {am = suc am} x ·-)) | I[ eq ]  rewrite dissect-inj₂ E' E'' (V-I⇒ b x ·-) eq
+    = step* (trans (cong (λ E → stepV VM (dissect E)) (compEC'-extEC E E'' (V-I⇒ b x ·-))) (cong (stepV VM) (dissect-lemma (compEC' E E'') (V-I⇒ b x ·-))))
             (unwindVE _ _ E E'' (extEC-[]ᴱ E'' (V-I⇒ b x ·-) A) (V-I b (step x VM)) VN)
-unwindVE .(Λ M) .(E' [ Λ M ]ᴱ) E E' refl (V-Λ M) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq 
+unwindVE .(Λ M) .(E' [ Λ M ]ᴱ) E E' refl (V-Λ M) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq
  = ⊥-elim (lemVβ⋆ (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (-·⋆ C) (Λ M)) VN)))
-unwindVE A .(E' [ A ]ᴱ) E E' refl (V-IΠ b x) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq  
- = step* (trans (cong (λ E → stepV _ (dissect E)) (compEC'-extEC E E'' (-·⋆ C))) (cong (stepV (V-IΠ b x)) (dissect-lemma (compEC' E E'') (-·⋆ C)))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' (-·⋆ C) A) (V-I b (step⋆ x refl)) VN) 
-... | inj₂ (_ ,, E'' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E' E'' wrap- eq 
+unwindVE A .(E' [ A ]ᴱ) E E' refl (V-IΠ b x) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq
+ = step* (trans (cong (λ E → stepV _ (dissect E)) (compEC'-extEC E E'' (-·⋆ C))) (cong (stepV (V-IΠ b x)) (dissect-lemma (compEC' E E'') (-·⋆ C)))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' (-·⋆ C) A) (V-I b (step⋆ x refl)) VN)
+... | inj₂ (_ ,, E'' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E' E'' wrap- eq
     = step* (trans (cong (λ E → stepV VM (dissect E)) (compEC'-extEC E E'' wrap-)) (cong (stepV VM) (dissect-lemma (compEC' E E'') wrap-))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' wrap- A) (V-wrap VM) VN)
-unwindVE _ _ E E' refl (V-wrap VM) VN | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E' E'' unwrap- eq 
+unwindVE _ _ E E' refl (V-wrap VM) VN | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E' E'' unwrap- eq
     = ⊥-elim (valred (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' unwrap- (deval (V-wrap VM))) VN)) (β-wrap VM refl))
 unwindVE .(ƛ M) .(E' [ ƛ M ]ᴱ) E E' refl (V-ƛ M) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq = ⊥-elim (lemVβ (lemVE (ƛ M · M') E'' (subst Value (extEC-[]ᴱ E'' (-· M') (ƛ M)) VN)))
-unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {am = zero} x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq 
+unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {am = zero} x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq
   = ⊥-elim (valred (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (-· M') A) VN)) (β-builtin b A x M' (lemVE _ (extEC E'' (V ·-)) (subst Value (trans (extEC-[]ᴱ E'' (-· M') A) (sym (extEC-[]ᴱ E'' (V ·-) M'))) VN))))
-unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {am = suc am} x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq 
-  = step* (trans (cong (λ E → stepV (V-I⇒ b x) (dissect E)) (compEC'-extEC E E'' (-· M'))) (cong (stepV (V-I⇒ b x)) (dissect-lemma (compEC' E E'') (-· M')))) 
-             (step** (lemV M' (lemVE M' (extEC E'' (V-I⇒ b x ·-)) (subst Value (trans (extEC-[]ᴱ E'' (-· M') A) (sym (extEC-[]ᴱ E'' (V-I⇒ b x ·-) M'))) VN)) (extEC (compEC' E E'') (V-I⇒ b x ·-))) 
-                     (step* (cong (stepV _) (dissect-lemma (compEC' E E'') (V-I⇒ b x ·-))) 
-                            ((unwindVE (A · M') _ E E'' (extEC-[]ᴱ E'' (-· M') A) (V-I b (step x (lemVE M' (extEC E'' (V-I⇒ b x ·-))  
-                              (subst Value (trans (extEC-[]ᴱ E'' (-· M') A)  (sym (extEC-[]ᴱ E'' (V-I⇒ b x ·-) M'))) VN)))) VN))))  
+unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {am = suc am} x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq
+  = step* (trans (cong (λ E → stepV (V-I⇒ b x) (dissect E)) (compEC'-extEC E E'' (-· M'))) (cong (stepV (V-I⇒ b x)) (dissect-lemma (compEC' E E'') (-· M'))))
+             (step** (lemV M' (lemVE M' (extEC E'' (V-I⇒ b x ·-)) (subst Value (trans (extEC-[]ᴱ E'' (-· M') A) (sym (extEC-[]ᴱ E'' (V-I⇒ b x ·-) M'))) VN)) (extEC (compEC' E E'') (V-I⇒ b x ·-)))
+                     (step* (cong (stepV _) (dissect-lemma (compEC' E E'') (V-I⇒ b x ·-)))
+                            ((unwindVE (A · M') _ E E'' (extEC-[]ᴱ E'' (-· M') A) (V-I b (step x (lemVE M' (extEC E'' (V-I⇒ b x ·-))
+                              (subst Value (trans (extEC-[]ᴱ E'' (-· M') A)  (sym (extEC-[]ᴱ E'' (V-I⇒ b x ·-) M'))) VN)))) VN))))
 
 unwindE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
       → N ≡ E' [ M ]ᴱ
@@ -402,12 +402,12 @@ lem-→s⋆ E (β-wrap V refl) = step*
   (step** (lemV _ (V-wrap V) (extEC E unwrap-))
           (step* (cong (stepV (V-wrap V)) (dissect-lemma E unwrap-))
                  base))
-lem-→s⋆ E (β-builtin b t bt u vu) = step* 
-   refl 
+lem-→s⋆ E (β-builtin b t bt u vu) = step*
+   refl
    (step** (lemV t (V-I⇒ b bt) (extEC E (-· u)))
-           (step* (cong (stepV (V-I⇒ b bt)) (dissect-lemma E (-· u))) 
-                  (step** (lemV u vu (extEC E (V-I⇒ b bt ·-))) 
-                          (step* (cong (stepV vu) (dissect-lemma E (V-I⇒ b bt ·-))) base)))) 
+           (step* (cong (stepV (V-I⇒ b bt)) (dissect-lemma E (-· u)))
+                  (step** (lemV u vu (extEC E (V-I⇒ b bt ·-)))
+                          (step* (cong (stepV vu) (dissect-lemma E (V-I⇒ b bt ·-))) base))))
 
 {-
 lemmaF : ∀{A A' B B'}(M : ∅ ⊢ A)(F : Frame B A)(E : EC B' B)

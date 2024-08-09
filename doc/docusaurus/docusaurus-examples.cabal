@@ -24,6 +24,28 @@ common ghc-version-support
   if (impl(ghc <9.6) || impl(ghc >=9.7))
     buildable: False
 
+library docusaurus-code
+  import:         lang, ghc-version-support
+  hs-source-dirs: static/code
+
+  if (impl(ghcjs) || os(windows))
+    buildable: False
+
+  other-modules:
+    AuctionValidator
+    BasicPlutusTx
+    BasicPolicies
+    BasicValidators
+
+  build-depends:
+    , base               >=4.9   && <5
+    , plutus-core        ^>=1.32
+    , plutus-ledger-api  ^>=1.32
+    , plutus-tx          ^>=1.32
+
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin
+
 executable example-cip57
   import:           lang, ghc-version-support
   main-is:          Example/Cip57/Blueprint/Main.hs
@@ -33,5 +55,5 @@ executable example-cip57
   build-depends:
     , base               ^>=4.18
     , containers
-    , plutus-ledger-api  ^>=1.31
-    , plutus-tx          ^>=1.31
+    , plutus-ledger-api  ^>=1.32
+    , plutus-tx          ^>=1.32

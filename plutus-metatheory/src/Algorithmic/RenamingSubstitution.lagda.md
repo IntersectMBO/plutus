@@ -12,7 +12,7 @@ module Algorithmic.RenamingSubstitution where
 open import Function using (id; _∘_)
 open import Data.Nat using (suc;zero)
 open import Data.Fin using (Fin;zero;suc)
-open import Data.Vec as Vec using (Vec;[];_∷_;lookup) 
+open import Data.Vec as Vec using (Vec;[];_∷_;lookup)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂;subst)
 
 open import Utils using (Kind;*)
@@ -64,13 +64,13 @@ ext⋆ ρ⋆ ρ (T {A = A} x) = conv∋
   (T (ρ x))
 ```
 
-A property showing that renaming and the creating the case type is the same as 
+A property showing that renaming and the creating the case type is the same as
 creating the case type and the renaming.
 
 ```
-ren-mkCaseType : ∀ {Φ Ψ} 
+ren-mkCaseType : ∀ {Φ Ψ}
            → (ρ⋆ : ⋆.Ren Φ Ψ)
-           → ∀{A} As 
+           → ∀{A} As
            → renNf ρ⋆ (Algorithmic.mkCaseType A As) ≡ Algorithmic.mkCaseType (renNf ρ⋆ A) (renNf-List ρ⋆ As)
 ren-mkCaseType ρ⋆ [] = refl
 ren-mkCaseType ρ⋆ (x ∷ As) = cong (renNf ρ⋆ x ⇒_) (ren-mkCaseType ρ⋆ As)
@@ -97,15 +97,15 @@ ren-ConstrArgs : ∀ {Φ Ψ Γ Δ n}
 ren-ConstrArgs-List : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : Ren ρ⋆ Γ Δ)
-  → {As : List (Φ ⊢Nf⋆ *) } 
+  → {As : List (Φ ⊢Nf⋆ *) }
   → (x : ConstrArgs Γ As)
     -------------------------------
   → ConstrArgs Δ (renNf-List ρ⋆ As)
 
-ren-Cases : ∀ {Φ Ψ Γ Δ n} 
+ren-Cases : ∀ {Φ Ψ Γ Δ n}
          → (ρ⋆ : ⋆.Ren Φ Ψ)
          → (ρ : Ren ρ⋆ Γ Δ)
-         → {A : Φ ⊢Nf⋆ *} 
+         → {A : Φ ⊢Nf⋆ *}
          → {Tss : Vec (List (Φ ⊢Nf⋆ *)) n}
          → (cases : Cases Γ A Tss)
           -------------------------------------------
@@ -113,7 +113,7 @@ ren-Cases : ∀ {Φ Ψ Γ Δ n}
 
 ren ρ⋆ ρ (` x)             = ` (ρ x)
 ren ρ⋆ ρ (ƛ N)             = ƛ (ren ρ⋆ (ext ρ⋆ ρ) N)
-ren ρ⋆ ρ (L · M)           = ren ρ⋆ ρ L · ren ρ⋆ ρ M 
+ren ρ⋆ ρ (L · M)           = ren ρ⋆ ρ L · ren ρ⋆ ρ M
 ren ρ⋆ ρ (Λ N)             = Λ (ren (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
 ren ρ⋆ ρ (_·⋆_/_ {B = B} t A refl) = conv⊢
   refl
@@ -126,7 +126,7 @@ ren ρ⋆ ρ (wrap A B M)       = wrap
 ren ρ⋆ ρ (unwrap {A = A}{B} M refl) = conv⊢
   refl
   (sym (ren-nf-μ ρ⋆ A B))
-  (unwrap (ren ρ⋆ ρ M) refl) 
+  (unwrap (ren ρ⋆ ρ M) refl)
 ren ρ⋆ ρ (con {A} c refl)    = con c (subNf∅-renNf ρ⋆ A)
 ren ρ⋆ ρ (builtin b / refl)  = conv⊢ refl (btype-ren b ρ⋆) (builtin b / refl)
 ren ρ⋆ ρ (error A)           = error (renNf ρ⋆ A)
@@ -136,13 +136,13 @@ ren ρ⋆ ρ (case x cases)      = case (ren ρ⋆ ρ x) (ren-Cases ρ⋆ ρ cas
 ren-ConstrArgs-List ρ⋆ ρ [] = []
 ren-ConstrArgs-List ρ⋆ ρ (t ∷ xs) = ren ρ⋆ ρ t ∷ ren-ConstrArgs-List ρ⋆ ρ xs
 
-ren-ConstrArgs ρ⋆ ρ e Tss x 
+ren-ConstrArgs ρ⋆ ρ e Tss x
           rewrite lookup-renNf-VecList ρ⋆ e Tss = ren-ConstrArgs-List ρ⋆ ρ x
 
 ren-Cases ρ⋆ ρ [] = []
-ren-Cases {Δ = Δ} ρ⋆ ρ {Tss = As ∷ _} (c ∷ cases) =   subst (Δ ⊢_) 
-                                                            (ren-mkCaseType ρ⋆ As) 
-                                                            (ren ρ⋆ ρ c) 
+ren-Cases {Δ = Δ} ρ⋆ ρ {Tss = As ∷ _} (c ∷ cases) =   subst (Δ ⊢_)
+                                                            (ren-mkCaseType ρ⋆ As)
+                                                            (ren ρ⋆ ρ c)
                                                     ∷ (ren-Cases ρ⋆ ρ cases)
 ```
 
@@ -214,22 +214,22 @@ sub-ConstrList σ⋆ σ (t ∷ xs) = sub σ⋆ σ t ∷ sub-ConstrList σ⋆ σ 
 sub-VecList : ∀ {Φ Ψ Γ Δ n}
   → (σ⋆ : SubNf Φ Ψ)
   → (σ : Sub σ⋆ Γ Δ)
-  → (e : Fin n) 
+  → (e : Fin n)
   → (Tss : Vec (List (Φ ⊢Nf⋆ *)) n)
   → (x : ConstrArgs Γ (lookup Tss e))
     --------------------------------------
   → ConstrArgs Δ (lookup (eval-VecList (⋆.sub-VecList (λ x₁ → embNf (σ⋆ x₁)) (embNf-VecList Tss)) (idEnv Ψ)) e)
-sub-VecList σ⋆ σ e Tss x rewrite lookup-eval-VecList e (⋆.sub-VecList (λ x₁ → embNf (σ⋆ x₁)) (embNf-VecList Tss)) (idEnv _) 
-                             | ⋆.lookup-sub-VecList (λ x₁ → embNf (σ⋆ x₁)) e (embNf-VecList Tss)  
+sub-VecList σ⋆ σ e Tss x rewrite lookup-eval-VecList e (⋆.sub-VecList (λ x₁ → embNf (σ⋆ x₁)) (embNf-VecList Tss)) (idEnv _)
+                             | ⋆.lookup-sub-VecList (λ x₁ → embNf (σ⋆ x₁)) e (embNf-VecList Tss)
                              | lookup-embNf-VecList e Tss = sub-ConstrList σ⋆ σ x
 
-sub-mkCaseType : ∀ {Φ Ψ} 
+sub-mkCaseType : ∀ {Φ Ψ}
            → (σ⋆ : SubNf Φ Ψ)
-           → ∀{A} As 
-           →    subNf σ⋆ (Algorithmic.mkCaseType A As) 
+           → ∀{A} As
+           →    subNf σ⋆ (Algorithmic.mkCaseType A As)
              ≡  Algorithmic.mkCaseType (subNf σ⋆ A) (eval-List (⋆.sub-List (λ x₁ → embNf (σ⋆ x₁)) (embNf-List As)) (idEnv Ψ))
 sub-mkCaseType σ⋆ [] = refl
-sub-mkCaseType σ⋆ (x ∷ As) = cong (subNf σ⋆ x ⇒_) (sub-mkCaseType σ⋆ As) 
+sub-mkCaseType σ⋆ (x ∷ As) = cong (subNf σ⋆ x ⇒_) (sub-mkCaseType σ⋆ As)
 
 sub-Cases : ∀ {Φ Ψ Γ Δ n}
   → (σ⋆ : SubNf Φ Ψ)
@@ -240,10 +240,10 @@ sub-Cases : ∀ {Φ Ψ Γ Δ n}
     ---------------------------------
   → Cases Δ (subNf σ⋆ A) (eval-VecList (⋆.sub-VecList (λ x₁ → embNf (σ⋆ x₁)) (embNf-VecList Tss)) (idEnv Ψ))
 sub-Cases σ⋆ σ [] = []
-sub-Cases {Δ = Δ} σ⋆ σ {Tss = As ∷ _} (c ∷ cs) =    subst (Δ ⊢_) 
-                                                          (sub-mkCaseType σ⋆ As) 
-                                                          (sub σ⋆ σ c) 
-                                                  ∷ (sub-Cases σ⋆ σ cs)                            
+sub-Cases {Δ = Δ} σ⋆ σ {Tss = As ∷ _} (c ∷ cs) =    subst (Δ ⊢_)
+                                                          (sub-mkCaseType σ⋆ As)
+                                                          (sub σ⋆ σ c)
+                                                  ∷ (sub-Cases σ⋆ σ cs)
 
 sub σ⋆ σ (` k)                     = σ k
 sub σ⋆ σ (ƛ N)                     = ƛ (sub σ⋆ (exts σ⋆ σ) N)
@@ -284,7 +284,7 @@ subcons σ⋆ σ t (S x) = σ x
 ```
 _[_] : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
   → Γ , B ⊢ A
-  → Γ ⊢ B 
+  → Γ ⊢ B
     -----
   → Γ ⊢ A
 _[_] {A = A}{B} b a = conv⊢ refl
@@ -297,7 +297,7 @@ _[_] {A = A}{B} b a = conv⊢ refl
 ```
 
 ```
-lem : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢Nf⋆ *}{A : Φ ⊢Nf⋆ K} → (x : Γ ,⋆ K ∋ B) → 
+lem : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢Nf⋆ *}{A : Φ ⊢Nf⋆ K} → (x : Γ ,⋆ K ∋ B) →
   Γ ⊢ subNf (subNf-cons (λ x₁ → ne (` x₁)) A) B
 lem (T x) = conv⊢
   refl
@@ -359,7 +359,7 @@ renˢ-List : ∀ {Φ Γ Δ}
     ----------------------
   → ConstrArgs Δ As
 renˢ-List ρ [] = []
-renˢ-List ρ (x ∷ xs) = renˢ ρ x ∷ (renˢ-List ρ xs)  
+renˢ-List ρ (x ∷ xs) = renˢ ρ x ∷ (renˢ-List ρ xs)
 
 renˢ-ConstrArgs : ∀ {Φ Γ Δ n}
   → (ρ : Renˢ Γ Δ)
@@ -372,9 +372,9 @@ renˢ-ConstrArgs ρ zero (As ∷ Tss) xs = renˢ-List ρ xs
 renˢ-ConstrArgs ρ (suc e) (As ∷ Tss) xs = renˢ-ConstrArgs ρ e Tss xs
 
 renˢ-Cases : ∀ {Φ Γ Δ n}
-  → (ρ : Renˢ Γ Δ) 
-  → {A : Φ ⊢Nf⋆ *} 
-  → {Tss : Vec (List (Φ ⊢Nf⋆ *)) n} 
+  → (ρ : Renˢ Γ Δ)
+  → {A : Φ ⊢Nf⋆ *}
+  → {Tss : Vec (List (Φ ⊢Nf⋆ *)) n}
   → (cs : Cases Γ A Tss)
     ------------------------------
   → Cases Δ A Tss
@@ -473,7 +473,7 @@ renˢ-Cases-cong : ∀ {Φ} {Γ Δ : Ctx Φ} {ρ ρ' : Renˢ Γ Δ}
                     {A : Φ ⊢Nf⋆ *} {n}
                     {Tss : Vec (List (Φ ⊢Nf⋆ *)) n}
                     (cs : Cases Γ A Tss)
-                   --------------------------------------------------  
+                   --------------------------------------------------
                  → renˢ-Cases ρ cs ≡ renˢ-Cases ρ' cs
 renˢ-Cases-cong p [] = refl
 renˢ-Cases-cong p (c ∷ cs) = cong₂ _∷_ (renˢ-cong p c) (renˢ-Cases-cong p cs)
@@ -500,7 +500,7 @@ renˢ-List-id : ∀ {Φ} {Γ : Ctx Φ} {A : List (Φ ⊢Nf⋆ *)}
 renˢ-List-id [] = refl
 renˢ-List-id (t ∷ cs) = cong₂ _∷_ (renˢ-id t) (renˢ-List-id cs)
 
-renˢ-ConstrArgs-id : ∀ {Φ} {Γ : Ctx Φ} {n} 
+renˢ-ConstrArgs-id : ∀ {Φ} {Γ : Ctx Φ} {n}
                     (e : Fin n)
                     (Tss : Vec (List (Φ ⊢Nf⋆ *)) n)
                     (cs : ConstrArgs Γ (lookup Tss e))
@@ -534,16 +534,16 @@ renˢ-comp : ∀ {Φ Γ Δ Θ}{A : Φ ⊢Nf⋆ *}
   → renˢ (ρ ∘ ρ') M ≡ renˢ ρ (renˢ ρ' M)
 
 renˢ-List-comp : ∀ {Φ} {Γ Δ Θ : Ctx Φ} {ρ : Renˢ Δ Θ}
-                   {ρ' : Renˢ Γ Δ} 
+                   {ρ' : Renˢ Γ Δ}
                    {A : List (Φ ⊢Nf⋆ *)}
-                   (cs : ConstrArgs Γ A) 
+                   (cs : ConstrArgs Γ A)
             -------------------------------------------------
           → renˢ-List (ρ ∘ ρ') cs ≡ renˢ-List ρ (renˢ-List ρ' cs)
 renˢ-List-comp [] = refl
 renˢ-List-comp (t ∷ cs) = cong₂ _∷_ (renˢ-comp t) (renˢ-List-comp cs)
 
 renˢ-ConstrArgs-comp : ∀ {Φ} {Γ Δ Θ : Ctx Φ} {ρ : Renˢ Δ Θ}
-                         {ρ' : Renˢ Γ Δ} {n} 
+                         {ρ' : Renˢ Γ Δ} {n}
                          (e : Fin n)
                          (Tss : Vec (List (Φ ⊢Nf⋆ *)) n)
                          (x : ConstrArgs Γ (lookup Tss e))
@@ -555,7 +555,7 @@ renˢ-ConstrArgs-comp (suc e) (_ ∷ Tss) x = renˢ-ConstrArgs-comp e Tss x
 renˢ-Cases-comp : ∀ {Φ} {Γ Δ Θ : Ctx Φ} {A : Φ ⊢Nf⋆ *}
               {ρ : Renˢ Δ Θ} {ρ' : Renˢ Γ Δ} {n} {Tss : Vec (List (Φ ⊢Nf⋆ *)) n}
               (cs : Cases Γ A Tss)
-              -------------------------------------------------------       
+              -------------------------------------------------------
            →  renˢ-Cases (ρ ∘ ρ') cs ≡ renˢ-Cases ρ (renˢ-Cases ρ' cs)
 renˢ-Cases-comp [] = refl
 renˢ-Cases-comp (c ∷ cs) = cong₂ _∷_ (renˢ-comp c) (renˢ-Cases-comp cs)
@@ -595,4 +595,4 @@ exts⋆ˢ : ∀{Φ}{Γ Δ : Ctx Φ}
 -}
 ```
 
-   
+

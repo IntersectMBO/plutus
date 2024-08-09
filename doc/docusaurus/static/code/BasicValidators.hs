@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -8,24 +9,15 @@
 {-# LANGUAGE ViewPatterns        #-}
 module BasicValidators where
 
-import PlutusCore.Default qualified as PLC
 import PlutusTx
-import PlutusTx.Lift
 import PlutusTx.Prelude
 
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V1.Contexts
 import PlutusLedgerApi.V1.Crypto
-import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V1.Value
 
-import Data.ByteString qualified as BS
-import Data.ByteString.Lazy qualified as BSL
-
-import Codec.Serialise
-import Flat qualified
-
-import Prelude (IO, print, show)
+import Prelude (IO, print)
 import Prelude qualified as Haskell
 
 myKeyHash :: PubKeyHash
@@ -61,16 +53,16 @@ beforeEnd (Date d) (Fixed e) = d <= e
 beforeEnd (Date _) Never     = True
 
 -- | Check that the date in the redeemer is before the limit in the datum.
-validateDate :: BuiltinData -> BuiltinData -> BuiltinData -> ()
+validateDate :: BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit
 -- The 'check' function takes a 'Bool' and fails if it is false.
 -- This is handy since it's more natural to talk about booleans.
 validateDate datum redeemer _ =
     check $ beforeEnd (unsafeFromBuiltinData datum) (unsafeFromBuiltinData redeemer)
 
-dateValidator :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
+dateValidator :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit)
 dateValidator = $$(compile [|| validateDate ||])
 -- BLOCK4
-validatePayment :: BuiltinData -> BuiltinData -> BuiltinData -> ()
+validatePayment :: BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit
 validatePayment _ _ ctx =
     let valCtx = unsafeFromBuiltinData ctx
     -- The 'TxInfo' in the validation context is the representation of the
@@ -94,5 +86,5 @@ showSerialised = print serialisedDateValidator
 -- The 'loadFromFile' function is a drop-in replacement for 'compile', but
 -- takes the file path instead of the code to compile.
 validatorCodeFromFile :: CompiledCode (() -> () -> ScriptContext -> Bool)
-validatorCodeFromFile = $$(loadFromFile "howtos/myscript.uplc")
+validatorCodeFromFile = $$(loadFromFile "static/code/myscript.uplc")
 -- BLOCK7

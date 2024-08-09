@@ -29,7 +29,7 @@ open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;Args)
                  using (integer;string;bytestring;unit;bool;pdata;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯ renaming (pair to bpair; list to blist)
 open _/_⊢⋆
-open import Builtin.Constant.AtomicType 
+open import Builtin.Constant.AtomicType
 
 open import Utils.Reflection using (defDec;defShow;defListConstructors)
 ```
@@ -132,6 +132,17 @@ data Builtin : Set where
   -- Bitwise operations
   byteStringToInteger             : Builtin
   integerToByteString             : Builtin
+  andByteString                   : Builtin
+  orByteString                    : Builtin
+  xorByteString                   : Builtin
+  complementByteString            : Builtin
+  readBit                         : Builtin
+  writeBits                       : Builtin
+  replicateByte                   : Builtin
+  shiftByteString                 : Builtin
+  rotateByteString                : Builtin
+  countSetBits                    : Builtin
+  findFirstSetBit                 : Builtin
 ```
 
 ## Signatures
@@ -144,13 +155,13 @@ private module SugaredSignature where
 Syntactic sugar for writing the signature of built-ins.
 This is defined in its own module so that these definitions are not exported.
 
-Signature types can have two kinds of polymorphic variables: variables that 
-range over arbitrary types (of kind *) and variables that range over builtin 
+Signature types can have two kinds of polymorphic variables: variables that
+range over arbitrary types (of kind *) and variables that range over builtin
 types (of kind ♯). In order to distinguish them in the sugares syntax we write
 with an uppercase variables of kind *, and with lowercase variables of kind ♯.
 
-The arguments of signature types (argument types) are of type `n⋆ / n♯ ⊢⋆`, for 
-n⋆ free variables of kind *, and n♯ free variables of kind ♯. However, 
+The arguments of signature types (argument types) are of type `n⋆ / n♯ ⊢⋆`, for
+n⋆ free variables of kind *, and n♯ free variables of kind ♯. However,
 shorthands for types, such  as `integer`, `bool`, etc are of type `n♯ ⊢♯`, and
 hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructor `↑`.
 
@@ -181,17 +192,17 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
 
     pair : ∀{n⋆ n♯} → n♯ ⊢♯ → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
     pair a b = (bpair a b) ↑
-    
+
     list :  ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
     list a = (blist a) ↑
 ```
-    
+
 ### Operators for constructing signatures
 
 The following operators are used to express signatures in a familiar way,
-but ultimately, they construct a Sig 
+but ultimately, they construct a Sig
 
-An expression 
+An expression
   n⋆×n♯ [ t₁ , t₂ , t₃ ]⟶ tᵣ
 
 is actually parsed as
@@ -203,14 +214,14 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
 
 ```
     ArgSet : Set
-    ArgSet = Σ (ℕ × ℕ) (λ { (n⋆ ,, n♯) → Args n⋆ n♯}) 
+    ArgSet = Σ (ℕ × ℕ) (λ { (n⋆ ,, n♯) → Args n⋆ n♯})
 
     ArgTy : ArgSet → Set
-    ArgTy ((n⋆ ,, n♯) ,, _) = n⋆ / n♯ ⊢⋆ 
+    ArgTy ((n⋆ ,, n♯) ,, _) = n⋆ / n♯ ⊢⋆
 
     infix 12 _[_
     _[_ : (nn : ℕ × ℕ)  → proj₁ nn / proj₂ nn ⊢⋆ → ArgSet
-    _[_ (n⋆ ,, n♯) x = (n⋆ ,, n♯) ,, [ x ]  
+    _[_ (n⋆ ,, n♯) x = (n⋆ ,, n♯) ,, [ x ]
 
     infixl 10 _,_
     _,_ : (p : ArgSet) → ArgTy p → ArgSet
@@ -225,7 +236,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
 
 ```
     signature : Builtin → Sig
-    signature addInteger                      = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑ 
+    signature addInteger                      = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
     signature subtractInteger                 = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
     signature multiplyInteger                 = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
     signature divideInteger                   = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
@@ -273,7 +284,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature bData                           = ∙ [ bytestring ↑ ]⟶ pdata ↑
     signature unConstrData                    = ∙ [ pdata ↑ ]⟶ pair integer (blist pdata)
     signature unMapData                       = ∙ [ pdata ↑ ]⟶ list (bpair pdata pdata)
-    signature unListData                      = ∙ [ pdata ↑ ]⟶ list pdata 
+    signature unListData                      = ∙ [ pdata ↑ ]⟶ list pdata
     signature unIData                         = ∙ [ pdata ↑ ]⟶ integer ↑
     signature unBData                         = ∙ [ pdata ↑ ]⟶ bytestring ↑
     signature equalsData                      = ∙ [ pdata ↑ , pdata ↑ ]⟶ bool ↑
@@ -300,11 +311,22 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature bls12-381-finalVerify           = ∙ [ bls12-381-mlresult ↑ , bls12-381-mlresult ↑ ]⟶ bool ↑
     signature byteStringToInteger             = ∙ [ bool ↑ , bytestring ↑ ]⟶ integer ↑
     signature integerToByteString             = ∙ [ bool ↑ , integer ↑ , integer ↑ ]⟶  bytestring ↑
+    signature andByteString                   = ∙ [ bool ↑ , bytestring ↑ , bytestring ↑ ]⟶  bytestring ↑
+    signature orByteString                    = ∙ [ bool ↑ , bytestring ↑ , bytestring ↑ ]⟶  bytestring ↑
+    signature xorByteString                   = ∙ [ bool ↑ , bytestring ↑ , bytestring ↑ ]⟶  bytestring ↑
+    signature complementByteString            = ∙ [ bytestring ↑ ]⟶  bytestring ↑
+    signature readBit                         = ∙ [ bytestring ↑ , integer ↑ ]⟶  bool ↑
+    signature writeBits                       = ∙ [ bytestring ↑ , list integer , list bool ]⟶  bytestring ↑
+    signature replicateByte                   = ∙ [ integer ↑ , integer ↑ ]⟶  bytestring ↑
+    signature shiftByteString                 = ∙ [ bytestring ↑ , integer ↑ ]⟶  bytestring ↑
+    signature rotateByteString                = ∙ [ bytestring ↑ , integer ↑ ]⟶  bytestring ↑
+    signature countSetBits                    = ∙ [ bytestring ↑ ]⟶  integer ↑
+    signature findFirstSetBit                 = ∙ [ bytestring ↑ ]⟶  integer ↑
 
 open SugaredSignature using (signature) public
 
 -- The arity of a builtin, according to its signature.
-arity : Builtin → ℕ 
+arity : Builtin → ℕ
 arity b = length (Sig.args (signature b))
 
 ```
@@ -390,6 +412,17 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | Blake2b_224
                                           | ByteStringToInteger
                                           | IntegerToByteString
+                                          | AndByteString
+                                          | OrByteString
+                                          | XorByteString
+                                          | ComplementByteString
+                                          | ReadBit
+                                          | WriteBits
+                                          | ReplicateByte
+                                          | ShiftByteString
+                                          | RotateByteString
+                                          | CountSetBits
+                                          | FindFirstSetBit
                                           ) #-}
 ```
 
@@ -445,6 +478,17 @@ postulate
   BLAKE2B-224               : ByteString → ByteString
   BStoI                     : Bool -> ByteString -> Int
   ItoBS                     : Bool -> Int -> Int -> Maybe ByteString
+  andBYTESTRING             : Bool -> ByteString -> ByteString -> ByteString
+  orBYTESTRING              : Bool -> ByteString -> ByteString -> ByteString
+  xorBYTESTRING             : Bool -> ByteString -> ByteString -> ByteString
+  complementBYTESTRING      : ByteString -> ByteString
+  readBIT                   : ByteString -> Int -> Maybe Bool
+  writeBITS                 : ByteString -> List Int -> List Bool -> Maybe ByteString
+  replicateBYTE             : Int -> Int -> Maybe ByteString
+  shiftBYTESTRING           : ByteString -> Int -> ByteString
+  rotateBYTESTRING          : ByteString -> Int -> ByteString
+  countSetBITS              : ByteString -> Int
+  findFirstSetBIT           : ByteString -> Int
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
@@ -535,9 +579,20 @@ postulate
 {-# COMPILE GHC KECCAK-256 = Hash.keccak_256 #-}
 {-# COMPILE GHC BLAKE2B-224 = Hash.blake2b_224 #-}
 
-{-# FOREIGN GHC import PlutusCore.Bitwise qualified as Convert #-}
-{-# COMPILE GHC BStoI = Convert.byteStringToIntegerWrapper #-}
-{-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Convert.integerToByteStringWrapper e w n #-}
+{-# FOREIGN GHC import PlutusCore.Bitwise qualified as Bitwise #-}
+{-# COMPILE GHC BStoI = Bitwise.byteStringToIntegerWrapper #-}
+{-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Bitwise.integerToByteStringWrapper e w n #-}
+{-# COMPILE GHC andBYTESTRING = Bitwise.andByteString #-}
+{-# COMPILE GHC orBYTESTRING = Bitwise.orByteString #-}
+{-# COMPILE GHC xorBYTESTRING = Bitwise.xorByteString #-}
+{-# COMPILE GHC complementBYTESTRING = Bitwise.complementByteString #-}
+{-# COMPILE GHC readBIT = \s n -> builtinResultToMaybe $ Bitwise.readBit s (fromIntegral n) #-}
+{-# COMPILE GHC writeBITS = \s ps us -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) us #-}
+{-# COMPILE GHC replicateBYTE = \n w8 -> builtinResultToMaybe $ Bitwise.replicateByte (fromIntegral n) (fromIntegral w8) #-}
+{-# COMPILE GHC shiftBYTESTRING = Bitwise.shiftByteStringWrapper #-}
+{-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteStringWrapper #-}
+{-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits s #-}
+{-# COMPILE GHC findFirstSetBIT = \s -> fromIntegral $ Bitwise.findFirstSetBit s #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr
@@ -555,13 +610,13 @@ unquoteDef decBuiltin = defDec (quote Builtin) decBuiltin
 We define a show function for Builtins
 
 ```
-showBuiltin : Builtin → String 
-unquoteDef showBuiltin = defShow (quote Builtin) showBuiltin 
+showBuiltin : Builtin → String
+unquoteDef showBuiltin = defShow (quote Builtin) showBuiltin
 ```
 
-`builtinList` is a list with all builtins. 
+`builtinList` is a list with all builtins.
 
 ```
-builtinList : List Builtin 
+builtinList : List Builtin
 unquoteDef builtinList = defListConstructors (quote Builtin) builtinList
 ```

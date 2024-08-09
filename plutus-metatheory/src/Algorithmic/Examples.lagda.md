@@ -10,7 +10,7 @@ module Algorithmic.Examples where
 
 ```
 open import Utils using (*;_⇒_)
-open import Relation.Binary.PropositionalEquality using (refl) 
+open import Relation.Binary.PropositionalEquality using (refl)
                                                   renaming (subst to substEq)
 open import Type using (_,⋆_;_⇒_;Z;S;_⊢⋆_)
 open _⊢⋆_
@@ -74,10 +74,10 @@ module Scott where
     → Γ ⊢ μ0 ·Nf A
     → Γ ⊢ A ·Nf (μ0 ·Nf A)
   unwrap0 A X rewrite stability A = unwrap X refl
-  
+
   G : ∀{Γ} → Γ ,⋆  * ⊢Nf⋆ *
   G = Π (ne (` Z) ⇒ (ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` Z))
-  
+
   M : ∀{Γ} → Γ ⊢Nf⋆ *
   M = μ0 ·Nf ƛ G
 
@@ -93,7 +93,7 @@ module Scott where
 
   One :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   One = Succ · Zero
-  
+
   Two :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   Two = Succ · One
 
@@ -182,7 +182,7 @@ module Church where
 
   Succ : ∅ ⊢ N ⇒ N
   Succ = ƛ (Λ (ƛ (ƛ (` Z · (((` (S (S (T Z)))) ·⋆ (ne (` Z)) / refl) · (` (S Z)) · (` Z))))))
-  
+
   Iter : ∅ ⊢ Π (ne (` Z) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ N ⇒ ne (` Z))
   Iter = Λ (ƛ (ƛ (ƛ (((` Z) ·⋆ ne (` Z) / refl) · (` (S (S Z))) · (` (S Z))))))
 

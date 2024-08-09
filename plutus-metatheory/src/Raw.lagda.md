@@ -87,7 +87,7 @@ decRKi * * = true
 decRKi * _ = false
 decRKi ♯ ♯ = true
 decRKi ♯ _ = false
-decRKi (K ⇒ J) (K' ⇒ J') = decRKi K K' ∧ decRKi J J' 
+decRKi (K ⇒ J) (K' ⇒ J') = decRKi K K' ∧ decRKi J J'
 decRKi (K ⇒ J) _ = false
 
 decRTy : (A A' : RawTy) → Bool
@@ -137,7 +137,7 @@ decRTmList _ _ = false
 -- We have to different approaches to de Bruijn terms.
 -- one counts type and term binders separately the other counts them together
 
-addBrackets : String → String 
+addBrackets : String → String
 addBrackets xs = "[" ++ xs ++ "]"
 
 rawTyPrinter : RawTy → String
@@ -173,15 +173,15 @@ rawPrinter (error A) = "(error" ++ rawTyPrinter A ++ ")"
 rawPrinter (builtin b) = "(builtin)"
 rawPrinter (wrap pat ar t) = "(wrap" ++ ")"
 rawPrinter (unwrap t) = "(unwrap" ++ rawPrinter t ++ ")"
-rawPrinter (constr A i cs) = "(const"  ++ rawTyPrinter A 
-                               ++ " "  ++ show (ℤ.pos i) 
+rawPrinter (constr A i cs) = "(const"  ++ rawTyPrinter A
+                               ++ " "  ++ show (ℤ.pos i)
                                ++ " [" ++ rawListPrinter cs ++ "])"
-rawPrinter (case A arg cs) = "(case"  ++ rawTyPrinter A 
-                              ++ " "  ++ rawPrinter arg 
-                              ++ " [" ++ rawListPrinter cs ++"])"                               
+rawPrinter (case A arg cs) = "(case"  ++ rawTyPrinter A
+                              ++ " "  ++ rawPrinter arg
+                              ++ " [" ++ rawListPrinter cs ++"])"
 
 rawListPrinter [] = ""
 rawListPrinter (x ∷ []) = rawPrinter x
-rawListPrinter (x ∷ y ∷ xs) = rawPrinter x ++ " , " ++ rawListPrinter (y ∷ xs)                               
+rawListPrinter (x ∷ y ∷ xs) = rawPrinter x ++ " , " ++ rawListPrinter (y ∷ xs)
 ```
- 
+

@@ -48,7 +48,7 @@ unwrap0 {Γ} pat X = conv
 {-
   -- Y : (a -> a) -> a
   -- Y f = (\x. f (x x)) (\x. f (x x))
-  -- Y f = (\x : mu x. x -> a. f (x x)) (\x : mu x. x -> a. f (x x)) 
+  -- Y f = (\x : mu x. x -> a. f (x x)) (\x : mu x. x -> a. f (x x))
 
   -- Z : ((a -> b) -> a -> b) -> a -> b
   -- Z f = (\r. f (\x. r r x)) (\r. f (\x. r r x))
