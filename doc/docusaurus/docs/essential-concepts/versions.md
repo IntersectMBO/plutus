@@ -52,7 +52,7 @@ Once a new builtin function is added, one can simply start using the new builtin
 
 ## Builtin Semantics Variant
 
-Depending on the protocol version or the ledger language version, we may want to have different behavior of a particular builtin function.
+Depending on the protocol version or the ledger language version, or both, we may want to have different behavior of a particular builtin function.
 For example, we might want to fix a bug but need to retain the old buggy behavior for old evaluations of already-submitted scripts, so we have to have a way of knowing which regime we are in.
 
 One example is the builtin function `consByteString`.
