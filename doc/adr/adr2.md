@@ -1,7 +1,3 @@
----
-sidebar_position: 15
----
-
 # ADR 2: Steppable CEK machine
 
 Date: 2022-10
@@ -20,30 +16,30 @@ Proposed
 
 In order to have a minimal viable product of a debugger for Plutus, we need a CEK machine that will give us more information for debugging than our current one.
 
-In order to provide debugging information for each evaluation step, we need a steppable CEK machine. 
-Implementing the steppable CEK machine is a non-trivial task and involves some design decisions. 
-One decision to make is about whether we can share the code between the production and the debugging machine. 
-That is not the scope of this ADR. 
+In order to provide debugging information for each evaluation step, we need a steppable CEK machine.
+Implementing the steppable CEK machine is a non-trivial task and involves some design decisions.
+One decision to make is about whether we can share the code between the production and the debugging machine.
+That is not the scope of this ADR.
 See the next ADR for that.
 
-This ADR proposes a design for an implementation of a steppable CEK machine. 
-Of course, this doesn't mean that this is the final decision. 
-This means that the next step for us is to prototype the machine in this way - which we have reasons to believe will go well. 
+This ADR proposes a design for an implementation of a steppable CEK machine.
+Of course, this doesn't mean that this is the final decision.
+This means that the next step for us is to prototype the machine in this way - which we have reasons to believe will go well.
 We may adjust our proposed approach depending on how the prototyping goes.
 
 ## Decision
 
 This section describes the proposed implementation of the debugging machine.
 
-We first **abstract out the computation to "steps"** on our current machine. 
+We first **abstract out the computation to "steps"** on our current machine.
 We then **implement a coroutine system** to add the debugging functionalities.
 
 ### Abstracting out the computation to "steps"
 
 This abstraction has been implemented in [PR#4909](https://github.com/IntersectMBO/plutus/pull/4909/).
 
-The current machine inlined the steps. 
-We separate each steps into separate functions. 
+The current machine inlined the steps.
+We separate each steps into separate functions.
 They all return a `CekState`:
 
 ```haskell
@@ -55,7 +51,7 @@ data CekState uni fun =
     -- evaluation finished
     | Terminating (Term NamedDeBruijn uni fun ())
 
-data Closure uni fun = 
+data Closure uni fun =
   Closure (Term NamedDeBruijn uni fun ()) (CekValEnv uni fun)
 ```
 
@@ -71,7 +67,7 @@ computeCekStep
     -> CekM uni fun s (CekState uni fun)
 ```
 
-Similarly for the returning step (`returnCekStep`). 
+Similarly for the returning step (`returnCekStep`).
 Then we link up all the steps with `continue`, and the machine behaves very similar to our current one:
 
 ```haskell
@@ -90,8 +86,8 @@ continue (Terminating term) = pure term
 
 ### Coroutines in Haskell
 
-The next step is to add debugging capabilities between each step. 
-To do so, we implement it as a *coroutine system*. 
+The next step is to add debugging capabilities between each step.
+To do so, we implement it as a *coroutine system*.
 A detailed introduction to coroutines in Haskell can be found in [Coroutine Pipelines](https://themonadreader.files.wordpress.com/2011/10/issue19.pdf).
 This section gives a brief summary.
 
@@ -127,9 +123,9 @@ Multiple suspension functors and computations can be composed using [coproducts]
 
 The base monad `m` is the monad the machine computation runs in.
 The machine computation interprets each request into an `m` action.
-It is essentially a natural transformation from the suspension functor to `m`. 
-This `m` will replace our current monad `CekM`. 
-Although we can actually just use `CekM` in the steppable CEK machine when we add `IO` capabilities for debugging. 
+It is essentially a natural transformation from the suspension functor to `m`.
+This `m` will replace our current monad `CekM`.
+Although we can actually just use `CekM` in the steppable CEK machine when we add `IO` capabilities for debugging.
 This is because we can convert it to/from `IO` via `unsafeSTToIO` and `unsafeIOToST`.
 
 Suppose we define a type `SteppableCekM a` as our base monad `m`.
@@ -143,7 +139,7 @@ handle = \case
   InputF k     -> input >>= pure . k
 ```
 
-where `step state`, `log text` and `input` return `SteppableCekM` actions. 
+where `step state`, `log text` and `input` return `SteppableCekM` actions.
 `step` will likely correspond to `computeCekStep` and `returnCekStep` depending on the states.
 
 We can then use `handle` to construct a monad morphism, interpreting the user computation (a `FreeT` structure) into a `SteppableCekM` action:
@@ -195,9 +191,9 @@ enterDebug termToDebug = do
 
 ### Argument: coroutine system
 
-Why a coroutine system? 
-In short, structuring the code this way will ease our future work. 
-Some of the advantages are mentioned above already. 
+Why a coroutine system?
+In short, structuring the code this way will ease our future work.
+Some of the advantages are mentioned above already.
 Here is a summary:
 
 - The debugger is naturally a coroutine, where one routine is the user and the other is the CEK machine, and they take turns to suspend and pass data and control to each other in a debugging session. The literature has contributed a good way to design/implement a coroutine. It makes sense to implement a well studied design.
@@ -207,7 +203,7 @@ Here is a summary:
 
 ## Implications
 
-In summary, we proposed to implement the debugging machine as a coroutine system with 'steps'. 
+In summary, we proposed to implement the debugging machine as a coroutine system with 'steps'.
 This implies that:
 
 - We have to maintain the CEK machine (eg, we need to check its conformance)
