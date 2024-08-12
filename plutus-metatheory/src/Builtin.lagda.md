@@ -604,7 +604,8 @@ postulate
 -- the implementation PlutusCore.Bitwise will return BuiltinFailure; if w < 0 or w >= 256 then the
 -- denotation in `PlutusCore.Default.Builtins` will fail when the builtin machinery tries to convert
 -- it to a Word8.  We have to replicate this behaviour here. -}
-{-# COMPILE GHC replicateBYTE = \n w8 -> builtinResultToMaybe $ Bitwise.replicateByte (fromIntegral n) (fromIntegral w8) #-}
+{-# COMPILE GHC replicateBYTE = \n w8 ->
+        case toIntegralSized w8 of { Nothing -> Nothing; Just w -> builtinResultToMaybe $ Bitwise.replicateByte n w } #-}
 {-# COMPILE GHC shiftBYTESTRING = Bitwise.shiftByteString #-}
 {-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteString #-}
 {-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits s #-}
