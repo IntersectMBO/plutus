@@ -611,7 +611,7 @@ library bitwise-internal
 
   build-depends:
     , base
-    , plutus-tx  ^>=1.32
+    , plutus-tx         ^>=1.32
     , plutus-tx-plugin
 
 test-suite bitwise-test
@@ -640,5 +640,3 @@ benchmark bitwise-bench
     , criterion
     , plutus-benchmark-common
     , plutus-tx                ^>=1.32
-    , plutus-tx-plugin         ^>=1.32
-
