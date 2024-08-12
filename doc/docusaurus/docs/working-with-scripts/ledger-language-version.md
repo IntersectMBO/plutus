@@ -37,7 +37,7 @@ There is no requirement on the return value of a Plutus V1 and V2 script: script
 
 A Plutus V1/V2 spending script receives three arguments corresponding to datum, redeemer and script context.
 All arguments are encoded as `BuiltinData`.
-Thus in Plutux Tx, a spending script has the following type:
+Thus in Plutus Tx, a spending script has the following type:
 
 ```haskell
 BuiltinData -> BuiltinData -> BuiltinData -> any
