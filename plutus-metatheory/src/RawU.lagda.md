@@ -35,7 +35,7 @@ open import Builtin using (Builtin;equals)
 open Builtin.Builtin
 
 
-open import Builtin.Signature as B using (Sig;sig;_⊢♯) 
+open import Builtin.Signature as B using (Sig;sig;_⊢♯)
 open _⊢♯
 import Builtin.Constant.Type as T
 open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
@@ -45,7 +45,7 @@ open import Type using (Ctx⋆;∅)
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
-open B.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π 
+open B.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π
      using (⊢♯2TyNe♯;sig2type;SigTy;sigTy2type;convSigTy) public
 open import Algorithmic using (⟦_⟧)
 
@@ -93,47 +93,47 @@ data Tag : Set → Set where
 {-# FOREIGN GHC pattern TagBLS12_381_G1_Element = DefaultUniBLS12_381_G1_Element #-}
 {-# FOREIGN GHC pattern TagBLS12_381_G2_Element = DefaultUniBLS12_381_G2_Element #-}
 {-# FOREIGN GHC pattern TagBLS12_381_MlResult   = DefaultUniBLS12_381_MlResult #-}
-{-# COMPILE GHC Tag                             = data Tag (TagInt 
-                                                           | TagBS 
-                                                           | TagStr 
-                                                           | TagBool 
-                                                           | TagUnit 
-                                                           | TagData 
-                                                           | TagPair 
-                                                           | TagList 
-                                                           | TagBLS12_381_G1_Element 
-                                                           | TagBLS12_381_G2_Element 
-                                                           | TagBLS12_381_MlResult) 
+{-# COMPILE GHC Tag                             = data Tag (TagInt
+                                                           | TagBS
+                                                           | TagStr
+                                                           | TagBool
+                                                           | TagUnit
+                                                           | TagData
+                                                           | TagPair
+                                                           | TagList
+                                                           | TagBLS12_381_G1_Element
+                                                           | TagBLS12_381_G2_Element
+                                                           | TagBLS12_381_MlResult)
 #-}
 ```
 
 ## Term constants
 
-Term constants are pairs of a tag and the corresponding type. 
+Term constants are pairs of a tag and the corresponding type.
 
 ```
 data TagCon : Set where
   tagCon : ∀{A} → Tag (Esc A) → A → TagCon
 
 {-# FOREIGN GHC type TagCon = Some (ValueOf DefaultUni) #-}
-{-# FOREIGN GHC pattern TagCon t x = Some (ValueOf t x) #-} 
+{-# FOREIGN GHC pattern TagCon t x = Some (ValueOf t x) #-}
 {-# COMPILE GHC TagCon = data TagCon (TagCon) #-}
 
 decTagCon' : ∀{A B} → (t : Tag (Esc A)) → (x : A) → (t' : Tag (Esc B)) → (y : B) → Bool
-decTagCon' integer i integer i'                          = does (i Data.Integer.≟ i') 
+decTagCon' integer i integer i'                          = does (i Data.Integer.≟ i')
 decTagCon' bytestring b bytestring b'                    = equals b b'
 decTagCon' string s string s'                            = does (s Data.String.≟ s')
 decTagCon' bool b bool b'                                = does (b Data.Bool.≟ b')
 decTagCon' unit ⊤ unit ⊤                                = true
 decTagCon' pdata d pdata d'                              = eqDATA d d'
-decTagCon' (pair t₁ t₂) (x₁ , x₂) (pair u₁ u₂) (y₁ , y₂) = decTagCon' t₁ x₁ u₁ y₁ 
+decTagCon' (pair t₁ t₂) (x₁ , x₂) (pair u₁ u₂) (y₁ , y₂) = decTagCon' t₁ x₁ u₁ y₁
                                                          ∧ decTagCon' t₂ x₂ u₂ y₂
 decTagCon' (list t) [] (list t') []                      = true -- TODO: check that the tags t and t' are equal
-decTagCon' (list t) (x ∷ xs) (list t') (y ∷ ys)          = decTagCon' t x t' y 
+decTagCon' (list t) (x ∷ xs) (list t') (y ∷ ys)          = decTagCon' t x t' y
                                                          ∧ decTagCon' (list t) xs (list t') ys
 decTagCon' _ _ _ _                                       = false
 
--- Comparison of TagCon. Written with an auxiliary function to pass the termination checker. 
+-- Comparison of TagCon. Written with an auxiliary function to pass the termination checker.
 decTagCon : (C C' : TagCon) → Bool
 decTagCon (tagCon t x) (tagCon t' y) = decTagCon' t x t' y
 
@@ -174,7 +174,7 @@ an Agda type.
 
 ```
 ⟦_⟧tag : 0 ⊢♯ → Set
-⟦ t ⟧tag =  ⟦ ne (⊢♯2TyNe♯ t) ⟧ 
+⟦ t ⟧tag =  ⟦ ne (⊢♯2TyNe♯ t) ⟧
 ```
 
 
@@ -197,7 +197,7 @@ Again term constants are a pair of a tag, and its meaning, except
 this time the meaning is given by the semantic function ⟦_⟧tag.
 
 ```
-data TmCon : Set where 
+data TmCon : Set where
   tmCon : (t : TyTag) → ⟦ t ⟧tag → TmCon
 ```
 
@@ -264,9 +264,9 @@ tyTag2Tag (atomic aData) = DATA ,, pdata
 tyTag2Tag (atomic aBls12-381-g1-element) = Bls12-381-G1-Element ,, bls12-381-g1-element
 tyTag2Tag (atomic aBls12-381-g2-element) = Bls12-381-G2-Element ,, bls12-381-g2-element
 tyTag2Tag (atomic aBls12-381-mlresult) = Bls12-381-MlResult ,, bls12-381-mlresult
-tyTag2Tag (list t)  with tyTag2Tag t 
+tyTag2Tag (list t)  with tyTag2Tag t
 ... | A ,, a = List A ,, list a
-tyTag2Tag (pair t u)  with tyTag2Tag t | tyTag2Tag u  
+tyTag2Tag (pair t u)  with tyTag2Tag t | tyTag2Tag u
 ... | A ,, a | B ,, b  = (A × B) ,, pair a b
 
 tyTagLemma : (t : TyTag) → ⟦ t ⟧tag ≡ proj₁ (tyTag2Tag t)
@@ -293,6 +293,6 @@ tmCon2TagCon (tmCon (atomic aBls12-381-g1-element) x) = tagCon bls12-381-g1-elem
 tmCon2TagCon (tmCon (atomic aBls12-381-g2-element) x) = tagCon bls12-381-g2-element x
 tmCon2TagCon (tmCon (atomic aBls12-381-mlresult) x) = tagCon bls12-381-mlresult x
 tmCon2TagCon (tmCon (list t) x) rewrite tyTagLemma t = tagCon (list (proj₂ (tyTag2Tag t))) x
-tmCon2TagCon (tmCon (pair t u) (x , y)) rewrite tyTagLemma t | tyTagLemma u = 
+tmCon2TagCon (tmCon (pair t u) (x , y)) rewrite tyTagLemma t | tyTagLemma u =
     tagCon (pair (proj₂ (tyTag2Tag t)) (proj₂ (tyTag2Tag u))) (x , y)
 ```

@@ -26,13 +26,13 @@ open _⊢Ne⋆_
 
 import Type.RenamingSubstitution as ⋆
 open import Type.BetaNBE.Completeness using (reifyCR;idext;exte-lem)
-open import Type.BetaNBE.RenamingSubstitution 
-                         using (subNf;SubNf;renNf-subNf;subNf-cong;subNf-comp;subNf-cons;extsNf;subNf-lemma;subNf∅;subNf∅≡subNf;subNf∅-subNf;subNf∅-renNf) 
+open import Type.BetaNBE.RenamingSubstitution
+                         using (subNf;SubNf;renNf-subNf;subNf-cong;subNf-comp;subNf-cons;extsNf;subNf-lemma;subNf∅;subNf∅≡subNf;subNf∅-subNf;subNf∅-renNf)
                          renaming (_[_]Nf to _[_])
 open import Builtin using (Builtin;signature)
 open import Type.BetaNBE using (nf;reify;eval;idEnv;exte)
 open import Builtin.Signature using ()
-open Builtin.Signature.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π 
+open Builtin.Signature.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π
      using (sig2type;SigTy;sigTy2type;convSigTy;sig2typeΠ;sig2type⇒;⊢♯2TyNe♯;mkTy) public
 open SigTy
 ```
@@ -69,25 +69,25 @@ subNf-Π {Φ}{Ψ}{J} ρ B = begin
 subSigTy : ∀ {Φ Ψ}
    -- {n⋆ n♯}
   → (σ : SubNf Φ Ψ)
-  → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt} 
-  → ∀{am an at} {pa : an ∔ am ≣ at} 
-  → {A : Φ ⊢Nf⋆ *} → SigTy pt pa A 
+  → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt}
+  → ∀{am an at} {pa : an ∔ am ≣ at}
+  → {A : Φ ⊢Nf⋆ *} → SigTy pt pa A
   -------------------------
   → SigTy pt pa (subNf σ A)
 subSigTy σ (bresult _) = bresult _
 subSigTy σ (A B⇒ bt) = (subNf σ A) B⇒ (subSigTy σ bt)
-subSigTy σ (sucΠ bt) rewrite (subNf-Π σ (sigTy2type bt)) = sucΠ (subSigTy (extsNf σ) bt) 
+subSigTy σ (sucΠ bt) rewrite (subNf-Π σ (sigTy2type bt)) = sucΠ (subSigTy (extsNf σ) bt)
 
-_[_]SigTy : ∀{Φ K} 
-          → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt} 
-          → ∀{am an at} {pa : an ∔ am ≣ at} 
-          → {B : Φ ,⋆ K ⊢Nf⋆ *} 
-          → SigTy pt pa B 
-          → (A : Φ ⊢Nf⋆ K) 
+_[_]SigTy : ∀{Φ K}
+          → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt}
+          → ∀{am an at} {pa : an ∔ am ≣ at}
+          → {B : Φ ,⋆ K ⊢Nf⋆ *}
+          → SigTy pt pa B
+          → (A : Φ ⊢Nf⋆ K)
           → SigTy pt pa (B [ A ])
 _[_]SigTy bt A  = subSigTy (subNf-cons (ne ∘ `) A) bt
 
-uniqueSigTy :  
+uniqueSigTy :
       ∀{tn tm tt} → {pt : tn ∔ tm ≣ tt}
     → ∀{an am at} → {pa : an ∔ am ≣ at}
     → ∀{Φ} → {A : Φ ⊢Nf⋆ *}
@@ -95,6 +95,6 @@ uniqueSigTy :
     → s ≡ s'
 uniqueSigTy (bresult _) (bresult _) = refl
 uniqueSigTy (A B⇒ s) (.A B⇒ s') = cong (A B⇒_) (uniqueSigTy s s')
-uniqueSigTy (sucΠ s) (sucΠ s') = cong sucΠ (uniqueSigTy s s') 
+uniqueSigTy (sucΠ s) (sucΠ s') = cong sucΠ (uniqueSigTy s s')
 ```
- 
+

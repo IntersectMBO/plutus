@@ -1,0 +1,1 @@
+(program 1.0.0 [ [ (builtin rotateByteString) (con bytestring #) ] (con integer -1) ])

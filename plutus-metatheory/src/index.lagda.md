@@ -96,7 +96,7 @@ notions of type used in the formalisation.
 
 ```
 import Builtin.Signature
-``` 
+```
 
 ## Declarative syntax
 

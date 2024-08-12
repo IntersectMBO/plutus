@@ -1875,7 +1875,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let integerToByteStringDenotation :: Bool -> NumBytesCostedAsNumWords -> Integer -> BuiltinResult BS.ByteString
             {- The second argument is wrapped in a NumBytesCostedAsNumWords to allow us to
                interpret it as a size during costing. -}
-            integerToByteStringDenotation b (NumBytesCostedAsNumWords w) = Bitwise.integerToByteStringWrapper b w
+            integerToByteStringDenotation b (NumBytesCostedAsNumWords w) = Bitwise.integerToByteString b w
             {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
             integerToByteStringDenotation
@@ -1883,7 +1883,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar ByteStringToInteger =
         let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
-            byteStringToIntegerDenotation = Bitwise.byteStringToIntegerWrapper
+            byteStringToIntegerDenotation = Bitwise.byteStringToInteger
             {-# INLINE byteStringToIntegerDenotation #-}
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
@@ -1954,7 +1954,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar ShiftByteString =
         let shiftByteStringDenotation :: BS.ByteString -> IntegerCostedLiterally -> BS.ByteString
-            shiftByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.shiftByteStringWrapper s n
+            shiftByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.shiftByteString s n
             {-# INLINE shiftByteStringDenotation #-}
         in makeBuiltinMeaning
             shiftByteStringDenotation
@@ -1962,7 +1962,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar RotateByteString =
         let rotateByteStringDenotation :: BS.ByteString -> IntegerCostedLiterally -> BS.ByteString
-            rotateByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.rotateByteStringWrapper s n
+            rotateByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.rotateByteString s n
             {-# INLINE rotateByteStringDenotation #-}
         in makeBuiltinMeaning
             rotateByteStringDenotation

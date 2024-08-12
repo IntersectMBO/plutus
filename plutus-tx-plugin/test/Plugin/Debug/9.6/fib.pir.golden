@@ -9,7 +9,7 @@
       (strict)
       (vardecl
         { no-src-span }
-        addInteger-541
+        addInteger
         (fun
           { no-src-span }
           (con { no-src-span } integer)
@@ -27,7 +27,7 @@
       (nonstrict)
       (vardecl
         { no-src-span }
-        addInteger-546
+        addInteger
         (fun
           { no-src-span }
           (con { no-src-span } integer)
@@ -40,7 +40,7 @@
       )
       (lam
         { no-src-span }
-        x-542
+        x
         (con { no-src-span } integer)
         (let
           { no-src-span }
@@ -48,12 +48,12 @@
           (termbind
             { no-src-span }
             (strict)
-            (vardecl { no-src-span } x-544 (con { no-src-span } integer))
-            { no-src-span } x-542
+            (vardecl { no-src-span } x (con { no-src-span } integer))
+            { no-src-span } x
           )
           (lam
             { no-src-span }
-            y-543
+            y
             (con { no-src-span } integer)
             (let
               { no-src-span }
@@ -61,17 +61,13 @@
               (termbind
                 { no-src-span }
                 (strict)
-                (vardecl { no-src-span } y-545 (con { no-src-span } integer))
-                { no-src-span } y-543
+                (vardecl { no-src-span } y (con { no-src-span } integer))
+                { no-src-span } y
               )
               [
                 { no-src-span }
-                [
-                  { no-src-span }
-                  { no-src-span } addInteger-541
-                  { no-src-span } x-544
-                ]
-                { no-src-span } y-545
+                [ { no-src-span } { no-src-span } addInteger { no-src-span } x ]
+                { no-src-span } y
               ]
             )
           )
@@ -82,11 +78,11 @@
       { no-src-span }
       (datatype
         { no-src-span }
-        (tyvardecl { no-src-span } Bool-531 ({ no-src-span } type))
+        (tyvardecl { no-src-span } Bool ({ no-src-span } type))
 
-        Bool_match-534
-        (vardecl { no-src-span } True-532 { no-src-span } Bool-531)
-        (vardecl { no-src-span } False-533 { no-src-span } Bool-531)
+        Bool_match
+        (vardecl { no-src-span } True { no-src-span } Bool)
+        (vardecl { no-src-span } False { no-src-span } Bool)
       )
     )
     (termbind
@@ -94,7 +90,7 @@
       (strict)
       (vardecl
         { no-src-span }
-        equalsInteger-530
+        equalsInteger
         (fun
           { no-src-span }
           (con { no-src-span } integer)
@@ -112,18 +108,18 @@
       (strict)
       (vardecl
         { no-src-span }
-        ifThenElse-528
+        ifThenElse
         (all
           { no-src-span }
-          a-529
+          a
           ({ no-src-span } type)
           (fun
             { no-src-span }
             (con { no-src-span } bool)
             (fun
               { no-src-span }
-              { no-src-span } a-529
-              (fun { no-src-span } { no-src-span } a-529 { no-src-span } a-529)
+              { no-src-span } a
+              (fun { no-src-span } { no-src-span } a { no-src-span } a)
             )
           )
         )
@@ -135,20 +131,18 @@
       (nonstrict)
       (vardecl
         { no-src-span }
-        equalsInteger-540
+        equalsInteger
         (fun
           { no-src-span }
           (con { no-src-span } integer)
           (fun
-            { no-src-span }
-            (con { no-src-span } integer)
-            { no-src-span } Bool-531
+            { no-src-span } (con { no-src-span } integer) { no-src-span } Bool
           )
         )
       )
       (lam
         { no-src-span }
-        x-535
+        x
         (con { no-src-span } integer)
         (let
           { no-src-span }
@@ -156,12 +150,12 @@
           (termbind
             { no-src-span }
             (strict)
-            (vardecl { no-src-span } x-537 (con { no-src-span } integer))
-            { no-src-span } x-535
+            (vardecl { no-src-span } x (con { no-src-span } integer))
+            { no-src-span } x
           )
           (lam
             { no-src-span }
-            y-536
+            y
             (con { no-src-span } integer)
             (let
               { no-src-span }
@@ -169,21 +163,21 @@
               (termbind
                 { no-src-span }
                 (strict)
-                (vardecl { no-src-span } y-538 (con { no-src-span } integer))
-                { no-src-span } y-536
+                (vardecl { no-src-span } y (con { no-src-span } integer))
+                { no-src-span } y
               )
               (termbind
                 { no-src-span }
                 (strict)
-                (vardecl { no-src-span } b-539 (con { no-src-span } bool))
+                (vardecl { no-src-span } b (con { no-src-span } bool))
                 [
                   { no-src-span }
                   [
                     { no-src-span }
-                    { no-src-span } equalsInteger-530
-                    { no-src-span } x-537
+                    { no-src-span } equalsInteger
+                    { no-src-span } x
                   ]
-                  { no-src-span } y-538
+                  { no-src-span } y
                 ]
               )
               [
@@ -194,14 +188,14 @@
                     { no-src-span }
                     {
                       { no-src-span }
-                      { no-src-span } ifThenElse-528
-                      { no-src-span } Bool-531
+                      { no-src-span } ifThenElse
+                      { no-src-span } Bool
                     }
-                    { no-src-span } b-539
+                    { no-src-span } b
                   ]
-                  { no-src-span } True-532
+                  { no-src-span } True
                 ]
-                { no-src-span } False-533
+                { no-src-span } False
               ]
             )
           )
@@ -213,7 +207,7 @@
       (strict)
       (vardecl
         { no-src-span }
-        subtractInteger-522
+        subtractInteger
         (fun
           { no-src-span }
           (con { no-src-span } integer)
@@ -231,7 +225,7 @@
       (nonstrict)
       (vardecl
         { no-src-span }
-        subtractInteger-527
+        subtractInteger
         (fun
           { no-src-span }
           (con { no-src-span } integer)
@@ -244,7 +238,7 @@
       )
       (lam
         { no-src-span }
-        x-523
+        x
         (con { no-src-span } integer)
         (let
           { no-src-span }
@@ -252,12 +246,12 @@
           (termbind
             { no-src-span }
             (strict)
-            (vardecl { no-src-span } x-525 (con { no-src-span } integer))
-            { no-src-span } x-523
+            (vardecl { no-src-span } x (con { no-src-span } integer))
+            { no-src-span } x
           )
           (lam
             { no-src-span }
-            y-524
+            y
             (con { no-src-span } integer)
             (let
               { no-src-span }
@@ -265,17 +259,17 @@
               (termbind
                 { no-src-span }
                 (strict)
-                (vardecl { no-src-span } y-526 (con { no-src-span } integer))
-                { no-src-span } y-524
+                (vardecl { no-src-span } y (con { no-src-span } integer))
+                { no-src-span } y
               )
               [
                 { no-src-span }
                 [
                   { no-src-span }
-                  { no-src-span } subtractInteger-522
-                  { no-src-span } x-525
+                  { no-src-span } subtractInteger
+                  { no-src-span } x
                 ]
-                { no-src-span } y-526
+                { no-src-span } y
               ]
             )
           )
@@ -290,7 +284,7 @@
         (nonstrict)
         (vardecl
           { no-src-span }
-          fib-547
+          fib
           (fun
             { no-src-span }
             (con { no-src-span } integer)
@@ -299,7 +293,7 @@
         )
         (lam
           { no-src-span }
-          n-548
+          n
           (con { no-src-span } integer)
           (let
             { test/Plugin/Debug/Spec.hs:46:15-55:72 }
@@ -309,10 +303,10 @@
               (strict)
               (vardecl
                 { test/Plugin/Debug/Spec.hs:46:15-55:72 }
-                n-549
+                n
                 (con { test/Plugin/Debug/Spec.hs:46:15-55:72 } integer)
               )
-              { test/Plugin/Debug/Spec.hs:46:15-55:72 } n-548
+              { test/Plugin/Debug/Spec.hs:46:15-55:72 } n
             )
             {
               { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
@@ -325,15 +319,15 @@
                     [
                       { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
                       { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
-                      Bool_match-534
+                      Bool_match
                       [
                         { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
                         [
                           { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
                           { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
-                          equalsInteger-540
+                          equalsInteger
                           { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:47:43-47:43 }
-                          n-549
+                          n
                         ]
                         (con
                           { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:47:45-47:45 }
@@ -344,7 +338,7 @@
                     ]
                     (all
                       { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
-                      dead-550
+                      dead
                       ({ test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
                       type)
                       (con
@@ -355,7 +349,7 @@
                   }
                   (abs
                     { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
-                    dead-551
+                    dead
                     ({ test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
                     type)
                     (con
@@ -367,7 +361,7 @@
                 ]
                 (abs
                   { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
-                  dead-552
+                  dead
                   ({ test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
                   type)
                   {
@@ -381,15 +375,15 @@
                           [
                             { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
                             { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
-                            Bool_match-534
+                            Bool_match
                             [
                               { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
                               [
                                 { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
                                 { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
-                                equalsInteger-540
+                                equalsInteger
                                 { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:50:51-50:51 }
-                                n-549
+                                n
                               ]
                               (con
                                 { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:50:53-50:53 }
@@ -400,7 +394,7 @@
                           ]
                           (all
                             { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
-                            dead-553
+                            dead
                             ({ test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
                             type)
                             (con
@@ -411,7 +405,7 @@
                         }
                         (abs
                           { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
-                          dead-554
+                          dead
                           ({ test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
                           type)
                           (con
@@ -423,7 +417,7 @@
                       ]
                       (abs
                         { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
-                        dead-555
+                        dead
                         ({ test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
                         type)
                         [
@@ -431,19 +425,19 @@
                           [
                             { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72 }
                             { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72 }
-                            addInteger-546
+                            addInteger
                             [
                               { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:54:37-54:72 }
                               { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:54:37-54:72 }
-                              fib-547
+                              fib
                               [
                                 { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:54:37-54:72, test/Plugin/Debug/Spec.hs:54:42-54:71 }
                                 [
                                   { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:54:37-54:72, test/Plugin/Debug/Spec.hs:54:42-54:71 }
                                   { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:54:37-54:72, test/Plugin/Debug/Spec.hs:54:42-54:71 }
-                                  subtractInteger-527
+                                  subtractInteger
                                   { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:54:37-54:72, test/Plugin/Debug/Spec.hs:54:42-54:71, test/Plugin/Debug/Spec.hs:54:68-54:68 }
-                                  n-549
+                                  n
                                 ]
                                 (con
                                   { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:54:37-54:72, test/Plugin/Debug/Spec.hs:54:42-54:71, test/Plugin/Debug/Spec.hs:54:70-54:70 }
@@ -456,15 +450,15 @@
                           [
                             { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:55:37-55:72 }
                             { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:55:37-55:72 }
-                            fib-547
+                            fib
                             [
                               { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:55:37-55:72, test/Plugin/Debug/Spec.hs:55:42-55:71 }
                               [
                                 { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:55:37-55:72, test/Plugin/Debug/Spec.hs:55:42-55:71 }
                                 { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:55:37-55:72, test/Plugin/Debug/Spec.hs:55:42-55:71 }
-                                subtractInteger-527
+                                subtractInteger
                                 { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:55:37-55:72, test/Plugin/Debug/Spec.hs:55:42-55:71, test/Plugin/Debug/Spec.hs:55:68-55:68 }
-                                n-549
+                                n
                               ]
                               (con
                                 { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72, test/Plugin/Debug/Spec.hs:53:33-55:72, test/Plugin/Debug/Spec.hs:55:37-55:72, test/Plugin/Debug/Spec.hs:55:42-55:71, test/Plugin/Debug/Spec.hs:55:70-55:70 }
@@ -478,28 +472,28 @@
                     ]
                     (all
                       { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
-                      dead-556
+                      dead
                       ({ test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
                       type)
                       { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72, test/Plugin/Debug/Spec.hs:50:25-55:72 }
-                      dead-556
+                      dead
                     )
                   }
                 )
               ]
               (all
                 { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
-                dead-557
+                dead
                 ({ test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
                 type)
                 { test/Plugin/Debug/Spec.hs:46:15-55:72, test/Plugin/Debug/Spec.hs:47:17-55:72 }
-                dead-557
+                dead
               )
             }
           )
         )
       )
-      { test/Plugin/Debug/Spec.hs:45:9-57:9 } fib-547
+      { test/Plugin/Debug/Spec.hs:45:9-57:9 } fib
     )
   )
 )

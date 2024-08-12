@@ -12,9 +12,9 @@ module Algorithmic.CC where
 
 ```
 open import Data.Nat using (suc)
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong) 
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
-open import Data.Product using (Σ;_×_;∃) 
+open import Data.Product using (Σ;_×_;∃)
                          renaming (_,_ to _,,_)
 open import Data.List using (_∷_;[])
 open import Data.Vec as Vec using (_∷_;[];lookup)
@@ -51,10 +51,10 @@ dissect (wrap E) with dissect E
 dissect (unwrap E / refl) with dissect E
 ... | inj₁ refl           = inj₂ (_ ,, [] ,, unwrap-)
 ... | inj₂ (C ,, E' ,, F) = inj₂ (C ,, unwrap E' / refl ,, F)
-dissect (constr i Tss p {tidx} vs ts E) with dissect E 
+dissect (constr i Tss p {tidx} vs ts E) with dissect E
 ... | inj₁ refl           = inj₂ (_ ,, ([] ,, (constr- i Tss p {tidx} vs ts)))
 ... | inj₂ (C ,, E' ,, F) = inj₂ (_ ,, ((constr i Tss p {tidx} vs ts E') ,, F))
-dissect (case cs E)  with dissect E 
+dissect (case cs E)  with dissect E
 ... | inj₁ refl           = inj₂ (_ ,, ([] ,, (case- cs)))
 ... | inj₂ (C ,, E' ,, F) = inj₂ (_ ,, ((case cs E') ,, F))
 
@@ -104,26 +104,26 @@ stepV : ∀{A B }{M : ∅ ⊢ A}(V : Value M)
        → (B ≡ A) ⊎ ∃ (λ C → EC B C × Frame C A)
        → State B
 stepV V (inj₁ refl) = □ V
-stepV V (inj₂ (_ ,, E ,, (-· N))) = extEC E (V ·-) ▻ N 
+stepV V (inj₂ (_ ,, E ,, (-· N))) = extEC E (V ·-) ▻ N
 stepV V (inj₂ (_ ,, E ,, -·v V')) = stepV V' (inj₂ (_ ,, E ,, (V ·-)))
 stepV V (inj₂ (_ ,, E ,, (V-ƛ M ·-))) = E ▻ (M [ deval V ])
-stepV V (inj₂ (_ ,, E ,, V-I⇒ b {am = 0} q ·-)) = 
+stepV V (inj₂ (_ ,, E ,, V-I⇒ b {am = 0} q ·-)) =
           E ▻ BUILTIN' b (step q V)
-stepV V (inj₂ (_ ,, E ,, V-I⇒ b {am = suc am} q ·-)) = 
+stepV V (inj₂ (_ ,, E ,, V-I⇒ b {am = suc am} q ·-)) =
           E ◅ V-I b (step q V)
 stepV (V-Λ M) (inj₂ (_ ,, E ,, -·⋆ A)) = E ▻ (M [ A ]⋆)
-stepV (V-IΠ b  {σA = σ} q) (inj₂ (_ ,, E ,, -·⋆ A)) = 
+stepV (V-IΠ b  {σA = σ} q) (inj₂ (_ ,, E ,, -·⋆ A)) =
           E ◅ V-I b (step⋆ q refl {σ [ A ]SigTy})
 stepV V (inj₂ (_ ,, E ,, wrap-)) = E ◅ V-wrap V
 stepV (V-wrap V) (inj₂ (_ ,, E ,, unwrap-)) = E ▻ deval V -- E ◅ V
-stepV V (inj₂ (_ ,, E ,, constr- i Tss p vs ts)) with Vec.lookup Tss i in eq  
-stepV V (inj₂ (_ ,, E ,, constr- i _ refl {tidx} vs ts)) | [] with no-empty-≣-<>> tidx 
+stepV V (inj₂ (_ ,, E ,, constr- i Tss p vs ts)) with Vec.lookup Tss i in eq
+stepV V (inj₂ (_ ,, E ,, constr- i _ refl {tidx} vs ts)) | [] with no-empty-≣-<>> tidx
 ... | ()
-stepV V (inj₂ (_ ,, E ,, constr- {Vs = Vs} {H} i _ refl {r}{tidx} vs [])) | _ ∷ _  = 
+stepV V (inj₂ (_ ,, E ,, constr- {Vs = Vs} {H} i _ refl {r}{tidx} vs [])) | _ ∷ _  =
      E ◅ V-constr i _ (sym eq) (sym (trans (cong ([] <><_) (lem-≣-<>> r)) (lemma<>2 Vs (H ∷ [])))) (vs :< V) refl
-stepV V (inj₂ (_ ,, E ,, constr- {Vs = Vs} i A refl {r} vs (t ∷ ts))) | _ ∷ _  
+stepV V (inj₂ (_ ,, E ,, constr- {Vs = Vs} i A refl {r} vs (t ∷ ts))) | _ ∷ _
     = extEC E (constr- i A (sym eq) {bubble r} (vs :< V) ts) ▻ t
-stepV (V-constr e Tss refl refl vs x) (inj₂ (_ ,, E ,, case- cs)) = 
+stepV (V-constr e Tss refl refl vs x) (inj₂ (_ ,, E ,, case- cs)) =
     extValueFrames E vs (lemma-bwdfwdfunction' (Vec.lookup Tss e)) ▻ lookupCase e cs
 
 stepT : ∀{A} → State A → State A
@@ -133,17 +133,17 @@ stepT (E ▻ Λ M) = E ◅ V-Λ M
 stepT (E ▻ (M ·⋆ A / refl)) = extEC E (-·⋆ A) ▻ M
 stepT (E ▻ wrap A B M) = extEC E wrap- ▻ M
 stepT (E ▻ unwrap M refl) = extEC E unwrap- ▻ M
-stepT (E ▻ constr e Tss refl z)  with Vec.lookup Tss e in eq  
+stepT (E ▻ constr e Tss refl z)  with Vec.lookup Tss e in eq
 stepT (E ▻ constr e Tss refl []) | [] = E ◅ V-constr e Tss (sym eq) refl [] refl
-stepT (E ▻ constr e Tss refl (x ∷ xs)) | a ∷ as = 
+stepT (E ▻ constr e Tss refl (x ∷ xs)) | a ∷ as =
         extEC E (constr- e Tss (sym eq) {start} [] xs) ▻  x
 stepT (E ▻ case M cases) = extEC E (case- cases) ▻ M
 stepT (E ▻ con c refl) = E ◅ V-con c
 stepT (E ▻ (builtin b / refl)) = E ◅ ival b
-stepT (E ▻ error A) = ◆ A 
+stepT (E ▻ error A) = ◆ A
 stepT (E ◅ V) = stepV V (dissect E)
 stepT (□ V) = □ V
-stepT (◆ A) = ◆ A 
+stepT (◆ A) = ◆ A
 ```
 
 ```

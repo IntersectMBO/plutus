@@ -23,11 +23,11 @@ open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Data.Unit using (tt)
 open import Function using (_∘_)
 open import Relation.Nullary using (¬_;yes;no)
-open import Relation.Binary.PropositionalEquality 
-                    using (_≡_;refl;sym;trans;cong)  
+open import Relation.Binary.PropositionalEquality
+                    using (_≡_;refl;sym;trans;cong)
                     renaming (subst to substEq)
-open import Relation.Binary.HeterogeneousEquality 
-        using (_≅_;refl;≅-to-≡) 
+open import Relation.Binary.HeterogeneousEquality
+        using (_≅_;refl;≅-to-≡)
 
 open import Utils hiding (List;length;map)
 open import Utils.List
@@ -45,13 +45,13 @@ open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf)
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;embNf;weakenNf)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
-open import Builtin 
+open import Builtin
 open import Builtin.Constant.Type using (TyCon)
 
 open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯;fv)
 open Sig
 
-open Builtin.Signature.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π 
+open Builtin.Signature.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π
     using (sig2type;SigTy;sig2SigTy;sigTy2type;saturatedSigTy;convSigTy)
 open SigTy
 
@@ -64,12 +64,12 @@ import Algorithmic.CEK as CEK
 Values are indexed by terms
 List of values are indexed by list of terms.
 
-``` 
+```
 data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set
 
 -- List of Values
 VList : ∀{ts} → IBwd (∅ ⊢_) ts → Set
-VList = IIBwd Value 
+VList = IIBwd Value
 
 deval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢ A
 deval {u = u} _ = u
@@ -78,19 +78,19 @@ deval-VecList : ∀{n} → (Vec (List (∃ (∅ ⊢_))) n) → Vec (List (∅ �
 deval-VecList [] = []
 deval-VecList (xs ∷ xss) = map proj₁ xs ∷ (deval-VecList xss)
 
-data BApp (b : Builtin) : 
+data BApp (b : Builtin) :
     ∀{tn tm tt} → {pt : tn ∔ tm ≣ tt}
   → ∀{an am at} → {pa : an ∔ am ≣ at}
   → ∀{A} → SigTy pt pa A → ∅ ⊢ A → Set where
   base : BApp b (sig2SigTy (signature b)) (builtin b / refl )
   step : ∀{A B}{tn}
-    → {pt : tn ∔ 0 ≣ fv (signature b)} 
+    → {pt : tn ∔ 0 ≣ fv (signature b)}
     → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
     → {σB : SigTy pt (bubble pa) B}
     → {t : ∅ ⊢ A ⇒ B} → BApp b (A B⇒ σB) t
     → {u : ∅ ⊢ A} → Value u → BApp b σB (t · u)
   step⋆ : ∀{C}{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
-    → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv (signature b)} 
+    → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv (signature b)}
     → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
     → {σB : SigTy (bubble pt) pa B}
     → {t : ∅ ⊢ Π B} → BApp b (sucΠ σB) t
@@ -118,24 +118,24 @@ data Value where
    → Value (wrap A B M)
 
   V-con :  ∀{A : ∅ ⊢Nf⋆ ♯}
-    → (x : ⟦ A ⟧) 
+    → (x : ⟦ A ⟧)
     → Value (con {A = A} x refl)
 
   V-I⇒ : ∀ b {A B}{tn}
-       → {pt : tn ∔ 0 ≣ fv (signature b)} 
+       → {pt : tn ∔ 0 ≣ fv (signature b)}
        → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
        → {σB : SigTy pt (bubble pa) B}
        → {t : ∅ ⊢ A ⇒ B}
        → BApp b (A B⇒ σB) t
        → Value t
   V-IΠ : ∀ b {K}{A : ∅ ,⋆ K ⊢Nf⋆ *}
-       → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv (signature b)} 
+       → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv (signature b)}
        → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
        → {σA : SigTy (bubble pt) pa A}
        → {t : ∅ ⊢ Π A}
        → BApp b (sucΠ σA) t
        → Value t
-  V-constr : ∀{n}(e : Fin n) 
+  V-constr : ∀{n}(e : Fin n)
           → (Tss : Vec (List ( ∅ ⊢Nf⋆ *)) n )
           → ∀{Xs} → (p : Xs ≡ Vec.lookup Tss e)
           → ∀{Ys} → (q : Ys ≡ [] <>< Xs)
@@ -174,7 +174,7 @@ BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}
   → {σA : SigTy pt pa A}
   → BApp b σA t
   → ∅ ⊢ A
-BUILTIN' b bt = CEK.BUILTIN' b (red2cekBApp bt) 
+BUILTIN' b bt = CEK.BUILTIN' b (red2cekBApp bt)
 ```
 
 ```
@@ -200,13 +200,13 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
     → Frame (μ A B) (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
   unwrap- : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
     → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) (μ A B)
-  constr- : ∀{n Vs H Ts} 
-          → (i : Fin n) 
-          → (Tss : Vec _ n)  
+  constr- : ∀{n Vs H Ts}
+          → (i : Fin n)
+          → (Tss : Vec _ n)
           → ∀ {Xs} → (Xs ≡ Vec.lookup Tss i)
           → {tidx : Xs ≣ Vs <>> (H ∷ Ts)} → {tvs : IBwd (∅ ⊢_) Vs} → VList tvs → ConstrArgs ∅ Ts
           → Frame (SOP Tss) H
-  case-   : ∀{A n}{Tss : Vec _ n} → Cases ∅ A Tss → Frame A (SOP Tss) 
+  case-   : ∀{A n}{Tss : Vec _ n} → Cases ∅ A Tss → Frame A (SOP Tss)
 
 _[_]ᶠ : ∀{A B : ∅ ⊢Nf⋆ *} → Frame B A → ∅ ⊢ A → ∅ ⊢ B
 (-· M')          [ L ]ᶠ = L · M'
@@ -233,13 +233,13 @@ data EC : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
     → EC (μ A B) C
   unwrap_/_ : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}{C}{X}
     → EC (μ A B) C
-    → X ≡ (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) 
+    → X ≡ (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
     → EC X C
-  constr : ∀{n Vs H Ts C} 
-          → (i : Fin n) 
-          → (Tss : Vec _ n)  
+  constr : ∀{n Vs H Ts C}
+          → (i : Fin n)
+          → (Tss : Vec _ n)
           → ∀ {Xs} → (Xs ≡ Vec.lookup Tss i)
-          → {tidx : Xs ≣ Vs <>> (H ∷ Ts)} 
+          → {tidx : Xs ≣ Vs <>> (H ∷ Ts)}
           → {tvs : IBwd (∅ ⊢_) Vs} → VList tvs → ConstrArgs ∅ Ts
           → EC H C
           → EC (SOP Tss) C
@@ -260,13 +260,13 @@ case cs E [ L ]ᴱ = case (E [ L ]ᴱ) cs
 ## Evaluation Relation
 
 ```
-applyCase : ∀ {A : ∅ ⊢Nf⋆ *} 
+applyCase : ∀ {A : ∅ ⊢Nf⋆ *}
               {ts : List (∅ ⊢Nf⋆ *)}
               (f : ∅ ⊢ mkCaseType A ts)
            →  (cs : ConstrArgs ∅ ts)
            → ∅ ⊢ A
 applyCase f [] = f
-applyCase f (x ∷ cs) = applyCase (f · x) cs            
+applyCase f (x ∷ cs) = applyCase (f · x) cs
 
 infix 2 _—→⋆_
 
@@ -293,7 +293,7 @@ data _—→⋆_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set 
   β-builtin : ∀{A B}{tn}
       (b : Builtin)
     → (t : ∅ ⊢ A ⇒ B)
-    → {pt : tn ∔ 0 ≣ fv (signature b)} 
+    → {pt : tn ∔ 0 ≣ fv (signature b)}
     → ∀{an} → {pa : an ∔ 1 ≣  args♯ (signature b)}
     → {σB : SigTy pt (bubble pa) B}
     → (bt : BApp b (A B⇒ σB) t) -- one left
@@ -375,4 +375,4 @@ ival : ∀ b → Value (builtin b / refl)
 ival b = V-I b base
 -- -}
 ```
- 
+

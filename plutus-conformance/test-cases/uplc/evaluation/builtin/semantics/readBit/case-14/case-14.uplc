@@ -1,0 +1,1 @@
+(program 1.0.0 [ [ (builtin readBit) (con bytestring #fff4) ] (con integer 16) ])
