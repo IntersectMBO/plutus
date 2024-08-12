@@ -4,11 +4,11 @@ sidebar_position: 1
 
 # Plutus Ledger Language Version (Plutus V1/V2/V3)
 
-As explained in [Different Notions of Version](../essential-concepts/versions.md), Plutus V1, V2 and V3 are not different programming languages; the main difference lies in the arguments the script receives from the ledger, and the return value of the script.
-Therefore, Plutus V1, V2 and V3 are, in essence, type signatures, in the sense that they each comprise a subset of Untyped Plutus Core (UPLC) programs with certain types.
-Any UPLC program that expects certain arguments and returns a certain value can be considered and used as a Plutus V1 (resp. V2 and V3) script.
+As explained in [Different Notions of Version](../essential-concepts/versions.md), Plutus V1, V2 and V3 are not distinct programming languages; the primary difference lies in the arguments the script receives from the ledger, and the value it returns.
+Therefore, Plutus V1, V2 and V3 can be understood as type signatures, in the sense that they each represent a subset of Untyped Plutus Core (UPLC) programs with specific types.
+Any UPLC program that matches the expected argument and return types can be considered and used as a Plutus V1, V2 or V3 script.
 
-Next we first briefly discuss the script context, and then explain these type signatures in detail.
+Next we'll start with a brief overview of the script context, followed by an in-depth explanation of these type signatures.
 
 ## ScriptContext
 
@@ -118,7 +118,7 @@ Besides the usual differences between different Plutus ledger language versions,
    The script context may or may not contain a datum, depending on whether the UTXO being spent has a datum associated with it.
 3. There is an additional condition for the evaluation of a Plutus V3 script to be considered successful: the return value must be a `BuiltinUnit`.
 
-Points 1 and 2 are attributed to CIP-69, and point 3 CIP-0117.
+Points 1 and 2 are attributed to CIP-69, and point 3 to CIP-0117.
 
 In other words, all Plutus V3 scripts should have the following type in Plutus Tx:
 

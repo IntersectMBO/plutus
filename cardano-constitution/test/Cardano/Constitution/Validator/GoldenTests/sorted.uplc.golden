@@ -1,62 +1,62 @@
 program
   1.1.0
-  ((\fix1!0 ->
-      (\`$fOrdRational0_$c<=`!0 ->
-         (\`$fOrdInteger_$ccompare`!0 ->
-            (\validatePreds!0 ->
-               (\euclid!0 ->
-                  (\unsafeRatio!0 ->
-                     (\cse!0 ->
-                        (\validateParamValue!0 ->
-                           (\validateParamValues!0 ->
-                              (\runRules!0 ->
-                                 (\go!0 ->
-                                    (\cse!0 ->
-                                       (\cse!0 ->
-                                          (\cse!0 ->
-                                             (\cse!0 ->
-                                                (\cse!0 ->
-                                                   (\cse!0 ->
-                                                      (\cse!0 ->
-                                                         (\cse!0 ->
-                                                            (\cse!0 ->
-                                                               (\cse!0 ->
-                                                                  (\cse!0 ->
-                                                                     (\cse!0 ->
-                                                                        (\cse!0 ->
-                                                                           (\cse!0 ->
-                                                                              (\cse!0 ->
-                                                                                 (\cse!0 ->
-                                                                                    (\cse!0 ->
-                                                                                       (\cse!0 ->
-                                                                                          (\cse!0 ->
-                                                                                             (\cse!0 ->
-                                                                                                (\cse!0 ->
-                                                                                                   (\cse!0 ->
-                                                                                                      (\cse!0 ->
-                                                                                                         (\cse!0 ->
-                                                                                                            (\cse!0 ->
-                                                                                                               (\cse!0 ->
-                                                                                                                  (\cse!0 ->
-                                                                                                                     (\cse!0 ->
-                                                                                                                        (\cse!0 ->
-                                                                                                                           (\fun!0
-                                                                                                                             ds!0 ->
+  ((\fix1 ->
+      (\`$fOrdRational0_$c<=` ->
+         (\`$fOrdInteger_$ccompare` ->
+            (\validatePreds ->
+               (\euclid ->
+                  (\unsafeRatio ->
+                     (\cse ->
+                        (\validateParamValue ->
+                           (\validateParamValues ->
+                              (\runRules ->
+                                 (\go ->
+                                    (\cse ->
+                                       (\cse ->
+                                          (\cse ->
+                                             (\cse ->
+                                                (\cse ->
+                                                   (\cse ->
+                                                      (\cse ->
+                                                         (\cse ->
+                                                            (\cse ->
+                                                               (\cse ->
+                                                                  (\cse ->
+                                                                     (\cse ->
+                                                                        (\cse ->
+                                                                           (\cse ->
+                                                                              (\cse ->
+                                                                                 (\cse ->
+                                                                                    (\cse ->
+                                                                                       (\cse ->
+                                                                                          (\cse ->
+                                                                                             (\cse ->
+                                                                                                (\cse ->
+                                                                                                   (\cse ->
+                                                                                                      (\cse ->
+                                                                                                         (\cse ->
+                                                                                                            (\cse ->
+                                                                                                               (\cse ->
+                                                                                                                  (\cse ->
+                                                                                                                     (\cse ->
+                                                                                                                        (\cse ->
+                                                                                                                           (\fun
+                                                                                                                             ds ->
                                                                                                                               force
                                                                                                                                 (case
-                                                                                                                                   ((\cse!0 ->
-                                                                                                                                       (\x!0 ->
+                                                                                                                                   ((\cse ->
+                                                                                                                                       (\x ->
                                                                                                                                           force
                                                                                                                                             (force
                                                                                                                                                (force
                                                                                                                                                   ifThenElse
                                                                                                                                                   (equalsInteger
                                                                                                                                                      0
-                                                                                                                                                     x!1)
+                                                                                                                                                     x)
                                                                                                                                                   (delay
                                                                                                                                                      (delay
                                                                                                                                                         (constr 0
-                                                                                                                                                           [ (go!34
+                                                                                                                                                           [ (go
                                                                                                                                                                 (unMapData
                                                                                                                                                                    (force
                                                                                                                                                                       headList
@@ -65,7 +65,7 @@ program
                                                                                                                                                                          (force
                                                                                                                                                                             (force
                                                                                                                                                                                sndPair)
-                                                                                                                                                                            cse!2))))) ])))
+                                                                                                                                                                            cse))))) ])))
                                                                                                                                                   (delay
                                                                                                                                                      (delay
                                                                                                                                                         (force
@@ -74,7 +74,7 @@ program
                                                                                                                                                                  ifThenElse
                                                                                                                                                                  (equalsInteger
                                                                                                                                                                     2
-                                                                                                                                                                    x!1)
+                                                                                                                                                                    x)
                                                                                                                                                                  (delay
                                                                                                                                                                     (delay
                                                                                                                                                                        (constr 1
@@ -85,7 +85,7 @@ program
                                                                                                                                          (force
                                                                                                                                             (force
                                                                                                                                                fstPair)
-                                                                                                                                            cse!1))
+                                                                                                                                            cse))
                                                                                                                                       (unConstrData
                                                                                                                                          (force
                                                                                                                                             headList
@@ -97,7 +97,7 @@ program
                                                                                                                                                      (force
                                                                                                                                                         sndPair)
                                                                                                                                                      (unConstrData
-                                                                                                                                                        ((\cse!0 ->
+                                                                                                                                                        ((\cse ->
                                                                                                                                                             force
                                                                                                                                                               (force
                                                                                                                                                                  (force
@@ -107,7 +107,7 @@ program
                                                                                                                                                                        (force
                                                                                                                                                                           (force
                                                                                                                                                                              fstPair)
-                                                                                                                                                                          cse!1))
+                                                                                                                                                                          cse))
                                                                                                                                                                     (delay
                                                                                                                                                                        (delay
                                                                                                                                                                           (force
@@ -117,7 +117,7 @@ program
                                                                                                                                                                                 (force
                                                                                                                                                                                    (force
                                                                                                                                                                                       sndPair)
-                                                                                                                                                                                   cse!1)))))
+                                                                                                                                                                                   cse)))))
                                                                                                                                                                     (delay
                                                                                                                                                                        (delay
                                                                                                                                                                           error)))))
@@ -132,20 +132,20 @@ program
                                                                                                                                                                           (force
                                                                                                                                                                              sndPair)
                                                                                                                                                                           (unConstrData
-                                                                                                                                                                             ds!1))))))))))))))
-                                                                                                                                   [ (\cparams!0 ->
+                                                                                                                                                                             ds))))))))))))))
+                                                                                                                                   [ (\cparams ->
                                                                                                                                         delay
                                                                                                                                           (force
                                                                                                                                              (case
-                                                                                                                                                (fun!3
-                                                                                                                                                   cparams!1)
+                                                                                                                                                (fun
+                                                                                                                                                   cparams)
                                                                                                                                                 [ (delay
                                                                                                                                                      ())
                                                                                                                                                 , (delay
                                                                                                                                                      error) ])))
                                                                                                                                    , (delay
                                                                                                                                         ()) ]))
-                                                                                                                             (runRules!31
+                                                                                                                             (runRules
                                                                                                                                 (constr 1
                                                                                                                                    [ (constr 0
                                                                                                                                         [ 0
@@ -156,7 +156,7 @@ program
                                                                                                                                                             [  ])
                                                                                                                                                        , (constr 1
                                                                                                                                                             [ 30
-                                                                                                                                                            , cse!28 ]) ])
+                                                                                                                                                            , cse ]) ])
                                                                                                                                                   , (constr 1
                                                                                                                                                        [ (constr 0
                                                                                                                                                             [ (constr 0
@@ -177,7 +177,7 @@ program
                                                                                                                                                                  [  ])
                                                                                                                                                             , (constr 1
                                                                                                                                                                  [ 100000
-                                                                                                                                                                 , cse!28 ]) ])
+                                                                                                                                                                 , cse ]) ])
                                                                                                                                                        , (constr 1
                                                                                                                                                             [ (constr 0
                                                                                                                                                                  [ (constr 0
@@ -215,7 +215,7 @@ program
                                                                                                                                                        [ 3
                                                                                                                                                        , (constr 1
                                                                                                                                                             [ (constr 1
-                                                                                                                                                                 [ cse!18
+                                                                                                                                                                 [ cse
                                                                                                                                                                  , (constr 1
                                                                                                                                                                       [ (constr 0
                                                                                                                                                                            [ (constr 0
@@ -231,7 +231,7 @@ program
                                                                                                                                                             [ 4
                                                                                                                                                             , (constr 1
                                                                                                                                                                  [ (constr 1
-                                                                                                                                                                      [ cse!18
+                                                                                                                                                                      [ cse
                                                                                                                                                                       , (constr 1
                                                                                                                                                                            [ (constr 0
                                                                                                                                                                                 [ (constr 0
@@ -252,7 +252,7 @@ program
                                                                                                                                                                                      [  ])
                                                                                                                                                                                 , (constr 1
                                                                                                                                                                                      [ 1000000
-                                                                                                                                                                                     , cse!28 ]) ])
+                                                                                                                                                                                     , cse ]) ])
                                                                                                                                                                            , (constr 1
                                                                                                                                                                                 [ (constr 0
                                                                                                                                                                                      [ (constr 0
@@ -273,14 +273,14 @@ program
                                                                                                                                                                                           [  ])
                                                                                                                                                                                      , (constr 1
                                                                                                                                                                                           [ 250000000
-                                                                                                                                                                                          , cse!28 ]) ])
-                                                                                                                                                                                , cse!12 ]) ]) ])
+                                                                                                                                                                                          , cse ]) ])
+                                                                                                                                                                                , cse ]) ]) ])
                                                                                                                                                                  , (constr 1
                                                                                                                                                                       [ (constr 0
                                                                                                                                                                            [ 7
                                                                                                                                                                            , (constr 1
                                                                                                                                                                                 [ (constr 1
-                                                                                                                                                                                     [ cse!18
+                                                                                                                                                                                     [ cse
                                                                                                                                                                                      , (constr 0
                                                                                                                                                                                           [  ]) ]) ]) ])
                                                                                                                                                                       , (constr 1
@@ -293,7 +293,7 @@ program
                                                                                                                                                                                                     [  ])
                                                                                                                                                                                                , (constr 1
                                                                                                                                                                                                     [ 250
-                                                                                                                                                                                                    , cse!28 ]) ])
+                                                                                                                                                                                                    , cse ]) ])
                                                                                                                                                                                           , (constr 1
                                                                                                                                                                                                [ (constr 0
                                                                                                                                                                                                     [ (constr 0
@@ -302,14 +302,14 @@ program
                                                                                                                                                                                                          [ 2000
                                                                                                                                                                                                          , (constr 0
                                                                                                                                                                                                               [  ]) ]) ])
-                                                                                                                                                                                               , cse!10 ]) ]) ]) ])
+                                                                                                                                                                                               , cse ]) ]) ]) ])
                                                                                                                                                                            , (constr 1
                                                                                                                                                                                 [ (constr 0
                                                                                                                                                                                      [ 9
                                                                                                                                                                                      , (constr 3
                                                                                                                                                                                           [ (constr 1
-                                                                                                                                                                                               [ cse!7
-                                                                                                                                                                                               , cse!8 ]) ]) ])
+                                                                                                                                                                                               [ cse
+                                                                                                                                                                                               , cse ]) ]) ])
                                                                                                                                                                                 , (constr 1
                                                                                                                                                                                      [ (constr 0
                                                                                                                                                                                           [ 10
@@ -319,15 +319,15 @@ program
                                                                                                                                                                                                          [ (constr 1
                                                                                                                                                                                                               [  ])
                                                                                                                                                                                                          , (constr 1
-                                                                                                                                                                                                              [ (cse!26
+                                                                                                                                                                                                              [ (cse
                                                                                                                                                                                                                    1000)
-                                                                                                                                                                                                              , cse!13 ]) ])
+                                                                                                                                                                                                              , cse ]) ])
                                                                                                                                                                                                     , (constr 1
                                                                                                                                                                                                          [ (constr 0
                                                                                                                                                                                                               [ (constr 0
                                                                                                                                                                                                                    [  ])
                                                                                                                                                                                                               , (constr 1
-                                                                                                                                                                                                                   [ (cse!26
+                                                                                                                                                                                                                   [ (cse
                                                                                                                                                                                                                         200)
                                                                                                                                                                                                                    , (constr 0
                                                                                                                                                                                                                         [  ]) ]) ])
@@ -338,15 +338,15 @@ program
                                                                                                                                                                                                [ 11
                                                                                                                                                                                                , (constr 3
                                                                                                                                                                                                     [ (constr 1
-                                                                                                                                                                                                         [ cse!7
+                                                                                                                                                                                                         [ cse
                                                                                                                                                                                                          , (constr 1
                                                                                                                                                                                                               [ (constr 0
                                                                                                                                                                                                                    [ (constr 0
                                                                                                                                                                                                                         [  ])
                                                                                                                                                                                                                    , (constr 1
-                                                                                                                                                                                                                        [ (cse!24
+                                                                                                                                                                                                                        [ (cse
                                                                                                                                                                                                                              10)
-                                                                                                                                                                                                                        , cse!14 ]) ])
+                                                                                                                                                                                                                        , cse ]) ])
                                                                                                                                                                                                               , (constr 0
                                                                                                                                                                                                                    [  ]) ]) ]) ]) ])
                                                                                                                                                                                           , (constr 1
@@ -354,8 +354,8 @@ program
                                                                                                                                                                                                     [ 16
                                                                                                                                                                                                     , (constr 1
                                                                                                                                                                                                          [ (constr 1
-                                                                                                                                                                                                              [ cse!18
-                                                                                                                                                                                                              , cse!12 ]) ]) ])
+                                                                                                                                                                                                              [ cse
+                                                                                                                                                                                                              , cse ]) ]) ])
                                                                                                                                                                                                , (constr 1
                                                                                                                                                                                                     [ (constr 0
                                                                                                                                                                                                          [ 17
@@ -366,7 +366,7 @@ program
                                                                                                                                                                                                                              [  ])
                                                                                                                                                                                                                         , (constr 1
                                                                                                                                                                                                                              [ 3000
-                                                                                                                                                                                                                             , cse!28 ]) ])
+                                                                                                                                                                                                                             , cse ]) ])
                                                                                                                                                                                                                    , (constr 1
                                                                                                                                                                                                                         [ (constr 0
                                                                                                                                                                                                                              [ (constr 0
@@ -375,7 +375,7 @@ program
                                                                                                                                                                                                                                   [ 6500
                                                                                                                                                                                                                                   , (constr 0
                                                                                                                                                                                                                                        [  ]) ]) ])
-                                                                                                                                                                                                                        , cse!10 ]) ]) ]) ])
+                                                                                                                                                                                                                        , cse ]) ]) ]) ])
                                                                                                                                                                                                     , (constr 1
                                                                                                                                                                                                          [ (constr 0
                                                                                                                                                                                                               [ 18
@@ -392,7 +392,7 @@ program
                                                                                                                                                                                                                                             [ (constr 1
                                                                                                                                                                                                                                                  [  ])
                                                                                                                                                                                                                                             , (constr 1
-                                                                                                                                                                                                                                                 [ (cse!26
+                                                                                                                                                                                                                                                 [ (cse
                                                                                                                                                                                                                                                       25)
                                                                                                                                                                                                                                                  , (constr 0
                                                                                                                                                                                                                                                       [  ]) ]) ])
@@ -401,7 +401,7 @@ program
                                                                                                                                                                                                                                                  [ (constr 0
                                                                                                                                                                                                                                                       [  ])
                                                                                                                                                                                                                                                  , (constr 1
-                                                                                                                                                                                                                                                      [ (cse!26
+                                                                                                                                                                                                                                                      [ (cse
                                                                                                                                                                                                                                                            5)
                                                                                                                                                                                                                                                       , (constr 0
                                                                                                                                                                                                                                                            [  ]) ]) ])
@@ -414,7 +414,7 @@ program
                                                                                                                                                                                                                                                  [ (constr 1
                                                                                                                                                                                                                                                       [  ])
                                                                                                                                                                                                                                                  , (constr 1
-                                                                                                                                                                                                                                                      [ (cse!26
+                                                                                                                                                                                                                                                      [ (cse
                                                                                                                                                                                                                                                            20000)
                                                                                                                                                                                                                                                       , (constr 0
                                                                                                                                                                                                                                                            [  ]) ]) ])
@@ -423,7 +423,7 @@ program
                                                                                                                                                                                                                                                       [ (constr 0
                                                                                                                                                                                                                                                            [  ])
                                                                                                                                                                                                                                                       , (constr 1
-                                                                                                                                                                                                                                                           [ (cse!26
+                                                                                                                                                                                                                                                           [ (cse
                                                                                                                                                                                                                                                                 5000)
                                                                                                                                                                                                                                                            , (constr 0
                                                                                                                                                                                                                                                                 [  ]) ]) ])
@@ -438,7 +438,7 @@ program
                                                                                                                                                                                                                              [ (constr 1
                                                                                                                                                                                                                                   [ (constr 1
                                                                                                                                                                                                                                        [ (constr 1
-                                                                                                                                                                                                                                            [ cse!18
+                                                                                                                                                                                                                                            [ cse
                                                                                                                                                                                                                                             , (constr 1
                                                                                                                                                                                                                                                  [ (constr 0
                                                                                                                                                                                                                                                       [ (constr 0
@@ -452,7 +452,7 @@ program
                                                                                                                                                                                                                                   , (constr 1
                                                                                                                                                                                                                                        [ (constr 1
                                                                                                                                                                                                                                             [ (constr 1
-                                                                                                                                                                                                                                                 [ cse!18
+                                                                                                                                                                                                                                                 [ cse
                                                                                                                                                                                                                                                  , (constr 1
                                                                                                                                                                                                                                                       [ (constr 0
                                                                                                                                                                                                                                                            [ (constr 0
@@ -472,7 +472,7 @@ program
                                                                                                                                                                                                                                   [ (constr 1
                                                                                                                                                                                                                                        [ (constr 1
                                                                                                                                                                                                                                             [ (constr 1
-                                                                                                                                                                                                                                                 [ cse!18
+                                                                                                                                                                                                                                                 [ cse
                                                                                                                                                                                                                                                  , (constr 1
                                                                                                                                                                                                                                                       [ (constr 0
                                                                                                                                                                                                                                                            [ (constr 0
@@ -486,7 +486,7 @@ program
                                                                                                                                                                                                                                        , (constr 1
                                                                                                                                                                                                                                             [ (constr 1
                                                                                                                                                                                                                                                  [ (constr 1
-                                                                                                                                                                                                                                                      [ cse!18
+                                                                                                                                                                                                                                                      [ cse
                                                                                                                                                                                                                                                       , (constr 1
                                                                                                                                                                                                                                                            [ (constr 0
                                                                                                                                                                                                                                                                 [ (constr 0
@@ -504,7 +504,7 @@ program
                                                                                                                                                                                                                                   [ 22
                                                                                                                                                                                                                                   , (constr 1
                                                                                                                                                                                                                                        [ (constr 1
-                                                                                                                                                                                                                                            [ cse!18
+                                                                                                                                                                                                                                            [ cse
                                                                                                                                                                                                                                             , (constr 1
                                                                                                                                                                                                                                                  [ (constr 0
                                                                                                                                                                                                                                                       [ (constr 0
@@ -525,7 +525,7 @@ program
                                                                                                                                                                                                                                                            [  ])
                                                                                                                                                                                                                                                       , (constr 1
                                                                                                                                                                                                                                                            [ 100
-                                                                                                                                                                                                                                                           , cse!28 ]) ])
+                                                                                                                                                                                                                                                           , cse ]) ])
                                                                                                                                                                                                                                                  , (constr 1
                                                                                                                                                                                                                                                       [ (constr 0
                                                                                                                                                                                                                                                            [ (constr 0
@@ -534,13 +534,13 @@ program
                                                                                                                                                                                                                                                                 [ 200
                                                                                                                                                                                                                                                                 , (constr 0
                                                                                                                                                                                                                                                                      [  ]) ]) ])
-                                                                                                                                                                                                                                                      , cse!10 ]) ]) ]) ])
+                                                                                                                                                                                                                                                      , cse ]) ]) ]) ])
                                                                                                                                                                                                                                   , (constr 1
                                                                                                                                                                                                                                        [ (constr 0
                                                                                                                                                                                                                                             [ 24
                                                                                                                                                                                                                                             , (constr 1
                                                                                                                                                                                                                                                  [ (constr 1
-                                                                                                                                                                                                                                                      [ cse!19
+                                                                                                                                                                                                                                                      [ cse
                                                                                                                                                                                                                                                       , (constr 0
                                                                                                                                                                                                                                                            [  ]) ]) ]) ])
                                                                                                                                                                                                                                        , (constr 1
@@ -548,24 +548,24 @@ program
                                                                                                                                                                                                                                                  [ 25
                                                                                                                                                                                                                                                  , (constr 2
                                                                                                                                                                                                                                                       [ (constr 1
-                                                                                                                                                                                                                                                           [ cse!3
+                                                                                                                                                                                                                                                           [ cse
                                                                                                                                                                                                                                                            , (constr 1
-                                                                                                                                                                                                                                                                [ cse!1
+                                                                                                                                                                                                                                                                [ cse
                                                                                                                                                                                                                                                                 , (constr 1
-                                                                                                                                                                                                                                                                     [ cse!1
+                                                                                                                                                                                                                                                                     [ cse
                                                                                                                                                                                                                                                                      , (constr 1
-                                                                                                                                                                                                                                                                          [ cse!2
-                                                                                                                                                                                                                                                                          , cse!4 ]) ]) ]) ]) ]) ])
+                                                                                                                                                                                                                                                                          [ cse
+                                                                                                                                                                                                                                                                          , cse ]) ]) ]) ]) ]) ])
                                                                                                                                                                                                                                             , (constr 1
                                                                                                                                                                                                                                                  [ (constr 0
                                                                                                                                                                                                                                                       [ 26
                                                                                                                                                                                                                                                       , (constr 2
                                                                                                                                                                                                                                                            [ (constr 1
-                                                                                                                                                                                                                                                                [ cse!3
+                                                                                                                                                                                                                                                                [ cse
                                                                                                                                                                                                                                                                 , (constr 1
-                                                                                                                                                                                                                                                                     [ cse!1
+                                                                                                                                                                                                                                                                     [ cse
                                                                                                                                                                                                                                                                      , (constr 1
-                                                                                                                                                                                                                                                                          [ cse!1
+                                                                                                                                                                                                                                                                          [ cse
                                                                                                                                                                                                                                                                           , (constr 1
                                                                                                                                                                                                                                                                                [ (constr 3
                                                                                                                                                                                                                                                                                     [ (constr 1
@@ -573,22 +573,22 @@ program
                                                                                                                                                                                                                                                                                               [ (constr 1
                                                                                                                                                                                                                                                                                                    [  ])
                                                                                                                                                                                                                                                                                               , (constr 1
-                                                                                                                                                                                                                                                                                                   [ cse!20
+                                                                                                                                                                                                                                                                                                   [ cse
                                                                                                                                                                                                                                                                                                    , (constr 1
-                                                                                                                                                                                                                                                                                                        [ (unsafeRatio!35
+                                                                                                                                                                                                                                                                                                        [ (unsafeRatio
                                                                                                                                                                                                                                                                                                              13
                                                                                                                                                                                                                                                                                                              20)
                                                                                                                                                                                                                                                                                                         , (constr 0
                                                                                                                                                                                                                                                                                                              [  ]) ]) ]) ])
-                                                                                                                                                                                                                                                                                         , cse!5 ]) ])
+                                                                                                                                                                                                                                                                                         , cse ]) ])
                                                                                                                                                                                                                                                                                , (constr 1
-                                                                                                                                                                                                                                                                                    [ cse!2
+                                                                                                                                                                                                                                                                                    [ cse
                                                                                                                                                                                                                                                                                     , (constr 1
-                                                                                                                                                                                                                                                                                         [ cse!3
+                                                                                                                                                                                                                                                                                         [ cse
                                                                                                                                                                                                                                                                                          , (constr 1
-                                                                                                                                                                                                                                                                                              [ cse!3
+                                                                                                                                                                                                                                                                                              [ cse
                                                                                                                                                                                                                                                                                               , (constr 1
-                                                                                                                                                                                                                                                                                                   [ cse!3
+                                                                                                                                                                                                                                                                                                   [ cse
                                                                                                                                                                                                                                                                                                    , (constr 1
                                                                                                                                                                                                                                                                                                         [ (constr 3
                                                                                                                                                                                                                                                                                                              [ (constr 1
@@ -596,10 +596,10 @@ program
                                                                                                                                                                                                                                                                                                                        [ (constr 1
                                                                                                                                                                                                                                                                                                                             [  ])
                                                                                                                                                                                                                                                                                                                        , (constr 1
-                                                                                                                                                                                                                                                                                                                            [ cse!20
-                                                                                                                                                                                                                                                                                                                            , cse!11 ]) ])
-                                                                                                                                                                                                                                                                                                                  , cse!5 ]) ])
-                                                                                                                                                                                                                                                                                                        , cse!4 ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ])
+                                                                                                                                                                                                                                                                                                                            [ cse
+                                                                                                                                                                                                                                                                                                                            , cse ]) ])
+                                                                                                                                                                                                                                                                                                                  , cse ]) ])
+                                                                                                                                                                                                                                                                                                        , cse ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ])
                                                                                                                                                                                                                                                  , (constr 1
                                                                                                                                                                                                                                                       [ (constr 0
                                                                                                                                                                                                                                                            [ 27
@@ -646,13 +646,13 @@ program
                                                                                                                                                                                                                                                                                          [ 293
                                                                                                                                                                                                                                                                                          , (constr 0
                                                                                                                                                                                                                                                                                               [  ]) ]) ])
-                                                                                                                                                                                                                                                                               , cse!10 ]) ]) ]) ])
+                                                                                                                                                                                                                                                                               , cse ]) ]) ]) ])
                                                                                                                                                                                                                                                            , (constr 1
                                                                                                                                                                                                                                                                 [ (constr 0
                                                                                                                                                                                                                                                                      [ 29
                                                                                                                                                                                                                                                                      , (constr 1
                                                                                                                                                                                                                                                                           [ (constr 1
-                                                                                                                                                                                                                                                                               [ cse!19
+                                                                                                                                                                                                                                                                               [ cse
                                                                                                                                                                                                                                                                                , (constr 1
                                                                                                                                                                                                                                                                                     [ (constr 0
                                                                                                                                                                                                                                                                                          [ (constr 0
@@ -668,7 +668,7 @@ program
                                                                                                                                                                                                                                                                           [ 30
                                                                                                                                                                                                                                                                           , (constr 1
                                                                                                                                                                                                                                                                                [ (constr 1
-                                                                                                                                                                                                                                                                                    [ cse!9
+                                                                                                                                                                                                                                                                                    [ cse
                                                                                                                                                                                                                                                                                     , (constr 1
                                                                                                                                                                                                                                                                                          [ (constr 0
                                                                                                                                                                                                                                                                                               [ (constr 0
@@ -684,7 +684,7 @@ program
                                                                                                                                                                                                                                                                                [ 31
                                                                                                                                                                                                                                                                                , (constr 1
                                                                                                                                                                                                                                                                                     [ (constr 1
-                                                                                                                                                                                                                                                                                         [ cse!9
+                                                                                                                                                                                                                                                                                         [ cse
                                                                                                                                                                                                                                                                                          , (constr 1
                                                                                                                                                                                                                                                                                               [ (constr 0
                                                                                                                                                                                                                                                                                                    [ (constr 0
@@ -705,7 +705,7 @@ program
                                                                                                                                                                                                                                                                                                         [  ])
                                                                                                                                                                                                                                                                                                    , (constr 1
                                                                                                                                                                                                                                                                                                         [ 13
-                                                                                                                                                                                                                                                                                                        , cse!28 ]) ])
+                                                                                                                                                                                                                                                                                                        , cse ]) ])
                                                                                                                                                                                                                                                                                               , (constr 1
                                                                                                                                                                                                                                                                                                    [ (constr 0
                                                                                                                                                                                                                                                                                                         [ (constr 0
@@ -724,13 +724,13 @@ program
                                                                                                                                                                                                                                                                                                    [ (constr 0
                                                                                                                                                                                                                                                                                                         [ (constr 1
                                                                                                                                                                                                                                                                                                              [  ])
-                                                                                                                                                                                                                                                                                                        , cse!13 ])
+                                                                                                                                                                                                                                                                                                        , cse ])
                                                                                                                                                                                                                                                                                                    , (constr 1
                                                                                                                                                                                                                                                                                                         [ (constr 0
                                                                                                                                                                                                                                                                                                              [ (constr 0
                                                                                                                                                                                                                                                                                                                   [  ])
                                                                                                                                                                                                                                                                                                              , (constr 1
-                                                                                                                                                                                                                                                                                                                  [ (unsafeRatio!35
+                                                                                                                                                                                                                                                                                                                  [ (unsafeRatio
                                                                                                                                                                                                                                                                                                                        1000
                                                                                                                                                                                                                                                                                                                        1)
                                                                                                                                                                                                                                                                                                                   , (constr 0
@@ -741,33 +741,33 @@ program
                                                                                                                                                                                                                                                                                          [  ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ])))
                                                                                                                           (constr 3
                                                                                                                              [ (constr 1
-                                                                                                                                  [ cse!5
-                                                                                                                                  , cse!4 ]) ]))
+                                                                                                                                  [ cse
+                                                                                                                                  , cse ]) ]))
                                                                                                                        (constr 3
                                                                                                                           [ (constr 1
-                                                                                                                               [ cse!4
+                                                                                                                               [ cse
                                                                                                                                , (constr 1
                                                                                                                                     [ (constr 0
                                                                                                                                          [ (constr 0
                                                                                                                                               [  ])
                                                                                                                                          , (constr 1
-                                                                                                                                              [ cse!15
+                                                                                                                                              [ cse
                                                                                                                                               , (constr 1
-                                                                                                                                                   [ cse!20
+                                                                                                                                                   [ cse
                                                                                                                                                    , (constr 0
                                                                                                                                                         [  ]) ]) ]) ])
                                                                                                                                     , (constr 0
                                                                                                                                          [  ]) ]) ]) ]))
                                                                                                                     (constr 3
                                                                                                                        [ (constr 1
-                                                                                                                            [ cse!3
+                                                                                                                            [ cse
                                                                                                                             , (constr 1
                                                                                                                                  [ (constr 0
                                                                                                                                       [ (constr 0
                                                                                                                                            [  ])
                                                                                                                                       , (constr 1
-                                                                                                                                           [ cse!14
-                                                                                                                                           , cse!8 ]) ])
+                                                                                                                                           [ cse
+                                                                                                                                           , cse ]) ])
                                                                                                                                  , (constr 0
                                                                                                                                       [  ]) ]) ]) ]))
                                                                                                                  (constr 1
@@ -777,10 +777,10 @@ program
                                                                                                                                    [ (constr 1
                                                                                                                                         [  ])
                                                                                                                                    , (constr 1
-                                                                                                                                        [ cse!16
+                                                                                                                                        [ cse
                                                                                                                                         , (constr 0
                                                                                                                                              [  ]) ]) ])
-                                                                                                                              , cse!4 ]) ])
+                                                                                                                              , cse ]) ])
                                                                                                                     , (constr 0
                                                                                                                          [  ]) ]))
                                                                                                               (constr 1
@@ -788,9 +788,9 @@ program
                                                                                                                       [ (constr 0
                                                                                                                            [  ])
                                                                                                                       , (constr 1
-                                                                                                                           [ cse!12
+                                                                                                                           [ cse
                                                                                                                            , (constr 1
-                                                                                                                                [ cse!11
+                                                                                                                                [ cse
                                                                                                                                 , (constr 0
                                                                                                                                      [  ]) ]) ]) ])
                                                                                                                  , (constr 0
@@ -799,23 +799,23 @@ program
                                                                                                               [ (constr 1
                                                                                                                    [  ])
                                                                                                               , (constr 1
-                                                                                                                   [ cse!14
+                                                                                                                   [ cse
                                                                                                                    , (constr 1
-                                                                                                                        [ cse!9
+                                                                                                                        [ cse
                                                                                                                         , (constr 0
                                                                                                                              [  ]) ]) ]) ]))
                                                                                                         (constr 0
                                                                                                            [ (constr 1
                                                                                                                 [  ])
                                                                                                            , (constr 1
-                                                                                                                [ (cse!19
+                                                                                                                [ (cse
                                                                                                                      10)
-                                                                                                                , cse!6 ]) ]))
+                                                                                                                , cse ]) ]))
                                                                                                      (constr 1
                                                                                                         [ (constr 0
                                                                                                              [ (constr 0
                                                                                                                   [  ])
-                                                                                                             , cse!6 ])
+                                                                                                             , cse ])
                                                                                                         , (constr 0
                                                                                                              [  ]) ]))
                                                                                                   (constr 0
@@ -831,11 +831,11 @@ program
                                                                                                   [ (constr 0
                                                                                                        [ (constr 2
                                                                                                             [  ])
-                                                                                                       , cse!18 ])
+                                                                                                       , cse ])
                                                                                                   , (constr 0
                                                                                                        [  ]) ]))
                                                                                             (constr 1
-                                                                                               [ (cse!13
+                                                                                               [ (cse
                                                                                                     4)
                                                                                                , (constr 0
                                                                                                     [  ]) ]))
@@ -850,23 +850,23 @@ program
                                                                                             , (constr 0
                                                                                                  [  ]) ]))
                                                                                       (constr 1
-                                                                                         [ cse!8
+                                                                                         [ cse
                                                                                          , (constr 0
                                                                                               [  ]) ]))
                                                                                    (constr 1
-                                                                                      [ cse!3
+                                                                                      [ cse
                                                                                       , (constr 0
                                                                                            [  ]) ]))
-                                                                                (cse!12
+                                                                                (cse
                                                                                    100))
-                                                                             (cse!9
+                                                                             (cse
                                                                                 10))
-                                                                          (cse!9
+                                                                          (cse
                                                                              1))
                                                                        (constr 0
                                                                           [ (constr 1
                                                                                [  ])
-                                                                          , cse!10 ]))
+                                                                          , cse ]))
                                                                     (constr 0
                                                                        [ (constr 1
                                                                             [])
@@ -874,221 +874,216 @@ program
                                                                             [ 1
                                                                             , (constr 0
                                                                                  [  ]) ]) ]))
-                                                                 (cse!6 2))
-                                                              (cse!2 1))
-                                                           (cse!7 5))
-                                                        (unsafeRatio!12 0))
-                                                     (unsafeRatio!11 3))
-                                                  (unsafeRatio!10 9))
-                                               (unsafeRatio!9 1))
-                                            (unsafeRatio!8 51))
+                                                                 (cse 2))
+                                                              (cse 1))
+                                                           (cse 5))
+                                                        (unsafeRatio 0))
+                                                     (unsafeRatio 3))
+                                                  (unsafeRatio 9))
+                                               (unsafeRatio 1))
+                                            (unsafeRatio 51))
                                          (constr 1 [0, (constr 0 [])]))
-                                      (unsafeRatio!6 4))
-                                   (fix1!10
-                                      (\go!0 l!0 ->
+                                      (unsafeRatio 4))
+                                   (fix1
+                                      (\go l ->
                                          force (force chooseList)
-                                           l!1
-                                           (\ds!0 -> constr 0 [])
-                                           (\ds!0 ->
+                                           l
+                                           (\ds -> constr 0 [])
+                                           (\ds ->
                                               constr 1
-                                                [ ((\p!0 ->
+                                                [ ((\p ->
                                                       constr 0
                                                         [ (force (force fstPair)
-                                                             p!1)
+                                                             p)
                                                         , (force (force sndPair)
-                                                             p!1) ])
-                                                     (force headList l!2))
-                                                , (go!3 (force tailList l!2)) ])
+                                                             p) ])
+                                                     (force headList l))
+                                                , (go (force tailList l)) ])
                                            ())))
-                                (fix1!9
-                                   (\runRules!0 ds!0 cparams!0 ->
+                                (fix1
+                                   (\runRules ds cparams ->
                                       force
-                                        ((\fail!0 ->
+                                        ((\fail ->
                                             case
-                                              ds!3
-                                              [ (delay (fail!1 ()))
-                                              , (\ds!0 cfgRest!0 ->
+                                              ds
+                                              [ (delay (fail ()))
+                                              , (\ds cfgRest ->
                                                    delay
                                                      (case
-                                                        ds!2
-                                                        [ (\expectedPid!0
-                                                            paramValue!0 ->
+                                                        ds
+                                                        [ (\expectedPid
+                                                            paramValue ->
                                                              force
                                                                (case
-                                                                  cparams!6
+                                                                  cparams
                                                                   [ (delay
-                                                                       (fail!5
+                                                                       (fail
                                                                           ()))
-                                                                  , (\ds!0
-                                                                      cparamsRest!0 ->
+                                                                  , (\ds
+                                                                      cparamsRest ->
                                                                        delay
                                                                          (case
-                                                                            ds!2
-                                                                            [ (\ds!0
-                                                                                actualValueData!0 ->
+                                                                            ds
+                                                                            [ (\ds
+                                                                                actualValueData ->
                                                                                  force
                                                                                    (case
-                                                                                      (`$fOrdInteger_$ccompare`!19
+                                                                                      (`$fOrdInteger_$ccompare`
                                                                                          (unIData
-                                                                                            ds!2)
-                                                                                         expectedPid!6)
+                                                                                            ds)
+                                                                                         expectedPid)
                                                                                       [ (delay
                                                                                            (force
                                                                                               (case
-                                                                                                 (validateParamValue!14
-                                                                                                    paramValue!5
-                                                                                                    actualValueData!1)
+                                                                                                 (validateParamValue
+                                                                                                    paramValue
+                                                                                                    actualValueData)
                                                                                                  [ (delay
-                                                                                                      (runRules!12
-                                                                                                         cfgRest!7
-                                                                                                         cparamsRest!3))
+                                                                                                      (runRules
+                                                                                                         cfgRest
+                                                                                                         cparamsRest))
                                                                                                  , (delay
                                                                                                       (constr 1
                                                                                                          [  ])) ])))
                                                                                       , (delay
-                                                                                           (runRules!12
-                                                                                              cfgRest!7
-                                                                                              cparams!10))
+                                                                                           (runRules
+                                                                                              cfgRest
+                                                                                              cparams))
                                                                                       , (delay
                                                                                            (constr 1
                                                                                               [  ])) ])) ])) ])) ])) ])
-                                           (\ds!0 ->
+                                           (\ds ->
                                               force
                                                 (case
-                                                   cparams!2
+                                                   cparams
                                                    [ (delay (constr 0 []))
-                                                   , (\ipv!0 ipv!0 ->
+                                                   , (\ipv ipv ->
                                                         delay
                                                           (constr 1 [])) ]))))))
-                             (cse!2 (\arg_0!0 arg_1!0 -> arg_1!1)))
-                          (cse!1 (\arg_0!0 arg_1!0 -> arg_0!2)))
+                             (cse (\arg_0 arg_1 -> arg_1)))
+                          (cse (\arg_0 arg_1 -> arg_0)))
                        (force
-                          ((\s!0 -> s!1 s!1)
-                             (\s!0 h!0 ->
+                          ((\s -> s s)
+                             (\s h ->
                                 delay
-                                  (\fr!0 ->
-                                     (\k!0 ->
-                                        fr!2
-                                          (\x!0 ->
-                                             k!2 (\f_0!0 f_1!0 -> f_0!2 x!3))
-                                          (\x!0 ->
-                                             k!2 (\f_0!0 f_1!0 -> f_1!1 x!3)))
-                                       (\fq!0 ->
-                                          force (s!4 s!4 h!3)
-                                            (force h!3 fq!1))))
+                                  (\fr ->
+                                     (\k ->
+                                        fr
+                                          (\x -> k (\f_0 f_1 -> f_0 x))
+                                          (\x -> k (\f_0 f_1 -> f_1 x)))
+                                       (\fq -> force (s s h) (force h fq))))
                              (delay
-                                (\choose!0
-                                  validateParamValue!0
-                                  validateParamValues!0 ->
-                                   choose!3
-                                     (\eta!0 eta!0 ->
+                                (\choose
+                                  validateParamValue
+                                  validateParamValues ->
+                                   choose
+                                     (\eta eta ->
                                         force
                                           (case
-                                             eta!2
+                                             eta
                                              [ (delay (constr 0 []))
-                                             , (\preds!0 ->
+                                             , (\preds ->
                                                   delay
-                                                    (validatePreds!9
+                                                    (validatePreds
                                                        (constr 0
-                                                          [ (\x!0 y!0 ->
+                                                          [ (\x y ->
                                                                force ifThenElse
                                                                  (equalsInteger
-                                                                    x!2
-                                                                    y!1)
+                                                                    x
+                                                                    y)
                                                                  (constr 0 [])
                                                                  (constr 1 []))
-                                                          , `$fOrdInteger_$ccompare`!10
-                                                          , (\x!0 y!0 ->
+                                                          , `$fOrdInteger_$ccompare`
+                                                          , (\x y ->
                                                                force ifThenElse
                                                                  (lessThanInteger
-                                                                    x!2
-                                                                    y!1)
+                                                                    x
+                                                                    y)
                                                                  (constr 0 [])
                                                                  (constr 1 []))
-                                                          , (\x!0 y!0 ->
+                                                          , (\x y ->
                                                                force ifThenElse
                                                                  (lessThanEqualsInteger
-                                                                    x!2
-                                                                    y!1)
+                                                                    x
+                                                                    y)
                                                                  (constr 0 [])
                                                                  (constr 1 []))
-                                                          , (\x!0 y!0 ->
+                                                          , (\x y ->
                                                                force ifThenElse
                                                                  (lessThanEqualsInteger
-                                                                    x!2
-                                                                    y!1)
+                                                                    x
+                                                                    y)
                                                                  (constr 1 [])
                                                                  (constr 0 []))
-                                                          , (\x!0 y!0 ->
+                                                          , (\x y ->
                                                                force ifThenElse
                                                                  (lessThanInteger
-                                                                    x!2
-                                                                    y!1)
+                                                                    x
+                                                                    y)
                                                                  (constr 1 [])
                                                                  (constr 0 []))
-                                                          , (\x!0 y!0 ->
+                                                          , (\x y ->
                                                                force
                                                                  (force
                                                                     (force
                                                                        ifThenElse
                                                                        (lessThanEqualsInteger
-                                                                          x!2
-                                                                          y!1)
+                                                                          x
+                                                                          y)
                                                                        (delay
                                                                           (delay
-                                                                             y!1))
+                                                                             y))
                                                                        (delay
                                                                           (delay
-                                                                             x!2)))))
-                                                          , (\x!0 y!0 ->
+                                                                             x)))))
+                                                          , (\x y ->
                                                                force
                                                                  (force
                                                                     (force
                                                                        ifThenElse
                                                                        (lessThanEqualsInteger
-                                                                          x!2
-                                                                          y!1)
+                                                                          x
+                                                                          y)
                                                                        (delay
                                                                           (delay
-                                                                             x!2))
+                                                                             x))
                                                                        (delay
                                                                           (delay
-                                                                             y!1))))) ])
-                                                       preds!1
-                                                       (unIData eta!2)))
-                                             , (\paramValues!0 ->
+                                                                             y))))) ])
+                                                       preds
+                                                       (unIData eta)))
+                                             , (\paramValues ->
                                                   delay
-                                                    (validateParamValues!4
-                                                       paramValues!1
-                                                       (unListData eta!2)))
-                                             , (\preds!0 ->
+                                                    (validateParamValues
+                                                       paramValues
+                                                       (unListData eta)))
+                                             , (\preds ->
                                                   delay
-                                                    ((\cse!0 ->
-                                                        validatePreds!10
+                                                    ((\cse ->
+                                                        validatePreds
                                                           (constr 0
-                                                             [ (\ds!0 ds!0 ->
+                                                             [ (\ds ds ->
                                                                   case
-                                                                    ds!2
-                                                                    [ (\n!0
-                                                                        d!0 ->
+                                                                    ds
+                                                                    [ (\n d ->
                                                                          case
-                                                                           ds!3
-                                                                           [ (\n'!0
-                                                                               d'!0 ->
+                                                                           ds
+                                                                           [ (\n'
+                                                                               d' ->
                                                                                 force
                                                                                   (force
                                                                                      (force
                                                                                         ifThenElse
                                                                                         (equalsInteger
-                                                                                           n!4
-                                                                                           n'!2)
+                                                                                           n
+                                                                                           n')
                                                                                         (delay
                                                                                            (delay
                                                                                               (force
                                                                                                  ifThenElse
                                                                                                  (equalsInteger
-                                                                                                    d!3
-                                                                                                    d'!1)
+                                                                                                    d
+                                                                                                    d')
                                                                                                  (constr 0
                                                                                                     [  ])
                                                                                                  (constr 1
@@ -1097,310 +1092,288 @@ program
                                                                                            (delay
                                                                                               (constr 1
                                                                                                  [  ])))))) ]) ])
-                                                             , (\ds!0 ds!0 ->
+                                                             , (\ds ds ->
                                                                   case
-                                                                    ds!2
-                                                                    [ (\n!0
-                                                                        d!0 ->
+                                                                    ds
+                                                                    [ (\n d ->
                                                                          case
-                                                                           ds!3
-                                                                           [ (\n'!0
-                                                                               d'!0 ->
-                                                                                `$fOrdInteger_$ccompare`!17
+                                                                           ds
+                                                                           [ (\n'
+                                                                               d' ->
+                                                                                `$fOrdInteger_$ccompare`
                                                                                   (multiplyInteger
-                                                                                     n!4
-                                                                                     d'!1)
+                                                                                     n
+                                                                                     d')
                                                                                   (multiplyInteger
-                                                                                     n'!2
-                                                                                     d!3)) ]) ])
-                                                             , (\ds!0 ds!0 ->
+                                                                                     n'
+                                                                                     d)) ]) ])
+                                                             , (\ds ds ->
                                                                   case
-                                                                    ds!2
-                                                                    [ (\n!0
-                                                                        d!0 ->
+                                                                    ds
+                                                                    [ (\n d ->
                                                                          case
-                                                                           ds!3
-                                                                           [ (\n'!0
-                                                                               d'!0 ->
+                                                                           ds
+                                                                           [ (\n'
+                                                                               d' ->
                                                                                 force
                                                                                   ifThenElse
                                                                                   (lessThanInteger
                                                                                      (multiplyInteger
-                                                                                        n!4
-                                                                                        d'!1)
+                                                                                        n
+                                                                                        d')
                                                                                      (multiplyInteger
-                                                                                        n'!2
-                                                                                        d!3))
+                                                                                        n'
+                                                                                        d))
                                                                                   (constr 0
                                                                                      [  ])
                                                                                   (constr 1
                                                                                      [  ])) ]) ])
-                                                             , `$fOrdRational0_$c<=`!12
-                                                             , (\ds!0 ds!0 ->
+                                                             , `$fOrdRational0_$c<=`
+                                                             , (\ds ds ->
                                                                   case
-                                                                    ds!2
-                                                                    [ (\n!0
-                                                                        d!0 ->
+                                                                    ds
+                                                                    [ (\n d ->
                                                                          case
-                                                                           ds!3
-                                                                           [ (\n'!0
-                                                                               d'!0 ->
+                                                                           ds
+                                                                           [ (\n'
+                                                                               d' ->
                                                                                 force
                                                                                   ifThenElse
                                                                                   (lessThanEqualsInteger
                                                                                      (multiplyInteger
-                                                                                        n!4
-                                                                                        d'!1)
+                                                                                        n
+                                                                                        d')
                                                                                      (multiplyInteger
-                                                                                        n'!2
-                                                                                        d!3))
+                                                                                        n'
+                                                                                        d))
                                                                                   (constr 1
                                                                                      [  ])
                                                                                   (constr 0
                                                                                      [  ])) ]) ])
-                                                             , (\ds!0 ds!0 ->
+                                                             , (\ds ds ->
                                                                   case
-                                                                    ds!2
-                                                                    [ (\n!0
-                                                                        d!0 ->
+                                                                    ds
+                                                                    [ (\n d ->
                                                                          case
-                                                                           ds!3
-                                                                           [ (\n'!0
-                                                                               d'!0 ->
+                                                                           ds
+                                                                           [ (\n'
+                                                                               d' ->
                                                                                 force
                                                                                   ifThenElse
                                                                                   (lessThanInteger
                                                                                      (multiplyInteger
-                                                                                        n!4
-                                                                                        d'!1)
+                                                                                        n
+                                                                                        d')
                                                                                      (multiplyInteger
-                                                                                        n'!2
-                                                                                        d!3))
+                                                                                        n'
+                                                                                        d))
                                                                                   (constr 1
                                                                                      [  ])
                                                                                   (constr 0
                                                                                      [  ])) ]) ])
-                                                             , (\x!0 y!0 ->
+                                                             , (\x y ->
                                                                   force
                                                                     (case
-                                                                       (`$fOrdRational0_$c<=`!14
-                                                                          x!2
-                                                                          y!1)
+                                                                       (`$fOrdRational0_$c<=`
+                                                                          x
+                                                                          y)
                                                                        [ (delay
-                                                                            y!1)
+                                                                            y)
                                                                        , (delay
-                                                                            x!2) ]))
-                                                             , (\x!0 y!0 ->
+                                                                            x) ]))
+                                                             , (\x y ->
                                                                   force
                                                                     (case
-                                                                       (`$fOrdRational0_$c<=`!14
-                                                                          x!2
-                                                                          y!1)
+                                                                       (`$fOrdRational0_$c<=`
+                                                                          x
+                                                                          y)
                                                                        [ (delay
-                                                                            x!2)
+                                                                            x)
                                                                        , (delay
-                                                                            y!1) ])) ])
-                                                          preds!2
-                                                          ((\cse!0 ->
+                                                                            y) ])) ])
+                                                          preds
+                                                          ((\cse ->
                                                               force ifThenElse
                                                                 (force nullList
                                                                    (force
                                                                       tailList
-                                                                      cse!1))
-                                                                (\ds!0 ->
-                                                                   unsafeRatio!10
+                                                                      cse))
+                                                                (\ds ->
+                                                                   unsafeRatio
                                                                      (unIData
                                                                         (force
                                                                            headList
-                                                                           cse!3))
+                                                                           cse))
                                                                      (unIData
                                                                         (force
                                                                            headList
-                                                                           cse!2))))
+                                                                           cse))))
                                                              (force tailList
-                                                                cse!1)
-                                                             (\ds!0 -> error)
+                                                                cse)
+                                                             (\ds -> error)
                                                              (constr 0 [])))
-                                                       (unListData eta!2))) ]))
-                                     (\ds!0 ->
+                                                       (unListData eta))) ]))
+                                     (\ds ->
                                         case
-                                          ds!1
-                                          [ (\eta!0 ->
+                                          ds
+                                          [ (\eta ->
                                                force ifThenElse
-                                                 (force nullList eta!1)
+                                                 (force nullList eta)
                                                  (constr 0 [])
                                                  (constr 1 []))
-                                          , (\paramValueHd!0
-                                              paramValueTl!0
-                                              actualValueData!0 ->
+                                          , (\paramValueHd
+                                              paramValueTl
+                                              actualValueData ->
                                                force
                                                  (case
-                                                    (validateParamValue!6
-                                                       paramValueHd!3
+                                                    (validateParamValue
+                                                       paramValueHd
                                                        (force headList
-                                                          actualValueData!1))
+                                                          actualValueData))
                                                     [ (delay
-                                                         (validateParamValues!5
-                                                            paramValueTl!2
+                                                         (validateParamValues
+                                                            paramValueTl
                                                             (force tailList
-                                                               actualValueData!1)))
+                                                               actualValueData)))
                                                     , (delay
                                                          (constr 1
                                                             [])) ])) ]))))))
-                    (fix1!5
-                       (\unsafeRatio!0 n!0 d!0 ->
+                    (fix1
+                       (\unsafeRatio n d ->
                           force
                             (force
                                (force ifThenElse
-                                  (equalsInteger 0 d!1)
+                                  (equalsInteger 0 d)
                                   (delay (delay error))
                                   (delay
                                      (delay
                                         (force
                                            (force
                                               (force ifThenElse
-                                                 (lessThanInteger d!1 0)
+                                                 (lessThanInteger d 0)
                                                  (delay
                                                     (delay
-                                                       (unsafeRatio!3
+                                                       (unsafeRatio
+                                                          (subtractInteger 0 n)
                                                           (subtractInteger
                                                              0
-                                                             n!2)
-                                                          (subtractInteger
-                                                             0
-                                                             d!1))))
+                                                             d))))
                                                  (delay
                                                     (delay
-                                                       ((\gcd'!0 ->
+                                                       ((\gcd' ->
                                                            constr 0
                                                              [ (quotientInteger
-                                                                  n!3
-                                                                  gcd'!1)
+                                                                  n
+                                                                  gcd')
                                                              , (quotientInteger
-                                                                  d!2
-                                                                  gcd'!1) ])
-                                                          (euclid!4
-                                                             n!2
-                                                             d!1))))))))))))))
-                 (fix1!4
-                    (\euclid!0 x!0 y!0 ->
+                                                                  d
+                                                                  gcd') ])
+                                                          (euclid
+                                                             n
+                                                             d))))))))))))))
+                 (fix1
+                    (\euclid x y ->
                        force
                          (force
                             (force ifThenElse
-                               (equalsInteger 0 y!1)
-                               (delay (delay x!2))
-                               (delay
-                                  (delay
-                                     (euclid!3 y!1 (modInteger x!2 y!1)))))))))
-              (\`$dOrd`!0 ds!0 ds!0 ->
-                 fix1!6
-                   (\go!0 ds!0 ->
+                               (equalsInteger 0 y)
+                               (delay (delay x))
+                               (delay (delay (euclid y (modInteger x y)))))))))
+              (\`$dOrd` ds ds ->
+                 fix1
+                   (\go ds ->
                       force
                         (case
-                           ds!1
+                           ds
                            [ (delay (constr 0 []))
-                           , (\x!0 xs!0 ->
+                           , (\x xs ->
                                 delay
                                   (case
-                                     x!2
-                                     [ (\predKey!0 expectedPredValues!0 ->
-                                          (\meaning!0 ->
-                                             fix1!13
-                                               (\go!0 ds!0 ->
+                                     x
+                                     [ (\predKey expectedPredValues ->
+                                          (\meaning ->
+                                             fix1
+                                               (\go ds ->
                                                   force
                                                     (case
-                                                       ds!1
-                                                       [ (delay (go!9 xs!6))
-                                                       , (\x!0 xs!0 ->
+                                                       ds
+                                                       [ (delay (go xs))
+                                                       , (\x xs ->
                                                             delay
                                                               (force
                                                                  (case
-                                                                    (meaning!5
-                                                                       x!2
-                                                                       ds!12)
+                                                                    (meaning
+                                                                       x
+                                                                       ds)
                                                                     [ (delay
-                                                                         (go!4
-                                                                            xs!1))
+                                                                         (go
+                                                                            xs))
                                                                     , (delay
                                                                          (constr 1
                                                                             [  ])) ]))) ]))
-                                               expectedPredValues!2)
+                                               expectedPredValues)
                                             (force
                                                (case
-                                                  predKey!2
+                                                  predKey
                                                   [ (delay
                                                        (case
-                                                          `$dOrd`!9
-                                                          [ (\v!0
-                                                              v!0
-                                                              v!0
-                                                              v!0
-                                                              v!0
-                                                              v!0
-                                                              v!0
-                                                              v!0 ->
-                                                               v!3) ]))
+                                                          `$dOrd`
+                                                          [ (\v v v v v v v v ->
+                                                               v) ]))
                                                   , (delay
                                                        (case
-                                                          `$dOrd`!9
-                                                          [ (\v!0
-                                                              v!0
-                                                              v!0
-                                                              v!0
-                                                              v!0
-                                                              v!0
-                                                              v!0
-                                                              v!0 ->
-                                                               v!5) ]))
+                                                          `$dOrd`
+                                                          [ (\v v v v v v v v ->
+                                                               v) ]))
                                                   , (delay
-                                                       (\x!0 y!0 ->
+                                                       (\x y ->
                                                           force
                                                             (case
                                                                (case
-                                                                  `$dOrd`!11
-                                                                  [ (\v!0
-                                                                      v!0
-                                                                      v!0
-                                                                      v!0
-                                                                      v!0
-                                                                      v!0
-                                                                      v!0
-                                                                      v!0 ->
-                                                                       v!8) ]
-                                                                  x!2
-                                                                  y!1)
+                                                                  `$dOrd`
+                                                                  [ (\v
+                                                                      v
+                                                                      v
+                                                                      v
+                                                                      v
+                                                                      v
+                                                                      v
+                                                                      v ->
+                                                                       v) ]
+                                                                  x
+                                                                  y)
                                                                [ (delay
                                                                     (constr 1
                                                                        []))
                                                                , (delay
                                                                     (constr 0
                                                                        [  ])) ]))) ]))) ])) ]))
-                   ds!2))
-           (\eta!0 eta!0 ->
+                   ds))
+           (\eta eta ->
               force
                 (force
                    (force ifThenElse
-                      (equalsInteger eta!2 eta!1)
+                      (equalsInteger eta eta)
                       (delay (delay (constr 0 [])))
                       (delay
                          (delay
                             (force
                                (force
                                   (force ifThenElse
-                                     (lessThanEqualsInteger eta!2 eta!1)
+                                     (lessThanEqualsInteger eta eta)
                                      (delay (delay (constr 2 [])))
                                      (delay (delay (constr 1 []))))))))))))
-        (\ds!0 ds!0 ->
+        (\ds ds ->
            case
-             ds!2
-             [ (\n!0 d!0 ->
+             ds
+             [ (\n d ->
                   case
-                    ds!3
-                    [ (\n'!0 d'!0 ->
+                    ds
+                    [ (\n' d' ->
                          force ifThenElse
                            (lessThanEqualsInteger
-                              (multiplyInteger n!4 d'!1)
-                              (multiplyInteger n'!2 d!3))
+                              (multiplyInteger n d')
+                              (multiplyInteger n' d))
                            (constr 0 [])
                            (constr 1 [])) ]) ]))
-     (\f!0 -> (\s!0 -> s!1 s!1) (\s!0 -> f!2 (\x!0 -> s!2 s!2 x!1))))
+     (\f -> (\s -> s s) (\s -> f (\x -> s s x))))
