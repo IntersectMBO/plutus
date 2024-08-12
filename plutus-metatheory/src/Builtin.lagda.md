@@ -592,8 +592,8 @@ postulate
 {-# COMPILE GHC BLAKE2B-224 = Hash.blake2b_224 #-}
 
 {-# FOREIGN GHC import PlutusCore.Bitwise qualified as Bitwise #-}
-{-# COMPILE GHC BStoI = Bitwise.byteStringToIntegerWrapper #-}
-{-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Bitwise.integerToByteStringWrapper e w n #-}
+{-# COMPILE GHC BStoI = Bitwise.byteStringToInteger #-}
+{-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Bitwise.integerToByteString e w n #-}
 {-# COMPILE GHC andBYTESTRING = Bitwise.andByteString #-}
 {-# COMPILE GHC orBYTESTRING = Bitwise.orByteString #-}
 {-# COMPILE GHC xorBYTESTRING = Bitwise.xorByteString #-}
@@ -604,10 +604,9 @@ postulate
 -- the implementation PlutusCore.Bitwise will return BuiltinFailure; if w < 0 or w >= 256 then the
 -- denotation in `PlutusCore.Default.Builtins` will fail when the builtin machinery tries to convert
 -- it to a Word8.  We have to replicate this behaviour here. -}
-{-# COMPILE GHC replicateBYTE = \n w8 ->
-        case toIntegralSized w8 of { Nothing -> Nothing; Just w -> builtinResultToMaybe $ Bitwise.replicateByte n w } #-}
-{-# COMPILE GHC shiftBYTESTRING = Bitwise.shiftByteStringWrapper #-}
-{-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteStringWrapper #-}
+{-# COMPILE GHC replicateBYTE = \n w8 -> builtinResultToMaybe $ Bitwise.replicateByte (fromIntegral n) (fromIntegral w8) #-}
+{-# COMPILE GHC shiftBYTESTRING = Bitwise.shiftByteString #-}
+{-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteString #-}
 {-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits s #-}
 {-# COMPILE GHC findFirstSetBIT = \s -> fromIntegral $ Bitwise.findFirstSetBit s #-}
 

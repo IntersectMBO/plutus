@@ -36,13 +36,13 @@ constructors _ = []
 names : String → List String
 names = wordsBy (T? ∘ (_≈ᵇ '.'))
 
-lastName : String → List String → String 
-lastName s xs with last xs 
+lastName : String → List String → String
+lastName s xs with last xs
 ... | just x = x
 ... | nothing = s
 
-getLastName : Name → String 
-getLastName q = lastName "defconstructorname" (names (showName q)) 
+getLastName : Name → String
+getLastName q = lastName "defconstructorname" (names (showName q))
 
 
 mk-cls : Name → Clause
@@ -62,15 +62,15 @@ map2 {A = A} {B = B} f l = map2' f l l
   where
   map2' : (A → A → B) → List A → List A → List B
   map2' f [] _ = []
-  map2' f (x ∷ xs) l = map (f x) l ++ map2' f xs l 
+  map2' f (x ∷ xs) l = map (f x) l ++ map2' f xs l
 
 mk-DecCls : Name → Name → Clause
 mk-DecCls q1 q2 with primQNameEquality q1 q2
-... | true  = clause [] (vArg (con q1 []) ∷ vArg (con q2 []) ∷ []) 
-                        (con (quote _because_)  
+... | true  = clause [] (vArg (con q1 []) ∷ vArg (con q2 []) ∷ [])
+                        (con (quote _because_)
                              (vArg (con (quote true) []) ∷ vArg (con (quote ofʸ) [ vArg (con (quote refl) []) ]) ∷ []))
-... | false = clause [] (vArg (con q1 []) ∷ vArg (con q2 []) ∷ []) 
-                        (con (quote _because_)  
+... | false = clause [] (vArg (con q1 []) ∷ vArg (con q2 []) ∷ [])
+                        (con (quote _because_)
                         (vArg (con (quote false) []) ∷ vArg (con (quote ofⁿ) [ vArg absurd-lam ]) ∷ []))
 ```
 
@@ -96,23 +96,23 @@ defDec T defName = do
 
 The function `defShow` helps to define a show function for datatypes which are simple enumerations.
 
-``` 
+```
 mk-Show : Name → Clause
-mk-Show q = clause [] (vArg (con q []) ∷ []) 
-                      (lit (string (getLastName q))) 
+mk-Show q = clause [] (vArg (con q []) ∷ [])
+                      (lit (string (getLastName q)))
 
 defShow : Name → Name → TC ⊤
 defShow T defName = do
        d ← getDefinition T
        let cls = map mk-Show (constructors d)
        defineFun defName cls
- 
-``` 
+
+```
 
 Produce a list with all constructors
 
-``` 
-mkList : List Term → Term 
+```
+mkList : List Term → Term
 mkList [] = con (quote (List.[])) []
 mkList (x ∷ xs) = con (quote _∷_) (hArg unknown ∷  hArg unknown ∷ vArg x ∷ vArg (mkList xs) ∷ [])
 

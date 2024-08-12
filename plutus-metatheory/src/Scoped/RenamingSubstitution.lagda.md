@@ -69,14 +69,14 @@ ren : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Ren⋆ m n → Ren w v → Sc
 renT : ∀{m n o}{w : Weirdℕ m}{v : Weirdℕ n} → Ren⋆ m n → Ren w v
   → Tel w o → Tel v o
 
-ren-List : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Ren⋆ m n → Ren w v 
+ren-List : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Ren⋆ m n → Ren w v
          → List (ScopedTm w)
          → List (ScopedTm v)
 ren-List ρ⋆ ρ [] = []
 ren-List ρ⋆ ρ (x ∷ xs) = (ren ρ⋆ ρ x) ∷ (ren-List ρ⋆ ρ xs)
 
 ren ρ⋆ ρ (` x) = ` (ρ x)
-ren ρ⋆ ρ (Λ K t) = Λ K (ren (lift⋆ ρ⋆) (⋆lift ρ) t) 
+ren ρ⋆ ρ (Λ K t) = Λ K (ren (lift⋆ ρ⋆) (⋆lift ρ) t)
 ren ρ⋆ ρ (t ·⋆ A) = ren ρ⋆ ρ t ·⋆ ren⋆ ρ⋆ A
 ren ρ⋆ ρ (ƛ A t)  = ƛ (ren⋆ ρ⋆ A) (ren ρ⋆ (lift ρ) t)
 ren ρ⋆ ρ (t · u) = ren ρ⋆ ρ t · ren ρ⋆ ρ u
@@ -85,7 +85,7 @@ ren ρ⋆ ρ (error A) = error (ren⋆ ρ⋆ A)
 ren ρ⋆ ρ (builtin b) = builtin b
 ren ρ⋆ ρ (wrap A B t) = wrap (ren⋆ ρ⋆ A) (ren⋆ ρ⋆ B) (ren ρ⋆ ρ t)
 ren ρ⋆ ρ (unwrap t) = unwrap (ren ρ⋆ ρ t)
-ren ρ⋆ ρ (constr A i cs) =  constr (ren⋆ ρ⋆ A) i (ren-List ρ⋆ ρ cs) 
+ren ρ⋆ ρ (constr A i cs) =  constr (ren⋆ ρ⋆ A) i (ren-List ρ⋆ ρ cs)
 ren ρ⋆ ρ (case A x cs) = case (ren⋆ ρ⋆ A) (ren ρ⋆ ρ  x) (ren-List ρ⋆ ρ cs)
 
 renT ρ⋆ ρ []       = []
@@ -116,7 +116,7 @@ sub⋆ σ (ƛ K A) = ƛ K (sub⋆ (slift⋆ σ) A)
 sub⋆ σ (A · B) = sub⋆ σ A · sub⋆ σ B
 sub⋆ σ (con c) = con c
 sub⋆ σ (μ A B) = μ (sub⋆ σ A) (sub⋆ σ B)
-sub⋆ σ (SOP xss) = SOP (sub⋆-ListList σ xss) 
+sub⋆ σ (SOP xss) = SOP (sub⋆-ListList σ xss)
 
 sub⋆T : ∀{m n o} → Sub⋆ m n → Tel⋆ m o → Tel⋆ n o
 sub⋆T σ⋆ []       = []
@@ -191,7 +191,7 @@ ren⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
   → ∀ x → ren⋆ ρ x ≡ ren⋆ ρ' x
 
 ren⋆-cong-List :  ∀{m n}{ρ ρ' : Ren⋆ m n}
-  → (∀ x → ρ x ≡ ρ' x) 
+  → (∀ x → ρ x ≡ ρ' x)
   → ∀ xs → ren⋆-List ρ xs ≡ ren⋆-List ρ' xs
 ren⋆-cong-List p [] = refl
 ren⋆-cong-List p (x ∷ xs) = cong₂ _∷_ (ren⋆-cong p x) (ren⋆-cong-List p xs)
@@ -215,7 +215,7 @@ slift⋆-cong : ∀{m n}{ρ ρ' : Sub⋆ m n}
   → (∀ x → ρ x ≡ ρ' x)
   → ∀ x → slift⋆ ρ x ≡ slift⋆ ρ' x
 slift⋆-cong p zero    = refl
-slift⋆-cong p (suc x) = cong (ren⋆ suc) (p x) 
+slift⋆-cong p (suc x) = cong (ren⋆ suc) (p x)
 
 sub⋆-cong : ∀{m n}{σ σ' : Sub⋆ m n}
   → (∀ x → σ x ≡ σ' x)
@@ -238,14 +238,14 @@ sub⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (sub⋆-cong p A) (sub⋆-cong p B)
 sub⋆-cong p (Π K A)     = cong (Π K) (sub⋆-cong (slift⋆-cong p) A)
 sub⋆-cong p (ƛ K A)     = cong (ƛ K) (sub⋆-cong (slift⋆-cong p) A)
 sub⋆-cong p (A · B)     = cong₂ _·_ (sub⋆-cong p A) (sub⋆-cong p B)
-sub⋆-cong p (con c)     = refl 
+sub⋆-cong p (con c)     = refl
 sub⋆-cong p (μ pat arg) = cong₂ μ (sub⋆-cong p pat) (sub⋆-cong p arg)
 sub⋆-cong p (SOP xss)   = cong SOP (sub⋆-cong-ListList p xss)
 
 sub-cons : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'} → Sub w w' → ScopedTm w' →
   Sub (S w) w'
 sub-cons σ t Z     = t
-sub-cons σ t (S x) = σ x  
+sub-cons σ t (S x) = σ x
 
 sub-cons⋆ : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'} → Sub w w' → Sub (T w) w'
 sub-cons⋆ σ (T x) = σ x

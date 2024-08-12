@@ -56,14 +56,14 @@ lem-backVar (S α) = trans
   (sym (lem-S (lem-backVar₁ α) (proj₂ (backVar (extricateVar⋆ α)))))
   (cong S (lem-backVar α))
 
-extricateRenNf⋆ : ∀{Γ Δ}(ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J) 
+extricateRenNf⋆ : ∀{Γ Δ}(ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
   → Ren⋆ (len⋆ Γ) (len⋆ Δ)
 extricateRenNf⋆ ρ⋆ x = extricateVar⋆ (ρ⋆ (proj₂ (backVar x)))
 
 lift⋆-ext : ∀{Γ Δ K}
   → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
   → (α : Fin (len⋆ (Γ ,⋆ K)))
-  → lift⋆ (extricateRenNf⋆ ρ⋆) α ≡ extricateRenNf⋆ (T.ext ρ⋆ {K = K}) α -- 
+  → lift⋆ (extricateRenNf⋆ ρ⋆) α ≡ extricateRenNf⋆ (T.ext ρ⋆ {K = K}) α --
 lift⋆-ext ρ⋆ zero = refl
 lift⋆-ext ρ⋆ (suc α) = refl
 
@@ -93,7 +93,7 @@ ren-extricateNe⋆ ρ⋆ (^ x) = refl
 
 ren-extricateNf⋆-List :  ∀{Γ Δ J}
   → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
-  → (xs : List (Γ ⊢Nf⋆ J)) 
+  → (xs : List (Γ ⊢Nf⋆ J))
   → ren⋆-List (extricateRenNf⋆ ρ⋆) (extricateNf⋆-List xs) ≡ extricateNf⋆-List (renNf-List ρ⋆ xs)
 ren-extricateNf⋆-List ρ⋆ [] = refl
 ren-extricateNf⋆-List ρ⋆ (x ∷ xs) = cong₂ Utils._∷_ (ren-extricateNf⋆ ρ⋆ x) (ren-extricateNf⋆-List ρ⋆ xs)
@@ -120,7 +120,7 @@ ren-extricateNf⋆ ρ⋆ (μ A B)  =
   cong₂ μ (ren-extricateNf⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
 ren-extricateNf⋆ ρ⋆ (SOP xss) = cong SOP (ren-extricateNf⋆-ListList ρ⋆ xss)
 
-extricateSubNf⋆ : ∀{Γ Δ}(σ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ⊢Nf⋆ J) 
+extricateSubNf⋆ : ∀{Γ Δ}(σ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ⊢Nf⋆ J)
   → Sub⋆ (len⋆ Γ) (len⋆ Δ)
 extricateSubNf⋆ σ⋆ α = extricateNf⋆ (σ⋆ (proj₂ (backVar α)))
 
@@ -131,7 +131,7 @@ suclem {Δ ,⋆ _} {K} (suc x) = cong suc (suclem {Δ}{K} x)
 slift⋆-exts : ∀{Γ Δ K}
   → (σ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ⊢Nf⋆ J)
   → (α : Fin (len⋆ (Γ ,⋆ K)))
-  → slift⋆ (extricateSubNf⋆ σ⋆) α ≡ extricateSubNf⋆ (extsNf σ⋆ {K = K}) α -- 
+  → slift⋆ (extricateSubNf⋆ σ⋆) α ≡ extricateSubNf⋆ (extsNf σ⋆ {K = K}) α --
 slift⋆-exts σ⋆ zero = refl
 slift⋆-exts {K = K} σ⋆ (suc α) = trans
   (ren⋆-cong (suclem {K = K}) (extricateNf⋆ (σ⋆ (proj₂ (backVar α)))))
