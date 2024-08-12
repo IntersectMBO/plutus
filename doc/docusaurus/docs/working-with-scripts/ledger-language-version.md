@@ -27,9 +27,7 @@ For instance, Plutus V1 (introduced in the Alonzo era) scripts cannot be used in
 
 ## Plutus V1 and Plutus V2
 
-<!--- TODO: link to the page explaining script purposes, once there is one --->
-
-Plutus V1 and Plutus V2 scripts have four [script purposes](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-V1-Contexts.html#t:ScriptPurpose): spending, minting, certifying, and rewarding.
+Plutus V1 and Plutus V2 scripts have four [script purposes](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-V1-Contexts.html#t:ScriptPurpose): spending, minting, certifying, and rewarding[^2].
 The arguments a Plutus V1 or V2 script receives depend on the script purpose.
 There is no requirement on the return value of a Plutus V1 and V2 script: script evaluation succeeds as long as the evaluation terminates without error, and the execution budget is not exceeded.
 
@@ -110,15 +108,14 @@ Plutus V3 has two additional [script purposes](https://plutus.cardano.intersectm
 
 Besides the usual differences between different Plutus ledger language versions, there are three additional key differences between Plutus V3 and V1/V2:
 
-<!--- TODO: link to Haddock --->
-1. All Plutus V3 scripts, regardless of script purpose, take a single argument: script context.
+1. All Plutus V3 scripts, regardless of script purpose, take a single argument: the script context.
    The datum (for spending scripts) and the redeemer are part of the Plutus V3 script context.
    This means the same script can be used for spending validation and for different purposes.
 2. The datum is now optional for spending scripts.
    The script context may or may not contain a datum, depending on whether the UTXO being spent has a datum associated with it.
 3. There is an additional condition for the evaluation of a Plutus V3 script to be considered successful: the return value must be a `BuiltinUnit`.
 
-Points 1 and 2 are attributed to CIP-69, and point 3 to CIP-0117.
+The first two points are attributed to [CIP-69](https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0069/), whereas the third point is attributed to [CIP-117](https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0117/).
 
 In other words, all Plutus V3 scripts should have the following type in Plutus Tx:
 
@@ -131,3 +128,5 @@ Updating a Plutus V1/V2 script to turn it into a Plutus V3 script mostly involve
 ---
 
 [^1]: There is one exception to this: Plutus V1 can be used in transactions with reference inputs, even though reference inputs were introduced in the Babbage era.
+
+[^2]: For more information on script purposes, refer to [Script Purposes](script-purposes.md).
