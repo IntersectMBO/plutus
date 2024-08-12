@@ -20,13 +20,13 @@ To spend a UTXO with a script address, the script whose hash matches the script 
 
 The script can make the decision based on the datum attached in the UTXO being spent, if any (datum is mandatory for Plutus V1 and V2, i.e., a UTXO with a Plutus V1 or V2 script address but without a datum cannot be spent; datum is optional for Plutus V3), the redeemer included in the transaction, as well as other fields of the transaction.
 
-The `Spending` constructor of `ScriptPurpose` contains a `TxOutRef` field, which is the UTXO the transaction is attempting to spend.
+The `Spending` constructor of `ScriptPurpose` includes a `TxOutRef` field that references the UTXO the script is validating, which is also one of the UTXOs the transaction attempts to spend.
 
 ## Minting
 
 Minting scripts, sometimes also referred to as minting policies, are used to approve or reject minting of new assets.
 
-An asset on Cardano contains a `CurrencySymbol` and a `TokenName`.
+In Cardano, we can uniquely identify an asset by its `CurrencySymbol` and `TokenName`.
 If a transaction attempts to mint some new assets, then for each unique `CurrencySymbol` in the new assets, the script whose hash matches the `CurrencySymbol` must be included in the transaction, and is executed to validate the minting of that `CurrencySymbol`.
 This is the reason why the `Minting` constructor of `ScriptPurpose` contains a `CurrencySymbol` field.
 
@@ -43,20 +43,20 @@ Staking rewards are deposited into a reward account[^1] corresponding to the sta
 A staking credential can contain either a public key hash or a script hash.
 To withdraw rewards from a reward account corresponding to a staking credential that contains a script hash, the script with that particular hash must be included in the transaction, and is executed to validate the withdrawal.
 
-For example, such a script may check that any withdrawal must not take more than 10 Ada at a time, and that any withdrawal must be deposited into one of the allowed addresses.
+The script might set conditions on reward distribution, such as ensuring that any withdrawal are deposited into one of the designated addresses.
 
 ## Certifying
 
-A certifying script validates one of the following actions a transaction attempts to make: (1) registering a staking credential, and in doing so, creating a reward account associated with the staking credential; (2) de-registering a staking credential, and in doing so, terminating the reward account; (3) delegating a staking credential to a particular delegatee.
+A certifying script can validate a number of certificate-related transactions, such as: (1) registering a staking credential, and in doing so, creating a reward account associated with the staking credential; (2) de-registering a staking credential, and in doing so, terminating the reward account; (3) delegating a staking credential to a particular delegatee.
 
-In all three cases, if the staking credential in question contains a script hash (as opposed to a public key hash), the script with that hash must be included in the transaction, and is executed to validate the action.
+In all these cases, if the staking credential in question contains a script hash (as opposed to a public key hash), the script with that hash must be included in the transaction, and is executed to validate the action.
 
 Such a script may, for instance, check that certain signatures be provided for registration, de-registration and delegation, or that the delegatee must be among the allowed delegatees.
 
 ## Voting
 
-A voting script validates votes cast by a DRep or a constitutional committee member in a transaction.
-A DRep or a constitution committee member can be associated with a script hash.
+A voting script validates votes cast by a Delegated Representative (DRep) or a constitutional committee member (CCM) in a transaction.
+A DRep or a CCM can be associated with a script hash.
 If a transaction contains one or more votes from a DRep or a constitution committee member associated with a script hash, the script with that hash must be included in the transaction, and is executed to approve or reject the vote.
 
 ## Proposing
