@@ -21,4 +21,4 @@ jobs:
         iteration-field: Sprint
         iteration: last
         new-iteration: current
-        excluded-statuses: won't do,done
+        excluded-statuses: ❌ - won't do,🚀 - done
