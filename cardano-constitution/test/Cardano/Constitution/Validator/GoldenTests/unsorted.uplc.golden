@@ -801,15 +801,7 @@ program
                                                                                                                           (constr 3
                                                                                                                              [ (constr 1
                                                                                                                                   [ cse
-                                                                                                                                  , (constr 1
-                                                                                                                                       [ (constr 0
-                                                                                                                                            [ (constr 0
-                                                                                                                                                 [  ])
-                                                                                                                                            , (constr 1
-                                                                                                                                                 [ cse
-                                                                                                                                                 , cse ]) ])
-                                                                                                                                       , (constr 0
-                                                                                                                                            [  ]) ]) ]) ]))
+                                                                                                                                  , cse ]) ]))
                                                                                                                        (constr 3
                                                                                                                           [ (constr 1
                                                                                                                                [ cse
@@ -828,7 +820,15 @@ program
                                                                                                                     (constr 3
                                                                                                                        [ (constr 1
                                                                                                                             [ cse
-                                                                                                                            , cse ]) ]))
+                                                                                                                            , (constr 1
+                                                                                                                                 [ (constr 0
+                                                                                                                                      [ (constr 0
+                                                                                                                                           [  ])
+                                                                                                                                      , (constr 1
+                                                                                                                                           [ cse
+                                                                                                                                           , cse ]) ])
+                                                                                                                                 , (constr 0
+                                                                                                                                      [  ]) ]) ]) ]))
                                                                                                                  (constr 1
                                                                                                                     [ (constr 3
                                                                                                                          [ (constr 1
@@ -849,8 +849,7 @@ program
                                                                                                                       , (constr 1
                                                                                                                            [ cse
                                                                                                                            , (constr 1
-                                                                                                                                [ (cse
-                                                                                                                                     10)
+                                                                                                                                [ cse
                                                                                                                                 , (constr 0
                                                                                                                                      [  ]) ]) ]) ])
                                                                                                                  , (constr 0
@@ -859,18 +858,18 @@ program
                                                                                                               [ (constr 1
                                                                                                                    [  ])
                                                                                                               , (constr 1
-                                                                                                                   [ (cse
-                                                                                                                        10)
-                                                                                                                   , cse ]) ]))
+                                                                                                                   [ cse
+                                                                                                                   , (constr 1
+                                                                                                                        [ cse
+                                                                                                                        , (constr 0
+                                                                                                                             [  ]) ]) ]) ]))
                                                                                                         (constr 0
                                                                                                            [ (constr 1
                                                                                                                 [  ])
                                                                                                            , (constr 1
-                                                                                                                [ cse
-                                                                                                                , (constr 1
-                                                                                                                     [ cse
-                                                                                                                     , (constr 0
-                                                                                                                          [  ]) ]) ]) ]))
+                                                                                                                [ (cse
+                                                                                                                     10)
+                                                                                                                , cse ]) ]))
                                                                                                      (constr 1
                                                                                                         [ (constr 0
                                                                                                              [ (constr 0
@@ -905,7 +904,8 @@ program
                                                                                                , (constr 0
                                                                                                     [  ]) ]))
                                                                                          (constr 1
-                                                                                            [ cse
+                                                                                            [ (cse
+                                                                                                 1)
                                                                                             , (constr 0
                                                                                                  [  ]) ]))
                                                                                       (constr 1
@@ -917,14 +917,14 @@ program
                                                                                       , (constr 0
                                                                                            [  ]) ]))
                                                                                 (cse
-                                                                                   1))
+                                                                                   100))
                                                                              (constr 0
                                                                                 [ (constr 1
                                                                                      [  ])
                                                                                 , cse ]))
                                                                           (cse
-                                                                             100))
-                                                                       (cse 2))
+                                                                             10))
+                                                                       (cse 5))
                                                                     (constr 0
                                                                        [ (constr 1
                                                                             [])
@@ -932,16 +932,16 @@ program
                                                                             [ 1
                                                                             , (constr 0
                                                                                  [  ]) ]) ]))
-                                                                 (cse 4))
-                                                              (cse 5))
+                                                                 (cse 2))
+                                                              (cse 4))
                                                            (cse 1))
-                                                        (unsafeRatio 9))
-                                                     (unsafeRatio 0))
-                                                  (unsafeRatio 3))
-                                               (unsafeRatio 4))
+                                                        (unsafeRatio 4))
+                                                     (unsafeRatio 3))
+                                                  (unsafeRatio 9))
+                                               (unsafeRatio 1))
                                             (constr 1 [0, (constr 0 [])]))
                                          (unsafeRatio 51))
-                                      (unsafeRatio 1))
+                                      (unsafeRatio 0))
                                    (fix1
                                       (\go l ->
                                          force (force chooseList)

@@ -143,6 +143,8 @@ data Builtin : Set where
   rotateByteString                : Builtin
   countSetBits                    : Builtin
   findFirstSetBit                 : Builtin
+  -- Ripemd-160
+  ripemd-160                      : Builtin
 ```
 
 ## Signatures
@@ -259,6 +261,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature blake2b-224                     = ∙ [ bytestring ↑ ]⟶ bytestring ↑
     signature blake2b-256                     = ∙ [ bytestring ↑ ]⟶ bytestring ↑
     signature keccak-256                      = ∙ [ bytestring ↑ ]⟶ bytestring ↑
+    signature ripemd-160                      = ∙ [ bytestring ↑ ]⟶ bytestring ↑
     signature verifyEd25519Signature          = ∙ [ bytestring ↑ , bytestring ↑ , bytestring ↑ ]⟶ bool ↑
     signature verifyEcdsaSecp256k1Signature   = ∙ [ bytestring ↑ , bytestring ↑ , bytestring ↑ ]⟶ bool ↑
     signature verifySchnorrSecp256k1Signature = ∙ [ bytestring ↑ , bytestring ↑ , bytestring ↑ ]⟶ bool ↑
@@ -423,6 +426,7 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | RotateByteString
                                           | CountSetBits
                                           | FindFirstSetBit
+                                          | Ripemd_160
                                           ) #-}
 ```
 
@@ -489,6 +493,7 @@ postulate
   rotateBYTESTRING          : ByteString -> Int -> ByteString
   countSetBITS              : ByteString -> Int
   findFirstSetBIT           : ByteString -> Int
+  RIPEMD-160                : ByteString → ByteString
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
@@ -610,6 +615,8 @@ postulate
 {-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteString #-}
 {-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits s #-}
 {-# COMPILE GHC findFirstSetBIT = \s -> fromIntegral $ Bitwise.findFirstSetBit s #-}
+
+{-# COMPILE GHC RIPEMD-160 = Hash.ripemd_160 #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr

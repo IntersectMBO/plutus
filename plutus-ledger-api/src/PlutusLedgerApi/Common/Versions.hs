@@ -123,7 +123,8 @@ builtinsIntroducedIn = Map.fromList [
   ((PlutusV3, futurePV), Set.fromList [
           AndByteString, OrByteString, XorByteString, ComplementByteString,
           ReadBit, WriteBits, ReplicateByte,
-          ShiftByteString, RotateByteString, CountSetBits, FindFirstSetBit
+          ShiftByteString, RotateByteString, CountSetBits, FindFirstSetBit,
+          Ripemd_160
           ])
   ]
 

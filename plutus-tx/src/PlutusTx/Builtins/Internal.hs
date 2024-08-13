@@ -254,6 +254,10 @@ blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b_256 b
 keccak_256 :: BuiltinByteString -> BuiltinByteString
 keccak_256 (BuiltinByteString b) = BuiltinByteString $ Hash.keccak_256 b
 
+{-# NOINLINE ripemd_160 #-}
+ripemd_160 :: BuiltinByteString -> BuiltinByteString
+ripemd_160 (BuiltinByteString b) = BuiltinByteString $ Hash.ripemd_160 b
+
 {-# NOINLINE verifyEd25519Signature #-}
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =

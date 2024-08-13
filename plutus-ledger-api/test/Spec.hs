@@ -114,26 +114,35 @@ saltedFunction =
 
 
 tests :: TestTree
-tests = testGroup "plutus-ledger-api"[
-    testGroup "basic evaluation tests" [
-          alwaysTrue
-        , alwaysFalse
-        , saltedFunction
-        , unavailableBuiltins
-        , availableBuiltins
-        , integerToByteStringExceedsBudget
+tests = testGroup "plutus-ledger-api"
+  [ testGroup "basic evaluation tests"
+    [
+      alwaysTrue
+    , alwaysFalse
+    , saltedFunction
+    , unavailableBuiltins
+    , availableBuiltins
+    , integerToByteStringExceedsBudget
     ]
-    , Spec.Interval.tests
-    , Spec.Eval.tests
-    , Spec.Data.Eval.tests
-    , Spec.Versions.tests
-    , Spec.Data.Versions.tests
-    , Spec.CostModelParams.tests
-    , Spec.Data.CostModelParams.tests
-    , Spec.CBOR.DeserialiseFailureInfo.tests
-    , Spec.ScriptDecodeError.tests
-    , Spec.ContextDecoding.tests
-    , Spec.Data.ContextDecoding.tests
-    , Value.test_Value
-    , Data.Value.test_Value
+    , testGroup "Common"
+      [ Spec.Interval.tests
+      , Spec.CBOR.DeserialiseFailureInfo.tests
+      , Spec.ScriptDecodeError.tests
+      ]
+    , testGroup "Context-dependent tests"
+      [ testGroup "Original"
+        [ Spec.Eval.tests
+        , Spec.Versions.tests
+        , Spec.CostModelParams.tests
+        , Spec.ContextDecoding.tests
+        , Value.test_Value
+        ]
+      , testGroup "Data"
+        [ Spec.Data.Eval.tests
+        , Spec.Data.Versions.tests
+        , Spec.Data.CostModelParams.tests
+        , Spec.Data.ContextDecoding.tests
+        , Data.Value.test_Value
+        ]
+      ]
     ]
