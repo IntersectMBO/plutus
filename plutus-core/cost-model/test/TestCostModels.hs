@@ -418,9 +418,10 @@ main =
               , $(genTest 2 "bls12_381_mulMlResult")    Everywhere
               , $(genTest 2 "bls12_381_finalVerify")    Everywhere
 
-              -- Keccak_256, Blake2b_224
+              -- Keccak_256, Blake2b_224, Ripemd_160
               , $(genTest 1 "keccak_256")
               , $(genTest 1 "blake2b_224")
+              , $(genTest 1 "ripemd_160")
 
               -- Bitwise operations
               , $(genTest 3 "integerToByteString")

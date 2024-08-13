@@ -130,6 +130,7 @@ arity <- function(name) {
         "Bls12_381_finalVerify" = 2,
         "Keccak_256" = 1,
         "Blake2b_224" = 1,
+        "Ripemd_160" = 1,
         "IntegerToByteString" = 3,
         "ByteStringToInteger" = 2,
         "AndByteString" = 3,
@@ -569,6 +570,7 @@ modelFun <- function(path) {
     blake2b_224Model <- linearInX ("Blake2b_224")
     blake2b_256Model <- linearInX ("Blake2b_256")
     keccak_256Model  <- linearInX ("Keccak_256")
+    ripemd_160Model  <- linearInX ("Ripemd_160")
 
     ###### Signature verification #####
 
@@ -802,6 +804,7 @@ modelFun <- function(path) {
         blake2b_224Model                     = blake2b_224Model,
         blake2b_256Model                     = blake2b_256Model,
         keccak_256Model                      = keccak_256Model,
+        ripemd_160Model                      = ripemd_160Model,
         verifyEd25519SignatureModel          = verifyEd25519SignatureModel,
         verifyEcdsaSecp256k1SignatureModel   = verifyEcdsaSecp256k1SignatureModel,
         verifySchnorrSecp256k1SignatureModel = verifySchnorrSecp256k1SignatureModel,

@@ -82,6 +82,7 @@ clearBuiltinCostModel r = r
                , paramRotateByteString = mempty
                , paramCountSetBits = mempty
                , paramFindFirstSetBit = mempty
+               , paramRipemd_160 = mempty
                }
 
 
@@ -102,4 +103,5 @@ clearBuiltinCostModel' r = r
                , paramRotateByteString = mempty
                , paramCountSetBits = mempty
                , paramFindFirstSetBit = mempty
+               , paramRipemd_160 = mempty
                }
