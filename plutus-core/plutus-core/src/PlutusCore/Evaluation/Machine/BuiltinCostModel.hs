@@ -180,6 +180,8 @@ data BuiltinCostModelBase f =
     , paramRotateByteString                :: f ModelTwoArguments
     , paramCountSetBits                    :: f ModelOneArgument
     , paramFindFirstSetBit                 :: f ModelOneArgument
+    -- Ripemd_160
+    , paramRipemd_160                      :: f ModelOneArgument
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)

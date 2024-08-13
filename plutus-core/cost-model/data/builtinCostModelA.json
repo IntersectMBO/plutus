@@ -1100,5 +1100,18 @@
             "arguments": 1,
             "type": "constant_cost"
         }
+    },
+    "ripemd_160": {
+        "cpu": {
+            "arguments": {
+                "intercept": 1964219,
+                "slope": 24520
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": 3,
+            "type": "constant_cost"
+        }
     }
 }

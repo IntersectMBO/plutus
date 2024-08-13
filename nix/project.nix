@@ -1,4 +1,4 @@
-# editorconfig-checker-disable-file 
+# editorconfig-checker-disable-file
 
 { repoRoot, inputs, pkgs, system, lib }:
 
@@ -8,7 +8,7 @@ let
     {
       name = "plutus";
 
-      # We need the mkDefault here since compiler-nix-name will be overridden 
+      # We need the mkDefault here since compiler-nix-name will be overridden
       # in the flake variants.
       compiler-nix-name = lib.mkDefault "ghc96";
 
@@ -59,7 +59,7 @@ let
 
       modules = [
 
-        # Cross Compiling 
+        # Cross Compiling
         (lib.mkIf isCrossCompiling {
           packages = {
             # Things that need plutus-tx-plugin
@@ -79,7 +79,7 @@ let
           reinstallableLibGhc = false;
         })
 
-        # Common 
+        # Common
         {
           packages = {
             # In this case we can just propagate the native dependencies for the build of

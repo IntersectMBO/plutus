@@ -84,7 +84,6 @@ allow-newer:
   , inline-r:containers
   , inline-r:primitive
 
-
 -- -------------------------------------------------------------------------------------------------
 -- Following currently required for building with ghc-9.10.
 
@@ -92,4 +91,3 @@ constraints:
   -- The API has changed for version 2.2, ledger depends on the old version and ledger will not
   -- be updated until after the Conway release.
   , cardano-crypto-class ^>= 2.1
-

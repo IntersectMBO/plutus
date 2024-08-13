@@ -123,6 +123,8 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramRotateByteString                = "rotateByteStringModel"
   , paramCountSetBits                    = "countSetBitsModel"
   , paramFindFirstSetBit                 = "findFirstSetBitModel"
+  , paramRipemd_160                      = "ripemd_160Model"
+
   }
 
 
@@ -260,6 +262,8 @@ createBuiltinCostModel bmfile rfile = do
   paramRotateByteString                <- getParams readCF2 paramRotateByteString
   paramCountSetBits                    <- getParams readCF1 paramCountSetBits
   paramFindFirstSetBit                 <- getParams readCF1 paramFindFirstSetBit
+  -- And another hash function
+  paramRipemd_160                      <- getParams readCF1 paramRipemd_160
 
   pure $ BuiltinCostModelBase {..}
 

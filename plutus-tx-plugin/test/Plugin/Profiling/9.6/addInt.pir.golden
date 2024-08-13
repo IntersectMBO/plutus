@@ -13,9 +13,9 @@ program
             in
             trace
               {unit -> integer}
-              "entering addInteger-129"
+              "entering addInteger-130"
               (\(thunk : unit) ->
-                 trace {integer} "exiting addInteger-129" (addInteger x y))
+                 trace {integer} "exiting addInteger-130" (addInteger x y))
               ()
     ~addInt : integer -> integer -> integer
       = \(x : integer) ->
@@ -24,9 +24,9 @@ program
           in
           trace
             {unit -> integer -> integer}
-            "entering addInt-126"
+            "entering addInt-127"
             (\(thunk : unit) ->
-               trace {integer -> integer} "exiting addInt-126" (addInteger x))
+               trace {integer -> integer} "exiting addInt-127" (addInteger x))
             ()
   in
   addInt)
