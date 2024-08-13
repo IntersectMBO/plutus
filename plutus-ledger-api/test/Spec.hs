@@ -140,7 +140,7 @@ tests = testGroup "plutus-ledger-api"
       , testGroup "Data"
         [ Spec.Data.Eval.tests
         , Spec.Data.Versions.tests
-        , Spec.Data.CostModelParams.tests  -- context length test is broken here
+        , Spec.Data.CostModelParams.tests
         , Spec.Data.ContextDecoding.tests
         , Data.Value.test_Value
         ]
