@@ -13,12 +13,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: blombard/move-to-next-iteration@master
-        with:
-          owner: IntersectMBO
-          number: 18
-          token: ${{ secrets.PROJECT_PAT }}
-          iteration-field: Sprint
-          iteration: last
-          new-iteration: current
-          excluded-statuses: '❌ - won't do,🚀 - done'
+    - uses: blombard/move-to-next-iteration@master
+      with:
+        owner: IntersectMBO
+        number: 18
+        token: ${{ secrets.PROJECT_PAT }}
+        iteration-field: Sprint
+        iteration: last
+        new-iteration: current
+        excluded-statuses: '❌ - won't do,🚀 - done'
