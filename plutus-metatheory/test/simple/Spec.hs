@@ -1,6 +1,10 @@
 {-# LANGUAGE LambdaCase     #-}
 {-# LANGUAGE PackageImports #-}
 
+{- | The tests in this file run the various Adga PLC and UPLC evaluators on the
+    examples provided by `plc example` and `uplc example` and checks that the
+    tests succeed or fail as expected. -}
+
 module Main where
 
 import Control.Exception
@@ -72,28 +76,28 @@ runFailingTests command (test:tests) = catch
 
 main = do
   -- Run evaluation tests for each mode
-  putStrLn "running succ TCK"
+  putStrLn "running succeeding tests using TCK"
   runSucceedingTests (Evaluate "TCK") succeedingEvalTests
-  putStrLn "running fail TCK"
+  putStrLn "running failing tests using TCK"
   runFailingTests (Evaluate "TCK") failingEvalTests
 
-  putStrLn "running succ TCEK"
+  putStrLn "running succeeding tests using TCEK"
   runSucceedingTests (Evaluate "TCEK") succeedingEvalTests
-  putStrLn "running fail TCEK"
+  putStrLn "running failing tests using TCEK"
   runFailingTests (Evaluate "TCEK") failingEvalTests
 
-  putStrLn "running succ U..."
+  putStrLn "running succeeding tests using U..."
   runSucceedingTests (Evaluate "U") succeedingEvalTests
-  putStrLn "running fail U..."
+  putStrLn "running failing tests using U..."
   runFailingTests (Evaluate "U") failingEvalTests
 
-  putStrLn "running succ TL"
+  putStrLn "running succeeding tests using TL"
   runSucceedingTests (Evaluate "TL") succeedingEvalTests
-  putStrLn "running fail TL"
+  putStrLn "running failing tests using TL"
   runFailingTests (Evaluate "TL") failingEvalTests
 
   -- Typechecking tests
   -- NOTE: Evaluation tests beginning with T already run the typechecker.
   --       The following is more of a test that the typechecking command works.
-  putStrLn "Typechecking succ"
+  putStrLn "Typechecking succeeding tests"
   runSucceedingTests Typecheck succeedingEvalTests

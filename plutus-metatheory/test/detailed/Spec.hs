@@ -1,6 +1,11 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase #-}
-module TestDetailed where
+
+{- | The tests in this file run the various Adga PLC evaluators on the examples
+    provided by `plc example` and `uplc example` and checks that the output is
+    the same as that produced by the Haskell `plc` and `uplc` evaluators. -}
+
+module Spec where
 import Control.Exception
 import Data.Text qualified as T
 import GHC.IO.Handle
