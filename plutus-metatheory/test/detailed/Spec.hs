@@ -45,6 +45,7 @@ catchOutput act = do
   removeFile tmpFP
   return str
 
+{- | Run plc-agda with some arguments.  This is for use inside HUnit Assertions -}
 runPlcAgda :: [String] -> IO String
 runPlcAgda args =
   catchOutput $ catch
@@ -53,6 +54,8 @@ runPlcAgda args =
         ExitFailure _ -> assertFailure "plc-agda failed"
         ExitSuccess   -> return ())
 
+{- | Run an external executable with some arguments.  This is for use inside HUnit
+   Assertions -}
 runProg :: String -> [String] -> String -> IO String
 runProg prog args stdin = do
   (exitCode, output, err) <- readProcessWithExitCode prog args stdin
@@ -60,7 +63,6 @@ runProg prog args stdin = do
     ExitFailure _ -> assertFailure $ prog ++ " failed: " ++ err
     ExitSuccess   -> pure ()
   pure output
-
 
 {- These tests were previously broken because they produced textual output from
 different progams and then compared them using Agda functions like
@@ -127,7 +129,9 @@ de-Bruijn-like substrings, which seems even more unlikely.
 canonicalise :: String -> String
 canonicalise = anonDeBruijn . squashRev
 
--- Compare the output of plc vs plc-agda in its default (typed) mode
+-- Compare the output of plc vs plc-agda in its default (typed) mode.  The
+-- equality comparison in this and similar functions takes terms in the form of
+-- Text objects because that's how Agda represents strings. -}
 compareResultPlc :: (T.Text -> T.Text -> Bool) -> String -> String -> Assertion
 compareResultPlc eq mode testname = withTempFile $ \tmp -> do
   example <- runProg "plc" ["example", "-s", testname] []
