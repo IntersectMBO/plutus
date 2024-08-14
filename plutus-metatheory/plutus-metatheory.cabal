@@ -575,6 +575,7 @@ test-suite test-detailed
     , Cabal
     , directory
     , extra
+    , plutus-core        ^>=1.32
     , plutus-metatheory
     , process
     , text
