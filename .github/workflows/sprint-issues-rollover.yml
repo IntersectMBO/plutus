@@ -6,7 +6,7 @@ name: "🛼 Sprint Issues Rollover"
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 5 * * 1' # 5am on Monday
+    - cron: '0 5 * * 3' # 5am on Wednesday
 
 jobs:
   Run:
