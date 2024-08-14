@@ -90,6 +90,7 @@ import Hedgehog.Internal.Property
 import Hedgehog.Internal.Region
 import Hedgehog.Internal.Report
 import Hedgehog.Internal.Runner
+import PlutusCore.Compiler.Types (UPLCSimplifierTrace (..))
 import Prettyprinter qualified as PP
 import System.IO.Unsafe
 import Test.Tasty hiding (after)
@@ -194,6 +195,7 @@ instance
     pure
       . TPLC.runQuote
       . flip runReaderT TPLC.defaultCompilationOpts
+      . flip evalStateT (UPLCSimplifierTrace [])
       . TPLC.compileProgram
 
 instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where

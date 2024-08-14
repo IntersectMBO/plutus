@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs            #-}
+{-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeApplications #-}
 
 module UntypedPlutusCore.Simplify (
@@ -22,12 +23,16 @@ import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
 
 import Control.Monad
+import Control.Monad.State.Class (MonadState)
+import Control.Monad.State.Class qualified as State
 import Data.List as List (foldl')
 import Data.Typeable
 
 simplifyProgram ::
     forall name uni fun m a.
-    (Compiling m uni fun name a) =>
+    (Compiling m uni fun name a
+    , MonadState (UPLCSimplifierTrace name uni fun a) m
+    ) =>
     SimplifyOpts name a ->
     BuiltinSemanticsVariant fun ->
     Program name uni fun a ->
@@ -37,7 +42,9 @@ simplifyProgram opts builtinSemanticsVariant (Program a v t) =
 
 simplifyTerm ::
     forall name uni fun m a.
-    (Compiling m uni fun name a) =>
+    ( Compiling m uni fun name a
+    , MonadState (UPLCSimplifierTrace name uni fun a) m
+    ) =>
     SimplifyOpts name a ->
     BuiltinSemanticsVariant fun ->
     Term name uni fun a ->
@@ -57,11 +64,17 @@ simplifyTerm opts builtinSemanticsVariant =
     -- generate simplification step
     simplifyStep :: Int -> Term name uni fun a -> m (Term name uni fun a)
     simplifyStep _ =
-      floatDelay
+      traceAST
+        >=> floatDelay
+        >=> traceAST
         >=> pure . forceDelay
+        >=> traceAST
         >=> pure . caseOfCase'
+        >=> traceAST
         >=> pure . caseReduce
+        >=> traceAST
         >=> inline (_soInlineConstants opts) (_soInlineHints opts) builtinSemanticsVariant
+        >=> traceAST
 
     caseOfCase' :: Term name uni fun a -> Term name uni fun a
     caseOfCase' = case eqT @fun @DefaultFun of
@@ -73,5 +86,12 @@ simplifyTerm opts builtinSemanticsVariant =
       case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
         (Just Refl, Just Refl) -> cse builtinSemanticsVariant
         _                      -> pure
+
+    traceAST ast =
+      case eqT @fun @DefaultFun of
+        Just Refl -> do
+          State.modify' (\st -> st { uplcSimplifierTrace = uplcSimplifierTrace st ++ [ast] })
+          return ast
+        Nothing -> return ast
 
     cseTimes = if _soConservativeOpts opts then 0 else _soMaxCseIterations opts

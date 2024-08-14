@@ -13,6 +13,7 @@ module Untyped where
 open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;DATA;List;[];_∷_)
 open Monad {{...}}
 import Data.List as L
+open import Function.Base using (id; _∘_ ; _∘′_; const; flip)
 
 open import Scoped using (ScopeError;deBError)
 open import Builtin using (Builtin;equals;decBuiltin)
@@ -193,4 +194,14 @@ decUTm (UBuiltin b) (UBuiltin b') = does (decBuiltin b b')
 decUTm (UDelay t) (UDelay t') = decUTm t t'
 decUTm (UForce t) (UForce t') = decUTm t t'
 decUTm _ _ = false
+```
+
+## Haskell UPLC to Agda UPLC
+```
+buildDebruijnEncoding : {X : Set} → ℕ → Either ScopeError (Maybe X)
+buildDebruijnEncoding x = extG' (λ _ → inj₁ deBError) x
+
+toWellScoped : {X : Set} → Untyped → Either ScopeError (Maybe X ⊢)
+toWellScoped = scopeCheckU buildDebruijnEncoding 
+
 ```

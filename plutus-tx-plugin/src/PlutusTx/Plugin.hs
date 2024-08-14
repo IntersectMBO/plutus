@@ -18,6 +18,8 @@
 {-# OPTIONS_GHC -O0 #-}
 module PlutusTx.Plugin (plugin, plc) where
 
+import Debug.Trace qualified as Debug
+
 import Data.Bifunctor
 import PlutusPrelude
 import PlutusTx.Bool ((&&), (||))
@@ -65,6 +67,9 @@ import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusTx.Options
 
+import MAlonzo.Code.VerifiedCompilation qualified as Agda
+import Untyped qualified as AgdaFFI
+
 import Language.Haskell.TH.Syntax as TH hiding (lift)
 
 import Control.Exception (throwIO)
@@ -82,8 +87,11 @@ import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
+import Data.Text qualified as Text
 import Data.Type.Bool qualified as PlutusTx.Bool
 import GHC.Num.Integer qualified
+import PlutusCore.Compiler.Types (UPLCSimplifierTrace (UPLCSimplifierTrace),
+                                  initUPLCSimplifierTrace)
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
@@ -566,8 +574,21 @@ runCompiler moduleName opts expr = do
     when (opts ^. posDoTypecheck) . void $
         liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-    uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
+    (uplcP, UPLCSimplifierTrace uplcSimplTrace) <-
+        flip runStateT initUPLCSimplifierTrace
+        $ flip runReaderT plcOpts $ PLC.compileProgram plcP
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
+    -- TODO: just use liftExept like above
+    let processAgdaAST t =
+            case UPLC.deBruijnTerm t of
+              Right res                            -> res
+              Left (err :: UPLC.FreeVariableError) -> error $ show err
+        rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
+        test = Agda.runCertifier (Text.pack moduleName) rawAgdaTrace
+    -- test out running the certifier
+    -- liftIO $ putStrLn $ "Starting certifier for " <> moduleName
+    -- liftIO test
+    -- liftIO $ putStrLn $ "Certifier finished for " <> moduleName
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat
             (UPLC.UnrestrictedProgram $ void dbP)
