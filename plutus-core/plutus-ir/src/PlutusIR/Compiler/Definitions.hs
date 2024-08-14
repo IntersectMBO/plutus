@@ -56,7 +56,7 @@ import Algebra.Graph.NonEmpty.AdjacencyMap qualified as NAM
 import Algebra.Graph.ToGraph qualified as Graph
 
 import Data.Bifunctor (first, second)
-import Data.Foldable
+import Data.Foldable qualified as Foldable
 import Data.Map qualified as Map
 import Data.Maybe
 import Data.Set qualified as Set
@@ -170,7 +170,7 @@ wrapWithDefs x tds body =
         let bs = catMaybes $ toValue <$> Graph.vertexList scc
          in mkLet x (if Graph.isAcyclic scc then NonRec else Rec) bs acc
    in -- process from the inside out
-      foldl' wrapDefScc body (defSccs tds)
+      Foldable.foldl' wrapDefScc body (defSccs tds)
 
 class (Monad m, Ord key) => MonadDefs key uni fun ann m | m -> key uni fun ann where
   liftDef :: DefT key uni fun ann Identity a -> m a

@@ -29,7 +29,7 @@ debug =
         , goldenPirBy config "fib" fib
         ]
   where
-    config = PrettyConfigClassic defPrettyConfigName True
+    config = PrettyConfigClassic prettyConfigNameSimple True
 
 letFun :: CompiledCode (Integer -> Integer -> Bool)
 letFun =

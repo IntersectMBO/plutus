@@ -40,7 +40,7 @@ benchLengthOfByteString =
 -- short-circuit.
 benchSameTwoByteStrings :: DefaultFun -> Benchmark
 benchSameTwoByteStrings name =
-    createTwoTermBuiltinBenchElementwise name [] inputs (fmap BS.copy inputs)
+    createTwoTermBuiltinBenchElementwise name [] $ pairWith BS.copy inputs
     where inputs = smallerByteStrings150 seedA
 
 -- Here we benchmark different pairs of bytestrings elementwise.  This is used
@@ -48,7 +48,7 @@ benchSameTwoByteStrings name =
 -- constant since the equality test returns quickly in that case.
 benchDifferentByteStringsElementwise :: DefaultFun -> Benchmark
 benchDifferentByteStringsElementwise name =
-    createTwoTermBuiltinBenchElementwise name [] inputs1 inputs2
+    createTwoTermBuiltinBenchElementwise name [] $ zip inputs1 inputs2
     where inputs1 = smallerByteStrings150 seedA
           inputs2 = smallerByteStrings150 seedB
 
@@ -56,7 +56,7 @@ benchDifferentByteStringsElementwise name =
 benchIndexByteString :: StdGen -> Benchmark
 benchIndexByteString gen =
     createTwoTermBuiltinBenchElementwise
-        IndexByteString [] bytestrings (randomIndices gen bytestrings)
+        IndexByteString [] $ zip bytestrings (randomIndices gen bytestrings)
     where bytestrings = smallerByteStrings150 seedA
           randomIndices gen1 l =
               case l of

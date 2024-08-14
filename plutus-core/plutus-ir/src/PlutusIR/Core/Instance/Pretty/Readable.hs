@@ -3,15 +3,17 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Eta reduce" #-} -- breaks type inference
+
 module PlutusIR.Core.Instance.Pretty.Readable
     ( prettyPirReadable
+    , prettyPirReadableSimple
     , PrettyPir
     ) where
 
@@ -27,10 +29,11 @@ type PrettyPir = PrettyBy (PrettyConfigReadable PrettyConfigName)
 
 -- | Pretty-print something with the @PrettyConfigReadable@ config.
 prettyPirReadable :: PrettyPir a => a -> Doc ann
-prettyPirReadable = prettyBy prettyConfigReadable
-  -- Using 'debugPrettyConfigName', because it's actually helpful unlike 'defPrettyConfigName'.
-  where
-    prettyConfigReadable = botPrettyConfigReadable debugPrettyConfigName def
+prettyPirReadable = prettyBy (botPrettyConfigReadable prettyConfigName def)
+
+-- | Pretty-print something with the @PrettyConfigReadableSimple@ config.
+prettyPirReadableSimple :: PrettyPir a => a -> Doc ann
+prettyPirReadableSimple = prettyBy (botPrettyConfigReadable prettyConfigNameSimple def)
 
 -- | Split an iterated 'LamAbs' (if any) into a list of variables that it binds and its body.
 viewLamAbs

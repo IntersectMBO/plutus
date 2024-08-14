@@ -6,7 +6,7 @@ on:
   schedule:
     - cron: 0 0 * * * # Daily at midnight
 
-  workflow_dispatch: # Or manually dispatch the job
+  workflow_dispatch: 
     inputs:
       hedgehog-tests:
         description: Numer of tests to run (--hedgehog-tests XXXXX)
@@ -19,7 +19,7 @@ env:
 jobs:
   run:
     name: Run
-    runs-on: [self-hosted, plutus-benchmark]
+    runs-on: [self-hosted, plutus-shared]
     steps:
       - name: Checkout
         uses: actions/checkout@main

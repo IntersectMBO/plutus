@@ -26,8 +26,8 @@ import GHC.TypeLits qualified as GHC
 import PlutusTx.Blueprint.Class (HasSchema)
 import PlutusTx.Blueprint.Definition.Id as DefinitionId (AsDefinitionId (..))
 import PlutusTx.Blueprint.Definition.Internal (Definitions (..), addDefinition, definition)
-import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinData, BuiltinList, BuiltinString,
-                                   BuiltinUnit)
+import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinData, BuiltinList, BuiltinPair,
+                                   BuiltinString, BuiltinUnit)
 
 ----------------------------------------------------------------------------------------------------
 -- Functionality to "unroll" types. -- For more context see Note ["Unrolling" types] -----------
@@ -89,8 +89,12 @@ type family Unroll (p :: Type) :: [Type] where
   Unroll BuiltinData = '[BuiltinData]
   Unroll BuiltinUnit = '[BuiltinUnit]
   Unroll BuiltinString = '[BuiltinString]
-  Unroll (BuiltinList a) = Prepend (BuiltinList a) (GUnroll (Rep a))
+  Unroll (BuiltinList a) = Unroll a
+  Unroll (BuiltinPair a b) = Unroll a ++ Unroll b
   Unroll BuiltinByteString = '[BuiltinByteString]
+  Unroll [a] = Unroll a
+  Unroll (a, b) = Unroll a ++ Unroll b
+  Unroll (Maybe a) = Unroll a
   Unroll p = Prepend p (GUnroll (Break (NoGeneric p) (Rep p)))
 
 -- | Detect stuck type family: https://blog.csongor.co.uk/report-stuck-families/#custom-type-errors

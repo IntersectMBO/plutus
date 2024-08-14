@@ -130,8 +130,20 @@ arity <- function(name) {
         "Bls12_381_finalVerify" = 2,
         "Keccak_256" = 1,
         "Blake2b_224" = 1,
+        "Ripemd_160" = 1,
         "IntegerToByteString" = 3,
-        "ByteStringToInteger" = 2
+        "ByteStringToInteger" = 2,
+        "AndByteString" = 3,
+        "OrByteString" = 3,
+        "XorByteString" = 3,
+        "ComplementByteString" = 1,
+        "ReadBit" = 2,
+        "WriteBits" = 2,
+        "ReplicateByte" = 2,
+        "ShiftByteString" = 2,
+        "RotateByteString" = 2,
+        "CountSetBits" = 1,
+        "FindFirstSetBit" = 1
         )
 }
 
@@ -558,6 +570,7 @@ modelFun <- function(path) {
     blake2b_224Model <- linearInX ("Blake2b_224")
     blake2b_256Model <- linearInX ("Blake2b_256")
     keccak_256Model  <- linearInX ("Keccak_256")
+    ripemd_160Model  <- linearInX ("Ripemd_160")
 
     ###### Signature verification #####
 
@@ -742,7 +755,33 @@ modelFun <- function(path) {
         mk.result(m, "quadratic_in_y")
     }
 
-    ##### Models to be returned to Haskell #####
+    andByteStringModel <- {
+        fname <- "AndByteString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ y_mem + z_mem, filtered)
+        mk.result(m, "linear_in_y_and_z")
+    }
+    orByteStringModel         <- andByteStringModel
+    xorByteStringModel        <- andByteStringModel
+
+    complementByteStringModel <- linearInX ("ComplementByteString")
+    readBitModel              <- constantModel ("ReadBit")
+    writeBitsModel            <- linearInY ("WriteBits")
+    ## ^ The Y value here is the length of the list of positions because we use ListCostedByLength
+    ## in the relevant costing benchmark.  The time actually depends on the minimum of the lengths
+    ## of the second and third arguments of `writeBits`, but that will be at most Y, so using
+    ## linearInY is conservatively safe.  If `writeBits` is used correctly then the lengths of the
+    ## second and third arguments will always be the same anyway.
+    replicateByteModel        <- linearInX ("ReplicateByte")
+    shiftByteStringModel      <- linearInX ("ShiftByteString")
+    rotateByteStringModel     <- linearInX ("RotateByteString")
+    countSetBitsModel         <- linearInX ("CountSetBits")
+    findFirstSetBitModel      <- linearInX ("FindFirstSetBit")
+
+
+##### Models to be returned to Haskell #####
 
     models.for.adjustment <-
         list (
@@ -765,6 +804,7 @@ modelFun <- function(path) {
         blake2b_224Model                     = blake2b_224Model,
         blake2b_256Model                     = blake2b_256Model,
         keccak_256Model                      = keccak_256Model,
+        ripemd_160Model                      = ripemd_160Model,
         verifyEd25519SignatureModel          = verifyEd25519SignatureModel,
         verifyEcdsaSecp256k1SignatureModel   = verifyEcdsaSecp256k1SignatureModel,
         verifySchnorrSecp256k1SignatureModel = verifySchnorrSecp256k1SignatureModel,
@@ -816,7 +856,18 @@ modelFun <- function(path) {
         bls12_381_mulMlResultModel           = bls12_381_mulMlResultModel,
         bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel,
         integerToByteStringModel             = integerToByteStringModel,
-        byteStringToIntegerModel             = byteStringToIntegerModel
+        byteStringToIntegerModel             = byteStringToIntegerModel,
+        andByteStringModel                   = andByteStringModel,
+        orByteStringModel                    = orByteStringModel,
+        xorByteStringModel                   = xorByteStringModel,
+        complementByteStringModel            = complementByteStringModel,
+        readBitModel                         = readBitModel,
+        writeBitsModel                       = writeBitsModel,
+        replicateByteModel                   = replicateByteModel,
+        shiftByteStringModel                 = shiftByteStringModel,
+        rotateByteStringModel                = rotateByteStringModel,
+        countSetBitsModel                    = countSetBitsModel,
+        findFirstSetBitModel                 = findFirstSetBitModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative

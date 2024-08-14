@@ -273,9 +273,13 @@
                                             (\(x : integer)
                                               (xs : List integer) ->
                                                /\dead ->
-                                                 ifThenElse
+                                                 Bool_match
+                                                   (ifThenElse
+                                                      {Bool}
+                                                      (equalsInteger a x)
+                                                      True
+                                                      False)
                                                    {all dead. Bool}
-                                                   (equalsInteger a x)
                                                    (/\dead -> False)
                                                    (/\dead -> go xs)
                                                    {all dead. dead})
@@ -324,20 +328,24 @@
             (\(ipv : integer)
               (ipv : integer)
               (ipv : Assign -> Assign -> Bool) ->
-               ifThenElse
+               Bool_match
+                 (ifThenElse
+                    {Bool}
+                    (equalsInteger
+                       (List_match
+                          {Assign}
+                          s
+                          {integer}
+                          0
+                          (\(ds : Assign) (ds : List Assign) ->
+                             Assign_match
+                               ds
+                               {integer}
+                               (\(var : integer) (val : integer) -> var)))
+                       ipv)
+                    True
+                    False)
                  {all dead. ConflictSet}
-                 (equalsInteger
-                    (List_match
-                       {Assign}
-                       s
-                       {integer}
-                       0
-                       (\(ds : Assign) (ds : List Assign) ->
-                          Assign_match
-                            ds
-                            {integer}
-                            (\(var : integer) (val : integer) -> var)))
-                    ipv)
                  (/\dead -> Known (Nil {integer}))
                  (/\dead -> Unknown)
                  {all dead. dead})
@@ -407,15 +415,15 @@
                  {List Assign}
                  {ConflictSet}
                  s
-                 (CSP_match
-                    csp
-                    {all dead. ConflictSet}
-                    (\(ds : integer)
-                      (ds : integer)
-                      (ds : Assign -> Assign -> Bool) ->
-                       Maybe_match
-                         {Tuple2 integer integer}
-                         (List_match
+                 (Maybe_match
+                    {Tuple2 integer integer}
+                    (CSP_match
+                       csp
+                       {Maybe (Tuple2 integer integer)}
+                       (\(ds : integer)
+                         (ds : integer)
+                         (ds : Assign -> Assign -> Bool) ->
+                          List_match
                             {Assign}
                             s
                             {all dead. Maybe (Tuple2 integer integer)}
@@ -456,26 +464,26 @@
                                                   (val : integer) ->
                                                    var))))
                                    {all dead. dead})
-                            {all dead. dead})
-                         {all dead. ConflictSet}
-                         (\(ds : Tuple2 integer integer) ->
-                            /\dead ->
-                              Tuple2_match
-                                {integer}
-                                {integer}
-                                ds
-                                {ConflictSet}
-                                (\(a : integer) (b : integer) ->
-                                   Known
-                                     ((let
-                                          a = List integer
-                                        in
-                                        \(c : integer -> a -> a) (n : a) ->
-                                          c a (c b n))
-                                        (\(ds : integer) (ds : List integer) ->
-                                           Cons {integer} ds ds)
-                                        (Nil {integer}))))
-                         (/\dead -> checkComplete csp s))
+                            {all dead. dead}))
+                    {all dead. ConflictSet}
+                    (\(ds : Tuple2 integer integer) ->
+                       /\dead ->
+                         Tuple2_match
+                           {integer}
+                           {integer}
+                           ds
+                           {ConflictSet}
+                           (\(a : integer) (b : integer) ->
+                              Known
+                                ((let
+                                     a = List integer
+                                   in
+                                   \(c : integer -> a -> a) (n : a) ->
+                                     c a (c b n))
+                                   (\(ds : integer) (ds : List integer) ->
+                                      Cons {integer} ds ds)
+                                   (Nil {integer}))))
+                    (/\dead -> checkComplete csp s)
                     {all dead. dead}))
   in
   letrec
@@ -540,11 +548,11 @@
   letrec
     !interval : integer -> integer -> List integer
       = \(a : integer) (b : integer) ->
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (lessThanEqualsInteger a b) False True)
             {all dead. List integer}
-            (lessThanEqualsInteger a b)
-            (/\dead -> Cons {integer} a (interval (addInteger 1 a) b))
             (/\dead -> Nil {integer})
+            (/\dead -> Cons {integer} a (interval (addInteger 1 a) b))
             {all dead. dead}
   in
   let
@@ -984,9 +992,9 @@
             (/\dead -> traceError {ConflictSet} "PT7")
             (\(x : ConflictSet) (xs : List ConflictSet) ->
                /\dead ->
-                 ifThenElse
+                 Bool_match
+                   (ifThenElse {Bool} (equalsInteger 0 ds) True False)
                    {all dead. ConflictSet}
-                   (equalsInteger 0 ds)
                    (/\dead -> x)
                    (/\dead -> go (subtractInteger ds 1) xs)
                    {all dead. dead})
@@ -1056,9 +1064,13 @@
                                              val))
                                        1
                                in
-                               ifThenElse
+                               Bool_match
+                                 (ifThenElse
+                                    {Bool}
+                                    (lessThanInteger n 0)
+                                    True
+                                    False)
                                  {all dead. ConflictSet}
-                                 (lessThanInteger n 0)
                                  (/\dead -> traceError {ConflictSet} "PT6")
                                  (/\dead -> go n ds)
                                  {all dead. dead}
@@ -1081,9 +1093,9 @@
             t
     !abs : integer -> integer
       = \(n : integer) ->
-          ifThenElse
+          Bool_match
+            (ifThenElse {Bool} (lessThanInteger n 0) True False)
             {all dead. integer}
-            (lessThanInteger n 0)
             (/\dead -> subtractInteger 0 n)
             (/\dead -> n)
             {all dead. dead}
@@ -1230,19 +1242,23 @@
                       {Bool}
                       (\(j : integer) (n : integer) ->
                          Bool_match
-                           (ifThenElse
+                           (Bool_match
+                              (ifThenElse {Bool} (equalsInteger m n) True False)
                               {all dead. Bool}
-                              (equalsInteger m n)
                               (/\dead -> False)
                               (/\dead -> True)
                               {all dead. dead})
                            {all dead. Bool}
                            (/\dead ->
-                              ifThenElse
+                              Bool_match
+                                (ifThenElse
+                                   {Bool}
+                                   (equalsInteger
+                                      (abs (subtractInteger i j))
+                                      (abs (subtractInteger m n)))
+                                   True
+                                   False)
                                 {all dead. Bool}
-                                (equalsInteger
-                                   (abs (subtractInteger i j))
-                                   (abs (subtractInteger m n)))
                                 (/\dead -> False)
                                 (/\dead -> True)
                                 {all dead. dead})
@@ -1669,23 +1685,27 @@
                                                        ds)
                                                 {all dead. dead}
                                       in
-                                      ifThenElse
+                                      Bool_match
+                                        (ifThenElse
+                                           {Bool}
+                                           (lessThanInteger
+                                              (List_match
+                                                 {Assign}
+                                                 ss
+                                                 {integer}
+                                                 0
+                                                 (\(ds : Assign)
+                                                   (ds : List Assign) ->
+                                                    Assign_match
+                                                      ds
+                                                      {integer}
+                                                      (\(var : integer)
+                                                        (val : integer) ->
+                                                         var)))
+                                              ds)
+                                           True
+                                           False)
                                         {all dead. a}
-                                        (lessThanInteger
-                                           (List_match
-                                              {Assign}
-                                              ss
-                                              {integer}
-                                              0
-                                              (\(ds : Assign)
-                                                (ds : List Assign) ->
-                                                 Assign_match
-                                                   ds
-                                                   {integer}
-                                                   (\(var : integer)
-                                                     (val : integer) ->
-                                                      var)))
-                                           ds)
                                         (/\dead -> go vallist)
                                         (/\dead -> n)
                                         {all dead. dead}))

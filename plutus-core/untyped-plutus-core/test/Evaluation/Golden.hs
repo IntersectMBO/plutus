@@ -238,7 +238,7 @@ iteAtStringWithCond = Apply () iteAtString lteExpr
 -- @string@. It still runs succefully, because even in typed world (the CK machine) we don't look
 -- at types at runtime.
 iteAtStringWithCondWithIntegerWithString :: Term TyName Name DefaultUni DefaultFun ()
-iteAtStringWithCondWithIntegerWithString = mkIterAppNoAnn (iteAtStringWithCond)
+iteAtStringWithCondWithIntegerWithString = mkIterAppNoAnn iteAtStringWithCond
     [ mkConstant @Integer () 33
     , mkConstant @Text () "abc"
     ]
@@ -395,7 +395,7 @@ caseNonTag = Case () integer (mkConstant @Integer () 1) []
 goldenVsPretty :: PrettyPlc a => String -> String -> a -> TestTree
 goldenVsPretty extn name value =
     goldenVsString name ("untyped-plutus-core/test/Evaluation/Golden/" ++ name ++ extn) $
-        pure . BSL.fromStrict . encodeUtf8 . render $ prettyPlcClassicDebug value
+        pure . BSL.fromStrict . encodeUtf8 . render $ prettyPlcClassicSimple value
 
 goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCK name

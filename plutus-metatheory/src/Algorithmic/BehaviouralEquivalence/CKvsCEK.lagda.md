@@ -11,7 +11,7 @@ open import Data.Nat using (suc)
 open import Data.Empty using (⊥-elim)
 open import Data.Product using (∃)
 open import Data.List using ([];_∷_)
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans) 
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans)
                                                   renaming (subst to substEq)
 open import Data.Product using (_×_;Σ) renaming (_,_ to _,,_)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
@@ -102,7 +102,7 @@ cek2ckFrame unwrap- = Red.unwrap-
 cek2ckStack : ∀{A B} → Stack A B → CK.Stack A B
 cek2ckStack ε = CK.ε
 cek2ckStack (s , f) = cek2ckStack s CK., cek2ckFrame f
- 
+
 cek2ckState : ∀{A} → State A → CK.State A
 cek2ckState (s ; ρ ▻ L) = cek2ckStack s CK.▻ cek2ckClos L ρ
 cek2ckState (s ◅ V) = cek2ckStack s CK.◅ cek2ckVal V
@@ -133,7 +133,7 @@ V-Ilem : ∀ {b}{A : ∅ ⊢Nf⋆ *}
        → (bt : Red.BApp b σA t)
        → (p : discharge (V-I b (ck2cekBApp bt)) ≡ t)
        → Red.V-I b bt ≡ subst (cek2ckVal (V-I b (ck2cekBApp bt)))
-V-Ilem bt = 
+V-Ilem bt =
 -}
 postulate ival-lem : ∀ b {A}{s : CK.Stack A _} → (s CK.◅ Red.ival b) ≡ (s CK.◅ cek2ckVal (ival b))
 --ival-lem b {s = s} = {! cong (λ z → s CK.◅ z)  !}
@@ -146,7 +146,7 @@ postulate dischargeBody-lem' : ∀{B}{Γ}{C}(M : Γ , C ⊢ B) ρ V → (dischar
 
 dischargeBody M ρ [ discharge (cek2ckVal V) ]
 = { def dischargeBody }
-sub (exts (env2sub ρ)) M [ discharge (cek2ckVal V) ] 
+sub (exts (env2sub ρ)) M [ discharge (cek2ckVal V) ]
 = { def of [_] }
 sub (sub-cons ` (discharge (cek2ckVal V)))
     (sub (exts (env2sub ρ)) (discharge (cek2ckVal V)))
@@ -177,31 +177,31 @@ postulate dischargeB-lem : ∀ {K}{A : ∅ ⊢Nf⋆ K}{B : ∅ ,⋆ K ⊢Nf⋆ *
                      {tn tm}{pt : tn ∔ suc tm ≣ fv (signature b)}
                      {an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
                      {σB : SigTy (bubble pt) pa B}
-                     {x : BApp b (Π B) (sucΠ σB)} 
-                  (s : CK.Stack C (B [ A ]Nf)) 
+                     {x : BApp b (Π B) (sucΠ σB)}
+                  (s : CK.Stack C (B [ A ]Nf))
                 → s CK.◅ Red.V-I b {σA = σB [ A ]SigTy} (Red.step⋆ (cek2ckBApp x) refl) ≡ (s CK.◅ cek2ckVal (V-I b {σA = σB [ A ]SigTy} (x $$ refl)))
 
 postulate dischargeB'-lem : ∀ {A}{C b}
                     {tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
                      {an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
                      {σA : SigTy pt pa A}
-                     {x : BApp b A σA} 
-                     (s : CK.Stack C _) 
+                     {x : BApp b A σA}
+                     (s : CK.Stack C _)
                   → s CK.◅ Red.V-I b (cek2ckBApp x) ≡ (s CK.◅ cek2ckVal (V-I b x))
 
 postulate dischargeB-lem' : ∀ {A}{b}
                   {tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
                     {an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
                     {σA : SigTy pt pa A}
-                    {x : BApp b A σA} 
+                    {x : BApp b A σA}
                   → dischargeB x ≡ discharge (V-I b x)
-                
+
 
 postulate dischargeB-lem'' :  ∀ {A}{b}
                   {tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
                     {an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
                     {σA : SigTy pt pa A}
-                    {x : BApp b A σA} 
+                    {x : BApp b A σA}
                   → substEq Red.Value dischargeB-lem' (Red.V-I b (cek2ckBApp x)) ≡ cek2ckVal (V-I b x)
 
 
@@ -210,8 +210,8 @@ postulate dischargeB-lem'' :  ∀ {A}{b}
 postulate BUILTIN-lem : ∀ b {A}
                {tn}{pt : tn ∔ 0 ≣ fv (signature b)}
                 {an}{pa : an ∔ 0 ≣ args♯ (signature b)}
-                {σA : SigTy pt pa A}          
-              → (q : BApp b A σA) 
+                {σA : SigTy pt pa A}
+              → (q : BApp b A σA)
               → Red.BUILTIN' b (cek2ckBApp q) ≡ cek2ckClos (BUILTIN' b q) []
 
 
@@ -295,7 +295,7 @@ cek2ckFrame-·-lem (x ·-) .(cek2ckVal x) refl = _ ,, refl ,, refl ,, refl
 postulate cek2ckFrame--·lem : ∀{A B}(f : Frame B (A ⇒ B)){M : ∅ ⊢ A} → (Red.-· M) ≡ cek2ckFrame f → ∃ λ Γ → ∃ λ (M' : Γ ⊢ A) → ∃ λ (ρ : Env Γ) → f ≡ (-· M' ρ) × M ≡ cek2ckClos M' ρ
 
 postulate cek2ckFrame--·⋆lem : ∀{K A}{B : ∅ ,⋆ K ⊢Nf⋆ *}(f : Frame (B [ A ]Nf) (Π B)) → Red.-·⋆ A ≡ cek2ckFrame f → f ≡ -·⋆ A
-   
+
 postulate cek2ckFrame-unwrap-lem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}(f : Frame _ (μ A B)) → Red.unwrap- {A = A}{B = B} ≡ cek2ckFrame f → f ≡ unwrap-
 
 postulate cek2ckFrame-wrap-lem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}(f : Frame (μ A B) _) → Red.wrap- {A = A}{B = B} ≡ cek2ckFrame f → f ≡ wrap-

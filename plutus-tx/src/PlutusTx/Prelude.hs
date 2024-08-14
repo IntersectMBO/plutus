@@ -66,12 +66,24 @@ module PlutusTx.Prelude (
     indexByteString,
     emptyByteString,
     decodeUtf8,
+    Builtins.andByteString,
+    Builtins.orByteString,
+    Builtins.xorByteString,
+    Builtins.complementByteString,
+    -- ** Bit operations
+    Builtins.readBit,
+    Builtins.writeBits,
+    Builtins.shiftByteString,
+    Builtins.rotateByteString,
+    Builtins.countSetBits,
+    Builtins.findFirstSetBit,
     -- * Hashes and Signatures
     sha2_256,
     sha3_256,
     blake2b_224,
     blake2b_256,
     keccak_256,
+    ripemd_160,
     verifyEd25519Signature,
     verifyEcdsaSecp256k1Signature,
     verifySchnorrSecp256k1Signature,
@@ -108,13 +120,13 @@ module PlutusTx.Prelude (
     bls12_381_millerLoop,
     bls12_381_mulMlResult,
     bls12_381_finalVerify,
-    byteStringToInteger,
-    integerToByteString,
     -- * Conversions
     fromBuiltin,
     toBuiltin,
     fromOpaque,
-    toOpaque
+    toOpaque,
+    integerToByteString,
+    byteStringToInteger
     ) where
 
 import Data.String (IsString (..))
@@ -137,8 +149,8 @@ import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Eleme
                           emptyByteString, emptyString, encodeUtf8, equalsByteString, equalsString,
                           error, fromBuiltin, fromOpaque, greaterThanByteString, indexByteString,
                           integerToByteString, keccak_256, lengthOfByteString, lessThanByteString,
-                          sha2_256, sha3_256, sliceByteString, toBuiltin, toOpaque, trace,
-                          verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
+                          ripemd_160, sha2_256, sha3_256, sliceByteString, toBuiltin, toOpaque,
+                          trace, verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
                           verifySchnorrSecp256k1Signature)
 
 import PlutusTx.Builtins qualified as Builtins

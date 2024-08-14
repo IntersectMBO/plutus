@@ -9,7 +9,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report.
-        Please check the existing issues, [Plutus Docs](https://intersectmbo.github.io/plutus/docs) and [Cardano Stack Exchange](https://cardano.stackexchange.com/) before raising.
+        Please check the existing issues, [Plutus Docs](https://plutus.cardano.intersectmbo.org/docs) and [Cardano Stack Exchange](https://cardano.stackexchange.com/) before raising.
   - type: textarea
     id: summary
     attributes:

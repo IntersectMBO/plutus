@@ -1,51 +1,19 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl MyPolyData (fun (type) (fun (type) (type))))
-        (tyvardecl a (type)) (tyvardecl b (type))
-        MyPolyData_match
-        (vardecl Poly (fun a (fun b [ [ MyPolyData a ] b ])))
-        (vardecl Poly (fun a [ [ MyPolyData a ] b ]))
-      )
-    )
-    (termbind
-      (nonstrict)
-      (vardecl
-        `$WPoly`
-        (all a (type) (all b (type) (fun a (fun b [ [ MyPolyData a ] b ]))))
-      )
-      (abs
-        a
-        (type)
-        (abs
-          b
-          (type)
-          (lam
-            conrep
-            a
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl conrep a) conrep)
-              (lam
-                conrep
-                b
-                (let
-                  (nonrec)
-                  (termbind (strict) (vardecl conrep b) conrep)
-                  [ [ { { Poly a } b } conrep ] conrep ]
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-    [
-      [ { { `$WPoly` (con integer) } (con integer) } (con integer 1) ]
-      (con integer 2)
-    ]
-  )
-)
+    data (MyPolyData :: * -> * -> *) a b | MyPolyData_match where
+      Poly : a -> b -> MyPolyData a b
+      Poly : a -> MyPolyData a b
+    ~`$WPoly` : all a b. a -> b -> MyPolyData a b
+      = /\a b ->
+          \(conrep : a) ->
+            let
+              !conrep : a = conrep
+            in
+            \(conrep : b) ->
+              let
+                !conrep : b = conrep
+              in
+              Poly {a} {b} conrep conrep
+  in
+  `$WPoly` {integer} {integer} 1 2)

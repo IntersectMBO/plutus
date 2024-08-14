@@ -23,9 +23,9 @@ in
        (unConstrData ds))
     {integer}
     (\(ds : integer) (ds : list data) ->
-       ifThenElse
+       Bool_match
+         (ifThenElse {Bool} (equalsInteger 0 ds) True False)
          {all dead. integer}
-         (equalsInteger 0 ds)
          (/\dead ->
             let
               !ds : data = headList {data} ds
@@ -50,9 +50,9 @@ in
                  (unConstrData ds))
               {integer}
               (\(ds : integer) (ds : list data) ->
-                 ifThenElse
+                 Bool_match
+                   (ifThenElse {Bool} (equalsInteger 1 ds) True False)
                    {all dead. integer}
-                   (equalsInteger 1 ds)
                    (/\dead -> 1)
                    (/\dead ->
                       Unit_match (error {Unit}) {integer} (error {integer}))

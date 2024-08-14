@@ -21,5 +21,5 @@ test_nonStrict =
             ]
 
 prop_nonStrict :: Bool -> Property
-prop_nonStrict useUnit = withMaxSuccess (2 * numTestsForPassProp) $
+prop_nonStrict useUnit = withMaxSuccess numTestsForPassProp $
   testPassProp runQuote $ \tc -> NonStrict.compileNonStrictBindingsPassSC tc useUnit

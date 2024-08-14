@@ -17,7 +17,7 @@ All of these elements are used in combination to write Plutus Core scripts that 
 
 To develop and deploy a smart contract, you also need off-chain code for building transactions, submitting transactions, deploying smart contracts, querying for available UTXOs on the chain, and so on. You may also want a front-end interface for your smart contract for a better user experience. 
 
-Plutus allows all programming to be done from a [single Haskell library](https://intersectmbo.github.io/plutus/haddock/latest). This lets developers build secure applications, forge new assets, and create smart contracts in a predictable, deterministic environment with the highest level of assurance. Furthemore, developers don’t have to run a full Cardano node to test their work. 
+Plutus allows all programming to be done from a [single Haskell library](https://plutus.cardano.intersectmbo.org/haddock/latest). This lets developers build secure applications, forge new assets, and create smart contracts in a predictable, deterministic environment with the highest level of assurance. Furthemore, developers don’t have to run a full Cardano node to test their work. 
 
 With Plutus you can:
 
@@ -38,7 +38,7 @@ See, for example:
 
 - the [Cardano ledger specification](https://github.com/IntersectMBO/cardano-ledger#cardano-ledger)
 - the [Plutus Core specification](https://github.com/IntersectMBO/plutus#specifications-and-design)
-- the [public Plutus code libraries](https://intersectmbo.github.io/plutus/haddock/latest) generated using Haddock. 
+- the [public Plutus code libraries](https://plutus.cardano.intersectmbo.org/haddock/latest) generated using Haddock. 
 
 ## The Plutus repository
 
@@ -46,7 +46,7 @@ The [Plutus repository](https://github.com/IntersectMBO/plutus) includes:
 
 * the implementation, specification, and mechanized metatheory of Plutus Core 
 * the Plutus Tx compiler 
-* the combined documentation, generated using Haddock, for all the [public Plutus code libraries](https://intersectmbo.github.io/plutus/haddock/latest), such as `PlutusTx.List`, enabling developers to write Haskell code that can be compiled to Plutus Core.
+* the combined documentation, generated using Haddock, for all the [public Plutus code libraries](https://plutus.cardano.intersectmbo.org/haddock/latest), such as `PlutusTx.List`, enabling developers to write Haskell code that can be compiled to Plutus Core.
 
 ## Educational resources
 

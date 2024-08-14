@@ -6,8 +6,8 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
-{-# OPTIONS_GHC -Wno-orphans  #-}
 module Lib where
 
 import Control.Exception
@@ -33,31 +33,50 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 goldenPir
-    :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
-    => String -> CompiledCodeIn uni fun a -> TestNested
-goldenPir name value = nestedGoldenVsDoc name ".pir" $ pretty $ getPirNoAnn value
+  :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
+  => String
+  -> CompiledCodeIn uni fun a
+  -> TestNested
+goldenPir name value =
+  nestedGoldenVsDoc name ".pir" $
+    prettyPlcClassicSimple $
+      getPirNoAnn value
 
-runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
+runPlcCek
+  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
+  => [a]
+  -> ExceptT SomeException IO (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do
-     ps <- traverse toUPlc values
-     let p =
-          foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-     fromRightM (throwError . SomeException) $ evaluateCekNoEmit PLC.defaultCekParametersForTesting (p ^. UPLC.progTerm)
+  ps <- traverse toUPlc values
+  let p = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
+  fromRightM (throwError . SomeException) $
+    evaluateCekNoEmit PLC.defaultCekParametersForTesting (p ^. UPLC.progTerm)
 
-runPlcCekTrace ::
-     ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
-     [a] ->
-     ExceptT SomeException IO ([Text], CekExTally PLC.DefaultFun, UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
+runPlcCekTrace
+  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
+  => [a]
+  -> ExceptT
+      SomeException
+      IO
+      ( [Text]
+      , CekExTally PLC.DefaultFun
+      , UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
+      )
 runPlcCekTrace values = do
-     ps <- traverse toUPlc values
-     let p =
-          foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-     let (result, TallyingSt tally _, logOut) = runCek PLC.defaultCekParametersForTesting tallying logEmitter (p ^. UPLC.progTerm)
-     res <- fromRightM (throwError . SomeException) result
-     pure (logOut, tally, res)
+  ps <- traverse toUPlc values
+  let p =
+        foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
+  let (result, TallyingSt tally _, logOut) =
+        runCek PLC.defaultCekParametersForTesting tallying logEmitter (p ^. UPLC.progTerm)
+  res <- fromRightM (throwError . SomeException) result
+  pure (logOut, tally, res)
 
-goldenEvalCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
-goldenEvalCek name values = nestedGoldenVsDocM name ".eval-cek" $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
+goldenEvalCek :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
+goldenEvalCek name values =
+  nestedGoldenVsDocM name ".eval-cek" $
+    prettyPlcClassicSimple <$> (rethrow $ runPlcCek values)
 
-goldenEvalCekLog :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
-goldenEvalCekLog name values = nestedGoldenVsDocM name ".eval-cek-log" $ pretty . view _1 <$> (rethrow $ runPlcCekTrace values)
+goldenEvalCekLog :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
+goldenEvalCekLog name values =
+  nestedGoldenVsDocM name ".eval-cek-log" $
+    prettyPlcClassicSimple . view _1 <$> (rethrow $ runPlcCekTrace values)

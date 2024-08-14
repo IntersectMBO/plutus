@@ -1,16 +1,12 @@
-(let
-  (nonrec)
-  (datatypebind
-    (datatype
-      (tyvardecl Bool (type))
-
-      match_Bool
-      (vardecl True Bool) (vardecl False Bool)
-    )
-  )
-  (let
-    (nonrec)
-    (termbind (strict) (vardecl false Bool) False)
-    (let (nonrec) (termbind (strict) (vardecl anotherFalse Bool) false) false)
-  )
-)
+let
+  data Bool | match_Bool where
+    True : Bool
+    False : Bool
+in
+let
+  !false : Bool = False
+in
+let
+  !anotherFalse : Bool = false
+in
+false

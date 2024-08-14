@@ -16,7 +16,7 @@
  -}
 module PlutusBenchmark.BLS12_381.Scripts
     ( checkGroth16Verify_Haskell
-    , listOfSizedByteStrings
+    , listOfByteStringsOfLength
     , mkGroth16VerifyScript
     , mkHashAndAddG1Script
     , mkHashAndAddG2Script
@@ -61,9 +61,9 @@ import System.IO.Unsafe (unsafePerformIO)
 import Prelude (fromIntegral)
 
 -- Create a list containing n bytestrings of length l.  This could be better.
-{-# NOINLINE listOfSizedByteStrings #-}
-listOfSizedByteStrings :: Integer -> Integer -> [ByteString]
-listOfSizedByteStrings n l = unsafePerformIO . G.sample $
+{-# NOINLINE listOfByteStringsOfLength #-}
+listOfByteStringsOfLength :: Integer -> Integer -> [ByteString]
+listOfByteStringsOfLength n l = unsafePerformIO . G.sample $
                              G.list (R.singleton $ fromIntegral n)
                                   (G.bytes (R.singleton $ fromIntegral l))
 

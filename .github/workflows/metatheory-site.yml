@@ -1,11 +1,17 @@
-# This workflow builds and publishes the metatheory site to:
-# https://intersectmbo.github.io/plutus/metatheory/$version
+# This workflow builds and publishes the Metatheory site to:
+# https://plutus.cardano.intersectmbo.org/metatheory/$version
 # And optionally to:
-# https://intersectmbo.github.io/plutus/metatheory/latest
+# https://plutus.cardano.intersectmbo.org/metatheory/latest
+# On push to master, this workflows publishes to:
+# https://plutus.cardano.intersectmbo.org/metatheory/master
 
 name: "🔮 Metatheory Site"
 
 on:
+  push: 
+    branches: 
+      - master 
+
   workflow_dispatch:
     inputs:
       ref:
@@ -18,15 +24,15 @@ on:
 
       destination:
         description: |
-          The $destination folder, e.g. when "1.29.0.0" the metatheory will be deploy to:
-          https://intersectmbo.github.io/plutus/metatheory/1.29.0.0
+          The $destination folder, e.g. when "1.29.0.0" the metatheory site will be deployed to:
+          https://plutus.cardano.intersectmbo.org/metatheory/1.29.0.0
         required: true
         type: string
   
       latest: 
         description: |
-          If true, then the metatheory site will also be deploy to:
-          https://intersectmbo.github.io/plutus/metatheory/latest.
+          If true, then the metatheory site will also be deployed to:
+          https://plutus.cardano.intersectmbo.org/metatheory/latest.
           You want to leave this to true unless you are deploying old versions or back-porting.
         type: boolean
         required: true 
@@ -44,26 +50,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.ref || github.ref_name }}
 
       - name: Build Site
         run: | 
           nix build --accept-flake-config .#plutus-metatheory-site
-          mkdir _site
-          cp -RL result/* _site
+          mkdir _metatheory
+          cp -RL result/* _metatheory
 
       - name: Deploy Site
-        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        uses: JamesIves/github-pages-deploy-action@v4.6.3
         with:
-          folder: _site
-          target-folder: metatheory/${{ inputs.destination }}
-          single-commit: true
-        
-      - name: Deploy Latest
-        if: ${{ inputs.latest == true }}
-        uses: JamesIves/github-pages-deploy-action@v4.6.1
-        with:
-          folder: _site
-          target-folder: metatheory/latest
+          folder: _metatheory
+          target-folder: metatheory/${{ inputs.destination || github.ref_name }}
           single-commit: true
 
+      - name: Deploy Site (latest)
+        if: ${{ inputs.latest == true }}
+        uses: JamesIves/github-pages-deploy-action@v4.6.3
+        with:
+          folder: _metatheory
+          target-folder: metatheory/latest
+          single-commit: true          

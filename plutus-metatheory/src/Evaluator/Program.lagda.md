@@ -15,7 +15,7 @@ open import Function using (_$_;_∘_)
 open import Data.String using (String;_++_)
 open import Agda.Builtin.Nat
 open import Data.Product using (Σ) renaming (_,_ to _,,_)
-open import Data.Empty using (⊥) 
+open import Data.Empty using (⊥)
 
 open import Type using (Ctx⋆;∅;_,⋆_)
 open import Check using (TypeError;inferType;inferKind;decKind;checkKind;checkType)
@@ -107,7 +107,7 @@ postulate
 ## Evaluators
 
 ```
-data BudgetMode (A : Set) : Set where 
+data BudgetMode (A : Set) : Set where
   Silent   : BudgetMode A
   Counting : A → BudgetMode A
   Tallying : A → BudgetMode A
@@ -178,18 +178,18 @@ showUPLCResult ◆     = inj₁ (runtimeError userError)
 showUPLCResult _     = inj₁ (runtimeError gasError)
 
 executeUPLCwithMP : ∀{A} → RawCostModel → (CostModel → MachineParameters A) → (A → String) → ⊥ U.⊢ → Either ERROR String
-executeUPLCwithMP (cekMachineCosts , rawmodel) mkMP report t with createMap rawmodel 
-... | just model = do 
+executeUPLCwithMP (cekMachineCosts , rawmodel) mkMP report t with createMap rawmodel
+... | just model = do
     let machineparam = mkMP (cekMachineCosts , model)
     let (ev , exBudget) = U.stepperC machineparam maxsteps (ε ; [] ▻ t)
     x ← withE runtimeError ev
     r ← showUPLCResult x
-    return (r ++ report exBudget) 
+    return (r ++ report exBudget)
 ... | nothing = inj₁ (jsonError "while processing parameters.")
 
 executeUPLC : BudgetMode RawCostModel → ⊥ U.⊢ → Either ERROR String
 executeUPLC Silent t = (withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)) >>= showUPLCResult
-executeUPLC (Counting rcm) t = executeUPLCwithMP rcm machineParameters countingReport t 
+executeUPLC (Counting rcm) t = executeUPLCwithMP rcm machineParameters countingReport t
 executeUPLC (Tallying rcm) t = executeUPLCwithMP rcm tallyingMachineParameters tallyingReport t
 
 evalProgramNU : BudgetMode RawCostModel → ProgramNU → Either ERROR String
@@ -231,4 +231,4 @@ typeCheckProgramN namedprog = do
  -}
   return (prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ A))))
 ```
- 
+

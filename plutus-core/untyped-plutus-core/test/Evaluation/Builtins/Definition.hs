@@ -14,7 +14,19 @@ module Evaluation.Builtins.Definition
     ( test_definition
     ) where
 
+import PlutusPrelude
+
+import Evaluation.Builtins.Bitwise qualified as Bitwise
+import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
+import Evaluation.Builtins.Common
+import Evaluation.Builtins.Conversion qualified as Conversion
+import Evaluation.Builtins.Laws qualified as Laws
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
+                                                  ed25519_VariantBProp, ed25519_VariantCProp,
+                                                  schnorrSecp256k1Prop)
+
 import PlutusCore hiding (Constr)
+import PlutusCore qualified as PLC
 import PlutusCore.Builtin
 import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
@@ -22,17 +34,12 @@ import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
-import PlutusCore.Generators.Hedgehog.Interesting
-import PlutusCore.MkPlc hiding (error)
-import PlutusCore.Pretty
-import PlutusPrelude
-import UntypedPlutusCore.Evaluation.Machine.Cek
-
-import Evaluation.Builtins.Bitwise qualified as Bitwise
-import Hedgehog hiding (Opaque, Size, Var)
-import PlutusCore qualified as PLC
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
+import PlutusCore.Generators.Hedgehog.Interesting
+import PlutusCore.Generators.QuickCheck.Builtin
+import PlutusCore.MkPlc hiding (error)
+import PlutusCore.Pretty
 import PlutusCore.StdLib.Data.Bool
 import PlutusCore.StdLib.Data.Data
 import PlutusCore.StdLib.Data.Function qualified as Plc
@@ -42,27 +49,28 @@ import PlutusCore.StdLib.Data.Pair
 import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.ScottUnit qualified as Scott
 import PlutusCore.StdLib.Data.Unit
+import PlutusCore.Test
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.Exception
+import Data.Bifunctor (bimap)
 import Data.ByteString (ByteString, pack)
+import Data.ByteString.Base16 qualified as Base16
 import Data.DList qualified as DList
+import Data.List (find)
 import Data.Proxy
 import Data.String (IsString (fromString))
 import Data.Text (Text)
-import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
-import Evaluation.Builtins.Common
-import Evaluation.Builtins.Conversion qualified as Conversion
-import Evaluation.Builtins.Laws qualified as Laws
-import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
-                                                  ed25519_VariantBProp, ed25519_VariantCProp,
-                                                  schnorrSecp256k1Prop)
+import Data.Text qualified as Text
+import Data.Text.Encoding qualified as Text
+import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter (vsep)
 import Test.Tasty
-import Test.Tasty.Extras
 import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck qualified as QC
 
 type DefaultFunExt = Either DefaultFun ExtensionFun
 
@@ -85,6 +93,24 @@ defaultBuiltinCostModelExt = (defaultBuiltinCostModelForTesting, ())
    semantics variant?
 -}
 
+test_IntegerDistribution :: TestTree
+test_IntegerDistribution =
+    QC.testProperty "distribution of 'Integer' constants" . QC.withMaxSuccess 10000 $
+        \(AsArbitraryBuiltin (i :: Integer)) ->
+            let magnitudes = magnitudesPositive nextInterestingBound highInterestingBound
+                (low, high) =
+                    maybe (error $ "Panic: unknown integer") (bimap (* signum i) (* signum i)) $
+                      find ((>= abs i) . snd) magnitudes
+                bounds = map snd magnitudes
+                isInteresting = i `elem` ([-1, 0, 1] ++ bounds ++ map succ bounds)
+            in (if i /= 0
+                        then QC.label $ "(" ++ show low ++ ", " ++ show high ++ ")"
+                        else QC.property)
+                ((if isInteresting
+                        then QC.label $ show i
+                        else QC.property)
+                    True)
+
 -- | Check that the 'Factorial' builtin computes to the same thing as factorial defined in PLC
 -- itself.
 test_Factorial :: TestTree
@@ -102,7 +128,7 @@ test_Factorial =
 -- a const defined in PLC itself.
 test_Const :: TestTree
 test_Const =
-    testPropertyNamed "Const" "Const" . property $ do
+    testPropertyNamed "Const" "Const" . withTests 10 . property $ do
         c <- forAll $ Gen.text (Range.linear 0 100) Gen.unicode
         b <- forAll Gen.bool
         let tC = mkConstant () c
@@ -414,11 +440,11 @@ test_TrackCostsWith cat len checkTerm =
 -- | Test that individual budgets are picked up by GC while spending is still ongoing.
 test_TrackCostsRestricting :: TestTree
 test_TrackCostsRestricting =
-    let n = 30000
+    let n = 10000
     in test_TrackCostsWith "restricting" n $ \term ->
         case typecheckReadKnownCek def () term of
-            Left err                         -> fail $ displayPlcDef err
-            Right (Left err)                 -> fail $ displayPlcDef err
+            Left err                         -> fail $ displayPlc err
+            Right (Left err)                 -> fail $ displayPlc err
             Right (Right (res :: [Integer])) -> do
                 let expected = n `div` 10
                     actual = length res
@@ -439,8 +465,8 @@ test_TrackCostsRetaining =
                 let (getRes, budgets) = runCekNoEmit params retaining term'
                 in (getRes >>= readKnownSelf, budgets)
         case typecheckAndRunRetainer () term of
-            Left err                                  -> fail $ displayPlcDef err
-            Right (Left err, _)                       -> fail $ displayPlcDef err
+            Left err                                  -> fail $ displayPlc err
+            Right (Left err, _)                       -> fail $ displayPlc err
             Right (Right (res :: [Integer]), budgets) -> do
                 -- @length budgets@ is for retaining @budgets@ for as long as possible just in case.
                 -- @3@ is just for giving us room to handle erratic GC behavior. It really should be
@@ -485,10 +511,10 @@ evals
 evals expectedVal fun typeArgs termArgs =
     let actualExpNoTermArgs = mkIterInstNoAnn (builtin () fun) typeArgs
         actualExp = mkIterAppNoAnn actualExpNoTermArgs termArgs
-        prename = stripParensIfAny . render $ prettyPlcReadableDef actualExp
+        prename = stripParensIfAny . render $ prettyPlcReadable actualExp
         -- Shorten the name of the test in case it's too long to be displayed in CLI.
         name = if length prename < 70 then prename else
-            stripParensIfAny (render $ prettyPlcReadableDef actualExpNoTermArgs) ++
+            stripParensIfAny (render $ prettyPlcReadable actualExpNoTermArgs) ++
                 concatMap (\_ -> " <...>") termArgs
         expectedRes = Right . EvaluationSuccess $ cons expectedVal
         actualRes = typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting actualExp
@@ -516,15 +542,15 @@ fails fileName fun typeArgs termArgs = do
                 embed . testCase expectedToDisplay $
                     assertFailure "expected an evaluation failure, but got a success"
             Left err ->
-                let prename = stripParensIfAny . render $ prettyPlcReadableDef actualExp
+                let prename = stripParensIfAny . render $ prettyPlcReadable actualExp
                     -- Shorten the name of the test in case it's too long to be displayed in CLI.
                     name = if length prename < 70 then prename else
-                        stripParensIfAny (render $ prettyPlcReadableDef actualExpNoTermArgs) ++
+                        stripParensIfAny (render $ prettyPlcReadable actualExpNoTermArgs) ++
                             concatMap (\_ -> " <...>") termArgs
                 in testNestedNamedM mempty name $
                     testNestedNamedM mempty expectedToDisplay $
                         nestedGoldenVsDoc fileName ".err" . vsep $ concat
-                            [ [prettyPlcReadableDef err]
+                            [ [prettyPlcReadable err]
                             , ["Logs were:" | not $ null logs]
                             , map pretty logs
                             ]
@@ -751,6 +777,14 @@ test_Crypto = testNestedM "Crypto" $ do
     -- hex output: 47173285a8d7341e5e972fc677286384f802f8ef42a5ec5f03bbfa254cb01fad
     evals @ByteString "G\ETB2\133\168\215\&4\RS^\151/\198w(c\132\248\STX\248\239B\165\236_\ETX\187\250%L\176\US\173"
         Keccak_256 [] [cons @ByteString "hello world"]
+    -- independently verified by the calculator at https://emn178.github.io/online-tools/ripemd_160.html
+    let
+      hashHex = "98c615784ccb5fe5936fbc0cbe9dfdb408d92f0f"
+      ripemd_160Hash = case Base16.decode $ Text.encodeUtf8 hashHex of
+        Right res -> res
+        Left _    -> error $ "Unexpected error during hex decoding: " <> Text.unpack hashHex
+    evals @ByteString ripemd_160Hash
+        Ripemd_160 [] [cons @ByteString "hello world"]
     -- Tests for blake2b_224: output obtained using the b2sum program from https://github.com/BLAKE2/BLAKE2
     evals (pack [ 0x83, 0x6c, 0xc6, 0x89, 0x31, 0xc2, 0xe4, 0xe3, 0xe8, 0x38, 0x60, 0x2e, 0xca, 0x19
                 , 0x02, 0x59, 0x1d, 0x21, 0x68, 0x37, 0xba, 0xfd, 0xdf, 0xe6, 0xf0, 0xc8, 0xcb, 0x07 ])
@@ -817,7 +851,7 @@ test_HashSize hashFun expectedNumBits =
     in testPropertyNamed
        testName
        propName
-       . property $ do
+       . mapTestLimitAtLeast 10 (`div` 50) . property $ do
          bs <- forAll $ Gen.bytes (Range.linear 0 1000)
          let term = mkIterAppNoAnn (builtin () MultiplyInteger)
                     [ cons @Integer 8
@@ -830,11 +864,12 @@ test_HashSize hashFun expectedNumBits =
 test_HashSizes :: TestTree
 test_HashSizes =
     testGroup "Hash sizes"
-        [ test_HashSize Sha2_256    256
-        , test_HashSize Sha3_256    256
-        , test_HashSize Blake2b_256 256
-        , test_HashSize Keccak_256  256
-        , test_HashSize Blake2b_224 224
+        [ test_HashSize Sha2_256        256
+        , test_HashSize Sha3_256        256
+        , test_HashSize Blake2b_256     256
+        , test_HashSize Keccak_256      256
+        , test_HashSize Blake2b_224     224
+        , test_HashSize Ripemd_160      160
         ]
 
 -- Test all remaining builtins of the default universe
@@ -888,172 +923,182 @@ cons = mkConstant ()
 -- Test that the SECP256k1 builtins are behaving correctly
 test_SignatureVerification :: TestTree
 test_SignatureVerification =
-  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
-  testGroup "Signature verification" $ [
-        testGroup "Ed25519 signatures (VariantA)"
-                      [ testPropertyNamed
-                        "Ed25519_VariantA verification behaves correctly on all inputs"
-                        "ed25519_VariantA_correct"
-                        . property $ ed25519_VariantAProp
-                      ],
-        testGroup "Ed25519 signatures (VariantB)"
-                      [ testPropertyNamed
-                        "Ed25519_VariantB verification behaves correctly on all inputs"
-                        "ed25519_VariantB_correct"
-                        . property $ ed25519_VariantBProp
-                      ],
-        testGroup "Ed25519 signatures (VariantC)"
-                      [ testPropertyNamed
-                        "Ed25519_VariantC verification behaves correctly on all inputs"
-                        "ed25519_VariantC_correct"
-                        . property $ ed25519_VariantCProp
-                      ],
-        testGroup "Signatures on the SECP256k1 curve"
-                      [ testPropertyNamed
-                        "ECDSA verification behaves correctly on all inputs"
-                        "ecdsa_correct"
-                        . property $ ecdsaSecp256k1Prop
-                      , testPropertyNamed
-                            "Schnorr verification behaves correctly on all inputs"
-                            "schnorr_correct"
-                            . property $ schnorrSecp256k1Prop
-                      ]
-                ]
+  testGroup "Signature verification"
+      [ testGroup "Ed25519 signatures (VariantA)"
+          [ testPropertyNamed
+              "Ed25519_VariantA verification behaves correctly on all inputs"
+              "ed25519_VariantA_correct"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property ed25519_VariantAProp
+          ]
+      , testGroup "Ed25519 signatures (VariantB)"
+          [ testPropertyNamed
+              "Ed25519_VariantB verification behaves correctly on all inputs"
+              "ed25519_VariantB_correct"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property ed25519_VariantBProp
+          ]
+      , testGroup "Ed25519 signatures (VariantC)"
+          [ testPropertyNamed
+              "Ed25519_VariantC verification behaves correctly on all inputs"
+              "ed25519_VariantC_correct"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property ed25519_VariantCProp
+          ]
+      , testGroup "Signatures on the SECP256k1 curve"
+          [ testPropertyNamed
+              "ECDSA verification behaves correctly on all inputs"
+              "ecdsa_correct"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property ecdsaSecp256k1Prop
+          , testPropertyNamed
+              "Schnorr verification behaves correctly on all inputs"
+              "schnorr_correct"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property schnorrSecp256k1Prop
+          ]
+       ]
 
 -- Test that the Integer <-> ByteString conversion builtins are behaving correctly
 test_Conversion :: TestTree
 test_Conversion =
-    adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
-    testGroup "Integer <-> ByteString conversions" $ [
-      testGroup "Integer -> ByteString" [
-        --- lengthOfByteString (integerToByteString e d 0) = d
-        testPropertyNamed "property 1" "i2b_prop1" . property $ Conversion.i2bProperty1,
-        -- indexByteString (integerToByteString e k 0) j = 0
-        testPropertyNamed "property 2" "i2b_prop2" . property $ Conversion.i2bProperty2,
-        -- lengthOfByteString (integerToByteString e 0 p) > 0
-        testPropertyNamed "property 3" "i2b_prop3" . property $ Conversion.i2bProperty3,
-        -- integerToByteString False 0 (multiplyInteger p 256) = consByteString
-        -- 0 (integerToByteString False 0 p)
-        testPropertyNamed "property 4" "i2b_prop4" . property $ Conversion.i2bProperty4,
-        -- integerToByteString True 0 (multiplyInteger p 256) = appendByteString
-        -- (integerToByteString True 0 p) (singleton 0)
-        testPropertyNamed "property 5" "i2b_prop5" . property $ Conversion.i2bProperty5,
-        -- integerToByteString False 0 (plusInteger (multiplyInteger q 256) r) =
-        -- appendByteString (integerToByteString False 0 r) (integerToByteString False 0 q)
-        testPropertyNamed "property 6" "i2b_prop6" . property $ Conversion.i2bProperty6,
-        -- integerToByteString True 0 (plusInteger (multiplyInteger q 256) r) =
-        -- appendByteString (integerToByteString False 0 q)
-        -- (integerToByteString False 0 r)
-        testPropertyNamed "property 7" "i2b_prop7" . property $ Conversion.i2bProperty7,
-        testGroup "CIP-121 examples" Conversion.i2bCipExamples,
-        testGroup "Tests for integerToByteString size limit" Conversion.i2bLimitTests
-        ],
-      testGroup "ByteString -> Integer" [
-        -- byteStringToInteger b (integerToByteString b d q) = q
-        testPropertyNamed "property 1" "b2i_prop1" . property $ Conversion.b2iProperty1,
-        -- byteStringToInteger b (consByteString w8 emptyByteString) = w8
-        testPropertyNamed "property 2" "b2i_prop2" . property $ Conversion.b2iProperty2,
-        -- integerToByteString b (lengthOfByteString bs) (byteStringToInteger b bs) = bs
-        testPropertyNamed "property 3" "b2i_prop3" . property $ Conversion.b2iProperty3,
-        testGroup "CIP-121 examples" Conversion.b2iCipExamples
+    testGroup "Integer <-> ByteString conversions"
+        [ testGroup "Integer -> ByteString"
+            [ --- lengthOfByteString (integerToByteString e d 0) = d
+              testPropertyNamed "property 1" "i2b_prop1"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty1
+            , -- indexByteString (integerToByteString e k 0) j = 0
+              testPropertyNamed "property 2" "i2b_prop2"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty2
+            , -- lengthOfByteString (integerToByteString e 0 p) > 0
+              testPropertyNamed "property 3" "i2b_prop3"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.i2bProperty3
+            , -- integerToByteString False 0 (multiplyInteger p 256) = consByteString
+              -- 0 (integerToByteString False 0 p)
+              testPropertyNamed "property 4" "i2b_prop4"
+                . mapTestLimitAtLeast 50 (`div` 20) $ property Conversion.i2bProperty4
+            , -- integerToByteString True 0 (multiplyInteger p 256) = appendByteString
+              -- (integerToByteString True 0 p) (singleton 0)
+              testPropertyNamed "property 5" "i2b_prop5"
+              . mapTestLimitAtLeast 50 (`div` 20) $ property Conversion.i2bProperty5
+            , -- integerToByteString False 0 (plusInteger (multiplyInteger q 256) r) =
+              -- appendByteString (integerToByteString False 0 r) (integerToByteString False 0 q)
+              testPropertyNamed "property 6" "i2b_prop6"
+                . mapTestLimitAtLeast 50 (`div` 20) $ property Conversion.i2bProperty6
+            , -- integerToByteString True 0 (plusInteger (multiplyInteger q 256) r) =
+              -- appendByteString (integerToByteString False 0 q)
+              -- (integerToByteString False 0 r)
+              testPropertyNamed "property 7" "i2b_prop7"
+                . mapTestLimitAtLeast 50 (`div` 20) $ property Conversion.i2bProperty7
+            , testGroup "CIP-121 examples" Conversion.i2bCipExamples
+            , testGroup "Tests for integerToByteString size limit" Conversion.i2bLimitTests
+            ]
+        , testGroup "ByteString -> Integer"
+            [ -- byteStringToInteger b (integerToByteString b d q) = q
+              testPropertyNamed "property 1" "b2i_prop1"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.b2iProperty1
+            , -- byteStringToInteger b (consByteString w8 emptyByteString) = w8
+              testPropertyNamed "property 2" "b2i_prop2"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.b2iProperty2
+            , -- integerToByteString b (lengthOfByteString bs) (byteStringToInteger b bs) = bs
+              testPropertyNamed "property 3" "b2i_prop3"
+                . mapTestLimitAtLeast 99 (`div` 10) $ property Conversion.b2iProperty3
+            , testGroup "CIP-121 examples" Conversion.b2iCipExamples
+            ]
         ]
-      ]
 
--- Tests of the laws from [this
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md)
+-- Tests of the laws from [CIP-0123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 test_Bitwise :: TestTree
 test_Bitwise =
-  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 4000) .
-  testGroup "Bitwise" $ [
-    testGroup "shiftByteString" [
-      testGroup "homomorphism" Bitwise.shiftHomomorphism,
-      testPropertyNamed "shifts over bit length clear input" "shift_too_much"
-                        Bitwise.shiftClear,
-      testPropertyNamed "positive shifts clear low indexes" "shift_pos_low"
-                        Bitwise.shiftPosClearLow,
-      testPropertyNamed "negative shifts clear high indexes" "shift_neg_high"
-                        Bitwise.shiftNegClearHigh
-    ],
-  testGroup "rotateByteString" [
-      testGroup "homomorphism" Bitwise.rotateHomomorphism,
-      testPropertyNamed "rotations over bit length roll over" "rotate_too_much"
-                        Bitwise.rotateRollover,
-      testPropertyNamed "rotations move bits but don't change them" "rotate_move"
-                        Bitwise.rotateMoveBits
-    ],
-  testGroup "countSetBits" [
-      testGroup "homomorphism" Bitwise.csbHomomorphism,
-      testPropertyNamed "rotation preserves count" "popcount_rotate"
-                        Bitwise.csbRotate,
-      testPropertyNamed "count of the complement" "popcount_complement"
-                        Bitwise.csbComplement,
-      testPropertyNamed "inclusion-exclusion" "popcount_inclusion_exclusion"
-                        Bitwise.csbInclusionExclusion,
-      testPropertyNamed "count of self-XOR" "popcount_self_xor"
-                        Bitwise.csbXor
-    ],
-  testGroup "findFirstSetBit" [
-      testPropertyNamed "find first in zero bytestrings" "ffs_zero"
-                        Bitwise.ffsZero,
-      testPropertyNamed "find first in replicated" "ffs_replicate"
-                        Bitwise.ffsReplicate,
-      testPropertyNamed "find first of self-XOR" "ffs_xor"
-                        Bitwise.ffsXor,
-      testPropertyNamed "found index set, lower indices clear" "ffs_index"
-                        Bitwise.ffsIndex
-    ]
-  ]
+    testGroup "Bitwise"
+        [ testGroup "shiftByteString"
+            [ testGroup "homomorphism" Bitwise.shiftHomomorphism
+            , testPropertyNamed "shifts over bit length clear input" "shift_too_much" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.shiftClear
+            , testPropertyNamed "positive shifts clear low indexes" "shift_pos_low" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftPosClearLow
+            , testPropertyNamed "negative shifts clear high indexes" "shift_neg_high" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftNegClearHigh
+            , testPropertyNamed "shifts do not break when given minBound" "shift_min_bound" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftMinBound
+            ]
+        , testGroup "rotateByteString"
+            [ testGroup "homomorphism" Bitwise.rotateHomomorphism
+            , testPropertyNamed "rotations over bit length roll over" "rotate_too_much" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateRollover
+            , testPropertyNamed "rotations move bits but don't change them" "rotate_move" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateMoveBits
+            , testPropertyNamed "rotations do not break when given minBound" "rotate_min_bound" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateMinBound
+            ]
+        , testGroup "countSetBits"
+            [ testGroup "homomorphism" Bitwise.csbHomomorphism
+            , testPropertyNamed "rotation preserves count" "popcount_rotate" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.csbRotate
+            , testPropertyNamed "count of the complement" "popcount_complement" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.csbComplement
+            , testPropertyNamed "inclusion-exclusion" "popcount_inclusion_exclusion" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.csbInclusionExclusion
+            , testPropertyNamed "count of self-XOR" "popcount_self_xor" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.csbXor
+            ]
+        , testGroup "findFirstSetBit"
+            [ testPropertyNamed "find first in zero bytestrings" "ffs_zero" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsZero
+            , testPropertyNamed "find first in replicated" "ffs_replicate" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.ffsReplicate
+            , testPropertyNamed "find first of self-XOR" "ffs_xor" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsXor
+            , testPropertyNamed "found index set, lower indices clear" "ffs_index" $
+                mapTestLimitAtLeast 50 (`div` 20) Bitwise.ffsIndex
+            ]
+        ]
 
--- Tests for the logical operations, as per [CIP-122](https://github.com/mlabs-haskell/CIPs/blob/koz/logic-ops/CIP-0122/CIP-0122.md)
+-- Tests for the logical operations, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 test_Logical :: TestTree
 test_Logical =
-  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 2000) .
-  testGroup "Logical" $ [
-    testGroup "andByteString" [
-      Laws.abelianSemigroupLaws "truncation" PLC.AndByteString False,
-      Laws.idempotenceLaw "truncation" PLC.AndByteString False,
-      Laws.absorbtionLaw "truncation" PLC.AndByteString False "",
-      Laws.leftDistributiveLaw "truncation" "itself" PLC.AndByteString PLC.AndByteString False,
-      Laws.leftDistributiveLaw "truncation" "OR" PLC.AndByteString PLC.OrByteString False,
-      Laws.leftDistributiveLaw "truncation" "XOR" PLC.AndByteString PLC.XorByteString False,
-      Laws.abelianMonoidLaws "padding" PLC.AndByteString True "",
-      Laws.distributiveLaws "padding" PLC.AndByteString True
-      ],
-    testGroup "orByteString" [
-      Laws.abelianSemigroupLaws "truncation" PLC.OrByteString False,
-      Laws.idempotenceLaw "truncation" PLC.OrByteString False,
-      Laws.absorbtionLaw "truncation" PLC.OrByteString False "",
-      Laws.leftDistributiveLaw "truncation" "itself" PLC.OrByteString PLC.OrByteString False,
-      Laws.leftDistributiveLaw "truncation" "AND" PLC.OrByteString PLC.AndByteString False,
-      Laws.abelianMonoidLaws "padding" PLC.OrByteString True "",
-      Laws.distributiveLaws "padding" PLC.OrByteString True
-      ],
-    testGroup "xorByteString" [
-      Laws.abelianSemigroupLaws "truncation" PLC.XorByteString False,
-      Laws.absorbtionLaw "truncation" PLC.XorByteString False "",
-      Laws.xorInvoluteLaw,
-      Laws.abelianMonoidLaws "padding" PLC.XorByteString True ""
-      ],
-    testGroup "complementByteString" [
-      Laws.complementSelfInverse,
-      Laws.deMorgan
-      ],
-    testGroup "bit reading and modification" [
-      Laws.getSet,
-      Laws.setGet,
-      Laws.setSet,
-      Laws.writeBitsHomomorphismLaws
-      ],
-    testGroup "replicateByte" [
-      Laws.replicateHomomorphismLaws,
-      Laws.replicateIndex
-      ]
+  testGroup "Logical"
+    [ testGroup "andByteString"
+        [ Laws.abelianSemigroupLaws "truncation" PLC.AndByteString False
+        , Laws.idempotenceLaw "truncation" PLC.AndByteString False
+        , Laws.absorbtionLaw "truncation" PLC.AndByteString False ""
+        , Laws.leftDistributiveLaw "truncation" "itself" PLC.AndByteString PLC.AndByteString False
+        , Laws.leftDistributiveLaw "truncation" "OR" PLC.AndByteString PLC.OrByteString False
+        , Laws.leftDistributiveLaw "truncation" "XOR" PLC.AndByteString PLC.XorByteString False
+        , Laws.abelianMonoidLaws "padding" PLC.AndByteString True ""
+        , Laws.distributiveLaws "padding" PLC.AndByteString True
+        ]
+    , testGroup "orByteString"
+        [ Laws.abelianSemigroupLaws "truncation" PLC.OrByteString False
+        , Laws.idempotenceLaw "truncation" PLC.OrByteString False
+        , Laws.absorbtionLaw "truncation" PLC.OrByteString False ""
+        , Laws.leftDistributiveLaw "truncation" "itself" PLC.OrByteString PLC.OrByteString False
+        , Laws.leftDistributiveLaw "truncation" "AND" PLC.OrByteString PLC.AndByteString False
+        , Laws.abelianMonoidLaws "padding" PLC.OrByteString True ""
+        , Laws.distributiveLaws "padding" PLC.OrByteString True
+        ]
+    , testGroup "xorByteString"
+        [ Laws.abelianSemigroupLaws "truncation" PLC.XorByteString False
+        , Laws.absorbtionLaw "truncation" PLC.XorByteString False ""
+        , Laws.xorInvoluteLaw
+        , Laws.abelianMonoidLaws "padding" PLC.XorByteString True ""
+        ]
+    , testGroup "complementByteString"
+        [ Laws.complementSelfInverse
+        , Laws.deMorgan
+        ]
+    , testGroup "bit reading and modification"
+        [ Laws.getSet
+        , Laws.setGet
+        , Laws.setSet
+        , Laws.writeBitsHomomorphismLaws
+        ]
+    , testGroup "replicateByte"
+        [ Laws.replicateHomomorphismLaws
+        , Laws.replicateIndex
+        ]
     ]
 
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
-        [ test_Factorial
+        [ test_IntegerDistribution
+        , test_Factorial
         , test_ForallFortyTwo
         , test_Const
         , test_Id

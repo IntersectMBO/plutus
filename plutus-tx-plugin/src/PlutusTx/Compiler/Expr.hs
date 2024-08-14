@@ -23,6 +23,7 @@ import GHC.ByteCode.Types qualified as GHC
 import GHC.Core qualified as GHC
 import GHC.Core.Class qualified as GHC
 import GHC.Core.Multiplicity qualified as GHC
+import GHC.Core.TyCo.Rep qualified as GHC
 import GHC.Plugins qualified as GHC
 import GHC.Types.CostCentre qualified as GHC
 import GHC.Types.Id.Make qualified as GHC
@@ -35,6 +36,7 @@ import GHC.Tc.Utils.TcType qualified as GHC
 
 import PlutusTx.Bool qualified
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Builtins.Internal qualified as Builtins
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -61,6 +63,7 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Purity qualified as PIR
 
 import PlutusCore qualified as PLC
+import PlutusCore.Data qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PP
 import PlutusCore.Subst qualified as PLC
@@ -521,7 +524,7 @@ maybeProfileRhs var t = do
   CompileContext{ccOpts = compileOpts} <- ask
   let ty = PLC._varDeclType var
       varName = PLC._varDeclName var
-      displayName = T.pack $ PP.displayPlcDef varName
+      displayName = T.pack $ PP.displayPlc varName
       isFunctionOrAbstraction = case ty of PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False
   -- Trace only if profiling is on *and* the thing being defined is a function
   if coProfile compileOpts == All && isFunctionOrAbstraction
@@ -679,6 +682,22 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   -- See Note [Scopes]
   CompileContext{ccScope = scope, ccNameInfo = nameInfo, ccModBreaks = maybeModBreaks, ccBuiltinsInfo = binfo} <- ask
 
+  builtinIntegerTyCon <- case Map.lookup ''Builtins.BuiltinInteger nameInfo of
+    Just (GHC.ATyCon builtinInteger) -> pure builtinInteger
+    _                                -> throwPlain $ CompilationError "No info for Integer builtin"
+
+  builtinBoolTyCon <- case Map.lookup ''Builtins.BuiltinBool nameInfo of
+    Just (GHC.ATyCon builtinBool) -> pure builtinBool
+    _                             -> throwPlain $ CompilationError "No info for Bool builtin"
+
+  builtinDataTyCon <- case Map.lookup ''Builtins.BuiltinData nameInfo of
+    Just (GHC.ATyCon builtinData) -> pure builtinData
+    _                             -> throwPlain $ CompilationError "No info for Data builtin"
+
+  builtinPairTyCon <- case Map.lookup ''Builtins.BuiltinPair nameInfo of
+    Just (GHC.ATyCon builtinPair) -> pure builtinPair
+    _                             -> throwPlain $ CompilationError "No info for Pair builtin"
+
   -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
   (stringTyName, sbsName) <- case (Map.lookup ''Builtins.BuiltinString nameInfo, Map.lookup 'Builtins.stringToBuiltinString nameInfo) of
     (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
@@ -688,6 +707,9 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
     _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
+  useToOpaqueName <- GHC.getName <$> getThing 'Builtins.useToOpaque
+  useFromOpaqueName <- GHC.getName <$> getThing 'Builtins.useFromOpaque
+  mkNilOpaqueName <- GHC.getName <$> getThing 'Builtins.mkNilOpaque
   boolOperatorOr <- GHC.getName <$> getThing '(PlutusTx.Bool.||)
   boolOperatorAnd <- GHC.getName <$> getThing '(PlutusTx.Bool.&&)
   case e of
@@ -775,6 +797,23 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- <error func> <overall type> <message>
     GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
       PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
+    GHC.Var n `GHC.App` GHC.Type ty
+      | GHC.getName n == mkNilOpaqueName -> case ty of
+          GHC.TyConApp tyCon []
+            | tyCon == GHC.integerTyCon || tyCon == builtinIntegerTyCon ->
+                pure $ PLC.mkConstant annMayInline ([] @Integer)
+            | tyCon == builtinBoolTyCon -> pure $ PLC.mkConstant annMayInline ([] @Bool)
+            | tyCon == builtinDataTyCon -> pure $ PLC.mkConstant annMayInline ([] @PLC.Data)
+          GHC.TyConApp tyCon [GHC.TyConApp tyArg1 [], GHC.TyConApp tyArg2 []]
+            | (tyCon, tyArg1, tyArg2) == (builtinPairTyCon, builtinDataTyCon, builtinDataTyCon) ->
+                pure $ PLC.mkConstant annMayInline ([] @(PLC.Data, PLC.Data))
+          _ -> throwPlain $ CompilationError "'mkNil' applied to an unknown type"
+    GHC.Var n
+      | GHC.getName n == useToOpaqueName ->
+          throwPlain $ UnsupportedError "It is no longer possible to use 'toBuiltin' with a script, use 'toOpaque' instead"
+    GHC.Var n
+      | GHC.getName n == useFromOpaqueName ->
+          throwPlain $ UnsupportedError "It is no longer possible to use 'fromBuiltin' with a script, use 'fromOpaque' instead"
     -- See Note [Uses of Eq]
     GHC.Var n
       | GHC.getName n == GHC.eqName ->

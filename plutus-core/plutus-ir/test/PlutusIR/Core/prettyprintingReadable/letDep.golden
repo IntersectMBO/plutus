@@ -1,5 +1,5 @@
 let
-  !i_0 : integer = 3
-  !j_1 : integer = i_0
+  !i : integer = 3
+  !j : integer = i
 in
-j_1
+j

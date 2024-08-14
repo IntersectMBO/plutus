@@ -3,8 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
--- | Tests for [this
--- CIP](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-XXXX/CIP-XXXX.md)
+-- | Tests for [CIP-0123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 module Evaluation.Builtins.Bitwise (
   shiftHomomorphism,
   rotateHomomorphism,
@@ -21,22 +20,59 @@ module Evaluation.Builtins.Bitwise (
   ffsReplicate,
   ffsXor,
   ffsIndex,
-  ffsZero
+  ffsZero,
+  shiftMinBound,
+  rotateMinBound
   ) where
+
+import Evaluation.Helpers (assertEvaluatesToConstant, evaluateTheSame, evaluateToHaskell,
+                           evaluatesToConstant, forAllByteString, forAllByteStringThat)
+
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
+import PlutusCore.Test (mapTestLimitAtLeast)
 
 import Control.Monad (unless)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
-import Evaluation.Helpers (assertEvaluatesToConstant, evaluateTheSame, evaluateToHaskell,
-                           evaluatesToConstant, forAllByteString, forAllByteStringThat)
 import Hedgehog (Property, forAll, property)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore qualified as PLC
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (testCase)
+
+-- | If given 'Int' 'minBound' as an argument, rotations behave sensibly.
+rotateMinBound :: Property
+rotateMinBound = property $ do
+  bs <- forAllByteString 1 512
+  let bitLen = fromIntegral $ BS.length bs * 8
+  -- By the laws of rotations, we know that we can perform a modular reduction on
+  -- the argument and not change the result we get. Thus, we (via Integer) do
+  -- this exact reduction on minBound, then compare the result of running a
+  -- rotation using this reduced argument versus the actual argument.
+  let minBoundInt = fromIntegral (minBound :: Int)
+  let minBoundIntReduced = negate (abs minBoundInt `rem` bitLen)
+  let lhs = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () minBoundInt
+        ]
+  let rhs = mkIterAppNoAnn (builtin () PLC.RotateByteString) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () minBoundIntReduced
+        ]
+  evaluateTheSame lhs rhs
+
+-- | If given 'Int' 'minBound' as an argument, shifts behave sensibly.
+shiftMinBound :: Property
+shiftMinBound = property $ do
+  bs <- forAllByteString 0 512
+  let len = BS.length bs
+  let shiftExp = mkIterAppNoAnn (builtin () PLC.ShiftByteString) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () . fromIntegral $ (minBound :: Int)
+        ]
+  evaluatesToConstant @ByteString (BS.replicate len 0x00) shiftExp
 
 -- | Finding the first set bit in a bytestring with only zero bytes should always give -1.
 ffsZero :: Property
@@ -189,15 +225,18 @@ csbXor = property $ do
 -- shifts over a fixed bytestring argument.
 shiftHomomorphism :: [TestTree]
 shiftHomomorphism = [
-  testPropertyNamed "zero shift is identity" "zero_shift_id" idProp,
+  testPropertyNamed "zero shift is identity" "zero_shift_id" $
+    mapTestLimitAtLeast 99 (`div` 10) idProp,
   -- Because the homomorphism on shifts is more restrictive than on rotations (namely, it is for
   -- naturals and their negative equivalents, not integers), we separate the composition property
   -- into two: one dealing with non-negative, the other with non-positive. This helps a bit with
   -- coverage, as otherwise, we wouldn't necessarily cover both paths equally well, as we'd have to
   -- either discard mismatched signs (which are likely) or 'hack them in-place', which would skew
   -- distributions.
-  testPropertyNamed "non-negative addition of shifts is composition" "plus_shift_pos_comp" plusCompProp,
-  testPropertyNamed "non-positive addition of shifts is composition" "plus_shift_neg_comp" minusCompProp
+  testPropertyNamed "non-negative addition of shifts is composition" "plus_shift_pos_comp" $
+    mapTestLimitAtLeast 50 (`div` 20) plusCompProp,
+  testPropertyNamed "non-positive addition of shifts is composition" "plus_shift_neg_comp" $
+    mapTestLimitAtLeast 50 (`div` 20) minusCompProp
   ]
   where
     idProp :: Property
@@ -257,8 +296,10 @@ shiftHomomorphism = [
 -- rotations over a fixed bytestring argument.
 rotateHomomorphism :: [TestTree]
 rotateHomomorphism = [
-  testPropertyNamed "zero rotation is identity" "zero_rotate_id" idProp,
-  testPropertyNamed "addition of rotations is composition" "plus_rotate_comp" compProp
+  testPropertyNamed "zero rotation is identity" "zero_rotate_id" $
+    mapTestLimitAtLeast 99 (`div` 10) idProp,
+  testPropertyNamed "addition of rotations is composition" "plus_rotate_comp" $
+    mapTestLimitAtLeast 50 (`div` 20) compProp
   ]
   where
     idProp :: Property
@@ -301,7 +342,8 @@ csbHomomorphism = [
           mkConstant @ByteString () ""
           ]
     assertEvaluatesToConstant @Integer 0 lhs,
-  testPropertyNamed "count of concat is addition" "concat_count_plus" compProp
+  testPropertyNamed "count of concat is addition" "concat_count_plus" $
+    mapTestLimitAtLeast 50 (`div` 20) compProp
   ]
   where
     compProp :: Property

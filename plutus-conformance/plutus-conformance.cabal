@@ -40,15 +40,19 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies
 
+common os-support
+  if (impl(ghcjs) || os(windows))
+    buildable: False
+
 library
-  import:          lang
+  import:          lang, os-support
   hs-source-dirs:  src
   exposed-modules: PlutusConformance.Common
   build-depends:
     , base
     , directory
     , filepath
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.30
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.32
     , tasty
     , tasty-expected-failure
     , tasty-golden
@@ -62,7 +66,7 @@ library
 -- where you started.  To avoid this, only use `--accept` with
 -- haskell-conformance.
 test-suite haskell-conformance
-  import:         lang
+  import:         lang, os-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
@@ -71,10 +75,10 @@ test-suite haskell-conformance
   build-depends:
     , base                >=4.9   && <5
     , plutus-conformance
-    , plutus-core         ^>=1.30
+    , plutus-core         ^>=1.32
 
 test-suite haskell-steppable-conformance
-  import:         lang
+  import:         lang, os-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
@@ -84,10 +88,10 @@ test-suite haskell-steppable-conformance
     , base                >=4.9   && <5
     , lens
     , plutus-conformance
-    , plutus-core         ^>=1.30
+    , plutus-core         ^>=1.32
 
 test-suite agda-conformance
-  import:         lang
+  import:         lang, os-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
@@ -97,6 +101,6 @@ test-suite agda-conformance
     , aeson
     , base                >=4.9   && <5
     , plutus-conformance
-    , plutus-core         ^>=1.30
+    , plutus-core         ^>=1.32
     , plutus-metatheory
     , transformers

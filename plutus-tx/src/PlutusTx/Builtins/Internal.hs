@@ -254,6 +254,10 @@ blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b_256 b
 keccak_256 :: BuiltinByteString -> BuiltinByteString
 keccak_256 (BuiltinByteString b) = BuiltinByteString $ Hash.keccak_256 b
 
+{-# NOINLINE ripemd_160 #-}
+ripemd_160 :: BuiltinByteString -> BuiltinByteString
+ripemd_160 (BuiltinByteString b) = BuiltinByteString $ Hash.ripemd_160 b
+
 {-# NOINLINE verifyEd25519Signature #-}
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
@@ -693,7 +697,7 @@ integerToByteString
     -> BuiltinInteger
     -> BuiltinByteString
 integerToByteString (BuiltinBool endiannessArg) paddingArg input =
-  case Bitwise.integerToByteStringWrapper endiannessArg paddingArg input of
+  case Bitwise.integerToByteString endiannessArg paddingArg input of
     BuiltinSuccess bs              -> BuiltinByteString bs
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
     BuiltinFailure logs err        -> traceAll (logs <> pure (display err)) $
@@ -705,7 +709,7 @@ byteStringToInteger
     -> BuiltinByteString
     -> BuiltinInteger
 byteStringToInteger (BuiltinBool statedEndianness) (BuiltinByteString input) =
-  Bitwise.byteStringToIntegerWrapper statedEndianness input
+  Bitwise.byteStringToInteger statedEndianness input
 
 {-
 BITWISE
@@ -717,7 +721,7 @@ shiftByteString ::
   BuiltinInteger ->
   BuiltinByteString
 shiftByteString (BuiltinByteString bs) =
-  BuiltinByteString . Bitwise.shiftByteString bs . fromIntegral
+  BuiltinByteString . Bitwise.shiftByteString bs
 
 {-# NOINLINE rotateByteString #-}
 rotateByteString ::
@@ -725,7 +729,7 @@ rotateByteString ::
   BuiltinInteger ->
   BuiltinByteString
 rotateByteString (BuiltinByteString bs) =
-  BuiltinByteString . Bitwise.rotateByteString bs . fromIntegral
+  BuiltinByteString . Bitwise.rotateByteString bs
 
 {-# NOINLINE countSetBits #-}
 countSetBits ::
@@ -793,15 +797,15 @@ readBit (BuiltinByteString bs) i =
 {-# NOINLINE writeBits #-}
 writeBits ::
   BuiltinByteString ->
-  BuiltinList (BuiltinPair BuiltinInteger BuiltinBool) ->
+  BuiltinList BuiltinInteger ->
+  BuiltinList BuiltinBool ->
   BuiltinByteString
-writeBits (BuiltinByteString bs) (BuiltinList xs) =
-  let unwrapped = fmap (\(BuiltinPair (i, BuiltinBool b)) -> (i, b)) xs in
-    case Bitwise.writeBits bs unwrapped of
-      BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
-        Haskell.error "writeBits errored."
-      BuiltinSuccess bs' -> BuiltinByteString bs'
-      BuiltinSuccessWithLogs logs bs' -> traceAll logs $ BuiltinByteString bs'
+writeBits (BuiltinByteString bs) (BuiltinList ixes) (BuiltinList bits) =
+  case Bitwise.writeBits bs ixes (fmap (\(BuiltinBool b) -> b) bits) of
+    BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
+      Haskell.error "writeBits errored."
+    BuiltinSuccess bs' -> BuiltinByteString bs'
+    BuiltinSuccessWithLogs logs bs' -> traceAll logs $ BuiltinByteString bs'
 
 {-# NOINLINE replicateByte #-}
 replicateByte ::
@@ -809,7 +813,7 @@ replicateByte ::
   BuiltinInteger ->
   BuiltinByteString
 replicateByte n w8 =
-  case Bitwise.replicateByte (fromIntegral n) (fromIntegral w8) of
+  case Bitwise.replicateByte n (fromIntegral w8) of
     BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
       Haskell.error "byteStringReplicate errored."
     BuiltinSuccess bs -> BuiltinByteString bs

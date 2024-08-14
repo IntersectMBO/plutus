@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Normalization.Check ( test_normalizationCheck ) where
 
@@ -16,7 +17,7 @@ test_applyToValue =
                     (KindArrow () (Type ()) (Type ()))
                     (TyApp () datVar aVar)
                 )
-    in isNormalType ty @?= True
+    in isNormalType @DefaultUni ty @?= True
 
     where recVar = TyVar () (TyName (Name "rec" (Unique 0)))
           datVar = TyVar () datName

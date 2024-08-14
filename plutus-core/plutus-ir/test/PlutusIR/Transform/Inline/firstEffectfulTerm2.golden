@@ -1,9 +1,4 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl a (fun (con integer) (con integer)))
-    (error (fun (con integer) (con integer)))
-  )
-  [ a [ (lam x (con integer) x) (error (con integer)) ] ]
-)
+let
+  !a : integer -> integer = error {integer -> integer}
+in
+a ((\(x : integer) -> x) (error {integer}))

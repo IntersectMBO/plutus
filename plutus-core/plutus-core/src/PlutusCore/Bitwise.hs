@@ -7,25 +7,21 @@
 -- | Implementations for CIP-121, CIP-122 and CIP-123. Grouped because they all operate on
 -- 'ByteString's, and require similar functionality.
 module PlutusCore.Bitwise (
-  -- * Wrappers
-  integerToByteStringWrapper,
-  byteStringToIntegerWrapper,
-  -- * Implementation details
-  IntegerToByteStringError (..),
-  integerToByteStringMaximumOutputLength,
   integerToByteString,
   byteStringToInteger,
   andByteString,
   orByteString,
   xorByteString,
   complementByteString,
+  shiftByteString,
+  rotateByteString,
   readBit,
   writeBits,
   replicateByte,
-  shiftByteString,
-  rotateByteString,
   countSetBits,
-  findFirstSetBit
+  findFirstSetBit,
+  IntegerToByteStringError (..),
+  maximumOutputLength
   ) where
 
 import PlutusCore.Builtin (BuiltinResult, emit)
@@ -40,7 +36,7 @@ import Data.Bits qualified as Bits
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Internal qualified as BSI
-import Data.Foldable (for_, traverse_)
+import Data.Foldable (for_)
 import Data.Text (pack)
 import Data.Word (Word64, Word8)
 import Foreign.Marshal.Utils (copyBytes, fillBytes)
@@ -51,20 +47,17 @@ import GHC.Exts (Int (I#))
 import GHC.Integer.Logarithms (integerLog2#)
 import GHC.IO.Unsafe (unsafeDupablePerformIO)
 
-{- Note [Input length limitation for IntegerToByteString].  We make
-   `integerToByteString` fail if it is called with arguments which would cause
-   the length of the result to exceed about 8K bytes because the execution time
-   becomes difficult to predict accurately beyond this point (benchmarks on a
-   number of different machines show that the CPU time increases smoothly for
-   inputs up to about 8K then increases sharply, becoming chaotic after about
-   14K).  This restriction may be removed once a more efficient implementation
-   becomes available, which may happen when we no longer have to support GHC
-   8.10. -}
-{- NB: if we do relax the length restriction then we will need two variants of
-   integerToByteString in Plutus Core so that we can continue to support the
-   current behaviour for old scripts.-}
-integerToByteStringMaximumOutputLength :: Integer
-integerToByteStringMaximumOutputLength = 8192
+{- Note [Input length limitation for IntegerToByteString].
+We make `integerToByteString` and `replicateByte` fail if they're called with arguments which would
+cause the length of the result to exceed about 8K bytes because the execution time becomes difficult
+to predict accurately beyond this point (benchmarks on a number of different machines show that the
+CPU time increases smoothly for inputs up to about 8K then increases sharply, becoming chaotic after
+about 14K).  This restriction may be removed once a more efficient implementation becomes available,
+which may happen when we no longer have to support GHC 8.10. -}
+{- NB: if we do relax the length restriction then we will need two variants of integerToByteString in
+   Plutus Core so that we can continue to support the current behaviour for old scripts.-}
+maximumOutputLength :: Integer
+maximumOutputLength = 8192
 
 {- Return the base 2 logarithm of an integer, returning 0 for inputs that aren't
    strictly positive.  This is essentially copied from GHC.Num.Integer, which
@@ -73,9 +66,9 @@ integerToByteStringMaximumOutputLength = 8192
 integerLog2 :: Integer -> Int
 integerLog2 !i = I# (integerLog2# i)
 
--- | Wrapper for 'integerToByteString' to make it more convenient to define as a builtin.
-integerToByteStringWrapper :: Bool -> Integer -> Integer -> BuiltinResult ByteString
-integerToByteStringWrapper endiannessArg lengthArg input
+-- | Wrapper for 'unsafeIntegerToByteString' to make it more convenient to define as a builtin.
+integerToByteString :: Bool -> Integer -> Integer -> BuiltinResult ByteString
+integerToByteString endiannessArg lengthArg input
   -- Check that the length is non-negative.
   | lengthArg < 0 = do
       emit "integerToByteString: negative length argument"
@@ -83,9 +76,9 @@ integerToByteStringWrapper endiannessArg lengthArg input
       evaluationFailure
   -- Check that the requested length does not exceed the limit.  *NB*: if we remove the limit we'll
   -- still have to make sure that the length fits into an Int.
-  | lengthArg > integerToByteStringMaximumOutputLength = do
+  | lengthArg > maximumOutputLength = do
       emit . pack $ "integerToByteString: requested length is too long (maximum is "
-               ++ show integerToByteStringMaximumOutputLength
+               ++ show maximumOutputLength
                ++ " bytes)"
       emit $ "Length requested: " <> (pack . show $ lengthArg)
       evaluationFailure
@@ -94,12 +87,12 @@ integerToByteStringWrapper endiannessArg lengthArg input
   -- limit.  If the requested length is nonzero and less than the limit,
   -- integerToByteString checks that the input fits.
   | lengthArg == 0 -- integerLog2 n is one less than the number of significant bits in n
-       && fromIntegral (integerLog2 input) >= 8 * integerToByteStringMaximumOutputLength =
+       && fromIntegral (integerLog2 input) >= 8 * maximumOutputLength =
     let bytesRequiredFor n = integerLog2 n `div` 8 + 1
         -- ^ This gives 1 instead of 0 for n=0, but we'll never get that.
     in do
       emit . pack $ "integerToByteString: input too long (maximum is 2^"
-               ++ show (8 * integerToByteStringMaximumOutputLength)
+               ++ show (8 * maximumOutputLength)
                ++ "-1)"
       emit $ "Length required: " <> (pack . show $ bytesRequiredFor input)
       evaluationFailure
@@ -107,7 +100,7 @@ integerToByteStringWrapper endiannessArg lengthArg input
     -- We use fromIntegral here, despite advice to the contrary in general when defining builtin
     -- denotations. This is because, if we've made it this far, we know that overflow or truncation
     -- are impossible: we've checked that whatever we got given fits inside a (non-negative) Int.
-    case integerToByteString endianness (fromIntegral lengthArg) input of
+    case unsafeIntegerToByteString endianness (fromIntegral lengthArg) input of
       Left err -> case err of
         NegativeInput -> do
           emit "integerToByteString: cannot convert negative Integer"
@@ -124,12 +117,9 @@ integerToByteStringWrapper endiannessArg lengthArg input
           evaluationFailure
       Right result -> pure result
 
--- | Wrapper for 'byteStringToInteger' to make it more convenient to define as a builtin.
-byteStringToIntegerWrapper ::
-  Bool -> ByteString -> Integer
-byteStringToIntegerWrapper statedEndiannessArg input =
-  let endianness = endiannessArgToByteOrder statedEndiannessArg in
-    byteStringToInteger endianness input
+-- | Conversion from 'Integer' to 'ByteString', as per
+-- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
+--
 
 -- | Structured type to help indicate conversion errors.
 data IntegerToByteStringError =
@@ -137,13 +127,14 @@ data IntegerToByteStringError =
   NotEnoughDigits
   deriving stock (Eq, Show)
 
--- | Conversion from 'Integer' to 'ByteString', as per
--- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
---
+endiannessArgToByteOrder :: Bool -> ByteOrder
+endiannessArgToByteOrder b = if b then BigEndian else LittleEndian
+
 -- For performance and clarity, the endianness argument uses
 -- 'ByteOrder', and the length argument is an 'Int'.
-integerToByteString :: ByteOrder -> Int -> Integer -> Either IntegerToByteStringError ByteString
-integerToByteString requestedByteOrder requestedLength input
+-- This may not actually be unsafe, but it shouldn't be used outside this module.
+unsafeIntegerToByteString :: ByteOrder -> Int -> Integer -> Either IntegerToByteStringError ByteString
+unsafeIntegerToByteString requestedByteOrder requestedLength input
   | input < 0 = Left NegativeInput
   | input == 0 = Right . BS.replicate requestedLength $ 0x00
   -- We use manual specialization to ensure as few branches in loop bodies as
@@ -253,12 +244,20 @@ integerToByteString requestedByteOrder requestedLength input
 
 -- | Conversion from 'ByteString' to 'Integer', as per
 -- [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
---
+
+-- | Wrapper for 'unsafeByteStringToInteger' to make it more convenient to define as a builtin.
+byteStringToInteger ::
+  Bool -> ByteString -> Integer
+byteStringToInteger statedEndiannessArg input =
+  let endianness = endiannessArgToByteOrder statedEndiannessArg in
+    unsafeByteStringToInteger endianness input
+
 -- For clarity, the stated endianness argument uses 'ByteOrder'.
-byteStringToInteger :: ByteOrder -> ByteString -> Integer
+-- This function may not actually be unsafe, but it shouldn't be used outside this module.
+unsafeByteStringToInteger :: ByteOrder -> ByteString -> Integer
   -- We use manual specialization to ensure as few branches in loop bodies as we can. See Note
   -- [Manual specialization] for details.
-byteStringToInteger statedByteOrder input = case statedByteOrder of
+unsafeByteStringToInteger statedByteOrder input = case statedByteOrder of
     -- Since padding bytes in the most-significant-last representation go at
     -- the end of the input, we can skip decoding them, as they won't affect
     -- the result in any way.
@@ -351,9 +350,6 @@ byteStringToInteger statedByteOrder input = case statedByteOrder of
         .|. (fromIntegral (BS.index input (endIx - 5)) `unsafeShiftL` 40)
         .|. (fromIntegral (BS.index input (endIx - 6)) `unsafeShiftL` 48)
         .|. (fromIntegral (BS.index input (endIx - 7)) `unsafeShiftL` 56)
-
-endiannessArgToByteOrder :: Bool -> ByteOrder
-endiannessArgToByteOrder b = if b then BigEndian else LittleEndian
 
 {- Note [Binary bitwise operation implementation and manual specialization]
 
@@ -557,8 +553,8 @@ readBit bs ix
 
 -- | Bulk bit write, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 {-# INLINEABLE writeBits #-}
-writeBits :: ByteString -> [(Integer, Bool)] -> BuiltinResult ByteString
-writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
+writeBits :: ByteString -> [Integer] -> [Bool] -> BuiltinResult ByteString
+writeBits bs ixs bits = case unsafeDupablePerformIO . try $ go of
   Left (WriteBitsException i) -> do
     emit "writeBits: index out of bounds"
     emit $ "Index: " <> (pack . show $ i)
@@ -569,15 +565,19 @@ writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
     -- exceptions], which covers why we did this.
     go :: IO ByteString
     go = BS.useAsCString bs $ \srcPtr ->
-          BSI.create len $ \dstPtr -> do
-            copyBytes dstPtr (castPtr srcPtr) len
-            traverse_ (setAtIx dstPtr) changelist
+          BSI.create len $
+            \dstPtr ->
+              let go2 (i:is) (v:vs) = setAtIx dstPtr i v *> go2 is vs
+                  go2 _ _           = pure ()
+              in do
+                copyBytes dstPtr (castPtr srcPtr) len
+                go2 ixs bits
     len :: Int
     len = BS.length bs
     bitLen :: Integer
     bitLen = fromIntegral len * 8
-    setAtIx :: Ptr Word8 -> (Integer, Bool) -> IO ()
-    setAtIx ptr (i, b)
+    setAtIx :: Ptr Word8 -> Integer -> Bool -> IO ()
+    setAtIx ptr i b
       | i < 0 = throw $ WriteBitsException i
       | i >= bitLen = throw $ WriteBitsException i
       | otherwise = do
@@ -588,14 +588,64 @@ writeBits bs changelist = case unsafeDupablePerformIO . try $ go of
                         then Bits.setBit w8 . fromIntegral $ littleIx
                         else Bits.clearBit w8 . fromIntegral $ littleIx
           pokeByteOff ptr flipIx toWrite
+    {-# INLINEABLE setAtIx #-}
 
 -- | Byte replication, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
-replicateByte :: Int -> Word8 -> BuiltinResult ByteString
+-- We want to cautious about the allocation of huge amounts of memory so we
+-- impose the same length limit that's used in integerToByteString.
+replicateByte :: Integer -> Word8 -> BuiltinResult ByteString
 replicateByte len w8
   | len < 0 = do
       emit "replicateByte: negative length requested"
       evaluationFailure
-  | otherwise = pure . BS.replicate len $ w8
+  | len > maximumOutputLength = do
+      emit . pack $ "replicateByte: requested length is too long (maximum is "
+               ++ show maximumOutputLength
+               ++ " bytes)"
+      emit $ "Length requested: " <> (pack . show $ len)
+      evaluationFailure
+  | otherwise = pure . BS.replicate (fromIntegral len) $ w8
+
+-- | Wrapper for calling 'unsafesShiftByteString' safely. Specifically, we avoid various edge cases:
+--
+-- * Empty 'ByteString's and zero moves don't do anything
+-- * Bit moves whose absolute value is larger than the bit length produce all-zeroes
+--
+-- This also ensures we don't accidentally hit integer overflow issues.
+shiftByteString :: ByteString -> Integer -> ByteString
+shiftByteString bs bitMove
+  | BS.null bs = bs
+  | bitMove == 0 = bs
+  | otherwise = let len = BS.length bs
+                    bitLen = fromIntegral $ 8 * len
+                  in if abs bitMove >= bitLen
+                     then BS.replicate len 0x00
+                     -- fromIntegral is safe to use here, as the only way this
+                     -- could overflow (or underflow) an Int is if we had a
+                     -- ByteString onchain that was over 30 petabytes in size.
+                     else unsafeShiftByteString bs (fromIntegral bitMove)
+
+-- | Wrapper for calling 'unsafeRotateByteString' safely. Specifically, we avoid various edge cases:
+--
+-- * Empty 'ByteString's and zero moves don't do anything
+-- * Bit moves whose absolute value is larger than the bit length are reduced modulo the length
+--
+-- Furthermore, we can convert all rotations into positive rotations, by noting that a rotation by @b@
+-- is the same as a rotation by @b `mod` bitLen@, where @bitLen@ is the length of the 'ByteString'
+-- argument in bits. This value is always non-negative, and if we get 0, we have nothing to do. This
+-- reduction also helps us avoid integer overflow issues.
+rotateByteString :: ByteString -> Integer -> ByteString
+rotateByteString bs bitMove
+  | BS.null bs = bs
+  | otherwise = let bitLen = fromIntegral $ 8 * BS.length bs
+                    -- This is guaranteed non-negative
+                    reducedBitMove = bitMove `mod` bitLen
+                  in if reducedBitMove == 0
+                     then bs
+                     -- fromIntegral is safe to use here since for a bytestring to have a
+                     -- size that doesn't fit into an `Int` it would have to have a size
+                     -- exceeding something like 37 petabytes.
+                     else unsafeRotateByteString bs (fromIntegral reducedBitMove)
 
 {- Note [Shift and rotation implementation]
 
@@ -651,12 +701,10 @@ benefit: if the requested rotation or shift happens to be an exact multiple
 of 8, we can be _much_ faster, as Step 2 becomes unnecessary in that case.
 -}
 
--- | Shifts, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
-shiftByteString :: ByteString -> Int -> ByteString
-shiftByteString bs bitMove
-  | BS.null bs = bs
-  | bitMove == 0 = bs
-  | otherwise = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
+-- | Shifts, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+-- This may not actually be unsafe, but it shouldn't be used outside this module.
+unsafeShiftByteString :: ByteString -> Int -> ByteString
+unsafeShiftByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
       BSI.create len $ \dstPtr -> do
         -- To simplify our calculations, we work only with absolute values,
         -- letting different functions control for direction, instead of
@@ -723,68 +771,31 @@ shiftByteString bs bitMove
         !(lastByte :: Word8) <- peekByteOff dstPtr (copyLen - 1)
         pokeByteOff dstPtr (copyLen - 1) (lastByte `Bits.unsafeShiftL` smallShift)
 
--- | Rotations, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
-rotateByteString :: ByteString -> Int -> ByteString
-rotateByteString bs bitMove
-  | BS.null bs = bs
-  | otherwise =
-      -- To save ourselves some trouble, we work only with absolute rotations
-      -- (letting argument sign handle dispatch to dedicated 'directional'
-      -- functions, like for shifts), and also simplify rotations larger than
-      -- the bit length to the equivalent value modulo the bit length, as
-      -- they're equivalent.
-      let !magnitude = abs bitMove
-          !reducedMagnitude = magnitude `rem` bitLen
-       in if reducedMagnitude == 0
-            then bs
-            else unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
-              BSI.create len $ \dstPtr -> do
-                let (bigRotation, smallRotation) = reducedMagnitude `quotRem` 8
-                case signum bitMove of
-                  (-1) -> negativeRotate (castPtr srcPtr) dstPtr bigRotation smallRotation
-                  _    -> positiveRotate (castPtr srcPtr) dstPtr bigRotation smallRotation
+-- | Rotations, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
+-- This is defintely unsafe: calling it with bitMove = minBound::Int can cause a
+-- segmentation fault.  It must not be used outside this module.
+unsafeRotateByteString :: ByteString -> Int -> ByteString
+unsafeRotateByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
+  BSI.create len $ \dstPtr -> do
+    -- The move is guaranteed positive and reduced already. Thus, unlike for
+    -- shifts, we don't need two variants for different directions.
+    let (bigRotation, smallRotation) = bitMove `quotRem` 8
+    go (castPtr srcPtr) dstPtr bigRotation smallRotation
   where
     len :: Int
     !len = BS.length bs
-    bitLen :: Int
-    !bitLen = len * 8
-    negativeRotate :: Ptr Word8 -> Ptr Word8 -> Int -> Int -> IO ()
-    negativeRotate srcPtr dstPtr bigRotate smallRotate = do
+    go :: Ptr Word8 -> Ptr Word8 -> Int -> Int -> IO ()
+    go srcPtr dstPtr bigRotate smallRotate = do
       -- Two partial copies are needed here, unlike with shifts, because
       -- there's no point zeroing our data, since it'll all be overwritten
       -- with stuff from the input anyway.
-      let copyStartDstPtr = plusPtr dstPtr bigRotate
-      let copyStartLen = len - bigRotate
-      copyBytes copyStartDstPtr srcPtr copyStartLen
-      let copyEndSrcPtr = plusPtr srcPtr copyStartLen
-      copyBytes dstPtr copyEndSrcPtr bigRotate
-      when (smallRotate > 0) $ do
-        -- This works similarly as for shifts.
-        let invSmallRotate = 8 - smallRotate
-        let !mask = 0xFF `Bits.unsafeShiftR` invSmallRotate
-        !(cloneLastByte :: Word8) <- peekByteOff dstPtr (len - 1)
-        for_ [len - 1, len - 2 .. 1] $ \byteIx -> do
-          !(currentByte :: Word8) <- peekByteOff dstPtr byteIx
-          !(prevByte :: Word8) <- peekByteOff dstPtr (byteIx - 1)
-          let !prevOverflowBits = prevByte Bits..&. mask
-          let !newCurrentByte =
-                (currentByte `Bits.unsafeShiftR` smallRotate)
-                  Bits..|. (prevOverflowBits `Bits.unsafeShiftL` invSmallRotate)
-          pokeByteOff dstPtr byteIx newCurrentByte
-        !(firstByte :: Word8) <- peekByteOff dstPtr 0
-        let !lastByteOverflow = cloneLastByte Bits..&. mask
-        let !newLastByte =
-              (firstByte `Bits.unsafeShiftR` smallRotate)
-                Bits..|. (lastByteOverflow `Bits.unsafeShiftL` invSmallRotate)
-        pokeByteOff dstPtr 0 newLastByte
-    positiveRotate :: Ptr Word8 -> Ptr Word8 -> Int -> Int -> IO ()
-    positiveRotate srcPtr dstPtr bigRotate smallRotate = do
       let copyStartSrcPtr = plusPtr srcPtr bigRotate
       let copyStartLen = len - bigRotate
       copyBytes dstPtr copyStartSrcPtr copyStartLen
       let copyEndDstPtr = plusPtr dstPtr copyStartLen
       copyBytes copyEndDstPtr srcPtr bigRotate
       when (smallRotate > 0) $ do
+        -- This works similarly to shifts
         let !invSmallRotate = 8 - smallRotate
         let !mask = 0xFF `Bits.unsafeShiftL` invSmallRotate
         !(cloneFirstByte :: Word8) <- peekByteOff dstPtr 0
@@ -803,7 +814,7 @@ rotateByteString bs bitMove
                 Bits..|. (firstOverflowBits `Bits.unsafeShiftR` invSmallRotate)
         pokeByteOff dstPtr (len - 1) newLastByte
 
--- | Counting the number of set bits, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Counting the number of set bits, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 countSetBits :: ByteString -> Int
 countSetBits bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
   -- See Note [Loop sectioning] for details of why we
@@ -837,7 +848,7 @@ countSetBits bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
           !w8 <- peekElemOff smallSrcPtr smallIx
           goSmall smallSrcPtr (acc + Bits.popCount w8) (smallIx + 1)
 
--- | Finding the first set bit's index, as per [CIP-123](https://github.com/mlabs-haskell/CIPs/blob/koz/bitwise/CIP-0123/README.md).
+-- | Finding the first set bit's index, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 findFirstSetBit :: ByteString -> Int
 findFirstSetBit bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
   let bigSrcPtr :: Ptr Word64 = castPtr srcPtr

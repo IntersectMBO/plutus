@@ -17,7 +17,7 @@ open import Data.Integer.Show using (show)
 open import Data.Product using (Σ) renaming (_,_ to _,,_)
 open import Data.Bool using (Bool)
 open import Data.List using (List)
-open import Data.Empty using (⊥) 
+open import Data.Empty using (⊥)
 
 open import Type using (Ctx⋆;∅;_,⋆_)
 open import Check using (TypeError;inferType;inferKind;decKind;checkKind;checkType)
@@ -115,7 +115,7 @@ data Command (A : Set) : Set where
 {-# FOREIGN GHC import PlutusCore.Executable.Common  #-}
 {-# FOREIGN GHC import PlutusCore.Executable.Parsers #-}
 
-postulate 
+postulate
    execP : IO (Command RawCostModel)
    parse : Format → Input → IO ProgramN
    parseU : Format → Input → IO ProgramNU

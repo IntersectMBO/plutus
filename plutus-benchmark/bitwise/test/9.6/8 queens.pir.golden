@@ -1,0 +1,253 @@
+(let
+    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+      Tuple2 : a -> b -> Tuple2 a b
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
+  in
+  letrec
+    !selectByteString : integer -> bytestring -> integer
+      = \(which : integer) (bs : bytestring) ->
+          Bool_match
+            (ifThenElse {Bool} (lessThanEqualsInteger which 0) True False)
+            {all dead. integer}
+            (/\dead -> findFirstSetBit bs)
+            (/\dead ->
+               let
+                 !i : integer = selectByteString (subtractInteger which 1) bs
+               in
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger -1 i) True False)
+                 {all dead. integer}
+                 (/\dead -> -1)
+                 (/\dead ->
+                    addInteger
+                      (addInteger 1 i)
+                      (findFirstSetBit
+                         (shiftByteString
+                            bs
+                            (subtractInteger 0 (addInteger 1 i)))))
+                 {all dead. dead})
+            {all dead. dead}
+  in
+  letrec
+    data (List :: * -> *) a | List_match where
+      Nil : List a
+      Cons : a -> List a -> List a
+  in
+  letrec
+    !goList : List Bool -> list bool
+      = \(ds : List Bool) ->
+          List_match
+            {Bool}
+            ds
+            {list bool}
+            []
+            (\(d : Bool) (ds : List Bool) ->
+               mkCons
+                 {bool}
+                 (Bool_match
+                    d
+                    {all dead. bool}
+                    (/\dead -> True)
+                    (/\dead -> False)
+                    {all dead. dead})
+                 (goList ds))
+  in
+  letrec
+    !goList : List integer -> list integer
+      = \(ds : List integer) ->
+          List_match
+            {integer}
+            ds
+            {list integer}
+            []
+            (\(d : integer) (ds : List integer) ->
+               mkCons {integer} d (goList ds))
+  in
+  let
+    !writeBits : bytestring -> List integer -> List Bool -> bytestring
+      = \(bs : bytestring) (ixes : List integer) (bits : List Bool) ->
+          writeBits bs (goList ixes) (goList bits)
+  in
+  \(dim : data) ->
+    let
+      !dim : integer = unIData dim
+      !lastRow : integer = subtractInteger dim 1
+    in
+    letrec
+      !go :
+         integer ->
+         integer ->
+         bytestring ->
+         bytestring ->
+         bytestring ->
+         bytestring ->
+         List (Tuple2 integer integer)
+        = \(selectIx : integer)
+           (row : integer)
+           (down : bytestring)
+           (left : bytestring)
+           (right : bytestring)
+           (control : bytestring) ->
+            Bool_match
+              (ifThenElse {Bool} (equalsInteger selectIx dim) True False)
+              {all dead. List (Tuple2 integer integer)}
+              (/\dead -> Nil {Tuple2 integer integer})
+              (/\dead ->
+                 let
+                   !available : integer = selectByteString selectIx control
+                 in
+                 Bool_match
+                   (ifThenElse {Bool} (equalsInteger -1 available) True False)
+                   {all dead. List (Tuple2 integer integer)}
+                   (/\dead -> Nil {Tuple2 integer integer})
+                   (/\dead ->
+                      Bool_match
+                        (ifThenElse
+                           {Bool}
+                           (equalsInteger row lastRow)
+                           True
+                           False)
+                        {all dead. List (Tuple2 integer integer)}
+                        (/\dead ->
+                           (let
+                               a = Tuple2 integer integer
+                             in
+                             \(g : all b. (a -> b -> b) -> b -> b) ->
+                               g
+                                 {List a}
+                                 (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                                 (Nil {a}))
+                             (/\a ->
+                                \(c : Tuple2 integer integer -> a -> a)
+                                 (n : a) ->
+                                  c
+                                    (Tuple2 {integer} {integer} row available)
+                                    n))
+                        (/\dead ->
+                           let
+                             !newRow : integer = addInteger 1 row
+                             !newRight : bytestring
+                               = shiftByteString
+                                   (writeBits
+                                      right
+                                      ((let
+                                           a = List integer
+                                         in
+                                         \(c : integer -> a -> a) (n : a) ->
+                                           c available n)
+                                         (\(ds : integer) (ds : List integer) ->
+                                            Cons {integer} ds ds)
+                                         (Nil {integer}))
+                                      ((let
+                                           a = List Bool
+                                         in
+                                         \(c : Bool -> a -> a) (n : a) ->
+                                           c True n)
+                                         (\(ds : Bool) (ds : List Bool) ->
+                                            Cons {Bool} ds ds)
+                                         (Nil {Bool})))
+                                   -1
+                             !newLeft : bytestring
+                               = shiftByteString
+                                   (writeBits
+                                      left
+                                      ((let
+                                           a = List integer
+                                         in
+                                         \(c : integer -> a -> a) (n : a) ->
+                                           c available n)
+                                         (\(ds : integer) (ds : List integer) ->
+                                            Cons {integer} ds ds)
+                                         (Nil {integer}))
+                                      ((let
+                                           a = List Bool
+                                         in
+                                         \(c : Bool -> a -> a) (n : a) ->
+                                           c True n)
+                                         (\(ds : Bool) (ds : List Bool) ->
+                                            Cons {Bool} ds ds)
+                                         (Nil {Bool})))
+                                   1
+                             !newDown : bytestring
+                               = writeBits
+                                   down
+                                   ((let
+                                        a = List integer
+                                      in
+                                      \(c : integer -> a -> a) (n : a) ->
+                                        c available n)
+                                      (\(ds : integer) (ds : List integer) ->
+                                         Cons {integer} ds ds)
+                                      (Nil {integer}))
+                                   ((let
+                                        a = List Bool
+                                      in
+                                      \(c : Bool -> a -> a) (n : a) -> c True n)
+                                      (\(ds : Bool) (ds : List Bool) ->
+                                         Cons {Bool} ds ds)
+                                      (Nil {Bool}))
+                             !newControl : bytestring
+                               = complementByteString
+                                   (orByteString
+                                      False
+                                      newDown
+                                      (orByteString False newLeft newRight))
+                           in
+                           List_match
+                             {Tuple2 integer integer}
+                             (go 0 newRow newDown newLeft newRight newControl)
+                             {all dead. List (Tuple2 integer integer)}
+                             (/\dead ->
+                                go
+                                  (addInteger 1 selectIx)
+                                  row
+                                  down
+                                  left
+                                  right
+                                  control)
+                             (\(ipv : Tuple2 integer integer)
+                               (ipv : List (Tuple2 integer integer)) ->
+                                /\dead ->
+                                  Cons
+                                    {Tuple2 integer integer}
+                                    (Tuple2 {integer} {integer} row available)
+                                    (go
+                                       0
+                                       newRow
+                                       newDown
+                                       newLeft
+                                       newRight
+                                       newControl))
+                             {all dead. dead})
+                        {all dead. dead})
+                   {all dead. dead})
+              {all dead. dead}
+    in
+    let
+      !bytesNeeded : integer = quotientInteger dim 8
+    in
+    Bool_match
+      (ifThenElse {Bool} (lessThanInteger dim 8) True False)
+      {all dead. List (Tuple2 integer integer)}
+      (/\dead -> Nil {Tuple2 integer integer})
+      (/\dead ->
+         Bool_match
+           (ifThenElse
+              {Bool}
+              (equalsInteger 0 (remainderInteger dim 8))
+              True
+              False)
+           {all dead. List (Tuple2 integer integer)}
+           (/\dead ->
+              let
+                !right : bytestring = replicateByte bytesNeeded 0
+                !left : bytestring = replicateByte bytesNeeded 0
+                !down : bytestring = replicateByte bytesNeeded 0
+              in
+              go 0 0 down left right (replicateByte bytesNeeded 255))
+           (/\dead -> Nil {Tuple2 integer integer})
+           {all dead. dead})
+      {all dead. dead})
+  (I 8)

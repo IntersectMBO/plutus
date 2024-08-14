@@ -64,7 +64,7 @@ From <http://lucacardelli.name/Papers/Notes/scott2.pdf>
     N = G M
     in  : N → M
     out : M → N
-    
+
     0    = Λ R . λ x : R . λ y : M → R . x
          : N
     succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
@@ -80,22 +80,22 @@ From <http://lucacardelli.name/Papers/Notes/scott2.pdf>
 module ScottE where
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
   G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
-  
+
   M : ∀{Γ} → Γ ⊢⋆ *
   M = μ G
-  
+
   N : ∀{Γ} → Γ ⊢⋆ *
   N  =  G ⋆.[ M ]
-  
+
   Zero : ∀{Γ} → Γ ⊢ N
   Zero = Λ (ƛ (ƛ (` (S (Z )))))
-  
+
   Succ : ∀{Γ} → Γ ⊢ N ⇒ N
   Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap G • (` (S (S (T Z)))) refl))))
-  
+
   One : ∀{Γ} → Γ ⊢ N
   One = Succ · Zero
-  
+
   Two : ∀{Γ} → Γ ⊢ N
   Two = Succ · One
 
@@ -110,7 +110,7 @@ module ScottE where
 
   -- Y : (a -> a) -> a
   -- Y f = (\x. f (x x)) (\x. f (x x))
-  -- Y f = (\x : mu x. x -> a. f (x x)) (\x : mu x. x -> a. f (x x)) 
+  -- Y f = (\x : mu x. x -> a. f (x x)) (\x : mu x. x -> a. f (x x))
 
   Y-comb : ∀{Γ} → Γ ⊢ Π ((` Z ⇒ ` Z) ⇒ ` Z)
   Y-comb = Λ (ƛ ((ƛ (` (S Z) · (unwrap • refl (` Z) · (` Z)))) · wrap (` Z ⇒ ` (S Z)) • (ƛ (` (S Z) · (unwrap • refl (` Z) · (` Z)))) refl ))
@@ -189,10 +189,10 @@ eval (gas 10000000) Scott.Two
 ```
 module Scott1 where
   open import Declarative.Examples.StdLib.Nat
-  
+
   One : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   One = Succ · Zero
-  
+
   Two : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   Two = Succ · One
 
@@ -224,7 +224,7 @@ module Scott1 where
 ```
 module Church where
   open Declarative.Examples.StdLib.ChurchNat
-  
+
   -- two plus two
   One : ∅ ⊢ N
   One = Succ · Zero

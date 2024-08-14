@@ -1,6 +1,9 @@
 let
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !int1Manual : data -> integer
     = \(ds : data) ->
         let
@@ -8,9 +11,9 @@ let
           !i : integer = fstPair {integer} {list data} tup
           !d : data = headList {data} (sndPair {integer} {list data} tup)
         in
-        ifThenElse
+        Bool_match
+          (ifThenElse {Bool} (equalsInteger 0 i) True False)
           {all dead. integer}
-          (equalsInteger 0 i)
           (/\dead -> unIData d)
           (/\dead -> error {integer})
           {all dead. dead}
@@ -24,9 +27,9 @@ let
                 {data}
                 (tailList {data} (sndPair {integer} {list data} tup))
         in
-        ifThenElse
+        Bool_match
+          (ifThenElse {Bool} (equalsInteger 0 i) True False)
           {all dead. integer}
-          (equalsInteger 0 i)
           (/\dead -> unIData d)
           (/\dead -> error {integer})
           {all dead. dead}
@@ -42,9 +45,9 @@ let
                    {data}
                    (tailList {data} (sndPair {integer} {list data} tup)))
         in
-        ifThenElse
+        Bool_match
+          (ifThenElse {Bool} (equalsInteger 0 i) True False)
           {all dead. integer}
-          (equalsInteger 0 i)
           (/\dead -> unIData d)
           (/\dead -> error {integer})
           {all dead. dead}
@@ -62,15 +65,12 @@ let
                       {data}
                       (tailList {data} (sndPair {integer} {list data} tup))))
         in
-        ifThenElse
+        Bool_match
+          (ifThenElse {Bool} (equalsInteger 0 i) True False)
           {all dead. integer}
-          (equalsInteger 0 i)
           (/\dead -> unIData d)
           (/\dead -> error {integer})
           {all dead. dead}
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
   !lessThanInteger : integer -> integer -> Bool
     = \(x : integer) (y : integer) ->
         ifThenElse {Bool} (lessThanInteger x y) True False

@@ -23,15 +23,15 @@ writeBlueprint
 
 In order to demonstrate the usage of the `writeBlueprint` function, let's consider the following example validator function and its interface:
 
-<LiteralInclude file="Cip57Blueprint.hs" language="haskell" title="interface types" start="-- BEGIN interface types" end="-- END interface types" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="interface types" start="-- BEGIN interface types" end="-- END interface types" />
 
-<LiteralInclude file="Cip57Blueprint.hs" language="haskell" title="validator" start="-- BEGIN validator" end="-- END validator" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="validator" start="-- BEGIN validator" end="-- END validator" />
 
 ## Importing required functionality
 
 First of all, we need to import required functionality:
 
-<LiteralInclude file="Cip57Blueprint.hs" language="haskell" title="imports" start="-- BEGIN imports" end="-- END imports" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="imports" start="-- BEGIN imports" end="-- END imports" />
 
 ## Defining a contract blueprint value
 
@@ -75,7 +75,7 @@ data ContractBlueprint where
 
 We can construct a value of this type in the following way:
 
-<LiteralInclude file="Cip57Blueprint.hs" language="haskell" title="contract blueprint declaration" start="-- BEGIN contract blueprint declaration" end="-- END contract blueprint declaration" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="contract blueprint declaration" start="-- BEGIN contract blueprint declaration" end="-- END contract blueprint declaration" />
 
 The `contractId` field is optional and can be used to give a unique identifier to the contract.
 
@@ -102,7 +102,7 @@ data Preamble = MkPreamble
 
 Here is an example construction:
 
-<LiteralInclude file="Cip57Blueprint.hs" language="haskell" title="preamble declaration" start="-- BEGIN preamble declaration" end="-- END preamble declaration" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="preamble declaration" start="-- BEGIN preamble declaration" end="-- END preamble declaration" />
 
 The `contractDefinitions` field is a registry of schema definitions used across the blueprint. 
 It can be constructed using the `deriveDefinitions` function which automatically constructs schema definitions for all the types it is applied to including the types nested within them.
@@ -111,15 +111,15 @@ Since every type in the `referencedTypes` list is going to have its derived JSON
 
 - An instance of the `GHC.Generics.Generic` type class:
 
-<LiteralInclude file="Cip57Blueprint.hs" language="haskell" title="generic instances" start="-- BEGIN generic instances" end="-- END generic instances" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="generic instances" start="-- BEGIN generic instances" end="-- END generic instances" />
 
 - An instance of the `AsDefinitionId` type class. Most of the time it could be derived generically with the `anyclass` strategy; for example:
 
-<LiteralInclude file="Cip57Blueprint.hs" language="haskell" title="AsDefinitionId instances" start="-- BEGIN AsDefinitionId instances" end="-- END AsDefinitionId instances" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="AsDefinitionId instances" start="-- BEGIN AsDefinitionId instances" end="-- END AsDefinitionId instances" />
 
 - An instance of the `HasSchema` type class. If your validator exposes standard supported types like `Integer` or `Bool`, you don't need to define this instance. If your validator uses custom types, then you should be deriving it using the `makeIsDataSchemaIndexed` Template Haskell function, which derives it alongside with the corresponding [ToBuiltinData]/[FromBuiltinData] instances; for example:
 
-<LiteralInclude file="Cip57Blueprint.hs" language="haskell" title="makeIsDataSchemaIndexed" start="-- BEGIN makeIsDataSchemaIndexed" end="-- END makeIsDataSchemaIndexed" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="makeIsDataSchemaIndexed" start="-- BEGIN makeIsDataSchemaIndexed" end="-- END makeIsDataSchemaIndexed" />
 
 ## Defining a validator blueprint
 
@@ -146,7 +146,7 @@ Our contract can contain one or more validators. For each one we need to provide
 
 In our example, this would be:
 
-<LiteralInclude file="Cip57Blueprint.hs" language="haskell" title="validator blueprint declaration" start="-- BEGIN validator blueprint declaration" end="-- END validator blueprint declaration" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="validator blueprint declaration" start="-- BEGIN validator blueprint declaration" end="-- END validator blueprint declaration" />
 
 The `definitionRef` function is used to reference a schema definition of a given type. 
 It is smart enough to discover the schema definition from the `referencedType` list and fails to compile if the referenced type is not included.
@@ -155,7 +155,7 @@ It is smart enough to discover the schema definition from the `referencedType` l
 
 With all the pieces in place, we can now write the blueprint to a file:
 
-<LiteralInclude file="Cip57Blueprint.hs" language="haskell" title="write blueprint to file" start="-- BEGIN write blueprint to file" end="-- END write blueprint to file" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="write blueprint to file" start="-- BEGIN write blueprint to file" end="-- END write blueprint to file" />
 
 ## Annotations
 
@@ -173,7 +173,7 @@ It's possible to add these keywords to a Blueprint type definition by annotating
 
 For example, to add a title and description to the `MyParams` type, we can use the `SchemaTitle` and `SchemaDescription` annotations:
 
-<LiteralInclude file="Cip57Blueprint.hs" language="haskell" title="MyParams annotations" start="-- BEGIN MyParams annotations" end="-- END MyParams annotations" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="MyParams annotations" start="-- BEGIN MyParams annotations" end="-- END MyParams annotations" />
 
 These annotations result in the following JSON schema definition:
 
@@ -192,7 +192,7 @@ These annotations result in the following JSON schema definition:
 
 For sum-types, it's possible to annotate constructors:
 
-<LiteralInclude file="Cip57Blueprint.hs" language="haskell" title="MyRedeemer annotations" start="-- BEGIN MyRedeemer annotations" end="-- END MyRedeemer annotations" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="MyRedeemer annotations" start="-- BEGIN MyRedeemer annotations" end="-- END MyRedeemer annotations" />
 
 These annotations result in the following JSON schema definition:
 

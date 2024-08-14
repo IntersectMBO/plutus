@@ -1,12 +1,6 @@
-(let
-  (nonrec)
-  (datatypebind
-    (datatype
-      (tyvardecl Maybe (fun (type) (type)))
-      (tyvardecl a (type))
-      match_Maybe
-      (vardecl Nothing [ Maybe a ]) (vardecl Just (fun a [ Maybe a ]))
-    )
-  )
-  Nothing
-)
+let
+  data (Maybe :: * -> *) a | match_Maybe where
+    Nothing : Maybe a
+    Just : a -> Maybe a
+in
+Nothing

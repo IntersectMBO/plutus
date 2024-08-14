@@ -172,6 +172,7 @@ builtinNames = [
     , 'Builtins.blake2b_224
     , 'Builtins.blake2b_256
     , 'Builtins.keccak_256
+    , 'Builtins.ripemd_160
     , 'Builtins.equalsByteString
     , 'Builtins.lessThanByteString
     , 'Builtins.lessThanEqualsByteString
@@ -183,6 +184,7 @@ builtinNames = [
 
     , 'Builtins.verifyEd25519Signature
 
+    , ''Builtins.BuiltinInteger
     , ''Integer
     , 'Builtins.addInteger
     , 'Builtins.subtractInteger
@@ -362,6 +364,7 @@ defineBuiltinTerms = do
             PLC.Blake2b_224 -> defineBuiltinInl 'Builtins.blake2b_224
             PLC.Blake2b_256 -> defineBuiltinInl 'Builtins.blake2b_256
             PLC.Keccak_256 -> defineBuiltinInl 'Builtins.keccak_256
+            PLC.Ripemd_160 -> defineBuiltinInl 'Builtins.ripemd_160
             PLC.EqualsByteString -> defineBuiltinInl 'Builtins.equalsByteString
             PLC.LessThanByteString -> defineBuiltinInl 'Builtins.lessThanByteString
             PLC.LessThanEqualsByteString -> defineBuiltinInl 'Builtins.lessThanEqualsByteString

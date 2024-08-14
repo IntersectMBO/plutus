@@ -1,4 +1,4 @@
-# editorconfig-checker-disable-file 
+# editorconfig-checker-disable-file
 
 { repoRoot, inputs, pkgs, system, lib }:
 
@@ -8,7 +8,7 @@ let
     {
       name = "plutus";
 
-      # We need the mkDefault here since compiler-nix-name will be overridden 
+      # We need the mkDefault here since compiler-nix-name will be overridden
       # in the flake variants.
       compiler-nix-name = lib.mkDefault "ghc96";
 
@@ -31,6 +31,7 @@ let
         }];
         ghc810.compiler-nix-name = "ghc810";
         ghc98.compiler-nix-name = "ghc98";
+        ghc910.compiler-nix-name = "ghc910";
       };
 
       inputMap = { "https://chap.intersectmbo.org/" = inputs.iogx.inputs.CHaP; };
@@ -39,44 +40,7 @@ let
         "https://github.com/jaccokrijnen/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" = "0srqvx0b819b5crrbsa9hz2fnr50ahqizvvm0wdmyq2bbpk2rka7";
       };
 
-      # TODO: move this into the cabalib.project using the new conditional support?
-      # Configuration settings needed for cabal configure to work when cross compiling.
-      # We can't use `modules` for these as `modules` are only applied
-      # after cabal has been configured.
-      cabalProjectLocal = lib.optionalString isCrossCompiling
-        ''
-          -- When cross compiling we don't have a `ghc` package, so use
-          -- the `plutus-ghc-stub` package instead.
-          package plutus-tx-plugin
-            flags: +use-ghc-stub
-
-          -- Exclude tests that use `doctest`.  They will not work for
-          -- cross compilation and `cabal` will not be able to make a plan.
-          package prettyprinter-configurable
-            tests: False
-        '';
-
       modules = [
-
-        # Cross Compiling 
-        (lib.mkIf isCrossCompiling {
-          packages = {
-            # Things that need plutus-tx-plugin
-            plutus-benchmark.package.buildable = false;
-            plutus-tx-plugin.package.buildable = false;
-            plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.buildable = lib.mkForce false;
-            # Needs agda
-            plutus-metatheory.package.buildable = false;
-            # These need R
-            plutus-core.components.benchmarks.cost-model-test.buildable = lib.mkForce false;
-            plutus-core.components.exes.generate-cost-model.buildable = lib.mkForce false;
-            # This contains support for doing testing, so we're not interested in cross-compiling it
-            plutus-conformance.package.buildable = false;
-          };
-          # can't rebuild lib:ghc when cross-compiling
-          reinstallableLibGhc = false;
-        })
-
         # Common 
         {
           packages = {
@@ -139,6 +103,9 @@ let
             plutus-core.components.tests.plutus-ir-test.postInstall = ''
               wrapProgram $out/bin/plutus-ir-test --set PATH ${lib.makeBinPath [ pkgs.diffutils ]}
             '';
+
+            # We want to build it but not run the tests in CI.
+            cardano-constitution.doCheck = false;
           };
         }
 

@@ -1,4 +1,1 @@
-[
-  [ (builtin addInteger) (con integer 3) ]
-  [ [ (builtin addInteger) (con integer 3) ] (con integer 5) ]
-]
+addInteger 3 (addInteger 3 5)

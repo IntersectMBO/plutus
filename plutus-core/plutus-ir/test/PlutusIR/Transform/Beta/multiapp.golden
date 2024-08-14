@@ -1,11 +1,6 @@
-(let
-  (nonrec)
-  (termbind (strict) (vardecl x (con integer)) (con integer 1))
-  (termbind
-    (strict)
-    (vardecl y (fun (con integer) (fun (con integer) (con integer))))
-    (lam a (con integer) (lam b (con integer) (con integer 2)))
-  )
-  (termbind (strict) (vardecl z (con integer)) (con integer 3))
-  [ [ y x ] z ]
-)
+let
+  !x : integer = 1
+  !y : integer -> integer -> integer = \(a : integer) (b : integer) -> 2
+  !z : integer = 3
+in
+y x z

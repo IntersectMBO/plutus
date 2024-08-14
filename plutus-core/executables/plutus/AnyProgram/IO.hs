@@ -90,10 +90,10 @@ writeProgram sng ast file =
 
 prettyWithStyle :: PP.PrettyPlc a => PrettyStyle -> a -> Doc ann
 prettyWithStyle = \case
-        Classic       -> PP.prettyPlcClassicDef
-        ClassicDebug  -> PP.prettyPlcClassicDebug
-        Readable      -> PP.prettyPlcReadableDef
-        ReadableDebug -> PP.prettyPlcReadableDebug
+        Classic       -> PP.prettyPlcClassic
+        ClassicSimple  -> PP.prettyPlcClassicSimple
+        Readable      -> PP.prettyPlcReadable
+        ReadableSimple -> PP.prettyPlcReadableSimple
 
 readFileName :: (?opts :: Opts)
              => FileName -> IO BS.ByteString

@@ -1,1 +1,1 @@
-[ { (abs a (type) (lam x a x)) (con integer) } (con integer 3) ]
+(/\a -> \(x : a) -> x) {integer} 3

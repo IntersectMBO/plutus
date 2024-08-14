@@ -1,21 +1,8 @@
-(program
+program
   1.1.0
   (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl RecordNewtype (type))
-
-        RecordNewtype_match
-        (vardecl RecordNewtype (fun (con integer) RecordNewtype))
-      )
-    )
-    (lam
-      ds
-      RecordNewtype
-      [
-        { [ RecordNewtype_match ds ] (con integer) } (lam ipv (con integer) ipv)
-      ]
-    )
-  )
-)
+    data RecordNewtype | RecordNewtype_match where
+      RecordNewtype : integer -> RecordNewtype
+  in
+  \(ds : RecordNewtype) ->
+    RecordNewtype_match ds {integer} (\(ipv : integer) -> ipv))

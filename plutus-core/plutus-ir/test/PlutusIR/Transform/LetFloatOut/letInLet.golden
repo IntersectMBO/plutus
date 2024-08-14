@@ -1,10 +1,5 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl unitval (all a (type) (fun a a)))
-    (abs a (type) (lam x a x))
-  )
-  (termbind (strict) (vardecl unitval2 (all a (type) (fun a a))) unitval)
-  unitval2
-)
+let
+  !unitval : all a. a -> a = /\a -> \(x : a) -> x
+  !unitval2 : all a. a -> a = unitval
+in
+unitval2

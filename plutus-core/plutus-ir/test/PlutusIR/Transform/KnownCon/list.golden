@@ -1,30 +1,9 @@
-(let
-  (rec)
-  (datatypebind
-    (datatype
-      (tyvardecl List (fun (type) (type)))
-      (tyvardecl a (type))
-      List_match
-      (vardecl Nil [ List a ])
-      (vardecl Cons (fun a (fun [ List a ] [ List a ])))
-    )
-  )
-  {
-    [
-      [
-        (lam
-          a
-          (con integer)
-          (lam
-            as
-            [ List (con integer) ]
-            (abs dead (type) [ [ (builtin addInteger) (con integer 2) ] a ])
-          )
-        )
-        (con integer 1)
-      ]
-      { Nil (con integer) }
-    ]
-    (all dead (type) dead)
-  }
-)
+letrec
+  data (List :: * -> *) a | List_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+(\(a : integer) (as : List integer) -> /\dead -> addInteger 2 a)
+  1
+  (Nil {integer})
+  {all dead. dead}

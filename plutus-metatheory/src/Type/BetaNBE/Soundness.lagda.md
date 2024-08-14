@@ -19,7 +19,7 @@ open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
 open _⊢⋆_
 open import Type.Equality using (_≡β_;≡2β;ren≡β;_⟨[≡]⟩β_;_[≡]β_)
 open _≡β_
-open import Type.RenamingSubstitution 
+open import Type.RenamingSubstitution
      using (Ren;ren;ext;ext-id;ren-comp;ren-id;ren-cong;ext-comp;exts;weaken)
      using (Sub;sub;sub-cons;sub-id;sub-comp;sub-cong;sub-ren;sub-List;sub-VecList)
 open import Type.BetaNormal using (_⊢Ne⋆_;embNf;ren-embNf;embNe;ren-embNe;embNf-List;embNf-VecList)
@@ -160,7 +160,7 @@ SRweak : ∀{Φ Ψ}{σ : Sub Φ Ψ}{η : Env Φ Ψ}
     -------------------------------------------------------
   → SREnv (exts σ) ((renVal S ∘ η) ,,⋆ fresh {σ = K})
 SRweak p = subSREnv (sym ∘ exts-sub-cons _)
-                      (SR,,⋆ (renSR S ∘ p) (reflectSR (refl≡β (` Z)))) 
+                      (SR,,⋆ (renSR S ∘ p) (reflectSR (refl≡β (` Z))))
 ```
 
 SR is closed under ·V
@@ -242,5 +242,5 @@ Soundness Result
 
 ```
 soundness : ∀ {Φ J} → (A : Φ ⊢⋆ J) → A ≡β embNf (nf A)
-soundness A = trans≡β (≡2β (sym (sub-id A))) (reifySR (evalSR A idSR)) 
+soundness A = trans≡β (≡2β (sym (sub-id A))) (reifySR (evalSR A idSR))
 ```

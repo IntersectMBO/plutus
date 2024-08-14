@@ -330,6 +330,19 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     -- Bitwise operations
     , paramIntegerToByteString             = unitCostThreeArguments
     , paramByteStringToInteger             = unitCostTwoArguments
+    , paramAndByteString                   = unitCostThreeArguments
+    , paramOrByteString                    = unitCostThreeArguments
+    , paramXorByteString                   = unitCostThreeArguments
+    , paramComplementByteString            = unitCostOneArgument
+    , paramReadBit                         = unitCostTwoArguments
+    , paramWriteBits                       = unitCostThreeArguments
+    , paramReplicateByte                   = unitCostTwoArguments
+    , paramShiftByteString                 = unitCostTwoArguments
+    , paramRotateByteString                = unitCostTwoArguments
+    , paramCountSetBits                    = unitCostOneArgument
+    , paramFindFirstSetBit                 = unitCostOneArgument
+    -- Ripemd_160
+    , paramRipemd_160                      = unitCostOneArgument
     }
 
 unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)

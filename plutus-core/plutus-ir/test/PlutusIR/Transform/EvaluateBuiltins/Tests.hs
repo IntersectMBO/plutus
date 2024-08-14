@@ -41,10 +41,9 @@ test_evaluateBuiltins =
             , "uncompressAndEqualBlsNonConservative"
             ]
 
-prop_evaluateBuiltins ::
-    Bool -> BuiltinSemanticsVariant DefaultFun -> Property
+prop_evaluateBuiltins :: Bool -> BuiltinSemanticsVariant DefaultFun -> Property
 prop_evaluateBuiltins conservative biVariant =
-  withMaxSuccess (2 * 3 * numTestsForPassProp) $
+  withMaxSuccess numTestsForPassProp $
     testPassProp
       runIdentity
       $ \tc -> evaluateBuiltinsPass tc conservative (def {_biSemanticsVariant = biVariant}) def

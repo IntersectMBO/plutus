@@ -5,20 +5,22 @@
 -- | Common functions for parsers of UPLC, PLC, and PIR.
 module PlutusCore.Parser.ParserCommon where
 
-import Control.Monad (void, when)
+import Control.Monad (when)
 import Control.Monad.Except (MonadError)
 import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
-import Control.Monad.State (MonadState (..), StateT, evalStateT)
+import Control.Monad.State (StateT, evalStateT)
 import Data.Map qualified as M
-import Data.Text qualified as T
+import Data.Text (Text)
 import Text.Megaparsec hiding (ParseError, State, parse, some)
 import Text.Megaparsec.Char (char, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
+import Control.Monad.State.Class (MonadState, get, put)
 import PlutusCore.Annotation
 import PlutusCore.Core.Type
 import PlutusCore.Error
-import PlutusCore.Name.Unique
+import PlutusCore.Name.Unique (Name (..), Unique (..), isIdentifierChar, isIdentifierStartingChar,
+                               isQuotedIdentifierChar)
 import PlutusCore.Quote
 
 {- Note [Whitespace invariant]
@@ -27,34 +29,16 @@ sure to enclose every 'Parser' that doesn't consume trailing whitespce (e.g. 'ta
 'manyTill', 'Lex.decimal' etc) in a call to 'lexeme'.
 -}
 
-newtype ParserState = ParserState {identifiers :: M.Map T.Text Unique}
+newtype ParserState = ParserState {identifiers :: M.Map Text Unique}
   deriving stock (Show)
 
 type Parser =
-  ParsecT ParserError T.Text (StateT ParserState (ReaderT (Maybe Version) Quote))
+  ParsecT ParserError Text (StateT ParserState (ReaderT (Maybe Version) Quote))
 
 instance (Stream s, MonadQuote m) => MonadQuote (ParsecT e s m)
 
 initial :: ParserState
 initial = ParserState M.empty
-
-{- | Return the unique identifier of a name.
-If it's not in the current parser state, map the name to a fresh id
-and add it to the state. Used in the Name parser.
--}
-intern ::
-  (MonadState ParserState m, MonadQuote m) =>
-  T.Text ->
-  m Unique
-intern n = do
-  st <- get
-  case M.lookup n (identifiers st) of
-    Just u -> return u
-    Nothing -> do
-      fresh <- freshUnique
-      let identifiers' = M.insert n fresh $ identifiers st
-      put $ ParserState identifiers'
-      return fresh
 
 -- | Get the version of the program being parsed, if we know it.
 getVersion :: Parser (Maybe Version)
@@ -75,22 +59,22 @@ whenVersion p act = do
     Nothing -> pure ()
     Just v  -> when (p v) act
 
-parse ::
-  (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
-  Parser a ->
-  String ->
-  T.Text ->
-  m a
+parse
+  :: (AsParserErrorBundle e, MonadError e m, MonadQuote m)
+  => Parser a
+  -> String
+  -> Text
+  -> m a
 parse p file str = do
   let res = fmap toErrorB (runReaderT (evalStateT (runParserT p file str) initial) Nothing)
   throwingEither _ParserErrorBundle =<< liftQuote res
 
-toErrorB :: Either (ParseErrorBundle T.Text ParserError) a -> Either ParserErrorBundle a
+toErrorB :: Either (ParseErrorBundle Text ParserError) a -> Either ParserErrorBundle a
 toErrorB (Left err) = Left $ ParseErrorB err
 toErrorB (Right a)  = Right a
 
 -- | Generic parser function in which the file path is just "test".
-parseGen :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) => Parser a -> T.Text -> m a
+parseGen :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) => Parser a -> Text -> m a
 parseGen stuff = parse stuff "test"
 
 -- | Space consumer.
@@ -128,7 +112,7 @@ withSpan = (<* whitespace) . withSpan'
 lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme whitespace
 
-symbol :: T.Text -> Parser T.Text
+symbol :: Text -> Parser Text
 symbol = Lex.symbol whitespace
 
 inParens :: Parser a -> Parser a
@@ -153,26 +137,43 @@ toSrcSpan start end =
 version :: Parser Version
 version = trailingWhitespace $ do
   x <- Lex.decimal
-  void $ char '.'
+  _ <- char '.'
   y <- Lex.decimal
-  void $ char '.'
+  _ <- char '.'
   Version x y <$> Lex.decimal
 
 -- | Parses a `Name`. Does not consume leading or trailing whitespaces.
 name :: Parser Name
 name = try $ parseUnquoted <|> parseQuoted
   where
+    parseUnquoted :: Parser Name
     parseUnquoted = do
-      void $ lookAhead (satisfy isIdentifierStartingChar)
+      _ <- lookAhead (satisfy isIdentifierStartingChar)
       str <- takeWhileP (Just "identifier-unquoted") isIdentifierChar
-      Name str <$> intern str
-    parseQuoted = do
-      void $ char '`'
-      void $ lookAhead (satisfy isQuotedIdentifierChar)
-      str <- takeWhileP (Just "identifier-quoted") isQuotedIdentifierChar
-      void $ char '`'
-      Name str <$> intern str
+      Name str <$> uniqueSuffix str
 
-data ExpectParens
-    = ExpectParensYes
-    | ExpectParensNo
+    parseQuoted :: Parser Name
+    parseQuoted = do
+      _ <- char '`'
+      _ <- lookAhead (satisfy isQuotedIdentifierChar)
+      str <- takeWhileP (Just "identifier-quoted") isQuotedIdentifierChar
+      _ <- char '`'
+      Name str <$> uniqueSuffix str
+
+    -- Tries to parse a `Unique` value.
+    -- If it fails then looks up the `Unique` value for the given name.
+    -- If lookup fails too then generates a fresh `Unique` value.
+    uniqueSuffix :: Text -> Parser Unique
+    uniqueSuffix nameStr = try (Unique <$> (char '-' *> Lex.decimal)) <|> uniqueForName nameStr
+
+    -- Return the unique identifier of a name.
+    -- If it's not in the current parser state, map the name to a fresh id and add it to the state.
+    uniqueForName :: (MonadState ParserState m, MonadQuote m) => Text -> m Unique
+    uniqueForName nameStr = do
+      parserState <- get
+      case M.lookup nameStr (identifiers parserState) of
+        Just u -> pure u
+        Nothing -> do
+          fresh <- freshUnique
+          put $ ParserState $ M.insert nameStr fresh $ identifiers parserState
+          pure fresh

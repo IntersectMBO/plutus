@@ -1,4 +1,38 @@
 
+<a id='changelog-1.32.0.0'></a>
+# 1.32.0.0 — 2024-08-06
+
+## Added
+
+- Added costing for the new bitwise builtins (see CIP-0058), which will probably become available at the Chang+1 HF.
+
+- Support for `Natural` numbers in the default universe, backed by `Integer`.
+
+## Changed
+
+- Updated version boundaries for the `nothunks` dependency (^>=0.2)
+
+<a id='changelog-1.31.0.0'></a>
+# 1.31.0.0 — 2024-07-17
+
+## Removed
+
+- Removed `Emitter` and `MonadEmitter` in #6224.
+
+- In #6248 the case-of-case optimization was removed from the compiler due to it causing OOMs.
+
+## Changed
+
+-  All names are printed with their unique suffixes by default.
+
+- Forbade using `EvaluationResult` in the builtins code in favor of `BuiltinResult` in #5926, so that builtins throw errors with more helpful messages.
+
+- Changed the type of `emit` to `Text -> BuiltinResult ()` in #6224.
+
+## Fixed
+
+- In #6272 fixed a bug in `isNormalType`.
+
 <a id='changelog-1.30.0.0'></a>
 # 1.30.0.0 — 2024-06-17
 

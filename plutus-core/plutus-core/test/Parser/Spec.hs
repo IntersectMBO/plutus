@@ -7,6 +7,7 @@ module Parser.Spec (tests) where
 import PlutusCore
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Generators.Hedgehog.AST
+import PlutusCore.Test (isSerialisable)
 import PlutusPrelude
 
 import Data.Text qualified as T
@@ -19,7 +20,8 @@ import Test.Tasty.Hedgehog
 -- | The `SrcSpan` of a parsed `Term` should not including trailing whitespaces.
 propTermSrcSpan :: Property
 propTermSrcSpan = property $ do
-    term <- forAllWith display (runAstGen genTerm)
+    term <- _progTerm <$>
+        forAllWith display (runAstGen $ discardIfAnyConstant (not . isSerialisable) genProgram)
     let code = display (term :: Term TyName Name DefaultUni DefaultFun ())
     let (endingLine, endingCol) = length &&& T.length . last $ T.lines code
     trailingSpaces <- forAll $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])

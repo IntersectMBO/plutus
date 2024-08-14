@@ -66,7 +66,7 @@ findHelp ctx =
 mkHelp :: Map Name (Type TyName DefaultUni ())
        -> Type TyName DefaultUni ()
        -> Term TyName Name DefaultUni DefaultFun ()
-mkHelp _ (TyBuiltin _ b)          = minimalBuiltin b
+mkHelp _ (TyBuiltin _ someUni)    = minimalBuiltin someUni
 mkHelp (findHelp -> Just help) ty = TyInst () (Var () help) ty
 mkHelp _ ty                       = Error () ty
 
@@ -90,7 +90,7 @@ fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm0 =
       Apply _ (Apply _ (TyInst _ (Builtin _ Trace) _) s) tm ->
         let (ty', tm') = fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm
         in (ty', Apply () (Apply () (TyInst () (Builtin () Trace) ty') s) tm')
-      _ | TyBuiltin _ b <- tyNew -> (tyNew, minimalBuiltin b)
+      _ | TyBuiltin _ someUni <- tyNew -> (tyNew, minimalBuiltin someUni)
         | otherwise -> (tyNew, mkHelp ctxNew tyNew)
     Right ty -> (ty, tm0)
 
@@ -346,7 +346,7 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = concat
                   fun' = fixupTerm tyctx ctx tyctx ctx (TyForall () x k' tyInner') fun
             ]
           Left err -> error $ displayPlcCondensedErrorClassic err
-          Right tyWrong -> error $ "Expected a 'TyForall', but got " ++ displayPlcDef tyWrong
+          Right tyWrong -> error $ "Expected a 'TyForall', but got " ++ displayPlc tyWrong
 
         -- TODO: shrink the kind too like with the type in @LamAbs@ below.
         TyAbs _ x _ body | not $ Map.member x tyctx ->
