@@ -44,17 +44,6 @@ let
         # Common 
         {
           packages = {
-            # # In this case we can just propagate the native dependencies for the build of
-            # # the test executable, which are actually set up right (we have a
-            # # build-tool-depends on the executable we need)
-            # # I'm slightly surprised this works, hooray for laziness!
-            # plutus-metatheory.components.tests.test-simple.preCheck =
-            #   let
-            #     cmp = config.hsPkgs.plutus-metatheory.components.tests.test-simple;
-            #     deps = cmp.executableToolDepends;
-            #   in
-            #   ''PATH=${lib.makeBinPath deps}:$PATH'';
-
             # plutus-metatheory needs agda with the stdlib around for the custom setup
             # I can't figure out a way to apply this as a blanket change for all the
             # components in the package, oh well
