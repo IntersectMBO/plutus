@@ -100,4 +100,4 @@ $ jekyll build -s html -d html/_site
 
 ## Detailed Description
 
-See the site generated from the [Literate Agda](https://plutus.cardano.intersectmbo.org/metatheory/) for an explanation of the structure of the formalisation and links to the code.
+See the site generated from the [Literate Agda](https://plutus.cardano.intersectmbo.org/metatheory/latest) for an explanation of the structure of the formalisation and links to the code.
