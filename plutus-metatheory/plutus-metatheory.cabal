@@ -566,8 +566,8 @@ test-suite test-simple
 
 test-suite test-detailed
   import:             lang, os-support
-  type:               detailed-0.9
-  test-module:        Spec
+  type:               exitcode-stdio-1.0
+  main-is:            Spec.hs
   hs-source-dirs:     test/detailed
   build-tool-depends:
     , plutus-core:plc   ^>=1.32
@@ -582,6 +582,8 @@ test-suite test-detailed
     , plutus-core        ^>=1.32
     , plutus-metatheory
     , process
+    , tasty
+    , tasty-hunit
     , text
 
 test-suite test-NEAT
