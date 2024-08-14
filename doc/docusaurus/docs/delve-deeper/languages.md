@@ -97,3 +97,4 @@ For example, while guarded recursion is a useful idiom in Haskell, it is unsuita
 
 [^1]: This statement is not entirely true for Plutus Tx, a subset of Haskell.
 Due to certain GHC-specific technical limitations, it can't easily reuse many functions and operations from the `base` library, so it ships with its own standard library instead.
+Nevertheless, the `<` operator in Plutus Tx's standard library still has the type `Integer -> Integer -> Bool`.
