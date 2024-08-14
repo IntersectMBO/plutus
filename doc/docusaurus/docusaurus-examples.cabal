@@ -31,7 +31,6 @@ common os-support
 library docusaurus-code
   import:         lang, ghc-version-support, os-support
   hs-source-dirs: static/code
-
   other-modules:
     AuctionValidator
     BasicPlutusTx
@@ -46,7 +45,6 @@ library docusaurus-code
 
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin
-
 
 executable example-cip57
   import:           lang, ghc-version-support, os-support
