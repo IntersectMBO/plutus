@@ -16,7 +16,7 @@ jobs:
       with:
         owner: IntersectMBO
         number: 35
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.PLUTUS_BACKLOG_AUTOMATION }}
         iteration-field: Sprint
         iteration: last
         new-iteration: current
