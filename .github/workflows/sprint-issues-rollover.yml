@@ -18,6 +18,6 @@ jobs:
         number: 35
         token: ${{ secrets.PLUTUS_BACKLOG_AUTOMATION }}
         iteration-field: Sprint
-        iteration: last
-        new-iteration: current
+        iteration: current
+        new-iteration: next
         excluded-statuses: ❌ - Won't Do,🚀 - Done
