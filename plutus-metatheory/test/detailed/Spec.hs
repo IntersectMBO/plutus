@@ -3,21 +3,25 @@
 
 {- | The tests in this file run the various Adga PLC evaluators on the examples
     provided by `plc example` and `uplc example` and checks that the output is
-    the same as that produced by the Haskell `plc` and `uplc` evaluators. -}
--- TODO: use Hedgehog or something instead
+    the same as that produced by the Haskell `plc` and `uplc` evaluators and the
+    other Agda evaluators.. -}
 
-module Spec where
+module Main (main) where
+
 import Control.Exception
+import Data.Char (isDigit, isSpace)
 import Data.Text qualified as T
+import GHC.IO.Encoding (setLocaleEncoding)
 import GHC.IO.Handle
 import System.Directory
 import System.Environment
 import System.Exit
 import System.IO
+import System.IO.Extra
 import System.Process
+import Test.Tasty
+import Test.Tasty.HUnit
 
-import Data.Char (isAlphaNum, isDigit, isSpace)
-import Distribution.TestSuite
 
 import PlutusCore.Name.Unique (isIdentifierChar)
 
@@ -25,11 +29,10 @@ import MAlonzo.Code.Evaluator.Term qualified as M
 import MAlonzo.Code.Main qualified as M
 import MAlonzo.Code.Raw qualified as R
 
-import System.IO.Extra
+-- Running external programs
 
 -- this function is based on this stackoverflow answer:
 -- https://stackoverflow.com/a/9664017
-
 catchOutput :: IO () -> IO String
 catchOutput act = do
   tmpD <- getTemporaryDirectory
@@ -43,16 +46,37 @@ catchOutput act = do
   removeFile tmpFP
   return str
 
+runPlcAgda :: [String] -> IO String
+runPlcAgda args =
+  catchOutput $ catch
+    (withArgs args M.main)
+    (\case
+        ExitFailure _ -> assertFailure "plc-agda failed"
+        ExitSuccess   -> return ())
+
+runProg :: String -> [String] -> String -> IO String
+runProg prog args stdin = do
+  (exitCode, output, err) <- readProcessWithExitCode prog args stdin
+  case exitCode of
+    ExitFailure _ -> assertFailure $ prog ++ " failed: " ++ err
+    ExitSuccess   -> pure ()
+  pure output
+
+
 {- These tests were previously broken because they produced textual output from
 different progams and then compared them using Agda functions like
 Evaluator.Term.alphaTm, which read them back in using the PLC/UPLC parsers and
 then compare them up to alpha-equivalence.  The problem is that the Agda
-evaluators only produce output whose varaibles are (non-unique) names with de
-Bruijn indices appended and the Haskell parsers can't parse those.  The current
-code works around this by converting the textual onput to a canonical form which
-only involves de Bruijn indices and comparing the strings directly.  This all
-depends crucially on names with de Bruijn indices being of the form
-`[A-Za-z0-9_]*![0-9]+`.
+evaluators only produce output whose variables are (non-unique) names with de
+Bruijn indices appended and the Haskell parsers can't parse those.  This led to
+test failures which were (a) unexpected, and (b) confusing because `alphaTm`
+will return `False` for two identical inputs which don't parse even though they
+look the same.
+
+The current code works around this by converting the textual output to a
+canonical form which only involves de Bruijn indices and comparing the strings
+directly.  This depends crucially on names with de Bruijn indices being of the
+form `[A-Za-z0-9_]*![0-9]+`.
 -}
 
 {- | This takes a string and reverses it while squashing all sequences of
@@ -104,124 +128,91 @@ de-Bruijn-like substrings, which seems even more unlikely.
 canonicalise :: String -> String
 canonicalise = anonDeBruijn . squashRev
 
--- compare the output of plc vs plc-agda in its default (typed) mode
-compareResult :: (T.Text -> T.Text -> Bool) -> String -> String -> IO Progress
-compareResult eq mode test = withTempFile $ \tmp -> do
-  example <- readProcess "plc" ["example", "-s", test] []
+-- Compare the output of plc vs plc-agda in its default (typed) mode
+compareResultPlc :: (T.Text -> T.Text -> Bool) -> String -> String -> Assertion
+compareResultPlc eq mode testname = withTempFile $ \tmp -> do
+  example <- runProg "plc" ["example", "-s", testname] []
   writeFile tmp example
-  putStrLn $ "test: " ++ test
-  plcOutput <- readProcess "plc" [mode, "--input", tmp, "--print-mode", "Classic", "--debruijn"] []
-  plcAgdaOutput <- catchOutput $ catch
-    (withArgs [mode, "--input", tmp]  M.main)
-    (\case
-        ExitFailure _ -> exitFailure
-        ExitSuccess   -> return ()) -- does this ever happen?
+  plcOutput <- runProg "plc" [mode, "--input", tmp, "--print-mode", "Classic", "--debruijn"] []
+  plcAgdaOutput <- runPlcAgda [mode, "--input", tmp]
   let plcOutput' = canonicalise plcOutput
       plcAgdaOutput' = canonicalise plcAgdaOutput
-      result =
-        if plcOutput' == plcAgdaOutput'
-        then Pass
-        else Fail $ "plc: '" ++ plcOutput' ++ "' " ++ "plc-agda: '" ++ plcAgdaOutput' ++ "'"
-  return $ Finished result
+  assertBool ("plc: " ++ plcOutput ++ "plc-agda: " ++ plcAgdaOutput
+              ++ "** If these look the same they may be failing to parse.") $
+    T.pack plcOutput' `eq`  T.pack plcAgdaOutput'
+    -- If `eq` was M.alphaTm here it would return False if either of the inputs
+    -- didn't parse, which is confusing.
 
--- compare the output of uplc vs plc-agda in untyped mode
-compareResultU :: (T.Text -> T.Text -> Bool) -> String -> IO Progress
-compareResultU eq test = withTempFile $ \tmp -> do
-  example <- readProcess "uplc" ["example", "-s", test] []
+-- Compare the output of uplc vs plc-agda in untyped mode
+compareResultUplc :: (T.Text -> T.Text -> Bool) -> String -> String -> Assertion
+compareResultUplc eq mode testname = withTempFile $ \tmp -> do
+  example <- runProg "uplc" ["example", "-s", testname] []
   writeFile tmp example
-  putStrLn $ "test: " ++ test
-  plcOutput <- readProcess "uplc" ["evaluate", "--input", tmp, "--print-mode", "Classic", "--debruijn"] []
-  plcAgdaOutput <- catchOutput $ catch
-    (withArgs ["evaluate", "-mU", "--input", tmp]  M.main)
-    (\case
-        ExitFailure _ -> exitFailure
-        ExitSuccess   -> return ())
+  plcOutput <- runProg "uplc" [mode, "--input", tmp, "--print-mode", "Classic", "--debruijn"] []
+  plcAgdaOutput <- runPlcAgda [mode, "-mU", "--input", tmp]
   let plcOutput' = canonicalise plcOutput
       plcAgdaOutput' = canonicalise plcAgdaOutput
-      result =
-        if plcOutput' == plcAgdaOutput'
-        then Pass
-        else Fail $ "uplc: '" ++ plcOutput' ++ "' " ++ "plc-agda: '" ++ plcAgdaOutput' ++ "'"
-  return $ Finished result
+  assertBool ("uplc: " ++ plcAgdaOutput ++ "plc-agda: " ++ plcOutput
+               ++ "** If these look the same they may be failing to parse.") $
+    T.pack plcOutput' `eq` T.pack plcAgdaOutput'
 
--- compare the results of two different (typed) plc-agda modes
-compareResultMode :: String -> String -> (T.Text -> T.Text -> Bool) -> String -> IO Progress
-compareResultMode mode1 mode2 eq test = withTempFile $ \tmp -> do
-  example <- readProcess "plc" ["example", "-s", test] []
+-- Compare the results of two different (typed) plc-agda modes
+compareResultAgda :: (T.Text -> T.Text -> Bool) -> String -> String -> String -> Assertion
+compareResultAgda eq mode1 mode2 testname = withTempFile $ \tmp -> do
+  example <- runProg "plc" ["example", "-s", testname] []
   writeFile tmp example
-  putStrLn $ "test: " ++ test
-  plcAgdaOutput1 <- catchOutput $ catch
-    (withArgs ["evaluate", "--input", tmp, "--mode", mode1]  M.main)
-    (\case
-        ExitFailure _ -> exitFailure
-        ExitSuccess   -> return ())
-  plcAgdaOutput2 <- catchOutput $ catch
-    (withArgs ["evaluate", "--input", tmp, "--mode", mode2]  M.main)
-    (\case
-        ExitFailure _ -> exitFailure
-        ExitSuccess   -> return ())
-  let result =
-        if T.pack plcAgdaOutput1 `eq` T.pack plcAgdaOutput2
-        then Pass else
-          Fail $ mode1 ++ ": '" ++ plcAgdaOutput1 ++ "' "
-          ++ mode2 ++ ": '" ++ plcAgdaOutput2 ++ "'"
-          ++ " === "++ T.unpack (M.blah (T.pack plcAgdaOutput1) (T.pack plcAgdaOutput2))
-  return $ Finished result
+  plcAgdaOutput1 <- runPlcAgda ["evaluate", "--input", tmp, "--mode", mode1]
+  plcAgdaOutput2 <- runPlcAgda ["evaluate", "--input", tmp, "--mode", mode2]
+  -- The outputs are both produced by plc-agda so we don't have to canonicalise them.
+  assertBool (mode1 ++ ": " ++ plcAgdaOutput1 ++ "\n" ++ mode2 ++ ": " ++ plcAgdaOutput2
+              ++ "** If these look the same they may be failing to parse.") $
+    T.pack plcAgdaOutput1 `eq` T.pack plcAgdaOutput2
 
-testNames = ["succInteger"
-            ,"unitval"
-            ,"true"
-            ,"false"
-            ,"churchZero"
-            ,"churchSucc"
-            ,"overapplication"
-            ,"factorial"
-            ,"fibonacci"
-            ,"NatRoundTrip"
-            ,"ScottListSum"
-            ,"IfIntegers"
-            ,"ApplyAdd1"
-            ,"ApplyAdd2"
-            ]
+-- These come from `plc example -a` but there are a couple of failing tests which are omitted.
+-- `uplc` provides the same examples, but erased.
+testNames =
+  [ "succInteger"
+  , "unitval"
+  , "true"
+  , "false"
+  , "churchZero"
+  , "churchSucc"
+  , "overapplication"
+  , "factorial"
+  , "fibonacci"
+  , "NatRoundTrip"
+  , "ScottListSum"
+  , "IfIntegers"
+  , "ApplyAdd1"
+  , "ApplyAdd2"
+  ]
+
 -- test plc against plc-agda
-mkTest :: (T.Text -> T.Text -> Bool) -> String -> String -> TestInstance
-mkTest eq mode test = TestInstance
-        { run = compareResult eq mode test
-        , name = mode ++ " " ++ test
-        , tags = []
-        , options = []
-        , setOption = \_ _ -> Right (mkTest eq mode test)
-        }
+mkTestPlc :: (T.Text -> T.Text -> Bool) -> String -> String -> TestTree
+mkTestPlc eq mode testname = testCase testname (compareResultPlc eq mode testname)
 
 -- test uplc against plc-agda untyped mode
-mkTestU :: (T.Text -> T.Text -> Bool) -> String -> TestInstance
-mkTestU eq test = TestInstance
-        { run = compareResultU eq test
-        , name = "evaluate" ++ " " ++ test
-        , tags = []
-        , options = []
-        , setOption = \_ _ -> Right (mkTestU eq test)
-        }
+mkTestUplc :: (T.Text -> T.Text -> Bool) -> String -> String -> TestTree
+mkTestUplc eq mode testname = testCase testname (compareResultUplc eq mode testname)
 
 -- test different (typed) plc-agda modes against each other
-mkTestMode :: String -> String -> (T.Text -> T.Text -> Bool) -> String -> TestInstance
-mkTestMode mode1 mode2 eq test = TestInstance
-        { run = compareResultMode mode1 mode2 eq test
-        , name = mode1 ++ " " ++  mode2 ++ " " ++ test
-        , tags = []
-        , options = []
-        , setOption = \_ _ -> Right (mkTestMode mode1 mode2 eq test)
-        }
+mkTestAgda :: (T.Text -> T.Text -> Bool) -> String -> String -> String -> TestTree
+mkTestAgda eq mode1 mode2 testname = testCase testname (compareResultAgda eq mode1 mode2 testname)
 
-tests :: IO [Test]
-tests = pure $ concatMap (\f -> map (Test . f) testNames)
-        [ mkTest (==) "evaluate"         -- Should really use M.alphaTm
-        , mkTestMode "TL" "TCK" (==)     -- Should really use M.alphaTm
-        , mkTestMode "TCK" "TCEK" (==)   -- Should really use M.alphaTm
-        , mkTest (==) "typecheck"        -- Should really use M.alphaTy
-        , mkTestU (==)                   -- Should really use M.alphaTm
-        -- tests against extrinisically typed interpreter disabled
-        -- , mkTestMode "L" "TL" M.alphaTm
-        -- , mkTestMode "L" "CK" M.alphaTm
-        -- , mkTestMode "CK" "TCK" M.alphaTm
-        ]
+main :: IO ()
+main = do
+  setLocaleEncoding utf8
+  defaultMain $
+    testGroup "Detailed"
+    -- These should really use M.alphaTm or M.alphaTy instead of (==).
+    [ testGroup "plc-agda vs. uplc: evaluation"  . mkTests $ mkTestUplc (==) "evaluate"
+    , testGroup "plc-agda vs. plc: evaluation"   . mkTests $ mkTestPlc  (==) "evaluate"
+    , testGroup "plc-agda vs. plc: typechecking" . mkTests $ mkTestPlc  (==) "typecheck"
+    , testGroup "TL vs. TCK"                     . mkTests $ mkTestAgda (==) "TL" "TCK"
+    , testGroup "TCK vs. TCEK"                   . mkTests $ mkTestAgda (==) "TCK" "TCEK"
+      -- tests against extrinisically typed interpreter disabled
+      -- , mkTestMode "L" "TL" M.alphaTm
+      -- , mkTestMode "L" "CK" M.alphaTm
+      -- , mkTestMode "CK" "TCK" M.alphaTm
+    ]
+  where mkTests mktest = map mktest testNames
