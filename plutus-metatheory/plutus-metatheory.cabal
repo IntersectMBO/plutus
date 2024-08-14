@@ -47,8 +47,12 @@ common lang
   ghc-options:
     -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
 
+common os-support
+  if (impl(ghcjs) || os(windows))
+    buildable: False
+
 library
-  import:          lang
+  import:          lang, os-support
   hs-source-dirs:  src
   build-depends:
     , aeson
@@ -538,7 +542,7 @@ library
     MAlonzo.RTE.Float
 
 executable plc-agda
-  import:         lang
+  import:         lang, os-support
   hs-source-dirs: exe
   main-is:        Main.hs
   build-depends:
@@ -546,7 +550,7 @@ executable plc-agda
     , plutus-metatheory
 
 test-suite test1
-  import:             lang
+  import:             lang, os-support
   build-tool-depends:
     , plutus-core:plc   ^>=1.32
     , plutus-core:uplc  ^>=1.32
@@ -562,7 +566,7 @@ test-suite test1
   main-is:            TestSimple.hs
 
 test-suite test2
-  import:             lang
+  import:             lang, os-support
   build-tool-depends:
     , plutus-core:plc   ^>=1.32
     , plutus-core:uplc  ^>=1.32
@@ -581,7 +585,7 @@ test-suite test2
     , text
 
 test-suite test3
-  import:         lang
+  import:         lang, os-support
   hs-source-dirs: test
   type:           exitcode-stdio-1.0
   main-is:        TestNEAT.hs
