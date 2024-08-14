@@ -1,4 +1,4 @@
--- editorconfig-checker-disable
+ -- editorconfig-checker-disable
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE LambdaCase                #-}
@@ -17,6 +17,7 @@ import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Executable.AstIO (toDeBruijnTermUPLC)
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
@@ -67,6 +68,7 @@ data EvalOptions =
       Input
       Format
       PrintMode
+      Bool -- Use de Bruijn indices in the output?
       BudgetMode
       TraceMode
       Output
@@ -125,12 +127,20 @@ benchmarkOpts =
           <> showDefault
           <> help "Time limit (in seconds) for benchmarking.")
 
+printmodeDeBruijn:: Parser Bool
+printmodeDeBruijn =
+  flag False True
+  (long "debruijn"
+   <> short 'j'
+   <> help "Show de Bruijn indices in textual output? (default False: show names)")
+
 evalOpts :: Parser EvalOptions
 evalOpts =
   EvalOptions
   <$> input
   <*> inputformat
   <*> printmode
+  <*> printmodeDeBruijn
   <*> budgetmode
   <*> tracemode
   <*> output
@@ -319,10 +329,11 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt printMode budgetMode traceMode
+runEval (EvalOptions inp ifmt printMode printModeDeBruijn budgetMode traceMode
                      outputMode cekModel semvar) = do
     prog <- readProgram ifmt inp
     let term = void $ prog ^. UPLC.progTerm
+
         cekparams = case cekModel of
                     -- AST nodes are charged according to the default cost model
                     Default -> PLC.defaultCekParametersForVariant semvar
@@ -339,12 +350,16 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode
             Silent     -> SomeBudgetMode Cek.restrictingEnormous
             Verbose bm -> bm
     case budgetM of
-        SomeBudgetMode bm ->
+       SomeBudgetMode bm ->
             do
               let (res, budget, logs) = Cek.runCek cekparams bm emitM term
               case res of
                 Left err -> hPrint stderr err
-                Right v  -> writeToFileOrStd outputMode (show (getPrintMethod printMode v))
+                Right v  ->
+                  if printModeDeBruijn
+                  then let w = toDeBruijnTermUPLC v
+                       in writeToFileOrStd outputMode (show (getPrintMethod printMode w))
+                  else writeToFileOrStd outputMode (show (getPrintMethod printMode v))
               case budgetMode of
                 Silent    -> pure ()
                 Verbose _ -> printBudgetState term cekModel budget

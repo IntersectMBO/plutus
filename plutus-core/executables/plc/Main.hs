@@ -10,6 +10,7 @@ import PlutusCore.Data
 import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.Ck qualified as Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
+import PlutusCore.Executable.AstIO (toDeBruijnTermPLC, toDeBruijnTypePLC)
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
@@ -17,7 +18,6 @@ import PlutusCore.Pretty qualified as PP
 import PlutusPrelude
 
 import Data.ByteString.Lazy qualified as BSL (readFile)
-import Data.Text.IO qualified as T
 import Flat (unflat)
 import Options.Applicative
 import System.Exit (exitFailure, exitSuccess)
@@ -28,14 +28,16 @@ plcHelpText = helpText "Typed Plutus Core"
 plcInfoCommand :: ParserInfo Command
 plcInfoCommand = plutus plcHelpText
 
-data TypecheckOptions = TypecheckOptions Input Format
+data TypecheckOptions = TypecheckOptions Input Format PrintMode Bool
+
 data EvalOptions =
     EvalOptions
       Input
       Format
       PrintMode
+      Bool -- Use de Bruijn indices in the output?
       (BuiltinSemanticsVariant PLC.DefaultFun)
-data EraseOptions     = EraseOptions Input Format Output Format PrintMode
+data EraseOptions = EraseOptions Input Format Output Format PrintMode
 
 
 -- Main commands
@@ -54,14 +56,26 @@ data Command = Apply       ApplyOptions
 ---------------- Option parsers ----------------
 
 typecheckOpts :: Parser TypecheckOptions
-typecheckOpts = TypecheckOptions <$> input <*> inputformat
+typecheckOpts = TypecheckOptions <$> input <*> inputformat <*> printmode <*> printmodeDeBruijn
 
 eraseOpts :: Parser EraseOptions
 eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
 
+printmodeDeBruijn:: Parser Bool
+printmodeDeBruijn =
+  flag False True
+  (long "debruijn"
+   <> short 'j'
+   <> help "Show de Bruijn indices in textual output? (default False: show names)")
+
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions <$> input <*> inputformat <*> printmode <*> builtinSemanticsVariant
+  EvalOptions
+  <$> input
+  <*> inputformat
+  <*> printmode
+  <*> printmodeDeBruijn
+  <*> builtinSemanticsVariant
 
 plutus ::
   -- | The @helpText@
@@ -161,7 +175,7 @@ runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 ---------------- Typechecking ----------------
 
 runTypecheck :: TypecheckOptions -> IO ()
-runTypecheck (TypecheckOptions inp fmt) = do
+runTypecheck (TypecheckOptions inp fmt printMode printModeDeBruijn) = do
   prog <- readProgram fmt inp
   case PLC.runQuoteT $ do
     tcConfig <- PLC.getDefTypeCheckConfig ()
@@ -169,8 +183,12 @@ runTypecheck (TypecheckOptions inp fmt) = do
     of
       Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
         errorWithoutStackTrace $ PP.displayPlc e
-      Right ty                                               ->
-        T.putStrLn (PP.displayPlc ty) >> exitSuccess
+      Right (PLC.Normalized ty)                                  ->
+        if printModeDeBruijn
+        then
+          let w = toDeBruijnTypePLC ty
+          in print (getPrintMethod printMode w) >> exitSuccess
+        else print (getPrintMethod printMode ty) >> exitSuccess
 
 ---------------- Optimisation ----------------
 
@@ -184,12 +202,17 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt printMode semvar) = do
+runEval (EvalOptions inp ifmt printMode printModeDeBruijn semvar) = do
   prog <- readProgram ifmt inp
   let evaluate = Ck.evaluateCkNoEmit (PLC.defaultBuiltinsRuntimeForSemanticsVariant semvar)
       term = void $ prog ^. PLC.progTerm
   case evaluate term of
-    Right v  -> print (getPrintMethod printMode v) >> exitSuccess
+    Right v  ->
+      if printModeDeBruijn
+      then
+        let w = toDeBruijnTermPLC v
+        in print (getPrintMethod printMode w) >> exitSuccess
+      else print (getPrintMethod printMode v) >> exitSuccess
     Left err -> print err *> exitFailure
 
 ----------------- Print examples -----------------------
