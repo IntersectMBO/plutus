@@ -93,9 +93,6 @@ let
               in
               ''PATH=${lib.makeBinPath deps}:$PATH'';
 
-            # FIXME: Somehow this is broken even with setting the path up as above
-            plutus-metatheory.components.tests.test2.doCheck = false;
-
             # plutus-metatheory needs agda with the stdlib around for the custom setup
             # I can't figure out a way to apply this as a blanket change for all the
             # components in the package, oh well
