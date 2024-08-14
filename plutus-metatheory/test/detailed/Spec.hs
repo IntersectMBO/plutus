@@ -8,6 +8,8 @@
 
 module Main (main) where
 
+import PlutusCore.Name.Unique (isIdentifierChar)
+
 import Control.Exception
 import Data.Char (isDigit, isSpace)
 import Data.Text qualified as T
@@ -21,9 +23,6 @@ import System.IO.Extra
 import System.Process
 import Test.Tasty
 import Test.Tasty.HUnit
-
-
-import PlutusCore.Name.Unique (isIdentifierChar)
 
 import MAlonzo.Code.Evaluator.Term qualified as M
 import MAlonzo.Code.Main qualified as M
