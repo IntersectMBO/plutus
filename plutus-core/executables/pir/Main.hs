@@ -12,7 +12,7 @@ import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Error (ParserErrorBundle (..))
 import PlutusCore.Executable.Common hiding (runPrint)
 import PlutusCore.Executable.Parsers
-import PlutusCore.Quote (runQuoteT)
+import PlutusCore.Quote (runQuote, runQuoteT)
 import PlutusIR as PIR
 import PlutusIR.Analysis.RetainedSize qualified as PIR
 import PlutusIR.Analysis.VarInfo
@@ -25,7 +25,7 @@ import UntypedPlutusCore qualified as UPLC
 import Control.Lens (coerced, (^..))
 import Control.Monad (when)
 import Control.Monad.Trans.Except (runExcept)
-import Control.Monad.Trans.Reader (runReader, runReaderT)
+import Control.Monad.Trans.Reader (runReaderT)
 import Data.ByteString.Lazy.Char8 qualified as BSL
 import Data.Csv qualified as Csv
 import Data.IntMap qualified as IM
@@ -170,7 +170,7 @@ compileToUplc optimise plcProg =
             then PLC.defaultCompilationOpts
             else PLC.defaultCompilationOpts
                     & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
-    in flip runReader plcCompilerOpts $ runQuoteT $ PLC.compileProgram plcProg
+    in runQuote $ PLC.evalCompile plcCompilerOpts $ PLC.compileProgram plcProg
 
 loadPirAndCompile :: CompileOptions -> IO ()
 loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do
@@ -229,7 +229,7 @@ loadPirAndAnalyse :: AnalyseOptions -> IO ()
 loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do
     -- load pir and make sure that it is globally unique (required for retained size)
     p :: PirProg PLC.SrcSpan <- readProgram (pirFormatToFormat ifmt) inp
-    let PIR.Program _ _ term = PLC.runQuote . PLC.rename $ void p
+    let PIR.Program _ _ term = runQuote . PLC.rename $ void p
     putStrLn "!!! Analysing for retention"
     let
         -- all the variable names (tynames coerced to names)

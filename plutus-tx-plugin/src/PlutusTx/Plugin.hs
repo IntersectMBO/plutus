@@ -574,9 +574,7 @@ runCompiler moduleName opts expr = do
     when (opts ^. posDoTypecheck) . void $
         liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-    (uplcP, UPLCSimplifierTrace uplcSimplTrace) <-
-        flip runStateT initUPLCSimplifierTrace
-        $ flip runReaderT plcOpts $ PLC.compileProgram plcP
+    (uplcP, UPLCSimplifierTrace uplcSimplTrace) <- PLC.runCompile plcOpts $ PLC.compileProgram plcP
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
     -- TODO: just use liftExept like above
     let processAgdaAST t =
