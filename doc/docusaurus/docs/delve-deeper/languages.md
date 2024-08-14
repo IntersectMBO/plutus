@@ -92,3 +92,8 @@ For example, while guarded recursion is a useful idiom in Haskell, it is unsuita
 | [plu-ts](https://github.com/HarmonicLabs/plu-ts) | DSL embedded in TypeScript |
 | [Plutarch](https://github.com/Plutonomicon/plutarch-plutus) | DSL embedded in Haskell |
 | [Scalus](https://github.com/nau/scalus) | Subset of Scala |
+
+---
+
+[^1]: This statement is not entirely true for Plutus Tx, a subset of Haskell.
+Due to certain GHC-specific technical limitations, it can't easily reuse many functions and operations from the `base` library, so it ships with its own standard library instead.
