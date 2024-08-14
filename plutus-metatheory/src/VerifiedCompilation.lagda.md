@@ -1,9 +1,9 @@
 ---
-title: FFIExperiment
+title: VerifiedCompilation
 layout: page
 ---
 ```
-module FFIExperiment where
+module VerifiedCompilation where
 ```
 
 ## Imports
@@ -98,17 +98,18 @@ traverseEitherList f (x ∷ xs) with f x
 -- TODO: add tags to know beforehand which transformation we should apply
 data IsTransformation : Relation where
   isCoC : {X : Set} → (ast ast' : X ⊢) → UCC.CoC ast ast' → IsTransformation ast ast'
-  isFD : {X : Set} → (ast ast' : X ⊢) → UFD.FD ast ast' → IsTransformation ast ast'
+  isFD : {X : Set} {n n' : ℕ} → (ast ast' : X ⊢) → UFD.FD n n' ast ast' → IsTransformation ast ast'
 
-isTransformation? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (IsTransformation {X})
-isTransformation? ast₁ ast₂ with UCC.isCoC? ast₁ ast₂
-... | bla with UFD.isFD? ast₁ ast₂
-isTransformation? ast₁ ast₂ | no ¬p | no ¬p₁ = no λ {(isCoC .ast₁ .ast₂ x) → ¬p x
-                                                   ; (isFD .ast₁ .ast₂ x) → ¬p₁ x}
-isTransformation? ast₁ ast₂ | no ¬p | yes p = yes (isFD ast₁ ast₂ p)
-isTransformation? ast₁ ast₂ | yes p | no ¬p = yes (isCoC ast₁ ast₂ p)
--- how can it be both? need to revisit this
-isTransformation? ast₁ ast₂ | yes p | yes p₁ = yes (isCoC ast₁ ast₂ p)
+postulate
+  isTransformation? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (IsTransformation {X})
+-- isTransformation? ast₁ ast₂ with UCC.isCoC? ast₁ ast₂
+-- ... | scrt with UFD.isFD? zero zero ast₁ ast₂
+-- isTransformation? ast₁ ast₂ | no ¬p | no ¬p₁ = no λ {(isCoC .ast₁ .ast₂ x) → ¬p x
+--                                                    ; (isFD .n₁ .n₂ ast₁ .ast₂ x) → ¬p₁ x}
+-- isTransformation? ast₁ ast₂ | no ¬p | yes p = yes (isFD ast₁ ast₂ p)
+-- isTransformation? ast₁ ast₂ | yes p | no ¬p = yes (isCoC ast₁ ast₂ p)
+-- -- how can it be both? need to revisit this
+-- isTransformation? ast₁ ast₂ | yes p | yes p₁ = yes (isCoC ast₁ ast₂ p)
 
 
 -- TODO: try to use the Haskell Agda library to pretty print 

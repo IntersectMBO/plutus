@@ -225,7 +225,6 @@ library
     MAlonzo.Code.Evaluator.Base
     MAlonzo.Code.Evaluator.Program
     MAlonzo.Code.Evaluator.Term
-    MAlonzo.Code.FFIExperiment
     MAlonzo.Code.Function.Base
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
@@ -327,6 +326,7 @@ library
     MAlonzo.Code.Utils.Decidable
     MAlonzo.Code.Utils.List
     MAlonzo.Code.Utils.Reflection
+    MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.VerifiedCompilation.Equality
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
     MAlonzo.Code.VerifiedCompilation.UForceDelay
@@ -474,7 +474,7 @@ library
     MAlonzo.Code.Evaluator.Base
     MAlonzo.Code.Evaluator.Program
     MAlonzo.Code.Evaluator.Term
-    MAlonzo.Code.FFIExperiment
+    MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.Function.Base
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles

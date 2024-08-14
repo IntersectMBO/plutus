@@ -67,7 +67,7 @@ import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusTx.Options
 
-import MAlonzo.Code.FFIExperiment qualified as Agda
+import MAlonzo.Code.VerifiedCompilation qualified as Agda
 import Untyped qualified as AgdaFFI
 
 import Language.Haskell.TH.Syntax as TH hiding (lift)
@@ -586,9 +586,9 @@ runCompiler moduleName opts expr = do
         rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
         test = Agda.runCertifier (Text.pack moduleName) rawAgdaTrace
     -- test out running the certifier
-    liftIO $ putStrLn $ "Starting certifier for " <> moduleName
-    liftIO test
-    liftIO $ putStrLn $ "Certifier finished for " <> moduleName
+    -- liftIO $ putStrLn $ "Starting certifier for " <> moduleName
+    -- liftIO test
+    -- liftIO $ putStrLn $ "Certifier finished for " <> moduleName
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat
             (UPLC.UnrestrictedProgram $ void dbP)
