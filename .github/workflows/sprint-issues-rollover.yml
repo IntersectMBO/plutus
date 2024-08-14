@@ -1,0 +1,24 @@
+# This workflows automatically moves issues and pull requests to the next 
+# iteration of our Plutus Backlog project when a new sprint begins.
+
+name: "🛼 Sprint Issues Rollover"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * 3' # 5am on Wednesday
+
+jobs:
+  Run:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: blombard/move-to-next-iteration@master
+      with:
+        owner: IntersectMBO
+        number: 18
+        token: ${{ secrets.PROJECT_PAT }}
+        iteration-field: Sprint
+        iteration: last
+        new-iteration: current
+        excluded-statuses: ❌ - won't do,🚀 - done
