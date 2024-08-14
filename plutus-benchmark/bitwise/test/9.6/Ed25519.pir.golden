@@ -52,7 +52,7 @@
           ifThenElse {Bool} (equalsInteger 0 (modInteger n 2)) True False
   in
   letrec
-    !expMod : integer -> integer -> integer -> integer
+    !expModManual : integer -> integer -> integer -> integer
       = \(b' : integer) (e : integer) (m : integer) ->
           Bool_match
             (ifThenElse {Bool} (equalsInteger 0 e) True False)
@@ -60,7 +60,7 @@
             (/\dead -> 1)
             (/\dead ->
                let
-                 !reduced : integer = expMod b' (divideInteger e 2) m
+                 !reduced : integer = expModManual b' (divideInteger e 2) m
                  !t : integer = modInteger (multiplyInteger reduced reduced) m
                in
                Bool_match
@@ -76,7 +76,7 @@
        integer
       = multiplyInteger
           -121665
-          (expMod
+          (expModManual
              121666
              57896044618658097711785492504343953926634992332820282019728792003956564819947
              57896044618658097711785492504343953926634992332820282019728792003956564819949)
@@ -86,7 +86,7 @@
           let
             !i :
                integer
-              = expMod
+              = expModManual
                   2
                   14474011154664524427946373126085988481658748083205070504932198000989141204987
                   57896044618658097711785492504343953926634992332820282019728792003956564819949
@@ -94,13 +94,13 @@
                integer
               = multiplyInteger
                   (subtractInteger (multiplyInteger y y) 1)
-                  (expMod
+                  (expModManual
                      (addInteger 1 (multiplyInteger (multiplyInteger d y) y))
                      57896044618658097711785492504343953926634992332820282019728792003956564819947
                      57896044618658097711785492504343953926634992332820282019728792003956564819949)
             !x :
                integer
-              = expMod
+              = expModManual
                   xx
                   7237005577332262213973186563042994240829374041602535252466099000494570602494
                   57896044618658097711785492504343953926634992332820282019728792003956564819949
@@ -431,7 +431,7 @@
                             (addInteger
                                (multiplyInteger y y)
                                (multiplyInteger x x))
-                            (expMod
+                            (expModManual
                                (subtractInteger
                                   1
                                   (multiplyInteger
@@ -452,7 +452,7 @@
                             (addInteger
                                (multiplyInteger x y)
                                (multiplyInteger x y))
-                            (expMod
+                            (expModManual
                                (addInteger
                                   1
                                   (multiplyInteger
@@ -575,7 +575,7 @@
          integer
         = multiplyInteger
             4
-            (expMod
+            (expModManual
                5
                57896044618658097711785492504343953926634992332820282019728792003956564819947
                57896044618658097711785492504343953926634992332820282019728792003956564819949)

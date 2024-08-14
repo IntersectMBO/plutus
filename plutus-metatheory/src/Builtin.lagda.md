@@ -145,6 +145,8 @@ data Builtin : Set where
   findFirstSetBit                 : Builtin
   -- Ripemd-160
   ripemd-160                      : Builtin
+  -- Modular Exponentiation
+  expModInteger                   : Builtin
 ```
 
 ## Signatures
@@ -325,6 +327,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature rotateByteString                = ∙ [ bytestring ↑ , integer ↑ ]⟶  bytestring ↑
     signature countSetBits                    = ∙ [ bytestring ↑ ]⟶  integer ↑
     signature findFirstSetBit                 = ∙ [ bytestring ↑ ]⟶  integer ↑
+    signature expModInteger                   = ∙ [ integer ↑ , integer ↑ , integer ↑ ]⟶  integer ↑
 
 open SugaredSignature using (signature) public
 
@@ -427,6 +430,7 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | CountSetBits
                                           | FindFirstSetBit
                                           | Ripemd_160
+                                          | ExpModInteger
                                           ) #-}
 ```
 
@@ -494,6 +498,7 @@ postulate
   countSetBITS              : ByteString -> Int
   findFirstSetBIT           : ByteString -> Int
   RIPEMD-160                : ByteString → ByteString
+  expModINTEGER             : Int -> Int -> Int -> Maybe Int
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
@@ -617,6 +622,13 @@ postulate
 {-# COMPILE GHC findFirstSetBIT = \s -> fromIntegral $ Bitwise.findFirstSetBit s #-}
 
 {-# COMPILE GHC RIPEMD-160 = Hash.ripemd_160 #-}
+{-# FOREIGN GHC import PlutusCore.Crypto.ExpMod qualified as ExpMod #-}
+-- here we explicitly do a Natural-check on m; the builtin machinery in plutus does such a check usually implicitly
+-- but we cannot use the builtin machinery here.
+{-# COMPILE GHC expModINTEGER = \b e m ->
+    if m < 0
+    then Nothing
+    else fmap fromIntegral $ builtinResultToMaybe $ ExpMod.expMod b e (fromIntegral m) #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr

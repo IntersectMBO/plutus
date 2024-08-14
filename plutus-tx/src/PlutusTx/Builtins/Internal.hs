@@ -38,6 +38,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Crypto.Ed25519 qualified
+import PlutusCore.Crypto.ExpMod as ExpMod
 import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
@@ -818,3 +819,18 @@ replicateByte n w8 =
       Haskell.error "byteStringReplicate errored."
     BuiltinSuccess bs -> BuiltinByteString bs
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
+
+{-# NOINLINE expModInteger #-}
+expModInteger ::
+  BuiltinInteger ->
+  BuiltinInteger ->
+  BuiltinInteger ->
+  BuiltinInteger
+expModInteger b e m =
+  -- (fromInteger @Rational) correctly throws an underflow exception upon negative integer
+  -- both for GHC8.10 and GHC>=9
+  case ExpMod.expMod b e (fromInteger m) of
+    BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
+      Haskell.error "expModInteger errored."
+    BuiltinSuccess bs -> toInteger bs
+    BuiltinSuccessWithLogs logs bs -> traceAll logs $ toInteger bs
