@@ -588,9 +588,9 @@ test-suite test-detailed
 
 test-suite test-NEAT
   import:         lang, os-support
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
-  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: test/NEAT
   build-depends:
     , base
