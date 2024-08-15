@@ -167,7 +167,7 @@ compareResultAgda eq mode1 mode2 testname = withTempFile $ \tmp -> do
   plcAgdaOutput1 <- runPlcAgda ["evaluate", "--input", tmp, "--mode", mode1]
   plcAgdaOutput2 <- runPlcAgda ["evaluate", "--input", tmp, "--mode", mode2]
   -- The outputs are both produced by plc-agda so we don't have to canonicalise them.
-  assertBool (mode1 ++ ": " ++ plcAgdaOutput1 ++ "\n" ++ mode2 ++ ": " ++ plcAgdaOutput2
+  assertBool (mode1 ++ ": " ++ plcAgdaOutput1 ++ mode2 ++ ": " ++ plcAgdaOutput2
               ++ "** If these look the same they may be failing to parse.") $
     T.pack plcAgdaOutput1 `eq` T.pack plcAgdaOutput2
 
