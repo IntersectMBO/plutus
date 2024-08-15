@@ -93,8 +93,6 @@ type MarloweInput = [MarloweTxInput]
 -- | Tag for the Marlowe semantics validator.
 data TypedMarloweValidator
 
-data Poo
-
 
 -- | A single input applied in the Marlowe semantics validator.
 data MarloweTxInput = Input InputContent
