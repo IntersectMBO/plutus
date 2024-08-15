@@ -1,0 +1,53 @@
+% I tried resetting the note number from V1-builtins here, but that made
+% some hyperlinks wrong.  To get note numbers starting at one in each section, I
+% think we have to define a new counter every time.
+\newcounter{notenumberE}
+\renewcommand{\note}[1]{
+  \bigskip
+  \refstepcounter{notenumberE}
+  \noindent\textbf{Note \thenotenumberE. #1}
+}
+
+\subsection{Batch 5}
+\label{sec:default-builtins-5}
+The fifth batch of builtins adds support for
+\begin{itemize}
+\item Logical operations on bytestrings.
+\item The \texttt{RIPEMD-160} hash function.
+\end{itemize}
+
+
+\setlength{\LTleft}{-10mm}  % Shift the table left a bit to centre it on the page
+\begin{longtable}[H]{|l|p{50mm}|p{35mm}|c|c|}
+    \hline
+    \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
+    & & & fail? & \\
+    \hline
+    \endfirsthead
+    \hline
+    \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
+    & & & fail? & \\
+    \hline
+    \endhead
+    \hline
+    \caption{Built-in Functions}
+    \endfoot
+    \caption[]{Built-in Functions}
+    \label{table:built-in-functions-5}
+    \endlastfoot
+    \TT{andByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & Bitwise logical AND &  & \\
+    \TT{orByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & Bitwise logical OR &  & \\
+    \TT{xorByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & Bitwise logical XOR &  & \\
+    \TT{complementByteString} & $[\ty{bytestring}] \to \ty{bytestring}$ &  Bitwise complement &  & \\
+    \TT{readBit} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} &  Read $n$-th bit & Yes & \\
+    \TT{writeBits} & $[\ty{bytestring}, \listOf{\ty{integer}}, $
+        \text{$\;\; \listOf{\ty{bool}}] \to \ty{bytestring}$} & Set/clear a number of bits& Yes & \\
+    \TT{replicateByte} & $[\ty{integer}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} & Replicate a byte & Yes & \\
+    \TT{shiftByteString} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} &  Shift &  & \\
+    \TT{rotateByteString} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} &  Rotate &  & \\
+    \TT{countSetBits} & $[\ty{bytestring}] \to \ty{integer}$ & Count set bits&  & \\
+    \TT{findFirstSetBit} & $[\ty{bytestring}] \to \ty{integer}$ &  Find first set bit &  & \\
+    \hline
+    \TT{ripemd\_160} & $[\ty{bytestring}] \to \ty{bytestring}$ & Compute a RIPEMD-160 hash &  & \\
+\hline
+\end{longtable}
