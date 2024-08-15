@@ -230,9 +230,8 @@ uplcOptimise =
                                 case safeOrUnsafe of
                                   SafeOptimise   -> set UPLC.soConservativeOpts True
                                   UnsafeOptimise -> id
-                in fmap fst
-                   . flip runStateT initUPLCSimplifierTrace
-                   . fmap PLC.runQuoteT
+                in (fmap . fmap) fst
+                   . fmap (PLC.runQuoteT . flip runStateT initUPLCSimplifierTrace)
                    . _Wrapped
                    . uplcViaName (UPLC.simplifyProgram sOpts def)
 
