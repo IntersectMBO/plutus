@@ -263,7 +263,7 @@ plutusOpts = hsubparser $
 
 -- | Run the UPLC optimisations
 runOptimisations :: OptimiseOptions -> IO ()
-runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
   prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
   (simplified, simplificationTrace) <- PLC.runQuoteT $ do
     renamed <- PLC.rename prog
@@ -272,15 +272,16 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
     flip runStateT initUPLCSimplifierTrace
       $ UPLC.simplifyProgram UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
   writeProgram outp ofmt mode simplified
-  runCertifier simplificationTrace
+  runCertifier cert simplificationTrace
   where
-    runCertifier (UPLCSimplifierTrace uplcSimplTrace) = do
+    runCertifier (Just certName) (UPLCSimplifierTrace uplcSimplTrace) = do
       let processAgdaAST t =
               case UPLC.deBruijnTerm t of
                 Right res                            -> res
                 Left (err :: UPLC.FreeVariableError) -> error $ show err
           rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
-      Agda.runCertifier "" rawAgdaTrace
+      Agda.runCertifier (T.pack certName) rawAgdaTrace
+    runCertifier Nothing _ = pure ()
 
 ---------------- Script application ----------------
 
