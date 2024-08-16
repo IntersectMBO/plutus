@@ -323,7 +323,7 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
 
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode nameFormat budgetMode traceMode
-                     outputMode cekModel semvar) = do
+                     outp cekModel semvar) = do
     prog <- readProgram ifmt inp
     let term = void $ prog ^. UPLC.progTerm
 
@@ -350,16 +350,16 @@ runEval (EvalOptions inp ifmt printMode nameFormat budgetMode traceMode
                 Left err -> hPrint stderr err
                 Right v  ->
                   case nameFormat of
-                    IdNames -> writeToFileOrStd outputMode (show (getPrintMethod printMode v))
+                    IdNames -> writeToOutput outp (show (getPrintMethod printMode v))
                     DeBruijnNames ->
                       let w = toDeBruijnTermUPLC v
-                      in writeToFileOrStd outputMode (show (getPrintMethod printMode w))
+                      in writeToOutput outp (show (getPrintMethod printMode w))
               case budgetMode of
                 Silent    -> pure ()
                 Verbose _ -> printBudgetState term cekModel budget
               case traceMode of
                 None -> pure ()
-                _    -> writeToFileOrStd outputMode (T.unpack (T.intercalate "\n" logs))
+                _    -> writeToOutput outp (T.unpack (T.intercalate "\n" logs))
               case res of
                 Left _  -> exitFailure
                 Right _ -> pure ()

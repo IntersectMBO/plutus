@@ -29,9 +29,9 @@ module PlutusCore.Executable.Common
     , runPrintExample
     , topSrcSpan
     , writeFlat
-    , writePrettyToFileOrStd
+    , writePrettyToOutput
     , writeProgram
-    , writeToFileOrStd
+    , writeToOutput
     ) where
 
 import PlutusPrelude
@@ -325,12 +325,12 @@ writeFlat outp flatMode prog = do
 ---------------- Write an AST as PLC source ----------------
 
 getPrintMethod ::
-    PP.PrettyPlc a => PrintMode -> (a -> Doc ann)
+    PP.PrettyPlc a => PrintMode -> (a -> Doc a)
 getPrintMethod = \case
-    Classic        -> PP.prettyPlcClassic
-    Simple         -> PP.prettyPlcClassicSimple
-    Readable       -> PP.prettyPlcReadable
-    ReadableSimple -> PP.prettyPlcReadableSimple
+  Classic        -> PP.prettyPlcClassic
+  Simple         -> PP.prettyPlcClassicSimple
+  Readable       -> PP.prettyPlcReadable
+  ReadableSimple -> PP.prettyPlcReadableSimple
 
 writeProgram ::
     ( ProgramLike p
@@ -342,21 +342,21 @@ writeProgram ::
     PrintMode ->
     p ann ->
     IO ()
-writeProgram outp Textual mode prog      = writePrettyToFileOrStd outp mode prog
+writeProgram outp Textual mode prog      = writePrettyToOutput outp mode prog
 writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
 
-writePrettyToFileOrStd ::
+writePrettyToOutput ::
     (PP.PrettyBy PP.PrettyConfigPlc (p ann)) => Output -> PrintMode -> p ann -> IO ()
-writePrettyToFileOrStd outp mode prog = do
+writePrettyToOutput outp mode prog = do
     let printMethod = getPrintMethod mode
     case outp of
         FileOutput file -> writeFile file . Prelude.show . printMethod $ prog
         StdOutput       -> print . printMethod $ prog
         NoOutput        -> pure ()
 
-writeToFileOrStd ::
+writeToOutput ::
     Output -> String -> IO ()
-writeToFileOrStd outp v = do
+writeToOutput outp v = do
     case outp of
         FileOutput file -> writeFile file v
         StdOutput       -> putStrLn v

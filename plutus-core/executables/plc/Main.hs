@@ -176,12 +176,12 @@ runTypecheck (TypecheckOptions inp fmt printMode nameFormat) = do
     of
       Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
         errorWithoutStackTrace $ PP.displayPlc e
-      Right (PLC.Normalized ty)                                  ->
+      Right (PLC.Normalized ty) ->
         case nameFormat of
           IdNames -> print (getPrintMethod printMode ty) >> exitSuccess
           DeBruijnNames ->
-            let w = toDeBruijnTypePLC ty
-            in print (getPrintMethod printMode w) >> exitSuccess
+            let ty' = toDeBruijnTypePLC ty
+            in print (getPrintMethod printMode ty') >> exitSuccess
 
 ---------------- Optimisation ----------------
 
@@ -221,7 +221,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
   typedProg <- (readProgram ifmt inp :: IO (PlcProg PLC.SrcSpan))
   let untypedProg = () <$ PLC.eraseProgram typedProg
   case ofmt of
-    Textual       -> writePrettyToFileOrStd outp mode untypedProg
+    Textual       -> writePrettyToOutput outp mode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
 
 ---------------- Driver ----------------
