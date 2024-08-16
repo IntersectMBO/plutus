@@ -103,7 +103,7 @@ printmode = option auto
   <> value Simple
   <> showDefault
   <> help
-    ("Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassicDef, "
+    ("Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassic, "
      <> "Simple -> plcPrettyClassicSimple, "
      <> "Readable -> prettyPlcReadable, ReadableSimple -> prettyPlcReadableSimple" ))
 
