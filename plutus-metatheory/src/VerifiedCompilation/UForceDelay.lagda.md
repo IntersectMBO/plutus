@@ -45,9 +45,38 @@ data pureFD : Relation where
   forcedelay : {X : Set} → (x x' : X ⊢) → Translation pureFD x x' → pureFD (force (delay x)) x'
   pushfd : {X : Set} → (x : Maybe X ⊢) → (y : X ⊢)
          → pureFD (force ((ƛ x) · y)) ((ƛ (force x)) · y)
-  transfd : {X : Set} → (x x'' x' : X ⊢) → Translation pureFD x x'' → Translation pureFD x'' x' → pureFD x x'
-  appfd : {X : Set} → (x : Maybe X ⊢) → (y : X ⊢) → pureFD ((ƛ x) · y) (ƛ (x · (weaken y)))
-  appfd⁻¹ : {X : Set} → (x : Maybe X ⊢) → (y : X ⊢) → pureFD (ƛ (x · (weaken y))) ((ƛ x) · y)
+  transfd : {X : Set} → {x x' : X ⊢} → (x'' : X ⊢)  → Translation pureFD x x'' → Translation pureFD x'' x' → pureFD x x'
+  appfd : {X : Set} → (x : Maybe X ⊢) → (y z : X ⊢) → pureFD (((ƛ x) · y) · z) (ƛ (x · (weaken z)) · y)
+  appfd⁻¹ : {X : Set} → (x : Maybe X ⊢) → (y z : X ⊢) → pureFD (ƛ (x · (weaken z)) · y) (((ƛ x) · y) · z)
+
+_ : pureFD {Maybe ⊥} (force (delay (` nothing))) (` nothing)
+_ = forcedelay (` nothing) (` nothing) Translation.var
+
+forceappdelay : pureFD {Maybe ⊥} (force ((ƛ (delay (` nothing))) · (` nothing))) ((ƛ (` nothing)) · (` nothing))
+forceappdelay = transfd (ƛ (force (delay (` nothing))) · ` nothing)
+     (Translation.istranslation
+      (force (ƛ (delay (` nothing)) · ` nothing))
+      (ƛ (force (delay (` nothing))) · ` nothing)
+      (pushfd (delay (` nothing)) (` nothing)))
+     (Translation.app
+      (Translation.ƛ
+       (Translation.istranslation (force (delay (` nothing))) (` nothing)
+        (forcedelay (` nothing) (` nothing) Translation.var)))
+      Translation.var)
+
+_ : pureFD {Maybe ⊥} (force (force (delay (delay (` nothing))))) (` nothing)
+_ = transfd (force (delay (` nothing)))
+     (Translation.force
+      (Translation.istranslation (force (delay (delay (` nothing))))
+       (delay (` nothing))
+       (forcedelay (delay (` nothing)) (delay (` nothing))
+        (Translation.delay Translation.var))))
+     (Translation.istranslation (force (delay (` nothing))) (` nothing)
+      (forcedelay (` nothing) (` nothing) Translation.var))
+
+_ : pureFD {Maybe ⊥} (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
+_ = transfd ((force (ƛ (force (ƛ (delay (delay (` nothing))) · (` nothing)))) · (` nothing))) {!!} {!!}
+
 
 data FD : ℕ → ℕ → Relation where
   forcefd : (n nₐ : ℕ) → {X : Set} → (x x' : X ⊢) → FD (suc n) nₐ x x' → FD n nₐ (force x) x'
@@ -61,13 +90,82 @@ data FD : ℕ → ℕ → Relation where
                     →  FD n nₐ (force x) x'
                     →  FD n (suc nₐ) (force (ƛ x)) (ƛ x')
 
+{-
+data FD : Relation
+data aFD : ℕ → ℕ → Relation
+data fFD : ℕ → Relation
+
+data aFD where
+  appfd : (n nₐ : ℕ) → {X : Set} → {x x' y y' : X ⊢} → Translation FD y y' → aFD n (suc nₐ) x x' → aFD n nₐ (x · y) (x' · y')
+  absfd :  (n nₐ : ℕ) → {X : Set} → {x x' : (Maybe X) ⊢} → {y y' : X ⊢} → Translation FD y y' → aFD n nₐ x x' → aFD n (suc nₐ) (ƛ x) (ƛ x')
+  ffd : (n nₐ : ℕ) → {X : Set} → {x x' : X ⊢} → fFD n x x' → aFD n zero x x'
+
+data fFD where
+  forcefd : (n : ℕ) → {X : Set} → {x x' : X ⊢} → fFD (suc n) x x' → fFD n (force x) x'
+  delayfd : (n : ℕ) → {X : Set} → {x x' : X ⊢} → fFD n x x' → fFD (suc n) (delay x) x'
+  afd : (n : ℕ) → {X : Set} → {x x' : X ⊢} → aFD n zero x x' → fFD n x x'
+  idfd : {X : Set} → {x : X ⊢} → fFD zero x x
+
+data FD where
+  ffd : {X : Set} → {x x' : X ⊢} → fFD zero x x' → FD x x'
+
+_ : FD {⊥} (force (ƛ (delay error) · error)) (ƛ error · error)
+_ = ffd
+     (forcefd zero
+      (afd 1
+       (appfd 1 zero Translation.error
+        (absfd 1 zero Translation.error
+         (ffd 1 zero (delayfd zero idfd))))))
+_ : FD {⊥} (force (delay error)) error
+_ = ffd (forcefd zero (delayfd zero idfd))
+
+_ : FD {⊥} (force (force (delay (delay error)))) error
+_ = ffd (forcefd zero (forcefd 1 (delayfd 1 (delayfd zero idfd))))
+
+_ : FD {Maybe ⊥} (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
+_ = ffd (forcefd zero (forcefd 1 (afd 2 (appfd 2 zero Translation.var (absfd 2 zero Translation.error (appfd 2 zero Translation.var (absfd 2 zero Translation.error
+                                                                                                                                      (ffd 2 zero (delayfd 1 (delayfd zero idfd))))))))))
+
+-}
 ForceDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
 ForceDelay = Translation (FD zero zero)
+
+
+```
+
+FD implies pureFD
+
+```
+FD→pureFD : {X : Set} → {x x' : X ⊢} → FD zero zero x x' → pureFD x x'
+FD→pureFD {X} {.(force (force x))} {x'} (forcefd .zero .zero .(force x) _ (forcefd .1 .zero x .x' p)) = transfd x {!!} {!!}
+FD→pureFD {X} {.(force (delay x))} {x'} (forcefd .zero .zero .(delay x) _ (delayfd .0 .zero x .x' p)) = forcedelay x x' (Translation.istranslation x x' (FD→pureFD p))
+FD→pureFD {X} {.(force (delay x))} {x'} (forcefd .zero .zero .(delay x) _ (lastdelay n nₐ x .x' x₁)) = forcedelay x x' (Translation.istranslation x x' {!!})
+FD→pureFD {X} {.(force (force (x · y)))} {.(x' · y')} (forcefd .zero .zero .(force (x · y)) _ (multiappliedfd .1 .zero x y x' y' x₁ p)) = {!!}
+FD→pureFD {X} {x} {x'} (multiappliedfd .zero .zero x₂ y x₂' y' x₁ p) = {!!}
+{-
+
+delays : (i : ℕ) → (M : X ⊢) → X ⊢
+delays zero M = M
+delays (suc i) M = delay (delays i M)
+
+maybes : (j : ℕ) → (X : Set) → Set
+maybes zero X = X
+maybes (suc j) X = (maybes j (Maybe X))
+
+lambdas : (j : ℕ) → (M : maybes j X ⊢) → X ⊢
+lambdas zero M = M
+lambdas (suc j) M = ƛ (lambdas j M)
+
+FD→pureFD : (i j : ℕ) → FD i j (lambdas j (delays i M)) N → pureFD M N
+FD→pureFD = {!!}
+-}
+
 ```
 ## Decision Procedure
 
 
 ```
+{-
 isForceDelay? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation (FD zero zero) {X})
 
 {-# TERMINATING #-}
@@ -109,5 +207,5 @@ isFD? n nₐ ast ast' | yes (isforce (isterm t)) | no ¬isApp | no ¬ƛ with isF
 ... | no ¬p = no λ { (forcefd .n .nₐ .t .ast' xx) → ¬p xx ; (multiappliedfd .n .nₐ x y x' y' x₁ xx) → ¬isApp (isapp (isterm x) (isterm y)) ; (multiabstractfd .n nₐ x x' xx) → ¬ƛ (islambda (isterm x)) }
 
 isForceDelay? = translation? (isFD? zero zero)
-
+-}
 ```
