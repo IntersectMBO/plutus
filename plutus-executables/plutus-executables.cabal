@@ -97,6 +97,7 @@ executable uplc
     , mtl
     , optparse-applicative
     , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.32
+    , plutus-metatheory
     , prettyprinter
     , split
     , text

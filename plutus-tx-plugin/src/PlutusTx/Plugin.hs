@@ -18,8 +18,6 @@
 {-# OPTIONS_GHC -O0 #-}
 module PlutusTx.Plugin (plugin, plc) where
 
-import Debug.Trace qualified as Debug
-
 import Data.Bifunctor
 import PlutusPrelude
 import PlutusTx.Bool ((&&), (||))
@@ -66,9 +64,6 @@ import PlutusIR qualified as PIR
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusTx.Options
-
-import MAlonzo.Code.VerifiedCompilation qualified as Agda
-import Untyped qualified as AgdaFFI
 
 import Language.Haskell.TH.Syntax as TH hiding (lift)
 
@@ -577,16 +572,6 @@ runCompiler moduleName opts expr = do
     (uplcP, UPLCSimplifierTrace uplcSimplTrace) <- PLC.runCompile plcOpts $ PLC.compileProgram plcP
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
     -- TODO: just use liftExept like above
-    let processAgdaAST t =
-            case UPLC.deBruijnTerm t of
-              Right res                            -> res
-              Left (err :: UPLC.FreeVariableError) -> error $ show err
-        rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
-        test = Agda.runCertifier (Text.pack moduleName) rawAgdaTrace
-    -- test out running the certifier
-    -- liftIO $ putStrLn $ "Starting certifier for " <> moduleName
-    -- liftIO test
-    -- liftIO $ putStrLn $ "Certifier finished for " <> moduleName
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat
             (UPLC.UnrestrictedProgram $ void dbP)
