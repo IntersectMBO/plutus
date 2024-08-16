@@ -215,4 +215,20 @@ convert {R} {S} f {X} (case (x∼y Pointwise.∷ x) xx') = Translation.case (con
 convert f Translation.builtin = Translation.builtin
 convert f Translation.error = Translation.error
 
+pointwise-reflexive : { R : Relation } → (∀ {X : Set} {x : X ⊢} → Translation R x x) → (∀ {X : Set} {xs : List (X ⊢)} → Pointwise (Translation R) xs xs)
+pointwise-reflexive {R} f {xs = List.[]} = Pointwise.[]
+pointwise-reflexive {R} f {xs = x List.∷ xs} = f Pointwise.∷ pointwise-reflexive f
+
+{-# TERMINATING #-}
+reflexive : {R : Relation} → {X : Set} {x x' : X ⊢} → Translation R x x
+reflexive {x = ` x} = var
+reflexive {R} {X} {x = ƛ x} {x'} = ƛ reflexive
+reflexive {x = x · x₁} = app reflexive reflexive
+reflexive {x = force x} = force reflexive
+reflexive {x = delay x} = delay reflexive
+reflexive {x = con x} = con
+reflexive {R} {x = constr i xs} = constr (pointwise-reflexive reflexive)
+reflexive {R} {x = case x ts} = case (pointwise-reflexive reflexive) reflexive
+reflexive {x = builtin b} = builtin
+reflexive {x = error} = error
 ```
