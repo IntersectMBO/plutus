@@ -350,16 +350,16 @@ runEval (EvalOptions inp ifmt printMode nameFormat budgetMode traceMode
                 Left err -> hPrint stderr err
                 Right v  ->
                   case nameFormat of
-                    IdNames -> writeToOutput outp (show (getPrintMethod printMode v))
+                    IdNames -> writeToOutput outp (prettyPrintByMode printMode v)
                     DeBruijnNames ->
                       let w = toDeBruijnTermUPLC v
-                      in writeToOutput outp (show (getPrintMethod printMode w))
+                      in writeToOutput outp (prettyPrintByMode printMode w)
               case budgetMode of
                 Silent    -> pure ()
                 Verbose _ -> printBudgetState term cekModel budget
               case traceMode of
                 None -> pure ()
-                _    -> writeToOutput outp (T.unpack (T.intercalate "\n" logs))
+                _    -> writeToOutput outp (T.intercalate "\n" logs)
               case res of
                 Left _  -> exitFailure
                 Right _ -> pure ()

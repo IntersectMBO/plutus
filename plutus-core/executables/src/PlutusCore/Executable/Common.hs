@@ -14,7 +14,7 @@ module PlutusCore.Executable.Common
     , getInput
     , getInteresting
     , getPlcExamples
-    , getPrintMethod
+    , prettyPrintByMode
     , getUplcExamples
     , helpText
     , loadASTfromFlat
@@ -324,9 +324,9 @@ writeFlat outp flatMode prog = do
 
 ---------------- Write an AST as PLC source ----------------
 
-getPrintMethod ::
+prettyPrintByMode ::
     PP.PrettyPlc a => PrintMode -> (a -> Doc a)
-getPrintMethod = \case
+prettyPrintByMode = \case
   Classic        -> PP.prettyPlcClassic
   Simple         -> PP.prettyPlcClassicSimple
   Readable       -> PP.prettyPlcReadable
@@ -348,18 +348,18 @@ writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
 writePrettyToOutput ::
     (PP.PrettyBy PP.PrettyConfigPlc (p ann)) => Output -> PrintMode -> p ann -> IO ()
 writePrettyToOutput outp mode prog = do
-    let printMethod = getPrintMethod mode
+    let printMethod = prettyPrintByMode mode
     case outp of
         FileOutput file -> writeFile file . Prelude.show . printMethod $ prog
         StdOutput       -> print . printMethod $ prog
         NoOutput        -> pure ()
 
 writeToOutput ::
-    Output -> String -> IO ()
+    Show a => Output -> a -> IO ()
 writeToOutput outp v = do
     case outp of
-        FileOutput file -> writeFile file v
-        StdOutput       -> putStrLn v
+        FileOutput file -> writeFile file $ show v
+        StdOutput       -> putStrLn $ show v
         NoOutput        -> pure ()
 
 ---------------- Examples ----------------
@@ -559,7 +559,7 @@ runPrint
     -> IO ()
 runPrint (PrintOptions inp outp mode) = do
     parsed <- (snd <$> parseInput inp :: IO (p PLC.SrcSpan))
-    let printed = show $ getPrintMethod mode parsed
+    let printed = show $ prettyPrintByMode mode parsed
     case outp of
         FileOutput path -> writeFile path printed
         StdOutput       -> putStrLn printed

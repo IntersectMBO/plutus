@@ -21,6 +21,7 @@ import Data.ByteString.Lazy qualified as BSL (readFile)
 import Flat (unflat)
 import Options.Applicative
 import System.Exit (exitFailure, exitSuccess)
+import System.IO (hPrint, stderr)
 
 plcHelpText :: String
 plcHelpText = helpText "Typed Plutus Core"
@@ -181,10 +182,10 @@ runTypecheck (TypecheckOptions inp fmt outp printMode nameFormat) = do
         errorWithoutStackTrace $ PP.displayPlc e
       Right (PLC.Normalized ty) ->
         case nameFormat of
-          IdNames -> writeToOutput outp (show (getPrintMethod printMode ty)) >> exitSuccess
+          IdNames -> writeToOutput outp (prettyPrintByMode printMode ty) >> exitSuccess
           DeBruijnNames ->
             let ty' = toDeBruijnTypePLC ty
-            in writeToOutput outp (show (getPrintMethod printMode ty')) >> exitSuccess
+            in writeToOutput outp (prettyPrintByMode printMode ty') >> exitSuccess
 
 ---------------- Optimisation ----------------
 
@@ -205,11 +206,11 @@ runEval (EvalOptions inp ifmt outp printMode nameFormat semvar) = do
   case evaluate term of
     Right v  ->
       case nameFormat of
-        IdNames -> print (getPrintMethod printMode v) >> exitSuccess
+        IdNames -> writeToOutput outp (prettyPrintByMode printMode v) >> exitSuccess
         DeBruijnNames ->
           let w = toDeBruijnTermPLC v
-          in writeToOutput outp (show (getPrintMethod printMode w)) >> exitSuccess
-    Left err -> print err *> exitFailure
+          in writeToOutput outp (prettyPrintByMode printMode w) >> exitSuccess
+    Left err -> hPrint stderr err *> exitFailure
 
 ----------------- Print examples -----------------------
 
