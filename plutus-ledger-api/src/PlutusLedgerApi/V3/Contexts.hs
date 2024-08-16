@@ -289,6 +289,24 @@ The mapping from parameter IDs to parameters can be found in
 [conway.cddl](https://github.com/IntersectMBO/cardano-ledger/blob/master/eras/conway/impl/cddl-files/conway.cddl).
 
 /Invariant:/ This map is non-empty, and the keys are stored in ascending order.
+
+This `Data` object has the following format (in pseudocode):
+
+ChangedParametersData = Map ChangedIdData ChangedManyValueData
+ChangedIdData = I Integer
+ChangedManyValueData =
+     ChangedSingleValueData
+   | List[ChangedSingleValueData...]
+   -- ^ an arbitrary-length, heterogeneous (integer or ratio) list of values (to support sub-parameters)
+
+ChangedSingleValueData =
+     I Integer  -- a proposed integer value
+   | List[I Integer, I Integer] -- a proposed numerator,denominator (ratio value)
+   -- ^ a 2-exact element list; *BE CAREFUL* because this can be alternatively (ambiguously) interpreted
+   -- as a many-value data (sub-parameter) of two integer single-value data.
+
+, where Map,I,List are the constructors of `PlutusCore.Data`
+and Integer is the usual arbitrary-precision PlutusTx/Haskell Integer.
 -}
 newtype ChangedParameters = ChangedParameters {getChangedParameters :: PlutusTx.BuiltinData}
   deriving stock (Generic, Haskell.Show)

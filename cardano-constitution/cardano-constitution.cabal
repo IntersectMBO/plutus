@@ -21,6 +21,11 @@ source-repository head
   type:     git
   location: https://github.com/IntersectMBO/plutus
 
+flag force-build
+  description: Enables the building of executable create-json-envelope
+  manual:      True
+  default:     False
+
 common lang
   default-language:   Haskell2010
   default-extensions:
@@ -89,6 +94,9 @@ test-suite cardano-constitution-test
   import:           lang, ghc-version-support, os-support
   hs-source-dirs:   test
   default-language: Haskell2010
+
+  -- NOTE: Running above N8 actually makes things slower, so
+  -- manually turn this down if you are on a higher-core machine.
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   type:             exitcode-stdio-1.0
   main-is:          Driver.hs
@@ -131,12 +139,15 @@ test-suite cardano-constitution-test
 executable create-json-envelope
   -- This is a temporary workaround to solve the plutus-ledger-api dependency conflict
   -- caused by the `cardano-api` dependency.
-  buildable:      False
+  -- To force-buil it, uncomment the relevant lines in `cabal.project`
+  if !flag(force-build)
+    buildable: False
+
   import:         lang, ghc-version-support, os-support
-  hs-source-dirs: create-json-envelope
+  hs-source-dirs: app/create-json-envelope
   main-is:        Main.hs
   build-depends:
     , base
-    , cardano-api           ^>=8.48
+    , cardano-api
     , cardano-constitution
     , plutus-ledger-api     ^>=1.32
