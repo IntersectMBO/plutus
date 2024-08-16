@@ -1,0 +1,144 @@
+cabal-version:   3.0
+name:            plutus-executables
+version:         0.1.0.0
+synopsis:        Tools for running plutus core programs
+homepage:        https://github.com/IntersectMBO/plutus
+license:         Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+
+author:          Plutus Core Team
+maintainer:      ana.pantilie@iohk.io
+category:        Development
+build-type:      Simple
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
+common lang
+  default-language:   Haskell2010
+  default-extensions:
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    DerivingStrategies
+    DerivingVia
+    ExplicitForAll
+    FlexibleContexts
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    ScopedTypeVariables
+    StandaloneDeriving
+
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    -Wunused-packages -Wmissing-deriving-strategies
+
+  if impl(ghc >=9.8)
+    ghc-options: -Wno-x-partial
+
+-- This means that we no longer support uplc/plc/etc on Windows
+common os-support
+  if (impl(ghcjs) || os(windows))
+    buildable: False
+
+library
+  import:           lang
+  exposed-modules:  MyLib
+
+  -- other-modules:
+  -- other-extensions:
+  build-depends:    base >=4.9 && <5
+  hs-source-dirs:   src
+  default-language: Haskell2010
+
+executable pir
+  import:         lang
+  main-is:        pir/Main.hs
+  hs-source-dirs: executables
+  build-depends:
+    , base                                                       >=4.9   && <5
+    , bytestring
+    , cassava
+    , containers
+    , lens
+    , megaparsec
+    , optparse-applicative
+    , plutus-core:{plutus-core, plutus-core-execlib, plutus-ir}  ^>=1.32
+    , text
+    , transformers
+
+executable plc
+  import:         lang
+  main-is:        plc/Main.hs
+  hs-source-dirs: executables
+  build-depends:
+    , base                                            >=4.9   && <5
+    , bytestring
+    , flat                                            ^>=0.6
+    , optparse-applicative
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.32
+
+executable uplc
+  import:         lang
+  main-is:        uplc/Main.hs
+  hs-source-dirs: executables
+  build-depends:
+    , base                                            >=4.9   && <5
+    , bytestring
+    , criterion
+    , deepseq
+    , flat                                            ^>=0.6
+    , haskeline
+    , mtl
+    , optparse-applicative
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.32
+    , prettyprinter
+    , split
+    , text
+
+test-suite plutus-executables-test
+  import:           lang
+  default-language: Haskell2010
+
+  -- other-modules:
+  -- other-extensions:
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Main.hs
+  build-depends:
+    , base                >=4.9 && <5
+    , plutus-executables
+
+test-suite test-simple
+  import:         lang, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test/simple
+  build-depends:
+    , base
+    , extra
+    , plutus-metatheory
+    , process
+
+test-suite test-detailed
+  import:         lang, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test/detailed
+  build-depends:
+    , base
+    , bytestring
+    , Cabal
+    , directory
+    , extra
+    , plutus-core        ^>=1.32
+    , plutus-metatheory
+    , process
+    , tasty
+    , tasty-hunit
+    , text
