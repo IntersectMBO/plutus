@@ -196,12 +196,17 @@ translation? isR? error error | no ¬p = yes error
 These functions can be useful when showing equivilence etc. between translation relations.
 
 ```
-convert-pointwise : {R S : Relation} → (∀ {X : Set} {y y' : X ⊢} → R y y' → S y y') → (∀{X : Set} {xs xs' : List (X ⊢)} → Pointwise R xs xs' → Pointwise S xs xs')
+variable
+  R S : Relation
+  X : Set
+  x x' : X ⊢
+  xs xs' : List (X ⊢)
+convert-pointwise : (∀ {Y : Set} {y y' : Y ⊢} → R y y' → S y y') → (Pointwise R xs xs' → Pointwise S xs xs')
 convert-pointwise f Pointwise.[] = Pointwise.[]
-convert-pointwise {R} {S} f (x∼y Pointwise.∷ p) = f x∼y Pointwise.∷ convert-pointwise {R} {S} f p
+convert-pointwise {R = R} {S = S} f (x∼y Pointwise.∷ p) = f x∼y Pointwise.∷ convert-pointwise {R} {S} f p
 
 {-# TERMINATING #-}
-convert : {R S : Relation} → (∀ {X : Set} {y y' : X ⊢} → R y y' → S y y') → ({X : Set} {x x' : X ⊢} → Translation R x x' → Translation S x x')
+convert : (∀ {Y : Set} {y y' : Y ⊢} → R y y' → S y y') → (Translation R x x' → Translation S x x')
 convert f (Translation.istranslation _ _ xx') = Translation.istranslation _ _ (f xx')
 convert f Translation.var = Translation.var
 convert f (Translation.ƛ xx') = Translation.ƛ (convert f xx')
@@ -209,26 +214,26 @@ convert f (Translation.app xx' xx'') = Translation.app (convert f xx') (convert 
 convert f (Translation.force xx') = Translation.force (convert f xx')
 convert f (Translation.delay xx') = Translation.delay (convert f xx')
 convert f Translation.con = Translation.con
-convert {R} {S} f {X} (Translation.constr x) = Translation.constr (convert-pointwise {Translation R} {Translation S} (convert f) x)
+convert {R = R} {S = S} f (Translation.constr x) = Translation.constr (convert-pointwise {Translation R} {Translation S} (convert f) x)
 convert f (case Pointwise.[] xx') = case Pointwise.[] (convert f xx')
-convert {R} {S} f {X} (case (x∼y Pointwise.∷ x) xx') = Translation.case (convert-pointwise {Translation R} {Translation S} (convert f) (x∼y Pointwise.∷ x)) (convert f xx')
+convert {R = R} {S = S} f (case (x∼y Pointwise.∷ x) xx') = Translation.case (convert-pointwise {Translation R} {Translation S} (convert f) (x∼y Pointwise.∷ x)) (convert f xx')
 convert f Translation.builtin = Translation.builtin
 convert f Translation.error = Translation.error
 
-pointwise-reflexive : { R : Relation } → (∀ {X : Set} {x : X ⊢} → Translation R x x) → (∀ {X : Set} {xs : List (X ⊢)} → Pointwise (Translation R) xs xs)
-pointwise-reflexive {R} f {xs = List.[]} = Pointwise.[]
-pointwise-reflexive {R} f {xs = x List.∷ xs} = f Pointwise.∷ pointwise-reflexive f
+pointwise-reflexive : (∀ {X : Set} {x : X ⊢} → Translation R x x) → (∀ {X : Set} {xs : List (X ⊢)} → Pointwise (Translation R) xs xs)
+pointwise-reflexive f {xs = List.[]} = Pointwise.[]
+pointwise-reflexive f {xs = x List.∷ xs} = f Pointwise.∷ pointwise-reflexive f
 
 {-# TERMINATING #-}
-reflexive : {R : Relation} → {X : Set} {x x' : X ⊢} → Translation R x x
+reflexive : Translation R x x
 reflexive {x = ` x} = var
-reflexive {R} {X} {x = ƛ x} {x'} = ƛ reflexive
+reflexive {x = ƛ x} = ƛ reflexive
 reflexive {x = x · x₁} = app reflexive reflexive
 reflexive {x = force x} = force reflexive
 reflexive {x = delay x} = delay reflexive
 reflexive {x = con x} = con
-reflexive {R} {x = constr i xs} = constr (pointwise-reflexive reflexive)
-reflexive {R} {x = case x ts} = case (pointwise-reflexive reflexive) reflexive
+reflexive {x = constr i xs} = constr (pointwise-reflexive reflexive)
+reflexive {x = case x ts} = case (pointwise-reflexive reflexive) reflexive
 reflexive {x = builtin b} = builtin
 reflexive {x = error} = error
 ```
