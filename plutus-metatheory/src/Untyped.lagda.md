@@ -13,7 +13,6 @@ module Untyped where
 open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;DATA;List;[];_∷_)
 open Monad {{...}}
 import Data.List as L
-open import Function.Base using (id; _∘_ ; _∘′_; const; flip)
 
 open import Scoped using (ScopeError;deBError)
 open import Builtin using (Builtin;equals;decBuiltin)
