@@ -20,7 +20,7 @@ import PlutusPrelude
 import Data.ByteString.Lazy qualified as BSL (readFile)
 import Flat (unflat)
 import Options.Applicative
-import System.Exit (exitFailure, exitSuccess)
+import System.Exit (exitFailure)
 import System.IO (hPrint, stderr)
 
 plcHelpText :: String
@@ -182,10 +182,9 @@ runTypecheck (TypecheckOptions inp fmt outp printMode nameFormat) = do
         errorWithoutStackTrace $ PP.displayPlc e
       Right (PLC.Normalized ty) ->
         case nameFormat of
-          IdNames -> writeToOutput outp (prettyPrintByMode printMode ty) >> exitSuccess
+          IdNames -> writeToOutput outp $ prettyPrintByMode printMode ty
           DeBruijnNames ->
-            let ty' = toDeBruijnTypePLC ty
-            in writeToOutput outp (prettyPrintByMode printMode ty') >> exitSuccess
+            writeToOutput outp $ prettyPrintByMode printMode $ toDeBruijnTypePLC ty
 
 ---------------- Optimisation ----------------
 
@@ -206,10 +205,9 @@ runEval (EvalOptions inp ifmt outp printMode nameFormat semvar) = do
   case evaluate term of
     Right v  ->
       case nameFormat of
-        IdNames -> writeToOutput outp (prettyPrintByMode printMode v) >> exitSuccess
+        IdNames -> writeToOutput outp (prettyPrintByMode printMode v)
         DeBruijnNames ->
-          let w = toDeBruijnTermPLC v
-          in writeToOutput outp (prettyPrintByMode printMode w) >> exitSuccess
+          writeToOutput outp (prettyPrintByMode printMode $ toDeBruijnTermPLC v)
     Left err -> hPrint stderr err *> exitFailure
 
 ----------------- Print examples -----------------------

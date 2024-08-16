@@ -350,10 +350,8 @@ runEval (EvalOptions inp ifmt printMode nameFormat budgetMode traceMode
                 Left err -> hPrint stderr err
                 Right v  ->
                   case nameFormat of
-                    IdNames -> writeToOutput outp (prettyPrintByMode printMode v)
-                    DeBruijnNames ->
-                      let w = toDeBruijnTermUPLC v
-                      in writeToOutput outp (prettyPrintByMode printMode w)
+                    IdNames -> writeToOutput outp $ prettyPrintByMode printMode v
+                    DeBruijnNames -> writeToOutput outp $ prettyPrintByMode printMode $ toDeBruijnTermUPLC v
               case budgetMode of
                 Silent    -> pure ()
                 Verbose _ -> printBudgetState term cekModel budget
@@ -409,7 +407,7 @@ handleDbg cekTrans = \case
         case eNewState of
             Right newState -> k newState
             Left e         -> Repl.outputStrLn $ show e
-                             -- no kontinuation, so it acts like exitSuccess
+                             -- no continuation, so it acts like exitSuccess
                              -- FIXME: decide what should happen after the error occurs
     D.InputF k           -> handleInput >>= k
     D.DriverLogF text k        -> handleLog text >> k
