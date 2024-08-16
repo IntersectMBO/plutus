@@ -10,6 +10,7 @@ import PlutusCore.Data
 import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.Ck qualified as Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
+import PlutusCore.Executable.AstIO (toDeBruijnTermPLC, toDeBruijnTypePLC)
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
@@ -17,10 +18,10 @@ import PlutusCore.Pretty qualified as PP
 import PlutusPrelude
 
 import Data.ByteString.Lazy qualified as BSL (readFile)
-import Data.Text.IO qualified as T
 import Flat (unflat)
 import Options.Applicative
-import System.Exit (exitFailure, exitSuccess)
+import System.Exit (exitFailure)
+import System.IO (hPrint, stderr)
 
 plcHelpText :: String
 plcHelpText = helpText "Typed Plutus Core"
@@ -28,14 +29,18 @@ plcHelpText = helpText "Typed Plutus Core"
 plcInfoCommand :: ParserInfo Command
 plcInfoCommand = plutus plcHelpText
 
-data TypecheckOptions = TypecheckOptions Input Format
+data TypecheckOptions = TypecheckOptions Input Format Output PrintMode NameFormat
+
 data EvalOptions =
     EvalOptions
       Input
       Format
+      Output
       PrintMode
+      NameFormat
       (BuiltinSemanticsVariant PLC.DefaultFun)
-data EraseOptions     = EraseOptions Input Format Output Format PrintMode
+
+data EraseOptions = EraseOptions Input Format Output Format PrintMode
 
 
 -- Main commands
@@ -54,14 +59,20 @@ data Command = Apply       ApplyOptions
 ---------------- Option parsers ----------------
 
 typecheckOpts :: Parser TypecheckOptions
-typecheckOpts = TypecheckOptions <$> input <*> inputformat
+typecheckOpts = TypecheckOptions <$> input <*> inputformat <*> output <*> printmode <*> nameformat
 
 eraseOpts :: Parser EraseOptions
 eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
 
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions <$> input <*> inputformat <*> printmode <*> builtinSemanticsVariant
+  EvalOptions
+  <$> input
+  <*> inputformat
+  <*> output
+  <*> printmode
+  <*> nameformat
+  <*> builtinSemanticsVariant
 
 plutus ::
   -- | The @helpText@
@@ -161,7 +172,7 @@ runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 ---------------- Typechecking ----------------
 
 runTypecheck :: TypecheckOptions -> IO ()
-runTypecheck (TypecheckOptions inp fmt) = do
+runTypecheck (TypecheckOptions inp fmt outp printMode nameFormat) = do
   prog <- readProgram fmt inp
   case PLC.runQuoteT $ do
     tcConfig <- PLC.getDefTypeCheckConfig ()
@@ -169,8 +180,11 @@ runTypecheck (TypecheckOptions inp fmt) = do
     of
       Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
         errorWithoutStackTrace $ PP.displayPlc e
-      Right ty                                               ->
-        T.putStrLn (PP.displayPlc ty) >> exitSuccess
+      Right (PLC.Normalized ty) ->
+        case nameFormat of
+          IdNames -> writeToOutput outp $ prettyPrintByMode printMode ty
+          DeBruijnNames ->
+            writeToOutput outp $ prettyPrintByMode printMode $ toDeBruijnTypePLC ty
 
 ---------------- Optimisation ----------------
 
@@ -184,13 +198,17 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt printMode semvar) = do
+runEval (EvalOptions inp ifmt outp printMode nameFormat semvar) = do
   prog <- readProgram ifmt inp
   let evaluate = Ck.evaluateCkNoEmit (PLC.defaultBuiltinsRuntimeForSemanticsVariant semvar)
       term = void $ prog ^. PLC.progTerm
   case evaluate term of
-    Right v  -> print (getPrintMethod printMode v) >> exitSuccess
-    Left err -> print err *> exitFailure
+    Right v  ->
+      case nameFormat of
+        IdNames -> writeToOutput outp (prettyPrintByMode printMode v)
+        DeBruijnNames ->
+          writeToOutput outp (prettyPrintByMode printMode $ toDeBruijnTermPLC v)
+    Left err -> hPrint stderr err *> exitFailure
 
 ----------------- Print examples -----------------------
 
@@ -205,7 +223,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
   typedProg <- (readProgram ifmt inp :: IO (PlcProg PLC.SrcSpan))
   let untypedProg = () <$ PLC.eraseProgram typedProg
   case ofmt of
-    Textual       -> writePrettyToFileOrStd outp mode untypedProg
+    Textual       -> writePrettyToOutput outp mode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
 
 ---------------- Driver ----------------

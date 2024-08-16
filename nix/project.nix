@@ -44,28 +44,14 @@ let
         # Common 
         {
           packages = {
-            # In this case we can just propagate the native dependencies for the build of
-            # the test executable, which are actually set up right (we have a
-            # build-tool-depends on the executable we need)
-            # I'm slightly surprised this works, hooray for laziness!
-            plutus-metatheory.components.tests.test1.preCheck =
-              let
-                cmp = config.hsPkgs.plutus-metatheory.components.tests.test1;
-                deps = cmp.executableToolDepends;
-              in
-              ''PATH=${lib.makeBinPath deps}:$PATH'';
-
-            # FIXME: Somehow this is broken even with setting the path up as above
-            plutus-metatheory.components.tests.test2.doCheck = false;
-
             # plutus-metatheory needs agda with the stdlib around for the custom setup
             # I can't figure out a way to apply this as a blanket change for all the
             # components in the package, oh well
             plutus-metatheory.components.library.build-tools = [ repoRoot.nix.agda-with-stdlib ];
             plutus-metatheory.components.exes.plc-agda.build-tools = [ repoRoot.nix.agda-with-stdlib ];
-            plutus-metatheory.components.tests.test1.build-tools = [ repoRoot.nix.agda-with-stdlib ];
-            plutus-metatheory.components.tests.test2.build-tools = [ repoRoot.nix.agda-with-stdlib ];
-            plutus-metatheory.components.tests.test3.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-metatheory.components.tests.test-simple.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-metatheory.components.tests.test-detailed.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-metatheory.components.tests.test-NEAT.build-tools = [ repoRoot.nix.agda-with-stdlib ];
 
             plutus-core.components.benchmarks.update-cost-model = {
               build-tools = [ repoRoot.nix.r-with-packages ];
