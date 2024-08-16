@@ -36,6 +36,7 @@ data EvalOptions =
       Format
       PrintMode
       NameFormat
+      Output
       (BuiltinSemanticsVariant PLC.DefaultFun)
 data EraseOptions = EraseOptions Input Format Output Format PrintMode
 
@@ -68,6 +69,7 @@ evalOpts =
   <*> inputformat
   <*> printmode
   <*> nameformat
+  <$> output
   <*> builtinSemanticsVariant
 
 plutus ::
