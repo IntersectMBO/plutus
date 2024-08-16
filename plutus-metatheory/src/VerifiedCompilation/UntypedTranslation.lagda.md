@@ -26,7 +26,7 @@ open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
 ```
 The generic type of a Translation is that it matches one (or more) patterns on the left to one
 (or more) patterns on the right. If there are decision procedures to identify those patterns,
-we can build a decision procedure to apply them recursivley down the AST structure. 
+we can build a decision procedure to apply them recursivley down the AST structure.
 
 ```
 Relation = { X : Set } → (X ⊢) → (X ⊢) → Set₁
@@ -37,17 +37,17 @@ data Translation (R : Relation) : { X : Set } → (X ⊢) → (X ⊢) → Set₁
   ƛ   : { X : Set } → {x x' : Maybe X ⊢}
            → Translation R x x'
            ----------------------
-           →  Translation R (ƛ x) (ƛ x') 
+           →  Translation R (ƛ x) (ƛ x')
   app : { X : Set } → {f t f' t' : X ⊢} →
         Translation R f f' →
         Translation R t t' →
         Translation R (f · t) (f' · t')
   force : { X : Set } → {t t' : X ⊢} →
         Translation R t t' →
-        Translation R (force t) (force t')  
+        Translation R (force t) (force t')
   delay : { X : Set } → {t t' : X ⊢} →
         Translation R t t' →
-        Translation R (delay t) (delay t') 
+        Translation R (delay t) (delay t')
   con : { X : Set } → {tc : TmCon} → Translation R {X} (con tc) (con tc)
   constr : { X : Set } → {xs xs' : List (X ⊢)} { n : ℕ }
                 → Pointwise (Translation R) xs xs'
@@ -63,11 +63,11 @@ data Translation (R : Relation) : { X : Set } → (X ⊢) → (X ⊢) → Set₁
 ```
 For the decision procedure we have the rather dissapointing 110 lines to demonstrate to Agda that,
 having determine that we aren't in the translation pattern, we are in fact, still not in the translation pattern
-for each pair of term types. 
+for each pair of term types.
 ```
 -- Yes, I know, but for now...
 {-# TERMINATING #-}
-translation? : {X' : Set} {{ _ : DecEq X'}} →  {R : Relation} → ({ X : Set } {{ _ : DecEq X}} → Binary.Decidable (R {X})) → Binary.Decidable (Translation R {X'}) 
+translation? : {X' : Set} {{ _ : DecEq X'}} →  {R : Relation} → ({ X : Set } {{ _ : DecEq X}} → Binary.Decidable (R {X})) → Binary.Decidable (Translation R {X'})
 translation? isR? ast ast' with (isR? ast ast')
 ... | yes p = yes (istranslation ast ast' p)
 translation? isR? (` x) ast' | no ¬p with (` x) ≟ ast'
@@ -93,7 +93,7 @@ translation? isR? (ast · ast₁) (` x) | no ¬p = no λ { (istranslation _ _ x�
 translation? isR? (ast · ast₁) (ƛ ast') | no ¬p = no λ { (istranslation _ _ x₁) → ¬p x₁ }
 translation? isR? (ast · ast₁) (ast' · ast'') | no ¬p  with (translation? isR? ast ast') ×-dec (translation? isR? ast₁ ast'')
 ... | yes (p , q) = yes (app p q)
-... | no ¬ppqq = no λ { (istranslation _ _ x) → ¬p x ; (app ppp ppp₁) → ¬ppqq (ppp , ppp₁)} 
+... | no ¬ppqq = no λ { (istranslation _ _ x) → ¬p x ; (app ppp ppp₁) → ¬ppqq (ppp , ppp₁)}
 translation? isR? (ast · ast₁) (force ast') | no ¬p = no λ { (istranslation _ _ x₁) → ¬p x₁ }
 translation? isR? (ast · ast₁) (delay ast') | no ¬p = no λ { (istranslation _ _ x₁) → ¬p x₁ }
 translation? isR? (ast · ast₁) (con x) | no ¬p = no λ { (istranslation _ _ x₁) → ¬p x₁ }
@@ -121,7 +121,7 @@ translation? isR? (delay ast) (ast' · ast'') | no ¬p = no λ { (istranslation 
 translation? isR? (delay ast) (force ast') | no ¬p = no λ { (istranslation _ _ x₁) → ¬p x₁ }
 translation? isR? (delay ast) (delay ast') | no ¬p with translation? isR? ast ast'
 ... | yes p = yes (delay p)
-... | no ¬pp = no λ { (istranslation .(delay ast) .(delay ast') x) → ¬p x ; (delay xxx) → ¬pp xxx } 
+... | no ¬pp = no λ { (istranslation .(delay ast) .(delay ast') x) → ¬p x ; (delay xxx) → ¬pp xxx }
 translation? isR? (delay ast) (con x) | no ¬p = no λ { (istranslation _ _ x₁) → ¬p x₁ }
 translation? isR? (delay ast) (constr i xs) | no ¬p = no λ { (istranslation _ _ x₁) → ¬p x₁ }
 translation? isR? (delay ast) (case ast' ts) | no ¬p = no λ { (istranslation _ _ x₁) → ¬p x₁ }
@@ -190,4 +190,29 @@ translation? isR? error (constr i xs) | no ¬p = no λ { (istranslation _ _ x₁
 translation? isR? error (case ast' ts) | no ¬p = no λ { (istranslation _ _ x₁) → ¬p x₁ }
 translation? isR? error (builtin b) | no ¬p = no λ { (istranslation _ _ x₁) → ¬p x₁ }
 translation? isR? error error | no ¬p = yes error
+```
+# Relations between Translations
+
+These functions can be useful when showing equivilence etc. between translation relations.
+
+```
+convert-pointwise : {R S : Relation} → (∀ {X : Set} {y y' : X ⊢} → R y y' → S y y') → (∀{X : Set} {xs xs' : List (X ⊢)} → Pointwise R xs xs' → Pointwise S xs xs')
+convert-pointwise f Pointwise.[] = Pointwise.[]
+convert-pointwise {R} {S} f (x∼y Pointwise.∷ p) = f x∼y Pointwise.∷ convert-pointwise {R} {S} f p
+
+{-# TERMINATING #-}
+convert : {R S : Relation} → (∀ {X : Set} {y y' : X ⊢} → R y y' → S y y') → ({X : Set} {x x' : X ⊢} → Translation R x x' → Translation S x x')
+convert f (Translation.istranslation _ _ xx') = Translation.istranslation _ _ (f xx')
+convert f Translation.var = Translation.var
+convert f (Translation.ƛ xx') = Translation.ƛ (convert f xx')
+convert f (Translation.app xx' xx'') = Translation.app (convert f xx') (convert f xx'')
+convert f (Translation.force xx') = Translation.force (convert f xx')
+convert f (Translation.delay xx') = Translation.delay (convert f xx')
+convert f Translation.con = Translation.con
+convert {R} {S} f {X} (Translation.constr x) = Translation.constr (convert-pointwise {Translation R} {Translation S} (convert f) x)
+convert f (case Pointwise.[] xx') = case Pointwise.[] (convert f xx')
+convert {R} {S} f {X} (case (x∼y Pointwise.∷ x) xx') = Translation.case (convert-pointwise {Translation R} {Translation S} (convert f) (x∼y Pointwise.∷ x)) (convert f xx')
+convert f Translation.builtin = Translation.builtin
+convert f Translation.error = Translation.error
+
 ```

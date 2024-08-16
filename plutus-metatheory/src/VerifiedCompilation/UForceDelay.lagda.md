@@ -13,7 +13,7 @@ module VerifiedCompilation.UForceDelay where
 ```
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
-open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
+open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation; convert)
 open import Relation.Nullary.Product using (_×-dec_)
 open import Data.Product using (_,_)
 import Relation.Binary as Binary using (Decidable)
@@ -21,6 +21,7 @@ open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
+open import Relation.Binary.PropositionalEquality.Core using (cong)
 open import Data.Empty using (⊥)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Data.Nat using (ℕ; zero; suc)
@@ -137,11 +138,17 @@ FD implies pureFD
 
 ```
 FD→pureFD : {X : Set} → {x x' : X ⊢} → FD zero zero x x' → pureFD x x'
-FD→pureFD {X} {.(force (force x))} {x'} (forcefd .zero .zero .(force x) _ (forcefd .1 .zero x .x' p)) = transfd x {!!} {!!}
-FD→pureFD {X} {.(force (delay x))} {x'} (forcefd .zero .zero .(delay x) _ (delayfd .0 .zero x .x' p)) = forcedelay x x' (Translation.istranslation x x' (FD→pureFD p))
-FD→pureFD {X} {.(force (delay x))} {x'} (forcefd .zero .zero .(delay x) _ (lastdelay n nₐ x .x' x₁)) = forcedelay x x' (Translation.istranslation x x' {!!})
-FD→pureFD {X} {.(force (force (x · y)))} {.(x' · y')} (forcefd .zero .zero .(force (x · y)) _ (multiappliedfd .1 .zero x y x' y' x₁ p)) = {!!}
-FD→pureFD {X} {x} {x'} (multiappliedfd .zero .zero x₂ y x₂' y' x₁ p) = {!!}
+
+TFD→TpureFD : {X : Set} → {x x' : X ⊢} → Translation (FD zero zero) x x' → Translation pureFD x x'
+TFD→TpureFD = convert FD→pureFD
+
+{-# TERMINATING #-}
+FD→pureFD {X} {.(force (force x))} {x'} (forcefd .zero .zero .(force x) .x' (forcefd .1 .zero x .x' p)) = {!!}
+FD→pureFD {X} {.(force (delay x))} {x'} (forcefd .zero .zero .(delay x) .x' (delayfd .0 .zero x .x' p)) = forcedelay x x' (Translation.istranslation x x' (FD→pureFD p))
+FD→pureFD {X} {.(force (delay x))} {x'} (forcefd .zero .zero .(delay x) .x' (lastdelay n nₐ x .x' x₁)) = forcedelay x x' (TFD→TpureFD x₁)
+FD→pureFD {X} {.(force (force (x · y)))} {.(x' · y')} (forcefd .zero .zero .(force (x · y)) .(x' · y') (multiappliedfd .1 .zero x y x' y' x₁ p)) = {!!}
+FD→pureFD {X} {.(force (x · y))} {.(x' · y')} (multiappliedfd .zero .zero x y x' y' x₁ p) = {!!}
+
 {-
 
 delays : (i : ℕ) → (M : X ⊢) → X ⊢
