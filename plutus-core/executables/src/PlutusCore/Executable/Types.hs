@@ -54,6 +54,7 @@ data Output = FileOutput FilePath | StdOutput | NoOutput
 data TimingMode = NoTiming | Timing Integer deriving stock (Eq) -- Report program execution time?
 data CekModel = Default | Unit -- Which cost model should we use for CEK machine steps?
 data PrintMode = Classic | Simple | Readable | ReadableSimple deriving stock (Show, Read)
+data NameFormat = IdNames | DeBruijnNames -- Format for textual output of names
 data TraceMode = None | Logs | LogsWithTimestamps | LogsWithBudgets deriving stock (Show, Read)
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable

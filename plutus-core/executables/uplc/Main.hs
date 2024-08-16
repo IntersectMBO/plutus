@@ -68,7 +68,7 @@ data EvalOptions =
       Input
       Format
       PrintMode
-      Bool -- Use de Bruijn indices in the output?
+      NameFormat
       BudgetMode
       TraceMode
       Output
@@ -127,20 +127,13 @@ benchmarkOpts =
           <> showDefault
           <> help "Time limit (in seconds) for benchmarking.")
 
-printmodeDeBruijn:: Parser Bool
-printmodeDeBruijn =
-  flag False True
-  (long "debruijn"
-   <> short 'j'
-   <> help "Show de Bruijn indices in textual output? (default False: show names)")
-
 evalOpts :: Parser EvalOptions
 evalOpts =
   EvalOptions
   <$> input
   <*> inputformat
   <*> printmode
-  <*> printmodeDeBruijn
+  <*> nameformat
   <*> budgetmode
   <*> tracemode
   <*> output
@@ -329,7 +322,7 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt printMode printModeDeBruijn budgetMode traceMode
+runEval (EvalOptions inp ifmt printMode nameFormat budgetMode traceMode
                      outputMode cekModel semvar) = do
     prog <- readProgram ifmt inp
     let term = void $ prog ^. UPLC.progTerm
@@ -356,10 +349,11 @@ runEval (EvalOptions inp ifmt printMode printModeDeBruijn budgetMode traceMode
               case res of
                 Left err -> hPrint stderr err
                 Right v  ->
-                  if printModeDeBruijn
-                  then let w = toDeBruijnTermUPLC v
-                       in writeToFileOrStd outputMode (show (getPrintMethod printMode w))
-                  else writeToFileOrStd outputMode (show (getPrintMethod printMode v))
+                  case nameFormat of
+                    IdNames -> writeToFileOrStd outputMode (show (getPrintMethod printMode v))
+                    DeBruijnNames ->
+                      let w = toDeBruijnTermUPLC v
+                      in writeToFileOrStd outputMode (show (getPrintMethod printMode w))
               case budgetMode of
                 Silent    -> pure ()
                 Verbose _ -> printBudgetState term cekModel budget

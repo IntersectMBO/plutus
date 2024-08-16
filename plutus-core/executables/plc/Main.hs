@@ -28,14 +28,14 @@ plcHelpText = helpText "Typed Plutus Core"
 plcInfoCommand :: ParserInfo Command
 plcInfoCommand = plutus plcHelpText
 
-data TypecheckOptions = TypecheckOptions Input Format PrintMode Bool
+data TypecheckOptions = TypecheckOptions Input Format PrintMode NameFormat
 
 data EvalOptions =
     EvalOptions
       Input
       Format
       PrintMode
-      Bool -- Use de Bruijn indices in the output?
+      NameFormat
       (BuiltinSemanticsVariant PLC.DefaultFun)
 data EraseOptions = EraseOptions Input Format Output Format PrintMode
 
@@ -56,17 +56,10 @@ data Command = Apply       ApplyOptions
 ---------------- Option parsers ----------------
 
 typecheckOpts :: Parser TypecheckOptions
-typecheckOpts = TypecheckOptions <$> input <*> inputformat <*> printmode <*> printmodeDeBruijn
+typecheckOpts = TypecheckOptions <$> input <*> inputformat <*> printmode <*> nameformat
 
 eraseOpts :: Parser EraseOptions
 eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
-
-printmodeDeBruijn:: Parser Bool
-printmodeDeBruijn =
-  flag False True
-  (long "debruijn"
-   <> short 'j'
-   <> help "Show de Bruijn indices in textual output? (default False: show names)")
 
 evalOpts :: Parser EvalOptions
 evalOpts =
@@ -74,7 +67,7 @@ evalOpts =
   <$> input
   <*> inputformat
   <*> printmode
-  <*> printmodeDeBruijn
+  <*> nameformat
   <*> builtinSemanticsVariant
 
 plutus ::
@@ -175,7 +168,7 @@ runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 ---------------- Typechecking ----------------
 
 runTypecheck :: TypecheckOptions -> IO ()
-runTypecheck (TypecheckOptions inp fmt printMode printModeDeBruijn) = do
+runTypecheck (TypecheckOptions inp fmt printMode nameFormat) = do
   prog <- readProgram fmt inp
   case PLC.runQuoteT $ do
     tcConfig <- PLC.getDefTypeCheckConfig ()
@@ -184,11 +177,11 @@ runTypecheck (TypecheckOptions inp fmt printMode printModeDeBruijn) = do
       Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
         errorWithoutStackTrace $ PP.displayPlc e
       Right (PLC.Normalized ty)                                  ->
-        if printModeDeBruijn
-        then
-          let w = toDeBruijnTypePLC ty
-          in print (getPrintMethod printMode w) >> exitSuccess
-        else print (getPrintMethod printMode ty) >> exitSuccess
+        case nameFormat of
+          IdNames -> print (getPrintMethod printMode ty) >> exitSuccess
+          DeBruijnNames ->
+            let w = toDeBruijnTypePLC ty
+            in print (getPrintMethod printMode w) >> exitSuccess
 
 ---------------- Optimisation ----------------
 
@@ -202,17 +195,17 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt printMode printModeDeBruijn semvar) = do
+runEval (EvalOptions inp ifmt printMode nameFormat semvar) = do
   prog <- readProgram ifmt inp
   let evaluate = Ck.evaluateCkNoEmit (PLC.defaultBuiltinsRuntimeForSemanticsVariant semvar)
       term = void $ prog ^. PLC.progTerm
   case evaluate term of
     Right v  ->
-      if printModeDeBruijn
-      then
-        let w = toDeBruijnTermPLC v
-        in print (getPrintMethod printMode w) >> exitSuccess
-      else print (getPrintMethod printMode v) >> exitSuccess
+      case nameFormat of
+        IdNames -> print (getPrintMethod printMode v) >> exitSuccess
+        DeBruijnNames ->
+          let w = toDeBruijnTermPLC v
+          in print (getPrintMethod printMode w) >> exitSuccess
     Left err -> print err *> exitFailure
 
 ----------------- Print examples -----------------------
