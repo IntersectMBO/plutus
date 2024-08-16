@@ -16,6 +16,11 @@ The fifth batch of builtins adds support for
 \item The \texttt{RIPEMD-160} hash function.
 \end{itemize}
 
+\noindent For brevity we write a bytestring $[b_{n-1}, \ldots, b_0]$ with each $b_i \in \{0,1\}$
+(and $n$ necessarily a multiple of 8) in the form $b_{n-1}\cdots b_0$.  We denote the complement
+of a bit $b \in \{0,1\}$ by $\bar{b}$, so $\bar{\textsf{0}} = \textsf{1}$ and
+$\bar{\textsf{1}} = \textsf{0}$. BE MORE PRECISE ABOUT THE REPRESENTATION OF BYTESTRINGS.
+
 
 \setlength{\LTleft}{-10mm}  % Shift the table left a bit to centre it on the page
 \begin{longtable}[H]{|l|p{50mm}|p{35mm}|c|c|}
@@ -38,15 +43,34 @@ The fifth batch of builtins adds support for
     \TT{andByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & Bitwise logical AND &  & \\
     \TT{orByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & Bitwise logical OR &  & \\
     \TT{xorByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & Bitwise logical XOR &  & \\
-    \TT{complementByteString} & $[\ty{bytestring}] \to \ty{bytestring}$ &  Bitwise complement &  & \\
-    \TT{readBit} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} &  Read $n$-th bit & Yes & \\
+    \TT{complementByteString} & $[\ty{bytestring}] \to \ty{bytestring}$
+                              &  $ b_{n-1}\cdots b_0 \mapsto \bar{b}_{n-1}\cdots\bar{b}_0$  &  & \\
+    \TT{readBit} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$}
+                                        & $(b_{n-1}\cdots b_0, i) $ \text{$\mapsto \begin{cases}
+                                        b_i & \text{if $0 \leq i \leq n-1$}\\
+                                        \errorX & \text{otherwise}
+                                        \end{cases}$}
+                                        & Yes & \\
     \TT{writeBits} & $[\ty{bytestring}, \listOf{\ty{integer}}, $
         \text{$\;\; \listOf{\ty{bool}}] \to \ty{bytestring}$} & Set/clear a number of bits& Yes & \\
-    \TT{replicateByte} & $[\ty{integer}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} & Replicate a byte & Yes & \\
+    \TT{replicateByte} & $[\ty{integer}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$}
+                                        & $(c,n) $ \text{$\mapsto \begin{cases}
+                                        b_i & \text{if $c \in \B$ and $n \in XX$}\\
+                                        \errorX & \text{otherwise}
+                                        \end{cases}$}
+                                        & Yes & \\
     \TT{shiftByteString} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} &  Shift &  & \\
     \TT{rotateByteString} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} &  Rotate &  & \\
-    \TT{countSetBits} & $[\ty{bytestring}] \to \ty{integer}$ & Count set bits&  & \\
-    \TT{findFirstSetBit} & $[\ty{bytestring}] \to \ty{integer}$ &  Find first set bit &  & \\
+    \TT{countSetBits} & $[\ty{bytestring}] \to \ty{integer}$
+    & $b_{n-1} \cdots b_0 $ \text{$\mapsto \left|\{i: b_i =1\}\right|$}
+    &  & \\
+    \TT{findFirstSetBit} & $[\ty{bytestring}] \to \ty{integer}$
+                                        & $b_{n-1}\cdots b_0 $ \text{$\mapsto \begin{cases}
+                                        -1  & \text{if $b_i = 0$ for $0 \leq i \leq n-1$}\\
+                                        \min{\{i: b_i \ne 0\}} & \text{otherwise}
+                                        \end{cases}$}
+                                        & Yes & \\
+    &  & \\
     \hline
     \TT{ripemd\_160} & $[\ty{bytestring}] \to \ty{bytestring}$ & Compute a RIPEMD-160 hash &  & \\
 \hline
