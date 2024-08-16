@@ -147,7 +147,9 @@ FD→pureFD {X} {.(force (force x))} {x'} (forcefd .zero .zero .(force x) .x' (f
 FD→pureFD {X} {.(force (delay x))} {x'} (forcefd .zero .zero .(delay x) .x' (delayfd .0 .zero x .x' p)) = forcedelay x x' (Translation.istranslation x x' (FD→pureFD p))
 FD→pureFD {X} {.(force (delay x))} {x'} (forcefd .zero .zero .(delay x) .x' (lastdelay n nₐ x .x' x₁)) = forcedelay x x' (TFD→TpureFD x₁)
 FD→pureFD {X} {.(force (force (x · y)))} {.(x' · y')} (forcefd .zero .zero .(force (x · y)) .(x' · y') (multiappliedfd .1 .zero x y x' y' x₁ p)) = {!!}
-FD→pureFD {X} {.(force (x · y))} {.(x' · y')} (multiappliedfd .zero .zero x y x' y' x₁ p) = {!!}
+FD→pureFD {X} {.(force (x · y))} {.(x' · y')} (multiappliedfd .zero .zero x y x' y' x₁ (forcefd .zero .1 .x .x' p)) = {!!}
+FD→pureFD {X} {.(force ((x · y₁) · y))} {.((x' · y'') · y')} (multiappliedfd .zero .zero .(x · y₁) y .(x' · y'') y' x₁ (multiappliedfd .zero .1 x y₁ x' y'' x₂ p)) = {!!}
+FD→pureFD {X} {.(force (ƛ x · y))} {.(ƛ x' · y')} (multiappliedfd .zero .zero .(ƛ x) y .(ƛ x') y' x₁ (multiabstractfd .zero .0 x x' p)) = transfd ((ƛ (force x) · y)) (Translation.istranslation (force (ƛ x · y)) (ƛ (force x) · y) (pushfd x y)) (Translation.app (Translation.ƛ (Translation.istranslation (force x) x' (FD→pureFD p))) (TFD→TpureFD x₁))
 
 {-
 
