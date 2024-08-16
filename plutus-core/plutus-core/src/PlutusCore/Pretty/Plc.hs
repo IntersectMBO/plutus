@@ -121,7 +121,7 @@ prettyConfigPlcReadableSimple opts =
 prettyPlcClassic :: PrettyPlc a => a -> Doc ann
 prettyPlcClassic = prettyBy $ prettyConfigPlcClassic prettyConfigPlcOptions
 
--- | Pretty-print a PLC value witout unique indices using the classic view.
+-- | Pretty-print a PLC value without unique indices using the classic view.
 prettyPlcClassicSimple :: PrettyPlc a => a -> Doc ann
 prettyPlcClassicSimple = prettyBy $ prettyConfigPlcClassicSimple prettyConfigPlcOptions
 
@@ -129,7 +129,7 @@ prettyPlcClassicSimple = prettyBy $ prettyConfigPlcClassicSimple prettyConfigPlc
 prettyPlcReadable :: PrettyPlc a => a -> Doc ann
 prettyPlcReadable = prettyBy $ prettyConfigPlcReadable prettyConfigPlcOptions
 
--- | Pretty-print a PLC value witout unique indices using the readable view.
+-- | Pretty-print a PLC value without unique indices using the readable view.
 prettyPlcReadableSimple :: PrettyPlc a => a -> Doc ann
 prettyPlcReadableSimple = prettyBy $ prettyConfigPlcReadableSimple prettyConfigPlcOptions
 

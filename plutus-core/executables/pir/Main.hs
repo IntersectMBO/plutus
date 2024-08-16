@@ -275,7 +275,7 @@ runPrint (PrintOptions inp outp mode) = do
       Right (p::PirProg PLC.SrcSpan) -> do
         let
             printed :: String
-            printed = show $ getPrintMethod mode p
+            printed = show $ prettyPrintByMode mode p
         case outp of
             FileOutput path -> writeFile path printed
             StdOutput       -> putStrLn printed

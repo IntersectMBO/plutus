@@ -549,47 +549,49 @@ executable plc-agda
     , base
     , plutus-metatheory
 
-test-suite test1
+test-suite test-simple
   import:             lang, os-support
+  type:               exitcode-stdio-1.0
+  main-is:            Spec.hs
+  hs-source-dirs:     test/simple
   build-tool-depends:
     , plutus-core:plc   ^>=1.32
     , plutus-core:uplc  ^>=1.32
 
-  hs-source-dirs:     test
   build-depends:
     , base
     , extra
     , plutus-metatheory
     , process
 
-  type:               exitcode-stdio-1.0
-  main-is:            TestSimple.hs
-
-test-suite test2
+test-suite test-detailed
   import:             lang, os-support
+  type:               exitcode-stdio-1.0
+  main-is:            Spec.hs
+  hs-source-dirs:     test/detailed
   build-tool-depends:
     , plutus-core:plc   ^>=1.32
     , plutus-core:uplc  ^>=1.32
 
-  hs-source-dirs:     test
-  type:               detailed-0.9
-  test-module:        TestDetailed
   build-depends:
     , base
     , bytestring
     , Cabal
     , directory
     , extra
+    , plutus-core        ^>=1.32
     , plutus-metatheory
     , process
+    , tasty
+    , tasty-hunit
     , text
 
-test-suite test3
+test-suite test-NEAT
   import:         lang, os-support
-  hs-source-dirs: test
-  type:           exitcode-stdio-1.0
-  main-is:        TestNEAT.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test/NEAT
   build-depends:
     , base
     , lazy-search

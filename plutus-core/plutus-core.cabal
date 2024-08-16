@@ -473,7 +473,6 @@ executable plc
     , flat                                            ^>=0.6
     , optparse-applicative
     , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.32
-    , text
 
 executable uplc
   import:         lang

@@ -14,7 +14,7 @@ module PlutusCore.Executable.Common
     , getInput
     , getInteresting
     , getPlcExamples
-    , getPrintMethod
+    , prettyPrintByMode
     , getUplcExamples
     , helpText
     , loadASTfromFlat
@@ -29,9 +29,9 @@ module PlutusCore.Executable.Common
     , runPrintExample
     , topSrcSpan
     , writeFlat
-    , writePrettyToFileOrStd
+    , writePrettyToOutput
     , writeProgram
-    , writeToFileOrStd
+    , writeToOutput
     ) where
 
 import PlutusPrelude
@@ -324,13 +324,13 @@ writeFlat outp flatMode prog = do
 
 ---------------- Write an AST as PLC source ----------------
 
-getPrintMethod ::
-    PP.PrettyPlc a => PrintMode -> (a -> Doc ann)
-getPrintMethod = \case
-    Classic        -> PP.prettyPlcClassic
-    Simple         -> PP.prettyPlcClassicSimple
-    Readable       -> PP.prettyPlcReadable
-    ReadableSimple -> PP.prettyPlcReadableSimple
+prettyPrintByMode ::
+    PP.PrettyPlc a => PrintMode -> (a -> Doc a)
+prettyPrintByMode = \case
+  Classic        -> PP.prettyPlcClassic
+  Simple         -> PP.prettyPlcClassicSimple
+  Readable       -> PP.prettyPlcReadable
+  ReadableSimple -> PP.prettyPlcReadableSimple
 
 writeProgram ::
     ( ProgramLike p
@@ -342,24 +342,24 @@ writeProgram ::
     PrintMode ->
     p ann ->
     IO ()
-writeProgram outp Textual mode prog      = writePrettyToFileOrStd outp mode prog
+writeProgram outp Textual mode prog      = writePrettyToOutput outp mode prog
 writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
 
-writePrettyToFileOrStd ::
+writePrettyToOutput ::
     (PP.PrettyBy PP.PrettyConfigPlc (p ann)) => Output -> PrintMode -> p ann -> IO ()
-writePrettyToFileOrStd outp mode prog = do
-    let printMethod = getPrintMethod mode
+writePrettyToOutput outp mode prog = do
+    let printMethod = prettyPrintByMode mode
     case outp of
         FileOutput file -> writeFile file . Prelude.show . printMethod $ prog
         StdOutput       -> print . printMethod $ prog
         NoOutput        -> pure ()
 
-writeToFileOrStd ::
-    Output -> String -> IO ()
-writeToFileOrStd outp v = do
+writeToOutput ::
+    Show a => Output -> a -> IO ()
+writeToOutput outp v = do
     case outp of
-        FileOutput file -> writeFile file v
-        StdOutput       -> putStrLn v
+        FileOutput file -> writeFile file $ show v
+        StdOutput       -> putStrLn $ show v
         NoOutput        -> pure ()
 
 ---------------- Examples ----------------
@@ -559,7 +559,7 @@ runPrint
     -> IO ()
 runPrint (PrintOptions inp outp mode) = do
     parsed <- (snd <$> parseInput inp :: IO (p PLC.SrcSpan))
-    let printed = show $ getPrintMethod mode parsed
+    let printed = show $ prettyPrintByMode mode parsed
     case outp of
         FileOutput path -> writeFile path printed
         StdOutput       -> putStrLn printed
