@@ -1,12 +1,12 @@
-[ entering useTypeclass-136
-, entering methodA-150
-, exiting methodA-150
-, entering addInteger-143
-, exiting addInteger-143
-, entering methodB-161
-, exiting methodB-161
-, entering subtractInteger-173
-, exiting subtractInteger-173
-, entering addInteger-143
-, exiting addInteger-143
-, exiting useTypeclass-136 ]
+[ entering useTypeclass-137
+, entering methodA-151
+, exiting methodA-151
+, entering addInteger-144
+, exiting addInteger-144
+, entering methodB-162
+, exiting methodB-162
+, entering subtractInteger-174
+, exiting subtractInteger-174
+, entering addInteger-144
+, exiting addInteger-144
+, exiting useTypeclass-137 ]

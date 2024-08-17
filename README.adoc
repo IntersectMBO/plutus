@@ -46,7 +46,7 @@ The main documentation is located https://plutus.cardano.intersectmbo.org/docs/[
 
 The haddock documentation is located https://plutus.cardano.intersectmbo.org/haddock/latest[here].
 
-The documentation for the metatheory can be found https://plutus.cardano.intersectmbo.org/metatheory[here].
+The documentation for the metatheory can be found https://plutus.cardano.intersectmbo.org/metatheory/latest[here].
 
 === Talks
 

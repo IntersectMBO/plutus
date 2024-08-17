@@ -27,6 +27,7 @@ import Data.Kind qualified as GHC
 import Data.Text (Text)
 import Data.Type.Equality
 import Data.Word (Word8)
+import GHC.Natural
 import Hedgehog hiding (Opaque, Var, eval)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Gen.QuickCheck (arbitrary)
@@ -75,6 +76,7 @@ genConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @Integer) = genArbitraryBuiltin @Integer
     | Just HRefl <- eqTypeRep tr (typeRep @Int) = genArbitraryBuiltin @Integer
     | Just HRefl <- eqTypeRep tr (typeRep @Word8) = genArbitraryBuiltin @Integer
+    | Just HRefl <- eqTypeRep tr (typeRep @Natural) = genArbitraryBuiltin @Integer
     | Just HRefl <- eqTypeRep tr (typeRep @NumBytesCostedAsNumWords) = genArbitraryBuiltin @Integer
     | Just HRefl <- eqTypeRep tr (typeRep @IntegerCostedLiterally) = genArbitraryBuiltin @Integer
     | Just HRefl <- eqTypeRep tr (typeRep @Bool) = genArbitraryBuiltin @Bool

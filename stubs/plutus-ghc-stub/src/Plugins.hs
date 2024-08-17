@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP        #-}
 {-# LANGUAGE Rank2Types #-}
 module Plugins (
       FrontendPlugin(..), defaultFrontendPlugin, FrontendPluginAction
@@ -110,9 +109,7 @@ instance Semigroup PluginRecompile where
 
 instance Monoid PluginRecompile where
   mempty = NoForceRecompile
-#if __GLASGOW_HASKELL__ < 840
   mappend = (Data.Semigroup.<>)
-#endif
 
 type CorePlugin = [CommandLineOption] -> [CoreToDo] -> CoreM [CoreToDo]
 type TcPlugin = [CommandLineOption] -> Maybe TcRnTypes.TcPlugin

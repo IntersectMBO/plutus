@@ -1131,5 +1131,15 @@
             "arguments": 3,
             "type": "constant_cost"
         }
+    },
+    "expModInteger": {
+        "cpu": {
+            "arguments": 100000000000,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 100000000000,
+            "type": "constant_cost"
+        }
     }
 }

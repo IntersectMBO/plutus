@@ -1,4 +1,4 @@
--- editorconfig-checker-disable
+ -- editorconfig-checker-disable
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE LambdaCase                #-}
@@ -17,6 +17,7 @@ import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Executable.AstIO (toDeBruijnTermUPLC)
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
@@ -67,6 +68,7 @@ data EvalOptions =
       Input
       Format
       PrintMode
+      NameFormat
       BudgetMode
       TraceMode
       Output
@@ -131,6 +133,7 @@ evalOpts =
   <$> input
   <*> inputformat
   <*> printmode
+  <*> nameformat
   <*> budgetmode
   <*> tracemode
   <*> output
@@ -319,10 +322,11 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt printMode budgetMode traceMode
-                     outputMode cekModel semvar) = do
+runEval (EvalOptions inp ifmt printMode nameFormat budgetMode traceMode
+                     outp cekModel semvar) = do
     prog <- readProgram ifmt inp
     let term = void $ prog ^. UPLC.progTerm
+
         cekparams = case cekModel of
                     -- AST nodes are charged according to the default cost model
                     Default -> PLC.defaultCekParametersForVariant semvar
@@ -339,18 +343,21 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode
             Silent     -> SomeBudgetMode Cek.restrictingEnormous
             Verbose bm -> bm
     case budgetM of
-        SomeBudgetMode bm ->
+       SomeBudgetMode bm ->
             do
               let (res, budget, logs) = Cek.runCek cekparams bm emitM term
               case res of
                 Left err -> hPrint stderr err
-                Right v  -> writeToFileOrStd outputMode (show (getPrintMethod printMode v))
+                Right v  ->
+                  case nameFormat of
+                    IdNames -> writeToOutput outp $ prettyPrintByMode printMode v
+                    DeBruijnNames -> writeToOutput outp $ prettyPrintByMode printMode $ toDeBruijnTermUPLC v
               case budgetMode of
                 Silent    -> pure ()
                 Verbose _ -> printBudgetState term cekModel budget
               case traceMode of
                 None -> pure ()
-                _    -> writeToFileOrStd outputMode (T.unpack (T.intercalate "\n" logs))
+                _    -> writeToOutput outp (T.intercalate "\n" logs)
               case res of
                 Left _  -> exitFailure
                 Right _ -> pure ()
@@ -400,7 +407,7 @@ handleDbg cekTrans = \case
         case eNewState of
             Right newState -> k newState
             Left e         -> Repl.outputStrLn $ show e
-                             -- no kontinuation, so it acts like exitSuccess
+                             -- no continuation, so it acts like exitSuccess
                              -- FIXME: decide what should happen after the error occurs
     D.InputF k           -> handleInput >>= k
     D.DriverLogF text k        -> handleLog text >> k

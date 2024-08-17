@@ -46,13 +46,17 @@ common ghc-version-support
   if (impl(ghc <9.6) || impl(ghc >=9.7))
     buildable: False
 
+common os-support
+  if (impl(ghcjs) || os(windows))
+    buildable: False
+
 flag use-ghc-stub
   description: Use the `plutus-ghc-stub` package instead of `ghc`.
   default:     False
   manual:      True
 
 library
-  import:          lang, ghc-version-support
+  import:          lang, ghc-version-support, os-support
   hs-source-dirs:  src
   exposed-modules:
     PlutusTx.Compiler.Error
@@ -75,7 +79,7 @@ library
 
   build-depends:
     , array
-    , base                                  >=4.9      && <5
+    , base                                  >=4.9   && <5
     , bytestring
     , containers
     , either
@@ -86,7 +90,6 @@ library
     , plutus-core:{plutus-core, plutus-ir}  ^>=1.32
     , plutus-tx                             ^>=1.32
     , prettyprinter
-    , PyF                                   >=0.11.1.0
     , template-haskell
     , text
     , uniplate
@@ -97,10 +100,10 @@ library
       -Wno-unused-packages -Wno-unused-imports -Wno-overlapping-patterns
 
   else
-    build-depends: ghc >=9.2
+    build-depends: ghc
 
 executable gen-plugin-opts-doc
-  import:           lang, ghc-version-support
+  import:           lang, ghc-version-support, os-support
   main-is:          GeneratePluginOptionsDoc.hs
   hs-source-dirs:   app
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
@@ -117,7 +120,7 @@ executable gen-plugin-opts-doc
   default-language: Haskell2010
 
 test-suite plutus-tx-plugin-tests
-  import:             lang, ghc-version-support
+  import:             lang, ghc-version-support, os-support
 
   if flag(use-ghc-stub)
     buildable: False
@@ -207,7 +210,7 @@ test-suite plutus-tx-plugin-tests
     -fno-unbox-small-strict-fields -fno-full-laziness
 
 test-suite size
-  import:             lang, ghc-version-support
+  import:             lang, ghc-version-support, os-support
 
   -- needs plutus-tx-plugin but it looks unused
   ghc-options:        -Wno-unused-packages

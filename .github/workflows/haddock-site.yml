@@ -24,14 +24,14 @@ on:
 
       destination:
         description: |
-          The $destination folder, e.g. when "1.29.0.0" the haddock will be deploy to:
+          The $destination folder, e.g. when "1.29.0.0" the haddock site will be deployed to:
           https://plutus.cardano.intersectmbo.org/haddock/1.29.0.0
         required: true
         type: string
   
       latest: 
         description: |
-          If true, then the haddock site will also be deploy to:
+          If true, then the haddock site will also be deployed to:
           https://plutus.cardano.intersectmbo.org/haddock/latest.
           You want to leave this to true unless you are deploying old versions or back-porting.
         type: boolean

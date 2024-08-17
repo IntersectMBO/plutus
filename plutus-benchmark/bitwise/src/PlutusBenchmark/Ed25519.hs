@@ -101,7 +101,7 @@ xRecover y =
     xx :: Integer
     xx = (y * y - 1) * inv (d * y * y + 1)
     x :: Integer
-    x = expMod xx ((q + 3) `divide` 8) q
+    x = expModManual xx ((q + 3) `divide` 8) q
     xA :: Integer
     xA = x * i `modulo` q
     xB :: Integer
@@ -113,7 +113,7 @@ xRecover y =
     cond2 :: Bool
     cond2 = if cond1 then odd xA else odd x
     i :: Integer
-    i = expMod 2 ((q - 1) `divide` 4) q
+    i = expModManual 2 ((q - 1) `divide` 4) q
 
 {-# INLINEABLE clearBit #-}
 clearBit :: Integer -> BuiltinByteString -> BuiltinByteString
@@ -121,19 +121,20 @@ clearBit ix bs = writeBits bs [ix] [False]
 
 {-# INLINEABLE inv #-}
 inv :: Integer -> Integer
-inv x = expMod x (q - 2) q
+inv x = expModManual x (q - 2) q
 
 {-# INLINEABLE d #-}
 d :: Integer
 d = (-121665) * inv 121666
 
-{-# INLINEABLE expMod #-}
-expMod :: Integer -> Integer -> Integer -> Integer
-expMod b' e m =
+{-# INLINEABLE expModManual #-}
+-- TODO: switch to the builtin `expMod` (aka ExpModInteger)?
+expModManual :: Integer -> Integer -> Integer -> Integer
+expModManual b' e m =
   if e == 0
     then 1
     else
-      let reduced = expMod b' (e `divide` 2) m
+      let reduced = expModManual b' (e `divide` 2) m
           t = (reduced * reduced) `modulo` m
        in if odd e
             then (t * b') `modulo` m
