@@ -136,21 +136,49 @@ ForceDelay = Translation (FD zero zero)
 
 FD implies pureFD
 
+The two counters in `FD` track the number of forces and applications removed,
+to be "consumed" later. Consequently, at any stage we should be able to put
+`n` forces and `nₐ` applications back on to the current term and have a valid
+`pureFD` relation.
+
 ```
-FD→pureFD : {X : Set} → {x x' : X ⊢} → FD zero zero x x' → pureFD x x'
+forces : ℕ → {X : Set} (x : X ⊢) → X ⊢
+forces zero x = x
+forces (suc n) x = forces n (force x)
+
+-- What actually gets applied? Does it matter?....
+-- The `y` in the FD rules gets handled separately, here it just
+-- matters that there is an application that can be paired
+-- with a lambda. `error` has the advantage that it is always
+-- in scope, even if it is semantically silly.
+applications : ℕ → {X : Set} (x : X ⊢) → X ⊢
+applications zero x = x
+applications (suc n) x = applications n (x · error)
+
+nFD→FD : {X : Set} → {x x' : X ⊢} {n nₐ : ℕ} → FD n nₐ x x' → FD zero zero (forces n (applications nₐ x)) x'
+nFD→FD {n = zero} {nₐ = zero} p = p
+nFD→FD {x = x} {x' = x'} {n = suc n} {nₐ = zero} p = nFD→FD (forcefd n zero x x' p)
+nFD→FD {n = n} {nₐ = suc nₐ} p = {!!}
+
+FD→pureFD : {X : Set} → {x x' : X ⊢} {n nₐ : ℕ} → FD zero zero x x' → pureFD x x'
 
 TFD→TpureFD : {X : Set} → {x x' : X ⊢} → Translation (FD zero zero) x x' → Translation pureFD x x'
 TFD→TpureFD = convert FD→pureFD
 
+FD→pureFD {X} {x} {x'} {zero} {zero} p = {!!}
+FD→pureFD {X} {x} {x'} {suc n} {zero} p = FD→pureFD p
+FD→pureFD {X} {x} {x'} {suc n} {suc nₐ} p = FD→pureFD p
+
+{-
 {-# TERMINATING #-}
 FD→pureFD {X} {.(force (force x))} {x'} (forcefd .zero .zero .(force x) .x' (forcefd .1 .zero x .x' p)) = {!!}
 FD→pureFD {X} {.(force (delay x))} {x'} (forcefd .zero .zero .(delay x) .x' (delayfd .0 .zero x .x' p)) = forcedelay x x' (Translation.istranslation x x' (FD→pureFD p))
 FD→pureFD {X} {.(force (delay x))} {x'} (forcefd .zero .zero .(delay x) .x' (lastdelay n nₐ x .x' x₁)) = forcedelay x x' (TFD→TpureFD x₁)
-FD→pureFD {X} {.(force (force (x · y)))} {.(x' · y')} (forcefd .zero .zero .(force (x · y)) .(x' · y') (multiappliedfd .1 .zero x y x' y' x₁ p)) = {!!}
+FD→pureFD {X} {.(force (force (x · y)))} {.(x' · y')} (forcefd .zero .zero .(force (x · y)) .(x' · y') (multiappliedfd .1 .zero x y x' y' x₁ p)) = transfd ((force (x · y))) {!!} {!!}
 FD→pureFD {X} {.(force (x · y))} {.(x' · y')} (multiappliedfd .zero .zero x y x' y' x₁ (forcefd .zero .1 .x .x' p)) = {!!}
 FD→pureFD {X} {.(force ((x · y₁) · y))} {.((x' · y'') · y')} (multiappliedfd .zero .zero .(x · y₁) y .(x' · y'') y' x₁ (multiappliedfd .zero .1 x y₁ x' y'' x₂ p)) = {!!}
 FD→pureFD {X} {.(force (ƛ x · y))} {.(ƛ x' · y')} (multiappliedfd .zero .zero .(ƛ x) y .(ƛ x') y' x₁ (multiabstractfd .zero .0 x x' p)) = transfd ((ƛ (force x) · y)) (Translation.istranslation (force (ƛ x · y)) (ƛ (force x) · y) (pushfd x y)) (Translation.app (Translation.ƛ (Translation.istranslation (force x) x' (FD→pureFD p))) (TFD→TpureFD x₁))
-
+-}
 {-
 
 delays : (i : ℕ) → (M : X ⊢) → X ⊢
