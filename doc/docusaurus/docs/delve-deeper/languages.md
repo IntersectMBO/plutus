@@ -16,7 +16,7 @@ These languages can be grouped into three categories:
 - Subsets of existing general-purpose programming languages
 
 These are also the three common strategies for creating DSLs in general, not limited to blockchains or Cardano.
-Each strategy comes with its own benefits and drawbacks, which we'll outline next.
+Each strategy comes with its own benefits and drawbacks, which we'll discuss next.
 
 ## Standalone DSLs
 
@@ -36,7 +36,7 @@ This can present a considerable challenge, as it involves a learning curve, incr
 An embedded DSL (commonly referred to as an eDSL) generally takes the form of a library in a host programming language.
 Functional languages such as Haskell are particularly well-suited for hosting eDSLs, as the implementation of an eDSL largely involves functions that construct and transform abstract syntax trees (ASTs).
 
-The disadvantages of standalone DSLs are, in contrast, the advantages of embedded DSLs.
+Embedded DSLs can be much easier than standlone DSLs to develop, and to integrate into projects that already use the host language.
 Embedded DSLs, however, come with the drawback that the complexity of constructing and manipulating ASTs are exposed to the users.
 When using an embedded DSL, you are essentially writing programs that create and manage ASTs, rather than straightforward code.
 
@@ -49,7 +49,8 @@ Another disadvantage of eDSLs is that it is harder, compared to the other two ap
 This stems from the nature of eDSLs, which are libraries that construct and manipulate ASTs.
 Since they do not have direct access to the host language's ASTs, it can be challenging to retrieve information related to the source code, such as variable names, module names and code locations.
 
-There's another category of eDSLs, known as "shallow embedding", which, unlikely the "deep embedding" described earlier, does not construct intermediate ASTs.
+The eDSLs described above fall under the category of "deep embedding".
+There's another category of eDSLs, called "shallow embedding", which, unlikely deep embedding, does not construct intermediate ASTs.
 Instead, shallow embedding involves using overloaded functions.
 For example, a DSL designed as a shallow embedding for working with databases might include operations such as `createTable`, `getItem`, and `putItem`.
 These functions are overloaded, allowing them to work with various database implementations, including mock databases for testing purposes.
@@ -57,6 +58,7 @@ Such overloaded functions are typically defined using typeclasses in functional 
 
 While it is valid to call shallow embeddings _languages_, it is a bit of a stretch.
 Overloaded functions are widespread in everyday programming, and are not usually regarded as languages due to the absence of ASTs.
+Moreover, shallow embedding is less fitting when the eDSL targets a lower level language like UPLC, as constructing ASTs for UPLC will still be necessary.
 All existing eDSLs targeting UPLC are examples of deep embeddings.
 
 ## Subsets of Existing Languages
@@ -65,7 +67,7 @@ Similar to eDSLs, this approach can be particularly appealing if your team or pr
 It allows for even greater reuse of existing functions, types and idioms from the hosting language, compared to eDSLs.
 For instance, a program that tests whether one integer is less than another can retain the type `Integer -> Integer -> Bool`, and can even reuse the `<` operator in the hosting language's standard library[^1].
 
-This is achieved by leveraging the host language's compiler components, such as lexer, parser, type checker and optimization passes, as well as the hosting language's intermediate ASTs.
+This is achieved by leveraging the host language's compiler frontend, which might include lexer, parser, type checker, AST and optimization passes, while developing a custom backend for the new language.
 By reusing the host language's ASTs, programs maintain simple and regular types without the need for custom AST construction, which is often necessary in eDSLs.
 
 A case in point is Plutus Tx, which is a subset of Haskell, and its compiler is a GHC plugin.
@@ -79,7 +81,7 @@ Additionally, the desugaring process might transform code in such a way that it 
 Furthermore, complications arise when the new language and the host language do not exactly agree on semantics or evaluation strategies.
 This disparity can lead to behaviors where the same code might act differently when compiled and executed in the host language versus the new language.
 It can also result in idioms that work well in the host language being inappropriate for the new language.
-For example, while guarded recursion is a useful idiom in Haskell, it is unsuitable for Plutus Tx due to its use of call-by-value evaluation.
+For example, while guarded recursion is a useful idiom in Haskell, it is unsuitable for Plutus Tx due to Plutus Tx's use of call-by-value evaluation.
 
 ## List of Existing Languages
 
