@@ -80,16 +80,16 @@ _ = transfd ((force (ƛ (force (ƛ (delay (delay (` nothing))) · (` nothing))))
 
 
 data FD : ℕ → ℕ → Relation where
-  forcefd : (n nₐ : ℕ) → {X : Set} → (x x' : X ⊢) → FD (suc n) nₐ x x' → FD n nₐ (force x) x'
-  delayfd : (n nₐ : ℕ) → {X : Set} → (x x' : X ⊢) → FD n nₐ x x' → FD (suc n) nₐ (delay x) x'
-  lastdelay : (n nₐ : ℕ) → {X : Set} → (x x' : X ⊢) → Translation (FD zero zero) x x' → FD (suc zero) zero (delay x) x'
-  multiappliedfd : (n nₐ : ℕ) → {X : Set} → (x y x' y' : X ⊢)
+  forcefd : (n nₐ : ℕ) → {X : Set} → {x x' : X ⊢} → FD (suc n) nₐ x x' → FD n nₐ (force x) x'
+  delayfd : (n nₐ : ℕ) → {X : Set} → {x x' : X ⊢} → FD n nₐ x x' → FD (suc n) nₐ (delay x) x'
+  lastdelay : (n nₐ : ℕ) → {X : Set} → {x x' : X ⊢} → Translation (FD zero zero) x x' → FD (suc zero) zero (delay x) x'
+  multiappliedfd : (n nₐ : ℕ) → {X : Set} → {x y x' y' : X ⊢}
                    → Translation (FD zero zero) y y'
-                   → FD n (suc nₐ) (force x) x'
-                   → FD n nₐ (force (x · y)) (x' · y')
-  multiabstractfd : (n nₐ : ℕ) → {X : Set} → (x x' : Maybe X ⊢)
-                    →  FD n nₐ (force x) x'
-                    →  FD n (suc nₐ) (force (ƛ x)) (ƛ x')
+                   → FD n (suc nₐ) x x'
+                   → FD n nₐ (x · y) (x' · y')
+  multiabstractfd : (n nₐ : ℕ) → {X : Set} → {x x' : Maybe X ⊢}
+                    →  FD n nₐ x x'
+                    →  FD n (suc nₐ) (ƛ x) (ƛ x')
 
 {-
 data FD : Relation
@@ -109,25 +109,30 @@ data fFD where
 
 data FD where
   ffd : {X : Set} → {x x' : X ⊢} → fFD zero x x' → FD x x'
-
-_ : FD {⊥} (force (ƛ (delay error) · error)) (ƛ error · error)
-_ = ffd
-     (forcefd zero
-      (afd 1
-       (appfd 1 zero Translation.error
-        (absfd 1 zero Translation.error
-         (ffd 1 zero (delayfd zero idfd))))))
-_ : FD {⊥} (force (delay error)) error
-_ = ffd (forcefd zero (delayfd zero idfd))
-
-_ : FD {⊥} (force (force (delay (delay error)))) error
-_ = ffd (forcefd zero (forcefd 1 (delayfd 1 (delayfd zero idfd))))
-
-_ : FD {Maybe ⊥} (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
-_ = ffd (forcefd zero (forcefd 1 (afd 2 (appfd 2 zero Translation.var (absfd 2 zero Translation.error (appfd 2 zero Translation.var (absfd 2 zero Translation.error
-                                                                                                                                      (ffd 2 zero (delayfd 1 (delayfd zero idfd))))))))))
-
 -}
+
+_ : FD zero zero {⊥} (force (ƛ (delay error) · error)) (ƛ error · error)
+_ = forcefd zero zero
+     (multiappliedfd 1 zero Translation.error
+      (multiabstractfd 1 zero (lastdelay zero zero Translation.error)))
+
+_ : FD zero zero {⊥} (force (delay error)) error
+_ = forcefd zero zero (lastdelay zero zero Translation.error)
+
+_ : FD zero zero {⊥} (force (force (delay (delay error)))) error
+_ = forcefd zero zero
+     (forcefd 1 zero
+      (delayfd 1 zero (lastdelay zero zero Translation.error)))
+
+_ : FD zero zero {Maybe ⊥} (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
+_ = forcefd zero zero
+     (forcefd 1 zero
+      (multiappliedfd 2 zero Translation.var
+       (multiabstractfd 2 zero
+        (multiappliedfd 2 zero Translation.var
+         (multiabstractfd 2 zero
+          (delayfd 1 zero (lastdelay zero zero Translation.var)))))))
+
 ForceDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
 ForceDelay = Translation (FD zero zero)
 
@@ -155,47 +160,22 @@ applications : ℕ → {X : Set} (x : X ⊢) → X ⊢
 applications zero x = x
 applications (suc n) x = applications n (x · error)
 
-nFD→FD : {X : Set} → {x x' : X ⊢} {n nₐ : ℕ} → FD n nₐ x x' → FD zero zero (forces n (applications nₐ x)) x'
+nFD→FD : {X : Set} → {x x' : X ⊢} {n nₐ : ℕ} → FD n nₐ x x' → FD zero zero (forces n (applications nₐ x)) (applications nₐ x')
 nFD→FD {n = zero} {nₐ = zero} p = p
-nFD→FD {x = x} {x' = x'} {n = suc n} {nₐ = zero} p = nFD→FD (forcefd n zero x x' p)
-nFD→FD {n = n} {nₐ = suc nₐ} p = {!!}
+nFD→FD {x = x} {x' = x'} {n = suc n} {nₐ = zero} p = nFD→FD (forcefd n zero p)
+nFD→FD {x = x} {x' = x'} {n = n} {nₐ = suc nₐ} p = nFD→FD (multiappliedfd n nₐ Translation.error p)
 
-FD→pureFD : {X : Set} → {x x' : X ⊢} {n nₐ : ℕ} → FD zero zero x x' → pureFD x x'
+{-# TERMINATING #-}
+FD→pureFD : {X : Set} → {x x' : X ⊢} → FD zero zero x x' → pureFD x x'
 
 TFD→TpureFD : {X : Set} → {x x' : X ⊢} → Translation (FD zero zero) x x' → Translation pureFD x x'
 TFD→TpureFD = convert FD→pureFD
 
-FD→pureFD {X} {x} {x'} {zero} {zero} p = {!!}
-FD→pureFD {X} {x} {x'} {suc n} {zero} p = FD→pureFD p
-FD→pureFD {X} {x} {x'} {suc n} {suc nₐ} p = FD→pureFD p
-
-{-
-{-# TERMINATING #-}
-FD→pureFD {X} {.(force (force x))} {x'} (forcefd .zero .zero .(force x) .x' (forcefd .1 .zero x .x' p)) = {!!}
-FD→pureFD {X} {.(force (delay x))} {x'} (forcefd .zero .zero .(delay x) .x' (delayfd .0 .zero x .x' p)) = forcedelay x x' (Translation.istranslation x x' (FD→pureFD p))
-FD→pureFD {X} {.(force (delay x))} {x'} (forcefd .zero .zero .(delay x) .x' (lastdelay n nₐ x .x' x₁)) = forcedelay x x' (TFD→TpureFD x₁)
-FD→pureFD {X} {.(force (force (x · y)))} {.(x' · y')} (forcefd .zero .zero .(force (x · y)) .(x' · y') (multiappliedfd .1 .zero x y x' y' x₁ p)) = transfd ((force (x · y))) {!!} {!!}
-FD→pureFD {X} {.(force (x · y))} {.(x' · y')} (multiappliedfd .zero .zero x y x' y' x₁ (forcefd .zero .1 .x .x' p)) = {!!}
-FD→pureFD {X} {.(force ((x · y₁) · y))} {.((x' · y'') · y')} (multiappliedfd .zero .zero .(x · y₁) y .(x' · y'') y' x₁ (multiappliedfd .zero .1 x y₁ x' y'' x₂ p)) = {!!}
-FD→pureFD {X} {.(force (ƛ x · y))} {.(ƛ x' · y')} (multiappliedfd .zero .zero .(ƛ x) y .(ƛ x') y' x₁ (multiabstractfd .zero .0 x x' p)) = transfd ((ƛ (force x) · y)) (Translation.istranslation (force (ƛ x · y)) (ƛ (force x) · y) (pushfd x y)) (Translation.app (Translation.ƛ (Translation.istranslation (force x) x' (FD→pureFD p))) (TFD→TpureFD x₁))
--}
-{-
-
-delays : (i : ℕ) → (M : X ⊢) → X ⊢
-delays zero M = M
-delays (suc i) M = delay (delays i M)
-
-maybes : (j : ℕ) → (X : Set) → Set
-maybes zero X = X
-maybes (suc j) X = (maybes j (Maybe X))
-
-lambdas : (j : ℕ) → (M : maybes j X ⊢) → X ⊢
-lambdas zero M = M
-lambdas (suc j) M = ƛ (lambdas j M)
-
-FD→pureFD : (i j : ℕ) → FD i j (lambdas j (delays i M)) N → pureFD M N
-FD→pureFD = {!!}
--}
+FD→pureFD {X} {.(force (force _))} {x'} (forcefd .zero .zero (forcefd .1 .zero p)) = FD→pureFD (nFD→FD p) -- FIXME: Does this actually terminate?... I think this just sticks the forces back on...
+FD→pureFD {X} {(force (delay x))} {x'} (forcefd .zero .zero (delayfd .0 .zero p)) = forcedelay x x' (Translation.istranslation x x' (FD→pureFD p))
+FD→pureFD {X} {(force (delay x))} {x'} (forcefd .zero .zero (lastdelay n nₐ p)) = forcedelay x x' (TFD→TpureFD p)
+FD→pureFD {X} {.(force (_ · _))} {.(_ · _)} (forcefd .zero .zero (multiappliedfd .1 .zero x p)) = {!!}
+FD→pureFD {X} {.(_ · _)} {.(_ · _)} (multiappliedfd .zero .zero x p) = {!!}
 
 ```
 ## Decision Procedure
