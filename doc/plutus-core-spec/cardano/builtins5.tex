@@ -33,7 +33,7 @@ complement of a bit $b \in \{0,1\}$ by $\bar{b}$, so $\bar{\textsf{0}}
 
 
 \setlength{\LTleft}{-10mm}  % Shift the table left a bit to centre it on the page
-\begin{longtable}[H]{|l|p{50mm}|p{35mm}|c|c|}
+\begin{longtable}[H]{|l|p{50mm}|p{40mm}|c|c|}
     \hline
     \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
     & & & fail? & \\
@@ -54,19 +54,12 @@ complement of a bit $b \in \{0,1\}$ by $\bar{b}$, so $\bar{\textsf{0}}
     \TT{orByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & $\Xor$&  & \ref{note:bitwise-logical-ops}\\
     \TT{xorByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & $\Xxor$&  & \ref{note:bitwise-logical-ops}\\
     \TT{complementByteString} & $[\ty{bytestring}] \to \ty{bytestring}$
-                              &  $ b_{n-1}\cdots b_0 \mapsto \bar{b}_{n-1}\cdots\bar{b}_0$  &  & \\
+                              &  $ b_{n-1}\cdots b_0 \mapsto \bar{b}_{n-1}\cdots\bar{b}_0$  &  & \strut \\ \strut
     \TT{shiftByteString} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} &  $\mathsf{shift}$ &  & \ref{note:shift}\\
     \TT{rotateByteString} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} &  $\mathsf{rotate}$ &  & \ref{note:rotate}\\
     \TT{countSetBits} & $[\ty{bytestring}] \to \ty{integer}$
-    & $b_{n-1} \cdots b_0 $ \text{$\mapsto \left|\{i: b_i =1\}\right|$}
-    &  & \\
-    \TT{findFirstSetBit} & $[\ty{bytestring}] \to \ty{integer}$
-                                        & $b_{n-1}\cdots b_0 $ \text{$\mapsto \begin{cases}
-                                        -1  & \text{if $b_i = 0$ for $0 \leq i \leq n-1$}\\
-                                        \min{\{i: b_i \ne 0\}} & \text{otherwise}
-                                        \end{cases}$}
-                                        & Yes & \\
-    &  & \\
+    & $b_{n-1} \cdots b_0 $ \text{$\mapsto \left|\{i: b_i =1\}\right|$} &  & \\
+    \TT{findFirstSetBit} & $[\ty{bytestring}] \to \ty{integer}$ & $\mathsf{ffs}$ & & \ref{note:ffs}\\
     \TT{readBit} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$}
                                         & $(b_{n-1}\cdots b_0, i) $ \text{$\mapsto \begin{cases}
                                         b_i & \text{if $0 \leq i \leq n-1$}\\
@@ -76,11 +69,8 @@ complement of a bit $b \in \{0,1\}$ by $\bar{b}$, so $\bar{\textsf{0}}
     \TT{writeBits} & $[\ty{bytestring}, \listOf{\ty{integer}}, $
         \text{$\;\; \listOf{\ty{bool}}] \to \ty{bytestring}$} & $\mathsf{writeBits}$ & Yes & \ref{note:writebits} \\
     \TT{replicateByte} & $[\ty{integer}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$}
-                                        & $(c,n) $ \text{$\mapsto \begin{cases}
-                                        b_i & \text{if $c \in \B$ and $n \in XX$}\\
-                                        \errorX & \text{otherwise}
-                                        \end{cases}$}
-                                        & Yes & \\
+                                        & $\mathsf{replicateByte}$
+                                        & Yes & \ref{note:replicateByte}\\
     \hline
     \TT{ripemd\_160} & $[\ty{bytestring}] \to \ty{bytestring}$ & Compute a RIPEMD-160 hash \cite{ripemd-2, ripemd-1} &  & \\
 \hline
@@ -127,25 +117,25 @@ $$
 \noindent The denotations of the bitwise logical functions are now defined by
 
 \begin{align*}
-\mathsf{and}\;(\false, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
+\Xand\;(\false, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
 \quad \text{where $l=\min\{m,n\}$ and $c_i = a_i \wedge b_i$}\\
-\mathsf{and}\;(\true, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0
-\quad \text{where $l=\max\{m,n\}$ and $c_i = (\extone{a})_i \wedge(\extone{b})_i$.}
+\Xand\;(\true, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0
+\quad \text{where $l=\max\{m,n\}$ and $c_i = (\extone{a})_i \wedge(\extone{b})_i$}
 \end{align*}
 
 
 \begin{align*}
-\mathsf{or}\;(\false, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0
+\Xor\;(\false, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0
   \quad \text{where $l=\min\{m,n\}$ and $c_i = a_i \vee b_i$}\\
-\mathsf{or}\;(\true, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
-\quad \text{ where $l=\max\{m,n\}$ and $c_i = (\extzero{a})_i \vee (\extzero{b})_i$.}
+\Xor\;(\true, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
+\quad \text{ where $l=\max\{m,n\}$ and $c_i = (\extzero{a})_i \vee (\extzero{b})_i$}
 \end{align*}
 
 
 \begin{align*}
-\mathsf{xor}\;(\false, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
+\Xxor\;(\false, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
 \quad \text{where $l=\min\{m,n\}$ and $c_i = a_i \oplus b_i$}\\
-\mathsf{xor}\;(\true, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
+\Xxor\;(\true, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
 \quad \text{where $l=\max\{m,n\}$ and $c_i = (\extzero{a})_i \oplus (\extzero{b})_i$.}
 \end{align*}
 
@@ -177,6 +167,23 @@ the right if $n < 0$.  The length of the bytestring is unaltered.  The denotatio
 $$
 \mathsf{rotate}\;(r, b_{n-1} \cdots b_0) = a_{n-1}\cdots a_0 \quad\text{where $a_i = b_{(i+r)\bmod n}$}
 $$
+
+\note{Finding the first set bit}
+\label{note:ffs}
+
+The \texttt{findFirstSetBit} builtin returns the index of the first nonzero bit
+in a bytestring, counting from the \textit{right}. If the bytestring consists
+entirely of zeros then it returns $-1$.  The denotation
+$\mathsf{ffs}: \b^* \rightarrow \Z$ is
+
+$$
+\mathsf{ffs}(b_{n-1}\cdots b_0) =
+\begin{cases}
+  -1 & \text{if $b_i = 0$ for $0 \leq i \leq n-1$}\\
+  \min{\{i: b_i \ne 0\}} & \text{otherwise}
+  \end{cases}
+$$
+
 
 \note{\textsf{Writing bits}}
 \label{note:writebits}
@@ -218,4 +225,20 @@ $$
       \mathtt{1} & \text{if $v_m = \true$}.
     \end{cases}
   \end{cases}
+$$
+
+
+\note{Replicating bytes}
+\label{note:replicateByte}
+
+The \texttt{replicateByte} builtin takes an integer $n$ between 0 and 255 and a
+length $l$ between 0 and 8192 and produces a bytestring of length $l$.  It fails
+if either argument is outside the requied bounds.  The denotation is
+
+$$
+\mathsf{replicateByte}(n,l) =
+\begin{cases}
+c_0{\cdots}c_{l-1} \quad\text{ ($c_i=c$ for all $i$}) & \text{if $l \in \B$ and $0 \leq n \leq 8192$}\\
+\errorX      & \text{otherwise}.
+\end{cases}
 $$
