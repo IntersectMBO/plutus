@@ -337,6 +337,9 @@ BUILTIN shiftByteString (base $ V-con s $ V-con i) = inj₂ (V-con (shiftBYTESTR
 BUILTIN rotateByteString (base $ V-con s $ V-con i) = inj₂ (V-con (rotateBYTESTRING s i))
 BUILTIN countSetBits (base $ V-con  s) = inj₂ (V-con (countSetBITS s))
 BUILTIN findFirstSetBit (base $ V-con s) = inj₂ (V-con (findFirstSetBIT s))
+BUILTIN expModInteger (base  $ V-con b $ V-con e $ V-con m) with expModINTEGER b e m
+... | just r = inj₂ (V-con r)
+... | nothing  = inj₁ (con (ne (^ (atomic aInteger))))
 
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}

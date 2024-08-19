@@ -31,6 +31,7 @@ import Data.Word
 import GHC.Exts (Int (I#))
 import GHC.Integer
 import GHC.Integer.Logarithms
+import GHC.Natural
 import GHC.Prim
 import Universe
 
@@ -231,6 +232,11 @@ memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` intege
 
 instance ExMemoryUsage Integer where
     memoryUsage i = singletonRose $ memoryUsageInteger i
+    {-# INLINE memoryUsage #-}
+
+instance ExMemoryUsage Natural where
+    -- Same as Integer since we are going via Integer
+    memoryUsage n = memoryUsage $ toInteger n
     {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Word8 where

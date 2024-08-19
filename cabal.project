@@ -96,6 +96,14 @@ allow-newer:
   , inline-r:containers
   , inline-r:primitive
 
+-- Uncomment the following lines to make cardano-constitution:create-json-envelope buildable:True
+--
+-- package cardano-constitution
+--   flags: +force-build
+-- allow-newer: cardano-constitution:plutus-ledger-api
+-- allow-newer: cardano-constitution:prettyprinter-configurable
+-- allow-older: *:nothunks
+
 -- -------------------------------------------------------------------------------------------------
 -- Following currently required for building with ghc-9.10.
 

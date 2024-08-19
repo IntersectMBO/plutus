@@ -131,6 +131,7 @@ arity <- function(name) {
         "Keccak_256" = 1,
         "Blake2b_224" = 1,
         "Ripemd_160" = 1,
+        "ExpModInteger" = 3,
         "IntegerToByteString" = 3,
         "ByteStringToInteger" = 2,
         "AndByteString" = 3,
@@ -470,6 +471,8 @@ modelFun <- function(path) {
     quotientIntegerModel  <- divideIntegerModel
     remainderIntegerModel <- divideIntegerModel
     modIntegerModel       <- divideIntegerModel
+    expModIntegerModel    <- constantModel ("ExpModInteger")   # FIXME: stub
+
 
     ## This could possibly be made constant away from the diagonal; it's harmless
     ## to make it linear everywhere, but may overprice some comparisons a bit.
@@ -805,6 +808,7 @@ modelFun <- function(path) {
         blake2b_256Model                     = blake2b_256Model,
         keccak_256Model                      = keccak_256Model,
         ripemd_160Model                      = ripemd_160Model,
+        expModIntegerModel                   = expModIntegerModel,
         verifyEd25519SignatureModel          = verifyEd25519SignatureModel,
         verifyEcdsaSecp256k1SignatureModel   = verifyEcdsaSecp256k1SignatureModel,
         verifySchnorrSecp256k1SignatureModel = verifySchnorrSecp256k1SignatureModel,

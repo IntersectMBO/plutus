@@ -49,6 +49,7 @@ module PlutusTx.Prelude (
     remainder,
     even,
     odd,
+    expMod,
     -- * Maybe
     module Maybe,
     -- * Either
@@ -213,6 +214,12 @@ divide = Builtins.divideInteger
 --
 modulo :: Integer -> Integer -> Integer
 modulo = Builtins.modInteger
+
+
+{-# INLINABLE expMod #-}
+-- | FIXME
+expMod :: Integer -> Integer -> Integer -> Integer
+expMod = Builtins.expModInteger
 
 {-# INLINABLE quotient #-}
 -- | Integer division, rouding towards zero

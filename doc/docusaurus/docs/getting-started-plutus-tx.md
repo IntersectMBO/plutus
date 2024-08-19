@@ -26,6 +26,6 @@ The expected result is that the above process will have created the `validator.u
 
 Use `cardano-cli` to deploy your script. 
 
-Use an off-chain framework, such as [cardano-transaction-lib](https://github.com/Plutonomicon/cardano-transaction-lib) and [lucid](https://github.com/spacebudz/lucid), to interact with your script. 
+Use an off-chain framework, such as [cardano-transaction-lib](https://github.com/Plutonomicon/cardano-transaction-lib) and [mesh](https://meshjs.dev/), to interact with your script. 
 
 All these are based on the [Cardano API](https://github.com/IntersectMBO/cardano-api), a low-level API that provides the capability to do the off-chain work with a local running node.

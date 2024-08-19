@@ -39,6 +39,7 @@ module PlutusTx.Builtins (
                          , lessThanInteger
                          , lessThanEqualsInteger
                          , equalsInteger
+                         , expModInteger
                          -- * Error
                          , error
                          -- * Data
@@ -851,3 +852,18 @@ replicateByte ::
   Integer ->
   BuiltinByteString
 replicateByte = BI.replicateByte
+
+
+-- | FIXME
+--
+-- = See also
+--
+-- * [Operation
+-- description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0109)
+{-# INLINEABLE expModInteger #-}
+expModInteger ::
+  Integer ->
+  Integer ->
+  Integer ->
+  Integer
+expModInteger = BI.expModInteger

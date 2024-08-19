@@ -111,6 +111,7 @@ library
     PlutusCore.Crypto.BLS12_381.G2
     PlutusCore.Crypto.BLS12_381.Pairing
     PlutusCore.Crypto.Ed25519
+    PlutusCore.Crypto.ExpMod
     PlutusCore.Crypto.Hash
     PlutusCore.Crypto.Secp256k1
     PlutusCore.Data

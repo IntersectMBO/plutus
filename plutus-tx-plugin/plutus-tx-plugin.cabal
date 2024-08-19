@@ -80,7 +80,7 @@ library
 
   build-depends:
     , array
-    , base                                  >=4.9      && <5
+    , base                                  >=4.9   && <5
     , bytestring
     , containers
     , either
@@ -91,7 +91,6 @@ library
     , plutus-core:{plutus-core, plutus-ir}  ^>=1.32
     , plutus-tx                             ^>=1.32
     , prettyprinter
-    , PyF                                   >=0.11.1.0
     , template-haskell
     , text
     , uniplate

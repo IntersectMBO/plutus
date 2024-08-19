@@ -13,9 +13,9 @@ program
             in
             trace
               {unit -> integer}
-              "entering addInteger-149"
+              "entering addInteger-150"
               (\(thunk : unit) ->
-                 trace {integer} "exiting addInteger-149" (addInteger x y))
+                 trace {integer} "exiting addInteger-150" (addInteger x y))
               ()
     data Bool | Bool_match where
       True : Bool
@@ -33,11 +33,11 @@ program
             in
             trace
               {unit -> Bool}
-              "entering equalsInteger-134"
+              "entering equalsInteger-135"
               (\(thunk : unit) ->
                  trace
                    {Bool}
-                   "exiting equalsInteger-134"
+                   "exiting equalsInteger-135"
                    (let
                      !b : bool = equalsInteger x y
                    in
@@ -55,11 +55,11 @@ program
             in
             trace
               {unit -> integer}
-              "entering subtractInteger-155"
+              "entering subtractInteger-156"
               (\(thunk : unit) ->
                  trace
                    {integer}
-                   "exiting subtractInteger-155"
+                   "exiting subtractInteger-156"
                    (subtractInteger x y))
               ()
   in
@@ -71,11 +71,11 @@ program
           in
           trace
             {unit -> integer}
-            "entering fib-127"
+            "entering fib-128"
             (\(thunk : unit) ->
                trace
                  {integer}
-                 "exiting fib-127"
+                 "exiting fib-128"
                  (Bool_match
                     (equalsInteger n 0)
                     {all dead. integer}
