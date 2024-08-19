@@ -93,21 +93,25 @@ executable uplc
     , text
 
 test-suite test-simple
-  import:         lang, os-support
-  type:           exitcode-stdio-1.0
-  main-is:        Spec.hs
-  hs-source-dirs: test/simple
+  import:             lang, os-support
+  type:               exitcode-stdio-1.0
+  main-is:            Spec.hs
+  hs-source-dirs:     test/simple
   build-depends:
     , base
     , extra
     , plutus-metatheory
     , process
 
+  build-tool-depends:
+    , plutus-executables:plc
+    , plutus-executables:uplc
+
 test-suite test-detailed
-  import:         lang, os-support
-  type:           exitcode-stdio-1.0
-  main-is:        Spec.hs
-  hs-source-dirs: test/detailed
+  import:             lang, os-support
+  type:               exitcode-stdio-1.0
+  main-is:            Spec.hs
+  hs-source-dirs:     test/detailed
   build-depends:
     , base
     , directory
@@ -118,3 +122,7 @@ test-suite test-detailed
     , tasty
     , tasty-hunit
     , text
+
+  build-tool-depends:
+    , plutus-executables:plc
+    , plutus-executables:uplc
