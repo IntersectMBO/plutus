@@ -28,7 +28,7 @@ useful for tools working with Plutus Core.
         \texttt{integer} &   $\mathbb{Z}$ & \texttt{-?[0-9]+}\\
         \texttt{bytestring}  & $ \B^*$, the set of sequences of bytes or 8-bit characters. & \texttt{\#([0-9A-Fa-f][0-9A-Fa-f])*}\\
         \texttt{string} & $\U^*$,  the set of sequences of Unicode characters. & See note below\\
-        \texttt{bool} & \{\texttt{true, false}\} & \texttt{True | False}\\
+        \texttt{bool} & \{\true, \false\} & \texttt{True | False}\\
         \texttt{unit} &  \{()\} & \texttt{()}\\
         \texttt{data} &  See below & See below\\
         \hline
@@ -260,8 +260,8 @@ it applies at each possible monomorphisation in an obvious way.
     & Verify an \TT{Ed25519} digital signature. &  Yes
     & \ref{note:digital-signature-verification-functions}, \ref{note:ed25519-signature-verification}\\
     \TT{ifThenElse}               & $[\forall a_*, \ty{bool}, a_*, a_*] \to a_*$
-                                                 & \text{$(\mathtt{true},t_1,t_2) \mapsto t_1$}
-                                                 \text{$(\mathtt{false},t_1,t_2) \mapsto t_2$} & & \\
+                                                 & \text{$(\true,t_1,t_2) \mapsto t_1$}
+                                                 \text{$(\false,t_1,t_2) \mapsto t_2$} & & \\
     \TT{chooseUnit}               & $[\forall a_*, \ty{unit}, a_*] \to a_*$        & $((), t) \mapsto t$ & & \\
     \TT{trace}                    & $[\forall a_*, \ty{string}, a_*] \to a_*$      & $ (s,t) \mapsto t$ &  & \ref{note:trace}\\
     \TT{fstPair}                  & $[\forall a_\#, \forall b_\#, \pairOf{a_\#}{b_\#}] \to a_\#$       & $(x,y) \mapsto x$ && \\
@@ -272,8 +272,8 @@ it applies at each possible monomorphisation in an obvious way.
     \TT{headList}                 & $[\forall a_\#, \listOf{a_\#}] \to a_\#$               & $[]\mapsto \errorX, [x_1,x_2, \ldots, x_n] \mapsto x_1$ & Yes & \\
     \TT{tailList}                 & $[\forall a_\#, \listOf{a_\#}] \to \listOf{a_\#}$
                                         &  \text{$[] \mapsto \errorX$,} \text{$ [x_1,x_2, \ldots, x_n] \mapsto [x_2, \ldots, x_n]$} & Yes & \\
-    \TT{nullList}                 & $[\forall a_\#, \listOf{a_\#}] \to \ty{bool}$            & $ [] \mapsto \TT{true},
-                                                                                                    [x_1,\ldots, x_n] \mapsto \TT{false}$& & \\
+    \TT{nullList}                 & $[\forall a_\#, \listOf{a_\#}] \to \ty{bool}$            & $ [] \mapsto \true,
+                                                                                                    [x_1,\ldots, x_n] \mapsto \false$& & \\
     \TT{chooseData}               & $[\forall a_*, \ty{data}, a_*, a_*, a_*, a_*, a_*] \to a_*$
     & $ (d,t_C, t_M, t_L, t_I, t_B) $
     \smallskip
@@ -447,9 +447,9 @@ given order):
 or more arguments to be well-formed in some sense (in particular an argument
 may need to be of a specified length), and in this case the function will fail
 (returning $\errorX$) if any argument is malformed. If all of the arguments are
-well-formed then the verification function returns \texttt{true} if the private
+well-formed then the verification function returns $\true$ if the private
 key corresponding to $\vk$ was used to sign the message $m$ to produce $s$,
-otherwise it returns \texttt{false}.
+otherwise it returns $\false$.
 
 \note{Ed25519 signature verification.}
 \label{note:ed25519-signature-verification}

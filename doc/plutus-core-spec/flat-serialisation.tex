@@ -26,14 +26,14 @@ by about 35\% (without using compression).
 
 
 \section{Encoding and decoding}
-Let $\Bits = \{\bits{0},\bits{1}\}^*$, the set of all finite sequences of
-bits.  For brevity we write a sequence of bits in the form $b_{n-1} \cdots b_0$
-instead of $[b_{n-1}, \ldots, b_0]$: thus $\bits{011001}$ instead of $[\bits{0},
+Firstly recall some notation from Section~\ref{sec:notation}.  The set of all
+finite sequences of bits is denoted by $\Bits = \{\bits{0},\bits{1}\}^*$.  For
+brevity we write a sequence of bits in the form $b_{n-1} \cdots b_0$ instead of
+$[b_{n-1}, \ldots, b_0]$: thus $\bits{011001}$ instead of $[\bits{0},
   \bits{1},\bits{1},\bits{0},\bits{0},\bits{1}])$.  We denote the empty sequence
 by $\epsilon$, and use $\length(s)$ to denote the length of a sequence of bits,
 and $\cdot$ to denote concatenation (or prepending or appending a single bit to
-a sequence of bits).%
-\nomenclature[As]{$\Bits$}{The set of strings of bits}
+a sequence of bits).% \nomenclature[As]{$\Bits$}{The set of strings of bits}
 
 \medskip
 \noindent Similarly to the CBOR encoding for \texttt{data} described in
@@ -643,6 +643,21 @@ and forth between builtin names and their tags.
     \TT{bls12\_381\_finalVerify}     & $\bits{1000110}$  & 70 \\
     \TT{keccak\_256}                 & $\bits{1000111}$  & 71 \\
     \TT{blake2b\_224}                & $\bits{1001000}$  & 72 \\
+    \TT{integerToByteString}         & $\bits{1001001}$  & 73 \\
+    \TT{byteStringToInteger}         & $\bits{1001010}$  & 74 \\
+    \TT{andByteString}               & $\bits{1001011}$  & 75 \\
+    \TT{orByteString}                & $\bits{1001100}$  & 76 \\
+    \TT{xorByteString}               & $\bits{1001101}$  & 77 \\
+    \TT{complementByteString}        & $\bits{1001110}$  & 78 \\
+    \TT{readBit}                     & $\bits{1001111}$  & 79 \\
+    \TT{writeBits}                   & $\bits{1010000}$  & 80 \\
+    \TT{replicateByte}               & $\bits{1010001}$  & 81 \\
+    \TT{shiftByteString}             & $\bits{1010010}$  & 82 \\
+    \TT{rotateByteString}            & $\bits{1010011}$  & 83 \\
+    \TT{countSetBits}                & $\bits{1010100}$  & 84 \\
+    \TT{findFirstSetBit}             & $\bits{1010101}$  & 85 \\
+    \TT{ripemd\_160}                 & $\bits{1010110}$  & 86 \\
+
 \hline
 \end{tabular}
 \caption{Extra tags for future builtins}

@@ -8,6 +8,12 @@
   \noindent\textbf{Note \thenotenumberE. #1}
 }
 
+\newcommand\Xand{\mathsf{and}}
+\newcommand\Xor{\mathsf{or}}
+\newcommand\Xxor{\mathsf{xor}}
+\newcommand{\extzero}[1]{\mathtt{0}^*{\cdot}#1}
+\newcommand{\extone}[1]{\mathtt{1}^*{\cdot}#1}
+
 \subsection{Batch 5}
 \label{sec:default-builtins-5}
 The fifth batch of builtins adds support for
@@ -16,10 +22,14 @@ The fifth batch of builtins adds support for
 \item The \texttt{RIPEMD-160} hash function.
 \end{itemize}
 
-\noindent For brevity we write a bytestring $[b_{n-1}, \ldots, b_0]$ with each $b_i \in \{0,1\}$
-(and $n$ necessarily a multiple of 8) in the form $b_{n-1}\cdots b_0$.  We denote the complement
-of a bit $b \in \{0,1\}$ by $\bar{b}$, so $\bar{\textsf{0}} = \textsf{1}$ and
-$\bar{\textsf{1}} = \textsf{0}$. BE MORE PRECISE ABOUT THE REPRESENTATION OF BYTESTRINGS.
+\noindent In the table below most of the functions involve operating on individual bits.
+We will often view byetstrings as bitstrings $b_{n-1}\cdots b_0$ with
+$b_i \in \{0,1\}$ (and $n$ necessarily a multiple of 8) in the form.  Strictly
+we should use the functions $\bitsof$ and $\bytesof$ of
+Section~\ref{sec:notation-bytestrings} to convert back and forth between
+bytestrings and bitstrings, but we elide this for conciseness.  We denote the
+complement of a bit $b \in \{0,1\}$ by $\bar{b}$, so $\bar{\textsf{0}}
+= \textsf{1}$ and $\bar{\textsf{1}} = \textsf{0}$.
 
 
 \setlength{\LTleft}{-10mm}  % Shift the table left a bit to centre it on the page
@@ -40,27 +50,13 @@ $\bar{\textsf{1}} = \textsf{0}$. BE MORE PRECISE ABOUT THE REPRESENTATION OF BYT
     \caption[]{Built-in Functions}
     \label{table:built-in-functions-5}
     \endlastfoot
-    \TT{andByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & Bitwise logical AND &  & \\
-    \TT{orByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & Bitwise logical OR &  & \\
-    \TT{xorByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & Bitwise logical XOR &  & \\
+    \TT{andByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & $\Xand$ &  & \ref{note:bitwise-logical-ops}\\
+    \TT{orByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & $\Xor$&  & \ref{note:bitwise-logical-ops}\\
+    \TT{xorByteString} & $[\ty{bool}, \ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$} & $\Xxor$&  & \ref{note:bitwise-logical-ops}\\
     \TT{complementByteString} & $[\ty{bytestring}] \to \ty{bytestring}$
                               &  $ b_{n-1}\cdots b_0 \mapsto \bar{b}_{n-1}\cdots\bar{b}_0$  &  & \\
-    \TT{readBit} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$}
-                                        & $(b_{n-1}\cdots b_0, i) $ \text{$\mapsto \begin{cases}
-                                        b_i & \text{if $0 \leq i \leq n-1$}\\
-                                        \errorX & \text{otherwise}
-                                        \end{cases}$}
-                                        & Yes & \\
-    \TT{writeBits} & $[\ty{bytestring}, \listOf{\ty{integer}}, $
-        \text{$\;\; \listOf{\ty{bool}}] \to \ty{bytestring}$} & Set/clear a number of bits& Yes & \\
-    \TT{replicateByte} & $[\ty{integer}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$}
-                                        & $(c,n) $ \text{$\mapsto \begin{cases}
-                                        b_i & \text{if $c \in \B$ and $n \in XX$}\\
-                                        \errorX & \text{otherwise}
-                                        \end{cases}$}
-                                        & Yes & \\
-    \TT{shiftByteString} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} &  Shift &  & \\
-    \TT{rotateByteString} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} &  Rotate &  & \\
+    \TT{shiftByteString} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} &  $\mathsf{shift}$ &  & \ref{note:shift}\\
+    \TT{rotateByteString} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$} &  $\mathsf{rotate}$ &  & \ref{note:rotate}\\
     \TT{countSetBits} & $[\ty{bytestring}] \to \ty{integer}$
     & $b_{n-1} \cdots b_0 $ \text{$\mapsto \left|\{i: b_i =1\}\right|$}
     &  & \\
@@ -71,39 +67,46 @@ $\bar{\textsf{1}} = \textsf{0}$. BE MORE PRECISE ABOUT THE REPRESENTATION OF BYT
                                         \end{cases}$}
                                         & Yes & \\
     &  & \\
+    \TT{readBit} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$}
+                                        & $(b_{n-1}\cdots b_0, i) $ \text{$\mapsto \begin{cases}
+                                        b_i & \text{if $0 \leq i \leq n-1$}\\
+                                        \errorX & \text{otherwise}
+                                        \end{cases}$}
+                                        & Yes & \\
+    \TT{writeBits} & $[\ty{bytestring}, \listOf{\ty{integer}}, $
+        \text{$\;\; \listOf{\ty{bool}}] \to \ty{bytestring}$} & $\mathsf{writeBits}$ & Yes & \ref{note:writebits} \\
+    \TT{replicateByte} & $[\ty{integer}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$}
+                                        & $(c,n) $ \text{$\mapsto \begin{cases}
+                                        b_i & \text{if $c \in \B$ and $n \in XX$}\\
+                                        \errorX & \text{otherwise}
+                                        \end{cases}$}
+                                        & Yes & \\
     \hline
-    \TT{ripemd\_160} & $[\ty{bytestring}] \to \ty{bytestring}$ & Compute a RIPEMD-160 hash &  & \\
+    \TT{ripemd\_160} & $[\ty{bytestring}] \to \ty{bytestring}$ & Compute a RIPEMD-160 hash \cite{ripemd-2, ripemd-1} &  & \\
 \hline
 \end{longtable}
 
+\note{Bitwise logical operations}
+\label{note:bitwise-logical-ops}
 
-\subsection{Shift}
+The bitwise logical operations $\Xand$, $\Xor$, and $\Xxor$ are defined by
+extending the usual single-bit logical operations $\wedge$, $\vee$, and $\oplus$
+(respectively) to bitstrings. However, there is a subtlety in how bytestrings of
+different lengths are dealt with.
 
-$\mathsf{shift}\;(s, b_{n-1} \cdots b_0) = a_{n-1} \cdots a_0$ where
+\begin{itemize}
+\item If the first argument of one of the bitwise logical operations is $\false$ 
+then the longer bytestring is truncated on the left to have the same length as
+the shorter one.
+\item If the first argument $\true$ 
+then the shorter bytestring is extended on the left to have the same length as
+the longer one.  In the case of $\Xand$ the shorter bytestring is extended
+with \texttt{1} bits and in the case of $\Xor$ and $\Xxor$ it is extended
+with \texttt{0} bits.
+\end{itemize}
 
-$$
-a _i = \begin{cases}
-b_{i-s} & \text{if $0 \leq i-s < n$ }\\
-\texttt{0} & \text{otherwise}\\
-\end{cases}
-$$
-
-\subsection{Rotate}
-
-$\mathsf{rotate}\;(r, b_{n-1} \cdots b_0) = a_{n-1}\cdots a_0$ where
-$$
-a_i = b_{(i+r) \mod n}.
-$$
-
-
-\noindent Given integers $k \in \Z$ and $n \geq 1$ we write $k \mod n = \min\{r \in \Z: r \geq 0 \text{ and } n | k - r \}$
-
-\newcommand{\extzero}[1]{\mathtt{0}^*{\cdot}#1}
-\newcommand{\extone}[1]{\mathtt{1}^*{\cdot}#1}
-
-Given a finite bitstring $s=b_{n-1} \ldots b_0$ (including the empty bytestring
-when n=0), it is convenient to define two
-\texttt{infinite} bitstrings $\extzero{s}$ and $\extone{s}$ in an obvious way:
+\noindent To specify the extension process mentioned above it is helpful to define two
+\textit{infinite} bitstrings $\extzero{s}$ and $\extone{s}$ in an obvious way:
 
 $$
 (\extzero{s})_i =
@@ -121,57 +124,98 @@ $$
 \end{cases}
 $$
 
+\noindent The denotations of the bitwise logical functions are now defined by
 
-
-\subsection{Bitwise AND}
 \begin{align*}
-\mathsf{and}\;(\mathsf{false}, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
+\mathsf{and}\;(\false, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
 \quad \text{where $l=\min\{m,n\}$ and $c_i = a_i \wedge b_i$}\\
-\mathsf{and}\;(\mathsf{true}, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0
-\quad \text{where $l=\max\{m,n\}$ and $c_i = (\extzero{a})_i \wedge(\extzero{b})_i$.}
+\mathsf{and}\;(\true, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0
+\quad \text{where $l=\max\{m,n\}$ and $c_i = (\extone{a})_i \wedge(\extone{b})_i$.}
 \end{align*}
 
 
-\subsection{Bitwise OR}
 \begin{align*}
-\mathsf{or}\;(\mathsf{false}, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0
+\mathsf{or}\;(\false, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0
   \quad \text{where $l=\min\{m,n\}$ and $c_i = a_i \vee b_i$}\\
-\mathsf{or}\;(\mathsf{true}, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
-\quad \text{ where $l=\max\{m,n\}$ and $c_i = (\extone{a})_i \vee (\extone{b})_i$.}
+\mathsf{or}\;(\true, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
+\quad \text{ where $l=\max\{m,n\}$ and $c_i = (\extzero{a})_i \vee (\extzero{b})_i$.}
 \end{align*}
 
-
-\subsection{Bitwise XOR}
 
 \begin{align*}
-\mathsf{xor}\;(\mathsf{false}, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
+\mathsf{xor}\;(\false, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
 \quad \text{where $l=\min\{m,n\}$ and $c_i = a_i \oplus b_i$}\\
-\mathsf{xor}\;(\mathsf{true}, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
-\quad \text{where $l=\max\{m,n\}$ and $c_i = (\extone{a})_i \oplus (\extone{b})_i$.}
+\mathsf{xor}\;(\true, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
+\quad \text{where $l=\max\{m,n\}$ and $c_i = (\extzero{a})_i \oplus (\extzero{b})_i$.}
 \end{align*}
 
-\subsection{WriteBits}
-WriteBits takes a bytestring, a list of integer positions, and a list of booleans.
+
+\note{Shifting bits}
+\label{note:shift}
+
+The \texttt{shiftByteString} builtin takes a bytestring $b$ and an integer $n$ and
+shifts the bits of $b$ $n$ places to the left if $n \geq 0$ and $n$ places to
+the right if $n < 0$.  The length of the bytestring is unaltered and any
+``empty'' bits are replaced with \texttt{0}. The denotation is 
 
 $$
-\mathsf{writebits}(s, [j_1 , \ldots, j_{k-1}], [v_0, \ldots, v_{l-1}]) =
-    \mathsf{writebits}^{\prime} (s, [(j_1, v_1) , \ldots, (p_{\min\{k,l\}-1}, v_{\min\{k,l\}-1})])
-$$
-
-$$
-\mathsf{writebits}^{\prime}(b_{n-1}{\cdots}b_0, [(j_0,v_0), \ldots, (j_{l-1}, v_{l-1})]) = 
-\begin{cases}
-\errorX & \text{if $\exists k \in \{0, \ldots, l-1\}$ such that $j_k<0$ or $j_k \geq n$} \\
-[a_{n-1}, \ldots, a_0] & \text{otherwise}
+\mathsf{shift}\;(s,b_{n-1} \cdots b_0) =
+  a_{n-1} \cdots a_0 \quad \text{where }
+  a_i = \begin{cases}
+     b_ {i-s} & \text{if $0 \leq i-s < n$ }\\
+     \texttt{0} & \text{otherwise}\\
 \end{cases}
 $$
 
-where
+\note{Rotating bits}
+\label{note:rotate}
+The \texttt{rotateByteString} builtin takes a bytestring $b$ and an integer $n$ and
+rotates the bits of $b$ $n$ places to the left if $n \geq 0$ and $n$ places to
+the right if $n < 0$.  The length of the bytestring is unaltered.  The denotation of
+\texttt{rotateByteString} is 
+
+$$
+\mathsf{rotate}\;(r, b_{n-1} \cdots b_0) = a_{n-1}\cdots a_0 \quad\text{where $a_i = b_{(i+r)\bmod n}$}
+$$
+
+\note{\textsf{Writing bits}}
+\label{note:writebits}
+
+The denotation $\mathsf{writeBits}$ of the \texttt{writeBits} builtin takes a
+bytestring $b$, a list $p$ of integer positions, and a list $u$ of booleans.  If
+the lists are of different lengths then the longer one is truncated to make them
+both the same length.  After this, an error occurs if any of the positions is
+not a valid bit index for $b$.  If all of the positions are within bounds, then
+for each element $i$ in $p$, the $i$-th bit of the bytestring is updated
+according to the value of the corresponding element of $u$ (\texttt{0}
+for \textsf{false}, \texttt{1} for \textsf{true}).  Conceptually the updates
+take place according to their positions in the lists: if a bit at a particular
+position is updated multiple times then the final update takes prcedence.
+
+\smallskip
+\noindent Formally, 
+$$
+\mathsf{writeBits}(s, [j_0 , \ldots, j_{k-1}], [v_0, \ldots, v_{l-1}]) =
+    \mathsf{writeBits}^{\prime} (s, [(j_0, v_0) , \ldots, (p_{\min\{k,l\}-1}, v_{\min\{k,l\}-1})])
+$$
+
+$$
+\mathsf{writeBits}^{\prime}(b_{n-1}{\cdots}b_0, [(j_0,v_0), \ldots, (j_{l-1}, v_{l-1})]) = 
+\begin{cases}
+\errorX & \text{if $\exists k \in \{0, \ldots, l-1\}$ such that $j_k<0$ or $j_k \geq n$} \\
+a_{n-1}{\cdots}a_0 & \text{otherwise}
+\end{cases}
+$$
+
+\noindent where
 $$
   a_i =
   \begin{cases}
     b_i & \text{if $i \not{\in} \{j_0, \ldots, j_{l-1}\}$}\\
-    \mathsf{toBit}(v_m) & \text{otherwise, where $m = \max\{k : j_k = i\}$}
-  
+    w & \text{otherwise, where $m = \max\{k : j_k = i\}$ and }
+      w=\begin{cases}
+      \mathtt{0} & \text{if $v_m = \false$}\\
+      \mathtt{1} & \text{if $v_m = \true$}.
+    \end{cases}
   \end{cases}
 $$

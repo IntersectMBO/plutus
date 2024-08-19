@@ -50,14 +50,14 @@ The fourth batch of builtins adds support for
     \hline\strut
     \TT{integerToByteString} & $[\ty{bool}, \ty{integer}, \ty{integer}]$  \text{\: $\to \ty{bytestring}$}
                                         & $(e, w, n) $ \text{$\mapsto \begin{cases}
-                                        \itobsLE(w,n) & \text{if $e=\mathtt{false}$}\\
-                                        \itobsBE(w,n) & \text{if $e=\mathtt{true}$}\\
+                                        \itobsLE(w,n) & \text{if $e=\false$}\\
+                                        \itobsBE(w,n) & \text{if $e=\true$}\\
                                         \end{cases}$}
                                         & Yes & \ref{note:itobs}\strut\\ \strut
     \TT{byteStringToInteger} & $[\ty{bool}, \ty{bytestring}] $ \text{\: $ \to \ty{bytestring}$}
                                         & $(e, [c_0, \ldots, c_{N-1}]) $ \text{\; $\mapsto \begin{cases}
-                                        \sum_{i=0}^{N-1}c_{i}256^i & \text{if $e=\mathtt{false}$}\\
-                                        \sum_{i=0}^{N-1}c_{i}256^{N-1-i} & \text{if $e=\mathtt{true}$}\\
+                                        \sum_{i=0}^{N-1}c_{i}256^i & \text{if $e=\false$}\\
+                                        \sum_{i=0}^{N-1}c_{i}256^{N-1-i} & \text{if $e=\true$}\\
                                         \end{cases}$}
                                         &  & \ref{note:bstoi}\\
     \hline
@@ -551,8 +551,8 @@ the group multiplication operation in $\MlResultDenotation$.
 where
 $$
 \phi(a,b) = \begin{cases}
-               \mathtt{true} & \text{if $\psi(ab^{-1}) = 1_{\mu_r}$} \\
-               \mathtt{false} & \text{otherwise.}
+               \true & \text{if $\psi(ab^{-1}) = 1_{\mu_r}$} \\
+               \false & \text{otherwise.}
             \end{cases}
 $$
 \end{itemize}
