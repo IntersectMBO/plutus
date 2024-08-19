@@ -31,10 +31,10 @@ import Control.Lens hiding ((%~))
 import Control.Monad.Error.Lens
 import Control.Monad.Except
 import Control.Monad.Reader
-import Control.Monad.State (MonadState, StateT (runStateT))
+import Control.Monad.State (StateT (runStateT))
 import Data.Singletons.Decide
 import Data.Text
-import PlutusCore.Compiler.Types (UPLCSimplifierTrace, initUPLCSimplifierTrace)
+import PlutusCore.Compiler.Types (initUPLCSimplifierTrace)
 import PlutusPrelude hiding ((%~))
 
 -- Note that we use for erroring the original term's annotation

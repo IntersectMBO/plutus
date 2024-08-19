@@ -569,9 +569,8 @@ runCompiler moduleName opts expr = do
     when (opts ^. posDoTypecheck) . void $
         liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-    (uplcP, UPLCSimplifierTrace uplcSimplTrace) <- PLC.runCompile plcOpts $ PLC.compileProgram plcP
+    uplcP <- PLC.evalCompile plcOpts $ PLC.compileProgram plcP
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
-    -- TODO: just use liftExept like above
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat
             (UPLC.UnrestrictedProgram $ void dbP)
