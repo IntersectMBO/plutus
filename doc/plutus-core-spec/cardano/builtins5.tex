@@ -75,3 +75,103 @@ $\bar{\textsf{1}} = \textsf{0}$. BE MORE PRECISE ABOUT THE REPRESENTATION OF BYT
     \TT{ripemd\_160} & $[\ty{bytestring}] \to \ty{bytestring}$ & Compute a RIPEMD-160 hash &  & \\
 \hline
 \end{longtable}
+
+
+\subsection{Shift}
+
+$\mathsf{shift}\;(s, b_{n-1} \cdots b_0) = a_{n-1} \cdots a_0$ where
+
+$$
+a _i = \begin{cases}
+b_{i-s} & \text{if $0 \leq i-s < n$ }\\
+\texttt{0} & \text{otherwise}\\
+\end{cases}
+$$
+
+\subsection{Rotate}
+
+$\mathsf{rotate}\;(r, b_{n-1} \cdots b_0) = a_{n-1}\cdots a_0$ where
+$$
+a_i = b_{(i+r) \mod n}.
+$$
+
+
+\noindent Given integers $k \in \Z$ and $n \geq 1$ we write $k \mod n = \min\{r \in \Z: r \geq 0 \text{ and } n | k - r \}$
+
+\newcommand{\extzero}[1]{\mathtt{0}^*{\cdot}#1}
+\newcommand{\extone}[1]{\mathtt{1}^*{\cdot}#1}
+
+Given a finite bitstring $s=b_{n-1} \ldots b_0$ (including the empty bytestring
+when n=0), it is convenient to define two
+\texttt{infinite} bitstrings $\extzero{s}$ and $\extone{s}$ in an obvious way:
+
+$$
+(\extzero{s})_i =
+\begin{cases}
+  s_i & \text{if $0 \leq i \leq n-1$}\\
+  \mathtt{0} & \text{if $i \geq n$}
+\end{cases}
+$$
+
+$$
+(\extone{s})_i =
+\begin{cases}
+  s_i & \text{if $0 \leq i \leq n-1$}\\
+  \mathtt{1} & \text{if $i \geq n$}
+\end{cases}
+$$
+
+
+
+\subsection{Bitwise AND}
+\begin{align*}
+\mathsf{and}\;(\mathsf{false}, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
+\quad \text{where $l=\min\{m,n\}$ and $c_i = a_i \wedge b_i$}\\
+\mathsf{and}\;(\mathsf{true}, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0
+\quad \text{where $l=\max\{m,n\}$ and $c_i = (\extzero{a})_i \wedge(\extzero{b})_i$.}
+\end{align*}
+
+
+\subsection{Bitwise OR}
+\begin{align*}
+\mathsf{or}\;(\mathsf{false}, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0
+  \quad \text{where $l=\min\{m,n\}$ and $c_i = a_i \vee b_i$}\\
+\mathsf{or}\;(\mathsf{true}, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
+\quad \text{ where $l=\max\{m,n\}$ and $c_i = (\extone{a})_i \vee (\extone{b})_i$.}
+\end{align*}
+
+
+\subsection{Bitwise XOR}
+
+\begin{align*}
+\mathsf{xor}\;(\mathsf{false}, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
+\quad \text{where $l=\min\{m,n\}$ and $c_i = a_i \oplus b_i$}\\
+\mathsf{xor}\;(\mathsf{true}, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= c_{l-1} \cdots c_0 
+\quad \text{where $l=\max\{m,n\}$ and $c_i = (\extone{a})_i \oplus (\extone{b})_i$.}
+\end{align*}
+
+\subsection{WriteBits}
+WriteBits takes a bytestring, a list of integer positions, and a list of booleans.
+
+$$
+\mathsf{writebits}(s, [j_1 , \ldots, j_{k-1}], [v_0, \ldots, v_{l-1}]) =
+    \mathsf{writebits}^{\prime} (s, [(j_1, v_1) , \ldots, (p_{\min\{k,l\}-1}, v_{\min\{k,l\}-1})])
+$$
+
+$$
+\mathsf{writebits}^{\prime}(b_{n-1}{\cdots}b_0, [(j_0,v_0), \ldots, (j_{l-1}, v_{l-1})]) = 
+\begin{cases}
+\errorX & \text{if $\exists k \in \{0, \ldots, l-1\}$ such that $j_k<0$ or $j_k \geq n$} \\
+[a_{n-1}, \ldots, a_0] & \text{otherwise}
+\end{cases}
+$$
+
+where
+$$
+  a_i =
+  \begin{cases}
+    b_i & \text{if $i \not{\in} \{j_0, \ldots, j_{l-1}\}$}\\
+    \mathsf{toBit}(v_m) & \text{otherwise, where $m = \max\{k : j_k = i\}$}
+  
+  \end{cases}
+$$
