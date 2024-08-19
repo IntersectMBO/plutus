@@ -44,13 +44,21 @@ open import Agda.Builtin.Equality using (refl)
 
 ## Compiler certification component
 ```
-postulate
-  -- we will probably want hPutStrLn instead, to write to a file
-  -- handle
-  putStrLn : String → IO ⊤
-
 {-# FOREIGN GHC import qualified Data.Text.IO as TextIO #-}
-{-# COMPILE GHC putStrLn = TextIO.putStrLn #-}
+{-# FOREIGN GHC import qualified System.IO as IO #-}
+{-# FOREIGN GHC import qualified Data.Text as Text #-}
+
+postulate FileHandle : Set
+{-# COMPILE GHC FileHandle = type IO.Handle #-}
+
+postulate
+  writeFile : String → String → IO ⊤
+  stderr : FileHandle
+  hPutStrLn : FileHandle → String → IO ⊤
+
+{-# COMPILE GHC writeFile = \f -> TextIO.writeFile (Text.unpack f) #-}
+{-# COMPILE GHC stderr = IO.stderr #-}
+{-# COMPILE GHC hPutStrLn = TextIO.hPutStr #-}
 
 postulate
   exitFailure : IO ⊤
@@ -66,7 +74,6 @@ instance
 
 postulate
   showUntyped : Untyped → String
-{-# FOREIGN GHC import qualified Data.Text as Text #-}
 {-# COMPILE GHC showUntyped = Text.pack . show #-}
 
 aux : {X : Set} → List (Maybe X ⊢) -> List ((Maybe X ⊢) × (Maybe X ⊢))
@@ -154,7 +161,7 @@ certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
 
 -- TODO: print to moduleNameCert.agda
 runCertifier : String → List Untyped → IO ⊤
-runCertifier moduleName rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
-... | inj₁ err = putStrLn "error" -- TODO: pretty print error
-... | inj₂ result = putStrLn result
+runCertifier fileName rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
+... | inj₁ err = hPutStrLn stderr "error" -- TODO: pretty print error
+... | inj₂ result = writeFile (fileName ++ ".agda") result
 {-# COMPILE GHC runCertifier as runCertifier #-}
