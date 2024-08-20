@@ -27,10 +27,10 @@ We will often view byetstrings as bitstrings $b_{n-1}\cdots b_0$ with
 $b_i \in \{0,1\}$ (and $n$ necessarily a multiple of 8).  Strictly we should use
 the functions $\bitsof$ and $\bytesof$ of Section~\ref{sec:notation-bytestrings}
 to convert back and forth between bytestrings and bitstrings, but we elide this
-for conciseness and reduce ambiguity by denoting bits by lower-case names like
-$b$,$c$ and $d$ and bytes by upper-case names like $B$. We denote the
-complement of a bit $b \in \{0,1\}$ by $\bar{b}$, so $\bar{\textsf{0}}
-= \textsf{1}$ and $\bar{\textsf{1}} = \textsf{0}$.
+for conciseness and reduce ambiguity by using lower-case names like $b$,$c$ and
+$d$ for bits and upper-case names like $B$ for bytes. We denote the complement of a
+bit $b \in \{0,1\}$ by $\bar{b}$, so $\bar{\textsf{0}} = \textsf{1}$ and
+$\bar{\textsf{1}} = \textsf{0}$.
 
 
 \setlength{\LTleft}{-6mm}  % Shift the table left a bit to centre it on the page
@@ -187,15 +187,15 @@ $$
 $$
 
 
-\note{\textsf{Writing bits.}}
+\note{Writing bits.}
 \label{note:writebits}
 The denotation $\mathsf{writeBits}$ of the \texttt{writeBits} builtin takes a
-bytestring $b$, a list of $J$ of integer indices, and a list $V$ of booleans.
+bytestring $s$, a list of $J$ of integer indices, and a list $V$ of booleans.
 If the lists are of different lengths then the longer one is truncated to make
 them both the same length.  After this, an error occurs if any of the indices in
-$J$ is not a valid bit index for $b$.  If all of the indices are within bounds
-then for each index $j$ in $J$ the $j$-th bit of the bytestring is updated
-according to the value of the corresponding element of $V$ (\texttt{0}
+$J$ is not a valid bit index for $s$.  If all of the indices are within bounds
+then for each index $j$ in $J$ the $j$-th bit of $s$ is updated according to the
+value of the corresponding element of $V$ (\texttt{0}
 for \textsf{false}, \texttt{1} for \textsf{true}).  Conceptually the updates
 take place in sequence according to their positions in the lists: if a bit at a
 particular position is updated multiple times then the final update takes
