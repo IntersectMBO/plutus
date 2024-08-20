@@ -77,12 +77,11 @@ complement of a bit $b \in \{0,1\}$ by $\bar{b}$, so $\bar{\textsf{0}}
 \hline
 \end{longtable}
 
-\note{Bitwise logical operations}
+\note{Bitwise logical operations.}
 \label{note:bitwise-logical-ops}
-
 The bitwise logical operations $\Xand$, $\Xor$, and $\Xxor$ are defined by
 extending the usual single-bit logical operations $\wedge$, $\vee$, and $\oplus$
-(respectively) to bitstrings. However, there is a subtlety in how bytestrings of
+(respectively) to bytestrings. However, there is a subtlety in how bytestrings of
 different lengths are dealt with.
 
 \begin{itemize}
@@ -97,7 +96,8 @@ with \texttt{0} bits.
 \end{itemize}
 
 \noindent To specify the extension process mentioned above it is helpful to define two
-\textit{infinite} bitstrings $\extzero{s}$ and $\extone{s}$ in an obvious way:
+\textit{infinite} bitstrings $\extzero{s}$ and $\extone{s}$ which extend a finite bitstring $s$
+to the left:
 
 $$
 (\extzero{s})_i =
@@ -115,7 +115,8 @@ $$
 \end{cases}
 $$
 
-\noindent The denotations of the bitwise logical functions are now defined by
+\noindent The denotations of the bitwise logical functions are now defined on
+bitstring representations of bytestrings by
 
 \begin{align*}
 \Xand\;(\false, b_{m-1} \cdots b_0, c_{n-1} \cdots c_0) &= d_{l-1} \cdots d_0 
@@ -141,39 +142,37 @@ $$
 \end{align*}
 
 
-\note{Shifting bits}
+\note{Shifting bits.}
 \label{note:shift}
-
-The \texttt{shiftByteString} builtin takes a bytestring $s$ and an integer $n$
-and shifts the bits of $s$ $n$ places to the left if $n \geq 0$ and $n$ places
-to the right if $n < 0$.  The length of the output bytestring is the same as
-that of the input and any ``empty'' bits are replaced with \texttt{0}. The
+The \texttt{shiftByteString} builtin takes a bytestring $s$ and an integer $k$ and
+shifts the bits of the bytestring $k$ places to the left if $k \geq 0$ and $k$
+places to the right if $k < 0$, replacing vacated bits with \texttt{0}.  The
+length of the output bytestring is the same as that of the input.  The
 denotation (defined on the bitstring representation of $s$) is
 
 $$
-\mathsf{shift}\;(s,b_{n-1} \cdots b_0) =
+\mathsf{shift}\;(b_{n-1} \cdots b_0, k) =
   d_{n-1} \cdots d_0 \quad \text{where }
   d_i = \begin{cases}
-     b_{i-s} & \text{if $0 \leq i-s < n$ }\\
+     b_{i-k} & \text{if $0 \leq i-k \leq n-1$ }\\
      \texttt{0} & \text{otherwise}\\
 \end{cases}
 $$
 
-\note{Rotating bits}
+\note{Rotating bits.}
 \label{note:rotate}
-The \texttt{rotateByteString} builtin takes a bytestring $s$ and an integer $n$
-and rotates the bits of $s$ $n$ places to the left if $n \geq 0$ and $n$ places
-to the right if $n < 0$.  The length of the output bytestring is the same as
+The \texttt{rotateByteString} builtin takes a bytestring $s$ and an integer $k$
+and rotates the bits of $s$ $k$ places to the left if $k \geq 0$ and $k$ places
+to the right if $k < 0$.  The length of the output bytestring is the same as
 that of the input.  The denotation of
 \texttt{rotateByteString} (defined on the bitstring representation of $s$) is 
 
 $$
-\mathsf{rotate}\;(r, b_{n-1} \cdots b_0) = d_{n-1}\cdots d_0 \quad\text{where $d_i = b_{(i+r)\bmod n}$}
+\mathsf{rotate}\;(b_{n-1} \cdots b_0, k) = d_{n-1}\cdots d_0 \quad\text{where $d_i = b_{(i-k)\bmod n}$}
 $$
 
-\note{Finding the first set bit}
+\note{Finding the first set bit in a bytestring.}
 \label{note:ffs}
-
 The \texttt{findFirstSetBit} builtin returns the index of the first nonzero bit
 in a bytestring, counting from the \textit{right}. If the bytestring consists
 entirely of zeros then it returns $-1$.  The denotation
@@ -182,31 +181,31 @@ $\mathsf{ffs}: \b^* \rightarrow \Z$ is
 $$
 \mathsf{ffs}(b_{n-1}\cdots b_0) =
 \begin{cases}
-  -1 & \text{if $b_i = 0$ for $0 \leq i \leq n-1$}\\
-  \min{\{i: b_i \ne 0\}} & \text{otherwise}
+  -1 & \text{if $b_i = \mathtt{0}$ for $0 \leq i \leq n-1$}\\
+  \min{\{i: b_i \ne \mathtt{0}\}} & \text{otherwise}
   \end{cases}
 $$
 
 
-\note{\textsf{Writing bits}}
+\note{\textsf{Writing bits.}}
 \label{note:writebits}
-
 The denotation $\mathsf{writeBits}$ of the \texttt{writeBits} builtin takes a
-bytestring $b$, a list $p$ of integer positions, and a list $u$ of booleans.  If
-the lists are of different lengths then the longer one is truncated to make them
-both the same length.  After this, an error occurs if any of the positions is
-not a valid bit index for $b$.  If all of the positions are within bounds, then
-for each element $i$ in $p$, the $i$-th bit of the bytestring is updated
-according to the value of the corresponding element of $u$ (\texttt{0}
+bytestring $b$, a list of $J$ of integer indices, and a list $V$ of booleans.
+If the lists are of different lengths then the longer one is truncated to make
+them both the same length.  After this, an error occurs if any of the indices in
+$J$ is not a valid bit index for $b$.  If all of the indices are within bounds
+then for each index $j$ in $J$ the $j$-th bit of the bytestring is updated
+according to the value of the corresponding element of $V$ (\texttt{0}
 for \textsf{false}, \texttt{1} for \textsf{true}).  Conceptually the updates
-take place according to their positions in the lists: if a bit at a particular
-position is updated multiple times then the final update takes precedence.
+take place in sequence according to their positions in the lists: if a bit at a
+particular position is updated multiple times then the final update takes
+precedence.
 
 \smallskip
 \noindent Formally, 
 $$
 \mathsf{writeBits}(s, [j_0 , \ldots, j_{k-1}], [v_0, \ldots, v_{l-1}]) =
-    \mathsf{writeBits}^{\prime} (s, [(j_0, v_0) , \ldots, (p_{\min\{k,l\}-1}, v_{\min\{k,l\}-1})])
+    \mathsf{writeBits}^{\prime} (s, [(j_0, v_0) , \ldots, (j_{\min\{k,l\}-1}, v_{\min\{k,l\}-1})])
 $$
 
 $$
@@ -231,17 +230,18 @@ $$
 $$
 
 
-\note{Replicating bytes}
+\note{Replicating bytes.}
 \label{note:replicateByte}
-
-The \texttt{replicateByte} builtin takes an integer $n$ between 0 and 255 and a
-length $l$ between 0 and 8192 and produces a bytestring of length $l$.  It fails
+The \texttt{replicateByte} builtin takes a length $l$ between 0 and 8192 and an
+integer $B$ between 0 and 255 and produces a bytestring of length $l$.  It fails
 if either argument is outside the required bounds.  The denotation is
 
 $$
-\mathsf{replicateByte}(n,l) =
+\mathsf{replicateByte}(l,B) =
 \begin{cases}
-B_0{\cdots}B_{l-1} \quad\text{ ($B_i=n$ for all $i$}) & \text{if $n \in \B$ and $0 \leq l \leq 8192$}\\
+B_0{\cdots}B_{l-1} \quad\text{ ($B_i=B$ for all $i$}) & \text{if $0 \leq l \leq 8192$ and $B \in \B$}\\
 \errorX      & \text{otherwise}.
 \end{cases}
 $$
+\noindent Note that unlike the other denotations in this section we are
+viewing the output as a bytestring here, not a bitstring.
