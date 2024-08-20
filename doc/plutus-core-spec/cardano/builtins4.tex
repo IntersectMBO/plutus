@@ -15,10 +15,10 @@
 
 \subsection{Batch 4}
 \label{sec:default-builtins-4}
-The fourth batch of builtins adds support for
+The fourth batch of built-in types and functions adds support for
 \begin{itemize}
-\item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions.
-\item Conversion functions from integers to bytestrings and vice-versa.
+\item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions (see~\cite{CIP-0101}).
+\item Conversion functions from integers to bytestrings and vice-versa (see~\cite{CIP-0121}).
 \item BLS12-381 elliptic curve pairing operations
 (see~\cite{CIP-0381}, \cite{BLS12-381}, \cite[4.2.1]{IETF-pairing-friendly-curves}, \cite{BLST-library}).
  For clarity these are described separately in Sections~\ref{sec:bls-types-4} and \ref{sec:bls-builtins-4}.
@@ -44,22 +44,22 @@ The fourth batch of builtins adds support for
 %% G1
     \hline
     \TT{blake2b\_224} & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using
-                                                                   \TT{Blake2b-224}~\cite{IETF-Blake2}.} & & \\
+                                                                   \TT{Blake2b-224}~\cite{IETF-Blake2}} & No & \\[2mm]
     \TT{keccak\_256}  & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using
-                                                                   \TT{Keccak-256}~\cite{KeccakRef3}.} & & \\
+                                                                   \TT{Keccak-256}~\cite{KeccakRef3}} & No & \\
     \hline\strut
     \TT{integerToByteString} & $[\ty{bool}, \ty{integer}, \ty{integer}]$  \text{\: $\to \ty{bytestring}$}
                                         & $(e, w, n) $ \text{$\mapsto \begin{cases}
                                         \itobsLE(w,n) & \text{if $e=\false$}\\
                                         \itobsBE(w,n) & \text{if $e=\true$}\\
                                         \end{cases}$}
-                                        & Yes & \ref{note:itobs}\strut\\ \strut
+                                        & Yes & \ref{note:itobs}\strut \\[6mm]
     \TT{byteStringToInteger} & $[\ty{bool}, \ty{bytestring}] $ \text{\: $ \to \ty{bytestring}$}
                                         & $(e, [c_0, \ldots, c_{N-1}]) $ \text{\; $\mapsto \begin{cases}
                                         \sum_{i=0}^{N-1}c_{i}256^i & \text{if $e=\false$}\\
                                         \sum_{i=0}^{N-1}c_{i}256^{N-1-i} & \text{if $e=\true$}\\
                                         \end{cases}$}
-                                        &  & \ref{note:bstoi}\\
+                                        &  No & \ref{note:bstoi}\\[12mm]
     \hline
 \end{longtable}
 
@@ -246,6 +246,7 @@ $\MlResultDenotation$, the denotation of $\TyMlResult$, precisely, but it
 must be a multiplicative abelian group. See Note~\ref{note:pairing} for more on
 this.
 
+\newpage
 \subsubsection{BLS12-381 built-in functions}
 \label{sec:bls-builtins-4}
 
@@ -273,63 +274,63 @@ this.
     \TT{bls12\_381\_G1\_add}  &
     $[ \ty{bls12\_381\_G1\_element}$,
       \text{\; $\ty{bls12\_381\_G1\_element} ]$}
-      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $(a,b) \mapsto a+b$  &  No & \\
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $(a,b) \mapsto a+b$  &  No & \\[2mm]
     \TT{bls12\_381\_G1\_neg}  &
-      $ [ \ty{bls12\_381\_G1\_element} ]$  \text{\;\; $\to \ty{bls12\_381\_G1\_element}$} & $a \mapsto -a$  & No & \\
+      $ [ \ty{bls12\_381\_G1\_element} ]$  \text{\;\; $\to \ty{bls12\_381\_G1\_element}$} & $a \mapsto -a$  & No & \\[2mm]
     \TT{bls12\_381\_G1\_scalarMul}  &
     $[ \ty{integer}$,
       \text{\; $\ty{bls12\_381\_G1\_element} ]$}
-      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $(n,a) \mapsto na$ &  No & \\
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $(n,a) \mapsto na$ &  No & \\[2mm]
     \TT{bls12\_381\_G1\_equal}  &
     $[ \ty{bls12\_381\_G1\_element}$,
       \text{\; $\ty{bls12\_381\_G1\_element} ]$}
-      \text{\: $ \to \ty{bool}$} & $=$ &  No & \\
+      \text{\: $ \to \ty{bool}$} & $=$ &  No & \\[2mm]
     \TT{bls12\_381\_G1\_hashToGroup}  &
     $[ \ty{bytestring}, \ty{bytestring}]$
-      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $\hash_{G_1}$ &  Yes & \ref{note:hashing-into-group}\\
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $\hash_{G_1}$ &  Yes & \ref{note:hashing-into-group}\\[2mm]
     \TT{bls12\_381\_G1\_compress}  &
     $[\ty{bls12\_381\_G1\_element}]$
-      \text{\: $ \to \ty{bytestring}$} & $\compress_{G_1}$  &  No & \ref{note:group-compression}\\
+      \text{\: $ \to \ty{bytestring}$} & $\compress_{G_1}$  &  No & \ref{note:group-compression}\\[2mm]
     \TT{bls12\_381\_G1\_uncompress}  &
     $[ \ty{bytestring}]$
-      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $\uncompress_{G_1}$  &  Yes & \ref{note:group-uncompression}\\
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $\uncompress_{G_1}$  &  Yes & \ref{note:group-uncompression}\\[2mm]
     \hline 
 %% G2
     \TT{bls12\_381\_G2\_add}  &
     $[ \ty{bls12\_381\_G2\_element}$,
       \text{\; $\ty{bls12\_381\_G2\_element} ]$}
-      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $(a,b) \mapsto a+b$ &  No & \\
+      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $(a,b) \mapsto a+b$ &  No & \\[2mm]
     \TT{bls12\_381\_G2\_neg}  &
-      $ [ \ty{bls12\_381\_G2\_element} ]$  \text{\;\; $\to \ty{bls12\_381\_G2\_element}$} & $a \mapsto -a$  & No & \\
+      $ [ \ty{bls12\_381\_G2\_element} ]$  \text{\;\; $\to \ty{bls12\_381\_G2\_element}$} & $a \mapsto -a$  & No & \\[2mm]
     \TT{bls12\_381\_G2\_scalarMul}  &
     $[ \ty{integer}$,
       \text{\; $\ty{bls12\_381\_G2\_element} ]$}
-      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $(n,a) \mapsto na$ &  No & \\
+      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $(n,a) \mapsto na$ &  No & \\[2mm]
     \TT{bls12\_381\_G2\_equal}  &
     $[ \ty{bls12\_381\_G2\_element}$,
       \text{\; $\ty{bls12\_381\_G2\_element} ]$}
-      \text{\: $ \to \ty{bool}$} & $=$ &  No & \\
+      \text{\: $ \to \ty{bool}$} & $=$ &  No & \\[2mm]
     \TT{bls12\_381\_G2\_hashToGroup}  &
     $[ \ty{bytestring}, \ty{bytestring}]$
-      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $\hash_{G_2}$  &  Yes & \ref{note:hashing-into-group}\\
+      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $\hash_{G_2}$  &  Yes & \ref{note:hashing-into-group}\\[2mm]
     \TT{bls12\_381\_G2\_compress}  &
     $[\ty{bls12\_381\_G2\_element}]$
-      \text{\: $ \to \ty{bytestring}$} & $\compress_{G_2}$  &  No & \ref{note:group-compression}\\
+      \text{\: $ \to \ty{bytestring}$} & $\compress_{G_2}$  &  No & \ref{note:group-compression}\\[2mm]
     \TT{bls12\_381\_G2\_uncompress}  &
     $[ \ty{bytestring}]$
-      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $\uncompress_{G_2}$  &  Yes & \ref{note:group-uncompression}\\
+      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $\uncompress_{G_2}$  &  Yes & \ref{note:group-uncompression}\\[2mm]
     \hline 
     \TT{bls12\_381\_millerLoop}  &
     $[ \ty{bls12\_381\_G1\_element}$,
       \text{\; $\ty{bls12\_381\_G2\_element} ]$}
-    \text{\: $ \to \TyMlResult$} & $e$ &  No & \ref{note:pairing}\\
+    \text{\: $ \to \TyMlResult$} & $e$ &  No & \ref{note:pairing}\\[2mm]
     \TT{bls12\_381\_mulMlResult}  &
     $[ \TyMlResult$,
     \text{\; $\TyMlResult]$}
-    \text{\: $\to \TyMlResult$} & $(a,b) \mapsto ab$ & No & \ref{note:pairing}\\
+    \text{\: $\to \TyMlResult$} & $(a,b) \mapsto ab$ & No & \ref{note:pairing}\\[2mm]
     \TT{bls12\_381\_finalVerify}  &
     $[ \TyMlResult$,
-    \text{\; $\TyMlResult] \to \ty{bool}$} & $\phi$ & No & \ref{note:pairing}\\
+    \text{\; $\TyMlResult] \to \ty{bool}$} & $\phi$ & No & \ref{note:pairing}\\[2mm]
     \hline
 \end{longtable}
 

@@ -13,7 +13,8 @@
 
 \subsubsection{Built-in functions}
 \label{sec:built-in-functions-3}
-The third batch of builtin operations is defined in Table~\ref{table:built-in-functions-3}.
+The third batch of built-in functions is defined in Table~\ref{table:built-in-functions-3}.
+See~\cite{CIP-0049}.
 
 \setlength{\LTleft}{-10mm}  % Shift the table left a bit to centre it on the page
 \begin{longtable}[H]{|l|p{42mm}|p{35mm}|c|c|}
@@ -34,9 +35,9 @@ The third batch of builtin operations is defined in Table~\ref{table:built-in-fu
     \label{table:built-in-functions-3}
     \endlastfoot
     \TT{verifyEcdsaSecp256k1Signature}        & $[\ty{bytestring}, \ty{bytestring}, $ \text{$\;\; \ty{bytestring}] \to \ty{bool}$}
-        & Verify an SECP-256k1 ECDSA signature & Yes & \ref{note:verify-ecdsa-secp256k1-signature}\\
+        & Verify an SECP-256k1 ECDSA signature & Yes & \ref{note:verify-ecdsa-secp256k1-signature}\\[2mm]
     \TT{verifySchnorrSecp256k1Signature}      & $[\ty{bytestring}, \ty{bytestring}, $ \text{$\;\; \ty{bytestring}] \to \ty{bool}$}
-          & Verify an SECP-256k1 Schnorr signature & Yes & \ref{note:verify-schnorr-secp256k1-signature}\\
+          & Verify an SECP-256k1 Schnorr signature & Yes & \ref{note:verify-schnorr-secp256k1-signature}\\[2mm]
 \hline
 \end{longtable}
 

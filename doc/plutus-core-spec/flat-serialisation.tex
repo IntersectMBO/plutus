@@ -553,7 +553,7 @@ bytestring constants during program execution.
 \subsection{Built-in functions}
 Built-in functions are represented by seven-bit integer tags and encoded and
 decoded using $\E_7$ and $\D_7$.  The tags are specified in
-Tables~\ref{table:builtin-tags-V1}, \ref{table:builtin-tags-V2}, and~\ref{table:builtin-tags-V3}.  We
+Tables~\ref{table:builtin-tags-batch-1}--\ref{table:builtin-tags-batch-5}.  We
 assume that there are (partial) functions $\Tag$ and $\unTag$ which convert back
 and forth between builtin names and their tags.
 
@@ -597,8 +597,8 @@ and forth between builtin names and their tags.
    \TT{decodeUtf8}               &    $\bits{0011001}$  &  25    & & & \\
 \hline
 \end{tabular}
-\caption{Tags for PlutusV1 builtins}
-\label{table:builtin-tags-V1}
+\caption{Tags for built-in functions (Batch 1)}
+\label{table:builtin-tags-batch-1}
 \end{table}
 
 \begin{table}[H]
@@ -609,12 +609,24 @@ and forth between builtin names and their tags.
   Builtin & Binary & Decimal\\
   \hline
  \TT{serialiseData}                   & $\bits{0110011}$  & 51 \\
+\hline
+\end{tabular}
+\caption{Tags for built-in functions (Batch 2)}
+\label{table:builtin-tags-batch-2}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|}
+  \hline
+  \Strut
+  Builtin & Binary & Decimal\\
+  \hline
  \TT{verifyEcdsaSecp256k1Signature}   & $\bits{0110100}$  & 52 \\
  \TT{verifySchnorrSecp256k1Signature} & $\bits{0110101}$  & 53 \\
 \hline
 \end{tabular}
-\caption{Extra tags for PlutusV2 builtins}
-\label{table:builtin-tags-V2}
+\caption{Tags for built-in functions (Batch 3)}
 \end{table}
 
 \begin{table}[H]
@@ -643,8 +655,22 @@ and forth between builtin names and their tags.
     \TT{bls12\_381\_finalVerify}     & $\bits{1000110}$  & 70 \\
     \TT{keccak\_256}                 & $\bits{1000111}$  & 71 \\
     \TT{blake2b\_224}                & $\bits{1001000}$  & 72 \\
-    \TT{integerToByteString}         & $\bits{1001001}$  & 73 \\
-    \TT{byteStringToInteger}         & $\bits{1001010}$  & 74 \\
+    \TT{integerToByteString}         & $\bits{1001000}$  & 73 \\
+    \TT{byteStringToInteger}         & $\bits{1001000}$  & 74 \\
+\hline
+\end{tabular}
+\caption{Tags for built-in functions (Batch 4)}
+\label{table:builtin-tags-batch-4}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|}
+  \hline
+  \Strut
+  Builtin & Binary & Decimal\\
+  \hline
     \TT{andByteString}               & $\bits{1001011}$  & 75 \\
     \TT{orByteString}                & $\bits{1001100}$  & 76 \\
     \TT{xorByteString}               & $\bits{1001101}$  & 77 \\
@@ -657,14 +683,11 @@ and forth between builtin names and their tags.
     \TT{countSetBits}                & $\bits{1010100}$  & 84 \\
     \TT{findFirstSetBit}             & $\bits{1010101}$  & 85 \\
     \TT{ripemd\_160}                 & $\bits{1010110}$  & 86 \\
-
 \hline
 \end{tabular}
-\caption{Extra tags for future builtins}
-\label{table:builtin-tags-V3}
+\caption{Tags for built-in functions (Batch 5)}
+\label{table:builtin-tags-batch-5}
 \end{table}
-
-
 
 \subsection{Variable names}
 Variable names are encoded and decoded using the $\Ename$ and $\Dname$
