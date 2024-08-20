@@ -2142,7 +2142,7 @@ instance Flat DefaultFun where
               FindFirstSetBit                 -> 85
               Ripemd_160                      -> 86
 
-              ExpModInteger           -> 87
+              ExpModInteger                   -> 87
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
