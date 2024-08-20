@@ -1,2 +1,2 @@
-depend: standard-library
+depend: standard-library generics
 include: src

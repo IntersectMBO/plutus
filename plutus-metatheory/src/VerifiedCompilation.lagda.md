@@ -55,6 +55,7 @@ import Relation.Binary as Binary using (Decidable)
 open import VerifiedCompilation.UntypedTranslation using (Translation; Relation; translation?)
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
+import Generics
 ```
 
 ## Compiler optimisation traces
