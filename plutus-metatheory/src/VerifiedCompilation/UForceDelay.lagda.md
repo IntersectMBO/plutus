@@ -14,7 +14,7 @@ module VerifiedCompilation.UForceDelay where
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
-open import Relation.Nullary.Product using (_×-dec_)
+open import Relation.Nullary using (_×-dec_)
 open import Data.Product using (_,_)
 import Relation.Binary as Binary using (Decidable)
 open import Relation.Nullary using (Dec; yes; no; ¬_)

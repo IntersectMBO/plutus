@@ -10,7 +10,7 @@ module VerifiedCompilation.UntypedTranslation where
 open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; builtin; error)
 import Relation.Unary as Unary using (Decidable)
 import Relation.Binary as Binary using (Decidable)
-open import Relation.Nullary.Product using (_×-dec_)
+open import Relation.Nullary using (_×-dec_)
 open import Data.Product using (_,_)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import VerifiedCompilation.UntypedViews using (Pred; ListPred)

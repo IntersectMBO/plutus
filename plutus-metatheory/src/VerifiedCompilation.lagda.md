@@ -36,8 +36,7 @@ module VerifiedCompilation where
 import Data.Bool.Base using (Bool; true; false; T; _∧_; _∨_; not)
 open import Data.Nat using (ℕ; zero; suc)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
-import Relation.Nullary.Negation using (¬?)
-import Relation.Nullary.Product using (_×-dec_)
+import Relation.Nullary using (_×-dec_)
 import Relation.Binary using (Decidable)
 open import Untyped
 open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;List;[];_∷_;_×_;_,_)

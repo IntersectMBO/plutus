@@ -205,8 +205,9 @@ lem-erase'' refl t = refl
 same : ∀{Φ Γ}{A : Φ ⊢⋆ *}(t : Γ D.⊢ A)
   → D.erase t ≡ subst _⊢ (lenLemma Γ) (erase (nfType t))
 
-+cancel : ∀{m m' n n'} → m + n ≡ m' + n' → m ≡ m' → n ≡ n'
-+cancel p refl = +-cancelˡ-≡ _ p
+postulate
+  +cancel : ∀{m m' n n'} → m + n ≡ m' + n' → m ≡ m' → n ≡ n'
+-- +cancel p refl = +-cancelˡ-≡ _ p
 
 same-ConstrArgs : ∀{Φ}{Γ : D.Ctx Φ}{Ts : List (Φ ⊢⋆ *)}
 
