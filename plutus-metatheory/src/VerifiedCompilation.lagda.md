@@ -54,7 +54,8 @@ import Relation.Binary as Binary using (Decidable)
 open import VerifiedCompilation.UntypedTranslation using (Translation; Relation; translation?)
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
-import Generics
+open import Generics using (Show; deriveShow; HasDesc; deriveDesc; show)
+import Agda.Builtin.Sigma 
 ```
 
 ## Compiler optimisation traces
@@ -131,9 +132,50 @@ showTrace : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Trace (Translation Is
 showTrace empty = "empty"
 showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
 
+-- instance
+--   traceD : HasDesc Trace
+--   traceD = deriveDesc Trace
+--   showMaybeBase : Show (Maybe ⊥)
+--   showMaybeBase = record { show = λ {nothing → "nothing" }}
+--   showMaybeInd : {X : Set} → {{Show X}} → Show (Maybe X)
+--   showMaybeInd = record { show = λ {(just x) → "just " ++ show x
+--                                     ; nothing → "nothing" }} 
+--   decD : HasDesc Dec
+--   decD = {!   !}
+--   showTrace' = deriveShow traceD
+
 serializeTraceProof : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
 serializeTraceProof (no ¬p) = "no" 
-serializeTraceProof (yes p) = "yes " ++ showTrace p
+serializeTraceProof (yes p) = "yes " ++ showTrace p -- ++ show p
+
+data Dec' {l} (A : Set l) : Set l where
+  yes' : A → Dec' A
+  no' : ¬ A → Dec' A
+
+toDec' : {l : Agda.Primitive.Level} {A : Set l} → Dec A → Dec' A
+toDec' (yes p) = yes' p
+toDec' (no ¬p) = no' ¬p
+
+instance
+  proofD : {l : Agda.Primitive.Level} → HasDesc (Dec' {l})
+  proofD {l} = deriveDesc (Dec' {l})
+  proofS = deriveShow proofD
+  traceD : HasDesc Trace
+  traceD = deriveDesc Trace
+  traceS = deriveShow traceD
+  -- TODO: fix
+  ¬S : {l : Agda.Primitive.Level} {A : Set l} → Show (¬ A)
+  ¬S =  record { show = λ x → "⊥" }
+  -- TODO: does not make sense
+  setS : Show Set
+  setS = record { show = λ x → "Set" }
+  pooS : {X : Set} {{ _ : Show X}} → Show (X ⊢)
+
+mkPrintableProof : {xs : List ((Maybe ⊥ ⊢) × (Maybe ⊥ ⊢))} → Dec (Trace (Translation IsTransformation) xs) → Dec' (Trace (Translation IsTransformation) xs)
+mkPrintableProof p = toDec' p 
+
+printProof : {xs : List ((Maybe ⊥ ⊢) × (Maybe ⊥ ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
+printProof {xs} p = {! show  !} (mkPrintableProof p) -- {Agda.Primitive.lsuc Agda.Primitive.lzero} {Dec' (Trace (Translation IsTransformation) xs)} (mkPrintableProof p)
 
 ```
 
