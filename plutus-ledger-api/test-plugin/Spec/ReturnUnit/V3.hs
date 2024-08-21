@@ -52,8 +52,8 @@ expectSuccess name code arg = testCase name $ case res of
   Right _ -> pure ()
   where
     sScript = serialiseCompiledCode code
-    script = either (error . show) id $ V3.deserialiseScript conwayPV sScript
-    (_, res) = V3.evaluateScriptCounting conwayPV V3.Quiet evalCtx script arg
+    script = either (error . show) id $ V3.deserialiseScript changPV sScript
+    (_, res) = V3.evaluateScriptCounting changPV V3.Quiet evalCtx script arg
 
 expectFailure ::
   forall a.
@@ -68,8 +68,8 @@ expectFailure name code arg = testCase name $ case res of
   Right _                 -> assertFailure "evaluation succeeded"
   where
     sScript = serialiseCompiledCode code
-    script = either (error . show) id $ V3.deserialiseScript conwayPV sScript
-    (_, res) = V3.evaluateScriptCounting conwayPV V3.Quiet evalCtx script arg
+    script = either (error . show) id $ V3.deserialiseScript changPV sScript
+    (_, res) = V3.evaluateScriptCounting changPV V3.Quiet evalCtx script arg
 
 good :: CompiledCode (BuiltinData -> BuiltinUnit)
 good =

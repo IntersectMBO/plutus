@@ -39,7 +39,7 @@ testLedgerLanguages :: TestTree
 testLedgerLanguages = testGroup "ledger languages"
     [ testProperty "v1 not before but after" $ prop_notBeforeButAfter V1.deserialiseScript alonzoPV
     , testProperty "v2 not before but after" $ prop_notBeforeButAfter V2.deserialiseScript vasilPV
-    , testProperty "v3 not before but after" $ prop_notBeforeButAfter V3.deserialiseScript conwayPV
+    , testProperty "v3 not before but after" $ prop_notBeforeButAfter V3.deserialiseScript changPV
     , testProperty "protocol-versions can add but not remove ledger languages" $
         \pvA pvB -> pvA < pvB ==> ledgerLanguagesAvailableIn pvA `Set.isSubsetOf` ledgerLanguagesAvailableIn pvB
     ]
@@ -90,13 +90,13 @@ testRmdr = testGroup "rmdr"
     [ testCase "remdr" $ do
          assertBool "remdr1" $ isRight $ V1.deserialiseScript valentinePV $ errorScript <> "remdr1"
          assertBool "remdr2" $ isRight $ V2.deserialiseScript valentinePV $ errorScript <> "remdr2"
-         assertBool "remdr1c" $ isRight $ V1.deserialiseScript conwayPV $ errorScript <> "remdr1"
-         assertBool "remdr2c" $ isRight $ V2.deserialiseScript conwayPV $ errorScript <> "remdr2"
-         assertEqual "remdr3" (RemainderError "remdr3") $ fromLeft (Prelude.error "Expected Reft, got Right") $ V3.deserialiseScript conwayPV $ errorScript <> "remdr3"
+         assertBool "remdr1c" $ isRight $ V1.deserialiseScript changPV $ errorScript <> "remdr1"
+         assertBool "remdr2c" $ isRight $ V2.deserialiseScript changPV $ errorScript <> "remdr2"
+         assertEqual "remdr3" (RemainderError "remdr3") $ fromLeft (Prelude.error "Expected Reft, got Right") $ V3.deserialiseScript changPV $ errorScript <> "remdr3"
     , testProperty "remdr1gen"$ \remdr -> isRight $ V1.deserialiseScript valentinePV $ errorScript <> BSS.pack remdr
     , testProperty "remdr2gen"$ \remdr -> isRight $ V2.deserialiseScript valentinePV $ errorScript <> BSS.pack remdr
-    , testProperty "remdr1genc"$ \remdr -> isRight $ V1.deserialiseScript conwayPV $ errorScript <> BSS.pack remdr
-    , testProperty "remdr2genc"$ \remdr -> isRight $ V2.deserialiseScript conwayPV $ errorScript <> BSS.pack remdr
+    , testProperty "remdr1genc"$ \remdr -> isRight $ V1.deserialiseScript changPV $ errorScript <> BSS.pack remdr
+    , testProperty "remdr2genc"$ \remdr -> isRight $ V2.deserialiseScript changPV $ errorScript <> BSS.pack remdr
     -- we cannot make the same property as above for remdr3gen because it may generate valid bytestring append extensions to the original script
     -- a more sophisticated one could work though
     ]
@@ -108,12 +108,12 @@ testLanguageVersions = testGroup "Plutus Core language versions"
       -- `LedgerLanguageNotAvailableError` is checked in `deserialiseScript`
       assertBool "in l3,Vasil" $ isLeft $ uplcToScriptForEvaluation PlutusV3 vasilPV v110script
       -- `PlutusCoreLanguageNotAvailableError` is checked in `mkTermToEvaluate`
-      assertBool "in l2,future" $ isLeft $ mkTermToEvaluate PlutusV2 conwayPV (either (Prelude.error . show) id (V2.deserialiseScript conwayPV $ serialiseUPLC v110script)) []
+      assertBool "in l2,future" $ isLeft $ mkTermToEvaluate PlutusV2 changPV (either (Prelude.error . show) id (V2.deserialiseScript changPV $ serialiseUPLC v110script)) []
       -- Both `deserialiseScript` and `mkTermToEvaluate` should succeed
-      assertBool "not in l3,future" $ isRight $ mkTermToEvaluate PlutusV3 conwayPV (either (Prelude.error . show) id (V3.deserialiseScript conwayPV $ serialiseUPLC v110script)) []
+      assertBool "not in l3,future" $ isRight $ mkTermToEvaluate PlutusV3 changPV (either (Prelude.error . show) id (V3.deserialiseScript changPV $ serialiseUPLC v110script)) []
     -- The availability of `case` and `constr` is checked in `deserialise`
-  , testCase "constr is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ uplcToScriptForEvaluation PlutusV3 conwayPV badConstrScript
-  , testCase "case is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ uplcToScriptForEvaluation PlutusV3 conwayPV badCaseScript
+  , testCase "constr is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badConstrScript
+  , testCase "case is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badCaseScript
   ]
 
 -- * UPLC written examples to test
