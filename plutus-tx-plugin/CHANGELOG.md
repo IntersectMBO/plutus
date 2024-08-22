@@ -1,4 +1,11 @@
 
+<a id='changelog-1.33.0.0'></a>
+# 1.33.0.0 — 2024-08-22
+
+## Added
+
+- Enabled the draft modularExponentation builtin.
+
 <a id='changelog-1.27.0.0'></a>
 # 1.27.0.0 — 2024-04-30
 
