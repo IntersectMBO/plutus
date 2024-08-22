@@ -40,6 +40,8 @@ let
       buildInputs = [
         stdlib
       ];
+      libraryFile = "agda-stdlib-classes.agda-lib";
+      everythingFile = "Classes.agda";
     };
 
   agda-stdlib-meta =
@@ -58,6 +60,8 @@ let
         stdlib
         agda-stdlib-classes
       ];
+      libraryFile = "agda-stdlib-meta.agda-lib";
+      everythingFile = "Main.agda";
     };
 
   generics =
