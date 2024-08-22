@@ -83,4 +83,9 @@ let
 
 in
 
-repoRoot.nix.agda-packages.agda.withPackages [ stdlib generics agda-stdlib-meta ]
+repoRoot.nix.agda-packages.agda.withPackages [
+  stdlib
+  generics
+  agda-stdlib-meta
+  agda-stdlib-classes
+]

@@ -54,8 +54,17 @@ import Relation.Binary as Binary using (Decidable)
 open import VerifiedCompilation.UntypedTranslation using (Translation; Relation; translation?)
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
-open import Generics hiding (DecEq)
 import Agda.Builtin.Sigma 
+import Tactic
+open import Tactic.Defaults
+import Agda.Builtin.List as DList
+import Data.Product.Base as DProd
+open import Class.Show.Core
+open import Algorithmic using (⟦_⟧)
+open import Type.BetaNormal using (_⊢Nf⋆_; _⊢Ne⋆_)
+open import Type using (_∋⋆_)
+open import Builtin.Constant.Type using (TyCon; AtomicTyCon)
+open import Data.Vec.Base using (Vec)
 ```
 
 ## Compiler optimisation traces
@@ -132,35 +141,43 @@ showTrace : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Trace (Translation Is
 showTrace empty = "empty"
 showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
 
--- instance
---   traceD : HasDesc Trace
---   traceD = deriveDesc Trace
---   showMaybeBase : Show (Maybe ⊥)
---   showMaybeBase = record { show = λ {nothing → "nothing" }}
---   showMaybeInd : {X : Set} → {{Show X}} → Show (Maybe X)
---   showMaybeInd = record { show = λ {(just x) → "just " ++ show x
---                                     ; nothing → "nothing" }} 
---   decD : HasDesc Dec
---   decD = {!   !}
---   showTrace' = deriveShow traceD
-
 serializeTraceProof : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
 serializeTraceProof (no ¬p) = "no" 
 serializeTraceProof (yes p) = "yes " ++ showTrace p -- ++ show p
 
-data Dec' (A : Set₁) : Set₁ where
-  yes' : A → Dec' A
-  no' : ¬ A → Dec' A
+{-# TERMINATING #-}
+derive-Show' = Tactic.derive-Show
 
-toDec' : {A : Set₁} → Dec A → Dec' A
-toDec' (yes p) = yes' p
-toDec' (no ¬p) = no' ¬p
 
-mkPrintableProof : {xs : List ((Maybe ⊥ ⊢) × (Maybe ⊥ ⊢))} → Dec (Trace (Translation IsTransformation) xs) → Dec' (Trace (Translation IsTransformation) xs)
-mkPrintableProof p = toDec' p 
+unquoteDecl Show-Maybe = Tactic.derive-Show ((quote Maybe DProd., Show-Maybe) DList.∷ DList.[])
 
--- printProof : {xs : List ((Maybe ⊥ ⊢) × (Maybe ⊥ ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
--- printProof {xs} p = {! show  !} (mkPrintableProof p) -- {Agda.Primitive.lsuc Agda.Primitive.lzero} {Dec' (Trace (Translation IsTransformation) xs)} (mkPrintableProof p)
+unquoteDecl Show-DList =
+  Tactic.derive-Show ((quote DList.List DProd., Show-DList) DList.∷ DList.[])
+unquoteDecl Show-Vec =
+  Tactic.derive-Show ((quote Vec DProd., Show-Vec) DList.∷ DList.[])
+unquoteDecl Show-AtomicTyCon =
+  Tactic.derive-Show ((quote AtomicTyCon DProd., Show-AtomicTyCon) DList.∷ DList.[])
+unquoteDecl Show-TyCon =
+  Tactic.derive-Show ((quote TyCon DProd., Show-TyCon) DList.∷ DList.[])
+
+unquoteDecl Show-MAD1 Show-MAD2 Show-MAD3 Show-TmCon
+  = derive-Show'
+    ( (quote (_⊢Nf⋆_) DProd., Show-MAD1)
+      DList.∷ (quote (_⊢Ne⋆_) DProd., Show-MAD2)
+      DList.∷ (quote (_∋⋆_) DProd., Show-MAD3)
+      DList.∷ (quote RawU.TmCon DProd., Show-TmCon)
+      DList.∷ DList.[]
+    )
+
+-- unquoteDecl Show-_⊢ = Tactic.derive-Show ((quote (_⊢) DProd., Show-_⊢) DList.∷ DList.[])
+-- unquoteDecl Show-CoC = Tactic.derive-Show ((quote UCC.CoC DProd., Show-CoC) DList.∷ DList.[])
+-- unquoteDecl Show-IsTransformation =
+--  Tactic.derive-Show ((quote IsTransformation DProd., Show-IsTransformation) DList.∷ DList.[])
+
+-- Uncomment to find a bug!
+-- unquoteDecl Show-Translation = Tactic.derive-Show ((quote Translation DProd., Show-Translation) DList.∷ DList.[])
+
+-- unquoteDecl Show-Trace = Tactic.derive-Show ((quote Trace DProd., Show-Trace) DList.∷ DList.[])
 
 ```
 

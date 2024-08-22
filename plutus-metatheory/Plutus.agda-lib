@@ -1,2 +1,2 @@
-depend: standard-library generics
+depend: standard-library generics standard-library-classes standard-library-meta 
 include: src
