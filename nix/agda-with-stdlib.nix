@@ -25,6 +25,41 @@ let
     '';
   });
 
+  agda-stdlib-classes =
+    repoRoot.nix.agda-packages.mkDerivation {
+      pname = "agda-stdlib-classes";
+      meta = "...";
+      version = "1.0.0";
+      src = pkgs.fetchFromGitHub {
+        repo = "agda-stdlib-classes";
+        owner = "omelkonian";
+        version = "2.0";
+        rev = "v2.0";
+        hash = "sha256-PcieRRnctjCzFCi+gUYAgyIAicMOAZPl8Sw35fZdt0E=";
+      };
+      buildInputs = [
+        stdlib
+      ];
+    };
+
+  agda-stdlib-meta =
+    repoRoot.nix.agda-packages.mkDerivation {
+      pname = "agda-stdlib-meta";
+      meta = "...";
+      version = "1.0.0";
+      src = pkgs.fetchFromGitHub {
+        repo = "agda-stdlib-meta";
+        owner = "omelkonian";
+        version = "2.0";
+        rev = "v2.0";
+        hash = "sha256-yNinFcjx1ypYrOcj/uDDDlqWFBCqChCksX7c81wVKFY=";
+      };
+      buildInputs = [
+        stdlib
+        agda-stdlib-classes
+      ];
+    };
+
   generics =
     repoRoot.nix.agda-packages.mkDerivation {
       pname = "generics";
@@ -44,4 +79,4 @@ let
 
 in
 
-repoRoot.nix.agda-packages.agda.withPackages [ stdlib generics ]
+repoRoot.nix.agda-packages.agda.withPackages [ stdlib generics agda-stdlib-meta ]
