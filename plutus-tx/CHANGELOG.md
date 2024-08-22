@@ -1,4 +1,13 @@
 
+<a id='changelog-1.33.0.0'></a>
+# 1.33.0.0 — 2024-08-22
+
+## Added
+
+- Enabled the draft modularExponentation builtin.
+
+- Builtin function `ripemd_160` implementing RIPEMD-160 hashing.
+
 <a id='changelog-1.32.0.0'></a>
 # 1.32.0.0 — 2024-08-06
 
