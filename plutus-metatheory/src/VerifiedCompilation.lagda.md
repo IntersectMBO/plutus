@@ -99,13 +99,11 @@ isTrace? {X} {R} isR? ((x₁ , x₂) ∷ xs) with isTrace? {X} {R} isR? xs
 
 isTransformation? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (IsTransformation {X})
 isTransformation? ast₁ ast₂ with UCC.isCoC? ast₁ ast₂
-... | scrt with UFD.isFD? zero zero ast₁ ast₂
-isTransformation? ast₁ ast₂ | no ¬p | no ¬p₁ = no λ {(isCoC .ast₁ .ast₂ x) → ¬p x
+isTransformation? ast₁ ast₂ | yes p  = yes (isCoC ast₁ ast₂ p)
+isTransformation? ast₁ ast₂ | no ¬p with UFD.isFD? zero zero ast₁ ast₂
+... | no ¬p₁ = no λ {(isCoC .ast₁ .ast₂ x) → ¬p x
                                                    ; (isFD .ast₁ .ast₂ x) → ¬p₁ x}
-isTransformation? ast₁ ast₂ | no ¬p | yes p = yes (isFD ast₁ ast₂ p)
-isTransformation? ast₁ ast₂ | yes p | no ¬p = yes (isCoC ast₁ ast₂ p)
--- TODO: this does not make much sense, see TODO above
-isTransformation? ast₁ ast₂ | yes p | yes p₁ = yes (isCoC ast₁ ast₂ p)
+... | yes p = yes (isFD ast₁ ast₂ p)
 
 ```
 ## Serialising the proofs
@@ -116,16 +114,30 @@ The proof objects are converted to a textual representation which can be written
 
 ```
 showIsTransformation : {X : Set} {x x' : X ⊢} → IsTransformation x x' → String
-showIsTransformation (isCoC _ _ p) = "istranslation " ++ show p
-showIsTransformation (isFD _ _ p) = "istranslation " ++ show p
+showIsTransformation (isCoC _ _ p) = show p -- FIXME: These are part of a bigger translation, which we might need to show?
+showIsTransformation (isFD _ _ p) = show p
 
 instance
   VCShow-IsTransformation : VCShow IsTransformation
   VCShow-IsTransformation .show = showIsTransformation
 
+phaseName : {X : Set} {x x' : X ⊢} → Translation IsTransformation x x' → String
+phaseName (Translation.istranslation _ _ (isCoC _ _ x)) = "CaseOfCase: "
+phaseName (Translation.istranslation _ _ (isFD _ _ x)) = "ForceDelay: "
+phaseName Translation.var = ""
+phaseName (Translation.ƛ t) = phaseName t
+phaseName (Translation.app t t₁) = phaseName t
+phaseName (Translation.force t) = phaseName t
+phaseName (Translation.delay t) = phaseName t
+phaseName Translation.con = ""
+phaseName (Translation.constr x) = "Name-TODO"
+phaseName (Translation.case x t) = "Name-TODO"
+phaseName Translation.builtin = ""
+phaseName Translation.error = ""
+
 showTrace : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
 showTrace empty = "empty"
-showTrace (cons x bla) = "(" ++ showTranslation x ++ showTrace bla ++ ")"
+showTrace (cons x bla) = phaseName x ++ showTranslation x ++ "\n" ++ showTrace bla
 
 serializeTraceProof : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
 serializeTraceProof (no ¬p) = "no"

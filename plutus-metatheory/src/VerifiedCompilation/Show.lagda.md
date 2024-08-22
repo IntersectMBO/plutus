@@ -21,7 +21,7 @@ open import Utils as U using (Maybe;nothing;just)
 
 open import VerifiedCompilation.UForceDelay using (FD; forcefd; delayfd; lastdelay; multiappliedfd; multiabstractfd)
 open import VerifiedCompilation.UCaseOfCase using (CoC; isCoC)
-
+open import RawU using (TmCon)
 ```
 ## Instance Arguments
 ```
@@ -36,7 +36,7 @@ showTranslation (Translation.ƛ t) = "(ƛ " ++ showTranslation t ++ ")"
 showTranslation (Translation.app t t₁) = "(app " ++ showTranslation t ++ " " ++ showTranslation t₁ ++ ")"
 showTranslation (Translation.force t) = "(force " ++ showTranslation t ++ ")"
 showTranslation (Translation.delay t) = "(delay " ++ showTranslation t ++ ")"
-showTranslation Translation.con = "con"
+showTranslation (Translation.con {tc = (TmCon.tmCon t x)}) = "con TODO"
 showTranslation (Translation.constr x) = "(constr TODO)"
 showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ ")"
 showTranslation Translation.builtin = "builtin"
