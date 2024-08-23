@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx
-version:         1.33.0.0
+version:         1.33.1.0
 license:         Apache-2.0
 license-files:
   LICENSE
