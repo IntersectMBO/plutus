@@ -5,8 +5,6 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 
-{-# OPTIONS_GHC -Wno-orphans            #-}
-
 module PlutusLedgerApi.V1.Bytes
     ( LedgerBytes (..)
     , LedgerBytesError (..)
