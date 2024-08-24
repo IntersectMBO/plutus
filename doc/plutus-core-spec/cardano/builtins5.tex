@@ -86,26 +86,37 @@ different lengths are dealt with.
 
 \begin{itemize}
 \item If the first argument of one of the bitwise logical operations is $\false$ 
-then the longer bytestring is truncated on the left to have the same length as
+then the longer bytestring is truncated on the right to have the same length as
 the shorter one.
 \item If the first argument $\true$ 
-then the shorter bytestring is extended on the left to have the same length as
+then the shorter bytestring is extended on the right to have the same length as
 the longer one.  In the case of $\Xand$ the shorter bytestring is extended
 with \texttt{1} bits and in the case of $\Xor$ and $\Xxor$ it is extended
 with \texttt{0} bits.
 \end{itemize}
 
-\noindent To specify the extension process mentioned above it is helpful to define two
-\textit{infinite} bitstrings $\extzero{s}$ and $\extone{s}$ which extend a finite bitstring $s$
-to the left:
+\noindent To specify the extension process mentioned above it is helpful to define
 
 $$
-(\extzero{s})_i =
+\textsf{pad}\;(m,n,b_{k-1}{\cdots}b_0) = d_r{\cdots}d_0
+$$
+
+where
+$$
+d_j =
 \begin{cases}
-  s_i & \text{if $0 \leq i \leq n-1$}\\
-  \mathtt{0} & \text{if $i \geq n$}
+ b_{j-k}  & \text{if $j>k$}\\
+ 0 & \text{otherwise}
 \end{cases}
 $$
+
+and 
+$$
+ l=\left|m-n\right|
+$$
+
+
+XXX
 
 $$
 (\extone{s})_i =
@@ -121,8 +132,8 @@ bitstring representations of bytestrings by
 \begin{align*}
 \Xand\;(\false, b_{m-1} \cdots b_0, c_{n-1} \cdots c_0) &= d_{l-1} \cdots d_0 
 \quad \text{where $l=\min\{m,n\}$ and $d_i = b_i \wedge c_i$}\\
-\Xand\;(\true, a_{m-1} \cdots a_0, b_{n-1} \cdots b_0) &= d_{l-1} \cdots d_0
-\quad \text{where $l=\max\{m,n\}$ and $d_i = (\extone{a})_i \wedge(\extone{b})_i$}
+\Xand\;(\true, b_{m-1} \cdots b_0, c_{n-1} \cdots c_0) &= d_{l-1} \cdots d_0
+\quad \text{where $l=\max\{m,n\}$ and $d_i = (\extone{b})_i \wedge(\extone{c})_i$}
 \end{align*}
 
 
@@ -130,7 +141,7 @@ bitstring representations of bytestrings by
 \Xor\;(\false, b_{m-1} \cdots b_0, c_{n-1} \cdots c_0) &= d_{l-1} \cdots d_0
   \quad \text{where $l=\min\{m,n\}$ and $d_i = b_i \vee c_i$}\\
 \Xor\;(\true, b_{m-1} \cdots b_0, c_{n-1} \cdots c_0) &= d_{l-1} \cdots d_0 
-\quad \text{ where $l=\max\{m,n\}$ and $d_i = (\extzero{a})_i \vee (\extzero{b})_i$}
+\quad \text{ where $l=\max\{m,n\}$ and $d_i = (\extzero{b})_i \vee (\extzero{c})_i$}
 \end{align*}
 
 
@@ -138,7 +149,7 @@ bitstring representations of bytestrings by
 \Xxor\;(\false, b_{m-1} \cdots b_0, c_{n-1} \cdots c_0) &= d_{l-1} \cdots d_0 
 \quad \text{where $l=\min\{m,n\}$ and $d_i = b_i \oplus c_i$}\\
 \Xxor\;(\true, b_{m-1} \cdots b_0, c_{n-1} \cdots c_0) &= d_{l-1} \cdots d_0 
-\quad \text{where $l=\max\{m,n\}$ and $d_i = (\extzero{a})_i \oplus (\extzero{b})_i$.}
+\quad \text{where $l=\max\{m,n\}$ and $d_i = (\extzero{b})_i \oplus (\extzero{c})_i$.}
 \end{align*}
 
 
