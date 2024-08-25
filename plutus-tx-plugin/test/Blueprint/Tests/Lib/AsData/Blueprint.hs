@@ -8,7 +8,7 @@
 {- | This module contains data type declarations to use in blueprints **only**
 
 The problem with using the 'AsData' types in blueprints is that such types are opaque and
-do not reveal their schema when deriving a 'HasSchema' instance for a blueprint.
+do not reveal their schema when deriving a 'HasBlueprintSchema' instance for a blueprint.
 
 To work around this problem we generate a separate data type declaration for each 'AsData' type
 and use these in blueprints.
@@ -23,4 +23,4 @@ import PlutusTx.Blueprint.TH (makeHasSchemaInstance)
 
 $(datum2)
 
-$(pure <$> makeHasSchemaInstance ''Datum2 [('MkDatum2, 0)])
+$(makeHasSchemaInstance ''Datum2 [('MkDatum2, 0)])

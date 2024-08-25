@@ -21,10 +21,11 @@ import GHC.Natural (naturalToInteger)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 import Numeric.Natural (Natural)
-import PlutusPrelude (for, (<&>), (<<$>>))
+import PlutusPrelude (for, join, (<&>), (<<$>>))
 import PlutusTx.Blueprint.Argument (ArgumentBlueprint (..))
-import PlutusTx.Blueprint.Class (HasSchema (..))
-import PlutusTx.Blueprint.Definition (HasSchemaDefinition)
+import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
+import PlutusTx.Blueprint.Definition.Internal (HasSchemaDefinition)
+import PlutusTx.Blueprint.Definition.Unroll (HasBlueprintDefinition)
 import PlutusTx.Blueprint.Parameter (ParameterBlueprint (..))
 import PlutusTx.Blueprint.Purpose (Purpose)
 import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..))
@@ -34,7 +35,7 @@ import PlutusTx.Blueprint.Schema.Annotation (SchemaAnn (..), SchemaComment, Sche
 import PlutusTx.IsData.TH (makeIsDataIndexed)
 
 {- |
-  Generate a 'ToData', 'FromData', 'UnsafeFromData', 'HasSchema' instances for a type,
+  Generate a 'ToData', 'FromData', 'UnsafeFromData', 'HasBlueprintSchema' instances for a type,
   using an explicit mapping of constructor names to indices.
   Use this for types where you need to keep the representation stable.
 -}
@@ -42,9 +43,15 @@ makeIsDataSchemaIndexed :: TH.Name -> [(TH.Name, Natural)] -> TH.Q [TH.InstanceD
 makeIsDataSchemaIndexed dataTypeName indices = do
   dataInstances <- makeIsDataIndexed dataTypeName (fmap fromIntegral <$> indices)
   hasSchemaInstance <- makeHasSchemaInstance dataTypeName indices
-  pure $ hasSchemaInstance : dataInstances
+  pure $ hasSchemaInstance ++ dataInstances
 
-makeHasSchemaInstance :: TH.Name -> [(TH.Name, Natural)] -> TH.Q TH.InstanceDec
+unstableMakeIsDataSchema :: TH.Name -> TH.Q [TH.Dec]
+unstableMakeIsDataSchema name = do
+  info <- TH.reifyDatatype name
+  let defaultIndex = zip (TH.constructorName <$> TH.datatypeCons info) [0..]
+  makeIsDataSchemaIndexed name defaultIndex
+
+makeHasSchemaInstance :: TH.Name -> [(TH.Name, Natural)] -> TH.Q [TH.InstanceDec]
 makeHasSchemaInstance dataTypeName indices = do
   dataTypeInfo <- TH.reifyDatatype dataTypeName
   let appliedType = TH.datatypeType dataTypeInfo
@@ -61,29 +68,34 @@ makeHasSchemaInstance dataTypeName indices = do
           schemaInfo <- schemaInfoFromAnns ctorSchemaAnns
           pure (ctorInfo, schemaInfo, index)
 
-  let tsType = TH.VarT (TH.mkName "referencedTypes")
+  let referencedTypes = TH.VarT (TH.mkName "referencedTypes")
 
   -- Generate constraints for the instance.
   let constraints =
-        nub
+        nub . join $
           -- Every type in the constructor fields must have a schema definition.
-          [ TH.classPred ''HasSchemaDefinition [fieldType, tsType]
+          [ ( case fieldType of
+                TH.VarT {} -> (TH.classPred ''HasBlueprintDefinition [fieldType] :)
+                _          -> id
+            ) [ TH.classPred ''HasSchemaDefinition [fieldType, referencedTypes] ]
           | (TH.ConstructorInfo{constructorFields}, _info, _index) <- indexedCons
           , fieldType <- constructorFields
           ]
+
   -- Generate a 'schema' function for the instance with one clause.
-  schemaPrag <- TH.funD 'schema [mkSchemaClause tsType indexedCons]
+  schemaPrag <- TH.funD 'schema [mkSchemaClause referencedTypes indexedCons]
   -- Generate a pragma for the 'schema' function, making it inlinable.
   schemaDecl <- TH.pragInlD 'schema TH.Inlinable TH.FunLike TH.AllPhases
   pure
     -- Generate an instance declaration, e.g.:
-    -- instance (constraints) => HasSchema T referencedTypes where
+    -- instance (constraints) => HasBlueprintSchema T referencedTypes where
     --   {-# INLINE schema #-}
     --   schema = ...
-    $ nonOverlapInstance
+    [ nonOverlapInstance
       constraints
-      (TH.classPred ''HasSchema [appliedType, tsType])
+      (TH.classPred ''HasBlueprintSchema [appliedType, referencedTypes])
       [schemaPrag, schemaDecl]
+    ]
  where
   -- Lookup all annotations (SchemaTitle, SchemdDescription, SchemaComment) attached to a name.
   lookupSchemaAnns :: TH.Name -> TH.Q [SchemaAnn]
@@ -99,7 +111,7 @@ makeHasSchemaInstance dataTypeName indices = do
 
 -- | Make a clause for the 'schema' function.
 mkSchemaClause ::
-  -- | The type for the 'HasSchema' instance.
+  -- | The type for the 'HasBlueprintSchema' instance.
   TH.Type ->
   -- | The constructors of the type with their schema infos and indices.
   [(TH.ConstructorInfo, SchemaInfo, Natural)] ->
@@ -109,7 +121,7 @@ mkSchemaClause ts ctorIndexes =
   case ctorIndexes of
     [] -> fail "At least one constructor index must be specified."
     [ctorIndex] -> mkBody (mkSchemaConstructor ctorIndex)
-    _ -> mkBody [|SchemaOneOf (NE.fromList $(TH.listE (fmap mkSchemaConstructor ctorIndexes)))|]
+    _ -> mkBody [|SchemaOneOf (NE.fromList $(TH.listE (map mkSchemaConstructor ctorIndexes)))|]
  where
   mkBody :: TH.ExpQ -> TH.ClauseQ
   mkBody body = do

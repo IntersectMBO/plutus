@@ -79,6 +79,7 @@ isCommutative = \case
   Blake2b_224                     -> False
   Blake2b_256                     -> False
   Keccak_256                      -> False
+  Ripemd_160                      -> False
   VerifyEd25519Signature          -> False
   VerifyEcdsaSecp256k1Signature   -> False
   VerifySchnorrSecp256k1Signature -> False
@@ -144,3 +145,4 @@ isCommutative = \case
   RotateByteString                -> False
   CountSetBits                    -> False
   FindFirstSetBit                 -> False
+  ExpModInteger           -> False

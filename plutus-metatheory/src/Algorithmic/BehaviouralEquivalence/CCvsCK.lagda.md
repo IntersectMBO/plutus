@@ -45,7 +45,7 @@ open import Builtin.Constant.Type using (TyCon;aUnit)
 open TyCon
 
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
-open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I;EC) 
+open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I;EC)
                                     renaming (step to app;step⋆ to app⋆)
 open Frame
 open Value

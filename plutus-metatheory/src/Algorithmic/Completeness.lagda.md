@@ -9,8 +9,8 @@ open import Data.Nat using (zero;suc)
 open import Data.Fin using (Fin)
 open import Data.Vec using (Vec;[];_∷_;lookup) renaming (map to vmap)
 open import Data.List.NonEmpty using (_∷_;toList)
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂) 
-                                                  renaming (subst to substEq) 
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂)
+                                                  renaming (subst to substEq)
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Function using (_∘_)
 open import Data.Product using (_×_) renaming (_,_ to _,,_)
@@ -112,13 +112,13 @@ lemσ σ C _ refl q = trans
 nfList : ∀{Δ} → List (Δ ⊢⋆ *) → List (Δ ⊢Nf⋆ *)
 nfList []       = []
 nfList (A ∷ As) = nf A ∷ nfList As
- 
+
 ```
 
 We need to prove that the type of a builtin `b` for the Algorithmic system is the same as normalising the type
 of the Declarative system
            Norm.btype b ≡ nf (Syn.btype b)
-           
+
 This involves doing an analogous proof for every function in the definition of btype
 
 ```
@@ -127,7 +127,7 @@ subNf-sub∅ {Φ} A = begin
           nf (sub∅ A)
         ≡⟨⟩
           nf (sub (λ ()) A)
-        ≡⟨ cong nf (sub-cong (λ ()) A) ⟩  
+        ≡⟨ cong nf (sub-cong (λ ()) A) ⟩
           nf (sub (embNf ∘ λ ()) A)
         ≡⟨ subNf-nf ((λ ())) A ⟩
           subNf (λ ()) (nf A)
@@ -160,22 +160,22 @@ sig2typeΠ-lem {zero} {zero} p = p
 sig2typeΠ-lem {zero} {suc n♯} {t} refl = sig2typeΠ-lem {_} {n♯} (cong Π (sym (reifyCR (idext exte-lem t))))
 sig2typeΠ-lem {suc n} {n♯} {t} refl = sig2typeΠ-lem {n} (cong Π (sym (reifyCR (idext exte-lem t))))
 
-sig2type-lem : ∀ s → Norm.sig2type s ≡ nf (Syn.sig2type s) 
+sig2type-lem : ∀ s → Norm.sig2type s ≡ nf (Syn.sig2type s)
 sig2type-lem (sig zero zero a r) = sig2type⇒-lem (toList a) (mkTy-lem r)
 
 sig2type-lem (sig zero (suc n) (head ∷ tail) r) = sig2typeΠ-lem {t = Π (Syn.sig2type⇒ tail (Syn.mkTy head ⇒ Syn.mkTy r))}
                   {Π (Norm.sig2type⇒ tail (Norm.mkTy head ⇒ Norm.mkTy r))}
-                  (cong Π (trans (sig2type⇒-lem {zero} {suc n} {Norm.mkTy r} {Syn.mkTy r} (head ∷ tail) (mkTy-lem r)) 
+                  (cong Π (trans (sig2type⇒-lem {zero} {suc n} {Norm.mkTy r} {Syn.mkTy r} (head ∷ tail) (mkTy-lem r))
                                  (sym (reifyCR (idext exte-lem (Syn.sig2type⇒ tail (Syn.mkTy head ⇒ Syn.mkTy r)))))
-                   )) 
+                   ))
 sig2type-lem (sig (suc n) n♯ (head ∷ tail) r) = sig2typeΠ-lem {t = Π (Syn.sig2type⇒ tail (Syn.mkTy head ⇒ Syn.mkTy r))}
                   {Π (Norm.sig2type⇒ tail (Norm.mkTy head ⇒ Norm.mkTy r))}
-                  (cong Π (trans (sig2type⇒-lem {suc n} {n♯} {Norm.mkTy r} {Syn.mkTy r} (head ∷ tail) (mkTy-lem r)) 
+                  (cong Π (trans (sig2type⇒-lem {suc n} {n♯} {Norm.mkTy r} {Syn.mkTy r} (head ∷ tail) (mkTy-lem r))
                                  (sym (reifyCR (idext exte-lem (Syn.sig2type⇒ tail (Syn.mkTy head ⇒ Syn.mkTy r)))))
-                   )) 
+                   ))
 
 btype-lem : ∀ {Φ} b → Norm.btype {Φ} b ≡ nf (Syn.btype b)
-btype-lem b = begin 
+btype-lem b = begin
         Norm.btype b
       ≡⟨⟩
         subNf∅ (Norm.sig2type (signature b))
@@ -192,26 +192,26 @@ btype-lem b = begin
 nfType : ∀{Φ Γ}
   → {A : Φ ⊢⋆ *}
   → Γ Syn.⊢ A
-  → nfCtx Γ Norm.⊢ nf A  
+  → nfCtx Γ Norm.⊢ nf A
 
-nfType-ConstrArgs : ∀ {Φ} {Γ : Syn.Ctx Φ} 
+nfType-ConstrArgs : ∀ {Φ} {Γ : Syn.Ctx Φ}
                   {Ts : List (Φ ⊢⋆ *)}
-                → (cs : Syn.ConstrArgs Γ Ts) 
+                → (cs : Syn.ConstrArgs Γ Ts)
                 → Norm.ConstrArgs (nfCtx Γ) (eval-List Ts (idEnv Φ))
 nfType-ConstrArgs [] = []
 nfType-ConstrArgs (c ∷ cs) = (nfType c) ∷ (nfType-ConstrArgs cs)
 
-lemma-mkCaseType : ∀{Φ}{B} As → 
+lemma-mkCaseType : ∀{Φ}{B} As →
    nf (Syn.mkCaseType B As) ≡ Norm.mkCaseType (nf B) (eval-List As (idEnv Φ))
 lemma-mkCaseType [] = refl
 lemma-mkCaseType (A ∷ As) = cong (eval A (idEnv _) ⇒_) (lemma-mkCaseType As)
 
 nfType-Cases : ∀ {Φ} {Γ : Syn.Ctx Φ} {A : Φ ⊢⋆ *} {n}
-                 {Tss : Vec (List (Φ ⊢⋆ *)) n} 
+                 {Tss : Vec (List (Φ ⊢⋆ *)) n}
                  (cases : Syn.Cases Γ A Tss) →
                Norm.Cases (nfCtx Γ) (nf A) (eval-VecList Tss (idEnv Φ))
 nfType-Cases Syn.[] = Norm.[]
-nfType-Cases (Syn._∷_ {Ts = Ts} c cases) = substEq (nfCtx _ Norm.⊢_) (lemma-mkCaseType Ts)  (nfType c) 
+nfType-Cases (Syn._∷_ {Ts = Ts} c cases) = substEq (nfCtx _ Norm.⊢_) (lemma-mkCaseType Ts)  (nfType c)
                                            Norm.∷ (nfType-Cases cases)
 
 nfType (Syn.` α) = Norm.` (nfTyVar α)

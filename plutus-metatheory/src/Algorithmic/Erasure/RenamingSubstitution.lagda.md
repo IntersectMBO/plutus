@@ -21,7 +21,7 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.BetaNBE using (lookup-eval-VecList;idEnv)
 open import Type.BetaNormal.Equality using (renNf-id;renNf-comp)
-open import Type.BetaNBE.RenamingSubstitution 
+open import Type.BetaNBE.RenamingSubstitution
                 using (ren[]Nf;ren-nf-μ;SubNf;subNf-id;subNf;weakenNf[];weakenNf-subNf)
                 using (sub-nf-Π;sub[]Nf';sub-nf-μ;subNf-cons;extsNf)
 open import Algorithmic as A using (Ctx;_∋_;conv∋;_⊢_;conv⊢;Cases;[];_∷_)
@@ -60,14 +60,14 @@ subst-S refl x = refl
 
 subst-T : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}{K} →
   (p : A ≡ A')(q : weakenNf {K = K} A ≡ weakenNf A') → (x : Γ ∋ A) →
-  conv∋ refl q (T x) ≡ T (conv∋ refl p x) -- 
+  conv∋ refl q (T x) ≡ T (conv∋ refl p x) --
 subst-T refl refl x = refl
 
 subst-T' : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}{K}{A'' : Φ ,⋆ K ⊢Nf⋆ *}
   → (p : A ≡ A')
   → (q : weakenNf {K = K} A ≡ A'')
   → (r : weakenNf  {K = K} A' ≡ A'')
-  → (x : Γ ∋ A) 
+  → (x : Γ ∋ A)
   → conv∋ refl q (T x) ≡ conv∋ refl r (T (conv∋ refl p x))
 subst-T' refl refl refl x = refl
 
@@ -94,7 +94,7 @@ eraseVar-backVar (Γ , A)  (just x) = cong just (eraseVar-backVar Γ x)
 --
 
 erase-Ren : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
-  → A.Ren ρ⋆ Γ Δ → U.Ren (len Γ) (len Δ) 
+  → A.Ren ρ⋆ Γ Δ → U.Ren (len Γ) (len Δ)
 erase-Ren ρ⋆ ρ i = eraseVar (ρ (backVar _ i))
 
 ext-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
@@ -141,7 +141,7 @@ ren-erase-ConstrArgs : ∀ {Φ} {Ψ} {Γ : Ctx Φ} {Δ : Ctx Ψ}
                          (cs : A.ConstrArgs Γ (lookup Tss i)) →
                        erase-ConstrArgs (A.ren-ConstrArgs ρ⋆ ρ i Tss cs)
                        ≡ U.renList (erase-Ren ρ⋆ ρ)(erase-ConstrArgs cs)
-ren-erase-ConstrArgs ρ⋆ ρ i Tss cs rewrite lookup-renNf-VecList ρ⋆ i Tss = ren-erase-ConstrArgs-List ρ⋆ ρ cs                 
+ren-erase-ConstrArgs ρ⋆ ρ i Tss cs rewrite lookup-renNf-VecList ρ⋆ i Tss = ren-erase-ConstrArgs-List ρ⋆ ρ cs
 
 ren-erase-Cases : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
@@ -150,9 +150,9 @@ ren-erase-Cases : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
   → (cs : Cases Γ A Tss)
   →  erase-Cases (A.ren-Cases ρ⋆ ρ cs) ≡ U.renList (erase-Ren ρ⋆ ρ) (erase-Cases cs)
 ren-erase-Cases ρ⋆ ρ [] = refl
-ren-erase-Cases ρ⋆ ρ {Tss = As ∷ _}(c ∷ cs) = 
+ren-erase-Cases ρ⋆ ρ {Tss = As ∷ _}(c ∷ cs) =
       cong₂ _∷_ (trans (sym (lem-erase'' (A.ren-mkCaseType ρ⋆ As) (A.ren ρ⋆ ρ c)))
-                       (ren-erase ρ⋆ ρ c)) 
+                       (ren-erase ρ⋆ ρ c))
                 (ren-erase-Cases ρ⋆ ρ cs)
 
 ren-erase ρ⋆ ρ (` x) = cong
@@ -191,7 +191,7 @@ ren-erase ρ⋆ ρ (case t cases) = cong₂ case (ren-erase ρ⋆ ρ t) (ren-era
 ren-erase ρ⋆ ρ (error A)          = refl
 --
 erase-Sub : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
-  → A.Sub σ⋆ Γ Δ → U.Sub (len Γ) (len Δ) 
+  → A.Sub σ⋆ Γ Δ → U.Sub (len Γ) (len Δ)
 erase-Sub σ⋆ σ i = erase (σ (backVar _ i))
 
 cong-erase-sub : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
@@ -219,7 +219,7 @@ exts⋆-erase : ∀ {Φ Ψ}{Γ Δ}(σ⋆ : SubNf Φ Ψ)(σ : A.Sub σ⋆ Γ Δ)
   → {B : Φ ⊢Nf⋆ *}
   → ∀{K}
   → (α : len Γ)
-  →  erase-Sub (extsNf σ⋆ {K}) (A.exts⋆ σ⋆ σ) α ≡ erase-Sub σ⋆ σ α 
+  →  erase-Sub (extsNf σ⋆ {K}) (A.exts⋆ σ⋆ σ) α ≡ erase-Sub σ⋆ σ α
 exts⋆-erase {Γ = Γ}{Δ} σ⋆ σ {B} α = trans
   (conv⊢-erase
     (weakenNf-subNf σ⋆ (backVar⋆ Γ α))
@@ -236,24 +236,24 @@ sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
 
 
 sub-Erase-ConstrList : ∀ {Φ}{Ψ}{Γ : Ctx Φ} {Δ : Ctx Ψ}
-                         {As : List (Φ ⊢Nf⋆ *)}  
+                         {As : List (Φ ⊢Nf⋆ *)}
                          (σ⋆ : SubNf Φ Ψ) (σ : A.Sub σ⋆ Γ Δ)
-                         (cs : A.ConstrArgs Γ As) 
-       →   erase-ConstrArgs (A.sub-ConstrList σ⋆ σ cs) 
+                         (cs : A.ConstrArgs Γ As)
+       →   erase-ConstrArgs (A.sub-ConstrList σ⋆ σ cs)
          ≡ U.subList (λ i₁ → erase (σ (backVar Γ i₁))) (erase-ConstrArgs cs)
 sub-Erase-ConstrList σ⋆ σ [] = refl
-sub-Erase-ConstrList σ⋆ σ (x ∷ cs) = cong₂ _∷_ (sub-erase σ⋆ σ x) (sub-Erase-ConstrList σ⋆ σ cs) 
+sub-Erase-ConstrList σ⋆ σ (x ∷ cs) = cong₂ _∷_ (sub-erase σ⋆ σ x) (sub-Erase-ConstrList σ⋆ σ cs)
 
 sub-Erase-ConstrArgs : ∀ {Φ} {Ψ} {Γ : Ctx Φ} {Δ : Ctx Ψ}
                          (σ⋆ : SubNf Φ Ψ) (σ : A.Sub σ⋆ Γ Δ) {n} (i : Fin n)
                          (Tss : Vec (List (Φ ⊢Nf⋆ *)) n)
-                         (cs : A.ConstrArgs Γ (lookup Tss i)) 
+                         (cs : A.ConstrArgs Γ (lookup Tss i))
                 → erase-ConstrArgs (A.sub-VecList σ⋆ σ i Tss cs) ≡ U.subList (erase-Sub σ⋆ σ) (erase-ConstrArgs cs)
-sub-Erase-ConstrArgs σ⋆ σ i Tss cs 
-     rewrite lookup-eval-VecList i (⋆.sub-VecList (λ x₁ → embNf (σ⋆ x₁)) (embNf-VecList Tss)) 
-                                   (idEnv _) 
-            | ⋆.lookup-sub-VecList (λ x₁ → embNf (σ⋆ x₁)) i (embNf-VecList Tss)  
-            | lookup-embNf-VecList i Tss = sub-Erase-ConstrList σ⋆ σ cs 
+sub-Erase-ConstrArgs σ⋆ σ i Tss cs
+     rewrite lookup-eval-VecList i (⋆.sub-VecList (λ x₁ → embNf (σ⋆ x₁)) (embNf-VecList Tss))
+                                   (idEnv _)
+            | ⋆.lookup-sub-VecList (λ x₁ → embNf (σ⋆ x₁)) i (embNf-VecList Tss)
+            | lookup-embNf-VecList i Tss = sub-Erase-ConstrList σ⋆ σ cs
 
 sub-erase-Cases : ∀ {Φ} {Ψ} {Γ : Ctx Φ} {Δ : Ctx Ψ}
                     (σ⋆ : SubNf Φ Ψ) (σ : A.Sub σ⋆ Γ Δ) {A : Φ ⊢Nf⋆ *} {n}
@@ -262,7 +262,7 @@ sub-erase-Cases : ∀ {Φ} {Ψ} {Γ : Ctx Φ} {Δ : Ctx Ψ}
                   erase-Cases (A.sub-Cases σ⋆ σ cases) ≡
                   U.subList (erase-Sub σ⋆ σ) (erase-Cases cases)
 sub-erase-Cases σ⋆ σ [] = refl
-sub-erase-Cases {Δ = Δ} σ⋆ σ {Tss = As ∷ _} (c ∷ cases) = cong₂ _∷_ (trans (sym (lem-erase'' (A.sub-mkCaseType σ⋆ As) (A.sub σ⋆ σ c))) (sub-erase σ⋆ σ c)) 
+sub-erase-Cases {Δ = Δ} σ⋆ σ {Tss = As ∷ _} (c ∷ cases) = cong₂ _∷_ (trans (sym (lem-erase'' (A.sub-mkCaseType σ⋆ As) (A.sub σ⋆ σ c))) (sub-erase σ⋆ σ c))
                                              (sub-erase-Cases σ⋆ σ cases)
 
 sub-erase σ⋆ σ (` x) =   cong-erase-sub
@@ -281,8 +281,8 @@ sub-erase σ⋆ σ (Λ {B = B} t) = cong
   (trans (conv⊢-erase (sub-nf-Π σ⋆ B) (A.sub (extsNf σ⋆) (A.exts⋆ σ⋆ σ) t))
          (trans (sub-erase (extsNf σ⋆) (A.exts⋆ σ⋆ σ) t)
                 (U.sub-cong (exts⋆-erase σ⋆ σ {B = Π B}) (erase t))))
-sub-erase σ⋆ σ (_·⋆_/_ {B = B} t A refl) = 
-  trans (conv⊢-erase (sym (sub[]Nf' σ⋆ A B)) (A.sub σ⋆ σ t ·⋆ subNf σ⋆ A / refl)) 
+sub-erase σ⋆ σ (_·⋆_/_ {B = B} t A refl) =
+  trans (conv⊢-erase (sym (sub[]Nf' σ⋆ A B)) (A.sub σ⋆ σ t ·⋆ subNf σ⋆ A / refl))
         (cong force (sub-erase σ⋆ σ t))
 sub-erase σ⋆ σ (wrap A B t) = trans
   (conv⊢-erase (sub-nf-μ σ⋆ A B) (A.sub σ⋆ σ t))
@@ -307,7 +307,7 @@ lem[]⋆ {Γ = Γ} N A = trans
         (cong ` (sym (eraseVar-backVar Γ α)))
         (sym (conv⊢-erase (weakenNf[] _ _) (` (backVar Γ α)))))
       (erase N)))
-  (sym (sub-erase (subNf-cons (ne ∘ `) A) A.lem N)) 
+  (sym (sub-erase (subNf-cons (ne ∘ `) A) A.lem N))
 
 
 lem[] : ∀{Φ}{Γ : Ctx Φ}{A B : Φ ⊢Nf⋆ *}(N : Γ , A ⊢ B)(W : Γ ⊢ A)
@@ -331,4 +331,4 @@ lem[] {Γ = Γ}{A = A}{B} N W = trans
            (conv⊢ refl (sym (subNf-id A)) W))
          N)))
 ```
- 
+

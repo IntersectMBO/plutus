@@ -18,13 +18,13 @@ infix 4 _⊢Ne⋆_
 
 ```
 open import Data.Nat using (ℕ)
-open import Data.Vec using (Vec;[];_∷_) 
+open import Data.Vec using (Vec;[];_∷_)
 open import Data.List using (List;[];_∷_)
 open import Data.Product using (Σ;Σ-syntax)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂)
 
 open import Utils using (Kind;J;K)
-open Kind 
+open Kind
 open import Type using (Ctx⋆;_,⋆_;Φ;Ψ;_⊢⋆_;_∋⋆_;S)
 open _⊢⋆_
 open import Type.RenamingSubstitution using (Ren;ren;ext;ren-List;ren-VecList)
@@ -53,7 +53,7 @@ data _⊢Ne⋆_ : Ctx⋆ → Kind → Set where
       → Φ ⊢Nf⋆ K
         ------
       → Φ ⊢Ne⋆ J
-      
+
   ^ : Nf.TyCon K → Φ ⊢Ne⋆ K
 
 data _⊢Nf⋆_ where
@@ -96,10 +96,10 @@ context) in normal forms so we define renaming which subsumes
 weakening.
 
 ```
-RenNf : Ctx⋆ → Ctx⋆ → Set 
+RenNf : Ctx⋆ → Ctx⋆ → Set
 RenNf Φ Ψ = ∀{J} → Φ ⊢Nf⋆ J → Ψ ⊢Nf⋆ J
 
-RenNe : Ctx⋆ → Ctx⋆ → Set 
+RenNe : Ctx⋆ → Ctx⋆ → Set
 RenNe Φ Ψ = ∀{J} → Φ ⊢Ne⋆ J → Ψ ⊢Ne⋆ J
 
 
@@ -211,7 +211,7 @@ module _ where
 
   open import Data.Fin using (Fin;zero;suc)
   open import Data.Vec using (lookup)
-  
+
   lookup-renNf-VecList : ∀ {Φ Ψ n}
               → (ρ⋆ : Ren Φ Ψ)
               → (e : Fin n)

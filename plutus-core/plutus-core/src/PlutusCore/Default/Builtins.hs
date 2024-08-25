@@ -32,6 +32,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
+import PlutusCore.Crypto.ExpMod qualified as ExpMod
 import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
 
@@ -169,6 +170,9 @@ data DefaultFun
     | RotateByteString
     | CountSetBits
     | FindFirstSetBit
+    -- Ripemd_160
+    | Ripemd_160
+    | ExpModInteger
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1917,7 +1921,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let integerToByteStringDenotation :: Bool -> NumBytesCostedAsNumWords -> Integer -> BuiltinResult BS.ByteString
             {- The second argument is wrapped in a NumBytesCostedAsNumWords to allow us to
                interpret it as a size during costing. -}
-            integerToByteStringDenotation b (NumBytesCostedAsNumWords w) = Bitwise.integerToByteStringWrapper b w
+            integerToByteStringDenotation b (NumBytesCostedAsNumWords w) = Bitwise.integerToByteString b w
             {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
             integerToByteStringDenotation
@@ -1925,7 +1929,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar ByteStringToInteger =
         let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
-            byteStringToIntegerDenotation = Bitwise.byteStringToIntegerWrapper
+            byteStringToIntegerDenotation = Bitwise.byteStringToInteger
             {-# INLINE byteStringToIntegerDenotation #-}
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
@@ -1996,7 +2000,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar ShiftByteString =
         let shiftByteStringDenotation :: BS.ByteString -> IntegerCostedLiterally -> BS.ByteString
-            shiftByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.shiftByteStringWrapper s n
+            shiftByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.shiftByteString s n
             {-# INLINE shiftByteStringDenotation #-}
         in makeBuiltinMeaning
             shiftByteStringDenotation
@@ -2004,7 +2008,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar RotateByteString =
         let rotateByteStringDenotation :: BS.ByteString -> IntegerCostedLiterally -> BS.ByteString
-            rotateByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.rotateByteStringWrapper s n
+            rotateByteStringDenotation s (IntegerCostedLiterally n) = Bitwise.rotateByteString s n
             {-# INLINE rotateByteStringDenotation #-}
         in makeBuiltinMeaning
             rotateByteStringDenotation
@@ -2025,6 +2029,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             findFirstSetBitDenotation
             (runCostingFunOneArgument . paramFindFirstSetBit)
+
+    toBuiltinMeaning _semvar Ripemd_160 =
+        let ripemd_160Denotation :: BS.ByteString -> BS.ByteString
+            ripemd_160Denotation = Hash.ripemd_160
+            {-# INLINE ripemd_160Denotation #-}
+        in makeBuiltinMeaning
+            ripemd_160Denotation
+            (runCostingFunOneArgument . paramRipemd_160)
+
+    toBuiltinMeaning _semvar ExpModInteger =
+        let expModIntegerDenotation :: Integer -> Integer -> Natural -> BuiltinResult Natural
+            expModIntegerDenotation = ExpMod.expMod
+            {-# INLINE expModIntegerDenotation #-}
+        in makeBuiltinMeaning
+            expModIntegerDenotation
+            (runCostingFunThreeArguments . paramExpModInteger)
 
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
@@ -2152,7 +2172,6 @@ instance Flat DefaultFun where
 
               IntegerToByteString             -> 73
               ByteStringToInteger             -> 74
-
               AndByteString                   -> 75
               OrByteString                    -> 76
               XorByteString                   -> 77
@@ -2165,9 +2184,12 @@ instance Flat DefaultFun where
               RotateByteString                -> 83
               CountSetBits                    -> 84
               FindFirstSetBit                 -> 85
+              Ripemd_160                      -> 86
 
-              CaseList                        -> 86
-              CaseData                        -> 87
+              ExpModInteger                   -> 87
+
+              CaseList                        -> 88
+              CaseData                        -> 89
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -2256,8 +2278,10 @@ instance Flat DefaultFun where
               go 83 = pure RotateByteString
               go 84 = pure CountSetBits
               go 85 = pure FindFirstSetBit
-              go 86 = pure CaseList
-              go 87 = pure CaseData
+              go 86 = pure Ripemd_160
+              go 87 = pure ExpModInteger
+              go 88 = pure CaseList
+              go 89 = pure CaseData
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

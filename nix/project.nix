@@ -1,4 +1,4 @@
-# editorconfig-checker-disable-file 
+# editorconfig-checker-disable-file
 
 { repoRoot, inputs, pkgs, system, lib }:
 
@@ -8,7 +8,7 @@ let
     {
       name = "plutus";
 
-      # We need the mkDefault here since compiler-nix-name will be overridden 
+      # We need the mkDefault here since compiler-nix-name will be overridden
       # in the flake variants.
       compiler-nix-name = lib.mkDefault "ghc96";
 
@@ -40,70 +40,18 @@ let
         "https://github.com/jaccokrijnen/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" = "0srqvx0b819b5crrbsa9hz2fnr50ahqizvvm0wdmyq2bbpk2rka7";
       };
 
-      # TODO: move this into the cabalib.project using the new conditional support?
-      # Configuration settings needed for cabal configure to work when cross compiling.
-      # We can't use `modules` for these as `modules` are only applied
-      # after cabal has been configured.
-      cabalProjectLocal = lib.optionalString isCrossCompiling
-        ''
-          -- When cross compiling we don't have a `ghc` package, so use
-          -- the `plutus-ghc-stub` package instead.
-          package plutus-tx-plugin
-            flags: +use-ghc-stub
-
-          -- Exclude tests that use `doctest`.  They will not work for
-          -- cross compilation and `cabal` will not be able to make a plan.
-          package prettyprinter-configurable
-            tests: False
-        '';
-
       modules = [
-
-        # Cross Compiling 
-        (lib.mkIf isCrossCompiling {
-          packages = {
-            # Things that need plutus-tx-plugin
-            docusaurus-examples.package.buildable = false;
-            plutus-benchmark.package.buildable = false;
-            plutus-tx-plugin.package.buildable = false;
-            plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.buildable = lib.mkForce false;
-            # Needs agda
-            plutus-metatheory.package.buildable = false;
-            # These need R
-            plutus-core.components.benchmarks.cost-model-test.buildable = lib.mkForce false;
-            plutus-core.components.exes.generate-cost-model.buildable = lib.mkForce false;
-            # This contains support for doing testing, so we're not interested in cross-compiling it
-            plutus-conformance.package.buildable = false;
-          };
-          # can't rebuild lib:ghc when cross-compiling
-          reinstallableLibGhc = false;
-        })
-
         # Common 
         {
           packages = {
-            # In this case we can just propagate the native dependencies for the build of
-            # the test executable, which are actually set up right (we have a
-            # build-tool-depends on the executable we need)
-            # I'm slightly surprised this works, hooray for laziness!
-            plutus-metatheory.components.tests.test1.preCheck =
-              let
-                cmp = config.hsPkgs.plutus-metatheory.components.tests.test1;
-                deps = cmp.executableToolDepends;
-              in
-              ''PATH=${lib.makeBinPath deps}:$PATH'';
-
-            # FIXME: Somehow this is broken even with setting the path up as above
-            plutus-metatheory.components.tests.test2.doCheck = false;
-
             # plutus-metatheory needs agda with the stdlib around for the custom setup
             # I can't figure out a way to apply this as a blanket change for all the
             # components in the package, oh well
             plutus-metatheory.components.library.build-tools = [ repoRoot.nix.agda-with-stdlib ];
             plutus-metatheory.components.exes.plc-agda.build-tools = [ repoRoot.nix.agda-with-stdlib ];
-            plutus-metatheory.components.tests.test1.build-tools = [ repoRoot.nix.agda-with-stdlib ];
-            plutus-metatheory.components.tests.test2.build-tools = [ repoRoot.nix.agda-with-stdlib ];
-            plutus-metatheory.components.tests.test3.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-metatheory.components.tests.test-simple.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-metatheory.components.tests.test-detailed.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-metatheory.components.tests.test-NEAT.build-tools = [ repoRoot.nix.agda-with-stdlib ];
 
             plutus-core.components.benchmarks.update-cost-model = {
               build-tools = [ repoRoot.nix.r-with-packages ];

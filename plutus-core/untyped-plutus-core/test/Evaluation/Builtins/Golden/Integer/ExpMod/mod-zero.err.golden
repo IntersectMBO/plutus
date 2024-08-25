@@ -1,0 +1,5 @@
+An error has occurred:
+The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
+Caused by: expModInteger 1 1 0
+Logs were:
+Cannot divide by zero

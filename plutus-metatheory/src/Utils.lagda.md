@@ -23,7 +23,7 @@ open import Data.Empty using (⊥;⊥-elim)
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
 open import Data.Bool using (Bool)
-open import Data.Maybe using (Maybe; just; nothing; maybe) 
+open import Data.Maybe using (Maybe; just; nothing; maybe)
                            renaming (_>>=_ to mbind) public
 open import Data.Unit using (⊤)
 
@@ -65,7 +65,7 @@ cong₃ f refl refl refl = refl
 ≡-subst-removable : ∀ {a p} {A : Set a}
                     (P : A → Set p) {x y} (p q : x ≡ y) z →
                     subst P p z ≡ subst P q z
-≡-subst-removable P refl refl z = refl 
+≡-subst-removable P refl refl z = refl
  ```
 ## Natural Sum Type
 
@@ -87,7 +87,7 @@ unique∔ (bubble p) (bubble p') = cong bubble (unique∔ p p')
 +2∔ zero m .(zero + m) refl = start _
 +2∔ (suc n) m t p = bubble (+2∔ n (suc m) t (trans (+-suc n m) p))
 
-∔2+ : ∀{n m t : ℕ} → n ∔ m ≣ t  → n + m ≡ t 
+∔2+ : ∀{n m t : ℕ} → n ∔ m ≣ t  → n + m ≡ t
 ∔2+ (start _) = refl
 ∔2+ (bubble bt) = trans (sym (+-suc _ _)) (∔2+ bt)
 
@@ -97,7 +97,7 @@ alldone n = +2∔ n 0 n (+-identityʳ n)
 ```
 ## Monads
 
-This introduces the Monad operators. 
+This introduces the Monad operators.
 
 ```
 record Monad (F : Set → Set) : Set₁ where
@@ -148,16 +148,16 @@ dec2Either (no ¬p) = inj₁ ¬p
 record Writer (M : Set)(A : Set) : Set where
    constructor _,_
    field
-     wrvalue : A 
+     wrvalue : A
      accum : M
 
 module WriterMonad {M : Set}(e : M)(_∙_ : M → M → M) where
-  instance 
+  instance
     WriterMonad : Monad (Writer M)
     Monad.return WriterMonad x = x , e
     (WriterMonad Monad.>>= (x , w)) f = let (y , w') = f x in y , (w ∙ w')
 
-  tell : (w : M) → Writer M ⊤ 
+  tell : (w : M) → Writer M ⊤
   tell w = _ , w
 
 ```
@@ -175,15 +175,19 @@ postulate ByteString : Set
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 
+postulate
+  eqByteString : ByteString → ByteString → Bool
+{-# COMPILE GHC eqByteString = (==) #-}
+
 ```
 ## Record Types
 ```
 
 record _×_ (A B : Set) : Set where
-    constructor _,_ 
-    field 
+    constructor _,_
+    field
       proj₁ : A
-      proj₂ : B 
+      proj₂ : B
 
 infixr 4 _,_
 infixr 2 _×_
@@ -216,8 +220,8 @@ fromList L.[] = []
 fromList (x L.∷ xs) = x ∷ fromList xs
 
 map-cong : ∀{A B : Set}{xs : L.List A}{f g : A → B}
-     → (∀ x → f x ≡ g x) 
-     → L.map f xs ≡ L.map g xs 
+     → (∀ x → f x ≡ g x)
+     → L.map f xs ≡ L.map g xs
 map-cong {xs = L.[]} p = refl
 map-cong {xs = x L.∷ xs} p = cong₂ L._∷_ (p x) (map-cong p)
 
@@ -239,20 +243,32 @@ data DATA : Set where
 {-# FOREIGN GHC import PlutusCore.Data as D #-}
 {-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
 
-postulate eqDATA : DATA → DATA → Bool 
+postulate eqDATA : DATA → DATA → Bool
 {-# COMPILE GHC eqDATA = (==) #-}
 
 postulate Bls12-381-G1-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G1 as G1 #-}
 {-# COMPILE GHC Bls12-381-G1-Element = type G1.Element #-}
 
+postulate
+  eqBls12-381-G1-Element : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
+{-# COMPILE GHC eqBls12-381-G1-Element = (==) #-}
+
 postulate Bls12-381-G2-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G2 as G2 #-}
 {-# COMPILE GHC Bls12-381-G2-Element = type G2.Element #-}
 
+postulate
+  eqBls12-381-G2-Element : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
+{-# COMPILE GHC eqBls12-381-G2-Element = (==) #-}
+
 postulate Bls12-381-MlResult : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.Pairing as Pairing #-}
 {-# COMPILE GHC Bls12-381-MlResult = type Pairing.MlResult #-}
+
+postulate
+  eqBls12-381-MlResult : Bls12-381-MlResult → Bls12-381-MlResult → Bool
+{-# COMPILE GHC eqBls12-381-MlResult = (==) #-}
 ```
 
 ## Kinds
@@ -275,4 +291,4 @@ Let `I`, `J`, `K` range over kinds:
 variable
   I J K : Kind
 ```
- 
+

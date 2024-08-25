@@ -1,5 +1,5 @@
 ---
-title: (Declarative) Term Renaming and Substitution 
+title: (Declarative) Term Renaming and Substitution
 layout: page
 ---
 
@@ -50,7 +50,7 @@ ext : (ρ⋆ : ⋆.Ren Φ Ψ)
     → ∀{B}
       -------------------------------
     → Ren (Γ , B) (Δ , ⋆.ren ρ⋆ B) ρ⋆
-ext _ ρ Z     = Z 
+ext _ ρ Z     = Z
 ext _ ρ (S x) = S (ρ x)
 ```
 
@@ -100,12 +100,12 @@ ren-Cases : ∀ {Φ} {Ψ} {Γ : Ctx Φ} {Δ : Ctx Ψ} (ρ⋆ : ⋆.Ren Φ Ψ)
               (cases : Dec.Cases Γ A Tss) →
               Dec.Cases Δ (⋆.ren ρ⋆ A) (⋆.ren-VecList ρ⋆ Tss)
 ren-Cases ρ⋆ ρ Dec.[] = Dec.[]
-ren-Cases ρ⋆ ρ (Dec._∷_ {Ts = As} c cs) = subst (_ ⊢_) (lem-ren-mkCaseType  ρ⋆ ρ As) (ren ρ⋆ ρ c) 
+ren-Cases ρ⋆ ρ (Dec._∷_ {Ts = As} c cs) = subst (_ ⊢_) (lem-ren-mkCaseType  ρ⋆ ρ As) (ren ρ⋆ ρ c)
                                         Dec.∷ (ren-Cases ρ⋆ ρ cs)
 
 ren _ ρ (` x) = ` (ρ x)
 ren _ ρ (ƛ L) = ƛ (ren _ (ext _ ρ) L)
-ren _ ρ (L · M) = ren _ ρ L · ren _ ρ M 
+ren _ ρ (L · M) = ren _ ρ L · ren _ ρ M
 ren _ ρ (Λ L) = Λ (ren _ (ext⋆ _ ρ) L)
 ren ρ⋆ ρ (L ·⋆ A) =
   conv⊢ refl (⋆.ren-Π A (piBody L) ρ⋆) (ren _ ρ L ·⋆ ⋆.ren ρ⋆ A)
@@ -169,7 +169,7 @@ exts⋆ : (σ⋆ : ⋆.Sub Φ Ψ)
       → Sub Γ Δ σ⋆
       → ∀{K}
         ---------------------------------
-      → Sub (Γ ,⋆ K) (Δ ,⋆ K) (⋆.exts σ⋆) 
+      → Sub (Γ ,⋆ K) (Δ ,⋆ K) (⋆.exts σ⋆)
 exts⋆ _ σ (T {A = A} x) = conv⊢
   refl
   (trans (sym (⋆.ren-sub A)) (⋆.sub-ren A))
@@ -204,8 +204,8 @@ sub-Cases : ∀ {Φ} {Ψ} {Γ : Ctx Φ} {Δ : Ctx Ψ} (σ⋆ : ⋆.Sub Φ Ψ)
               (cases : Dec.Cases Γ A Tss) →
             Dec.Cases Δ (⋆.sub σ⋆ A) (⋆.sub-VecList σ⋆ Tss)
 sub-Cases σ⋆ σ Dec.[] = Dec.[]
-sub-Cases σ⋆ σ (Dec._∷_ {Ts = As} c cases) = subst (_ ⊢_) (lem-sub-mkCaseType σ⋆ σ As) (sub σ⋆ σ c) 
-                                 Dec.∷ (sub-Cases σ⋆ σ cases) 
+sub-Cases σ⋆ σ (Dec._∷_ {Ts = As} c cases) = subst (_ ⊢_) (lem-sub-mkCaseType σ⋆ σ As) (sub σ⋆ σ c)
+                                 Dec.∷ (sub-Cases σ⋆ σ cases)
 
 
 sub _  σ (` k)        = σ k

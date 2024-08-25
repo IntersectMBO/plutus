@@ -7,7 +7,7 @@ layout: page
 This module implements typechecking and inference for Scoped terms.
 
 Scoped terms `ScopedTm` have scoped types `ScopedTy` which don't have kinds, so
-kinds need to be inferred. Since we have two base kinds (`*` and `♯`) and the 
+kinds need to be inferred. Since we have two base kinds (`*` and `♯`) and the
 latter embeds into the former, there is some subtleties discussed below.
 ```
 module Check where
@@ -47,7 +47,7 @@ open import Utils as U using (Kind;*;♯;_⇒_;Either;inj₁;inj₂;withE;Monad;
 open Monad {{...}}
 
 open import RawU using (TmCon;tmCon;TyTag)
-open import Builtin.Signature using (_⊢♯) 
+open import Builtin.Signature using (_⊢♯)
 open import Builtin.Constant.Type
 
 open import Type.Equality using (_≡β_;≡2β)
@@ -109,8 +109,8 @@ decKind * * = yes refl
 decKind ♯ ♯ = yes refl
 decKind * ♯ = no λ()
 decKind ♯ * = no λ()
-decKind * (K' ⇒ J') = no λ() 
-decKind ♯ (K' ⇒ J') = no λ() 
+decKind * (K' ⇒ J') = no λ()
+decKind ♯ (K' ⇒ J') = no λ()
 decKind (K ⇒ J) * = no λ()
 decKind (K ⇒ J) ♯ = no λ()
 decKind (K ⇒ J) (K' ⇒ J') = dcong₂ _⇒_ (λ { refl → refl ,, refl}) (decKind K K') (decKind J J')
@@ -121,7 +121,7 @@ isFunKind : ∀{Φ}
 isFunKind (K ⇒ J ,, A) = return (K ,, J ,, A)
 isFunKind (♯ ,, _)     = inj₁ (notFunKind ♯ λ _ _ ())
 isFunKind (* ,, _)     = inj₁ (notFunKind * λ _ _ ())
-  
+
 isPat : ∀{Φ}
        → Σ Kind (Φ ⊢Nf⋆_)
        → Either TypeError (Σ Kind λ K → Φ ⊢Nf⋆ (K ⇒ *) ⇒ (K ⇒ *))
@@ -133,7 +133,7 @@ isPat (((K ⇒ K₂) ⇒ *) ,, A) = inj₁ (notPat ((K ⇒ K₂) ⇒ *) λ _ ())
 isPat (((K ⇒ K₂) ⇒ ♯) ,, A) = inj₁ (notPat ((K ⇒ K₂) ⇒ ♯) λ _ ())
 isPat (((K ⇒ *) ⇒ (K₁ ⇒ *)) ,, A) = do
       refl ← withE (kindMismatch _ _) (dec2Either (decKind K K₁))
-      return (K ,, A) 
+      return (K ,, A)
 isPat (((K ⇒ *) ⇒ (K₁ ⇒ ♯)) ,, A) = inj₁ (notPat ((K ⇒ *) ⇒ (K₁ ⇒ ♯)) λ _ ())
 isPat (((K ⇒ *) ⇒ (K₁ ⇒ (K₃ ⇒ K₄))) ,, A) = inj₁ (notPat ((K ⇒ *) ⇒ (K₁ ⇒ (K₃ ⇒ K₄))) λ _ ())
 isPat (((K ⇒ ♯) ⇒ (K₁ ⇒ K₃)) ,, A) = inj₁ (notPat ((K ⇒ ♯) ⇒ (K₁ ⇒ K₃)) λ _ ())
@@ -158,7 +158,7 @@ isFunType (ne A  ,, _ ) = inj₁ (notFunType (ne A) (λ _ _ ()))
 isFunType (con {Φ} c ,, _) = inj₁ (notFunType (con {Φ} c) (λ _ _ ()))
 isFunType (μ A B ,, _) = inj₁ (notFunType (μ A B) (λ _ _ ()))
 isFunType (SOP x ,, _) = inj₁ (notFunType (SOP x) (λ _ _ ()))
-  
+
 isMu :  ∀{Φ Γ}
        → Σ (Φ ⊢Nf⋆ *) (Γ ⊢_)
        → Either TypeError (Σ Kind λ K → Σ (Φ ⊢Nf⋆ (K ⇒ *) ⇒ (K ⇒ *)) λ A → Σ (Φ ⊢Nf⋆ K) λ B → Γ ⊢ μ A B)
@@ -170,7 +170,7 @@ isMu (A ⇒ B ,, _) = inj₁ (notMu (A ⇒ B) (λ _ _ ()))
 isMu (SOP x ,, _) = inj₁ (notMu (SOP x) (λ _ _ ()))
 
 isSOPType :  ∀{Φ}
-       → (Φ ⊢Nf⋆ *) 
+       → (Φ ⊢Nf⋆ *)
        → Either TypeError (Σ ℕ (Vec (List (Φ ⊢Nf⋆ *))))
 isSOPType (Π A) = inj₁ (notSOP (Π A) (λ _ ()))
 isSOPType (A ⇒ B) = inj₁ (notSOP (A ⇒ B) (λ _ ()))
@@ -181,7 +181,7 @@ isSOPType (SOP {n = n} Tss) = return (n ,, Tss)
 
 isSOP  : ∀{Φ Γ}
        → Σ (Φ ⊢Nf⋆ *) (Γ ⊢_)
-       → Either TypeError (Σ ℕ λ n → Σ (Vec (List (Φ ⊢Nf⋆ *)) n) λ Tss → Γ ⊢ SOP Tss) 
+       → Either TypeError (Σ ℕ λ n → Σ (Vec (List (Φ ⊢Nf⋆ *)) n) λ Tss → Γ ⊢ SOP Tss)
 isSOP (Π A ,, _) = inj₁ (notSOP (Π A) (λ _ ()))
 isSOP ((A ⇒ B) ,, _) = inj₁ (notSOP (A ⇒ B) (λ _ ()))
 isSOP (ne A ,, _) = inj₁ (notSOP (ne A) (λ _ ()))
@@ -190,7 +190,7 @@ isSOP (μ A B ,, x) = inj₁ (notSOP (μ A B) (λ _ ()))
 isSOP (SOP {n = n} Tss ,, x) = return (n ,, (Tss ,, x))
 
 chkIdx : ∀ (i n : ℕ) → Either TypeError (Fin n)
-chkIdx i n with i <? n 
+chkIdx i n with i <? n
 ... | no ¬p = inj₁ (IndexOutOfBounds ¬p)
 ... | yes p = return (fromℕ< p)
 ```
@@ -202,32 +202,32 @@ We have two base kinds, * and ♯, and we have an embedding of ♯ into *
 
 Hence, when inferring a kind we sometimes need to decide if we want a ♯ kind or a * kind. For example,
 
-  con (atomic aInteger) : ScopedTy 0 
+  con (atomic aInteger) : ScopedTy 0
 
   might be inferred as kind ♯
 
   1.    ne (^ (atomic aInteger))
-  
+
   or as kind *
-  
+
   2.    con (ne (^ (atomic aInteger)))
 
 Whenever we have a constant of kind `♯` we embed it into `*` using `con`.
-This means that a composition of, for instance a list (kind `♯ ⇒ ♯`) applied 
-to a constant (which will be of kind `*`) doesn't match exactly. So we relax 
+This means that a composition of, for instance a list (kind `♯ ⇒ ♯`) applied
+to a constant (which will be of kind `*`) doesn't match exactly. So we relax
 this condition  when checking kinds and allow
-  1. Checking a `*`-kinded type against `♯`, whenever the type is of the form `con A` : 
-       we "downgrade" the type to A of kind `♯`. 
-  2. Checking a `♯`-kinded type against `*`: 
+  1. Checking a `*`-kinded type against `♯`, whenever the type is of the form `con A` :
+       we "downgrade" the type to A of kind `♯`.
+  2. Checking a `♯`-kinded type against `*`:
        we "upgrade" the type to `*` using `con`.
 
 Another option to one may try is to leave alone kind `♯` and only upgrade it as
-needed. However, this is not easy, as when one detects the need to upgrade a ♯ 
-to *, it might be too late. One example of this, would be in the case of `μ`, 
-where one needs a kind (K ⇒ *) ⇒ (K ⇒ *). Here, it is difficult to upgrade a 
+needed. However, this is not easy, as when one detects the need to upgrade a ♯
+to *, it might be too late. One example of this, would be in the case of `μ`,
+where one needs a kind (K ⇒ *) ⇒ (K ⇒ *). Here, it is difficult to upgrade a
 kind (K ⇒ ♯) ⇒ (K ⇒ ♯) because one would need to find the places inside the type
 to insert the appropriate `con`s.
- 
+
 ```
 inferTyCon : ∀ {Φ} {K} → TyCon K → Σ Kind (Φ ⊢Nf⋆_)
 inferTyCon {K = K} tycon = K ,, (ne (^ tycon))
@@ -237,15 +237,15 @@ inferKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → Either TypeError (Σ Kind (Φ 
 
 inferKind-List : ∀ Φ (xs : U.List (ScopedTy (len⋆ Φ))) → Either TypeError (List (Φ ⊢Nf⋆ *))
 inferKind-List Φ U.[] = return []
-inferKind-List Φ (x U.∷ xs) = do 
-            A  ← checkKind Φ x * 
-            As ← inferKind-List Φ xs 
+inferKind-List Φ (x U.∷ xs) = do
+            A  ← checkKind Φ x *
+            As ← inferKind-List Φ xs
             return (A ∷ As)
 
 inferKind-VecList : ∀ Φ (xss : U.List (U.List (ScopedTy (len⋆ Φ)))) → Either TypeError (Vec (List (Φ ⊢Nf⋆ *)) (U.length xss))
 inferKind-VecList Φ U.[] = return []
-inferKind-VecList Φ (xs U.∷ xss) = do 
-              Ts ← inferKind-List Φ xs 
+inferKind-VecList Φ (xs U.∷ xss) = do
+              Ts ← inferKind-List Φ xs
               Tss ← (inferKind-VecList Φ xss)
               return (Ts ∷ Tss)
 
@@ -259,13 +259,13 @@ checkKind-aux (♯ ,, A)        ♯ = return A
 checkKind-aux ((K ⇒ J) ,, _)  ♯ = inj₁ (kindMismatch (K ⇒ J) ♯ (λ ()))
 checkKind-aux (* ,, A) (J ⇒ J₁) = inj₁ (kindMismatch * (J ⇒ J₁) (λ ()))
 checkKind-aux (♯ ,, A) (J ⇒ J₁) = inj₁ (kindMismatch ♯ (J ⇒ J₁) (λ ()))
-checkKind-aux (K ,, A) K'@(_ ⇒ _) = do 
+checkKind-aux (K ,, A) K'@(_ ⇒ _) = do
             refl ← withE (kindMismatch _ _) (dec2Either (decKind K K'))
             return A
 
-checkKind Φ A K = do 
+checkKind Φ A K = do
              KA ← inferKind Φ A
-             checkKind-aux KA K 
+             checkKind-aux KA K
 
 
 
@@ -278,7 +278,7 @@ addCon kA = kA
 inferKind Φ (` α) = let K ,, β = inferTyVar Φ α in return (K ,, ne (` β))
 inferKind Φ (A ⇒ B) = do
           A ← checkKind Φ A *
-          B ← checkKind Φ B * 
+          B ← checkKind Φ B *
           return (* ,, A ⇒ B)
 inferKind Φ (Π K A) = do
           A ← checkKind (Φ ,⋆ K) A *
@@ -297,25 +297,25 @@ inferKind Φ (μ A B) = do
           K ,, A ← isPat KA
           B ← checkKind Φ B K
           return (* ,, μ A B)
-inferKind Φ (SOP x) = do 
-              Tss ← inferKind-VecList Φ x  
+inferKind Φ (SOP x) = do
+              Tss ← inferKind-VecList Φ x
               return (* ,, SOP Tss)
 ```
 
 Some examples to check that everything is working as expected
 
 ```
-private module _ where 
+private module _ where
 
   int : ∀{n} → ScopedTy n
   int = con (atomic aInteger)
-   
+
   -- integer
   _ :  inferKind ∅ int ≡ inj₂ (* ,, con (ne (^ (atomic aInteger))))
   _ = refl
 
   -- list of integers
-  _ : inferKind ∅ (con list · int) ≡ inj₂ (* ,, con (ne (^ list · ne (^ (atomic aInteger))))) 
+  _ : inferKind ∅ (con list · int) ≡ inj₂ (* ,, con (ne (^ list · ne (^ (atomic aInteger)))))
   _ = refl
 
   -- list of lists of integers
@@ -337,7 +337,7 @@ private module _ where
   _ : inferKind ∅ ((con list · int) ⇒ int) ≡ inj₂ (* ,, (con (nf (^ list · ^ (atomic aInteger))) ⇒ con (ne (^ (atomic aInteger)))))
   _ = refl
 
-  -- Some Π type. Note that the variable is of kind ♯ 
+  -- Some Π type. Note that the variable is of kind ♯
   _ : inferKind ∅ (Π ♯ (con list · ` zero)) ≡ inj₂ (* ,, Π (con (ne (^ list · ne (` Z)))))
   _ = refl
 
@@ -358,7 +358,7 @@ len ∅        = Z
 len (Γ ,⋆ J) = Weirdℕ.T (len Γ)
 len (Γ , A)  = Weirdℕ.S (len Γ)
 
-inferVarType : ∀{Φ}(Γ : Ctx Φ) → WeirdFin (len Γ) 
+inferVarType : ∀{Φ}(Γ : Ctx Φ) → WeirdFin (len Γ)
              → Either TypeError (Σ (Φ ⊢Nf⋆ *) λ A → Γ ∋ A)
 inferVarType (Γ ,⋆ J) (WeirdFin.T x) = do
         A ,, α ← inferVarType Γ x
@@ -373,9 +373,9 @@ inferVarType (Γ , A) (S x) = do
 
 ```
 decTyVar : ∀{Φ K}(α α' : Φ ∋⋆ K) → Dec (α ≡ α')
-decTyVar Z     Z      = yes refl 
+decTyVar Z     Z      = yes refl
 decTyVar (S α) (S α') with (decTyVar α α')
-...        | yes refl = yes refl 
+...        | yes refl = yes refl
 ...        | no  ¬p   = (no (λ { refl → ¬p refl}))
 decTyVar Z     (S α') = (no λ())
 decTyVar (S α) Z      = (no λ())
@@ -398,16 +398,16 @@ decTyCon (atomic x) (atomic y) = dcong atomic (λ {refl → refl}) (decAtomicTyC
 decTyCon list list = yes refl
 decTyCon pair pair = yes refl
 
-decNfTy (Π {K = K} A) (Π {K = K'} A') = dhcong (λ k t → Π {K = k} t) 
-                                                (λ {refl → refl ,, refl}) 
+decNfTy (Π {K = K} A) (Π {K = K'} A') = dhcong (λ k t → Π {K = k} t)
+                                                (λ {refl → refl ,, refl})
                                                 (decKind K K')
-                                                (decNfTy A) 
+                                                (decNfTy A)
 decNfTy (Π _) (_ ⇒ _)     = no λ()
 decNfTy (Π _) (ne _)      = no λ()
 decNfTy (Π _) (con _)     = no λ()
 decNfTy (Π _) (μ _ _)     = no λ()
 decNfTy (_ ⇒ _) (Π _)     = no λ()
-decNfTy (A ⇒ B) (A' ⇒ B') = dcong₂ _⇒_ (λ {refl → refl ,, refl }) (decNfTy A A') (decNfTy B B') 
+decNfTy (A ⇒ B) (A' ⇒ B') = dcong₂ _⇒_ (λ {refl → refl ,, refl }) (decNfTy A A') (decNfTy B B')
 decNfTy (_ ⇒ _) (ne _)    = no λ()
 decNfTy (_ ⇒ _) (con _)   = no λ()
 decNfTy (_ ⇒ _) (μ _ _)   = no λ()
@@ -429,8 +429,8 @@ decNfTy (μ _ _) (u ⇒ u₁)  = no λ()
 decNfTy (μ _ _) (ne _)    = no λ()
 decNfTy (μ _ _) (con _)   = no λ()
 decNfTy (μ {K = K} A B) (μ {K = K'} A' B') = dhcong₂ (λ k x y → μ {K = k} x y)
-                                                     (λ { refl → refl ,, refl ,, refl }) 
-                                                     (decKind K K') 
+                                                     (λ { refl → refl ,, refl ,, refl })
+                                                     (decKind K K')
                                                      (decNfTy A)
                                                      (decNfTy B)
 decNfTy (SOP x) (Π A')     = no λ()
@@ -445,7 +445,7 @@ decNfTy (con A) (SOP x)    = no λ()
 decNfTy (μ A A₁) (SOP x)   = no λ()
 decNfTy (SOP {n = n} x) (SOP {n = m} y) with n ≟ m
 ... | no ¬p    = no (λ {refl → ¬p refl})
-... | yes refl with decNfTy-VecList x y                                         
+... | yes refl with decNfTy-VecList x y
 ...            | no ¬p = no (λ {refl  → ¬p refl})
 ...            | yes refl = yes refl
 
@@ -454,9 +454,9 @@ decNeTy (` _) (_ · _) = no λ()
 decNeTy (` _) (^ _)   = no λ()
 decNeTy (_ · _) (` _) = no λ()
 decNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = dhcong₂ (λ k t u → _·_ {K = k} t u)
-                                                         (λ { refl → refl ,, refl ,, refl }) 
-                                                         (decKind K K') 
-                                                         (decNeTy A) 
+                                                         (λ { refl → refl ,, refl ,, refl })
+                                                         (decKind K K')
+                                                         (decNeTy A)
                                                          (decNfTy B)
 decNeTy (_ · _) (^ _) = no λ()
 decNeTy (^ _) (` _)   = no λ()
@@ -478,31 +478,31 @@ checkType Γ L A = do
   let d = decNfTy A A'
   refl ← withE (typeMismatch _ _) (dec2Either d)
   return L
-  
-checkConstrArgs-List : ∀{Φ}(Γ : Ctx Φ) 
-               → U.List (ScopedTm (len Γ)) 
+
+checkConstrArgs-List : ∀{Φ}(Γ : Ctx Φ)
+               → U.List (ScopedTm (len Γ))
                → (As : List (Φ ⊢Nf⋆ *))
                → Either TypeError (ConstrArgs Γ As)
 checkConstrArgs-List Γ U.[] [] = return []
 checkConstrArgs-List Γ U.[] (A ∷ As) = inj₁ TooFewConstrArgs
 checkConstrArgs-List Γ (c U.∷ cs) [] = inj₁ TooManyConstrArgs
-checkConstrArgs-List Γ (c U.∷ cs) (A ∷ As) = do 
-         t ← checkType Γ c A 
+checkConstrArgs-List Γ (c U.∷ cs) (A ∷ As) = do
+         t ← checkType Γ c A
          ts ← checkConstrArgs-List Γ cs As
          return (t ∷ ts)
 
-checkCases-List : ∀{Φ}(Γ : Ctx Φ) 
+checkCases-List : ∀{Φ}(Γ : Ctx Φ)
                → (B : Φ ⊢Nf⋆ *)
-               → U.List (ScopedTm (len Γ)) 
+               → U.List (ScopedTm (len Γ))
                → ∀{n}(Tss : Vec (List (Φ ⊢Nf⋆ *)) n)
                → Either TypeError (Cases Γ B Tss)
 checkCases-List Γ B U.[] [] = return []
 checkCases-List Γ B U.[] (_ ∷ _) = inj₁ TooFewCases
 checkCases-List Γ B (_ U.∷ _) [] = inj₁ TooManyCases
-checkCases-List Γ B (c U.∷ cs) (Ts ∷ Tss) = do 
+checkCases-List Γ B (c U.∷ cs) (Ts ∷ Tss) = do
            x ← checkType Γ c (mkCaseType B Ts)
            xs ← checkCases-List Γ B cs Tss
-           return (x ∷ xs)               
+           return (x ∷ xs)
 
 inferType Γ (` x) = do
   A ,, α ← inferVarType Γ x
@@ -517,19 +517,19 @@ inferType Γ (L ·⋆ A) = do
   return (B [ A ]Nf ,, L ·⋆ A / refl)
 inferType Γ (ƛ A L) = do
   A ← checkKind _ A *
-  B ,, L ← inferType (Γ , A) L 
+  B ,, L ← inferType (Γ , A) L
   return (A ⇒ B ,, ƛ L)
 inferType {Φ} Γ (L · M) = do
   ty ← inferType Γ L
   A ,, B ,, L ← isFunType ty
   M ← checkType Γ M A
   return (B ,, L · M)
-inferType Γ (con (tmCon t x)) = do 
+inferType Γ (con (tmCon t x)) = do
   return (con (subNf∅ (sty2ty t)) ,, con x refl)
 inferType Γ (error A) = do
   A ← checkKind _ A *
   return (A ,, error A)
-inferType Γ (builtin b) = do 
+inferType Γ (builtin b) = do
   let bty = btype b
   return (bty ,, builtin b / refl)
 inferType Γ (wrap A B L) = do
@@ -548,10 +548,10 @@ inferType Γ (constr A i cs) = do
          (n ,, Tss) ← isSOPType B
          -- i < length cs
          e ← chkIdx i n
-         -- cs has type Vec.lookup Tss e           
+         -- cs has type Vec.lookup Tss e
          L ← checkConstrArgs-List Γ cs (Vec.lookup Tss e)
-         return ((SOP Tss) ,, (constr e Tss refl L)) 
-inferType Γ (case A x cs) = do 
+         return ((SOP Tss) ,, (constr e Tss refl L))
+inferType Γ (case A x cs) = do
              B ← checkKind _ A *
              -- check x is of SOP type
              L ← inferType Γ x

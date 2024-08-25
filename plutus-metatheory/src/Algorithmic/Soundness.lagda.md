@@ -10,7 +10,7 @@ open import Data.Empty using (⊥)
 open import Data.Vec using (Vec;[];_∷_)
 open import Data.Product using (_×_) renaming (_,_ to _,,_)
 open import Data.Unit using (⊤;tt)
-open import Relation.Binary.PropositionalEquality 
+open import Relation.Binary.PropositionalEquality
               using (_≡_;refl;sym;trans;cong;cong₂)
               renaming (subst to substEq)
 open Relation.Binary.PropositionalEquality.≡-Reasoning
@@ -135,7 +135,7 @@ lemsub A A' σ p = trans≡β
   (sym≡β (soundness (sub (embNf ∘ σ) A')))
 
 subNf-sub∅-lem : ∀ Φ (A : ∅ ⊢Nf⋆ ♯) → embNf {Φ} (subNf (λ()) A) ≡β sub∅ (embNf A)
-subNf-sub∅-lem Φ A = trans≡β (lemsub A (embNf A) (λ {J} → λ()) (refl≡β (embNf A))) 
+subNf-sub∅-lem Φ A = trans≡β (lemsub A (embNf A) (λ {J} → λ()) (refl≡β (embNf A)))
                              (≡2β (sub-cong (λ {()}) (embNf A)))
 
 subNf∅-sub∅-lem : ∀ Φ  (A : ∅ ⊢Nf⋆ ♯)  → embNf {Φ} (subNf∅ A) ≡β sub∅ (embNf A)
@@ -153,18 +153,18 @@ emb-ConstrArgs : ∀ {Φ} {Γ : Alg.Ctx Φ}
 emb-ConstrArgs [] = []
 emb-ConstrArgs (x ∷ cs) = (emb x) ∷ (emb-ConstrArgs cs)
 
-lema-mkCaseType : ∀{Φ}{A : Φ ⊢Nf⋆ *} As → 
+lema-mkCaseType : ∀{Φ}{A : Φ ⊢Nf⋆ *} As →
      embNf (Alg.mkCaseType A As) ≡ Dec.mkCaseType (embNf A) (embNf-List As)
 lema-mkCaseType [] = refl
-lema-mkCaseType (A ∷ As) = cong (embNf A ⇒_) (lema-mkCaseType As) 
+lema-mkCaseType (A ∷ As) = cong (embNf A ⇒_) (lema-mkCaseType As)
 
 emb-Cases : ∀ {Φ} {Γ : Alg.Ctx Φ} {A : Φ ⊢Nf⋆ *} {n}
          {Tss : Vec (List (Φ ⊢Nf⋆ *)) n}
-         (cases : Alg.Cases Γ A Tss) 
+         (cases : Alg.Cases Γ A Tss)
         → Dec.Cases (embCtx Γ) (embNf A) (embNf-VecList Tss)
 emb-Cases Alg.[] = Dec.[]
-emb-Cases (Alg._∷_ {Ts = Ts} c cases) = substEq (embCtx _ Dec.⊢_) (lema-mkCaseType Ts) (emb c) 
-                            Dec.∷ (emb-Cases cases)            
+emb-Cases (Alg._∷_ {Ts = Ts} c cases) = substEq (embCtx _ Dec.⊢_) (lema-mkCaseType Ts) (emb c)
+                            Dec.∷ (emb-Cases cases)
 
 emb (Alg.` α) = Dec.` (embVar α)
 emb (Alg.ƛ {A = A}{B} t) = Dec.ƛ (emb t)

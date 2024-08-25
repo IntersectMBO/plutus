@@ -35,7 +35,7 @@ open _⊢_
 
 open import Algorithmic.Signature using (_[_]SigTy)
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
-open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I;VList;[];_[_]ᶠ) 
+open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I;VList;[];_[_]ᶠ)
                                     renaming (step to app;step⋆ to app⋆)
 open Frame
 open Value
@@ -82,7 +82,7 @@ step (s ▻ (L ·⋆ A / refl))                    = (s , -·⋆ A) ▻ L
 step (s ▻ wrap A B L)                         = (s , wrap-) ▻ L
 step (s ▻ unwrap L refl)                      = (s , unwrap-) ▻ L
 step (s ▻ con cn refl)                        = s ◅ V-con cn
-step (s ▻ constr e Tss refl xs) with Vec.lookup Tss e in eq 
+step (s ▻ constr e Tss refl xs) with Vec.lookup Tss e in eq
 step (s ▻ constr e Tss refl []) | []          = s ◅ V-constr e Tss (sym eq) refl [] refl
 step (s ▻ constr e Tss refl (x ∷ xs)) | _ ∷ _ = (s , constr- e Tss (sym eq) {tidx = start} [] xs) ▻ x
 step (s ▻ case t ts)                          = (s , case- ts) ▻ t
@@ -94,17 +94,17 @@ step ((s , (V-ƛ t ·-)) ◅ V)                   = s ▻ (t [ discharge V ])
 step ((s , (-·⋆ A)) ◅ V-Λ t)                  = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)                        = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)               = s ▻ deval V
-step ((s , constr- i Tss refl {tidx} vs ts) ◅ v) with Vec.lookup Tss i in eq 
-... | []   with no-empty-≣-<>> tidx 
-...      | () 
-step ((s , constr- {n} {Vs} {H} i Tss refl {tidx}{tvs} vs []) ◅ v) | _ ∷ _  = s ◅  
+step ((s , constr- i Tss refl {tidx} vs ts) ◅ v) with Vec.lookup Tss i in eq
+... | []   with no-empty-≣-<>> tidx
+...      | ()
+step ((s , constr- {n} {Vs} {H} i Tss refl {tidx}{tvs} vs []) ◅ v) | _ ∷ _  = s ◅
    V-constr i Tss
-            (sym eq) 
+            (sym eq)
             (trans (sym (lemma<>2 Vs (H ∷ []))) (sym (cong ([] <><_) (lem-≣-<>> tidx))))
-            {tvs :< deval v} 
+            {tvs :< deval v}
             (vs :< v)
             refl
-step ((s , constr- i Tss refl {r} vs (t ∷ ts)) ◅ v) | _ ∷ _ = 
+step ((s , constr- i Tss refl {r} vs (t ∷ ts)) ◅ v) | _ ∷ _ =
       (s , constr- i Tss (sym eq) {bubble r} (vs :< v) ts) ▻ t
 step ((s , case- cs) ◅ V-constr e Tss refl refl vs x) = pushValueFrames s vs (lemma-bwdfwdfunction' (Vec.lookup Tss e)) ▻ lookupCase e cs
 step (s ▻ (builtin b / refl))                 = s ◅ ival b
@@ -115,7 +115,7 @@ step (□ V)                                    = □ V
 step (◆ A)                                    = ◆ A
 
 
- 
+
 stepper : ℕ → ∀{T}
   → State T
   → Either RuntimeError (State T)

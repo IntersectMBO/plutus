@@ -1,8 +1,0 @@
-{
-    "label": "Architectural decision records",
-    "position": 60,
-    "link": {
-      "type": "generated-index",
-      "description": "This section provides documentation of the Plutus team's important architectural decisions made to date along with the context and consequences."
-    }
-  }

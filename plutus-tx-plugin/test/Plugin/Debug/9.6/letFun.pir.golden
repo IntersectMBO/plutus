@@ -8,11 +8,11 @@
       { no-src-span }
       (datatype
         { no-src-span }
-        (tyvardecl { no-src-span } Bool-445 ({ no-src-span } type))
+        (tyvardecl { no-src-span } Bool ({ no-src-span } type))
 
-        Bool_match-448
-        (vardecl { no-src-span } True-446 { no-src-span } Bool-445)
-        (vardecl { no-src-span } False-447 { no-src-span } Bool-445)
+        Bool_match
+        (vardecl { no-src-span } True { no-src-span } Bool)
+        (vardecl { no-src-span } False { no-src-span } Bool)
       )
     )
     (termbind
@@ -20,7 +20,7 @@
       (strict)
       (vardecl
         { no-src-span }
-        equalsInteger-444
+        equalsInteger
         (fun
           { no-src-span }
           (con { no-src-span } integer)
@@ -38,18 +38,18 @@
       (strict)
       (vardecl
         { no-src-span }
-        ifThenElse-442
+        ifThenElse
         (all
           { no-src-span }
-          a-443
+          a
           ({ no-src-span } type)
           (fun
             { no-src-span }
             (con { no-src-span } bool)
             (fun
               { no-src-span }
-              { no-src-span } a-443
-              (fun { no-src-span } { no-src-span } a-443 { no-src-span } a-443)
+              { no-src-span } a
+              (fun { no-src-span } { no-src-span } a { no-src-span } a)
             )
           )
         )
@@ -61,20 +61,18 @@
       (nonstrict)
       (vardecl
         { no-src-span }
-        equalsInteger-454
+        equalsInteger
         (fun
           { no-src-span }
           (con { no-src-span } integer)
           (fun
-            { no-src-span }
-            (con { no-src-span } integer)
-            { no-src-span } Bool-445
+            { no-src-span } (con { no-src-span } integer) { no-src-span } Bool
           )
         )
       )
       (lam
         { no-src-span }
-        x-449
+        x
         (con { no-src-span } integer)
         (let
           { no-src-span }
@@ -82,12 +80,12 @@
           (termbind
             { no-src-span }
             (strict)
-            (vardecl { no-src-span } x-451 (con { no-src-span } integer))
-            { no-src-span } x-449
+            (vardecl { no-src-span } x (con { no-src-span } integer))
+            { no-src-span } x
           )
           (lam
             { no-src-span }
-            y-450
+            y
             (con { no-src-span } integer)
             (let
               { no-src-span }
@@ -95,21 +93,21 @@
               (termbind
                 { no-src-span }
                 (strict)
-                (vardecl { no-src-span } y-452 (con { no-src-span } integer))
-                { no-src-span } y-450
+                (vardecl { no-src-span } y (con { no-src-span } integer))
+                { no-src-span } y
               )
               (termbind
                 { no-src-span }
                 (strict)
-                (vardecl { no-src-span } b-453 (con { no-src-span } bool))
+                (vardecl { no-src-span } b (con { no-src-span } bool))
                 [
                   { no-src-span }
                   [
                     { no-src-span }
-                    { no-src-span } equalsInteger-444
-                    { no-src-span } x-451
+                    { no-src-span } equalsInteger
+                    { no-src-span } x
                   ]
-                  { no-src-span } y-452
+                  { no-src-span } y
                 ]
               )
               [
@@ -120,14 +118,14 @@
                     { no-src-span }
                     {
                       { no-src-span }
-                      { no-src-span } ifThenElse-442
-                      { no-src-span } Bool-445
+                      { no-src-span } ifThenElse
+                      { no-src-span } Bool
                     }
-                    { no-src-span } b-453
+                    { no-src-span } b
                   ]
-                  { no-src-span } True-446
+                  { no-src-span } True
                 ]
-                { no-src-span } False-447
+                { no-src-span } False
               ]
             )
           )
@@ -136,7 +134,7 @@
     )
     (lam
       { no-src-span }
-      ds-455
+      ds
       (con { no-src-span } integer)
       (let
         { test/Plugin/Debug/Spec.hs:38:9-38:87 }
@@ -146,14 +144,14 @@
           (strict)
           (vardecl
             { test/Plugin/Debug/Spec.hs:38:9-38:87 }
-            ds-457
+            ds
             (con { test/Plugin/Debug/Spec.hs:38:9-38:87 } integer)
           )
-          { test/Plugin/Debug/Spec.hs:38:9-38:87 } ds-455
+          { test/Plugin/Debug/Spec.hs:38:9-38:87 } ds
         )
         (lam
           { no-src-span }
-          ds-456
+          ds
           (con { no-src-span } integer)
           (let
             { test/Plugin/Debug/Spec.hs:38:9-38:87 }
@@ -163,22 +161,22 @@
               (strict)
               (vardecl
                 { test/Plugin/Debug/Spec.hs:38:9-38:87 }
-                ds-458
+                ds
                 (con { test/Plugin/Debug/Spec.hs:38:9-38:87 } integer)
               )
-              { test/Plugin/Debug/Spec.hs:38:9-38:87 } ds-456
+              { test/Plugin/Debug/Spec.hs:38:9-38:87 } ds
             )
             [
               { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79 }
               [
                 { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79 }
                 { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79 }
-                equalsInteger-454
+                equalsInteger
                 { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79, test/Plugin/Debug/Spec.hs:38:77-38:77 }
-                ds-457
+                ds
               ]
               { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79, test/Plugin/Debug/Spec.hs:38:79-38:79 }
-              ds-458
+              ds
             ]
           )
         )

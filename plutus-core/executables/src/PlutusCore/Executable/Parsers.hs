@@ -103,9 +103,16 @@ printmode = option auto
   <> value Simple
   <> showDefault
   <> help
-    ("Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassicDef, "
-     <> "Debug -> plcPrettyClassicDebug, "
+    ("Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassic, "
+     <> "Simple -> plcPrettyClassicSimple, "
      <> "Readable -> prettyPlcReadable, ReadableSimple -> prettyPlcReadableSimple" ))
+
+nameformat :: Parser NameFormat
+nameformat =
+  flag IdNames DeBruijnNames
+  (long "debruijn"
+   <> short 'j'
+   <> help "Output evaluation result with de Bruijn indices (default: show textual names)")
 
 printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> input <*> output <*> printmode

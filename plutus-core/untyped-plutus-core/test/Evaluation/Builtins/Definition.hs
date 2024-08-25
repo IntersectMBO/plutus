@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 -- | Tests for all kinds of built-in functions.
 
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
@@ -55,11 +56,14 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
 import Control.Exception
 import Data.Bifunctor (bimap)
 import Data.ByteString (ByteString, pack)
+import Data.ByteString.Base16 qualified as Base16
 import Data.DList qualified as DList
 import Data.List (find)
 import Data.Proxy
 import Data.String (IsString (fromString))
 import Data.Text (Text)
+import Data.Text qualified as Text
+import Data.Text.Encoding qualified as Text
 import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -473,7 +477,7 @@ test_TrackCostsRetaining =
                     err = concat
                         [ "Too many elements picked up by GC\n"
                         , "Expected at most: " ++ show expected ++ "\n"
-                        , "But got: " ++ show actual
+                        , "But got: " ++ show actual ++ "\n"
                         , "The result was: " ++ show res
                         ]
                 assertBool err $ expected > actual
@@ -570,6 +574,27 @@ test_Integer = testNestedM "Integer" $ do
     evals False LessThanEqualsInteger [] [cons @Integer 4001, cons @Integer 4000]
     evals True EqualsInteger [] [cons @Integer (-101), cons @Integer (-101)]
     evals False EqualsInteger [] [cons @Integer 0, cons @Integer 1]
+    for_ [DivideInteger, QuotientInteger, ModInteger, RemainderInteger] $ \ b ->
+        fails (lowerInitialChar $ show b <> "-div-by-zero") b [] [cons @Integer 1, cons @Integer 0]
+    test_ExpModInteger
+
+test_ExpModInteger :: TestNested
+test_ExpModInteger = testNestedM "ExpMod" $ do
+    evals @Integer 1 b [] [cons @Integer 500, cons @Integer 0, cons @Integer 500] -- base:X, exp: zero, mod: X(strictpos)
+    evals @Integer 0 b [] [cons @Integer 500, cons @Integer 5, cons @Integer 500] -- base:X, exp: strictpos, mod: X(strictpos)
+    evals @Integer 1 b [] [one , cons @Integer (-3), cons @Integer 4] -- base:1, exp: * , mod: strictpos
+    evals @Integer 2 b [] [cons @Integer 2, cons @Integer (-3), cons @Integer 3] -- base:*, exp: neg, mod: prime
+    -- base is co-prime with mod and exponent is negative
+    evals @Integer 4 b [] [cons @Integer 4, cons @Integer (-5), cons @Integer 9]
+    fails "mod-zero" b [] [one, one, cons @Integer 0] -- base:*, exp:*, mod: 0
+    fails "mod-neg" b [] [one, one, cons @Integer (-3)] -- base:*, exp:*, mod: neg
+    -- base and mod are not co-prime, negative exponent
+    fails "exp-neg-non-inverse1" b [] [cons @Integer 2, cons @Integer (-3), cons @Integer 4]
+    -- mod is prime, but base&mod are not co-prime, negative exponent
+    fails "exp-neg-non-inverse2" b [] [cons @Integer 500, cons @Integer (-5), cons @Integer 5]
+  where
+    one = cons @Integer 1
+    b = ExpModInteger
 
 -- | Test all string-like builtins
 test_String :: TestNested
@@ -774,6 +799,14 @@ test_Crypto = testNestedM "Crypto" $ do
     -- hex output: 47173285a8d7341e5e972fc677286384f802f8ef42a5ec5f03bbfa254cb01fad
     evals @ByteString "G\ETB2\133\168\215\&4\RS^\151/\198w(c\132\248\STX\248\239B\165\236_\ETX\187\250%L\176\US\173"
         Keccak_256 [] [cons @ByteString "hello world"]
+    -- independently verified by the calculator at https://emn178.github.io/online-tools/ripemd_160.html
+    let
+      hashHex = "98c615784ccb5fe5936fbc0cbe9dfdb408d92f0f"
+      ripemd_160Hash = case Base16.decode $ Text.encodeUtf8 hashHex of
+        Right res -> res
+        Left _    -> error $ "Unexpected error during hex decoding: " <> Text.unpack hashHex
+    evals @ByteString ripemd_160Hash
+        Ripemd_160 [] [cons @ByteString "hello world"]
     -- Tests for blake2b_224: output obtained using the b2sum program from https://github.com/BLAKE2/BLAKE2
     evals (pack [ 0x83, 0x6c, 0xc6, 0x89, 0x31, 0xc2, 0xe4, 0xe3, 0xe8, 0x38, 0x60, 0x2e, 0xca, 0x19
                 , 0x02, 0x59, 0x1d, 0x21, 0x68, 0x37, 0xba, 0xfd, 0xdf, 0xe6, 0xf0, 0xc8, 0xcb, 0x07 ])
@@ -853,11 +886,12 @@ test_HashSize hashFun expectedNumBits =
 test_HashSizes :: TestTree
 test_HashSizes =
     testGroup "Hash sizes"
-        [ test_HashSize Sha2_256    256
-        , test_HashSize Sha3_256    256
-        , test_HashSize Blake2b_256 256
-        , test_HashSize Keccak_256  256
-        , test_HashSize Blake2b_224 224
+        [ test_HashSize Sha2_256        256
+        , test_HashSize Sha3_256        256
+        , test_HashSize Blake2b_256     256
+        , test_HashSize Keccak_256      256
+        , test_HashSize Blake2b_224     224
+        , test_HashSize Ripemd_160      160
         ]
 
 -- Test all remaining builtins of the default universe
@@ -1104,7 +1138,18 @@ test_definition =
         , test_SwapEls
         , test_IdBuiltinData
         , test_TrackCostsRestricting
+#if MIN_VERSION_base(4,15,0)
+        -- FIXME: @effectfully
+        -- broken only for darwin :x86_64-darwin.ghc810 <https://ci.iog.io/build/5076829/nixlog/1>
+        -- TrackCosts: retaining:                                                             FAIL (0.51s)
+        -- untyped-plutus-core/test/Evaluation/Builtins/Definition.hs:482:
+        -- Too many elements picked up by GC
+        -- Expected at most: 5
+        -- But got: 6
+        -- The result was: [6829,0,0,0,0,3173]
+        -- Use -p '/TrackCosts: retaining/' to rerun this test only.
         , test_TrackCostsRetaining
+#endif
         , test_SerialiseDataImpossible
         , runTestNestedHere
             [ test_Integer

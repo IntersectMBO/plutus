@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-ledger-api
-version:         1.31.0.0
+version:         1.33.1.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -58,12 +58,17 @@ library
   exposed-modules:
     PlutusLedgerApi.Common
     PlutusLedgerApi.Common.Versions
+    PlutusLedgerApi.Data.V1
+    PlutusLedgerApi.Data.V2
+    PlutusLedgerApi.Data.V3
     PlutusLedgerApi.V1
     PlutusLedgerApi.V1.Address
     PlutusLedgerApi.V1.Bytes
     PlutusLedgerApi.V1.Contexts
     PlutusLedgerApi.V1.Credential
     PlutusLedgerApi.V1.Crypto
+    PlutusLedgerApi.V1.Data.Contexts
+    PlutusLedgerApi.V1.Data.Tx
     PlutusLedgerApi.V1.Data.Value
     PlutusLedgerApi.V1.DCert
     PlutusLedgerApi.V1.EvaluationContext
@@ -75,11 +80,14 @@ library
     PlutusLedgerApi.V1.Value
     PlutusLedgerApi.V2
     PlutusLedgerApi.V2.Contexts
+    PlutusLedgerApi.V2.Data.Contexts
+    PlutusLedgerApi.V2.Data.Tx
     PlutusLedgerApi.V2.EvaluationContext
     PlutusLedgerApi.V2.ParamName
     PlutusLedgerApi.V2.Tx
     PlutusLedgerApi.V3
     PlutusLedgerApi.V3.Contexts
+    PlutusLedgerApi.V3.Data.Contexts
     PlutusLedgerApi.V3.EvaluationContext
     PlutusLedgerApi.V3.ParamName
     PlutusLedgerApi.V3.Tx
@@ -101,8 +109,8 @@ library
     , lens
     , mtl
     , nothunks
-    , plutus-core        ^>=1.31
-    , plutus-tx          ^>=1.31
+    , plutus-core        ^>=1.33
+    , plutus-tx          ^>=1.33
     , prettyprinter
     , serialise
     , tagged
@@ -117,10 +125,13 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.EvaluationEvent
     PlutusLedgerApi.Test.Examples
     PlutusLedgerApi.Test.Scripts
+    PlutusLedgerApi.Test.V1.Data.EvaluationContext
     PlutusLedgerApi.Test.V1.Data.Value
     PlutusLedgerApi.Test.V1.EvaluationContext
     PlutusLedgerApi.Test.V1.Value
+    PlutusLedgerApi.Test.V2.Data.EvaluationContext
     PlutusLedgerApi.Test.V2.EvaluationContext
+    PlutusLedgerApi.Test.V3.Data.EvaluationContext
     PlutusLedgerApi.Test.V3.EvaluationContext
 
   build-depends:
@@ -130,9 +141,9 @@ library plutus-ledger-api-testlib
     , base64-bytestring
     , bytestring
     , containers
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.31
-    , plutus-ledger-api                               ^>=1.31
-    , plutus-tx                                       ^>=1.31
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.33
+    , plutus-ledger-api                               ^>=1.33
+    , plutus-tx                                       ^>=1.33
     , prettyprinter
     , QuickCheck
     , serialise
@@ -148,6 +159,10 @@ test-suite plutus-ledger-api-test
     Spec.CBOR.DeserialiseFailureInfo
     Spec.ContextDecoding
     Spec.CostModelParams
+    Spec.Data.ContextDecoding
+    Spec.Data.CostModelParams
+    Spec.Data.Eval
+    Spec.Data.Versions
     Spec.Eval
     Spec.Interval
     Spec.ScriptDecodeError
@@ -165,9 +180,9 @@ test-suite plutus-ledger-api-test
     , lens
     , mtl
     , nothunks
-    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.31
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.31
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.31
+    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.33
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.33
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.33
     , prettyprinter
     , serialise
     , tasty
@@ -195,16 +210,19 @@ test-suite plutus-ledger-api-plugin-test
     Spec.ScriptSize
     Spec.Value
 
+  if os(windows)
+    buildable: false 
+
   build-depends:
     , base                                                              >=4.9   && <5
     , bytestring
     , containers
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.31
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.31
-    , plutus-tx-plugin                                                  ^>=1.31
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.31
+    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.33
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.33
+    , plutus-tx-plugin                                                  ^>=1.33
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.33
     , prettyprinter
     , tasty
     , tasty-hunit
@@ -223,8 +241,8 @@ executable test-onchain-evaluation
     , extra
     , filepath
     , mtl
-    , plutus-core                                                       ^>=1.31
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.31
+    , plutus-core                                                       ^>=1.33
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.33
     , serialise
     , tasty
     , tasty-hunit
@@ -243,9 +261,9 @@ executable analyse-script-events
     , filepath
     , lens
     , mtl
-    , plutus-core                                                       ^>=1.31
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.31
-    , plutus-tx                                                         ^>=1.31
+    , plutus-core                                                       ^>=1.33
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.33
+    , plutus-tx                                                         ^>=1.33
     , primitive
     , serialise
 

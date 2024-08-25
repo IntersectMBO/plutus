@@ -49,6 +49,7 @@ import Data.Kind qualified as GHC (Type)
 import Data.List.Extra (enumerate)
 import Data.Text (Text)
 import Data.Word (Word8)
+import GHC.Natural
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, testCase)
 import Type.Reflection (TypeRep, eqTypeRep, pattern App, typeRep, (:~~:) (..))
@@ -108,6 +109,7 @@ smallConstant :: forall (a :: GHC.Type). TypeRep a -> SomeConst DefaultUni
 smallConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @()) = SomeConst ()
     | Just HRefl <- eqTypeRep tr (typeRep @Integer) = SomeConst (0 :: Integer)
+    | Just HRefl <- eqTypeRep tr (typeRep @Natural) = SomeConst (0 :: Integer)
     | Just HRefl <- eqTypeRep tr (typeRep @Int) = SomeConst (0 :: Integer)
     | Just HRefl <- eqTypeRep tr (typeRep @Word8) = SomeConst (0 :: Integer)
     | Just HRefl <- eqTypeRep tr (typeRep @NumBytesCostedAsNumWords) = SomeConst (0 :: Integer)

@@ -29,7 +29,7 @@ open import Data.String using (String;_++_)
 open import Data.Empty using (⊥)
 open import Utils using (_×_;_,_)
 open import RawU using (TagCon;Tag;decTagCon;TmCon;TyTag;Untyped;tmCon;tmCon2TagCon;tagCon2TmCon)
-open import Builtin.Signature using (_⊢♯;integer;bool;string;pdata;bytestring;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult) 
+open import Builtin.Signature using (_⊢♯;integer;bool;string;pdata;bytestring;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯
 open import Builtin.Constant.AtomicType using (AtomicTyCon)
 open AtomicTyCon
@@ -39,6 +39,12 @@ open Untyped
 ```
 
 ## Well-scoped Syntax
+
+This defines the syntax for UPLC and requires that it be "well scoped", which
+is that only variables in the context are used. The context uses de Bruijn naming,
+so the variables are numbered. This numbering is provided by an inductively defined
+natural number, which uses the Maybe type (so: `Nothing` = zero, `Just Just Nothing` = 2)
+to allow direct translation to Haskell. 
 
 ```
 data _⊢ (X : Set) : Set where
@@ -157,14 +163,14 @@ scopeCheckU g (UBuiltin b)   = return (builtin b)
 scopeCheckU g (UDelay t)     = fmap delay (scopeCheckU g t)
 scopeCheckU g (UForce t)     = fmap force (scopeCheckU g t)
 scopeCheckU g (UConstr i ts) = fmap (constr i) (scopeCheckUList g ts)
-scopeCheckU g (UCase t ts)   = do 
-                 u  ← scopeCheckU g t 
+scopeCheckU g (UCase t ts)   = do
+                 u  ← scopeCheckU g t
                  us ← scopeCheckUList g ts
                  return (case u us)
-                 
+
 scopeCheckUList g [] = inj₂ L.[]
-scopeCheckUList g (x ∷ xs) = do 
-                 u  ← scopeCheckU g x 
+scopeCheckUList g (x ∷ xs) = do
+                 u  ← scopeCheckU g x
                  us ← scopeCheckUList g xs
                  return (u L.∷ us)
 

@@ -49,6 +49,7 @@ module PlutusTx.Prelude (
     remainder,
     even,
     odd,
+    expMod,
     -- * Maybe
     module Maybe,
     -- * Either
@@ -83,6 +84,7 @@ module PlutusTx.Prelude (
     blake2b_224,
     blake2b_256,
     keccak_256,
+    ripemd_160,
     verifyEd25519Signature,
     verifyEcdsaSecp256k1Signature,
     verifySchnorrSecp256k1Signature,
@@ -148,8 +150,8 @@ import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Eleme
                           emptyByteString, emptyString, encodeUtf8, equalsByteString, equalsString,
                           error, fromBuiltin, fromOpaque, greaterThanByteString, indexByteString,
                           integerToByteString, keccak_256, lengthOfByteString, lessThanByteString,
-                          sha2_256, sha3_256, sliceByteString, toBuiltin, toOpaque, trace,
-                          verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
+                          ripemd_160, sha2_256, sha3_256, sliceByteString, toBuiltin, toOpaque,
+                          trace, verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
                           verifySchnorrSecp256k1Signature)
 
 import PlutusTx.Builtins qualified as Builtins
@@ -212,6 +214,12 @@ divide = Builtins.divideInteger
 --
 modulo :: Integer -> Integer -> Integer
 modulo = Builtins.modInteger
+
+
+{-# INLINABLE expMod #-}
+-- | FIXME
+expMod :: Integer -> Integer -> Integer -> Integer
+expMod = Builtins.expModInteger
 
 {-# INLINABLE quotient #-}
 -- | Integer division, rouding towards zero

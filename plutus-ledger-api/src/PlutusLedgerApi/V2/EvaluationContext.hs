@@ -10,7 +10,7 @@ module PlutusLedgerApi.V2.EvaluationContext
     ) where
 
 import PlutusLedgerApi.Common
-import PlutusLedgerApi.Common.Versions (conwayPV)
+import PlutusLedgerApi.Common.Versions (changPV)
 import PlutusLedgerApi.V2.ParamName as V2
 
 import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB))
@@ -41,6 +41,6 @@ mkEvaluationContext =
         PlutusV2
         [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB]
         -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
-        (\pv -> if pv < conwayPV
+        (\pv -> if pv < changPV
             then DefaultFunSemanticsVariantA
             else DefaultFunSemanticsVariantB)

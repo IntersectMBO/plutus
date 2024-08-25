@@ -1,4 +1,26 @@
 
+<a id='changelog-1.33.0.0'></a>
+# 1.33.0.0 — 2024-08-22
+
+## Added
+
+- An initial DRAFT implementation of 'modularExponentiation' builtin
+
+- Builtin function `ripemd_160` implementing RIPEMD-160 hashing.
+
+<a id='changelog-1.32.0.0'></a>
+# 1.32.0.0 — 2024-08-06
+
+## Added
+
+- Added costing for the new bitwise builtins (see CIP-0058), which will probably become available at the Chang+1 HF.
+
+- Support for `Natural` numbers in the default universe, backed by `Integer`.
+
+## Changed
+
+- Updated version boundaries for the `nothunks` dependency (^>=0.2)
+
 <a id='changelog-1.31.0.0'></a>
 # 1.31.0.0 — 2024-07-17
 

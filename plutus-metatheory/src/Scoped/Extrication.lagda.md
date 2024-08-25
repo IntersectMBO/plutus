@@ -20,7 +20,7 @@ open import Utils as U using (Kind;*)
 open import Utils.List using ([];_∷_)
 
 open import RawU using (TmCon;tmCon;TyTag)
-open import Builtin.Signature using (_⊢♯) 
+open import Builtin.Signature using (_⊢♯)
 open import Builtin.Constant.Type
 
 open import Type using (Ctx⋆;∅;_,⋆_;_∋⋆_;Z;S)
@@ -109,11 +109,11 @@ extricate-ConstrArgs [] = U.[]
 extricate-ConstrArgs (c ∷ cs) = extricate c U.∷ extricate-ConstrArgs cs
 
 extricate-Cases : ∀ {Φ} {Γ : Ctx Φ} {A : Φ ⊢Nf⋆ *} {n}
-                 {Tss : Vec (List (Φ ⊢Nf⋆ *)) n} 
-                 (cases : Cases Γ A Tss) 
+                 {Tss : Vec (List (Φ ⊢Nf⋆ *)) n}
+                 (cases : Cases Γ A Tss)
                 → U.List (ScopedTm (len Γ))
 extricate-Cases [] = U.[]
-extricate-Cases (c ∷ cs) = (extricate c) U.∷ (extricate-Cases cs)                
+extricate-Cases (c ∷ cs) = (extricate c) U.∷ (extricate-Cases cs)
 
 extricate (` x)                   = ` (extricateVar x)
 extricate {Φ}{Γ} (ƛ {A = A} t)    = ƛ (extricateNf⋆ A) (extricate t)

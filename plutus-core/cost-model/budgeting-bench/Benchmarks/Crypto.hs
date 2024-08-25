@@ -317,5 +317,5 @@ makeBenchmarks gen =  [ benchVerifyEd25519Signature
                       , benchVerifyEcdsaSecp256k1Signature
                       , benchVerifySchnorrSecp256k1Signature
                       ]
-                     <> (benchByteStringOneArgOp <$> [Sha2_256, Sha3_256, Blake2b_224, Blake2b_256, Keccak_256])
+                     <> (benchByteStringOneArgOp <$> [Sha2_256, Sha3_256, Blake2b_224, Blake2b_256, Keccak_256, Ripemd_160])
                      <> blsBenchmarks gen

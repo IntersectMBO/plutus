@@ -1,8 +1,10 @@
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE DerivingVia     #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ViewPatterns    #-}
-
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -13,12 +15,37 @@ module PlutusLedgerApi.V1.DCert
     ) where
 
 import Control.DeepSeq (NFData)
+import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Credential (StakingCredential)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
-import PlutusTx qualified
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), definitionRef)
+import PlutusTx.Blueprint.Schema.Annotation (SchemaDescription (..), SchemaTitle (..))
+import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
+import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude qualified as P
-import Prettyprinter.Extras
+import Prettyprinter.Extras (Pretty, PrettyShow (PrettyShow))
+
+{-# ANN DCertDelegRegKey (SchemaTitle "DCertDelegRegKey") #-}
+{-# ANN DCertDelegRegKey (SchemaDescription "Delegation key registration certificate") #-}
+
+{-# ANN DCertDelegDeRegKey (SchemaTitle "DCertDelegDeRegKey") #-}
+{-# ANN DCertDelegDeRegKey (SchemaDescription "Delegation key deregistration certificate") #-}
+
+{-# ANN DCertDelegDelegate (SchemaTitle "DCertDelegDelegate") #-}
+{-# ANN DCertDelegDelegate (SchemaDescription "Delegation certificate") #-}
+
+{-# ANN DCertPoolRegister (SchemaTitle "DCertPoolRegister") #-}
+{-# ANN DCertPoolRegister (SchemaDescription "Pool registration certificate") #-}
+
+{-# ANN DCertPoolRetire (SchemaTitle "DCertPoolRetire") #-}
+{-# ANN DCertPoolRetire (SchemaDescription "Pool retirement certificate") #-}
+
+{-# ANN DCertGenesis (SchemaTitle "DCertGenesis") #-}
+{-# ANN DCertGenesis (SchemaDescription "Genesis key") #-}
+
+{-# ANN DCertMir (SchemaTitle "DCertMir") #-}
+{-# ANN DCertMir (SchemaDescription "MIR key") #-}
 
 -- | A representation of the ledger DCert. Some information is digested, and
 --   not included
@@ -42,8 +69,8 @@ data DCert
     DCertGenesis
   | -- | Another really terse Digest
     DCertMir
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Eq, Ord, Show, Generic, Typeable)
+    deriving anyclass (NFData, HasBlueprintDefinition)
     deriving Pretty via (PrettyShow DCert)
 
 instance P.Eq DCert where
@@ -57,14 +84,18 @@ instance P.Eq DCert where
     DCertMir == DCertMir                                       = True
     _ == _                                                     = False
 
-PlutusTx.makeIsDataIndexed
+----------------------------------------------------------------------------------------------------
+-- TH Splices --------------------------------------------------------------------------------------
+
+$(makeLift ''DCert)
+$( makeIsDataSchemaIndexed
     ''DCert
-    [ ('DCertDelegRegKey,0)
-    , ('DCertDelegDeRegKey,1)
-    , ('DCertDelegDelegate,2)
-    , ('DCertPoolRegister,3)
-    , ('DCertPoolRetire,4)
-    , ('DCertGenesis,5)
-    , ('DCertMir,6)
+    [ ('DCertDelegRegKey, 0)
+    , ('DCertDelegDeRegKey, 1)
+    , ('DCertDelegDelegate, 2)
+    , ('DCertPoolRegister, 3)
+    , ('DCertPoolRetire, 4)
+    , ('DCertGenesis, 5)
+    , ('DCertMir, 6)
     ]
-PlutusTx.makeLift ''DCert
+ )

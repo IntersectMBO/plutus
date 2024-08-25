@@ -1,4 +1,20 @@
 
+<a id='changelog-1.33.0.0'></a>
+# 1.33.0.0 — 2024-08-22
+
+## Added
+
+- Enabled the draft modularExponentation builtin.
+
+- Builtin function `ripemd_160` implementing RIPEMD-160 hashing.
+
+<a id='changelog-1.32.0.0'></a>
+# 1.32.0.0 — 2024-08-06
+
+## Changed
+
+- In #6347 made `[] :: [Integer]`, `[] :: [Bool]`, `[] :: [Data]`, and `[(Data, Data)]` compile directly to the respective empty list via the `MkNil` type class without usage of built-in functions or `defineBuiltinTerm`.
+
 <a id='changelog-1.30.0.0'></a>
 # 1.30.0.0 — 2024-06-17
 

@@ -105,7 +105,7 @@ data _⊢⋆_ where
         ------
       → Φ ⊢⋆ *
 
-  ƛ : Φ ,⋆ K ⊢⋆ J 
+  ƛ : Φ ,⋆ K ⊢⋆ J
       -----------
     → Φ ⊢⋆ K ⇒ J
 
@@ -126,12 +126,12 @@ data _⊢⋆_ where
   con : Φ ⊢⋆ ♯
         ------
       → Φ ⊢⋆ *
-  
+
    -- Sum of Products
-  SOP : ∀{n} → 
-        Vec (List (Φ ⊢⋆ *)) n 
+  SOP : ∀{n} →
+        Vec (List (Φ ⊢⋆ *)) n
         ----------------------
-     →  Φ ⊢⋆ * 
+     →  Φ ⊢⋆ *
 ```
 
 Let `A`, `B`, `C` range over types:

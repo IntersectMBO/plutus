@@ -11,6 +11,10 @@ import PlutusPrelude
 import Spec.CBOR.DeserialiseFailureInfo qualified
 import Spec.ContextDecoding qualified
 import Spec.CostModelParams qualified
+import Spec.Data.ContextDecoding qualified
+import Spec.Data.CostModelParams qualified
+import Spec.Data.Eval qualified
+import Spec.Data.Versions qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
 import Spec.ScriptDecodeError qualified
@@ -61,8 +65,8 @@ availableBuiltins = testCase "builtins are available after Alonzo" $
 
 integerToByteStringExceedsBudget :: TestTree
 integerToByteStringExceedsBudget = testCase "integerToByteString should exceed budget" $
-    let script = either (error . show) id $ V3.deserialiseScript conwayPV integerToByteStringFunction
-        (_, res) = V3.evaluateScriptCounting conwayPV V3.Quiet v3_evalCtxTooFewParams script (I 1)
+    let script = either (error . show) id $ V3.deserialiseScript changPV integerToByteStringFunction
+        (_, res) = V3.evaluateScriptCounting changPV V3.Quiet v3_evalCtxTooFewParams script (I 1)
     in case res of
         Left _ -> assertFailure "fails"
         Right (ExBudget cpu _mem) -> assertBool "did not exceed budget" (cpu >= fromIntegral (maxBound :: Int64))
@@ -110,22 +114,35 @@ saltedFunction =
 
 
 tests :: TestTree
-tests = testGroup "plutus-ledger-api"[
-    testGroup "basic evaluation tests" [
-          alwaysTrue
-        , alwaysFalse
-        , saltedFunction
-        , unavailableBuiltins
-        , availableBuiltins
-        , integerToByteStringExceedsBudget
+tests = testGroup "plutus-ledger-api"
+  [ testGroup "basic evaluation tests"
+    [
+      alwaysTrue
+    , alwaysFalse
+    , saltedFunction
+    , unavailableBuiltins
+    , availableBuiltins
+    , integerToByteStringExceedsBudget
     ]
-    , Spec.Interval.tests
-    , Spec.Eval.tests
-    , Spec.Versions.tests
-    , Spec.CostModelParams.tests
-    , Spec.CBOR.DeserialiseFailureInfo.tests
-    , Spec.ScriptDecodeError.tests
-    , Spec.ContextDecoding.tests
-    , Value.test_Value
-    , Data.Value.test_Value
+    , testGroup "Common"
+      [ Spec.Interval.tests
+      , Spec.CBOR.DeserialiseFailureInfo.tests
+      , Spec.ScriptDecodeError.tests
+      ]
+    , testGroup "Context-dependent tests"
+      [ testGroup "Original"
+        [ Spec.Eval.tests
+        , Spec.Versions.tests
+        , Spec.CostModelParams.tests
+        , Spec.ContextDecoding.tests
+        , Value.test_Value
+        ]
+      , testGroup "Data"
+        [ Spec.Data.Eval.tests
+        , Spec.Data.Versions.tests
+        , Spec.Data.CostModelParams.tests
+        , Spec.Data.ContextDecoding.tests
+        , Data.Value.test_Value
+        ]
+      ]
     ]
