@@ -5,7 +5,7 @@
         caseList
           {a}
           {unit -> r}
-          xs
           (\(u : unit) -> z)
           (\(x : a) (xs' : list a) (u : unit) -> f x xs')
           ()
+          xs

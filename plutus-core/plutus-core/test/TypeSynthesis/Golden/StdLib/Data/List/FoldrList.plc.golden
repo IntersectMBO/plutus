@@ -1,1 +1,5 @@
-all a r. (a -> r -> r) -> r -> list a -> r
+Type mismatch at ()
+Expected a term of type
+  'a-34'
+But found one of type
+  '(fun (con unit) r-36)'

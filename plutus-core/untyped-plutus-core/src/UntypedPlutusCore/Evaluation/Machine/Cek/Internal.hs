@@ -723,30 +723,6 @@ enterComputeCek = computeCek
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     returnCekHeadSpine ctx (HeadSpine f xs) = returnCek (pushArgs xs ctx) f
 
-    -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
-    -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
-    -- fully saturated or not.
-    evalBuiltinApp
-        :: Context uni fun ann
-        -> fun
-        -> NTerm uni fun ()
-        -> BuiltinRuntime (CekValue uni fun ann)
-        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
-    evalBuiltinApp ctx fun term runtime = case runtime of
-        BuiltinResult budgets getX -> do
-            spendBudgetStreamCek (BBuiltinApp fun) budgets
-            case getX of
-                MakeKnownFailure logs err -> do
-                    ?cekEmitter logs
-                    throwKnownTypeErrorWithCause term err
-                MakeKnownSuccess fXs ->
-                    returnCekHeadSpine ctx fXs
-                MakeKnownSuccessWithLogs logs fXs -> do
-                    ?cekEmitter logs
-                    returnCekHeadSpine ctx fXs
-        _ -> returnCek ctx $ VBuiltin fun term runtime
-    {-# INLINE evalBuiltinApp #-}
-
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
     -- if v is a builtin application then check that it's expecting a type argument,
@@ -843,24 +819,28 @@ enterComputeCek = computeCek
     -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
     -- fully saturated or not.
     evalBuiltinApp
-        :: fun
+        :: Context uni fun ann
+        -> fun
         -> NTerm uni fun ()
         -> BuiltinRuntime (CekValue uni fun ann)
-        -> CekM uni fun s (CekValue uni fun ann)
-    evalBuiltinApp fun term runtime = case runtime of
-        BuiltinCostedResult budgets0 getX -> do
+        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+    evalBuiltinApp ctx fun term runtime = case runtime of
+        BuiltinCostedResult budgets0 getFXs -> do
             let exCat = BBuiltinApp fun
                 spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
                 spendBudgets (ExBudgetCons budget budgets) =
                     spendBudget exCat budget *> spendBudgets budgets
             spendBudgets budgets0
-            case getX of
-                BuiltinSuccess x              -> pure x
-                BuiltinSuccessWithLogs logs x -> ?cekEmitter logs $> x
-                BuiltinFailure logs err       -> do
+            case getFXs of
+                BuiltinSuccess fXs ->
+                    returnCekHeadSpine ctx fXs
+                BuiltinSuccessWithLogs logs fXs -> do
+                    ?cekEmitter logs
+                    returnCekHeadSpine ctx fXs
+                BuiltinFailure logs err -> do
                     ?cekEmitter logs
                     throwBuiltinErrorWithCause term err
-        _ -> pure $ VBuiltin fun term runtime
+        _ -> returnCek ctx $ VBuiltin fun term runtime
     {-# INLINE evalBuiltinApp #-}
 
     spendBudget :: ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()

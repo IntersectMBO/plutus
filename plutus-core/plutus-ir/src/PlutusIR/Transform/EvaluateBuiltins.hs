@@ -59,14 +59,15 @@ evaluateBuiltins preserveLogging binfo costModel = transformOf termSubterms proc
             -- Evaluates successfully, but does logging. If we're being conservative
             -- then we should leave these in, so we don't remove people's logging!
             -- Otherwise `trace "hello" x` is a prime candidate for evaluation!
-            BuiltinSuccessWithLogs _ term   -> if preserveLogging then Nothing else Just term
+            BuiltinSuccessWithLogs _ (HeadSpine f xs) ->
+                if preserveLogging then Nothing else Just $ foldl (Apply ()) f xs
             -- Evaluation failure. This can mean that the evaluation legitimately
             -- failed (e.g. `divideInteger 1 0`), or that it failed because the
             -- argument terms are not currently in the right form (because they're
             -- not evaluated, we're in the middle of a term here!). Since we can't
             -- distinguish these, we have to assume it's the latter case and just leave
             -- things alone.
-            BuiltinFailure{}                -> Nothing
+            BuiltinFailure{} -> Nothing
     eval (BuiltinExpectArgument toRuntime) (TermAppContext arg _ ctx) =
         -- Builtin evaluation does not work with annotations, so we have to throw
         -- the argument annotation away here

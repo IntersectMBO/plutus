@@ -36,11 +36,11 @@ list = mkTyBuiltin @_ @[] ()
 -- > /\(a :: *) -> \(xs : list a) -> /\(r :: *) -> (z : r) (f : a -> list a -> r) ->
 -- >     caseList
 -- >         {a}
--- >         {() -> r}
+-- >         {unit -> r}
+-- >         (\(u : unit) -> z)
+-- >         (\(x : a) (xs' : list a) (u : unit) -> f x xs')
 -- >         xs
--- >         (\(u : ()) -> z)
--- >         (\(x : a) (xs' : list a) (u : ()) -> f x xs')
--- >         ()
+-- >         unitval
 caseList :: TermLike term TyName Name DefaultUni DefaultFun => term ()
 caseList = runQuote $ do
     a <- freshTyName "a"
@@ -63,11 +63,11 @@ caseList = runQuote $ do
                     [ TyVar () a
                     , TyFun () unit $ TyVar () r
                     ])
-            [ var () xs
-            , lamAbs () u unit $ var () z
+            [ lamAbs () u unit $ var () z
             , lamAbs () x (TyVar () a) . lamAbs () xs' listA . lamAbs () u unit $
                 mkIterAppNoAnn (var () f) [var () x, var () xs']
             , unitval
+            , var () xs
             ]
 
 -- |  @foldr@ over built-in lists.

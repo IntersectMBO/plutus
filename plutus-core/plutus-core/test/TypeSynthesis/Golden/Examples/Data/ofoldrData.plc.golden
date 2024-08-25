@@ -1,7 +1,5 @@
-(integer -> list data -> data) ->
-(list (pair data data) -> data) ->
-(list data -> data) ->
-(integer -> data) ->
-(bytestring -> data) ->
-data ->
-data
+Type mismatch at ()
+Expected a term of type
+  '(con data)'
+But found one of type
+  '(fun (con unit) r-38)'

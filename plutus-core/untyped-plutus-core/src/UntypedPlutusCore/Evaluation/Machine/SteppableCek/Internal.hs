@@ -176,18 +176,18 @@ returnCek NoFrame val = do
     spendAccumulatedBudget
     pure $ Terminating (dischargeCekValue val)
 -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
-returnCek (FrameForce _ ctx) fun = forceEvaluate ctx fun
+returnCek (FrameForce ann ctx) fun = forceEvaluate ann ctx fun
 -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
 returnCek (FrameAwaitFunTerm _funAnn argVarEnv arg ctx) fun =
     -- MAYBE: perhaps it is worth here to merge the _funAnn with argAnn
     pure $ Computing (FrameAwaitArg (termAnn arg) fun ctx) argVarEnv arg
 -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
 -- FIXME: add rule for VBuiltin once it's in the specification.
-returnCek (FrameAwaitArg _ fun ctx) arg =
-    applyEvaluate ctx fun arg
+returnCek (FrameAwaitArg ann fun ctx) arg =
+    applyEvaluate ann ctx fun arg
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-returnCek (FrameAwaitFunValue _ arg ctx) fun =
-    applyEvaluate ctx fun arg
+returnCek (FrameAwaitFunValue ann arg ctx) fun =
+    applyEvaluate ann ctx fun arg
 -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
 returnCek (FrameConstr ann env i todo done ctx) e = do
     let done' = ConsStack e done
@@ -218,14 +218,15 @@ returnCek (FrameCases ann env cs ctx) e = case e of
 forceEvaluate
     :: forall uni fun ann s
     . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
-    => Context uni fun ann
+    => ann
+    -> Context uni fun ann
     -> CekValue uni fun ann
     -> CekM uni fun s (CekState uni fun ann)
-forceEvaluate !ctx (VDelay body env) =
+forceEvaluate _ !ctx (VDelay body env) =
     pure $ Computing ctx env body
-forceEvaluate !ctx (VBuiltin fun term runtime) = do
+forceEvaluate ann !ctx (VBuiltin fun term runtime) = do
     -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
-    let term' = Force (termAnn term) term
+    let term' = Force () term
     case runtime of
         -- It's only possible to force a builtin application if the builtin expects a type
         -- argument next.
@@ -233,11 +234,10 @@ forceEvaluate !ctx (VBuiltin fun term runtime) = do
             -- We allow a type argument to appear last in the type of a built-in function,
             -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
             -- application.
-            res <- evalBuiltinApp fun term' runtime'
-            pure $ Returning ctx res
+            evalBuiltinApp ann ctx fun term' runtime'
         _ ->
             throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
-forceEvaluate !_ val =
+forceEvaluate _ !_ val =
     throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
 -- | Apply a function to an argument and proceed.
@@ -250,28 +250,27 @@ forceEvaluate !_ val =
 applyEvaluate
     :: forall uni fun ann s
     . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
-    => Context uni fun ann
+    => ann
+    -> Context uni fun ann
     -> CekValue uni fun ann   -- lhs of application
     -> CekValue uni fun ann   -- rhs of application
     -> CekM uni fun s (CekState uni fun ann)
-applyEvaluate !ctx (VLamAbs _ body env) arg =
+applyEvaluate _ !ctx (VLamAbs _ body env) arg =
     pure $ Computing ctx (Env.cons arg env) body
 -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
 -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-applyEvaluate !ctx (VBuiltin fun term runtime) arg = do
+applyEvaluate ann !ctx (VBuiltin fun term runtime) arg = do
     let argTerm = dischargeCekValue arg
         -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
         -- in a 'VBuiltin'.
-        term' = Apply (termAnn term) term argTerm
+        term' = Apply () term argTerm
     case runtime of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        BuiltinExpectArgument f -> do
-            res <- evalBuiltinApp fun term' $ f arg
-            pure $ Returning ctx res
+        BuiltinExpectArgument f -> evalBuiltinApp ann ctx fun term' $ f arg
         _ ->
             throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
-applyEvaluate !_ val _ =
+applyEvaluate _ !_ val _ =
     throwingDischarged _MachineError NonFunctionalApplicationMachineError val
 
 -- MAYBE: runCekDeBruijn can be shared between original&debug ceks by passing a `enterComputeCek` func.
@@ -433,30 +432,70 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
             var = Var () varName
         Just val -> pure val
 
+pushArgs :: ann -> Spine (CekValue uni fun ann) -> Context uni fun ann -> Context uni fun ann
+pushArgs ann args ctx = foldr (FrameAwaitFunValue ann) ctx args
+
+returnCekHeadSpine
+    :: ann
+    -> Context uni fun ann
+    -> HeadSpine (CekValue uni fun ann)
+    -> CekM uni fun s (CekState uni fun ann)
+returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (pushArgs ann xs ctx) f
+
 -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
 -- fully saturated or not.
 evalBuiltinApp
     :: (GivenCekReqs uni fun ann s, ThrowableBuiltins uni fun)
-    => fun
+    => ann
+    -> Context uni fun ann
+    -> fun
     -> NTerm uni fun ()
     -> BuiltinRuntime (CekValue uni fun ann)
-    -> CekM uni fun s (CekValue uni fun ann)
-evalBuiltinApp fun term runtime = case runtime of
-    BuiltinCostedResult budgets0 getX -> do
+    -> CekM uni fun s (CekState uni fun ann)
+evalBuiltinApp ann ctx fun term runtime = case runtime of
+    BuiltinCostedResult budgets0 getFXs -> do
         let exCat = BBuiltinApp fun
             spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
             spendBudgets (ExBudgetCons budget budgets) =
                 spendBudget exCat budget *> spendBudgets budgets
         spendBudgets budgets0
-        case getFxs of
-            MakeKnownSuccess fXs              -> pure undefined
-            MakeKnownSuccessWithLogs logs fXs -> ?cekEmitter logs $> undefined
-            BuiltinFailure logs err           -> do
+        case getFXs of
+            BuiltinSuccess fXs ->
+                returnCekHeadSpine ann ctx fXs
+            BuiltinSuccessWithLogs logs fXs -> do
+                ?cekEmitter logs
+                returnCekHeadSpine ann ctx fXs
+            BuiltinFailure logs err -> do
                 ?cekEmitter logs
                 throwBuiltinErrorWithCause term err
-    _ -> pure $ VBuiltin fun term runtime
+    _ -> returnCek ctx $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
+
+-- -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
+-- -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
+-- -- fully saturated or not.
+-- evalBuiltinApp
+--     :: (GivenCekReqs uni fun ann s, ThrowableBuiltins uni fun)
+--     => fun
+--     -> NTerm uni fun ()
+--     -> BuiltinRuntime (CekValue uni fun ann)
+--     -> CekM uni fun s (CekValue uni fun ann)
+-- evalBuiltinApp fun term runtime = case runtime of
+--     BuiltinCostedResult budgets0 getX -> do
+--         let exCat = BBuiltinApp fun
+--             spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
+--             spendBudgets (ExBudgetCons budget budgets) =
+--                 spendBudget exCat budget *> spendBudgets budgets
+--         spendBudgets budgets0
+--         case getFxs of
+--             MakeKnownSuccess fXs              -> pure undefined
+--             MakeKnownSuccessWithLogs logs fXs -> ?cekEmitter logs $> undefined
+--             BuiltinFailure logs err           -> do
+--                 ?cekEmitter logs
+--                 throwBuiltinErrorWithCause term err
+--     _ -> pure $ VBuiltin fun term runtime
+-- {-# INLINE evalBuiltinApp #-}
 
 spendBudget :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
 spendBudget = unCekBudgetSpender ?cekBudgetSpender

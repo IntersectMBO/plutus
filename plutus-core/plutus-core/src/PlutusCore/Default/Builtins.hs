@@ -1489,14 +1489,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _ver CaseList =
         makeBuiltinMeaning
             caseListDenotation
-            (\_ _ _ _ -> ExBudgetLast mempty)  -- TODO.
+            (runCostingFunThreeArguments . unimplementedCostingFun)
         where
           caseListDenotation
-              :: SomeConstant uni [a]
-              -> Opaque val b
+              :: Opaque val b
               -> Opaque val (a -> [a] -> b)
-              -> EvaluationResult (Opaque (HeadSpine val) b)
-          caseListDenotation (SomeConstant (Some (ValueOf uniListA xs0))) z f = do
+              -> SomeConstant uni [a]
+              -> BuiltinResult (Opaque (HeadSpine val) b)
+          caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) = do
             DefaultUniList uniA <- pure uniListA
             pure $ case xs0 of
                 []     -> headSpine z []
@@ -1580,17 +1580,17 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _ver CaseData =
         makeBuiltinMeaning
             caseDataDenotation
-            (\_ _ _ _ _ _ _ -> ExBudgetLast mempty)  -- TODO.
+            (runCostingFunSixArguments . unimplementedCostingFun)
         where
           caseDataDenotation
-              :: Data
-              -> Opaque val (Integer -> [Data] -> b)
+              :: Opaque val (Integer -> [Data] -> b)
               -> Opaque val ([(Data, Data)] -> b)
               -> Opaque val ([Data] -> b)
               -> Opaque val (Integer -> b)
               -> Opaque val (BS.ByteString -> b)
+              -> Data
               -> Opaque (HeadSpine val) b
-          caseDataDenotation d fConstr fMap fList fI fB = case d of
+          caseDataDenotation fConstr fMap fList fI fB = \case
               Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
               Map es      -> headSpine fMap [fromValue es]
               List ds     -> headSpine fList [fromValue ds]

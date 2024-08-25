@@ -108,11 +108,13 @@ isCommutative = \case
   FstPair                         -> False
   SndPair                         -> False
   ChooseList                      -> False
+  CaseList                        -> False
   MkCons                          -> False
   HeadList                        -> False
   TailList                        -> False
   NullList                        -> False
   ChooseData                      -> False
+  CaseData                        -> False
   ConstrData                      -> False
   MapData                         -> False
   ListData                        -> False

@@ -19,19 +19,62 @@ import PlutusCore.MkPlc
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
+import PlutusCore.StdLib.Data.Integer
+import PlutusCore.StdLib.Data.Pair
+import PlutusCore.StdLib.Data.Unit
+
+import Data.ByteString (ByteString)
+
 -- | @Data@ as a built-in PLC type.
 dataTy :: uni `HasTypeLevel` Data => Type tyname uni ()
 dataTy = mkTyBuiltin @_ @Data ()
 
 -- | Pattern matching over 'Data' inside PLC.
 --
--- > \(d : data) -> /\(r :: *) -> caseData {r} d
+-- > \(d : data) ->
+-- >     /\(r :: *) ->
+-- >      \(fConstr : integer -> list data -> r)
+-- >       (fMap : list (pair data data) -> r)
+-- >       (fList : list data -> r)
+-- >       (fI : integer -> r)
+-- >       (fB : bytestring -> r) ->
+-- >           caseData
+-- >               {unit -> r}
+-- >               (\(u : unit) (i : integer) (ds : list data) -> fConstr i ds)
+-- >               (\(u : unit) (es : list (pair data data)) -> fMap es)
+-- >               (\(u : unit) (ds : list data) -> fList ds)
+-- >               (\(u : unit) (i : integer) -> fI i)
+-- >               (\(u : unit) (b : bytestring) -> fB b)
+-- >               d
+-- >               unitval
 caseData :: TermLike term TyName Name DefaultUni DefaultFun => term ()
 caseData = runQuote $ do
-    r <- freshTyName "r"
-    d <- freshName "d"
+    r       <- freshTyName "r"
+    fConstr <- freshName "fConstr"
+    fMap    <- freshName "fMap"
+    fList   <- freshName "fList"
+    fI      <- freshName "fI"
+    fB      <- freshName "fB"
+    d       <- freshName "d"
+    u       <- freshName "u"
+    let listData = mkTyBuiltin @_ @[Data] ()
     return
         . lamAbs () d dataTy
         . tyAbs () r (Type ())
-        . apply () (tyInst () (builtin () CaseData) $ TyVar () r)
-        $ var () d
+        . lamAbs () fConstr (TyFun () integer . TyFun () listData $ TyVar () r)
+        . lamAbs () fMap (TyFun () (mkTyBuiltin @_ @[(Data, Data)] ()) $ TyVar () r)
+        . lamAbs () fList (TyFun () listData $ TyVar () r)
+        . lamAbs () fI (TyFun () integer $ TyVar () r)
+        . lamAbs () fB (TyFun () (mkTyBuiltin @_ @ByteString ()) $ TyVar () r)
+        $ mkIterAppNoAnn (tyInst () (builtin () ChooseData) . TyFun () unit $ TyVar () r)
+            [ lamAbs () u unit $ mkIterAppNoAnn (mkIterInstNoAnn uncurry [integer, listData, TyVar () r])
+                [ var () fConstr
+                , apply () (builtin () UnConstrData) $ var () d
+                ]
+            , lamAbs () u unit . apply () (var () fMap)  . apply () (builtin () UnMapData)  $ var () d
+            , lamAbs () u unit . apply () (var () fList) . apply () (builtin () UnListData) $ var () d
+            , lamAbs () u unit . apply () (var () fI)    . apply () (builtin () UnIData)    $ var () d
+            , lamAbs () u unit . apply () (var () fB)    . apply () (builtin () UnBData)    $ var () d
+            , var () d
+            , unitval
+            ]

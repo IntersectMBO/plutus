@@ -1,1 +1,1 @@
-all a b. list a -> b -> (a -> list a -> b) -> b
+all a b. a -> (b -> list b -> a) -> list b -> a
