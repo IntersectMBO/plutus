@@ -1,13 +1,17 @@
 {-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE MonoLocalBinds       #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns         #-}
 
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
 
 -- | A type for intervals and associated functions.
 module PlutusLedgerApi.V1.Interval
@@ -41,8 +45,15 @@ import GHC.Generics (Generic)
 import Prelude qualified as Haskell
 import Prettyprinter (Pretty (pretty), comma, (<+>))
 
-import PlutusTx qualified
+import PlutusTx.Blueprint (ConstructorSchema (..), Schema (..))
+import PlutusTx.Blueprint.Class (HasBlueprintSchema (schema))
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), HasSchemaDefinition, Unrolled,
+                                      definitionIdFromTypeK, definitionRef)
+import PlutusTx.Blueprint.Definition.TF (Nub, type (++))
+import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..), emptySchemaInfo)
+import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 import PlutusTx.Eq as PlutusTx
+import PlutusTx.IsData (makeIsDataIndexed)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord as PlutusTx
 import PlutusTx.Prelude
@@ -67,8 +78,31 @@ data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
     deriving stock (Haskell.Show, Generic)
     deriving anyclass (NFData)
 
+instance (HasBlueprintDefinition a) => HasBlueprintDefinition (Interval a) where
+  type Unroll (Interval a) =
+    Nub (Interval a ': (Unrolled (LowerBound a) ++ Unrolled (UpperBound a)))
+  definitionId = definitionIdFromTypeK @_ @Interval Haskell.<> definitionId @a
+
+instance
+  ( HasBlueprintDefinition a
+  , HasSchemaDefinition (LowerBound a) referencedTypes
+  , HasSchemaDefinition (UpperBound a) referencedTypes
+  ) =>
+  HasBlueprintSchema (Interval a) referencedTypes
+  where
+  {-# INLINEABLE schema #-}
+  schema =
+    SchemaConstructor
+      (MkSchemaInfo Nothing Nothing Nothing)
+      ( MkConstructorSchema
+          0
+          [ definitionRef @(LowerBound a) @referencedTypes
+          , definitionRef @(UpperBound a) @referencedTypes
+          ]
+      )
+
 instance Functor Interval where
-  fmap f (Interval from to) = Interval (f <$> from) (f <$> to)
+  fmap f (Interval fromA toA) = Interval (f <$> fromA) (f <$> toA)
 
 instance Pretty a => Pretty (Interval a) where
     pretty (Interval l h) = pretty l <+> comma <+> pretty h
@@ -77,6 +111,10 @@ instance Pretty a => Pretty (Interval a) where
 data Extended a = NegInf | Finite a | PosInf
     deriving stock (Haskell.Show, Generic)
     deriving anyclass (NFData)
+
+instance (HasBlueprintDefinition a) => HasBlueprintDefinition (Extended a) where
+  type Unroll (Extended a) = Extended a ': Unrolled a
+  definitionId = definitionIdFromTypeK @_ @Extended Haskell.<> definitionId @a
 
 instance Functor Extended where
   fmap _ NegInf     = NegInf
@@ -96,6 +134,29 @@ type Closure = Bool
 data UpperBound a = UpperBound (Extended a) Closure
     deriving stock (Haskell.Show, Generic)
     deriving anyclass (NFData)
+
+instance (HasBlueprintDefinition (Extended a)) => HasBlueprintDefinition (UpperBound a) where
+  type Unroll (UpperBound a) = UpperBound a ': (Unrolled Closure ++ Unrolled (Extended a))
+  definitionId = definitionIdFromTypeK @_ @UpperBound Haskell.<> definitionId @(Extended a)
+
+instance
+  ( HasSchemaDefinition a referencedTypes
+  , HasBlueprintDefinition a
+  , HasSchemaDefinition (Extended a) referencedTypes
+  , HasSchemaDefinition Closure referencedTypes
+  ) =>
+  HasBlueprintSchema (UpperBound a) referencedTypes
+  where
+  {-# INLINEABLE schema #-}
+  schema =
+    SchemaConstructor
+      emptySchemaInfo { title = Just "UpperBound"}
+      ( MkConstructorSchema
+          0
+          [ definitionRef @(Extended a) @referencedTypes
+          , definitionRef @Closure @referencedTypes
+          ]
+      )
 
 -- | For an enumerable type, turn an upper bound into a single inclusive
 -- bounding value.
@@ -126,6 +187,29 @@ data LowerBound a = LowerBound (Extended a) Closure
     deriving stock (Haskell.Show, Generic)
     deriving anyclass (NFData)
 
+instance (HasBlueprintDefinition (Extended a)) => HasBlueprintDefinition (LowerBound a) where
+  type Unroll (LowerBound a) = LowerBound a ': (Unrolled Closure ++ Unrolled (Extended a))
+  definitionId = definitionIdFromTypeK @_ @LowerBound Haskell.<> definitionId @(Extended a)
+
+instance
+  ( HasSchemaDefinition a referencedTypes
+  , HasBlueprintDefinition a
+  , HasSchemaDefinition (Extended a) referencedTypes
+  , HasSchemaDefinition Closure referencedTypes
+  ) =>
+  HasBlueprintSchema (LowerBound a) referencedTypes
+  where
+  {-# INLINEABLE schema #-}
+  schema =
+    SchemaConstructor
+      emptySchemaInfo { title = Just "LowerBound"}
+      ( MkConstructorSchema
+          0
+          [ definitionRef @(Extended a) @referencedTypes
+          , definitionRef @Closure @referencedTypes
+          ]
+      )
+
 -- | For an enumerable type, turn an lower bound into a single inclusive
 -- bounding value.
 --
@@ -149,16 +233,6 @@ instance Pretty a => Pretty (LowerBound a) where
     pretty (LowerBound NegInf _) = pretty "(-∞"
     pretty (LowerBound a True)   = pretty "[" <+> pretty a
     pretty (LowerBound a False)  = pretty "(" <+> pretty a
-
-PlutusTx.makeIsDataIndexed ''Extended [('NegInf,0),('Finite,1),('PosInf,2)]
-PlutusTx.makeIsDataIndexed ''UpperBound [('UpperBound,0)]
-PlutusTx.makeIsDataIndexed ''LowerBound [('LowerBound,0)]
-PlutusTx.makeIsDataIndexed ''Interval [('Interval,0)]
-
-makeLift ''Extended
-makeLift ''LowerBound
-makeLift ''UpperBound
-makeLift ''Interval
 
 instance Eq a => Eq (Extended a) where
     {-# INLINABLE (==) #-}
@@ -398,3 +472,16 @@ throw.
 
 The upshot of this is that many functions in this module require 'Enum'.
 -}
+
+----------------------------------------------------------------------------------------------------
+-- TH Splices --------------------------------------------------------------------------------------
+
+$(makeIsDataSchemaIndexed ''Extended [('NegInf, 0), ('Finite, 1), ('PosInf, 2)])
+$(makeIsDataIndexed ''UpperBound [('UpperBound, 0)])
+$(makeIsDataIndexed ''LowerBound [('LowerBound, 0)])
+$(makeIsDataIndexed ''Interval [('Interval, 0)])
+
+$(makeLift ''Extended)
+$(makeLift ''LowerBound)
+$(makeLift ''UpperBound)
+$(makeLift ''Interval)

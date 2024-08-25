@@ -1,14 +1,18 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE ViewPatterns         #-}
 
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module PlutusLedgerApi.V1.Contexts
     (
@@ -36,12 +40,10 @@ module PlutusLedgerApi.V1.Contexts
     , ownCurrencySymbol
     ) where
 
-import GHC.Generics (Generic)
 import PlutusTx
 import PlutusTx.Prelude
-import Prettyprinter
-import Prettyprinter.Extras
 
+import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Address (Address (..))
 import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash (..))
@@ -50,7 +52,11 @@ import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V1.Time (POSIXTimeRange)
 import PlutusLedgerApi.V1.Tx (TxId (..), TxOut (..), TxOutRef (..))
 import PlutusLedgerApi.V1.Value (CurrencySymbol (..), Value)
+import PlutusTx.Blueprint (HasBlueprintDefinition (..))
+import PlutusTx.Blueprint.Definition.Derive (definitionRef)
 import Prelude qualified as Haskell
+import Prettyprinter (Pretty (pretty), nest, vsep, (<+>))
+import Prettyprinter.Extras (PrettyShow (PrettyShow))
 
 {- Note [Script types in pending transactions]
 To validate a transaction, we have to evaluate the validation script of each of
@@ -67,7 +73,9 @@ redeemer and data scripts of all of its inputs and outputs.
 data TxInInfo = TxInInfo
     { txInInfoOutRef   :: TxOutRef
     , txInInfoResolved :: TxOut
-    } deriving stock (Generic, Haskell.Show, Haskell.Eq)
+    }
+    deriving stock (Generic, Haskell.Show, Haskell.Eq)
+    deriving anyclass (HasBlueprintDefinition)
 
 instance Eq TxInInfo where
     TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
@@ -83,6 +91,7 @@ data ScriptPurpose
     | Rewarding StakingCredential
     | Certifying DCert
     deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
+    deriving anyclass (HasBlueprintDefinition)
     deriving Pretty via (PrettyShow ScriptPurpose)
 
 instance Eq ScriptPurpose where
@@ -105,7 +114,9 @@ data TxInfo = TxInfo
     , txInfoSignatories :: [PubKeyHash] -- ^ Signatures provided with the transaction, attested that they all signed the tx
     , txInfoData        :: [(DatumHash, Datum)] -- ^ The lookup table of datums attached to the transaction
     , txInfoId          :: TxId  -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
-    } deriving stock (Generic, Haskell.Show, Haskell.Eq)
+    }
+    deriving stock (Generic, Haskell.Show, Haskell.Eq)
+    deriving anyclass (HasBlueprintDefinition)
 
 instance Eq TxInfo where
     {-# INLINABLE (==) #-}
@@ -263,20 +274,22 @@ spendsOutput p h i =
 
     in any spendsOutRef (txInfoInputs p)
 
-makeLift ''TxInInfo
-makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
+----------------------------------------------------------------------------------------------------
+-- TH Splices --------------------------------------------------------------------------------------
 
-makeLift ''TxInfo
-makeIsDataIndexed ''TxInfo [('TxInfo,0)]
+$(makeLift ''TxInInfo)
+$(makeLift ''TxInfo)
+$(makeLift ''ScriptPurpose)
+$(makeLift ''ScriptContext)
 
-
-makeLift ''ScriptPurpose
-makeIsDataIndexed ''ScriptPurpose
-    [ ('Minting,0)
-    , ('Spending,1)
-    , ('Rewarding,2)
-    , ('Certifying,3)
+$(makeIsDataSchemaIndexed ''TxInInfo [('TxInInfo, 0)])
+$(makeIsDataSchemaIndexed ''TxInfo [('TxInfo, 0)])
+$( makeIsDataSchemaIndexed
+    ''ScriptPurpose
+    [ ('Minting, 0)
+    , ('Spending, 1)
+    , ('Rewarding, 2)
+    , ('Certifying, 3)
     ]
-
-makeLift ''ScriptContext
-makeIsDataIndexed ''ScriptContext [('ScriptContext,0)]
+ )
+$(makeIsDataSchemaIndexed ''ScriptContext [('ScriptContext, 0)])

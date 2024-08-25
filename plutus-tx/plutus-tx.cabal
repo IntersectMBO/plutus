@@ -56,8 +56,10 @@ library
     PlutusTx.Blueprint.Class
     PlutusTx.Blueprint.Contract
     PlutusTx.Blueprint.Definition
+    PlutusTx.Blueprint.Definition.Derive
     PlutusTx.Blueprint.Definition.Id
     PlutusTx.Blueprint.Definition.Internal
+    PlutusTx.Blueprint.Definition.TF
     PlutusTx.Blueprint.Definition.Unroll
     PlutusTx.Blueprint.Parameter
     PlutusTx.Blueprint.PlutusVersion

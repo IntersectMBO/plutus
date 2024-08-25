@@ -1,39 +1,44 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE BlockArguments    #-}
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
-
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Functions for working with scripts on the ledger.
-module PlutusLedgerApi.V1.Scripts
-    (
-    ScriptError (..)
-    , Redeemer(..)
-    , Datum(..)
-    , Context(..)
-    , DatumHash(..)
-    , RedeemerHash(..)
-    , ScriptHash(..)
-    ) where
+module PlutusLedgerApi.V1.Scripts (
+  ScriptError (..),
+  Redeemer (..),
+  Datum (..),
+  Context (..),
+  DatumHash (..),
+  RedeemerHash (..),
+  ScriptHash (..),
+) where
 
+import PlutusTx.Prelude
 import Prelude qualified as Haskell
 
 import Codec.Serialise (Serialise (..))
 import Control.DeepSeq (NFData)
-import Data.String
+import Data.String (IsString)
 import Data.Text (Text)
+import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
 import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), makeLift)
-import PlutusTx.Builtins as Builtins
+import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..))
+import PlutusTx.Blueprint.Schema (Schema (..), emptyBytesSchema)
+import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..), emptySchemaInfo)
+import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal as BI
-import PlutusTx.Prelude
-import Prettyprinter
+import Prettyprinter (Pretty)
 
 {- Note [Serialise instances for Datum and Redeemer]
 The `Serialise` instances for `Datum` and `Redeemer` exist for several reasons:
@@ -46,95 +51,122 @@ The `Serialise` instances for `Datum` and `Redeemer` exist for several reasons:
 -}
 
 -- | A higher-level evaluation error.
--- FIXME: move to /plutus-apps/.
-data ScriptError =
-    EvaluationError ![Text] !Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
-    | EvaluationException !Haskell.String !Haskell.String -- ^ Unexpected behavior of the engine (a bug)
-    deriving stock (Haskell.Show, Haskell.Eq, Generic)
-    deriving anyclass (NFData)
+data ScriptError
+  = -- | Expected behavior of the engine (e.g. user-provided error)
+    EvaluationError ![Text] !Haskell.String
+  | -- | Unexpected behavior of the engine (a bug)
+    EvaluationException !Haskell.String !Haskell.String
+  deriving stock (Haskell.Show, Haskell.Eq, Generic, Typeable)
+  deriving anyclass (NFData, HasBlueprintDefinition)
 
 -- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.
-newtype Datum = Datum { getDatum :: BuiltinData  }
-  deriving stock (Generic, Haskell.Show)
+newtype Datum = Datum {getDatum :: BuiltinData}
+  deriving stock (Generic, Typeable, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData, Pretty)
-  deriving anyclass (NFData)
+  deriving anyclass (NFData, HasBlueprintDefinition)
+
+instance HasBlueprintSchema Datum referencedTypes where
+  schema = SchemaBuiltInData emptySchemaInfo{title = Just "Datum"}
 
 -- See Note [Serialise instances for Datum and Redeemer]
 instance Serialise Datum where
-    encode (Datum (BuiltinData d)) = encode d
-    decode = Datum . BuiltinData Haskell.<$> decode
+  encode (Datum (BuiltinData d)) = encode d
+  decode = Datum . BuiltinData Haskell.<$> decode
 
 -- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
-newtype Redeemer = Redeemer { getRedeemer :: BuiltinData }
-  deriving stock (Generic, Haskell.Show)
+newtype Redeemer = Redeemer {getRedeemer :: BuiltinData}
+  deriving stock (Generic, Haskell.Show, Typeable)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData, Pretty)
-  deriving anyclass (NFData)
+  deriving anyclass (NFData, HasBlueprintDefinition)
+
+instance HasBlueprintSchema Redeemer referencedTypes where
+  schema = SchemaBuiltInData emptySchemaInfo{title = Just "Redeemer"}
 
 -- See Note [Serialise instances for Datum and Redeemer]
 instance Serialise Redeemer where
-    encode (Redeemer (BuiltinData d)) = encode d
-    decode = Redeemer . BuiltinData Haskell.<$> decode
+  encode (Redeemer (BuiltinData d)) = encode d
+  decode = Redeemer . BuiltinData Haskell.<$> decode
 
 {- | Type representing the /BLAKE2b-224/ hash of a script. 28 bytes.
+
 This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
+You may want to add checks for its invariants.
+See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
-newtype ScriptHash =
-    ScriptHash { getScriptHash :: Builtins.BuiltinByteString }
-    deriving
-        (IsString        -- ^ from hex encoding
-        , Haskell.Show   -- ^ using hex encoding
-        , Pretty         -- ^ using hex encoding
-        ) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
-    deriving anyclass (NFData)
+newtype ScriptHash = ScriptHash {getScriptHash :: Builtins.BuiltinByteString}
+  deriving
+    ( -- | from hex encoding
+      IsString
+    , -- | using hex encoding
+      Haskell.Show
+    , -- | using hex encoding
+      Pretty
+    )
+    via LedgerBytes
+  deriving stock (Generic, Typeable)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
+  deriving anyclass (NFData, HasBlueprintDefinition)
+
+instance HasBlueprintSchema ScriptHash referencedTypes where
+  schema = SchemaBytes emptySchemaInfo{title = Just "ScriptHash"} emptyBytesSchema
 
 {- | Type representing the /BLAKE2b-256/ hash of a datum. 32 bytes.
+
 This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
+You may want to add checks for its invariants.
+See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
-newtype DatumHash =
-    DatumHash Builtins.BuiltinByteString
-    deriving
-        (IsString        -- ^ from hex encoding
-        , Haskell.Show   -- ^ using hex encoding
-        , Pretty         -- ^ using hex encoding
-        ) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
-    deriving anyclass (NFData)
+newtype DatumHash = DatumHash Builtins.BuiltinByteString
+  deriving
+    ( -- | from hex encoding
+      IsString
+    , -- | using hex encoding
+      Haskell.Show
+    , -- | using hex encoding
+      Pretty
+    )
+    via LedgerBytes
+  deriving stock (Generic, Typeable)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
+  deriving anyclass (NFData, HasBlueprintDefinition)
+
+instance HasBlueprintSchema DatumHash referencedTypes where
+  schema = SchemaBytes emptySchemaInfo{title = Just "DatumHash"} emptyBytesSchema
 
 {- | Type representing the /BLAKE2b-256/ hash of a redeemer. 32 bytes.
 
 This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
+You may want to add checks for its invariants.
+See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
-newtype RedeemerHash =
-    RedeemerHash Builtins.BuiltinByteString
-    deriving
-        (IsString        -- ^ from hex encoding
-        , Haskell.Show   -- ^ using hex encoding
-        , Pretty         -- ^ using hex encoding
-        ) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
-    deriving anyclass (NFData)
+newtype RedeemerHash = RedeemerHash Builtins.BuiltinByteString
+  deriving
+    ( -- | from hex encoding
+      IsString
+    , -- | using hex encoding
+      Haskell.Show
+    , -- | using hex encoding
+      Pretty
+    )
+    via LedgerBytes
+  deriving stock (Generic, Typeable)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
+  deriving anyclass (NFData, HasBlueprintDefinition)
 
--- | Information about the state of the blockchain and about the transaction
---   that is currently being validated, represented as a value in 'Data'.
+instance HasBlueprintSchema RedeemerHash referencedTypes where
+  schema = SchemaBytes emptySchemaInfo{title = Just "RedeemerHash"} emptyBytesSchema
+
+{- | Information about the state of the blockchain and about the transaction
+  that is currently being validated, represented as a value in 'Data'.
+-}
 newtype Context = Context BuiltinData
-    deriving newtype (Pretty, Haskell.Show)
+  deriving newtype (Pretty, Haskell.Show)
 
-makeLift ''ScriptHash
+----------------------------------------------------------------------------------------------------
+-- TH Splices --------------------------------------------------------------------------------------
 
-makeLift ''DatumHash
-
-makeLift ''RedeemerHash
-
-makeLift ''Datum
-
-makeLift ''Redeemer
+$(makeLift ''ScriptHash)
+$(makeLift ''DatumHash)
+$(makeLift ''RedeemerHash)
+$(makeLift ''Datum)
+$(makeLift ''Redeemer)
