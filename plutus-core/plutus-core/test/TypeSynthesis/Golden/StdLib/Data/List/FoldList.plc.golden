@@ -2,4 +2,4 @@ Type mismatch at ()
 Expected a term of type
   'a-34'
 But found one of type
-  '(fun (con unit) r-36)'
+  'r-36'

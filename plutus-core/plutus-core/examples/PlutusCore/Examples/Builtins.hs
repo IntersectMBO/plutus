@@ -317,7 +317,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _semvar IdRank2 =
         makeBuiltinMeaning
             (Prelude.id
-                :: afa ~ Opaque val (TyForallRep @GHC.Type a (TyVarRep f `TyAppRep` TyVarRep a))
+                :: afa ~ Opaque val (TyForallRep @GHC.Type a (f `TyAppRep` a))
                 => afa -> afa)
             whatever
 

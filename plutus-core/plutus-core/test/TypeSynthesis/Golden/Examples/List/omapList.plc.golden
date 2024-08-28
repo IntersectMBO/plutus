@@ -1,5 +1,5 @@
 Type mismatch at ()
 Expected a term of type
-  'a-32'
+  'a-30'
 But found one of type
-  '(fun (con unit) r-34)'
+  'r-32'

@@ -23,7 +23,6 @@ import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import PlutusCore.StdLib.Data.Function
-import PlutusCore.StdLib.Data.Unit
 
 -- | @[]@ as a built-in PLC type.
 list :: uni `HasTypeLevel` [] => Type tyname uni ()
@@ -36,21 +35,17 @@ list = mkTyBuiltin @_ @[] ()
 -- > /\(a :: *) -> \(xs : list a) -> /\(r :: *) -> (z : r) (f : a -> list a -> r) ->
 -- >     caseList
 -- >         {a}
--- >         {unit -> r}
--- >         (\(u : unit) -> z)
--- >         (\(x : a) (xs' : list a) (u : unit) -> f x xs')
+-- >         {r}
+-- >         z
+-- >         f
 -- >         xs
--- >         unitval
 caseList :: TermLike term TyName Name DefaultUni DefaultFun => term ()
 caseList = runQuote $ do
     a <- freshTyName "a"
     r <- freshTyName "r"
     xs <- freshName "xs"
-    x <- freshName "x"
-    xs' <- freshName "xs'"
     z <- freshName "z"
     f <- freshName "f"
-    u <- freshName "u"
     let listA = TyApp () list $ TyVar () a
     return
         . tyAbs () a (Type ())
@@ -61,12 +56,10 @@ caseList = runQuote $ do
         $ mkIterAppNoAnn
                 (mkIterInstNoAnn (builtin () CaseList)
                     [ TyVar () a
-                    , TyFun () unit $ TyVar () r
+                    , TyVar () r
                     ])
-            [ lamAbs () u unit $ var () z
-            , lamAbs () x (TyVar () a) . lamAbs () xs' listA . lamAbs () u unit $
-                mkIterAppNoAnn (var () f) [var () x, var () xs']
-            , unitval
+            [ var () z
+            , var () f
             , var () xs
             ]
 

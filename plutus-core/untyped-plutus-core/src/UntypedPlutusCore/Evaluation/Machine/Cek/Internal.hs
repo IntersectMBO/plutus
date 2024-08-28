@@ -714,7 +714,10 @@ enterComputeCek = computeCek
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
 
-    pushArgs :: Spine (CekValue uni fun ann) -> Context uni fun ann -> Context uni fun ann
+    pushArgs
+        :: Spine (CekValue uni fun ann)
+        -> Context uni fun ann
+        -> Context uni fun ann
     pushArgs args ctx = foldr FrameAwaitFunValue ctx args
 
     returnCekHeadSpine
