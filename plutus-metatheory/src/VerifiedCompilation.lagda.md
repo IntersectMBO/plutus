@@ -143,17 +143,23 @@ phaseName Translation.error = ""
 
 showTrace : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
 showTrace empty = "empty"
-showTrace (cons x bla) = phaseName x ++ showTranslation x ++ "\n" ++ showTrace bla
+showTrace (cons x bla) = showTranslation x ++ "\n\t" ++ showTrace bla
+
+showNeg : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → ¬ (Trace (Translation IsTransformation) xs) → String
+showNeg ¬p = "TODO ¬p"
 
 serializeTraceProof : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
-serializeTraceProof (no ¬p) = "no"
+serializeTraceProof (no ¬p) = "no " --FIXME: ++ showNeg ¬p
 serializeTraceProof (yes p) = "yes " ++ showTrace p
 
-serializeTrace : {X : Set} {{ _ : DecEq X}} → List ((X ⊢) × (X ⊢)) → String
-serializeTrace [] = ""
-serializeTrace ((ast , ast') ∷ t) with translation? isTransformation? ast ast'
-... | no ¬p = "no\n" ++ serializeTrace t -- FIXME: Would be useful to know what phase we are _trying_ ?
-... | yes p = "yes " ++ phaseName p ++ showTranslation p ++ "\n" ++ serializeTrace t
+prettyNeg : {X : Set} {x x' : X ⊢} → ¬ (Translation IsTransformation x x') → String
+prettyNeg ¬p = "TODO ¬p"
+
+prettyTrace : {X : Set} {{ _ : DecEq X}} → List ((X ⊢) × (X ⊢)) → String
+prettyTrace [] = ""
+prettyTrace ((ast , ast') ∷ t) with translation? isTransformation? ast ast'
+... | no ¬p = "no " ++ prettyNeg ¬p ++ "\n" ++ prettyTrace t -- FIXME: Would be useful to know what phase we are _trying_ ?
+... | yes p = "yes " ++ phaseName p ++ showTranslation p ++ "\n" ++ prettyTrace t
 
 ```
 
@@ -199,16 +205,27 @@ certifier
   : {X : Set}{{_ : DecEq X}}
   → List Untyped
   → Unary.Decidable (Trace (Translation IsTransformation) {Maybe X})
-  → Either ScopeError String
+  → Either ScopeError (String × String)
 certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
 ... | inj₁ err = inj₁ err
 ... | inj₂ rawTrace =
   let inputTrace = buildPairs rawTrace
-   --in inj₂ (serializeTraceProof (isRTrace? inputTrace))
-   in inj₂ (serializeTrace {Maybe X} inputTrace)
+   in inj₂ ((prettyTrace {Maybe X} inputTrace) , (serializeTraceProof (isRTrace? inputTrace)))
+
+defaultHeader : String → String
+defaultHeader name = "module " ++ name ++ " where\n\n"
+              ++ "open import VerifiedCompilation.UntypedTranslation using (Translation; Relation)\n"
+              ++ "import VerifiedCompilation.UCaseOfCase as UCC\n"
+              ++ "import VerifiedCompilation.UForceDelay as UFD\n"
+--FIXME: More imports etc.
+              ++ "\n"
+              ++ name ++ "Cert : Dec Translation IsTransformation\n"
+              ++ name ++ "Cert = "
 
 runCertifier : String → List Untyped → IO ⊤
 runCertifier fileName rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
 ... | inj₁ err = hPutStrLn stderr "error" -- TODO: pretty print error
-... | inj₂ result = writeFile (fileName ++ ".agda") result
+... | inj₂ (log , cert) = writeFile (fileName ++ ".log") log
+                        IO.>>= λ _ → (writeFile (fileName ++ ".agda") ((defaultHeader fileName) ++ cert))
+
 {-# COMPILE GHC runCertifier as runCertifier #-}
