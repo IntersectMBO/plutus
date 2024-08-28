@@ -89,9 +89,9 @@ data Trace (R : Relation) : { X : Set } → List ((X ⊢) × (X ⊢)) → Set₁
   cons : {X : Set} {x x' : X ⊢} {xs : List ((X ⊢) × (X ⊢))} → R x x' → Trace R {X} xs → Trace R {X} ((x , x') ∷ xs)
 
 data IsTransformation : Relation where
-  isCoC : {X : Set} → (ast ast' : X ⊢) → UCC.CoC ast ast' → IsTransformation ast ast'
-  isFD : {X : Set} → (ast ast' : X ⊢) → UFD.FD zero zero ast ast' → IsTransformation ast ast'
-  isID : {X : Set} → (ast ast' : X ⊢) → ast ≡ ast' → IsTransformation ast ast'
+  isCoC : {X : Set}{{ _ : DecEq X}} → (ast ast' : X ⊢) → UCC.UntypedCaseOfCase ast ast' → IsTransformation ast ast'
+  isFD : {X : Set}{{ _ : DecEq X}} → (ast ast' : X ⊢) → UFD.UntypedForceDelay ast ast' → IsTransformation ast ast'
+  isID : {X : Set}{{ _ : DecEq X}} → (ast ast' : X ⊢) → ast ≡ ast' → IsTransformation ast ast'
 
 isTrace? : {X : Set} {R : Relation} → Binary.Decidable (R {X}) → Unary.Decidable (Trace R {X})
 isTrace? {X} {R} isR? [] = yes empty
@@ -104,9 +104,9 @@ isTrace? {X} {R} isR? ((x₁ , x₂) ∷ xs) with isTrace? {X} {R} isR? xs
 isTransformation? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (IsTransformation {X})
 isTransformation? ast₁ ast₂ with decEq-⊢ ast₁ ast₂
 ... | yes refl = yes (isID ast₁ ast₁ refl)
-... | no ¬decEq-⊢ with UCC.isCoC? ast₁ ast₂
+... | no ¬decEq-⊢ with UCC.isUntypedCaseOfCase? ast₁ ast₂
 ... | yes p  = yes (isCoC ast₁ ast₂ p)
-... | no ¬p with UFD.isFD? zero zero ast₁ ast₂
+... | no ¬p with UFD.isForceDelay? ast₁ ast₂
 ... | yes p = yes (isFD ast₁ ast₂ p)
 ... | no ¬p₁ = no λ { (isCoC .ast₁ .ast₂ x) → ¬p x ; (isFD .ast₁ .ast₂ x) → ¬p₁ x ; (isID .ast₁ .ast₂ x) → ¬decEq-⊢ x}
 ```
@@ -118,9 +118,9 @@ The proof objects are converted to a textual representation which can be written
 
 ```
 showIsTransformation : {X : Set} {x x' : X ⊢} → IsTransformation x x' → String
-showIsTransformation (isCoC _ _ p) = show p -- FIXME: These are part of a bigger translation, which we might need to show?
-showIsTransformation (isFD _ _ p) = show p
-showIsTransformation (isID _ _ p) = "≡"
+showIsTransformation (isCoC _ _ t) = showTranslation {R = UCC.CoC} t -- FIXME: These are part of a bigger translation, which we might need to show?
+showIsTransformation (isFD _ _ t) = showTranslation {R = UFD.FD zero zero} t
+showIsTransformation (isID _ _ t) = "≡"
 
 instance
   VCShow-IsTransformation : VCShow IsTransformation
