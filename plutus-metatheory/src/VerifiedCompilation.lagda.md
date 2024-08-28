@@ -56,6 +56,9 @@ open import VerifiedCompilation.UntypedTranslation using (Translation; Relation;
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
 open import VerifiedCompilation.Show using (showTranslation; VCShow; show)
+open import VerifiedCompilation.Equality using (decEq-⊢)
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl)
 ```
 
 ## Compiler optimisation traces
@@ -88,6 +91,7 @@ data Trace (R : Relation) : { X : Set } → List ((X ⊢) × (X ⊢)) → Set₁
 data IsTransformation : Relation where
   isCoC : {X : Set} → (ast ast' : X ⊢) → UCC.CoC ast ast' → IsTransformation ast ast'
   isFD : {X : Set} → (ast ast' : X ⊢) → UFD.FD zero zero ast ast' → IsTransformation ast ast'
+  isID : {X : Set} → (ast ast' : X ⊢) → ast ≡ ast' → IsTransformation ast ast'
 
 isTrace? : {X : Set} {R : Relation} → Binary.Decidable (R {X}) → Unary.Decidable (Trace R {X})
 isTrace? {X} {R} isR? [] = yes empty
@@ -98,13 +102,13 @@ isTrace? {X} {R} isR? ((x₁ , x₂) ∷ xs) with isTrace? {X} {R} isR? xs
 ...   | yes p₁ = yes (cons p₁ p)
 
 isTransformation? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (IsTransformation {X})
-isTransformation? ast₁ ast₂ with UCC.isCoC? ast₁ ast₂
-isTransformation? ast₁ ast₂ | yes p  = yes (isCoC ast₁ ast₂ p)
-isTransformation? ast₁ ast₂ | no ¬p with UFD.isFD? zero zero ast₁ ast₂
-... | no ¬p₁ = no λ {(isCoC .ast₁ .ast₂ x) → ¬p x
-                                                   ; (isFD .ast₁ .ast₂ x) → ¬p₁ x}
+isTransformation? ast₁ ast₂ with decEq-⊢ ast₁ ast₂
+... | yes refl = yes (isID ast₁ ast₁ refl)
+... | no ¬decEq-⊢ with UCC.isCoC? ast₁ ast₂
+... | yes p  = yes (isCoC ast₁ ast₂ p)
+... | no ¬p with UFD.isFD? zero zero ast₁ ast₂
 ... | yes p = yes (isFD ast₁ ast₂ p)
-
+... | no ¬p₁ = no λ { (isCoC .ast₁ .ast₂ x) → ¬p x ; (isFD .ast₁ .ast₂ x) → ¬p₁ x ; (isID .ast₁ .ast₂ x) → ¬decEq-⊢ x}
 ```
 ## Serialising the proofs
 
@@ -116,6 +120,7 @@ The proof objects are converted to a textual representation which can be written
 showIsTransformation : {X : Set} {x x' : X ⊢} → IsTransformation x x' → String
 showIsTransformation (isCoC _ _ p) = show p -- FIXME: These are part of a bigger translation, which we might need to show?
 showIsTransformation (isFD _ _ p) = show p
+showIsTransformation (isID _ _ p) = "≡"
 
 instance
   VCShow-IsTransformation : VCShow IsTransformation
@@ -124,6 +129,7 @@ instance
 phaseName : {X : Set} {x x' : X ⊢} → Translation IsTransformation x x' → String
 phaseName (Translation.istranslation _ _ (isCoC _ _ x)) = "CaseOfCase: "
 phaseName (Translation.istranslation _ _ (isFD _ _ x)) = "ForceDelay: "
+phaseName (Translation.istranslation _ _ (isID _ _ x)) = "ID:  "
 phaseName Translation.var = ""
 phaseName (Translation.ƛ t) = phaseName t
 phaseName (Translation.app t t₁) = phaseName t
