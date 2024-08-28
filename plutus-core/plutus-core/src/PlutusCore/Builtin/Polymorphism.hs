@@ -18,6 +18,7 @@ module PlutusCore.Builtin.Polymorphism
     , TyAppRep
     , TyForallRep
     , BuiltinHead
+    , LastArg
     , ElaborateBuiltin
     , AllElaboratedArgs
     , AllBuiltinArgs
@@ -187,6 +188,9 @@ data family TyForallRep (name :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
 -- or type family.
 type BuiltinHead :: forall a. a -> a
 data family BuiltinHead x
+
+type LastArg :: GHC.Type -> GHC.Type -> GHC.Type
+data family LastArg x y
 
 -- | Take an iterated application of a built-in type and elaborate every function application
 -- inside of it to 'TyAppRep' and annotate the head with 'BuiltinHead'.

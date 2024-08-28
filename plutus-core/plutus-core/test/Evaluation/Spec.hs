@@ -168,7 +168,7 @@ genArgs ::
     forall uni fun.
     ToBuiltinMeaning uni fun
     => PLC.BuiltinSemanticsVariant fun
-    -> (forall (a :: GHC.Type). TypeRep a -> Gen (Term uni fun))
+    -> (forall (a :: GHC.Type). KnownTypeAst TyName uni a => TypeRep a -> Gen (Term uni fun))
     -> fun
     -> Gen [Term uni fun]
 genArgs semvar genArg bn = sequenceA $ case meaning of

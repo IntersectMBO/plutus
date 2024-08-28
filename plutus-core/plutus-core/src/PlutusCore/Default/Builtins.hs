@@ -1492,7 +1492,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _ver CaseList =
         let caseListDenotation
-                :: Opaque val b
+                :: Opaque val (LastArg a b)
                 -> Opaque val (a -> [a] -> b)
                 -> SomeConstant uni [a]
                 -> BuiltinResult (Opaque (HeadSpine val) b)
