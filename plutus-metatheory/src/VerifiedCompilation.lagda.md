@@ -149,6 +149,12 @@ serializeTraceProof : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace 
 serializeTraceProof (no ¬p) = "no"
 serializeTraceProof (yes p) = "yes " ++ showTrace p
 
+serializeTrace : {X : Set} {{ _ : DecEq X}} → List ((X ⊢) × (X ⊢)) → String
+serializeTrace [] = ""
+serializeTrace ((ast , ast') ∷ t) with translation? isTransformation? ast ast'
+... | no ¬p = "no\n" ++ serializeTrace t -- FIXME: Would be useful to know what phase we are _trying_ ?
+... | yes p = "yes " ++ phaseName p ++ showTranslation p ++ "\n" ++ serializeTrace t
+
 ```
 
 ## The certification function
@@ -190,7 +196,7 @@ traverseEitherList f (x ∷ xs) with f x
 ...     | inj₂ resList = inj₂ (x' ∷ resList)
 
 certifier
-  : {X : Set}
+  : {X : Set}{{_ : DecEq X}}
   → List Untyped
   → Unary.Decidable (Trace (Translation IsTransformation) {Maybe X})
   → Either ScopeError String
@@ -198,7 +204,8 @@ certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
 ... | inj₁ err = inj₁ err
 ... | inj₂ rawTrace =
   let inputTrace = buildPairs rawTrace
-   in inj₂ (serializeTraceProof (isRTrace? inputTrace))
+   --in inj₂ (serializeTraceProof (isRTrace? inputTrace))
+   in inj₂ (serializeTrace {Maybe X} inputTrace)
 
 runCertifier : String → List Untyped → IO ⊤
 runCertifier fileName rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
