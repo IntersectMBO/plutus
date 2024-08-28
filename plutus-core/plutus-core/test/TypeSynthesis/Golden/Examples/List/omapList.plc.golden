@@ -1,5 +1,1 @@
-Type mismatch at ()
-Expected a term of type
-  'a-30'
-But found one of type
-  'r-32'
+all a. (a -> a) -> list a -> list a

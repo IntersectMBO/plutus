@@ -271,7 +271,7 @@ instance uni `Contains` f => KnownTypeAst tyname uni (BuiltinHead f) where
 instance KnownTypeAst tyname uni y => KnownTypeAst tyname uni (LastArg x y) where
     type IsBuiltin uni (LastArg x y) = IsBuiltin uni y
     type ToHoles _ (LastArg x y) = '[RepHole x, RepHole y]
-    type ToBinds uni acc (LastArg x y) = ToBinds uni (ToBinds uni acc y) x
+    type ToBinds uni acc (LastArg x y) = ToBinds uni (ToBinds uni acc x) y
     typeAst = toTypeAst $ Proxy @y
     {-# INLINE typeAst #-}
 

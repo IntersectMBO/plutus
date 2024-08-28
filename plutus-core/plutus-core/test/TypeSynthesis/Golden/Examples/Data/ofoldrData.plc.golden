@@ -1,5 +1,7 @@
-Type mismatch at ()
-Expected a term of type
-  'a-70'
-But found one of type
-  'r-72'
+(integer -> list data -> data) ->
+(list (pair data data) -> data) ->
+(list data -> data) ->
+(integer -> data) ->
+(bytestring -> data) ->
+data ->
+data
