@@ -151,6 +151,24 @@ smallConstant tr
     | otherwise = error $
         "smallConstant: I don't know how to generate constants of type " <> show tr
 
+smallTerm ::
+    forall (a :: GHC.Type).
+    KnownTypeAst PLC.TyName DefaultUni a =>
+    TypeRep a ->
+    PLC.Term PLC.TyName PLC.Name DefaultUni PLC.DefaultFun ()
+smallTerm tr0 = go (toTypeAst tr0) tr0 where
+    go ::
+        forall (b :: GHC.Type) fun.
+        PLC.Type PLC.TyName DefaultUni () ->
+        TypeRep b ->
+        PLC.Term PLC.TyName PLC.Name DefaultUni fun ()
+    go (PLC.TyApp _ dom _) tr
+        | trFun `App` _ `App` trCod <- tr
+        , Just HRefl <- eqTypeRep trFun (typeRep @(->)) =
+            PLC.LamAbs () (PLC.Name "_" (PLC.Unique 0)) dom $ go dom trCod
+    go _ tr = case smallConstant tr of
+        SomeConst x -> PLC.Constant () (PLC.someValue x)
+
 type Term = PLC.Term PLC.TyName PLC.Name DefaultUni DefaultFun ()
 
 type family Head a where
@@ -167,9 +185,7 @@ genArgs semvar bn = case meaning of
         go :: forall args res. TypeScheme Term args res -> [Term]
         go = \case
             TypeSchemeResult    -> []
-            TypeSchemeArrow sch ->
-              case smallConstant (typeRep @(Head args)) of
-                SomeConst x -> (PLC.Constant () $ PLC.someValue x) : go sch
+            TypeSchemeArrow sch -> smallTerm (typeRep @(Head args)) : go sch
             TypeSchemeAll _ sch -> go sch
   where
     meaning :: BuiltinMeaning Term (CostingPart DefaultUni DefaultFun)

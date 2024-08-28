@@ -1583,25 +1583,24 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunSixArguments . paramChooseData)
 
     toBuiltinMeaning _ver CaseData =
-        makeBuiltinMeaning
+        let caseDataDenotation
+                :: Opaque val (Integer -> [Data] -> b)
+                -> Opaque val ([(Data, Data)] -> b)
+                -> Opaque val ([Data] -> b)
+                -> Opaque val (Integer -> b)
+                -> Opaque val (BS.ByteString -> b)
+                -> Data
+                -> Opaque (HeadSpine val) b
+            caseDataDenotation fConstr fMap fList fI fB = \case
+                Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
+                Map es      -> headSpine fMap [fromValue es]
+                List ds     -> headSpine fList [fromValue ds]
+                I i         -> headSpine fI [fromValue i]
+                B b         -> headSpine fB [fromValue b]
+            {-# INLINE caseDataDenotation #-}
+        in makeBuiltinMeaning
             caseDataDenotation
             (runCostingFunSixArguments . unimplementedCostingFun)
-        where
-          caseDataDenotation
-              :: Opaque val (Integer -> [Data] -> b)
-              -> Opaque val ([(Data, Data)] -> b)
-              -> Opaque val ([Data] -> b)
-              -> Opaque val (Integer -> b)
-              -> Opaque val (BS.ByteString -> b)
-              -> Data
-              -> Opaque (HeadSpine val) b
-          caseDataDenotation fConstr fMap fList fI fB = \case
-              Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
-              Map es      -> headSpine fMap [fromValue es]
-              List ds     -> headSpine fList [fromValue ds]
-              I i         -> headSpine fI [fromValue i]
-              B b         -> headSpine fB [fromValue b]
-          {-# INLINE caseDataDenotation #-}
 
     toBuiltinMeaning _semvar ConstrData =
         let constrDataDenotation :: Integer -> [Data] -> Data
