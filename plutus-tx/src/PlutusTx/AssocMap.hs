@@ -128,7 +128,7 @@ instance (FromData k, FromData v) => FromData (Map k v) where
         where
           go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> Maybe [(k, v)]
           go l =
-            P.matchList
+            P.matchList'
               l
               (pure [])
               ( \tup tups ->
@@ -157,7 +157,7 @@ instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
         where
           go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
           go l =
-            P.matchList
+            P.matchList'
               l
               []
               ( \tup tups ->

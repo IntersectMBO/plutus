@@ -124,7 +124,8 @@ builtinsIntroducedIn = Map.fromList [
           AndByteString, OrByteString, XorByteString, ComplementByteString,
           ReadBit, WriteBits, ReplicateByte,
           ShiftByteString, RotateByteString, CountSetBits, FindFirstSetBit,
-          Ripemd_160, ExpModInteger
+          Ripemd_160, ExpModInteger,
+          CaseList, CaseData
           ])
   ]
 

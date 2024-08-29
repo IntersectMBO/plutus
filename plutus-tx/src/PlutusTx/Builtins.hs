@@ -45,8 +45,9 @@ module PlutusTx.Builtins (
                          -- * Data
                          , BuiltinData
                          , chooseData
+                         , BI.caseData'
                          , matchData
-                         , BI.matchData'
+                         , matchData'
                          , equalsData
                          , serialiseData
                          , mkConstr
@@ -73,6 +74,7 @@ module PlutusTx.Builtins (
                          , mkNil
                          , mkNilOpaque
                          , null
+                         , BI.caseList'
                          , matchList
                          , matchList'
                          , headMaybe
@@ -419,11 +421,11 @@ null l = fromOpaque (BI.null l)
 
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> (() -> r) -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.matchList l nilCase (\x xs _ -> consCase x xs) ()
+matchList l nilCase consCase = BI.caseList' nilCase (\x xs _ -> consCase x xs) l ()
 
 {-# INLINABLE matchList' #-}
 matchList' :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList' l nilCase consCase = BI.matchList l (\_ -> nilCase) (\x xs _ -> consCase x xs) ()
+matchList' l nilCase consCase = BI.caseList' (\_ -> nilCase) (\x xs _ -> consCase x xs) l ()
 
 {-# INLINE headMaybe #-}
 headMaybe :: BI.BuiltinList a -> Maybe a
@@ -510,6 +512,18 @@ unsafeDataAsB = BI.unsafeDataAsB
 equalsData :: BuiltinData -> BuiltinData -> Bool
 equalsData d1 d2 = fromOpaque (BI.equalsData d1 d2)
 
+{-# INLINABLE matchData' #-}
+matchData'
+    :: BuiltinData
+    -> (Integer -> BI.BuiltinList BuiltinData -> r)
+    -> (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> r)
+    -> (BI.BuiltinList BuiltinData -> r)
+    -> (Integer -> r)
+    -> (BuiltinByteString -> r)
+    -> r
+matchData' d constrCase mapCase listCase iCase bCase =
+    BI.caseData' constrCase mapCase listCase iCase bCase d
+
 {-# INLINABLE matchData #-}
 -- | Given a 'BuiltinData' value and matching functions for the five constructors,
 -- applies the appropriate matcher to the arguments of the constructor and returns the result.
@@ -522,10 +536,10 @@ matchData
     -> (BuiltinByteString -> r)
     -> r
 matchData d constrCase mapCase listCase iCase bCase =
-   BI.matchData' d
-     (\i ds -> constrCase i (fromBuiltin ds))
-     (\ps -> mapCase (fromBuiltin ps))
-     (\ds -> listCase (fromBuiltin ds))
+   matchData' d
+     (\i ds -> constrCase i (fromOpaque ds))
+     (\ps -> mapCase (fromOpaque ps))
+     (\ds -> listCase (fromOpaque ds))
      iCase
      bCase
 

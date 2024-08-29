@@ -6,22 +6,22 @@ let
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !equalsInteger : integer -> integer -> bool = equalsInteger
-  data (Maybe :: * -> *) a | Maybe_match where
-    Just : a -> Maybe a
-    Nothing : Maybe a
-  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
-  !matchData' :
+  !caseData' :
      all r.
-       data ->
        (integer -> list data -> r) ->
        (list (pair data data) -> r) ->
        (list data -> r) ->
        (integer -> r) ->
        (bytestring -> r) ->
+       data ->
        r
     = caseData
-  !matchList : all a r. list a -> r -> (a -> list a -> r) -> r = caseList
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r = caseList
+  !equalsInteger : integer -> integer -> bool = equalsInteger
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   ~`$fFromDataTuple2_$cfromBuiltinData` :
      all a b.
        (\a -> data -> Maybe a) a ->
@@ -35,9 +35,8 @@ let
           let
             !d : data = d
           in
-          matchData'
+          caseData'
             {Maybe (Tuple2 a b)}
-            d
             (\(index : integer) ->
                let
                  !index : integer = index
@@ -53,10 +52,9 @@ let
                    (/\dead ->
                       Maybe_match
                         {Tuple2 data (list data)}
-                        (matchList
+                        (caseList'
                            {data}
                            {Unit -> Maybe (Tuple2 data (list data))}
-                           args
                            (\(ds : Unit) -> Nothing {Tuple2 data (list data)})
                            (\(x : data) ->
                               let
@@ -70,6 +68,7 @@ let
                                   Just
                                     {Tuple2 data (list data)}
                                     (Tuple2 {data} {list data} x xs))
+                           args
                            Unit)
                         {all dead. Maybe (Tuple2 a b)}
                         (\(ds : Tuple2 data (list data)) ->
@@ -91,10 +90,9 @@ let
                                        /\dead ->
                                          Maybe_match
                                            {data}
-                                           (matchList
+                                           (caseList'
                                               {data}
                                               {Unit -> Maybe data}
-                                              l
                                               (\(ds : Unit) -> Nothing {data})
                                               (\(x : data) ->
                                                  let
@@ -103,6 +101,7 @@ let
                                                  \(xs : list data)
                                                   (ds : Unit) ->
                                                    Just {data} x)
+                                              l
                                               Unit)
                                            {all dead. Maybe (Tuple2 a b)}
                                            (\(ds : data) ->
@@ -135,6 +134,7 @@ let
             (\(ds : list data) -> Nothing {Tuple2 a b})
             (\(ds : integer) -> Nothing {Tuple2 a b})
             (\(ds : bytestring) -> Nothing {Tuple2 a b})
+            d
   ~`$fFromDataTuple2` :
      all a b.
        (\a -> data -> Maybe a) a ->
@@ -146,14 +146,14 @@ let
         let
           !d : data = d
         in
-        matchData'
+        caseData'
           {Maybe integer}
-          d
           (\(ds : integer) (ds : list data) -> Nothing {integer})
           (\(ds : list (pair data data)) -> Nothing {integer})
           (\(ds : list data) -> Nothing {integer})
           (\(i : integer) -> let !i : integer = i in Just {integer} i)
           (\(ds : bytestring) -> Nothing {integer})
+          d
   ~`$fFromDataInteger` : (\a -> data -> Maybe a) integer
     = `$fFromDataInteger_$cfromBuiltinData`
   ~`$dFromData` : (\a -> data -> Maybe a) (Tuple2 integer integer)

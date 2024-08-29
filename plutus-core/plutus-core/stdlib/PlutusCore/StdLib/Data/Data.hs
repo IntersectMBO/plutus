@@ -7,7 +7,7 @@
 
 module PlutusCore.StdLib.Data.Data
     ( dataTy
-    , caseData
+    , matchData
     ) where
 
 import Prelude hiding (uncurry)
@@ -36,7 +36,7 @@ dataTy = mkTyBuiltin @_ @Data ()
 -- >       (fList : list data -> r)
 -- >       (fI : integer -> r)
 -- >       (fB : bytestring -> r) ->
--- >           caseData
+-- >           matchData
 -- >               {unit -> r}
 -- >               fConstr
 -- >               fMap
@@ -44,8 +44,8 @@ dataTy = mkTyBuiltin @_ @Data ()
 -- >               fI
 -- >               fB
 -- >               d
-caseData :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-caseData = runQuote $ do
+matchData :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+matchData = runQuote $ do
     r       <- freshTyName "r"
     fConstr <- freshName "fConstr"
     fMap    <- freshName "fMap"

@@ -6,7 +6,7 @@
 
 module PlutusCore.StdLib.Data.List
     ( list
-    , caseList
+    , matchList
     , foldrList
     , foldList
     , sum
@@ -29,18 +29,18 @@ list :: uni `HasTypeLevel` [] => Type tyname uni ()
 list = mkTyBuiltin @_ @[] ()
 
 -- See Note [Pattern matching on built-in types].
--- | Pattern matching on built-in lists. @caseList {a} xs@ on built-in lists is
+-- | Pattern matching on built-in lists. @matchList {a} xs@ on built-in lists is
 -- equivalent to @unwrap xs@ on lists defined in PLC itself (hence why we bind @r@ after @xs@).
 --
 -- > /\(a :: *) -> \(xs : list a) -> /\(r :: *) -> (z : r) (f : a -> list a -> r) ->
--- >     caseList
+-- >     matchList
 -- >         {a}
 -- >         {r}
 -- >         z
 -- >         f
 -- >         xs
-caseList :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-caseList = runQuote $ do
+matchList :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+matchList = runQuote $ do
     a <- freshTyName "a"
     r <- freshTyName "r"
     xs <- freshName "xs"
@@ -67,7 +67,7 @@ caseList = runQuote $ do
 --
 -- > /\(a :: *) (r :: *) -> \(f : a -> r -> r) (z : r) ->
 -- >     fix {list a} {r} \(rec : list a -> r) (xs : list a) ->
--- >         caseList {a} xs {r} z \(x : a) (xs' : list a) -> f x (rec xs')
+-- >         matchList {a} xs {r} z \(x : a) (xs' : list a) -> f x (rec xs')
 foldrList :: TermLike term TyName Name DefaultUni DefaultFun => term ()
 foldrList = runQuote $ do
     a   <- freshTyName "a"
@@ -79,7 +79,7 @@ foldrList = runQuote $ do
     x   <- freshName "x"
     xs' <- freshName "xs'"
     let listA = TyApp () list $ TyVar () a
-        unwrap' ann = apply ann . tyInst () caseList $ TyVar () a
+        unwrap' ann = apply ann . tyInst () matchList $ TyVar () a
     -- Copypasted verbatim from @foldrList@ over Scott-encoded lists.
     return
         . tyAbs () a (Type ())
@@ -101,7 +101,7 @@ foldrList = runQuote $ do
 --
 -- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) ->
 -- >     fix {r} {list a -> r} \(rec : r -> list a -> r) (z : r) (xs : list a) ->
--- >         caseList {a} xs {r} z \(x : a) (xs' : list a) -> rec (f z x) xs'
+-- >         matchList {a} xs {r} z \(x : a) (xs' : list a) -> rec (f z x) xs'
 foldList :: TermLike term TyName Name DefaultUni DefaultFun => term ()
 foldList = runQuote $ do
     a   <- freshTyName "a"
@@ -113,7 +113,7 @@ foldList = runQuote $ do
     x   <- freshName "x"
     xs' <- freshName "xs'"
     let listA = TyApp () list $ TyVar () a
-        unwrap' ann = apply ann . tyInst () caseList $ TyVar () a
+        unwrap' ann = apply ann . tyInst () matchList $ TyVar () a
     return
         . tyAbs () a (Type ())
         . tyAbs () r (Type ())
