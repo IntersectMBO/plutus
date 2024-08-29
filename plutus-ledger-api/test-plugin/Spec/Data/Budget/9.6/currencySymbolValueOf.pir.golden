@@ -1,18 +1,11 @@
-let
-  data Unit | Unit_match where
-    Unit : Unit
-in
 letrec
   !go : list (pair data data) -> integer
-    = \(xs : list (pair data data)) ->
-        caseList
-          {pair data data}
-          {Unit -> integer}
-          (\(ds : Unit) -> 0)
-          (\(x : pair data data) (xs : list (pair data data)) (ds : Unit) ->
-             addInteger (unIData (sndPair {data} {data} x)) (go xs))
-          xs
-          Unit
+    = caseList
+        {pair data data}
+        {integer}
+        0
+        (\(hd : pair data data) (tl : list (pair data data)) ->
+           addInteger (unIData (sndPair {data} {data} hd)) (go tl))
 in
 let
   data Bool | Bool_match where
@@ -34,24 +27,23 @@ in
     in
     letrec
       !go : list (pair data data) -> Maybe data
-        = \(xs : list (pair data data)) ->
-            caseList
-              {pair data data}
-              {Unit -> Maybe data}
-              (\(ds : Unit) -> Nothing {data})
-              (\(x : pair data data) (xs : list (pair data data)) (ds : Unit) ->
-                 Bool_match
-                   (ifThenElse
-                      {Bool}
-                      (equalsData k (fstPair {data} {data} x))
-                      True
-                      False)
-                   {all dead. Maybe data}
-                   (/\dead -> Just {data} (sndPair {data} {data} x))
-                   (/\dead -> go xs)
-                   {all dead. dead})
-              xs
-              Unit
+        = caseList
+            {pair data data}
+            {Maybe data}
+            (Nothing {data})
+            (\(hd : pair data data) ->
+               Bool_match
+                 (ifThenElse
+                    {Bool}
+                    (equalsData k (fstPair {data} {data} hd))
+                    True
+                    False)
+                 {all dead. list (pair data data) -> Maybe data}
+                 (/\dead ->
+                    \(ds : list (pair data data)) ->
+                      Just {data} (sndPair {data} {data} hd))
+                 (/\dead -> go)
+                 {all dead. dead})
     in
     go ds)
     {integer}

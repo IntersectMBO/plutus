@@ -232,8 +232,6 @@ instance HasFromOpaque arep a => HasFromOpaque (BuiltinList arep) [a] where
           -- lifted to the top level, which means it gets a proper unfolding, which means that
           -- specialization can work, which can actually help quite a bit here.
           go :: BuiltinList arep -> [a]
-          -- Note that we are using builtin chooseList here so this is *strict* application! So we
-          -- need to do the manual laziness ourselves.
           go = caseList' [] (\x xs -> fromOpaque x : go xs)
           {-# INLINABLE go #-}
     {-# INLINABLE fromOpaque #-}
