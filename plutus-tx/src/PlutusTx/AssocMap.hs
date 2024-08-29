@@ -111,9 +111,8 @@ instance (ToData k, ToData v) => ToData (Map k v) where
 -- encoded in the 'Data' is well-formed, i.e. 'fromBuiltinData' does not perform any
 -- deduplication of keys or of key-value pairs!
 instance (FromData k, FromData v) => FromData (Map k v) where
-  fromBuiltinData d =
-    P.matchData'
-      d
+  fromBuiltinData =
+    P.caseData'
       (\_ _ -> Nothing)
       (\es -> Map <$> traverseFromBuiltin es)
       (const Nothing)
@@ -127,9 +126,8 @@ instance (FromData k, FromData v) => FromData (Map k v) where
       traverseFromBuiltin = go
         where
           go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> Maybe [(k, v)]
-          go l =
-            P.matchList'
-              l
+          go =
+            P.caseList'
               (pure [])
               ( \tup tups ->
                    liftA2
@@ -156,9 +154,8 @@ instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
       mapFromBuiltin = go
         where
           go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
-          go l =
-            P.matchList'
-              l
+          go =
+            P.caseList'
               []
               ( \tup tups ->
                    (unsafeFromBuiltinData $ BI.fst tup, unsafeFromBuiltinData $ BI.snd tup)

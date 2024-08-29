@@ -472,31 +472,6 @@ evalBuiltinApp ann ctx fun term runtime = case runtime of
     _ -> returnCek ctx $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
--- -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
--- -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
--- -- fully saturated or not.
--- evalBuiltinApp
---     :: (GivenCekReqs uni fun ann s, ThrowableBuiltins uni fun)
---     => fun
---     -> NTerm uni fun ()
---     -> BuiltinRuntime (CekValue uni fun ann)
---     -> CekM uni fun s (CekValue uni fun ann)
--- evalBuiltinApp fun term runtime = case runtime of
---     BuiltinCostedResult budgets0 getX -> do
---         let exCat = BBuiltinApp fun
---             spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
---             spendBudgets (ExBudgetCons budget budgets) =
---                 spendBudget exCat budget *> spendBudgets budgets
---         spendBudgets budgets0
---         case getFxs of
---             MakeKnownSuccess fXs              -> pure undefined
---             MakeKnownSuccessWithLogs logs fXs -> ?cekEmitter logs $> undefined
---             BuiltinFailure logs err           -> do
---                 ?cekEmitter logs
---                 throwBuiltinErrorWithCause term err
---     _ -> pure $ VBuiltin fun term runtime
--- {-# INLINE evalBuiltinApp #-}
-
 spendBudget :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
 spendBudget = unCekBudgetSpender ?cekBudgetSpender
 

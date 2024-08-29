@@ -234,7 +234,7 @@ instance HasFromOpaque arep a => HasFromOpaque (BuiltinList arep) [a] where
           go :: BuiltinList arep -> [a]
           -- Note that we are using builtin chooseList here so this is *strict* application! So we
           -- need to do the manual laziness ourselves.
-          go l = chooseList l (\_ -> []) (\_ -> fromOpaque (head l) : go (tail l)) unitval
+          go = caseList' [] (\x xs -> fromOpaque x : go xs)
           {-# INLINABLE go #-}
     {-# INLINABLE fromOpaque #-}
 

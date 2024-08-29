@@ -55,36 +55,26 @@ program
          (all a b. (a -> b) -> f a -> f b)
       = /\(f :: * -> *) ->
           \(v : (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) f) -> v
-    ~`$fHasFromOpaqueBuiltinDataBuiltinData_$cfromOpaque` : data -> data
-      = \(eta : data) -> eta
-    !chooseList : all a b. list a -> b -> b -> b = chooseList
-    !head : all a. list a -> a = headList
-    !tail : all a. list a -> list a = tailList
-    !unitval : unit = ()
-    ~`$fHasFromOpaqueBuiltinListList_$cfromOpaque` :
-       all arep a. (\arep a -> arep -> a) arep a -> list arep -> List a
-      = /\arep a ->
-          \(`$dHasFromOpaque` : (\arep a -> arep -> a) arep a) ->
-            letrec
-              ~go : list arep -> List a
-                = \(l : list arep) ->
-                    let
-                      !l : list arep = l
-                    in
-                    chooseList
-                      {arep}
-                      {unit -> List a}
-                      l
-                      (\(ds : unit) -> Nil {a})
-                      (\(ds : unit) ->
-                         Cons
-                           {a}
-                           (`$dHasFromOpaque` (head {arep} l))
-                           (go (tail {arep} l)))
-                      unitval
-            in
-            \(eta : list arep) -> go eta
     !fst : all a b. pair a b -> a = fstPair
+    !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r = caseList
+  in
+  letrec
+    ~matchData_go : list data -> List data
+      = caseList'
+          {data}
+          {List data}
+          (Nil {data})
+          (\(x : data) ->
+             let
+               !x : data = x
+             in
+             \(xs : list data) ->
+               let
+                 !xs : list data = xs
+               in
+               Cons {data} x (matchData_go xs))
+  in
+  let
     !snd : all a b. pair a b -> b = sndPair
     !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
     ~unsafeDataAsConstr : data -> Tuple2 integer (List data)
@@ -98,13 +88,10 @@ program
             {List data}
             (fst {integer} {list data} p)
             (let
+              !f : list data -> List data = matchData_go
               !a : list data = snd {integer} {list data} p
             in
-            `$fHasFromOpaqueBuiltinListList_$cfromOpaque`
-              {data}
-              {data}
-              `$fHasFromOpaqueBuiltinDataBuiltinData_$cfromOpaque`
-              a)
+            f a)
     !unsafeDataAsI : data -> integer = unIData
     ~unsafeDataAsI : data -> integer
       = \(d : data) -> let !d : data = d in unsafeDataAsI d

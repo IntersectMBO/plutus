@@ -31,28 +31,22 @@
                               ((\rs' ->
                                   (\ls' -> go rs' ls') (go nt))
                                  (fix1
-                                    (\go
-                                      xs ->
+                                    (\go ->
                                        force
                                          (force caseList)
-                                         (\ds -> [])
-                                         (\x
-                                           xs
-                                           ds ->
+                                         []
+                                         (\hd
+                                           tl ->
                                             (\tl' ->
                                                force
                                                  (case
                                                     ((\k ->
                                                         fix1
-                                                          (\go
-                                                            xs ->
+                                                          (\go ->
                                                              force
                                                                (force caseList)
-                                                               (\ds ->
-                                                                  constr 1 [])
-                                                               (\x
-                                                                 xs
-                                                                 ds ->
+                                                               (constr 1 [])
+                                                               (\hd ->
                                                                   force
                                                                     (force
                                                                        (force
@@ -62,28 +56,24 @@
                                                                              (force
                                                                                 (force
                                                                                    fstPair)
-                                                                                x))
+                                                                                hd))
                                                                           (delay
                                                                              (delay
-                                                                                (constr 0
-                                                                                   [  ])))
+                                                                                (\ds ->
+                                                                                   constr 0
+                                                                                     [  ])))
                                                                           (delay
                                                                              (delay
-                                                                                (go
-                                                                                   xs))))))
-                                                               xs
-                                                               (constr 0 []))
+                                                                                go))))))
                                                           nt)
                                                        (force (force fstPair)
-                                                          x))
+                                                          hd))
                                                     [ (delay tl')
                                                     , (delay
                                                          (force mkCons
-                                                            x
+                                                            hd
                                                             tl')) ]))
-                                              (go xs))
-                                         xs
-                                         (constr 0 []))
+                                              (go tl)))
                                     nt)))
                            (unsafeFromList
                               (\i -> iData i)
@@ -106,27 +96,22 @@
                                                      , (constr 0
                                                           []) ]) ]) ]) ]) ])))
                         (fix1
-                           (\go
-                             xs ->
+                           (\go ->
                               force
                                 (force caseList)
-                                (\ds -> [])
-                                (\x
-                                  xs
-                                  ds ->
+                                []
+                                (\hd
+                                  tl ->
                                    (\v' ->
                                       (\k' ->
                                          force
                                            (case
                                               (fix1
-                                                 (\go
-                                                   xs ->
+                                                 (\go ->
                                                     force
                                                       (force caseList)
-                                                      (\ds -> constr 1 [])
-                                                      (\x
-                                                        xs
-                                                        ds ->
+                                                      (constr 1 [])
+                                                      (\hd ->
                                                          force
                                                            (force
                                                               (force
@@ -136,20 +121,18 @@
                                                                     (force
                                                                        (force
                                                                           fstPair)
-                                                                       x))
+                                                                       hd))
                                                                  (delay
                                                                     (delay
-                                                                       (constr 0
-                                                                          [ (force
-                                                                               (force
-                                                                                  sndPair)
-                                                                               x) ])))
+                                                                       (\ds ->
+                                                                          constr 0
+                                                                            [ (force
+                                                                                 (force
+                                                                                    sndPair)
+                                                                                 hd) ])))
                                                                  (delay
                                                                     (delay
-                                                                       (go
-                                                                          xs))))))
-                                                      xs
-                                                      (constr 0 []))
+                                                                       go))))))
                                                  nt)
                                               [ (\r ->
                                                    delay
@@ -160,15 +143,13 @@
                                                               (appendByteString
                                                                  (unBData v')
                                                                  (unBData r))))
-                                                        (go xs)))
+                                                        (go tl)))
                                               , (delay
                                                    (force mkCons
                                                       (mkPairData k' v')
-                                                      (go xs))) ]))
-                                        (force (force fstPair) x))
-                                     (force (force sndPair) x))
-                                xs
-                                (constr 0 []))))
+                                                      (go tl))) ]))
+                                        (force (force fstPair) hd))
+                                     (force (force sndPair) hd)))))
                      (unsafeFromList
                         (\i -> iData i)
                         bData
@@ -210,22 +191,18 @@
                               (case d [(\d d -> mkPairData d d)])
                               (goList ds)) ])))
             (fix1
-               (\go acc xs ->
+               (\go acc ->
                   force (force caseList)
-                    (\ds -> acc)
-                    (\x xs ds -> go (force mkCons x acc) xs)
-                    xs
-                    (constr 0 []))))
+                    acc
+                    (\hd -> go (force mkCons hd acc)))))
          (fix1
-            (\go xs ->
+            (\go ->
                force (force caseList)
-                 (\ds -> constr 0 [])
-                 (\x xs ds ->
+                 (constr 0 [])
+                 (\hd tl ->
                     constr 1
                       [ (constr 0
-                           [ (unIData (force (force fstPair) x))
-                           , (unBData (force (force sndPair) x)) ])
-                      , (go xs) ])
-                 xs
-                 (constr 0 []))))
+                           [ (unIData (force (force fstPair) hd))
+                           , (unBData (force (force sndPair) hd)) ])
+                      , (go tl) ]))))
       (\f -> (\s -> s s) (\s -> f (\x -> s s x)))))

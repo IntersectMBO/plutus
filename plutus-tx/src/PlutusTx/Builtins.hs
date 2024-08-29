@@ -425,16 +425,16 @@ matchList l nilCase consCase = BI.caseList' nilCase (\x xs _ -> consCase x xs) l
 
 {-# INLINABLE matchList' #-}
 matchList' :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList' l nilCase consCase = BI.caseList' (\_ -> nilCase) (\x xs _ -> consCase x xs) l ()
+matchList' l nilCase consCase = BI.caseList' nilCase consCase l
 
 {-# INLINE headMaybe #-}
 headMaybe :: BI.BuiltinList a -> Maybe a
-headMaybe l = matchList' l Nothing (\h _ -> Just h)
+headMaybe = BI.caseList' Nothing (\h _ -> Just h)
 
 {-# INLINE uncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
 uncons :: BI.BuiltinList a -> Maybe (a, BI.BuiltinList a)
-uncons l = matchList' l Nothing (\h t -> Just (h, t))
+uncons = BI.caseList' Nothing (\h t -> Just (h, t))
 
 {-# INLINE unsafeUncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
