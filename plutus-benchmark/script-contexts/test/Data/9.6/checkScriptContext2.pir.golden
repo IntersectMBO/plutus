@@ -91,16 +91,14 @@
             letrec
               !go : list data -> List a
                 = \(l : list data) ->
-                    chooseList
+                    caseList
                       {data}
-                      {Unit -> List a}
+                      {Unit -> Unit -> List a}
+                      (\(ds : Unit) (ds : Unit) -> Nil {a})
+                      (\(x : data) (xs : list data) (ds : Unit) (ds : Unit) ->
+                         Cons {a} (`$dUnsafeFromData` x) (go xs))
                       l
-                      (\(ds : Unit) -> Nil {a})
-                      (\(ds : Unit) ->
-                         Cons
-                           {a}
-                           (`$dUnsafeFromData` (headList {data} l))
-                           (go (tailList {data} l)))
+                      Unit
                       Unit
             in
             \(d : data) -> go (unListData d)

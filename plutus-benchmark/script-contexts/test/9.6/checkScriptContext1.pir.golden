@@ -134,11 +134,12 @@
                 = \(l : list data) ->
                     caseList
                       {data}
-                      {Unit -> List a}
-                      l
-                      (\(ds : Unit) -> Nil {a})
-                      (\(x : data) (xs : list data) (ds : Unit) ->
+                      {Unit -> Unit -> List a}
+                      (\(ds : Unit) (ds : Unit) -> Nil {a})
+                      (\(x : data) (xs : list data) (ds : Unit) (ds : Unit) ->
                          Cons {a} (`$dUnsafeFromData` x) (go xs))
+                      l
+                      Unit
                       Unit
             in
             \(d : data) -> go (unListData d)
@@ -198,7 +199,6 @@
                     caseList
                       {pair data data}
                       {Unit -> List (Tuple2 k v)}
-                      l
                       (\(ds : Unit) -> Nil {Tuple2 k v})
                       (\(x : pair data data)
                         (xs : list (pair data data))
@@ -211,6 +211,7 @@
                               (`$dUnsafeFromData` (fstPair {data} {data} x))
                               (`$dUnsafeFromData` (sndPair {data} {data} x)))
                            (go xs))
+                      l
                       Unit
             in
             \(d : data) -> go (unMapData d)
