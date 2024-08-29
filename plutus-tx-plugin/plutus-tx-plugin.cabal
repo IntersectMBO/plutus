@@ -83,7 +83,7 @@ library
     , flat                                  ^>=0.6
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.11
+    , plutus-core:{plutus-core, plutus-ir}   ^>=1.11
     , plutus-tx                             ^>=1.11
     , prettyprinter
     , PyF                                   >=0.11.1.0
@@ -163,7 +163,7 @@ test-suite plutus-tx-tests
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.11
+    , plutus-core:{plutus-core, plutus-core-testlib}   ^>=1.11
     , plutus-tx-plugin                                ^>=1.11
     , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.11
     , tasty

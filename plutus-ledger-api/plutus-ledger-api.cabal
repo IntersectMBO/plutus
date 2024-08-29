@@ -96,7 +96,7 @@ library
     , lens
     , mtl
     , nothunks
-    , plutus-core        ^>=1.11
+    , plutus-core         ^>=1.11
     , plutus-tx          ^>=1.11
     , prettyprinter
     , serialise
@@ -117,7 +117,7 @@ library plutus-ledger-api-testlib
     , base               >=4.9      && <5
     , base64-bytestring
     , bytestring
-    , plutus-core        ^>=1.11
+    , plutus-core         ^>=1.11
     , plutus-ledger-api  ^>=1.11
     , plutus-tx          ^>=1.11
     , prettyprinter
@@ -147,7 +147,7 @@ test-suite plutus-ledger-api-test
     , hedgehog
     , mtl
     , nothunks
-    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.11
+    , plutus-core:{plutus-core, plutus-core-testlib}                     ^>=1.11
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.11
     , plutus-tx:plutus-tx-testlib                                       ^>=1.11
     , tasty
@@ -169,7 +169,7 @@ executable evaluation-test
     , extra
     , filepath
     , mtl
-    , plutus-core                                                       ^>=1.11
+    , plutus-core                                                        ^>=1.11
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.11
     , serialise
     , tasty
