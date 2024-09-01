@@ -24,7 +24,6 @@ module PlutusCore.Builtin.KnownType
     , ReadKnownM
     , Spine (..)
     , HeadSpine (..)
-    , noSpine
     , MakeKnownIn (..)
     , readKnownConstant
     , MakeKnown
@@ -280,13 +279,14 @@ readKnownConstant val = asConstant val >>= oneShot \case
 {-# INLINE readKnownConstant #-}
 
 data Spine a
-    = NilSpine
+    = LastSpine a
     | ConsSpine a (Spine a)
     deriving stock (Show, Eq, Foldable, Functor)
 
 data HeadSpine a
-    = HeadSpine a (Spine a)
-    deriving stock (Show, Eq, Functor)
+    = HeadOnly a
+    | HeadSpine a (Spine a)
+    deriving stock (Show, Eq, Functor, Foldable)
 
 -- |
 --
@@ -296,12 +296,9 @@ instance Pretty a => Pretty (Spine a) where pretty = pretty . map Identity . toL
 instance PrettyBy config a => PrettyBy config (Spine a)
 
 instance Pretty a => Pretty (HeadSpine a) where
+    pretty (HeadOnly x)     = pretty x
     pretty (HeadSpine f xs) = pretty f <+> "`applyN`" <+> pretty xs
 instance PrettyBy config a => PrettyBy config (HeadSpine a)
-
-noSpine :: a -> HeadSpine a
-noSpine x = HeadSpine x NilSpine
-{-# INLINE noSpine #-}
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => MakeKnownIn uni val a where
@@ -317,7 +314,7 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     --
     -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
     -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
-    makeKnown x = pure . noSpine . fromValue $! x
+    makeKnown x = pure . HeadOnly . fromValue $! x
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
@@ -381,7 +378,7 @@ instance
     {-# INLINE readKnown #-}
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where
-    makeKnown = coerceArg $ pure . noSpine . fromConstant
+    makeKnown = coerceArg $ pure . HeadOnly . fromConstant
     {-# INLINE makeKnown #-}
 
 instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) where
@@ -389,7 +386,7 @@ instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) whe
     {-# INLINE readKnown #-}
 
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
-    makeKnown = coerceArg $ pure . noSpine
+    makeKnown = coerceArg $ pure . HeadOnly
     {-# INLINE makeKnown #-}
 
 instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where

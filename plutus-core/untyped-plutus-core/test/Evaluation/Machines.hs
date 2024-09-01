@@ -54,7 +54,7 @@ testMachine machine eval =
             let resExp = makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
             case extractEvaluationResult . eval $ eraseTerm term of
                 Left err     -> fail $ show err
-                Right resAct -> fmap noSpine resAct === fmap (fmap eraseTerm) resExp
+                Right resAct -> fmap HeadOnly resAct === fmap (fmap eraseTerm) resExp
 
 test_machines :: TestTree
 test_machines =

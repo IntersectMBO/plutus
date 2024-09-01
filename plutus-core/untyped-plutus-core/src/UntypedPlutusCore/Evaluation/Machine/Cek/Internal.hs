@@ -724,6 +724,7 @@ enterComputeCek = computeCek
         :: Context uni fun ann
         -> HeadSpine (CekValue uni fun ann)
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+    returnCekHeadSpine ctx (HeadOnly  x)    = returnCek ctx x
     returnCekHeadSpine ctx (HeadSpine f xs) = returnCek (pushArgs xs ctx) f
 
     -- | @force@ a term and proceed.

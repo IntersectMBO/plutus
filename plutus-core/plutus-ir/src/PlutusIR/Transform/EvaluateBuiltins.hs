@@ -35,6 +35,9 @@ evaluateBuiltinsPass tcconfig preserveLogging binfo costModel =
       [Typechecks tcconfig]
       [ConstCondition (Typechecks tcconfig)]
 
+headSpineToTerm :: HeadSpine (Term tyname name uni fun ()) -> Term tyname name uni fun ()
+headSpineToTerm = foldl1 (Apply ())
+
 evaluateBuiltins
   :: forall tyname name uni fun a
   . (ToBuiltinMeaning uni fun
@@ -53,14 +56,14 @@ evaluateBuiltins preserveLogging binfo costModel = transformOf termSubterms proc
       :: BuiltinRuntime (Term tyname name uni fun ())
       -> AppContext tyname name uni fun a
       -> Maybe (Term tyname name uni fun ())
-    eval (BuiltinCostedResult _ getX) AppContextEnd =
-        case getX of
-            BuiltinSuccess (HeadSpine f xs) -> Just $ foldl (Apply ()) f xs
+    eval (BuiltinCostedResult _ getFXs) AppContextEnd =
+        case getFXs of
+            BuiltinSuccess fXs -> Just $ headSpineToTerm fXs
             -- Evaluates successfully, but does logging. If we're being conservative
             -- then we should leave these in, so we don't remove people's logging!
             -- Otherwise `trace "hello" x` is a prime candidate for evaluation!
-            BuiltinSuccessWithLogs _ (HeadSpine f xs) ->
-                if preserveLogging then Nothing else Just $ foldl (Apply ()) f xs
+            BuiltinSuccessWithLogs _ fXs ->
+                if preserveLogging then Nothing else Just $ headSpineToTerm fXs
             -- Evaluation failure. This can mean that the evaluation legitimately
             -- failed (e.g. `divideInteger 1 0`), or that it failed because the
             -- argument terms are not currently in the right form (because they're

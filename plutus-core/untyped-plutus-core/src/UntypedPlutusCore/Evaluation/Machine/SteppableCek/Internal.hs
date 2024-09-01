@@ -440,6 +440,7 @@ returnCekHeadSpine
     -> Context uni fun ann
     -> HeadSpine (CekValue uni fun ann)
     -> CekM uni fun s (CekState uni fun ann)
+returnCekHeadSpine _   ctx (HeadOnly  x)    = pure $ Returning ctx x
 returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (pushArgs ann xs ctx) f
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using

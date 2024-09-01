@@ -68,8 +68,8 @@ attachCoercedTerm a = do
             , render $ prettyConst botRenderContext x
             ]
         EvaluationSuccess res -> case res of
-            HeadSpine v NilSpine -> pure $ TermOf v x
-            _                    -> fail "Iterated application is not supported"
+            HeadOnly v -> pure $ TermOf v x
+            _          -> fail "Iterated application is not supported"
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen

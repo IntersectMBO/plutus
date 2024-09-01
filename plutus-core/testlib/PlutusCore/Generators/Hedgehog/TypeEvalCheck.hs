@@ -112,7 +112,7 @@ typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
     if tyExpected == tyActual
         then case extractEvaluationResult $ eval term of
                 Right valActual ->
-                    if valExpected == fmap noSpine valActual
+                    if valExpected == fmap HeadOnly valActual
                         then return $ TypeEvalCheckResult tyExpected valActual
                         else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
                 Left exc        -> throwError $ TypeEvalCheckErrorException $ show exc

@@ -1106,7 +1106,9 @@ do it quite yet, even though it worked (the Plutus Tx part wasn't implemented).
 -}
 
 headSpine :: Opaque val ab -> [val] -> Opaque (HeadSpine val) b
-headSpine (Opaque f) = Opaque . HeadSpine f . foldr ConsSpine NilSpine
+headSpine (Opaque f) = Opaque . \case
+    []      -> HeadOnly f
+    x0 : xs -> HeadSpine f $ foldr (\x2 r x1 -> ConsSpine x1 $ r x2) LastSpine xs x0
 {-# INLINE headSpine #-}
 
 {- Note [Operational vs structural errors within builtins]
