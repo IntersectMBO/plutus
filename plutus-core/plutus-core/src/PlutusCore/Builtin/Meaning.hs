@@ -282,13 +282,7 @@ instance
     -- See Note [One-shotting runtime denotations].
     -- Grow the builtin application within the received action and recurse on the result.
     toMonoF getBoth = BuiltinExpectArgument . oneShot $ \arg ->
-        -- Ironically computing the unlifted value strictly is the best way of doing deferred
-        -- unlifting. This means that while the resulting 'ReadKnownM' is only handled upon full
-        -- saturation and any evaluation failure is only registered when the whole builtin
-        -- application is evaluated, a Haskell exception will occur immediately.
-        -- It shouldn't matter though, because a builtin is not supposed to throw an
-        -- exception at any stage, that would be a bug regardless.
-        toMonoF @val @args @res $! do
+        oneShot (toMonoF @val @args @res) $ do
             (f, exF) <- getBoth
             x <- readKnown arg
             -- See Note [Strict application in runtime denotations].
