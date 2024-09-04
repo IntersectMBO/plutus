@@ -49,9 +49,11 @@ The script might set conditions on reward distribution, such as ensuring that an
 
 A certifying script can validate a number of certificate-related transactions, such as: (1) registering a staking credential, and in doing so, creating a reward account associated with the staking credential; (2) de-registering a staking credential, and in doing so, terminating the reward account; (3) delegating a staking credential to a particular delegatee.
 
-In all these cases, if the staking credential in question contains a script hash (as opposed to a public key hash), the script with that hash must be included in the transaction, and is executed to validate the action.
+In all these cases except registration, if the staking credential in question contains a script hash (as opposed to a public key hash), the script with that hash must be included in the transaction, and is executed to validate the action. 
 
-Such a script may, for instance, check that certain signatures be provided for registration, de-registration and delegation, or that the delegatee must be among the allowed delegatees.
+Such a script may, for instance, check that certain signatures be provided for de-registration and delegation, or that the delegatee must be among the allowed delegatees.
+
+In Conway and all previous eras, including the associated script for registering a staking credential in a transaction is optional. This is due to the availability of two different certificates for registering staking credentials: `stake_registration`, which does not require a witness, and `reg_cert`, which does require the script credential as a witness. When using `reg_cert`, the script must be included in the transaction. In the era following Conway, the `stake_registration` certificate, which allows for the registration of script credentials without a script witness, will be deprecated. After this change, all stake credential registration transactions will require the script associated with a script hash to be included in the transaction, aligning them with the behavior of all other certificate-related transactions.
 
 ## Voting
 
