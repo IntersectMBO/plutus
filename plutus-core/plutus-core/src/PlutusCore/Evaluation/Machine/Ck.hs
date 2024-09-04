@@ -234,7 +234,7 @@ returnCkHeadSpine
     :: Context uni fun
     -> HeadSpine (CkValue uni fun)
     -> CkM uni fun s (Term TyName Name uni fun ())
-returnCkHeadSpine stack (HeadOnly  f)    = stack <| f
+returnCkHeadSpine stack (HeadOnly  x)    = stack <| x
 returnCkHeadSpine stack (HeadSpine f xs) = pushArgs xs stack <| f
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
