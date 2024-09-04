@@ -22,7 +22,7 @@
         "description": "A redeemer that does something awesome",
         "purpose": "spend",
         "schema": {
-          "$ref": "#/definitions/String"
+          "$ref": "#/definitions/BuiltinString"
         }
       },
       "datum": {
@@ -43,8 +43,8 @@
           }
         }
       ],
-      "compiledCode": "584f01010032222801199999a8911199a891199a89100111111400401600900380140044252005001001400084a400a0020038004008848a400e0050012410101010101010101000498101030048810001",
-      "hash": "a0a2b4161839094c666e8ea1952510e7f337aa10786cef62706244ba"
+      "compiledCode": "587701010032222801199a891119a891199a891119999999a891001111111400401a00b004801c00a00221290028008014021208080808080808080800233500248008cd4009200433500248019400d3010103004881001800091400c00a00212122900380140050002129002800a001002212290038014005",
+      "hash": "22ba8372284337707303706f7a8d8949119c58511813cffd2b7c9298"
     },
     {
       "title": "Acme Validator #2",
@@ -81,16 +81,30 @@
   ],
   "definitions": {
     "Bool": {
-      "dataType": "#boolean"
+      "oneOf": [
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 0
+        },
+        {
+          "dataType": "constructor",
+          "fields": [],
+          "index": 1
+        }
+      ]
     },
-    "ByteString": {
+    "BuiltinByteString": {
       "dataType": "bytes"
+    },
+    "BuiltinData": {},
+    "BuiltinString": {
+      "dataType": "#string"
     },
     "Bytes_Void": {
       "title": "SchemaBytes",
       "dataType": "bytes"
     },
-    "Data": {},
     "Datum": {
       "oneOf": [
         {
@@ -143,6 +157,12 @@
     "Integer": {
       "dataType": "integer"
     },
+    "List_Integer": {
+      "dataType": "list",
+      "items": {
+        "dataType": "integer"
+      }
+    },
     "Param2a": {
       "dataType": "constructor",
       "fields": [
@@ -174,19 +194,21 @@
           "$ref": "#/definitions/Integer"
         },
         {
-          "$ref": "#/definitions/Data"
+          "$ref": "#/definitions/List_Integer"
         },
         {
-          "$ref": "#/definitions/ByteString"
+          "$ref": "#/definitions/BuiltinData"
+        },
+        {
+          "$ref": "#/definitions/BuiltinByteString"
         }
       ],
       "index": 0
     },
-    "String": {
-      "dataType": "#string"
-    },
     "Unit": {
-      "dataType": "#unit"
+      "dataType": "constructor",
+      "fields": [],
+      "index": 0
     }
   }
 }

@@ -40,7 +40,7 @@ jobs:
           done 
 
       - name: Publish Papers
-        uses: JamesIves/github-pages-deploy-action@v4.6.3
+        uses: JamesIves/github-pages-deploy-action@v4.6.4
         with:
           folder: _resources
           target-folder: resources

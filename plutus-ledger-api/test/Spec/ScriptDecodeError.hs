@@ -5,7 +5,7 @@ module Spec.ScriptDecodeError where
 import Codec.Extras.SerialiseViaFlat (DeserialiseFailureInfo (..), DeserialiseFailureReason (..))
 import PlutusCore.Version (plcVersion100)
 import PlutusLedgerApi.Common (ScriptDecodeError (..))
-import PlutusLedgerApi.Common.Versions (PlutusLedgerLanguage (..), conwayPV, vasilPV)
+import PlutusLedgerApi.Common.Versions (PlutusLedgerLanguage (..), changPV, vasilPV)
 import Prettyprinter (Pretty (pretty))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, testCase, (@?=))
@@ -56,7 +56,7 @@ prettyLedgerLanguageNotAvailableError =
   err =
     LedgerLanguageNotAvailableError
       { sdeAffectedLang = PlutusV2
-      , sdeIntroPv = conwayPV
+      , sdeIntroPv = changPV
       , sdeThisPv = vasilPV
       }
 

@@ -416,7 +416,7 @@ cekStepCost costs = runIdentity . \case
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
     :: ThrowableBuiltins uni fun
-    => AReview (EvaluationError CekUserError (MachineError fun)) t
+    => AReview (EvaluationError (MachineError fun) CekUserError) t
     -> t
     -> CekValue uni fun ann
     -> CekM uni fun s x

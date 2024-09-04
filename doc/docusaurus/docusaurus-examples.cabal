@@ -39,9 +39,9 @@ library docusaurus-code
 
   build-depends:
     , base               >=4.9   && <5
-    , plutus-core        ^>=1.32
-    , plutus-ledger-api  ^>=1.32
-    , plutus-tx          ^>=1.32
+    , plutus-core        ^>=1.33
+    , plutus-ledger-api  ^>=1.33
+    , plutus-tx          ^>=1.33
 
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin
@@ -55,5 +55,5 @@ executable example-cip57
   build-depends:
     , base               ^>=4.18
     , containers
-    , plutus-ledger-api  ^>=1.32
-    , plutus-tx          ^>=1.32
+    , plutus-ledger-api  ^>=1.33
+    , plutus-tx          ^>=1.33

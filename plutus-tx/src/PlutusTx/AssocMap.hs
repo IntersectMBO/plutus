@@ -1,14 +1,17 @@
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DeriveLift            #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
@@ -50,9 +53,15 @@ import PlutusTx.These
 import Control.DeepSeq (NFData)
 import Data.Data
 import Data.Function (on)
+import Data.Kind (Type)
 import Data.Map.Strict qualified as HMap
 import GHC.Generics (Generic)
 import Language.Haskell.TH.Syntax as TH (Lift)
+import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
+import PlutusTx.Blueprint.Definition.Id (definitionIdFromTypeK)
+import PlutusTx.Blueprint.Definition.Unroll (HasBlueprintDefinition (..))
+import PlutusTx.Blueprint.Schema (MapSchema (..), Schema (..))
+import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo)
 import Prettyprinter (Pretty (..))
 
 -- See Note [Optimising Value].
@@ -159,6 +168,29 @@ instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
                         : go (BI.tail l)
               )
               ()
+
+instance
+  (HasBlueprintDefinition k, HasBlueprintDefinition v)
+  => HasBlueprintDefinition (Map k v)
+  where
+  type Unroll (Map k v) = [Map k v, k, v]
+  definitionId =
+    definitionIdFromTypeK @(Type -> Type -> Type) @Map
+      Haskell.<> definitionId @k
+      Haskell.<> definitionId @v
+
+instance
+  ( HasBlueprintSchema k referencedTypes
+  , HasBlueprintSchema v referencedTypes
+  ) =>
+  HasBlueprintSchema (Map k v) referencedTypes where
+  schema = SchemaMap emptySchemaInfo MkMapSchema
+    { keySchema = schema @k
+    , valueSchema = schema @v
+    , minItems = Nothing
+    , maxItems = Nothing
+    }
+
 
 instance Functor (Map k) where
   {-# INLINEABLE fmap #-}
@@ -362,4 +394,7 @@ all f (Map m) = go m
       []          -> True
       (_, x) : xs -> if f x then go xs else False
 
-makeLift ''Map
+----------------------------------------------------------------------------------------------------
+-- TH Splices --------------------------------------------------------------------------------------
+
+$(makeLift ''Map)

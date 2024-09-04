@@ -70,7 +70,7 @@ mtraverse makeClassyPrisms
     ]
 
 instance structural ~ MachineError fun =>
-        AsMachineError (EvaluationError operational structural) fun where
+        AsMachineError (EvaluationError structural operational) fun where
     _MachineError = _StructuralEvaluationError
     {-# INLINE _MachineError #-}
 
@@ -78,8 +78,8 @@ instance AsUnliftingError (MachineError fun) where
     _UnliftingError = _UnliftingMachineError
     {-# INLINE _UnliftingError #-}
 
-type EvaluationException operational structural =
-    ErrorWithCause (EvaluationError operational structural)
+type EvaluationException structural operational =
+    ErrorWithCause (EvaluationError structural operational)
 
 {- Note [Ignoring context in OperationalEvaluationError]
 The 'OperationalEvaluationError' error has a term argument, but 'extractEvaluationResult' just
@@ -96,7 +96,7 @@ context if available.
 -- | Preserve the contents of an 'StructuralEvaluationError' as a 'Left' and turn an
 -- 'OperationalEvaluationError' into a @Right EvaluationFailure@.
 extractEvaluationResult
-    :: Either (EvaluationException operational structural term) a
+    :: Either (EvaluationException structural operational term) a
     -> Either (ErrorWithCause structural term) (EvaluationResult a)
 extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
 extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
@@ -106,8 +106,8 @@ extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
 -- | Throw on a 'StructuralEvaluationError' and turn an 'OperationalEvaluationError' into an
 -- 'EvaluationFailure'.
 unsafeToEvaluationResult
-    :: (PrettyPlc internal, PrettyPlc term, Typeable internal, Typeable term)
-    => Either (EvaluationException user internal term) a
+    :: (PrettyPlc structural, PrettyPlc term, Typeable structural, Typeable term)
+    => Either (EvaluationException structural operational term) a
     -> EvaluationResult a
 unsafeToEvaluationResult = unsafeFromEither . extractEvaluationResult
 

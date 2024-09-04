@@ -53,8 +53,8 @@ expectSuccess name code arg = testCase name $ case res of
   Right _ -> pure ()
   where
     sScript = serialiseCompiledCode code
-    script = either (error . show) id $ V2.deserialiseScript conwayPV sScript
-    (_, res) = V2.evaluateScriptCounting conwayPV V2.Quiet evalCtx script [arg]
+    script = either (error . show) id $ V2.deserialiseScript changPV sScript
+    (_, res) = V2.evaluateScriptCounting changPV V2.Quiet evalCtx script [arg]
 
 good :: CompiledCode (BuiltinData -> BuiltinUnit)
 good =
