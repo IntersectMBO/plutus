@@ -91,6 +91,12 @@ Another example is if a security audit is done on `rc1`, and the changes in `rc2
 - Update the version bounds in cabal files.
 - Update the CHaP index state in `cabal.project`.
 - Update the CHaP flake input with `nix flake update CHaP`.  If you get "error: cannot find flake 'flake:CHaP' in the flake registries" your nix installation probably needs to be updated.
+- Update the package versions of affected packages in the cabal files, if needed.
+  Ledger packages follow a different versioning policy than Plutus packages, where each package is versioned independently.
+  Each ledger PR is responsible for incrementing the version of any affected ledger package to the next release version (unless this has already been done by a previous PR).
+  For a PR bumping Plutus version bounds, if there are no other breaking changes, increment the last component of the ledger package versions.
+  Otherwise, increment the appropriate component according to the PVP versioning scheme.
+  See the "CHANGELOG.md" section of the ledger's https://github.com/IntersectMBO/cardano-ledger/blob/master/RELEASING.md[release process] for more details.
 
 9. Make a PR to update the version used in `plutus-tx-template`
 - Navigate to the https://github.com/IntersectMBO/plutus-tx-template/actions/workflows/bump-plutus-version.yml[Bump Plutus Version Action] on GitHub
