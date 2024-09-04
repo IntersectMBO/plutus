@@ -74,7 +74,7 @@ executable plc
     , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.33
 
 executable uplc
-  import:         lang
+  import:         lang, os-support
   main-is:        uplc/Main.hs
   hs-source-dirs: executables
   build-depends:
