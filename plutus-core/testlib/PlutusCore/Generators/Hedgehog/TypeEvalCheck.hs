@@ -110,7 +110,7 @@ typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
         config <- getDefTypeCheckConfig ()
         inferType config term
     if tyExpected == tyActual
-        then case extractEvaluationResult $ eval term of
+        then case splitStructuralOperational $ eval term of
                 Right valActual ->
                     if valExpected == valActual
                         then return $ TypeEvalCheckResult tyExpected valActual
