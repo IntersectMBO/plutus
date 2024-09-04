@@ -15,7 +15,7 @@ import UntypedPlutusCore.Core.Type qualified as UPLC
 newtype UPLCSimplifierTrace name uni fun a =
   UPLCSimplifierTrace
     { uplcSimplifierTrace
-      :: [UPLC.Term name uni PLC.DefaultFun a]
+      :: [UPLC.Term name uni fun a]
     }
 
 initUPLCSimplifierTrace :: UPLCSimplifierTrace name uni fun a

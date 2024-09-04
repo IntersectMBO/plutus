@@ -87,11 +87,8 @@ simplifyTerm opts builtinSemanticsVariant =
         (Just Refl, Just Refl) -> cse builtinSemanticsVariant
         _                      -> pure
 
-    traceAST ast =
-      case eqT @fun @DefaultFun of
-        Just Refl -> do
-          State.modify' (\st -> st { uplcSimplifierTrace = uplcSimplifierTrace st ++ [ast] })
-          return ast
-        Nothing -> return ast
+    traceAST ast = do
+      State.modify' (\st -> st { uplcSimplifierTrace = uplcSimplifierTrace st ++ [ast] })
+      return ast
 
     cseTimes = if _soConservativeOpts opts then 0 else _soMaxCseIterations opts
