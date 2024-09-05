@@ -173,9 +173,7 @@ instance
         , KnownKind kind, KnownTypeAst tyname uni a
         ) => KnownTypeAst tyname uni (MetaForall name a) where
     type IsBuiltin _ (MetaForall name a) = 'False
-    type ToHoles _ TypeHole (MetaForall name a) = '[TypeHole a]
-    type ToHoles _ RepHole  (MetaForall name a) =
-        GHC.TypeError ('Text "'TyAppRep' cannot be used in the rep context")
+    type ToHoles _ _ (MetaForall name a) = '[TypeHole a]
     type ToBinds uni acc (MetaForall name a) = ToBinds uni (Insert ('GADT.Some name) acc) a
     typeAst = toTypeAst $ Proxy @a
 instance MakeKnownIn DefaultUni term a => MakeKnownIn DefaultUni term (MetaForall name a) where
@@ -186,9 +184,7 @@ data PlcListRep (a :: GHC.Type)
 instance (tyname ~ TyName, KnownTypeAst tyname uni a) =>
         KnownTypeAst tyname uni (PlcListRep a) where
     type IsBuiltin _ (PlcListRep a) = 'False
-    type ToHoles _ RepHole  (PlcListRep a) = '[RepHole a]
-    type ToHoles _ TypeHole (PlcListRep a) =
-        GHC.TypeError ('Text "'TyAppRep' cannot be used in the type context")
+    type ToHoles _ _ (PlcListRep a) = '[RepHole a]
     type ToBinds uni acc (PlcListRep a) = ToBinds uni acc a
     typeAst = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 
