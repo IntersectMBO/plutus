@@ -20,6 +20,7 @@ module PlutusCore.Builtin.KnownTypeAst
     , Hole
     , RepHole
     , TypeHole
+    , RunHole
     , HasTermLevel
     , HasTypeLevel
     , HasTypeAndTermLevel
@@ -144,12 +145,17 @@ data Hole
 -- See Note [Rep vs Type context].
 -- | A hole in the Rep context.
 type RepHole :: forall a hole. a -> hole
-data family RepHole x
+data family RepHole
 
 -- See Note [Rep vs Type context].
 -- | A hole in the Type context.
 type TypeHole :: forall hole. GHC.Type -> hole
-data family TypeHole a
+data family TypeHole
+
+type RunHole :: (GHC.Type -> GHC.Type) -> a -> Hole
+type family RunHole hole where
+    RunHole RepHole  = RepHole
+    RunHole TypeHole = TypeHole
 
 {- Note [Name generality of KnownTypeAst]
 The 'KnownTypeAst' class takes a @tyname@ argument. The reason for this is that we want to be able
@@ -202,8 +208,8 @@ class KnownTypeAst tyname uni x where
     -- | Return every part of the type that can be a to-be-instantiated type variable.
     -- For example, in @Integer@ there's no such types and in @(a, b)@ it's the two arguments
     -- (@a@ and @b@) and the same applies to @a -> b@ (to mention a type that is not built-in).
-    type ToHoles uni x :: [Hole]
-    type ToHoles uni x = ToHoles uni (ElaborateBuiltin uni x)
+    type ToHoles uni (hole :: GHC.Type -> GHC.Type) x :: [Hole]
+    type ToHoles uni hole x = ToHoles uni hole (ElaborateBuiltin uni x)
 
     -- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
     -- in an accumulator and return the accumulator once a leaf is reached.
@@ -219,28 +225,32 @@ class KnownTypeAst tyname uni x where
 
 instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (EvaluationResult a) where
     type IsBuiltin _ (EvaluationResult a) = 'False
-    type ToHoles _ (EvaluationResult a) = '[TypeHole a]
+    type ToHoles _ TypeHole (EvaluationResult a) = '[TypeHole a]
+    type ToHoles _ RepHole  (EvaluationResult _) =
+        TypeError ('Text "'EvaluationResult' cannot be used in the rep context")
     type ToBinds uni acc (EvaluationResult a) = ToBinds uni acc a
     typeAst = toTypeAst $ Proxy @a
     {-# INLINE typeAst #-}
 
 instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (BuiltinResult a) where
     type IsBuiltin _ (BuiltinResult a) = 'False
-    type ToHoles _ (BuiltinResult a) = '[TypeHole a]
+    type ToHoles _ TypeHole (BuiltinResult a) = '[TypeHole a]
+    type ToHoles _ RepHole (BuiltinResult _) =
+        TypeError ('Text "'BuiltinResult' cannot be used in the rep context")
     type ToBinds uni acc (BuiltinResult a) = ToBinds uni acc a
     typeAst = toTypeAst $ Proxy @a
     {-# INLINE typeAst #-}
 
 instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (SomeConstant uni rep) where
     type IsBuiltin _ (SomeConstant uni rep) = 'False
-    type ToHoles _ (SomeConstant _ rep) = '[RepHole rep]
+    type ToHoles _ _ (SomeConstant _ rep) = '[RepHole rep]
     type ToBinds uni acc (SomeConstant _ rep) = ToBinds uni acc rep
     typeAst = toTypeAst $ Proxy @rep
     {-# INLINE typeAst #-}
 
 instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (Opaque val rep) where
     type IsBuiltin _ (Opaque val rep) = 'False
-    type ToHoles _ (Opaque _ rep) = '[RepHole rep]
+    type ToHoles _ _ (Opaque _ rep) = '[RepHole rep]
     type ToBinds uni acc (Opaque _ rep) = ToBinds uni acc rep
     typeAst = toTypeAst $ Proxy @rep
     {-# INLINE typeAst #-}
@@ -263,14 +273,14 @@ toTyNameAst _ =
 
 instance uni `Contains` f => KnownTypeAst tyname uni (BuiltinHead f) where
     type IsBuiltin _ (BuiltinHead f) = 'True
-    type ToHoles _ (BuiltinHead f) = '[]
+    type ToHoles _ _ (BuiltinHead f) = '[]
     type ToBinds _ acc (BuiltinHead f) = acc
     typeAst = TyBuiltin () $ someType @_ @f
     {-# INLINE typeAst #-}
 
 instance KnownTypeAst tyname uni y => KnownTypeAst tyname uni (LastArg x y) where
     type IsBuiltin uni (LastArg x y) = IsBuiltin uni y
-    type ToHoles _ (LastArg x y) = '[RepHole x, RepHole y]
+    type ToHoles _ hole (LastArg x y) = '[RunHole hole x, RunHole hole y]
     type ToBinds uni acc (LastArg x y) = ToBinds uni (ToBinds uni acc x) y
     typeAst = toTypeAst $ Proxy @y
     {-# INLINE typeAst #-}
@@ -278,7 +288,7 @@ instance KnownTypeAst tyname uni y => KnownTypeAst tyname uni (LastArg x y) wher
 instance (KnownTypeAst tyname uni a, KnownTypeAst tyname uni b) =>
         KnownTypeAst tyname uni (a -> b) where
     type IsBuiltin _ (a -> b) = 'False
-    type ToHoles _ (a -> b) = '[TypeHole a, TypeHole b]
+    type ToHoles _ hole (a -> b) = '[RunHole hole a, RunHole hole b]
     type ToBinds uni acc (a -> b) = ToBinds uni (ToBinds uni acc a) b
     typeAst = TyFun () (toTypeAst $ Proxy @a) (toTypeAst $ Proxy @b)
     {-# INLINE typeAst #-}
@@ -286,7 +296,9 @@ instance (KnownTypeAst tyname uni a, KnownTypeAst tyname uni b) =>
 instance (tyname ~ TyName, name ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
             KnownTypeAst tyname uni (TyVarRep name) where
     type IsBuiltin _ (TyVarRep name) = 'False
-    type ToHoles _ (TyVarRep name) = '[]
+    type ToHoles _ RepHole  (TyVarRep name) = '[]
+    type ToHoles _ TypeHole (TyVarRep name) =
+        TypeError ('Text "'TyVarRep' cannot be used in the type context")
     type ToBinds _ acc (TyVarRep name) = Insert ('GADT.Some name) acc
     typeAst = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
     {-# INLINE typeAst #-}
@@ -294,7 +306,10 @@ instance (tyname ~ TyName, name ~ 'TyNameRep text uniq, KnownSymbol text, KnownN
 instance (KnownTypeAst tyname uni fun, KnownTypeAst tyname uni arg) =>
         KnownTypeAst tyname uni (TyAppRep fun arg) where
     type IsBuiltin uni (TyAppRep fun arg) = IsBuiltin uni fun && IsBuiltin uni arg
-    type ToHoles _ (TyAppRep fun arg) = '[RepHole fun, RepHole arg]
+    type ToHoles _ RepHole  (TyAppRep fun arg) = '[RepHole fun, RepHole arg]
+    type ToHoles _ TypeHole (TyAppRep fun arg) =
+        TypeError ('Text "'TyAppRep' cannot be used in the type context")
+    -- type ToHoles _ _ (TyAppRep fun arg) = '[RepHole fun, RepHole arg]
     type ToBinds uni acc (TyAppRep fun arg) = ToBinds uni (ToBinds uni acc fun) arg
     typeAst = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
     {-# INLINE typeAst #-}
@@ -304,7 +319,9 @@ instance
         , KnownKind kind, KnownTypeAst tyname uni a
         ) => KnownTypeAst tyname uni (TyForallRep name a) where
     type IsBuiltin _ (TyForallRep name a) = 'False
-    type ToHoles _ (TyForallRep name a) = '[RepHole a]
+    type ToHoles _ RepHole  (TyForallRep name a) = '[RepHole a]
+    type ToHoles _ TypeHole (TyForallRep name a) =
+        TypeError ('Text "'TyForallRep' cannot be used in the type context")
     type ToBinds uni acc (TyForallRep name a) = Delete ('GADT.Some name) (ToBinds uni acc a)
     typeAst =
         TyForall ()
