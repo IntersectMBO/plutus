@@ -19,11 +19,11 @@ module PlutusCore.Builtin.KnownTypeAst
     , TyForallRep
     , Hole
     , RepHole
+    , TypeHole
     , HasTermLevel
     , HasTypeLevel
     , HasTypeAndTermLevel
     , mkTyBuiltin
-    , TypeHole
     , KnownBuiltinTypeAst
     , KnownTypeAst (..)
     , toTypeAst

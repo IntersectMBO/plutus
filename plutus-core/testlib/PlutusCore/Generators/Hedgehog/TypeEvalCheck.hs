@@ -73,6 +73,7 @@ data TypeEvalCheckResult uni fun = TypeEvalCheckResult
 
 instance ( PrettyBy config (Type TyName uni ())
          , PrettyBy config (Term TyName Name uni fun ())
+         , PrettyBy config (HeadSpine (Term TyName Name uni fun ()))
          , PrettyBy config (Error uni fun ())
          ) => PrettyBy config (TypeEvalCheckError uni fun) where
     prettyBy config (TypeEvalCheckErrorIllFormed err)             =

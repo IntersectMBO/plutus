@@ -49,6 +49,7 @@ import Data.String
 import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
 import Prettyprinter
+import Text.PrettyBy.Internal
 import Universe
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
@@ -278,11 +279,20 @@ readKnownConstant val = asConstant val >>= oneShot \case
             Nothing   -> throwing _UnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
+-- | A non-empty spine. Isomorphic to 'NonEmpty', except is strict and is defined as a single
+-- recursive data type.
 data Spine a
-    = LastSpine a
-    | ConsSpine a (Spine a)
+    = SpineLast a
+    | SpineCons a (Spine a)
     deriving stock (Show, Eq, Foldable, Functor)
 
+-- | The head-spine form of an iterated application. Provides O(1) access to the head of the
+-- application. Isomorphic to @NonEmpty@, except is strict and the no-spine case is made a separate
+-- constructor for performance reasons (it only takes a single pattern match to access the head when
+-- there's no spine this way, and otherwise we'd also need to match on the spine to ensure that it's
+-- empty -- and the no-spine case is by far the most common one, hence we want to optimize it).
+--
+-- Used in built-in functions returning function applications such as 'CaseList'.
 data HeadSpine a
     = HeadOnly a
     | HeadSpine a (Spine a)
@@ -290,15 +300,27 @@ data HeadSpine a
 
 -- |
 --
--- >>> pretty (ConsSpine 'a' $ ConsSpine 'b' NilSpine)
+-- >>> import Text.Pretty
+-- >>> pretty (SpineCons 'a' $ SpineLast 'b')
 -- [a, b]
 instance Pretty a => Pretty (Spine a) where pretty = pretty . map Identity . toList
-instance PrettyBy config a => PrettyBy config (Spine a)
+instance PrettyBy config a => DefaultPrettyBy config (Spine a)
+deriving via PrettyCommon (Spine a)
+    instance PrettyDefaultBy config (Spine a) => PrettyBy config (Spine a)
 
+-- |
+--
+-- >>> import Text.Pretty
+-- >>> pretty (HeadOnly 'z')
+-- z
+-- >>> pretty (HeadSpine 'f' (SpineCons 'x' $ SpineLast 'y'))
+-- f `applyN` [x, y]
 instance Pretty a => Pretty (HeadSpine a) where
     pretty (HeadOnly x)     = pretty x
     pretty (HeadSpine f xs) = pretty f <+> "`applyN`" <+> pretty xs
-instance PrettyBy config a => PrettyBy config (HeadSpine a)
+instance PrettyBy config a => DefaultPrettyBy config (HeadSpine a)
+deriving via PrettyCommon (HeadSpine a)
+    instance PrettyDefaultBy config (HeadSpine a) => PrettyBy config (HeadSpine a)
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => MakeKnownIn uni val a where
