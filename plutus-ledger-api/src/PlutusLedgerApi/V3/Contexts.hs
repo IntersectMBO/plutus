@@ -185,7 +185,7 @@ data TxCert
     TxCertUnRegStaking V2.Credential (Haskell.Maybe V2.Lovelace)
   | -- | Delegate staking credential to a Delegatee
     TxCertDelegStaking V2.Credential Delegatee
-  | -- | Register and delegate staking credential to a Delegatee in one certificate. Noter that
+  | -- | Register and delegate staking credential to a Delegatee in one certificate. Note that
     -- deposit is mandatory.
     TxCertRegDeleg V2.Credential Delegatee V2.Lovelace
   | -- | Register a DRep with a deposit value. The optional anchor is omitted.
