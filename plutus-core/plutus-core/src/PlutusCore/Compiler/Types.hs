@@ -4,7 +4,6 @@ module PlutusCore.Compiler.Types where
 
 import Data.Hashable
 import PlutusCore.Builtin
-import PlutusCore.Default qualified as PLC
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import UntypedPlutusCore.Core.Type qualified as UPLC

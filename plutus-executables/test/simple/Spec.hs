@@ -16,6 +16,7 @@ import System.Process
 import MAlonzo.Code.Main qualified as M
 
 -- |List of tests that are expected to succeed
+succeedingEvalTests :: [String]
 succeedingEvalTests = ["succInteger"
         ,"unitval"
         ,"true"
@@ -33,10 +34,11 @@ succeedingEvalTests = ["succInteger"
         ]
 
 -- |List of tests that are expected to fail
+failingEvalTests :: [String]
 failingEvalTests = ["DivideByZero"]
 
 type Mode = String
-data Command = Evaluate Mode | Typecheck deriving Show
+data Command = Evaluate Mode | Typecheck deriving stock Show
 
 -- |For each Command construct arguments to pass to plc-agda
 mkArgs :: String -> Command -> [String]
@@ -58,7 +60,7 @@ runTest command test = withTempFile $ \tmp -> do
 
 -- |Run a list of tests with a given command expecting them to succeed.
 runSucceedingTests :: Command -> [String] -> IO ()
-runSucceedingTests command [] = return ()
+runSucceedingTests _ [] = return ()
 runSucceedingTests command (test:tests) = catch
   (runTest command test)
   (\case
@@ -67,13 +69,14 @@ runSucceedingTests command (test:tests) = catch
 
 -- |Run a list of tests with a given command expecting them to fail.
 runFailingTests :: Command -> [String] -> IO ()
-runFailingTests command [] = return ()
+runFailingTests _ [] = return ()
 runFailingTests command (test:tests) = catch
   (runTest command test)
   (\case
     ExitFailure _ -> runFailingTests command tests
     ExitSuccess   -> exitFailure)
 
+main :: IO ()
 main = do
   -- Run evaluation tests for each mode
   putStrLn "running succeeding tests using TCK"
