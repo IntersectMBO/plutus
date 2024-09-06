@@ -41,6 +41,7 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`relaxed-float-in`|Bool|True|Use a more aggressive float-in pass, which often leads to reduced costs but may occasionally lead to slightly increased costs. Implied by `no-conservative-optimisation`.|
 |`remove-trace`|Bool|False|Eliminate calls to `trace` from Plutus Core|
 |`simplifier-beta`|Bool|True|Run a simplification pass that performs beta transformations|
+|`simplifier-evaluate-builtins`|Bool|True|Run a simplification pass that evaluates fully saturated builtin applications. Implied by `no-conservative-optimisation`.|
 |`simplifier-inline`|Bool|True|Run a simplification pass that performs inlining|
 |`simplifier-remove-dead-bindings`|Bool|True|Run a simplification pass that removes dead bindings|
 |`simplifier-unwrap-cancel`|Bool|True|Run a simplification pass that cancels unwrap/wrap pairs|

@@ -171,10 +171,12 @@ pluginOptions =
               , Implication (== True) posPreserveLogging True
               , Implication (== True) posCaseOfCaseConservative True
               , Implication (== True) posInlineConstants False
+              , Implication (== True) posDoSimplifierEvaluateBuiltins False
               , Implication (== False) posRelaxedFloatin True
               , Implication (== False) posPreserveLogging False
               , Implication (== False) posCaseOfCaseConservative False
               , Implication (== False) posInlineConstants True
+              , Implication (== False) posDoSimplifierEvaluateBuiltins True
               ]
           )
     , let k = "context-level"
@@ -230,6 +232,11 @@ pluginOptions =
     , let k = "simplifier-beta"
           desc = "Run a simplification pass that performs beta transformations"
        in (k, PluginOption typeRep (setTrue k) posDoSimplifierBeta desc [])
+    , let k = "simplifier-evaluate-builtins"
+          desc =
+            "Run a simplification pass that evaluates fully saturated builtin applications. \
+            \Implied by `no-conservative-optimisation`."
+       in (k, PluginOption typeRep (setTrue k) posDoSimplifierEvaluateBuiltins desc [])
     , let k = "simplifier-inline"
           desc = "Run a simplification pass that performs inlining"
        in (k, PluginOption typeRep (setTrue k) posDoSimplifierInline desc [])
