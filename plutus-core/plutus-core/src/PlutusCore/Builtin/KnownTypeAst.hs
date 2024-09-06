@@ -117,16 +117,32 @@ that barrier must always be some explicit type constructor that switches the con
 Rep. We've only considered 'Opaque' as an example of such type constructor, but we also have
 'SomeConstant' as another example.
 
-Some type constructors turn any context into the Type one, for example 'EvaluationResult' and
+Some type constructors turn any context into the Type one, for example 'BuiltinResult' and
 'Emitter', although they are useless inside the Rep context, given that it's only for type checking
 Plutus and they don't exist in the type language of Plutus.
 
-These @*Rep@ data families like 'TyVarRep', 'TyAppRep' etc all require the Rep context and preserve
-it, since they're only for representing Plutus types for type checking purposes.
+These @*Rep@ data families like 'TyVarRep', 'TyForallRep' etc all require the Rep context and
+preserve it, since they're only for representing Plutus types for type checking purposes. There's
+however an exception: builtin applications get elaborated to iterated 'TyAppRep' calls (see e.g.
+'ElaborateBuiltinDefaultUni') and those do appear in the Type context. This is purely for historical
+reasons and what we should have instead is 'TyAppRep' that preserves the current context, whether
+it's Rep or Type. The only reason why we can't have that right now is the Type context not including
+higher-kinded types, which is also purely for historical reasons.
 
-We call a thing in a Rep or 'Type' context a 'RepHole' or 'TypeHole' respectively. The reason for
-the name is that the inference machinery looks at the thing and tries to instantiate it, like fill
-a hole.
+Some type constructors preserve the current context, i.e. turn the Rep one back into Rep and the
+Type one back into Type. @(->)@ is a prime example of such a type constructor.
+
+The context-switching logic is mostly internal to the 'ToHoles' type family, however none of the
+requirements are checked there, e.g. from the 'ToHoles' point of view it's totally fine to have
+'TyVarRep' within the Type context. Instead, some of those requirements are checked in the
+elaboration machinery, just to give the user some helpful type error. We do it later in the
+pipeline, because this way if the elaborator fails we can at least check what it failed on (see
+'elaborateDebug'), while if we entangled it all together, it would be very hard to debug the
+elaborator (and it's very complex).
+
+We call a thing in a Rep or Type context a 'RepHole' or 'TypeHole' respectively. The reason for the
+name is that the elaboration machinery looks at the thing and tries to instantiate it, like fill a
+hole.
 
 We could also have a third type of hole/context, Name, because binders bind names rather than
 variables and so it makes sense to infer names sometimes, like for 'TyForallRep' for example.
@@ -145,12 +161,12 @@ data Hole
 -- See Note [Rep vs Type context].
 -- | A hole in the Rep context.
 type RepHole :: forall a hole. a -> hole
-data family RepHole
+data family RepHole x
 
 -- See Note [Rep vs Type context].
 -- | A hole in the Type context.
 type TypeHole :: forall hole. GHC.Type -> hole
-data family TypeHole
+data family TypeHole a
 
 type RunHole :: (GHC.Type -> GHC.Type) -> a -> Hole
 type family RunHole hole where
@@ -208,6 +224,10 @@ class KnownTypeAst tyname uni x where
     -- | Return every part of the type that can be a to-be-instantiated type variable.
     -- For example, in @Integer@ there's no such types and in @(a, b)@ it's the two arguments
     -- (@a@ and @b@) and the same applies to @a -> b@ (to mention a type that is not built-in).
+    --
+    -- Takes a @hole@ in the @GHC.Type -> GHC.Type@ form (a convention originally adopted in the
+    -- elaborator, perhaps not a very helpful one), which can be turned into an actual 'Hole' via
+    -- 'RunHole'.
     type ToHoles uni (hole :: GHC.Type -> GHC.Type) x :: [Hole]
     type ToHoles uni hole x = ToHoles uni hole (ElaborateBuiltin uni x)
 
