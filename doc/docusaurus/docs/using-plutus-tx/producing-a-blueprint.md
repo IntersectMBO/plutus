@@ -113,11 +113,11 @@ Since every type in the `referencedTypes` list is going to have its derived JSON
 
 <LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="generic instances" start="-- BEGIN generic instances" end="-- END generic instances" />
 
-- An instance of the `AsDefinitionId` type class. Most of the time it could be derived generically with the `anyclass` strategy; for example:
+- An instance of the `HasBlueprintDefinition` type class. Most of the time it could be derived generically with the `anyclass` strategy; for example:
 
-<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="AsDefinitionId instances" start="-- BEGIN AsDefinitionId instances" end="-- END AsDefinitionId instances" />
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="HasBlueprintDefinition instances" start="-- BEGIN HasBlueprintDefinition instances" end="-- END HasBlueprintDefinition instances" />
 
-- An instance of the `HasSchema` type class. If your validator exposes standard supported types like `Integer` or `Bool`, you don't need to define this instance. If your validator uses custom types, then you should be deriving it using the `makeIsDataSchemaIndexed` Template Haskell function, which derives it alongside with the corresponding [ToBuiltinData]/[FromBuiltinData] instances; for example:
+- An instance of the `HasBlueprintSchema` type class. If your validator exposes standard supported types like `Integer` or `Bool`, you don't need to define this instance. If your validator uses custom types, then you should be deriving it using the `makeIsDataSchemaIndexed` Template Haskell function, which derives it alongside with the corresponding [ToBuiltinData]/[FromBuiltinData] instances; for example:
 
 <LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="makeIsDataSchemaIndexed" start="-- BEGIN makeIsDataSchemaIndexed" end="-- END makeIsDataSchemaIndexed" />
 

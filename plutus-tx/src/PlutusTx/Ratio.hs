@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
@@ -7,6 +8,9 @@
 {-# LANGUAGE MultiWayIf            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=3 #-}
 
 module PlutusTx.Ratio(
@@ -38,7 +42,7 @@ import PlutusTx.Eq qualified as P
 import PlutusTx.ErrorCodes qualified as P
 import PlutusTx.Integer (Integer)
 import PlutusTx.IsData qualified as P
-import PlutusTx.Lift qualified as P
+import PlutusTx.Lift (makeLift)
 import PlutusTx.Maybe qualified as P
 import PlutusTx.Numeric qualified as P
 import PlutusTx.Ord qualified as P
@@ -50,6 +54,8 @@ import Control.Monad (guard)
 import Data.Aeson (FromJSON (parseJSON), ToJSON (toJSON), object, withObject, (.:))
 import GHC.Generics
 import GHC.Real qualified as Ratio
+import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), HasSchemaDefinition)
 import Prelude (Ord (..), Show, (*))
 import Prelude qualified as Haskell
 import Prettyprinter (Pretty (..), (<+>))
@@ -61,11 +67,7 @@ import Prettyprinter (Pretty (..), (<+>))
 -- 1. The denominator is greater than zero.
 -- 2. The numerator and denominator are coprime.
 data Rational = Rational Integer Integer
-  deriving stock (
-    Haskell.Eq,
-    Show,
-    Generic
-    )
+  deriving stock (Haskell.Eq, Show, Generic)
 
 instance Pretty Rational where
   pretty (Rational a b) = "Rational:" <+> pretty a <+> pretty b
@@ -134,6 +136,15 @@ instance P.Module Integer Rational where
                                gcd' = euclid newNum d in
     Rational (newNum `Builtins.quotientInteger` gcd')
              (d `Builtins.quotientInteger` gcd')
+
+instance HasBlueprintDefinition Rational where
+  type Unroll Rational = '[Rational, Integer]
+
+instance
+  (HasSchemaDefinition Integer referencedTypes) =>
+  HasBlueprintSchema Rational referencedTypes
+  where
+  schema = schema @(Integer, Integer)
 
 instance P.ToData Rational where
   {-# INLINABLE toBuiltinData #-}
@@ -338,7 +349,7 @@ euclid x y
   | y P.== P.zero = x
   | P.True = euclid y (x `Builtins.modInteger` y)
 
-P.makeLift ''Rational
+$(makeLift ''Rational)
 
 {- HLINT ignore -}
 
