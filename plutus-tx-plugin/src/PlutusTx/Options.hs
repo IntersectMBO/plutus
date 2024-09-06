@@ -157,8 +157,8 @@ pluginOptions =
           desc =
             "When conservative optimisation is used, only the optimisations that \
             \never make the program worse (in terms of cost or size) are employed. \
-            \Implies `no-relaxed-float-in`, `no-inline-constants`, and \
-            \`preserve-logging`."
+            \Implies `no-relaxed-float-in`, `no-inline-constants`, \
+            \`no-simplifier-evaluate-builtins`, and `preserve-logging`."
        in ( k
           , PluginOption
               typeRep

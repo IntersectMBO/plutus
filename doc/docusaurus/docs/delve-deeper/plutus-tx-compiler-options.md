@@ -20,7 +20,7 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 
 |Option|Value Type|Default|Description|
 |-|-|-|-|
-|`conservative-optimisation`|Bool|False|When conservative optimisation is used, only the optimisations that never make the program worse (in terms of cost or size) are employed. Implies `no-relaxed-float-in`, `no-inline-constants`, and `preserve-logging`.|
+|`conservative-optimisation`|Bool|False|When conservative optimisation is used, only the optimisations that never make the program worse (in terms of cost or size) are employed. Implies `no-relaxed-float-in`, `no-inline-constants`, `no-simplifier-evaluate-builtins`, and `preserve-logging`.|
 |`context-level`|Int|1|Set context level for error messages.|
 |`coverage-all`|Bool|False|Add all available coverage annotations in the trace output|
 |`coverage-boolean`|Bool|False|Add boolean coverage annotations in the trace output|
