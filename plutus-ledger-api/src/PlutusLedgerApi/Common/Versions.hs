@@ -120,11 +120,14 @@ builtinsIntroducedIn = Map.fromList [
           Bls12_381_millerLoop, Bls12_381_mulMlResult, Bls12_381_finalVerify,
           Keccak_256, Blake2b_224, IntegerToByteString, ByteStringToInteger
           ]),
-  ((PlutusV3, futurePV), Set.fromList [
+  ((PlutusV3, changPlus1PV), Set.fromList [
           AndByteString, OrByteString, XorByteString, ComplementByteString,
           ReadBit, WriteBits, ReplicateByte,
           ShiftByteString, RotateByteString, CountSetBits, FindFirstSetBit,
-          Ripemd_160, ExpModInteger
+          Ripemd_160
+          ]),
+  ((PlutusV3, futurePV), Set.fromList [
+          ExpModInteger
           ])
   ]
 
