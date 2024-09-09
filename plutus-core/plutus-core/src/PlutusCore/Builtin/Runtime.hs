@@ -19,13 +19,13 @@ import NoThunks.Class
 -- Applying or type-instantiating a builtin peels off the corresponding constructor from its
 -- 'BuiltinRuntime'.
 --
--- 'BuiltinCostedResult' contains the cost (an 'ExBudget') and the result (a @BuiltinResult val@) of
--- the builtin application. The cost is stored strictly, since the evaluator is going to look at it
--- and the result is stored lazily, since it's not supposed to be forced before accounting for the
--- cost of the application. If the cost exceeds the available budget, the evaluator discards the
--- result of the builtin application without ever forcing it and terminates with evaluation
--- failure. Allowing the user to compute something that they don't have the budget for would be a
--- major bug.
+-- 'BuiltinCostedResult' contains the cost (an 'ExBudgetStream') and the result (a
+-- @BuiltinResult (HeadSpine val)@) of the builtin application. The cost is stored strictly, since
+-- the evaluator is going to look at it and the result is stored lazily, since it's not supposed to
+-- be forced before accounting for the cost of the application. If the cost exceeds the available
+-- budget, the evaluator discards the result of the builtin application without ever forcing it and
+-- terminates with evaluation failure. Allowing the user to compute something that they don't have
+-- the budget for would be a major bug.
 --
 -- Evaluators that ignore the entire concept of costing (e.g. the CK machine) may of course force
 -- the result of the builtin application unconditionally.
