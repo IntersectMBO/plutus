@@ -109,7 +109,9 @@ agdaEvalUplcProg WithoutCosting =
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
 -}
 failingEvaluationTests :: [FilePath]
-failingEvaluationTests = []
+failingEvaluationTests = [
+  "test-cases/uplc/evaluation/builtin/semantics/findFirstSetBit/case-7"  -- There seems to be a bug in findFirstSetBit
+  ]
 
 {- | A list of budget tests which are currently expected to fail.  Once a fix for
  a test is pushed, the test will succeed and should be removed from the list.
@@ -145,7 +147,6 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-27"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-28"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-29"
-  , "test-cases/uplc/evaluation/builtin/semantics/findFirstSetBit/case-7"  -- There seems to be a bug in findFirstSetBit
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
