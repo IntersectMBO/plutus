@@ -1,3 +1,4 @@
+-- This returns 20, but should return 340
 (program 1.0.0
  [
   (builtin findFirstSetBit)
