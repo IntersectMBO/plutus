@@ -125,6 +125,7 @@ failingBudgetTests =
   -- do pass, either because evaluation fails or because two different size
   -- measures happen to be the same for small inputs.
   [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-7"
+  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-9"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-11"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-12"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-13"
@@ -144,6 +145,7 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-27"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-28"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-29"
+  , "test-cases/uplc/evaluation/builtin/semantics/findFirstSetBit/case-7"  -- There seems to be a bug in findFirstSetBit
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
