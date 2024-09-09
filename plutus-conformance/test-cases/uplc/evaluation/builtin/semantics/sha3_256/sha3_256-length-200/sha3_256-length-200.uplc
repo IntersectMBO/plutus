@@ -2,7 +2,7 @@
 -- https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Algorithm-Validation-Program/documents/sha3/sha-3bytetestvectors.zip
 (program 1.0.0
  [
-  [ 
+  [
    (builtin equalsByteString)
    [
     (builtin sha3_256)

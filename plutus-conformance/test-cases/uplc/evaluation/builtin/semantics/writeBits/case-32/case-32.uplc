@@ -7,6 +7,6 @@
    ]
    (con (list integer) [340, 342, 343])
   ]
-  (con (list bool) [True, True, True, False, False, False]) -- Only the leftmost values are used if the lists are of different lengths. 
+  (con (list bool) [True, True, True, False, False, False]) -- Only the leftmost values are used if the lists are of different lengths.
  ]
 )
