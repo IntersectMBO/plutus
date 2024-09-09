@@ -55,6 +55,12 @@ executable example-cip57
   other-modules:    Paths_docusaurus_examples
   build-depends:
     , base               ^>=4.18
+    , bytestring
     , containers
+    , docusaurus-code
+    , plutus-core
     , plutus-ledger-api  ^>=1.34
     , plutus-tx          ^>=1.34
+
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin
