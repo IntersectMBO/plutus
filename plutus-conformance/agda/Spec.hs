@@ -147,6 +147,10 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-27"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-28"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-29"
+  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-30"
+  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-31"
+  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-32"
+  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-33"
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
