@@ -22,7 +22,9 @@ module Evaluation.Builtins.Bitwise (
   ffsIndex,
   ffsZero,
   shiftMinBound,
-  rotateMinBound
+  rotateMinBound,
+  ffs41Bytes,
+  ffs61Bytes
   ) where
 
 import Evaluation.Helpers (assertEvaluatesToConstant, evaluateTheSame, evaluateToHaskell,
@@ -41,6 +43,22 @@ import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (testCase)
+
+-- | Ensure that a 40-byte sequence of zeroes, followed by a 1, gives 320 as the index.
+ffs41Bytes :: TestTree
+ffs41Bytes = testCase "40 zero bytes" $ do
+  let lhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
+        mkConstant @ByteString () . BS.cons 0x01 . BS.replicate 40 $ 0x00
+        ]
+  assertEvaluatesToConstant @Integer 320 lhs
+
+-- | Ensure that a 60-byte sequence of zeroes, followed by a 1, gives 480 as the index.
+ffs61Bytes :: TestTree
+ffs61Bytes = testCase "60 zero bytes" $ do
+  let lhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
+        mkConstant @ByteString () . BS.cons 0x01 . BS.replicate 60 $ 0x00
+        ]
+  assertEvaluatesToConstant @Integer 480 lhs
 
 -- | If given 'Int' 'minBound' as an argument, rotations behave sensibly.
 rotateMinBound :: Property
