@@ -41,13 +41,15 @@ import PlutusTx.Blueprint
 
 import PlutusTx.Prelude
 
-import AuctionMintingPolicy
+-- import AuctionMintingPolicy
+import AuctionValidator
 import Data.ByteString.Short qualified as Short
 import Data.Set qualified as Set
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.DCert qualified as V1
 import PlutusLedgerApi.V1.Time qualified as V1
 import PlutusLedgerApi.V1.Tx qualified as V1
+import PlutusLedgerApi.V1.Value qualified as Value
 import PlutusLedgerApi.V3 qualified as V3
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 
@@ -156,13 +158,24 @@ import Prelude (FilePath, IO)
 -- BLOCK10
 -- BEGIN contract blueprint declaration
 
+auctionParams :: AuctionParams
+auctionParams = AuctionParams
+  { apSeller = "0e20ac97864bbc44b7742f4ad7cbf065d1c077643ce844f2f4909f0b"
+  , apAsset = Value.singleton
+       "ffbd2f1be8910706804dcb12a1ca72a5573374e9a6c7b93a4e8858a4"
+       "TokenToBeAuctioned"
+       1
+  , apMinBid = 100
+  , apEndTime = 1725990304
+  }
+
 myContractBlueprint :: ContractBlueprint
 myContractBlueprint =
   MkContractBlueprint
-    { contractId = Just "auction-minting-policy"
+    { contractId = Just "auction-validator"
     , contractPreamble = myPreamble -- defined below
     , contractValidators = Set.singleton myValidator -- defined below
-    , contractDefinitions = deriveDefinitions @[AuctionMintingParams, ()]
+    , contractDefinitions = deriveDefinitions @[AuctionParams, AuctionDatum, AuctionRedeemer]
     }
 
 -- END contract blueprint declaration
@@ -172,8 +185,8 @@ myContractBlueprint =
 myPreamble :: Preamble
 myPreamble =
   MkPreamble
-    { preambleTitle = "Auction Minting Policy"
-    , preambleDescription = Just "A simple minting policy"
+    { preambleTitle = "Auction Validator"
+    , preambleDescription = Just "Blueprint for a Plutus script validating auction transactions"
     , preambleVersion = "1.0.0"
     , preamblePlutusVersion = PlutusV2
     , preambleLicense = Just "MIT"
@@ -185,26 +198,26 @@ myPreamble =
 
 myValidator =
   MkValidatorBlueprint
-    { validatorTitle = "Auction Minting Validator"
-    , validatorDescription = Just "A simple minting validator"
+    { validatorTitle = "Auction Validator"
+    , validatorDescription = Just "Plutus script validating auction transactions"
     , validatorParameters =
         [ MkParameterBlueprint
-            { parameterTitle = Just "Minting Validator Parameters"
+            { parameterTitle = Just "Parameters"
             , parameterDescription = Just "Compile-time validator parameters"
-            , parameterPurpose = Set.singleton Mint
-            , parameterSchema = definitionRef @AuctionMintingParams
+            , parameterPurpose = Set.singleton Spend
+            , parameterSchema = definitionRef @AuctionParams
             }
         ]
     , validatorRedeemer =
         MkArgumentBlueprint
-          { argumentTitle = Just "Redeemer for the minting policy"
-          , argumentDescription = Just "The minting policy does not use a redeemer, hence ()"
-          , argumentPurpose = Set.fromList [Mint]
+          { argumentTitle = Just "Redeemer"
+          , argumentDescription = Just "Redeemer for the auction validator"
+          , argumentPurpose = Set.fromList [Spend]
           , argumentSchema = definitionRef @()
           }
     , validatorDatum = Nothing
     , validatorCompiledCode = Just . Short.fromShort . V3.serialiseCompiledCode
-        $ auctionMintingPolicyScript "0e20ac97864bbc44b7742f4ad7cbf065d1c077643ce844f2f4909f0b"
+        $ auctionValidatorScript auctionParams
     }
 
 -- END validator blueprint declaration
