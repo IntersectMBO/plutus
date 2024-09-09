@@ -884,6 +884,9 @@ findFirstSetBit bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
     -- maths required.
     goBig :: Ptr Word64 -> Int -> Int -> IO Int
     goBig !bigSrcPtr !acc !byteIx
+        -- We have the ability to do a large read, as our index is still
+        -- in-bounds. This works because we're reading backwards, so thus
+        -- `byteIx` is actually the _last_ index of interest.
       | byteIx >= 0 = do
           !(w64 :: Word64) <- peekByteOff bigSrcPtr byteIx
           -- In theory, we could use the same technique here as we do in
@@ -899,8 +902,12 @@ findFirstSetBit bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
           if w64 == 0x0
             then goBig bigSrcPtr (acc + 64) (byteIx - 8)
             else goSmall (castPtr bigSrcPtr) acc (byteIx + 7)
+      -- We're done, because no other possible read can happen. Also the
+      -- 'fall-through' case for an empty input.
       | byteIx <= (-8) = pure (-1)
-      | otherwise = goSmall (castPtr bigSrcPtr) 0 (8 + byteIx - 1)
+      -- Here, we have `-7 < byteIx < 0`. This means no _large_ reads are
+      -- possible, but small ones may still find something.
+      | otherwise = goSmall (castPtr bigSrcPtr) acc (8 + byteIx - 1)
     goSmall :: Ptr Word8 -> Int -> Int -> IO Int
     goSmall !smallSrcPtr !acc !byteIx
       | byteIx < 0 = pure (-1)
