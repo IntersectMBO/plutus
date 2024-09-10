@@ -41,7 +41,7 @@ let
       };
 
       modules = [
-        # Common 
+        # Common
         {
           packages = {
             # plutus-metatheory needs agda with the stdlib around for the custom setup
@@ -49,9 +49,11 @@ let
             # components in the package, oh well
             plutus-metatheory.components.library.build-tools = [ repoRoot.nix.agda-with-stdlib ];
             plutus-metatheory.components.exes.plc-agda.build-tools = [ repoRoot.nix.agda-with-stdlib ];
-            plutus-metatheory.components.tests.test-simple.build-tools = [ repoRoot.nix.agda-with-stdlib ];
-            plutus-metatheory.components.tests.test-detailed.build-tools = [ repoRoot.nix.agda-with-stdlib ];
             plutus-metatheory.components.tests.test-NEAT.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+
+            plutus-executables.components.exes.uplc.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-executables.components.tests.test-simple.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-executables.components.tests.test-detailed.build-tools = [ repoRoot.nix.agda-with-stdlib ];
 
             plutus-core.components.benchmarks.update-cost-model = {
               build-tools = [ repoRoot.nix.r-with-packages ];
@@ -106,6 +108,7 @@ let
             # Werror everything.
             # This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
             plutus-benchmark.ghcOptions = [ "-Werror" ];
+            plutus-executables.ghcOptions = [ "-Werror" ];
             plutus-conformance.ghcOptions = [ "-Werror" ];
             plutus-core.ghcOptions = [ "-Werror" ];
             plutus-ledger-api.ghcOptions = [ "-Werror" ];

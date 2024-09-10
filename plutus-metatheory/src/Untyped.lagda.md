@@ -194,3 +194,13 @@ decUTm (UDelay t) (UDelay t') = decUTm t t'
 decUTm (UForce t) (UForce t') = decUTm t t'
 decUTm _ _ = false
 ```
+
+## Haskell UPLC to Agda UPLC
+```
+buildDebruijnEncoding : {X : Set} → ℕ → Either ScopeError (Maybe X)
+buildDebruijnEncoding x = extG' (λ _ → inj₁ deBError) x
+
+toWellScoped : {X : Set} → Untyped → Either ScopeError (Maybe X ⊢)
+toWellScoped = scopeCheckU buildDebruijnEncoding 
+
+```

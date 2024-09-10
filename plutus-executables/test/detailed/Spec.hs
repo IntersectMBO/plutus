@@ -24,9 +24,7 @@ import System.Process
 import Test.Tasty
 import Test.Tasty.HUnit
 
-import MAlonzo.Code.Evaluator.Term qualified as M
 import MAlonzo.Code.Main qualified as M
-import MAlonzo.Code.Raw qualified as R
 
 -- Running external programs
 
@@ -57,8 +55,8 @@ runPlcAgda args =
 {- | Run an external executable with some arguments.  This is for use inside HUnit
    Assertions -}
 runProg :: String -> [String] -> String -> IO String
-runProg prog args stdin = do
-  (exitCode, output, err) <- readProcessWithExitCode prog args stdin
+runProg prog args stdin' = do
+  (exitCode, output, err) <- readProcessWithExitCode prog args stdin'
   case exitCode of
     ExitFailure _ -> assertFailure $ prog ++ " failed: " ++ err
     ExitSuccess   -> pure ()
@@ -110,7 +108,7 @@ anonDeBruijn s = go s []
      account for quoted ideintfiers. -}
     go2 [] acc       = acc
     go2 ('!':cs) acc =  go (dropWhile isIdentifierChar cs) ('!':acc)
-    go2 s acc        = go s acc
+    go2 s' acc       = go s' acc
 
 {- | Convert a textual PLC term containing de Bruijn-named variables of the form id!index
 to a canonical form.
@@ -173,6 +171,7 @@ compareResultAgda eq mode1 mode2 testname = withTempFile $ \tmp -> do
 
 -- These come from `plc example -a` but there are a couple of failing tests which are omitted.
 -- `uplc` provides the same examples, but erased.
+testNames :: [String]
 testNames =
   [ "succInteger"
   , "unitval"

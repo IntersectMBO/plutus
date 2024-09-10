@@ -82,8 +82,11 @@ import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
+import Data.Text qualified as Text
 import Data.Type.Bool qualified as PlutusTx.Bool
 import GHC.Num.Integer qualified
+import PlutusCore.Compiler.Types (UPLCSimplifierTrace (UPLCSimplifierTrace),
+                                  initUPLCSimplifierTrace)
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
@@ -566,7 +569,7 @@ runCompiler moduleName opts expr = do
     when (opts ^. posDoTypecheck) . void $
         liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-    uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
+    uplcP <- PLC.evalCompile plcOpts $ PLC.compileProgram plcP
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat
