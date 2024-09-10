@@ -100,8 +100,8 @@ allow-newer:
 --
 -- package cardano-constitution
 --   flags: +force-build
--- allow-newer: cardano-constitution:plutus-ledger-api
--- allow-newer: cardano-constitution:prettyprinter-configurable
+-- allow-newer: *:plutus-ledger-api
+-- allow-newer: *:prettyprinter-configurable
 -- allow-older: *:nothunks
 
 -- -------------------------------------------------------------------------------------------------

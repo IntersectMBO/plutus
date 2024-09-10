@@ -359,6 +359,9 @@ valueOf (Value mp) cur tn =
 {-# INLINABLE currencySymbolValueOf #-}
 -- | Get the total value of the currency symbol in the 'Value' map.
 -- Assumes that the underlying map doesn't contain duplicate keys.
+--
+-- Note that each token of the currency symbol may have a value that is positive,
+-- zero or negative.
 currencySymbolValueOf :: Value -> CurrencySymbol -> Integer
 currencySymbolValueOf (Value mp) cur = case Map.lookup cur mp of
     Nothing     -> 0

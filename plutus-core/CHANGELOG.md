@@ -1,4 +1,11 @@
 
+<a id='changelog-1.34.0.0'></a>
+# 1.34.0.0 — 2024-09-09
+
+## Changed
+
+- Swapped around the type arguments of `EvaluationError` and `EvaluationException`.
+
 <a id='changelog-1.33.0.0'></a>
 # 1.33.0.0 — 2024-08-22
 

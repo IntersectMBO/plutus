@@ -212,8 +212,8 @@ This executable is disabled by default; to enable it, uncomment the related line
 --
 -- package cardano-constitution
 --   flags: +force-build
--- allow-newer: cardano-constitution:plutus-ledger-api
--- allow-newer: cardano-constitution:prettyprinter-configurable
+-- allow-newer: *:plutus-ledger-api
+-- allow-newer: *:prettyprinter-configurable
 -- allow-older: *:nothunks
 ```
 
