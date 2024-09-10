@@ -2,7 +2,7 @@
 -- Output obtained using the online tool https://emn178.github.io/online-tools/ripemd_160.html
 (program 1.0.0
  [
-  [ 
+  [
    (builtin equalsByteString)
    [
     (builtin ripemd_160)
