@@ -24,7 +24,7 @@ Note that the plugin lacks support for certain functions and methods from `base`
 This error can also occur if the identifier simply doesn't have an unfolding, e.g., `f x = $$(compile [|| x + 1 ||])`.
 Clearly there is no unfolding for `x`, so it is impossible for it to work.
 
-Last but not the least, this error may happen when using GHCi, which is not fully supported by the plugin.
+Alternatively, this error may happen when using GHCi, which is not fully supported by the plugin.
 Not only does GHCi often hides unfoldings from the plugin, but it may also introduce debugging information like breakpoints in GHC Core, causing the plugin to fail.
 
 ### "Unsupported feature: Cannot case on a value on type"
