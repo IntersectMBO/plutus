@@ -161,12 +161,10 @@ import Prelude (FilePath, IO)
 auctionParams :: AuctionParams
 auctionParams = AuctionParams
   { apSeller = "0e20ac97864bbc44b7742f4ad7cbf065d1c077643ce844f2f4909f0b"
-  , apAsset = Value.singleton
-       "ffbd2f1be8910706804dcb12a1ca72a5573374e9a6c7b93a4e8858a4"
-       "TokenToBeAuctioned"
-       1
+  , apCurrencySymbol = "ffbd2f1be8910706804dcb12a1ca72a5573374e9a6c7b93a4e8858a4"
+  , apTokenName = "TokenToBeAuctioned"
   , apMinBid = 100
-  , apEndTime = 1725990304
+  , apEndTime = 1726069587000
   }
 
 myContractBlueprint :: ContractBlueprint
