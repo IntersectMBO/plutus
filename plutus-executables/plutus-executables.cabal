@@ -62,7 +62,7 @@ executable pir
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib, plutus-ir}  ^>=1.33
+    , plutus-core:{plutus-core, plutus-core-execlib, plutus-ir}  ^>=1.34
     , text
     , transformers
 
