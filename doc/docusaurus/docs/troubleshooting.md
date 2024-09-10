@@ -18,7 +18,7 @@ If this doesn't resolve the issue, or if the identifier in question isn't direct
 ensure that you apply all GHC flags listed in [Compiling Plutus Tx](./using-plutus-tx/compiling-plutus-tx.md).
 These flags disable GHC optimizations that can interfere with the plugin, and ensure that unfoldings are neither omitted nor ignored.
 
-If the identifier with missing unfolding is from `base` or invoked by a function from `base`, you should use the corresponding function from the `plutus-tx` package.
+If the identifier with missing unfolding is from `base` or invoked by a function from `base`, you should use instead the corresponding function from the `plutus-tx` package.
 Note that the plugin lacks support for certain functions and methods from `base`.
 
 This error can also occur if the identifier simply doesn't have an unfolding, e.g., `f x = $$(compile [|| x + 1 ||])`.
