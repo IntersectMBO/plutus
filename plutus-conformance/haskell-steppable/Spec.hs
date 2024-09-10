@@ -10,7 +10,7 @@ import UntypedPlutusCore.Evaluation.Machine.SteppableCek qualified as SCek
 import Control.Lens
 
 failingEvaluationTests :: [FilePath]
-failingEvaluationTests = [ "test-cases/uplc/evaluation/builtin/semantics/findFirstSetBit/case-7" ]
+failingEvaluationTests = []
 
 failingBudgetTests :: [FilePath]
 failingBudgetTests = []
