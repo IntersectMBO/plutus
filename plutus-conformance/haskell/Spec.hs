@@ -31,8 +31,7 @@ evalUplcProg = UplcEvaluatorWithCosting $ \modelParams (UPLC.Program a v t) ->
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
 -}
 failingEvaluationTests :: [FilePath]
-failingEvaluationTests = [ "test-cases/uplc/evaluation/builtin/semantics/findFirstSetBit/case-7" ]
-  -- There seems to be a bug in findFirstSetBit
+failingEvaluationTests = []
 
 {- | A list of budget tests which are currently expected to fail.  Once a fix for
  a test is pushed, the test will succeed and should be removed from the list.

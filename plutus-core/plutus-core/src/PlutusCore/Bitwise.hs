@@ -884,6 +884,8 @@ findFirstSetBit bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
     -- maths required.
     goBig :: Ptr Word64 -> Int -> Int -> IO Int
     goBig !bigSrcPtr !acc !byteIx
+        -- We can do at least one large step. This works because we read
+        -- backwards, which means that `byteIx` is the _last_ position we read
       | byteIx >= 0 = do
           !(w64 :: Word64) <- peekByteOff bigSrcPtr byteIx
           -- In theory, we could use the same technique here as we do in
@@ -899,8 +901,19 @@ findFirstSetBit bs = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr -> do
           if w64 == 0x0
             then goBig bigSrcPtr (acc + 64) (byteIx - 8)
             else goSmall (castPtr bigSrcPtr) acc (byteIx + 7)
+        -- We've 'walked off the end' and not found anything, so everything
+        -- must be zeroes
       | byteIx <= (-8) = pure (-1)
-      | otherwise = goSmall (castPtr bigSrcPtr) 0 (8 + byteIx - 1)
+        -- We can end up here in one of two ways:
+        --
+        -- 1. Our input `ByteString` is 7 bytes long or smaller; or
+        -- 2. We have done all the large steps we can, and have between 1
+        --    and 7 bytes to go.
+        --
+        -- In either case, we forward the accumulator (which will be 0 in
+        -- case 1) to small stepping. Combining these cases allows us to
+        -- avoid separate tests for these conditions.
+      | otherwise = goSmall (castPtr bigSrcPtr) acc (8 + byteIx - 1)
     goSmall :: Ptr Word8 -> Int -> Int -> IO Int
     goSmall !smallSrcPtr !acc !byteIx
       | byteIx < 0 = pure (-1)
