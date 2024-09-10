@@ -8,7 +8,7 @@ sidebar_position: 80
 
 ### "No unfolding"
 
-This means the plugin cannot access to the definition of an identifier, which it needs to be able to compile the identifier to Plutus Core.
+This means the plugin cannot access to the definition of a Haskell identifier, which it needs to be able to compile that identifier to Plutus Core.
 
 If the identifier in question is defined in the source code, try adding the `INLINABLE` pragma to it (not the `INLINE` pragma, which should generally be avoided).
 If it already has the `INLINABLE` pragma, try adding the GHC flags
