@@ -25,7 +25,7 @@ This error can also occur if the identifier simply doesn't have an unfolding, e.
 Clearly there is no unfolding for `x`, so it is impossible for it to work.
 
 Alternatively, this error may happen when using GHCi, which is not fully supported by the plugin.
-Not only does GHCi often hides unfoldings from the plugin, but it may also introduce debugging information like breakpoints in GHC Core, causing the plugin to fail.
+Not only does GHCi often hide unfoldings from the plugin, but it may also introduce debugging information like breakpoints in GHC Core, causing the plugin to fail.
 
 ### "Unsupported feature: Cannot case on a value on type: \{type\}"
 
