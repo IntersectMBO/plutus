@@ -1,0 +1,1 @@
+SomeConstant DefaultUni Bool -> BuiltinResult Bool
