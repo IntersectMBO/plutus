@@ -12,6 +12,7 @@ module Main (main) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
+import PlutusCore.Compiler.Types (UPLCSimplifierTrace (..), initUPLCSimplifierTrace)
 import PlutusCore.Data (Data)
 import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
@@ -23,6 +24,9 @@ import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
 
+import MAlonzo.Code.VerifiedCompilation qualified as Agda
+import Untyped qualified as AgdaFFI
+
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
@@ -33,6 +37,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import Control.DeepSeq (force)
 import Control.Monad.Except (runExcept)
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad.State (runStateT)
 import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
@@ -258,14 +263,25 @@ plutusOpts = hsubparser $
 
 -- | Run the UPLC optimisations
 runOptimisations :: OptimiseOptions -> IO ()
-runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
   prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
-  simplified <- PLC.runQuoteT $ do
+  (simplified, simplificationTrace) <- PLC.runQuoteT $ do
     renamed <- PLC.rename prog
     let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
         defaultBuiltinSemanticsVariant = def
-    UPLC.simplifyProgram UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
+    flip runStateT initUPLCSimplifierTrace
+      $ UPLC.simplifyProgram UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
   writeProgram outp ofmt mode simplified
+  runCertifier cert simplificationTrace
+  where
+    runCertifier (Just certName) (UPLCSimplifierTrace uplcSimplTrace) = do
+      let processAgdaAST t =
+              case UPLC.deBruijnTerm t of
+                Right res                            -> res
+                Left (err :: UPLC.FreeVariableError) -> error $ show err
+          rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
+      Agda.runCertifier (T.pack certName) rawAgdaTrace
+    runCertifier Nothing _ = pure ()
 
 ---------------- Script application ----------------
 

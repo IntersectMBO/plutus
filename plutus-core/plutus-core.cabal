@@ -463,35 +463,6 @@ test-suite untyped-plutus-core-test
     , text
     , vector
 
-executable plc
-  import:         lang
-  main-is:        plc/Main.hs
-  hs-source-dirs: executables
-  build-depends:
-    , base                                            >=4.9   && <5
-    , bytestring
-    , flat                                            ^>=0.6
-    , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.34
-
-executable uplc
-  import:         lang
-  main-is:        uplc/Main.hs
-  hs-source-dirs: executables
-  build-depends:
-    , base                                            >=4.9   && <5
-    , bytestring
-    , criterion
-    , deepseq
-    , flat                                            ^>=0.6
-    , haskeline
-    , mtl
-    , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.34
-    , prettyprinter
-    , split
-    , text
-
 ----------------------------------------------
 -- plutus-ir
 ----------------------------------------------
@@ -662,22 +633,6 @@ test-suite plutus-ir-test
     , tasty-quickcheck
     , text
     , unordered-containers
-
-executable pir
-  import:         lang
-  main-is:        pir/Main.hs
-  hs-source-dirs: executables
-  build-depends:
-    , base                                                       >=4.9   && <5
-    , bytestring
-    , cassava
-    , containers
-    , lens
-    , megaparsec
-    , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib, plutus-ir}  ^>=1.34
-    , text
-    , transformers
 
 executable plutus
   import:             lang
