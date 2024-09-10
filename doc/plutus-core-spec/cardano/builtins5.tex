@@ -91,7 +91,7 @@ bytestrings have different lengths.
 \item If the first argument of one of the bitwise logical operations is $\false$ 
 then the longer bytestring is (conceptually) truncated on the right to have the
 same length as the shorter one.
-\item If the first argument $\true$ 
+\item If the first argument is $\true$ 
 then the shorter bytestring is (conceptually) extended on the right to have the
 same length as the longer one.  In the case of $\Xand$ the shorter bytestring is
 extended with $\bitzero$ bits and in the case of $\Xor$ and $\Xxor$ it is
@@ -209,8 +209,8 @@ precedence.
 \smallskip
 \noindent Formally, 
 $$
-\mathsf{writeBits}(s, [j_0 , \ldots, j_{k-1}], [v_0, \ldots, v_{l-1}]) =
-    \mathsf{writeBits}^{\prime} (s, [(j_0, v_0) , \ldots, (j_{\min\{k,l\}-1}, v_{\min\{k,l\}-1})])
+\mathsf{writeBits}\,(s, [j_0 , \ldots, j_{k-1}], [v_0, \ldots, v_{l-1}]) =
+    \mathsf{writeBits}^{\prime}(s, [(j_0, v_0) , \ldots, (j_{\min\{k,l\}-1}, v_{\min\{k,l\}-1})])
 $$
 
 $$
@@ -242,7 +242,7 @@ integer $B$ between 0 and 255 and produces a bytestring of length $l$.  It fails
 if either argument is outside the required bounds.  The denotation is
 
 $$
-\mathsf{replicateByte}(l,B) =
+\mathsf{replicateByte}\,(l,B) =
 \begin{cases}
 B_0{\cdots}B_{l-1} \quad\text{ ($B_i=B$ for all $i$}) & \text{if $0 \leq l \leq 8192$ and $B \in \B$}\\
 \errorX      & \text{otherwise}.
