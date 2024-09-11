@@ -80,6 +80,9 @@ Comparing benchmark results of '$BENCHMARK_NAME' on '$BASE_BRANCH_REF' (base) an
 <summary>Results table</summary>
 
 EOF
-./plutus-benchmark/bench-compare-markdown bench-base.log bench-PR.log "${BASE_BRANCH_REF:0:7}" "${PR_BRANCH_REF:0:7}"
-echo -e "</details>"
+./plutus-benchmark/bench-compare-markdown bench-base.log bench-PR.log "${BASE_BRANCH_REF:0:7}" "${PR_BRANCH_REF:0:7}" |
+awk '/^[| \t]*$/ {print "</details>"; next}
+     /TOTAL/ {print "\n| :------| :------: | :------: | :------: |"}
+     {print}' 
+# ^ This puts </details> after the individual results and puts the TOTAL line in a small table on its own.
 } > bench-compare-result.log
