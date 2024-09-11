@@ -19,5 +19,5 @@
    ]
    (con bytestring #0a)
   ]
- ] 
+ ]
 )

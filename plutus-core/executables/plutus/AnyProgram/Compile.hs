@@ -31,8 +31,10 @@ import Control.Lens hiding ((%~))
 import Control.Monad.Error.Lens
 import Control.Monad.Except
 import Control.Monad.Reader
+import Control.Monad.State (StateT (runStateT))
 import Data.Singletons.Decide
 import Data.Text
+import PlutusCore.Compiler.Types (initUPLCSimplifierTrace)
 import PlutusPrelude hiding ((%~))
 
 -- Note that we use for erroring the original term's annotation
@@ -111,7 +113,7 @@ compileProgram = curry $ \case
             -- first self-"compile" to plc (just for reusing code)
             compileProgram sng1 (SPlc n2 a2)
         -- PLC.compileProgram subsumes uplcOptimise
-        >=> (PLC.runQuoteT . flip runReaderT PLC.defaultCompilationOpts .
+        >=> (PLC.runQuoteT . PLC.evalCompile PLC.defaultCompilationOpts .
                 plcToUplcViaName n2 PLC.compileProgram)
         >=> pure . UPLC.UnrestrictedProgram
 
@@ -213,7 +215,10 @@ plcTypecheck sngN sngA p = PLC.runQuoteT $ do
     tcConfig <- withA @Monoid sngA $ PLC.getDefTypeCheckConfig mempty
     void $ plcToName sngN (PLC.inferTypeOfProgram tcConfig) p
 
-uplcOptimise :: (?opts :: Opts, PLC.AsFreeVariableError e, MonadError e m)
+uplcOptimise :: (?opts :: Opts
+                , PLC.AsFreeVariableError e
+                , MonadError e m
+                )
              => SNaming n1
              -> UPLC.UnrestrictedProgram (FromName n1) DefaultUni DefaultFun a
              -> m (UPLC.UnrestrictedProgram (FromName n1) DefaultUni DefaultFun a)
@@ -225,7 +230,8 @@ uplcOptimise =
                                 case safeOrUnsafe of
                                   SafeOptimise   -> set UPLC.soConservativeOpts True
                                   UnsafeOptimise -> id
-                in fmap PLC.runQuoteT
+                in (fmap . fmap) fst
+                   . fmap (PLC.runQuoteT . flip runStateT initUPLCSimplifierTrace)
                    . _Wrapped
                    . uplcViaName (UPLC.simplifyProgram sOpts def)
 

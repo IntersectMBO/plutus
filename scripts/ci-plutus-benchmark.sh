@@ -84,6 +84,7 @@ EOF
     awk -v hdr1="${BASE_BRANCH_REF:0:7}" -v hdr2="${PR_BRANCH_REF:0:7}" '
      /^[| \t]*$/ {print "</details>"; next}
      /TOTAL/ {printf ("\n| %s | %s | Change |\n| :------| :------: | :------: | :------: |\n", hdr1, hdr2)}
+>>>>>>> master
      {print}' 
 # ^ This puts </details> after the individual results and puts the TOTAL line in a small table on its own.
 } > bench-compare-result.log
