@@ -103,6 +103,7 @@ data DefaultFun
     | HeadList
     | TailList
     | NullList
+    | DropList
     -- Data
     -- See Note [Pattern matching on built-in types].
     -- It is convenient to have a "choosing" function for a data type that has more than two
@@ -1543,6 +1544,18 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             nullListDenotation
             (runCostingFunOneArgument . paramNullList)
 
+    toBuiltinMeaning _semvar DropList =
+        let dropListDenotation :: Int -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
+            dropListDenotation i (SomeConstant (Some (ValueOf uniListA xs))) = do
+                -- See Note [Operational vs structural errors within builtins].
+                case uniListA of
+                    DefaultUniList _ -> pure . fromValueOf uniListA $ drop i xs
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+            {-# INLINE dropListDenotation #-}
+        in makeBuiltinMeaning
+            dropListDenotation
+            (runCostingFunTwoArguments . unimplementedCostingFun)
+
     -- Data
     toBuiltinMeaning _semvar ChooseData =
         let chooseDataDenotation :: Data -> a -> a -> a -> a -> a -> a
@@ -2144,6 +2157,8 @@ instance Flat DefaultFun where
 
               ExpModInteger           -> 87
 
+              DropList -> 88
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -2233,6 +2248,7 @@ instance Flat DefaultFun where
               go 85 = pure FindFirstSetBit
               go 86 = pure Ripemd_160
               go 87 = pure ExpModInteger
+              go 88 = pure DropList
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

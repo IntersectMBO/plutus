@@ -6,8 +6,8 @@ program
           \(x : a) ->
             trace
               {unit -> a}
-              "entering id-129"
-              (\(thunk : unit) -> trace {a} "exiting id-129" x)
+              "entering id-131"
+              (\(thunk : unit) -> trace {a} "exiting id-131" x)
               ()
   in
   id {integer} (id {integer} 1))

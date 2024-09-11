@@ -144,3 +144,4 @@ isCommutative = \case
   CountSetBits                    -> False
   FindFirstSetBit                 -> False
   ExpModInteger           -> False
+  DropList -> False
