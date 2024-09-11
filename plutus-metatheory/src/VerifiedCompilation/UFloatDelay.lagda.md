@@ -19,6 +19,7 @@ open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; 
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import Data.Empty using (⊥)
+open import Function using (case_of_)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Data.List using (map)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
@@ -50,29 +51,30 @@ subs-delay v (constr i xs) = constr i (map (subs-delay v) xs)
 subs-delay v (case t ts) = case (subs-delay v t) (map (subs-delay v) ts)
 subs-delay v (builtin b) = builtin b
 subs-delay v error = error
+
 {-
 _ : (subs-delay (ƛ ((` nothing) · (ƛ (` (just nothing)))))) ≡ ?
 _ = ?
 -}
 ```
 The translation relation is then fairly striaghtforward.
+
 ```
 data FlD {X : Set} {{de : DecEq X}} : (X ⊢) → (X ⊢) → Set₁ where
   floatdelay : {y y' : X ⊢} {x x' : (Maybe X) ⊢}
-          → Translation FlD (subs-delay {X}{{de}} nothing x) x'
+          → Translation FlD (subs-delay nothing x) x'
           → Translation FlD y y'
           → FlD (ƛ x · (delay y)) (ƛ x' · y')
-
 ```
 ## Decision Procedure
 ```
 
-isFloatDelay? : {X : Set} {{de : DecEq X}} → Binary.Decidable (Translation (FlD {X}{{de}}) {X})
+isFloatDelay? : {X : Set} {{de : DecEq X}} → Binary.Decidable (Translation FlD {X})
 
 {-# TERMINATING #-}
-isFlD? : {X : Set} {{de : DecEq X}} → Binary.Decidable (FlD {X} {{de}})
-isFlD? ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?) ast) ×-dec ((isApp? (isLambda? isTerm?) isTerm?) ast')
-... | no ¬p = no λ { (floatdelay x x₁) → ¬p {!!}}
+isFlD? : {X : Set} {{de : DecEq X}} → Binary.Decidable (FlD {X})
+isFlD? {{de}} ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?) ast) ×-dec ((isApp? (isLambda? isTerm?) isTerm?) ast')
+... | no ¬p = no λ { (floatdelay x x₁) → ¬p (isapp (islambda (isterm _)) (isdelay (isterm _)) , isapp (islambda (isterm _)) (isterm _))}
 ... | yes (isapp (islambda (isterm x)) (isdelay (isterm y)) , isapp (islambda (isterm x')) (isterm y')) with (isFloatDelay? (subs-delay nothing x) x') ×-dec (isFloatDelay? y y')
 ... | yes (fst , snd) = yes (floatdelay fst snd)
 ... | no ¬pp = no λ { (floatdelay x x₁) → ¬pp (x , x₁) }

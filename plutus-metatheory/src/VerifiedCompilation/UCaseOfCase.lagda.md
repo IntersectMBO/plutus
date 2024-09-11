@@ -40,7 +40,7 @@ This will just be an instance of the `Translation` relation once we define the "
 
 ```
 data CoC : Relation where
-  isCoC : {X : Set} → (b : X ⊢) (tn fn : ℕ)  (tt tt' ft ft' alts alts' : List (X ⊢)) →
+  isCoC : {X : Set} {{_ : DecEq X}} → (b : X ⊢) (tn fn : ℕ)  (tt tt' ft ft' alts alts' : List (X ⊢)) →
              Pointwise (Translation CoC) alts alts' →
              Pointwise (Translation CoC) tt tt' →
              Pointwise (Translation CoC) ft ft' →

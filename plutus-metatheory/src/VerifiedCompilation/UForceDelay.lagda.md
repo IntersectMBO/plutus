@@ -42,22 +42,22 @@ cancel out precisely.
 Ultimately they should be equivalent.
 
 ```
-data pureFD : Relation where
-  forcedelay : {X : Set} → {x x' : X ⊢} → pureFD x x' → pureFD (force (delay x)) x'
-  pushfd : {X : Set} → {x x' : Maybe X ⊢} → {y y' : X ⊢}
+data pureFD {X : Set} {{de : DecEq X}} : X ⊢ → X ⊢ → Set₁ where
+  forcedelay : {x x' : X ⊢} → pureFD x x' → pureFD (force (delay x)) x'
+  pushfd : {x x' : Maybe X ⊢} → {y y' : X ⊢}
          → pureFD x x'
          → pureFD y y'
          → pureFD (force ((ƛ x) · y)) ((ƛ (force x')) · y')
-  _⨾_ : {X : Set} → {x x'' x' : X ⊢}
+  _⨾_ : {x x'' x' : X ⊢}
          → pureFD x x''
          → pureFD x'' x'
          → pureFD x x'
-  translationfd : {X : Set} → {x x' : X ⊢}
+  translationfd : {x x' : X ⊢}
          → Translation pureFD x x'
          → pureFD x x'
 
-  appfd : {X : Set} → {x : Maybe X ⊢} → {y z : X ⊢} → pureFD (((ƛ x) · y) · z) (ƛ (x · (weaken z)) · y)
-  appfd⁻¹ : {X : Set} → {x : Maybe X ⊢} → {y z : X ⊢} → pureFD (ƛ (x · (weaken z)) · y) (((ƛ x) · y) · z)
+  appfd : {x : Maybe X ⊢} → {y z : X ⊢} → pureFD (((ƛ x) · y) · z) (ƛ (x · (weaken z)) · y)
+  appfd⁻¹ : {x : Maybe X ⊢} → {y z : X ⊢} → pureFD (ƛ (x · (weaken z)) · y) (((ƛ x) · y) · z)
 
 _ : pureFD {Maybe ⊥} (force (delay (` nothing))) (` nothing)
 _ = forcedelay (translationfd Translation.var)
@@ -72,22 +72,22 @@ _ = translationfd (Translation.force (Translation.istranslation (forcedelay (tra
 _ : pureFD {Maybe ⊥} (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
 _ = (translationfd (Translation.force (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive))))) ⨾ ((translationfd (Translation.force (Translation.app (Translation.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive)))) reflexive))) ⨾ ( pushfd (translationfd reflexive) (translationfd reflexive) ⨾ ((translationfd (Translation.app (Translation.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive)))) reflexive)) ⨾ (translationfd (Translation.app (Translation.ƛ (Translation.app (Translation.ƛ (Translation.istranslation ((translationfd (Translation.force (Translation.istranslation (forcedelay (translationfd (Translation.delay Translation.var)))))) ⨾ (forcedelay (translationfd Translation.var))))) reflexive)) reflexive)))))
 
-test4 : {X : Set} {N : Maybe (Maybe X) ⊢} {M M' : X ⊢} → pureFD (force (((ƛ (ƛ (delay N))) · M) · M')) (((ƛ (ƛ N)) · M) · M')
+test4 : {X : Set} {{_ : DecEq X}} {N : Maybe (Maybe X) ⊢} {M M' : X ⊢} → pureFD (force (((ƛ (ƛ (delay N))) · M) · M')) (((ƛ (ƛ N)) · M) · M')
 test4 = (translationfd (Translation.force (Translation.istranslation appfd))) ⨾ ((pushfd (translationfd reflexive) (translationfd reflexive)) ⨾ ((translationfd (Translation.app (Translation.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive)))) reflexive )) ⨾ (translationfd (Translation.app (Translation.ƛ (Translation.app (Translation.ƛ (Translation.istranslation (forcedelay (translationfd reflexive)))) reflexive)) reflexive) ⨾ appfd⁻¹)))
 
-data FD : ℕ → ℕ → Relation where
-  forcefd : (n nₐ : ℕ) → {X : Set} → {x x' : X ⊢}
+data FD {X : Set} {{_ : DecEq X}} : ℕ → ℕ → X ⊢ → X ⊢ → Set₁ where
+  forcefd : (n nₐ : ℕ) → {x x' : X ⊢}
                   → FD (suc n) nₐ x x' → FD n nₐ (force x) x'
-  delayfd : (n nₐ : ℕ) → {X : Set} → {x x' : X ⊢}
+  delayfd : (n nₐ : ℕ) → {x x' : X ⊢}
                  → FD n nₐ x x' → FD (suc n) nₐ (delay x) x'
-  lastdelay : (n nₐ : ℕ) → {X : Set} → {x x' : X ⊢}
+  lastdelay : (n nₐ : ℕ) → {x x' : X ⊢}
                  → Translation (FD zero zero) x x'
                  → FD (suc zero) zero (delay x) x'
-  multiappliedfd : (n nₐ : ℕ) → {X : Set} → {x y x' y' : X ⊢}
+  multiappliedfd : (n nₐ : ℕ) → {x y x' y' : X ⊢}
                  → Translation (FD zero zero) y y'
                  → FD n (suc nₐ) (force x) x'
                  → FD n nₐ (force (x · y)) (x' · y')
-  multiabstractfd : (n nₐ : ℕ) → {X : Set} → {x x' : Maybe X ⊢}
+  multiabstractfd : (n nₐ : ℕ) → {x x' : Maybe X ⊢}
                   →  FD n nₐ (force x) x'
                   →  FD n (suc nₐ) (force (ƛ x)) (ƛ x')
 
@@ -110,20 +110,20 @@ data fFD where
 data FD where
   ffd : {X : Set} → {x x' : X ⊢} → fFD zero x x' → FD x x'
 -}
-_ : FD zero zero {⊥} (force (ƛ (delay error) · error)) (ƛ error · error)
+_ : FD {⊥} zero zero (force (ƛ (delay error) · error)) (ƛ error · error)
 _ = multiappliedfd zero zero Translation.error
      (multiabstractfd zero zero
       (forcefd zero zero (lastdelay zero zero Translation.error)))
 
-_ : FD zero zero {⊥} (force (delay error)) error
+_ : FD {⊥} zero zero (force (delay error)) error
 _ = forcefd zero zero (lastdelay zero zero Translation.error)
 
-_ : FD zero zero {⊥} (force (force (delay (delay error)))) error
+_ : FD {⊥} zero zero (force (force (delay (delay error)))) error
 _ = forcefd zero zero
      (forcefd 1 zero
       (delayfd 1 zero (lastdelay zero zero Translation.error)))
 
-_ : FD zero zero {Maybe ⊥} (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
+_ : FD {Maybe ⊥} zero zero (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
 _ = forcefd zero zero
      (multiappliedfd 1 zero Translation.var
       (multiabstractfd 1 zero
@@ -145,7 +145,7 @@ _ = Translation.force
      (Translation.istranslation
       (forcedelay (translationfd Translation.error)))
 
-test-ffdd : FD zero zero {⊥} (force (force (delay (delay error)))) (error)
+test-ffdd : FD {⊥} zero zero (force (force (delay (delay error)))) (error)
 test-ffdd = forcefd zero zero
      (forcefd 1 zero
       (delayfd 1 zero (lastdelay zero zero Translation.error)))
@@ -186,21 +186,21 @@ applications (suc n) (force x) = applications n (force (x · error))
 applications (suc n) x = applications n (x · error) -- This isn't really meaningful because it should never happen
                                                                          -- but I can't think how to exclude it?
 
-forces-translation : {R : Relation} → (n : ℕ) → Translation R x x' → Translation R (forces n x) (forces n x')
+forces-translation : {{de : DecEq X}} {R : Relation} → (n : ℕ) → Translation R {{de}} x x' → Translation R {{de}} (forces n x) (forces n x')
 forces-translation zero xx' = xx'
 forces-translation (suc n) xx' = forces-translation n (Translation.force xx')
 
-apps-translation : {R : Relation} → (n : ℕ) → Translation R x x' → Translation R (applications n x) (applications n x')
+apps-translation : {{de : DecEq X}} {R : Relation} → (n : ℕ) → Translation R {{de}} x x' → Translation R {{de}} (applications n x) (applications n x')
 apps-translation zero t = t
 apps-translation {x = x} {x' = x'} (suc n) t = {!!}
 
 
-FD→pureFD : FD zero zero x x' → pureFD x x'
+FD→pureFD : {{de : DecEq X}} → FD {{de}} zero zero x x' → pureFD {{de}} x x'
 
-TFD→TpureFD : Translation (FD zero zero) x x' → Translation pureFD x x'
+TFD→TpureFD : {{de : DecEq X}} → Translation (FD zero zero) x x' → Translation pureFD {{de}} x x'
 TFD→TpureFD = convert FD→pureFD
 
-nFD→pureFD : {n nₐ : ℕ} → FD n nₐ x x' → pureFD (forces n (applications nₐ x)) x'
+nFD→pureFD : {{de : DecEq X}} {n nₐ : ℕ} → FD n nₐ x x' → pureFD {{de}} (forces n (applications nₐ x)) x'
 nFD→pureFD {n = zero} {nₐ = zero} p = FD→pureFD p
 nFD→pureFD {n = suc n} {nₐ = zero} (forcefd .(suc n) .zero p) = nFD→pureFD p -- Fixme: is this correct? It might be because the forces are encoded in n
 nFD→pureFD {n = suc n} {nₐ = zero} (delayfd .n .zero p) = (translationfd (forces-translation n (Translation.istranslation (forcedelay (translationfd reflexive))))) ⨾ (nFD→pureFD p)
