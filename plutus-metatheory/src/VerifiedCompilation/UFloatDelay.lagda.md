@@ -11,7 +11,7 @@ module VerifiedCompilation.UFloatDelay where
 ## Imports
 
 ```
-open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise,decEq-⊢,decEq-Maybe)
+open import VerifiedCompilation.Equality using (DecEq; _≟_;decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation; convert; reflexive)
 open import Relation.Nullary.Product using (_×-dec_)
@@ -52,10 +52,6 @@ subs-delay v (case t ts) = case (subs-delay v t) (map (subs-delay v) ts)
 subs-delay v (builtin b) = builtin b
 subs-delay v error = error
 
-{-
-_ : (subs-delay (ƛ ((` nothing) · (ƛ (` (just nothing)))))) ≡ ?
-_ = ?
--}
 ```
 The translation relation is then fairly striaghtforward.
 
@@ -80,4 +76,5 @@ isFlD? {{de}} ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?) ast) 
 ... | no ¬pp = no λ { (floatdelay x x₁) → ¬pp (x , x₁) }
 
 isFloatDelay? = translation? isFlD?
+
 ```
