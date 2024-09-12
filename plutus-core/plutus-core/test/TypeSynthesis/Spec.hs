@@ -197,7 +197,7 @@ lookupLastLessThanOrEqualTo xI (x0 : xs0)
 -- matter, only the number of type signature changes (controlled by the second argument).
 --
 -- This design ensures that all type signature changes of denotations are explicitly reflected and
--- the additiona of another semantics variant won't mask an unexpected change in the signature of a
+-- the addition of another semantics variant won't mask an unexpected change in the signature of a
 -- denotation.
 test_dumpTypeRepAllFun
     :: forall fun.
