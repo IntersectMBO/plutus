@@ -1,4 +1,22 @@
 
+<a id='changelog-1.34.0.0'></a>
+# 1.34.0.0 — 2024-09-09
+
+## Added
+
+- `HasBlueprintDefinition` and `HasSchemaDefinition` instances for data types.
+
+<a id='changelog-1.33.0.0'></a>
+# 1.33.0.0 — 2024-08-22
+
+## Added
+
+- A first version of a data-backed `ScriptContext`. The ledger API is similar to the regular `ScriptContext`; one should import the `Data` versions of modules instead to use this version. For example, `import PlutusLedgerApi.V2.Data.Contexts` instead of `import PlutusLedgerApi.V2.Contexts`, or `import PlutusLedgerApi.Data.V1` instead of `import PlutusLedgerApi.V1`.
+
+- Guarded the draft 'modularExponentation' builtin behind a future protocol version.
+
+- Builtin function `ripemd_160` implementing RIPEMD-160 hashing.
+
 <a id='changelog-1.30.0.0'></a>
 # 1.30.0.0 — 2024-06-17
 

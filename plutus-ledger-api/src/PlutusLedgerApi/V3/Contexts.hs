@@ -1,70 +1,83 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE BlockArguments       #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE RecordWildCards      #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 
-module PlutusLedgerApi.V3.Contexts
-  ( ColdCommitteeCredential (..)
-  , HotCommitteeCredential (..)
-  , DRepCredential (..)
-  , DRep (..)
-  , Delegatee (..)
-  , TxCert (..)
-  , Voter (..)
-  , Vote (..)
-  , GovernanceActionId (..)
-  , Committee (..)
-  , Constitution (..)
-  , ProtocolVersion (..)
-  , ChangedParameters (..)
-  , GovernanceAction (..)
-  , ProposalProcedure (..)
-  , ScriptPurpose (..)
-  , ScriptInfo (..)
-  , TxInInfo (..)
-  , TxInfo (..)
-  , ScriptContext (..)
-  , findOwnInput
-  , findDatum
-  , findDatumHash
-  , findTxInByTxOutRef
-  , findContinuingOutputs
-  , getContinuingOutputs
-  , txSignedBy
+module PlutusLedgerApi.V3.Contexts (
+  ColdCommitteeCredential (..),
+  HotCommitteeCredential (..),
+  DRepCredential (..),
+  DRep (..),
+  Delegatee (..),
+  TxCert (..),
+  Voter (..),
+  Vote (..),
+  GovernanceActionId (..),
+  Committee (..),
+  Constitution (..),
+  ProtocolVersion (..),
+  ChangedParameters (..),
+  GovernanceAction (..),
+  ProposalProcedure (..),
+  ScriptPurpose (..),
+  ScriptInfo (..),
+  TxInInfo (..),
+  TxInfo (..),
+  ScriptContext (..),
+  findOwnInput,
+  findDatum,
+  findDatumHash,
+  findTxInByTxOutRef,
+  findContinuingOutputs,
+  getContinuingOutputs,
+  txSignedBy,
 
-    -- * Validator functions
-  , pubKeyOutputsAt
-  , valuePaidTo
-  , valueSpent
-  , valueProduced
-  , ownCurrencySymbol
-  , spendsOutput
-  ) where
+  -- * Validator functions
+  pubKeyOutputsAt,
+  valuePaidTo,
+  valueSpent,
+  valueProduced,
+  ownCurrencySymbol,
+  spendsOutput,
+) where
 
+import Data.Function ((&))
+import Data.Maybe (Maybe (..))
 import GHC.Generics (Generic)
-import Prettyprinter (nest, vsep, (<+>))
-import Prettyprinter.Extras
-
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3.Tx qualified as V3
+import PlutusTx (makeIsDataSchemaIndexed)
 import PlutusTx qualified
-import PlutusTx.AssocMap hiding (filter, mapMaybe)
+import PlutusTx.AssocMap (Map, lookup, toList)
+import PlutusTx.Blueprint (HasBlueprintDefinition, HasBlueprintSchema, HasSchemaDefinition,
+                           Schema (SchemaBuiltInData), SchemaInfo (..), emptySchemaInfo)
+import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
+import PlutusTx.Blueprint.Schema (withSchemaInfo)
+import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio (Rational)
+import Prettyprinter (nest, vsep, (<+>))
+import Prettyprinter.Extras (Pretty (pretty), PrettyShow (PrettyShow))
 
+import PlutusTx.Blueprint.Definition.Derive (definitionRef)
 import Prelude qualified as Haskell
 
 newtype ColdCommitteeCredential = ColdCommitteeCredential V2.Credential
   deriving stock (Generic)
+  deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow ColdCommitteeCredential)
   deriving newtype
     ( Haskell.Eq
@@ -76,8 +89,19 @@ newtype ColdCommitteeCredential = ColdCommitteeCredential V2.Credential
     , PlutusTx.UnsafeFromData
     )
 
+instance
+  ( HasSchemaDefinition V2.PubKeyHash referencedTypes
+  , HasSchemaDefinition V2.ScriptHash referencedTypes
+  ) =>
+  HasBlueprintSchema ColdCommitteeCredential referencedTypes
+  where
+  schema =
+    schema @V2.Credential @referencedTypes
+      & withSchemaInfo \info -> info{title = Just "ColdCommitteeCredential"}
+
 newtype HotCommitteeCredential = HotCommitteeCredential V2.Credential
   deriving stock (Generic)
+  deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow HotCommitteeCredential)
   deriving newtype
     ( Haskell.Eq
@@ -89,8 +113,19 @@ newtype HotCommitteeCredential = HotCommitteeCredential V2.Credential
     , PlutusTx.UnsafeFromData
     )
 
+instance
+  ( HasSchemaDefinition V2.PubKeyHash referencedTypes
+  , HasSchemaDefinition V2.ScriptHash referencedTypes
+  ) =>
+  HasBlueprintSchema HotCommitteeCredential referencedTypes
+  where
+  schema =
+    schema @V2.Credential
+      & withSchemaInfo \info -> info{title = Just "HotCommitteeCredential"}
+
 newtype DRepCredential = DRepCredential V2.Credential
   deriving stock (Generic)
+  deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow DRepCredential)
   deriving newtype
     ( Haskell.Eq
@@ -102,11 +137,22 @@ newtype DRepCredential = DRepCredential V2.Credential
     , PlutusTx.UnsafeFromData
     )
 
+instance
+  ( HasSchemaDefinition V2.PubKeyHash referencedTypes
+  , HasSchemaDefinition V2.ScriptHash referencedTypes
+  ) =>
+  HasBlueprintSchema DRepCredential referencedTypes
+  where
+  schema =
+    schema @V2.Credential
+      & withSchemaInfo \info -> info{title = Just "DRepCredential"}
+
 data DRep
   = DRep DRepCredential
   | DRepAlwaysAbstain
   | DRepAlwaysNoConfidence
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow DRep)
 
 instance PlutusTx.Eq DRep where
@@ -121,6 +167,7 @@ data Delegatee
   | DelegVote DRep
   | DelegStakeVote V2.PubKeyHash DRep
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow Delegatee)
 
 instance PlutusTx.Eq Delegatee where
@@ -138,7 +185,7 @@ data TxCert
     TxCertUnRegStaking V2.Credential (Haskell.Maybe V2.Lovelace)
   | -- | Delegate staking credential to a Delegatee
     TxCertDelegStaking V2.Credential Delegatee
-  | -- | Register and delegate staking credential to a Delegatee in one certificate. Noter that
+  | -- | Register and delegate staking credential to a Delegatee in one certificate. Note that
     -- deposit is mandatory.
     TxCertRegDeleg V2.Credential Delegatee V2.Lovelace
   | -- | Register a DRep with a deposit value. The optional anchor is omitted.
@@ -149,16 +196,17 @@ data TxCert
     TxCertUnRegDRep DRepCredential V2.Lovelace
   | -- | A digest of the PoolParams
     TxCertPoolRegister
+      -- | poolId
       V2.PubKeyHash
-      -- ^ poolId
+      -- | pool VFR
       V2.PubKeyHash
-      -- ^ pool VFR
   | -- | The retirement certificate and the Epoch in which the retirement will take place
     TxCertPoolRetire V2.PubKeyHash Haskell.Integer
   | -- | Authorize a Hot credential for a specific Committee member's cold credential
     TxCertAuthHotCommittee ColdCommitteeCredential HotCommitteeCredential
   | TxCertResignColdCommittee ColdCommitteeCredential
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow TxCert)
 
 instance PlutusTx.Eq TxCert where
@@ -188,6 +236,7 @@ data Voter
   | DRepVoter DRepCredential
   | StakePoolVoter V2.PubKeyHash
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow Voter)
 
 instance PlutusTx.Eq Voter where
@@ -206,6 +255,7 @@ data Vote
   | VoteYes
   | Abstain
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow Vote)
 
 instance PlutusTx.Eq Vote where
@@ -221,6 +271,7 @@ data GovernanceActionId = GovernanceActionId
   , gaidGovActionIx :: Haskell.Integer
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving anyclass (HasBlueprintDefinition)
 
 instance Pretty GovernanceActionId where
   pretty GovernanceActionId{..} =
@@ -241,6 +292,7 @@ data Committee = Committee
   -- ^ Quorum of the committee that is necessary for a successful vote
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving anyclass (HasBlueprintDefinition)
 
 instance Pretty Committee where
   pretty Committee{..} =
@@ -255,6 +307,7 @@ newtype Constitution = Constitution
   }
   deriving stock (Generic)
   deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving anyclass (HasBlueprintDefinition)
 
 instance Pretty Constitution where
   pretty (Constitution script) = "constitutionScript:" <+> pretty script
@@ -268,6 +321,7 @@ data ProtocolVersion = ProtocolVersion
   , pvMinor :: Haskell.Integer
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving anyclass (HasBlueprintDefinition)
 
 instance Pretty ProtocolVersion where
   pretty ProtocolVersion{..} =
@@ -289,9 +343,28 @@ The mapping from parameter IDs to parameters can be found in
 [conway.cddl](https://github.com/IntersectMBO/cardano-ledger/blob/master/eras/conway/impl/cddl-files/conway.cddl).
 
 /Invariant:/ This map is non-empty, and the keys are stored in ascending order.
+
+This `Data` object has the following format (in pseudocode):
+
+ChangedParametersData = Map ChangedIdData ChangedManyValueData
+ChangedIdData = I Integer
+ChangedManyValueData =
+     ChangedSingleValueData
+   | List[ChangedSingleValueData...]
+   -- ^ an arbitrary-length, heterogeneous (integer or ratio) list of values (to support sub-parameters)
+
+ChangedSingleValueData =
+     I Integer  -- a proposed integer value
+   | List[I Integer, I Integer] -- a proposed numerator,denominator (ratio value)
+   -- ^ a 2-exact element list; *BE CAREFUL* because this can be alternatively (ambiguously) interpreted
+   -- as a many-value data (sub-parameter) of two integer single-value data.
+
+, where Map,I,List are the constructors of `PlutusCore.Data`
+and Integer is the usual arbitrary-precision PlutusTx/Haskell Integer.
 -}
 newtype ChangedParameters = ChangedParameters {getChangedParameters :: PlutusTx.BuiltinData}
   deriving stock (Generic, Haskell.Show)
+  deriving anyclass (HasBlueprintDefinition)
   deriving newtype
     ( Haskell.Eq
     , Haskell.Ord
@@ -302,25 +375,34 @@ newtype ChangedParameters = ChangedParameters {getChangedParameters :: PlutusTx.
     , Pretty
     )
 
+instance HasBlueprintSchema ChangedParameters referencedTypes where
+  schema = SchemaBuiltInData emptySchemaInfo{title = Just "ChangedParameters"}
+
 data GovernanceAction
-  = ParameterChange
+  = -- | Hash of the constitution script
+    ParameterChange
       (Haskell.Maybe GovernanceActionId)
       ChangedParameters
-      (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
+      (Haskell.Maybe V2.ScriptHash)
   | -- | proposal to update protocol version
     HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
-  | TreasuryWithdrawals
+  | -- | Hash of the constitution script
+    TreasuryWithdrawals
       (Map V2.Credential V2.Lovelace)
-      (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
+      (Haskell.Maybe V2.ScriptHash)
   | NoConfidence (Haskell.Maybe GovernanceActionId)
   | UpdateCommittee
       (Haskell.Maybe GovernanceActionId)
-      [ColdCommitteeCredential] -- ^ Committee members to be removed
-      (Map ColdCommitteeCredential Haskell.Integer) -- ^ Committee members to be added
-      Rational -- ^ New quorum
+      -- | Committee members to be removed
+      [ColdCommitteeCredential]
+      -- | Committee members to be added
+      (Map ColdCommitteeCredential Haskell.Integer)
+      -- | New quorum
+      Rational
   | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
   | InfoAction
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow GovernanceAction)
 
 -- | A proposal procedure. The optional anchor is omitted.
@@ -330,6 +412,7 @@ data ProposalProcedure = ProposalProcedure
   , ppGovernanceAction :: GovernanceAction
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving anyclass (HasBlueprintDefinition)
 
 instance Pretty ProposalProcedure where
   pretty ProposalProcedure{..} =
@@ -345,15 +428,16 @@ data ScriptPurpose
   | Spending V3.TxOutRef
   | Rewarding V2.Credential
   | Certifying
+      -- | 0-based index of the given `TxCert` in `txInfoTxCerts`
       Haskell.Integer
-      -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
       TxCert
   | Voting Voter
   | Proposing
+      -- | 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
       Haskell.Integer
-      -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
       ProposalProcedure
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
+  deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
 -- | Like `ScriptPurpose` but with an optional datum for spending scripts.
@@ -362,15 +446,16 @@ data ScriptInfo
   | SpendingScript V3.TxOutRef (Haskell.Maybe V2.Datum)
   | RewardingScript V2.Credential
   | CertifyingScript
+      -- | 0-based index of the given `TxCert` in `txInfoTxCerts`
       Haskell.Integer
-      -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
       TxCert
   | VotingScript Voter
   | ProposingScript
+      -- | 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
       Haskell.Integer
-      -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
       ProposalProcedure
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow ScriptInfo)
 
 -- | An input of a pending transaction.
@@ -379,6 +464,7 @@ data TxInInfo = TxInInfo
   , txInInfoResolved :: V2.TxOut
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving anyclass (HasBlueprintDefinition)
 
 instance PlutusTx.Eq TxInInfo where
   TxInInfo ref res == TxInInfo ref' res' =
@@ -412,6 +498,7 @@ data TxInfo = TxInfo
   , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving anyclass (HasBlueprintDefinition)
 
 instance Pretty TxInfo where
   pretty TxInfo{..} =
@@ -445,6 +532,7 @@ data ScriptContext = ScriptContext
   -- with the purpose
   }
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
+  deriving anyclass (HasBlueprintDefinition)
 
 instance Pretty ScriptContext where
   pretty ScriptContext{..} =
@@ -482,8 +570,8 @@ hashes
 findDatumHash :: V2.Datum -> TxInfo -> Haskell.Maybe V2.DatumHash
 findDatumHash ds TxInfo{txInfoData} =
   PlutusTx.fst PlutusTx.<$> PlutusTx.find f (toList txInfoData)
-  where
-    f (_, ds') = ds' PlutusTx.== ds
+ where
+  f (_, ds') = ds' PlutusTx.== ds
 
 {-# INLINEABLE findTxInByTxOutRef #-}
 
@@ -510,8 +598,8 @@ findContinuingOutputs ctx
       PlutusTx.findIndices
         (f txOutAddress)
         (txInfoOutputs (scriptContextTxInfo ctx))
-  where
-    f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
+ where
+  f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
 findContinuingOutputs _ = PlutusTx.traceError "Le" -- "Can't find any continuing outputs"
 
 {-# INLINEABLE getContinuingOutputs #-}
@@ -524,8 +612,8 @@ getContinuingOutputs ctx
   | Haskell.Just TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
       findOwnInput ctx =
       PlutusTx.filter (f txOutAddress) (txInfoOutputs (scriptContextTxInfo ctx))
-  where
-    f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
+ where
+  f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
 getContinuingOutputs _ = PlutusTx.traceError "Lf" -- "Can't get any continuing outputs"
 
 {-# INLINEABLE txSignedBy #-}
@@ -584,117 +672,133 @@ spendsOutput :: TxInfo -> V3.TxId -> Haskell.Integer -> Haskell.Bool
 spendsOutput txInfo txId i =
   let spendsOutRef inp =
         let outRef = txInInfoOutRef inp
-         in txId PlutusTx.== V3.txOutRefId outRef
-              PlutusTx.&& i PlutusTx.== V3.txOutRefIdx outRef
+         in txId
+              PlutusTx.== V3.txOutRefId outRef
+              PlutusTx.&& i
+              PlutusTx.== V3.txOutRefIdx outRef
    in PlutusTx.any spendsOutRef (txInfoInputs txInfo)
 
-PlutusTx.makeLift ''ColdCommitteeCredential
-PlutusTx.makeLift ''HotCommitteeCredential
-PlutusTx.makeLift ''DRepCredential
+----------------------------------------------------------------------------------------------------
+-- TH Splices --------------------------------------------------------------------------------------
 
-PlutusTx.makeLift ''DRep
-PlutusTx.makeIsDataIndexed
-  ''DRep
-  [ ('DRep, 0)
-  , ('DRepAlwaysAbstain, 1)
-  , ('DRepAlwaysNoConfidence, 2)
-  ]
+$(makeLift ''ColdCommitteeCredential)
+$(makeLift ''HotCommitteeCredential)
+$(makeLift ''DRepCredential)
 
-PlutusTx.makeLift ''Delegatee
-PlutusTx.makeIsDataIndexed
-  ''Delegatee
-  [ ('DelegStake, 0)
-  , ('DelegVote, 1)
-  , ('DelegStakeVote, 2)
-  ]
+$(makeLift ''DRep)
+$( makeIsDataSchemaIndexed
+    ''DRep
+    [ ('DRep, 0)
+    , ('DRepAlwaysAbstain, 1)
+    , ('DRepAlwaysNoConfidence, 2)
+    ]
+ )
 
-PlutusTx.makeLift ''TxCert
-PlutusTx.makeIsDataIndexed
-  ''TxCert
-  [ ('TxCertRegStaking, 0)
-  , ('TxCertUnRegStaking, 1)
-  , ('TxCertDelegStaking, 2)
-  , ('TxCertRegDeleg, 3)
-  , ('TxCertRegDRep, 4)
-  , ('TxCertUpdateDRep, 5)
-  , ('TxCertUnRegDRep, 6)
-  , ('TxCertPoolRegister, 7)
-  , ('TxCertPoolRetire, 8)
-  , ('TxCertAuthHotCommittee, 9)
-  , ('TxCertResignColdCommittee, 10)
-  ]
+$(makeLift ''Delegatee)
+$( makeIsDataSchemaIndexed
+    ''Delegatee
+    [ ('DelegStake, 0)
+    , ('DelegVote, 1)
+    , ('DelegStakeVote, 2)
+    ]
+ )
 
-PlutusTx.makeLift ''Voter
-PlutusTx.makeIsDataIndexed
-  ''Voter
-  [ ('CommitteeVoter, 0)
-  , ('DRepVoter, 1)
-  , ('StakePoolVoter, 2)
-  ]
+$(makeLift ''TxCert)
+$( makeIsDataSchemaIndexed
+    ''TxCert
+    [ ('TxCertRegStaking, 0)
+    , ('TxCertUnRegStaking, 1)
+    , ('TxCertDelegStaking, 2)
+    , ('TxCertRegDeleg, 3)
+    , ('TxCertRegDRep, 4)
+    , ('TxCertUpdateDRep, 5)
+    , ('TxCertUnRegDRep, 6)
+    , ('TxCertPoolRegister, 7)
+    , ('TxCertPoolRetire, 8)
+    , ('TxCertAuthHotCommittee, 9)
+    , ('TxCertResignColdCommittee, 10)
+    ]
+ )
 
-PlutusTx.makeLift ''Vote
-PlutusTx.makeIsDataIndexed
-  ''Vote
-  [ ('VoteNo, 0)
-  , ('VoteYes, 1)
-  , ('Abstain, 2)
-  ]
+$(makeLift ''Voter)
+$( makeIsDataSchemaIndexed
+    ''Voter
+    [ ('CommitteeVoter, 0)
+    , ('DRepVoter, 1)
+    , ('StakePoolVoter, 2)
+    ]
+ )
 
-PlutusTx.makeLift ''GovernanceActionId
-PlutusTx.makeIsDataIndexed ''GovernanceActionId [('GovernanceActionId, 0)]
+$(makeLift ''Vote)
+$( makeIsDataSchemaIndexed
+    ''Vote
+    [ ('VoteNo, 0)
+    , ('VoteYes, 1)
+    , ('Abstain, 2)
+    ]
+ )
 
-PlutusTx.makeLift ''Committee
-PlutusTx.makeIsDataIndexed ''Committee [('Committee, 0)]
+$(makeLift ''GovernanceActionId)
+$(makeIsDataSchemaIndexed ''GovernanceActionId [('GovernanceActionId, 0)])
 
-PlutusTx.makeLift ''Constitution
-PlutusTx.makeIsDataIndexed ''Constitution [('Constitution, 0)]
+$(makeLift ''Committee)
+$(makeIsDataSchemaIndexed ''Committee [('Committee, 0)])
 
-PlutusTx.makeLift ''ProtocolVersion
-PlutusTx.makeIsDataIndexed ''ProtocolVersion [('ProtocolVersion, 0)]
+$(makeLift ''Constitution)
+$(makeIsDataSchemaIndexed ''Constitution [('Constitution, 0)])
 
-PlutusTx.makeLift ''ChangedParameters
-PlutusTx.makeLift ''GovernanceAction
-PlutusTx.makeIsDataIndexed
-  ''GovernanceAction
-  [ ('ParameterChange, 0)
-  , ('HardForkInitiation, 1)
-  , ('TreasuryWithdrawals, 2)
-  , ('NoConfidence, 3)
-  , ('UpdateCommittee, 4)
-  , ('NewConstitution, 5)
-  , ('InfoAction, 6)
-  ]
+$(makeLift ''ProtocolVersion)
+$(makeIsDataSchemaIndexed ''ProtocolVersion [('ProtocolVersion, 0)])
 
-PlutusTx.makeLift ''ProposalProcedure
-PlutusTx.makeIsDataIndexed ''ProposalProcedure [('ProposalProcedure, 0)]
+$(makeLift ''ChangedParameters)
+$(makeLift ''GovernanceAction)
+$( makeIsDataSchemaIndexed
+    ''GovernanceAction
+    [ ('ParameterChange, 0)
+    , ('HardForkInitiation, 1)
+    , ('TreasuryWithdrawals, 2)
+    , ('NoConfidence, 3)
+    , ('UpdateCommittee, 4)
+    , ('NewConstitution, 5)
+    , ('InfoAction, 6)
+    ]
+ )
 
-PlutusTx.makeLift ''ScriptPurpose
-PlutusTx.makeIsDataIndexed
-  ''ScriptPurpose
-  [ ('Minting, 0)
-  , ('Spending, 1)
-  , ('Rewarding, 2)
-  , ('Certifying, 3)
-  , ('Voting, 4)
-  , ('Proposing, 5)
-  ]
+$(makeLift ''ProposalProcedure)
+$(makeIsDataSchemaIndexed ''ProposalProcedure [('ProposalProcedure, 0)])
 
-PlutusTx.makeLift ''ScriptInfo
-PlutusTx.makeIsDataIndexed
-  ''ScriptInfo
-  [ ('MintingScript, 0)
-  , ('SpendingScript, 1)
-  , ('RewardingScript, 2)
-  , ('CertifyingScript, 3)
-  , ('VotingScript, 4)
-  , ('ProposingScript, 5)
-  ]
+$(makeLift ''ScriptPurpose)
+$( makeIsDataSchemaIndexed
+    ''ScriptPurpose
+    [ ('Minting, 0)
+    , ('Spending, 1)
+    , ('Rewarding, 2)
+    , ('Certifying, 3)
+    , ('Voting, 4)
+    , ('Proposing, 5)
+    ]
+ )
 
-PlutusTx.makeLift ''TxInInfo
-PlutusTx.makeIsDataIndexed ''TxInInfo [('TxInInfo, 0)]
+$(makeLift ''ScriptInfo)
+$( makeIsDataSchemaIndexed
+    ''ScriptInfo
+    [ ('MintingScript, 0)
+    , ('SpendingScript, 1)
+    , ('RewardingScript, 2)
+    , ('CertifyingScript, 3)
+    , ('VotingScript, 4)
+    , ('ProposingScript, 5)
+    ]
+ )
 
-PlutusTx.makeLift ''TxInfo
-PlutusTx.makeIsDataIndexed ''TxInfo [('TxInfo, 0)]
+----------------------------------------------------------------------------------------------------
+-- TH Splices --------------------------------------------------------------------------------------
 
-PlutusTx.makeLift ''ScriptContext
-PlutusTx.makeIsDataIndexed ''ScriptContext [('ScriptContext, 0)]
+$(makeLift ''TxInInfo)
+$(makeIsDataSchemaIndexed ''TxInInfo [('TxInInfo, 0)])
+
+$(makeLift ''TxInfo)
+$(makeIsDataSchemaIndexed ''TxInfo [('TxInfo, 0)])
+
+$(makeLift ''ScriptContext)
+$(makeIsDataSchemaIndexed ''ScriptContext [('ScriptContext, 0)])

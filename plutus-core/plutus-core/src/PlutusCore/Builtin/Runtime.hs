@@ -1,5 +1,5 @@
+{-# LANGUAGE CPP        #-}
 {-# LANGUAGE LambdaCase #-}
-
 {-# LANGUAGE StrictData #-}
 
 module PlutusCore.Builtin.Runtime where
@@ -38,7 +38,15 @@ instance NoThunks (BuiltinRuntime val) where
     wNoThunks ctx = \case
         -- Unreachable, because we don't allow nullary builtins and the 'BuiltinArrow' case only
         -- checks for WHNF without recursing. Hence we can throw if we reach this clause somehow.
+        -- TODO: remove the CPP when rest of IOE moves to nothunks>=0.2
+#if MIN_VERSION_nothunks(0,2,0)
         BuiltinCostedResult _ _    -> pure . Just . ThunkInfo $ Left ctx
+#else
+        -- Plutus has moved to nothunks>=0.2, but some other IOE repos are using nothunks<0.2.
+        -- As a consequence, cardano-constitution:create-json-envelope cannot be build.
+        -- This is a workaround to make it build (default is buildable:False). See `cabal.project`
+        BuiltinCostedResult _ _    -> pure . Just $ ThunkInfo ctx
+#endif
         -- This one doesn't do much. It only checks that the function stored in the 'BuiltinArrow'
         -- is in WHNF. The function may contain thunks inside of it. Not sure if it's possible to do
         -- better, since the final 'BuiltinCostedResult' contains a thunk for the result of the

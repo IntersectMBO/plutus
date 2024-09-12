@@ -8,18 +8,22 @@ module Blueprint.Tests where
 
 import Prelude
 
-import Blueprint.Tests.Lib (Datum, Param2a, Param2b, Params, Redeemer, Redeemer2, goldenJson,
-                            serialisedScript, validatorScript1, validatorScript2)
+import Blueprint.Tests.Lib (Bytes, Datum, DatumPayload, Param2a, Param2b, Params, Redeemer,
+                            Redeemer2, goldenJson, serialisedScript, validatorScript1,
+                            validatorScript2)
 import Blueprint.Tests.Lib.AsData.Blueprint (Datum2)
 import Data.Set qualified as Set
+import Data.Type.Equality (type (:~:) (..))
+import Data.Void (Void)
 import PlutusTx.Blueprint.Contract (ContractBlueprint (..))
-import PlutusTx.Blueprint.Definition (definitionRef, deriveDefinitions)
+import PlutusTx.Blueprint.Definition (UnrollAll, definitionRef, deriveDefinitions)
 import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (PlutusV3))
 import PlutusTx.Blueprint.Preamble (Preamble (..))
 import PlutusTx.Blueprint.Purpose qualified as Purpose
 import PlutusTx.Blueprint.TH (deriveArgumentBlueprint, deriveParameterBlueprint)
 import PlutusTx.Blueprint.Validator (ValidatorBlueprint (..))
 import PlutusTx.Blueprint.Write (writeBlueprint)
+import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
 import Test.Tasty.Extras (TestNested, testNested)
 
 goldenTests :: TestNested
@@ -81,3 +85,30 @@ contractBlueprint =
            , Datum2
            ]
     }
+
+testAllRequredDefinitions ::
+  UnrollAll
+    [ Params
+    , Param2a
+    , Param2b
+    , Redeemer
+    , Redeemer2
+    , Datum
+    , Datum2
+    ]
+    :~: [ Params
+        , Bool
+        , ()
+        , [Integer]
+        , Integer
+        , BuiltinData
+        , BuiltinByteString
+        , Param2a
+        , Param2b
+        , BuiltinString
+        , Datum
+        , Bytes Void
+        , DatumPayload
+        , Datum2
+        ]
+testAllRequredDefinitions = Refl

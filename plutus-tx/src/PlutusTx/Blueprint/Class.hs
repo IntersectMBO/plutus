@@ -2,50 +2,81 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusTx.Blueprint.Class where
 
 import Prelude hiding (maximum, minimum)
 
+import Data.ByteString (ByteString)
 import Data.Kind (Type)
-import PlutusTx.Blueprint.Schema (PairSchema (..), Schema (..), emptyBytesSchema,
+import PlutusTx.Blueprint.Schema (ListSchema (..), PairSchema (..), Schema (..), emptyBytesSchema,
                                   emptyIntegerSchema)
 import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
+import PlutusTx.Builtins.Internal (BuiltinBool, BuiltinList, BuiltinPair, BuiltinUnit)
 
 {- |
   A class of types that have a Blueprint schema definition
   and can reference other schema definitions of other types.
 -}
-class HasSchema (t :: Type) (referencedTypes :: [Type]) where
+class HasBlueprintSchema (t :: Type) (referencedTypes :: [Type]) where
   schema :: Schema referencedTypes
 
-instance HasSchema () ts where
-  schema = SchemaBuiltInUnit emptySchemaInfo
-
-instance HasSchema Integer ts where
+instance HasBlueprintSchema Int referencedTypes where
   schema = SchemaInteger emptySchemaInfo emptyIntegerSchema
 
-instance HasSchema BuiltinByteString ts where
-  schema = SchemaBytes emptySchemaInfo emptyBytesSchema
+instance HasBlueprintSchema Integer referencedTypes where
+  schema = SchemaInteger emptySchemaInfo emptyIntegerSchema
 
-instance HasSchema Bool ts where
-  schema = SchemaBuiltInBoolean emptySchemaInfo
-
-instance HasSchema BuiltinString ts where
-  schema = SchemaBuiltInString emptySchemaInfo
-
-instance HasSchema BuiltinData ts where
+instance HasBlueprintSchema BuiltinData referencedTypes where
   schema = SchemaBuiltInData emptySchemaInfo
 
-instance (HasSchema a ts, HasSchema b ts) => HasSchema (a, b) ts where
-  schema =
-    SchemaBuiltInPair
-      emptySchemaInfo
-      MkPairSchema{left = schema @a @ts, right = schema @b @ts}
+instance HasBlueprintSchema BuiltinUnit referencedTypes where
+  schema = SchemaBuiltInUnit emptySchemaInfo
 
-instance (HasSchema a ts) => HasSchema [a] ts where
-  schema = SchemaBuiltInList emptySchemaInfo (schema @a @ts)
+instance HasBlueprintSchema BuiltinBool referencedTypes where
+  schema = SchemaBuiltInBoolean emptySchemaInfo
+
+instance HasBlueprintSchema BuiltinString referencedTypes where
+  schema = SchemaBuiltInString emptySchemaInfo
+
+instance HasBlueprintSchema BuiltinByteString referencedTypes where
+  schema = SchemaBytes emptySchemaInfo emptyBytesSchema
+
+instance HasBlueprintSchema ByteString referencedTypes where
+  schema = SchemaBytes emptySchemaInfo emptyBytesSchema
+
+instance
+  (HasBlueprintSchema a referencedTypes) =>
+  HasBlueprintSchema [a] referencedTypes
+  where
+  schema =
+    SchemaList
+      emptySchemaInfo
+      ( MkListSchema
+          { minItems = Nothing
+          , maxItems = Nothing
+          , uniqueItems = Nothing
+          , itemSchema = schema @a
+          }
+      )
+
+instance
+  (HasBlueprintSchema a referencedTypes) =>
+  HasBlueprintSchema (BuiltinList a) referencedTypes
+  where
+  schema = SchemaBuiltInList emptySchemaInfo (schema @a)
+
+instance
+  ( HasBlueprintSchema a referencedTypes
+  , HasBlueprintSchema b referencedTypes
+  ) =>
+  HasBlueprintSchema (BuiltinPair a b) referencedTypes
+  where
+  schema = SchemaBuiltInPair emptySchemaInfo (MkPairSchema (schema @a) (schema @b))

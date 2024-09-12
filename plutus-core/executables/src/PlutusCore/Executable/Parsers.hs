@@ -103,9 +103,28 @@ printmode = option auto
   <> value Simple
   <> showDefault
   <> help
-    ("Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassicDef, "
-     <> "Debug -> plcPrettyClassicDebug, "
+    ("Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassic, "
+     <> "Simple -> plcPrettyClassicSimple, "
      <> "Readable -> prettyPlcReadable, ReadableSimple -> prettyPlcReadableSimple" ))
+
+nameformat :: Parser NameFormat
+nameformat =
+  flag IdNames DeBruijnNames
+  (long "debruijn"
+   <> short 'j'
+   <> help "Output evaluation result with de Bruijn indices (default: show textual names)")
+
+certifier :: Parser Certifier
+certifier =
+  optional
+  $ strOption
+    (long "certify"
+    <> help
+        ("[EXPERIMENTAL] Produce a certificate ARG.agda proving that the program"
+        <> " transformaton is correct; the certificate is an Agda proof object, which"
+        <> " can be checked using the Agda proof assistant"
+        )
+    )
 
 printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> input <*> output <*> printmode
@@ -114,7 +133,9 @@ convertOpts :: Parser ConvertOptions
 convertOpts = ConvertOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
 
 optimiseOpts :: Parser OptimiseOptions
-optimiseOpts = OptimiseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
+optimiseOpts =
+  OptimiseOptions
+  <$> input <*> inputformat <*> output <*> outputformat <*> printmode <*> certifier
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle

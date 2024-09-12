@@ -1,4 +1,20 @@
 
+<a id='changelog-1.34.0.0'></a>
+# 1.34.0.0 — 2024-09-09
+
+## Changed
+
+- Swapped around the type arguments of `EvaluationError` and `EvaluationException`.
+
+<a id='changelog-1.33.0.0'></a>
+# 1.33.0.0 — 2024-08-22
+
+## Added
+
+- An initial DRAFT implementation of 'modularExponentiation' builtin
+
+- Builtin function `ripemd_160` implementing RIPEMD-160 hashing.
+
 <a id='changelog-1.32.0.0'></a>
 # 1.32.0.0 — 2024-08-06
 

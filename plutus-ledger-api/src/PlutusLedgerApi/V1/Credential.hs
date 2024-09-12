@@ -1,12 +1,15 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE ViewPatterns         #-}
 
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | Address and staking address credentials for outputs.
 module PlutusLedgerApi.V1.Credential
@@ -15,10 +18,12 @@ module PlutusLedgerApi.V1.Credential
     ) where
 
 import Control.DeepSeq (NFData)
+import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusLedgerApi.V1.Scripts (ScriptHash)
 import PlutusTx qualified
+import PlutusTx.Blueprint (HasBlueprintDefinition, definitionRef)
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import Prettyprinter (Pretty (..), (<+>))
@@ -37,8 +42,8 @@ data StakingCredential
         Integer -- ^ the slot number
         Integer -- ^ the transaction index (within the block)
         Integer -- ^ the certificate index (within the transaction)
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Eq, Ord, Show, Generic, Typeable)
+    deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance Pretty StakingCredential where
     pretty (StakingHash h)    = "StakingHash" <+> pretty h
@@ -62,8 +67,8 @@ data Credential
     -- | The transaction that spends this output must include the validator script and
     -- be accepted by the validator. See `ScriptHash`.
   | ScriptCredential ScriptHash
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Eq, Ord, Show, Generic, Typeable)
+    deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance Pretty Credential where
     pretty (PubKeyCredential pkh) = "PubKeyCredential:" <+> pretty pkh
@@ -75,7 +80,10 @@ instance PlutusTx.Eq Credential where
     ScriptCredential a == ScriptCredential a' = a PlutusTx.== a'
     _ == _                                    = False
 
-PlutusTx.makeIsDataIndexed ''Credential [('PubKeyCredential,0), ('ScriptCredential,1)]
-PlutusTx.makeIsDataIndexed ''StakingCredential [('StakingHash,0), ('StakingPtr,1)]
-PlutusTx.makeLift ''Credential
-PlutusTx.makeLift ''StakingCredential
+----------------------------------------------------------------------------------------------------
+-- TH Splices --------------------------------------------------------------------------------------
+
+$(PlutusTx.makeIsDataSchemaIndexed ''Credential [('PubKeyCredential, 0), ('ScriptCredential, 1)])
+$(PlutusTx.makeIsDataSchemaIndexed ''StakingCredential [('StakingHash, 0), ('StakingPtr, 1)])
+$(PlutusTx.makeLift ''Credential)
+$(PlutusTx.makeLift ''StakingCredential)

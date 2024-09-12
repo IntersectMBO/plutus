@@ -22,6 +22,7 @@ packages: cardano-constitution
           plutus-benchmark
           plutus-conformance
           plutus-core
+          plutus-executables
           plutus-ledger-api
           plutus-metatheory
           plutus-tx
@@ -94,6 +95,14 @@ allow-newer:
   , inline-r:bytestring
   , inline-r:containers
   , inline-r:primitive
+
+-- Uncomment the following lines to make cardano-constitution:create-json-envelope buildable:True
+--
+-- package cardano-constitution
+--   flags: +force-build
+-- allow-newer: *:plutus-ledger-api
+-- allow-newer: *:prettyprinter-configurable
+-- allow-older: *:nothunks
 
 -- -------------------------------------------------------------------------------------------------
 -- Following currently required for building with ghc-9.10.

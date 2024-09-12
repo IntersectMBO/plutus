@@ -3,10 +3,12 @@
 module Transform.Simplify.Lib where
 
 import Control.Lens ((&), (.~))
+import Control.Monad.State (evalStateT)
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text.Encoding (encodeUtf8)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (BuiltinSemanticsVariant)
+import PlutusCore.Compiler.Types (initUPLCSimplifierTrace)
 import PlutusCore.Pretty (PrettyPlc, Render (render), prettyPlcReadableSimple)
 import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree)
@@ -25,6 +27,7 @@ goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> Te
 goldenVsSimplified name =
   goldenVsPretty ".uplc.golden" name
     . PLC.runQuote
+    . flip evalStateT initUPLCSimplifierTrace
     . simplifyTerm
       ( defaultSimplifyOpts
           -- Just run one iteration, to see what that does
@@ -37,6 +40,7 @@ goldenVsCse :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsCse name =
   goldenVsPretty ".uplc.golden" name
     . PLC.runQuote
+    . flip evalStateT initUPLCSimplifierTrace
     . simplifyTerm
       ( defaultSimplifyOpts
           -- Just run one iteration, to see what that does

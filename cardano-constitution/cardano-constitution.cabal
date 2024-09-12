@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               cardano-constitution
-version:            1.32.0.0
+version:            1.34.0.0
 license:            Apache-2.0
 license-files:
   LICENSE
@@ -20,6 +20,11 @@ extra-source-files:
 source-repository head
   type:     git
   location: https://github.com/IntersectMBO/plutus
+
+flag force-build
+  description: Enables the building of executable create-json-envelope
+  manual:      True
+  default:     False
 
 common lang
   default-language:   Haskell2010
@@ -77,10 +82,10 @@ library
     , base               >=4.9   && <5
     , containers
     , filepath
-    , plutus-core        ^>=1.32
-    , plutus-ledger-api  ^>=1.32
-    , plutus-tx          ^>=1.32
-    , plutus-tx-plugin   ^>=1.32
+    , plutus-core        ^>=1.34
+    , plutus-ledger-api  ^>=1.34
+    , plutus-tx          ^>=1.34
+    , plutus-tx-plugin   ^>=1.34
     , regex-tdfa
     , safe
     , template-haskell
@@ -89,6 +94,9 @@ test-suite cardano-constitution-test
   import:           lang, ghc-version-support, os-support
   hs-source-dirs:   test
   default-language: Haskell2010
+
+  -- NOTE: Running above N8 actually makes things slower, so
+  -- manually turn this down if you are on a higher-core machine.
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   type:             exitcode-stdio-1.0
   main-is:          Driver.hs
@@ -112,13 +120,13 @@ test-suite cardano-constitution-test
     , aeson
     , base                                            >=4.9   && <5
     , bytestring
-    , cardano-constitution                            ^>=1.32
+    , cardano-constitution
     , containers
     , directory
     , filepath
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.32
-    , plutus-ledger-api                               ^>=1.32
-    , plutus-tx                                       ^>=1.32
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.34
+    , plutus-ledger-api                               ^>=1.34
+    , plutus-tx                                       ^>=1.34
     , QuickCheck
     , serialise
     , tasty
@@ -129,14 +137,18 @@ test-suite cardano-constitution-test
     , tasty-quickcheck
 
 executable create-json-envelope
+  import:         lang, ghc-version-support, os-support
+
   -- This is a temporary workaround to solve the plutus-ledger-api dependency conflict
   -- caused by the `cardano-api` dependency.
-  buildable:      False
-  import:         lang, ghc-version-support, os-support
-  hs-source-dirs: create-json-envelope
+  -- To force-build it, uncomment the relevant lines in `cabal.project`
+  if !flag(force-build)
+    buildable: False
+
+  hs-source-dirs: app/create-json-envelope
   main-is:        Main.hs
   build-depends:
     , base
-    , cardano-api           ^>=8.48
+    , cardano-api
     , cardano-constitution
-    , plutus-ledger-api     ^>=1.32
+    , plutus-ledger-api     ^>=1.34

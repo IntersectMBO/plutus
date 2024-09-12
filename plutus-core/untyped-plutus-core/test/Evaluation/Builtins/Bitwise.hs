@@ -22,7 +22,8 @@ module Evaluation.Builtins.Bitwise (
   ffsIndex,
   ffsZero,
   shiftMinBound,
-  rotateMinBound
+  rotateMinBound,
+  ffs6453
   ) where
 
 import Evaluation.Helpers (assertEvaluatesToConstant, evaluateTheSame, evaluateToHaskell,
@@ -33,6 +34,7 @@ import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusCore.Test (mapTestLimitAtLeast)
 
 import Control.Monad (unless)
+import Data.Bits qualified as Bits
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Hedgehog (Property, forAll, property)
@@ -41,6 +43,20 @@ import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (testCase)
+
+-- | Test for a regression found [here](https://github.com/IntersectMBO/plutus/pull/6453).
+ffs6453 :: Property
+ffs6453 = property $ do
+  -- Generate a suffix that is an exact multiple of 8 bytes, all zero
+  suffixLenMult <- forAll . Gen.integral . Range.linear 1 $ 10
+  let suffix = BS.replicate (8 * suffixLenMult) 0x00
+  -- Generate a prefix nonzero byte
+  prefix <- forAll . Gen.word8 . Range.constant 0x01 $ 0xFF
+  let expected = 8 * BS.length suffix + Bits.countTrailingZeros prefix
+  let lhs = mkIterAppNoAnn (builtin () PLC.FindFirstSetBit) [
+        mkConstant @ByteString () . BS.cons prefix $ suffix
+        ]
+  evaluatesToConstant @Integer (fromIntegral expected) lhs
 
 -- | If given 'Int' 'minBound' as an argument, rotations behave sensibly.
 rotateMinBound :: Property

@@ -71,12 +71,12 @@ These constitution rules can be thought of as predicates (PlutusTx functions tha
 over the proposed values. We currently have 3 such predicates:
 
 ``` haskell
-minValue jsonValue proposedValue = jsonValue Tx.=< proposedValue
-maxValue jsonValue proposedValue = jsonValue Tx.>= proposedValue
-notEqual jsonValue proposedValue = jsonValue Tx./= proposedValue
+minValue configValue proposedValue = configValue Tx.=< proposedValue
+maxValue configValue proposedValue = configValue Tx.>= proposedValue
+notEqual configValue proposedValue = configValue Tx./= proposedValue
 ```
 
-An alternative & preferred method than constructing a `Config` value, is to
+An alternative & preferred method than constructing a `Config` inside Haskell, is to
 edit a configuration file that contains the "constitution rules" laid out in JSON.
 Its default location is at `data/defaultConstitution.json`,
 with its expected JSON schema specified at `data/defaultConstitution.schema.json`.
@@ -86,22 +86,29 @@ This is the preferred method because, first, it does not require any prior Plutu
 and second, there can be extra sanity checks applied: e.g. when parsing/translating the JSON to `Config`
 or when using an external JSON schema validator.
 
-
 ## ChangedParameters Format
 
 In case of a `ParameterChange` governance action, the ledger will construct out of the proposed parameters, a `ChangedParameters` value,
 encode it as `BuiltinData`, then pass it onto us (the Constitution script) inside the `V3.ScriptContext`.
-The `ChangedParameters` value` is decoded as a `Tx.AssocMap`:
+This `BuiltinData` object has the following format (in pseudocode):
 
-```pseudocode
-ChangedParameters => Tx.AssocMap ChangedParamId ChangedParamValue
-ChangedParamId => I Integer
-ChangedParamValue => I Integer
-          , or => (I Integer, Cons(I Integer, Nil)) -- a Rational numerator, denominator, a.k.a unit_interval
-          , or => List(ChangedParamValue) -- an arbitrary-length, heterogeneous list of (integer, unit_interval) values
+```
+ChangedParametersData = Map ChangedIdData ChangedManyValueData
+ChangedIdData = I Integer
+ChangedManyValueData =
+     ChangedSingleValueData
+   | List[ChangedSingleValueData...]
+   -- ^ an arbitrary-length, heterogeneous (integer or ratio) list of values (to support sub-parameters)
+
+ChangedSingleValueData =
+     I Integer  -- a proposed integer value
+   | List[I Integer, I Integer] -- a proposed numerator,denominator (ratio value)
+   -- ^ a 2-exact element list; *BE CAREFUL* because this can be alternatively (ambiguously) interpreted
+   -- as a many-value data (sub-parameter) of two integer single-value data.
 ```
 
-`Integer` is the usual arbitrary-precision Integer of Haskell/PlutusTx.
+, where Map,I,List are the constructors of `PlutusCore.Data`
+and `Integer` is the usual arbitrary-precision PlutusTx/Haskell `Integer`.
 There is no other type of a changed parameter (e.g. nested-list parameter), so the script implementations will fail on any other format.
 
 ## Specification of script implementation
@@ -170,7 +177,7 @@ There are 2 engine implementations:
 Note that, although all implementations could theoretically work without problem with negative `proposedParam` ids,
 the `Config` JSON format (not the ADT) and the Ledger are limited only to positive ids (see G07).
 
-The `Sorted` implementation will most likely be the implementation to be used on the mainnet chain.
+The **Sorted** implementation is the selected implementation to be used on the mainnet chain.
 
 ## Testing the implementations
 
@@ -193,3 +200,30 @@ the union (Sum) of the ledger guarantees required by all our current implementat
 - `src/Cardano/Constitution/Validator/Common.hs` : common code between the 2 engines
 - `data/*` : contains the JSON configuration files
 - `test/*`: testing code
+- `app/create-json-envelope`: an executable to construct constitution script, ready to be submitted to the chain
+
+## Building the script
+
+We have created an executable `create-json-envelope` to ease the creation of a constitution script.
+This executable is disabled by default; to enable it, uncomment the related lines inside this repo's `cabal.project`:
+
+```
+-- Uncomment the following lines to make cardano-constitution:create-json-envelope buildable:True
+--
+-- package cardano-constitution
+--   flags: +force-build
+-- allow-newer: *:plutus-ledger-api
+-- allow-newer: *:prettyprinter-configurable
+-- allow-older: *:nothunks
+```
+
+Then,
+
+``` haskell
+cabal run cardano-constitution:create-json-envelope -- out.plutus
+```
+
+will create `out.plutus` JSON file that contains the plutus code as-configured by `data/defaultConstitution.json`,
+ready to submit it to the chain.
+Normally any editing of `data/defaultConstitution.json` should be picked up by re-running `cabal run`;
+if not, use also `-fforce-recomp`.

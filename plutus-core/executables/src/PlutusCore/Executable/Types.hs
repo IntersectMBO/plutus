@@ -54,6 +54,7 @@ data Output = FileOutput FilePath | StdOutput | NoOutput
 data TimingMode = NoTiming | Timing Integer deriving stock (Eq) -- Report program execution time?
 data CekModel = Default | Unit -- Which cost model should we use for CEK machine steps?
 data PrintMode = Classic | Simple | Readable | ReadableSimple deriving stock (Show, Read)
+data NameFormat = IdNames | DeBruijnNames -- Format for textual output of names
 data TraceMode = None | Logs | LogsWithTimestamps | LogsWithBudgets deriving stock (Show, Read)
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
@@ -71,8 +72,10 @@ instance Show Format where
     show (Flat DeBruijn)      = "flat-deBruijn"
     show (Flat NamedDeBruijn) = "flat-namedDeBruijn"
 
+type Certifier = Maybe String
+
 data ConvertOptions = ConvertOptions Input Format Output Format PrintMode
-data OptimiseOptions = OptimiseOptions Input Format Output Format PrintMode
+data OptimiseOptions = OptimiseOptions Input Format Output Format PrintMode Certifier
 data PrintOptions = PrintOptions Input Output PrintMode
 newtype ExampleOptions = ExampleOptions ExampleMode
 data ApplyOptions = ApplyOptions Files Format Output Format PrintMode

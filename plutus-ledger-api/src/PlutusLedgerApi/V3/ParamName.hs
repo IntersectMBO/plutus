@@ -266,8 +266,56 @@ data ParamName =
   | ByteStringToInteger'cpu'arguments'c2
   | ByteStringToInteger'memory'arguments'intercept
   | ByteStringToInteger'memory'arguments'slope
-  -- not enabled yet:
-  -- | ExpModInteger'cpu'arguments
-  -- | ExpModInteger'memory'arguments
+-- Chang+1
+  | AndByteString'cpu'arguments'intercept
+  | AndByteString'cpu'arguments'slope1
+  | AndByteString'cpu'arguments'slope2
+  | AndByteString'memory'arguments'intercept
+  | AndByteString'memory'arguments'slope
+  | OrByteString'cpu'arguments'intercept
+  | OrByteString'cpu'arguments'slope1
+  | OrByteString'cpu'arguments'slope2
+  | OrByteString'memory'arguments'intercept
+  | OrByteString'memory'arguments'slope
+  | XorByteString'cpu'arguments'intercept
+  | XorByteString'cpu'arguments'slope1
+  | XorByteString'cpu'arguments'slope2
+  | XorByteString'memory'arguments'intercept
+  | XorByteString'memory'arguments'slope
+  | ComplementByteString'cpu'arguments'intercept
+  | ComplementByteString'cpu'arguments'slope
+  | ComplementByteString'memory'arguments'intercept
+  | ComplementByteString'memory'arguments'slope
+  | ReadBit'cpu'arguments
+  | ReadBit'memory'arguments
+  | WriteBits'cpu'arguments'intercept
+  | WriteBits'cpu'arguments'slope
+  | WriteBits'memory'arguments'intercept
+  | WriteBits'memory'arguments'slope
+  | ReplicateByte'cpu'arguments'intercept
+  | ReplicateByte'cpu'arguments'slope
+  | ReplicateByte'memory'arguments'intercept
+  | ReplicateByte'memory'arguments'slope
+  | ShiftByteString'cpu'arguments'intercept
+  | ShiftByteString'cpu'arguments'slope
+  | ShiftByteString'memory'arguments'intercept
+  | ShiftByteString'memory'arguments'slope
+  | RotateByteString'cpu'arguments'intercept
+  | RotateByteString'cpu'arguments'slope
+  | RotateByteString'memory'arguments'intercept
+  | RotateByteString'memory'arguments'slope
+  | CountSetBits'cpu'arguments'intercept
+  | CountSetBits'cpu'arguments'slope
+  | CountSetBits'memory'arguments
+  | FindFirstSetBit'cpu'arguments'intercept
+  | FindFirstSetBit'cpu'arguments'slope
+  | FindFirstSetBit'memory'arguments
+  | Ripemd_160'cpu'arguments'intercept
+  | Ripemd_160'cpu'arguments'slope
+  | Ripemd_160'memory'arguments
+
+--  not enabled yet:
+--    ExpModInteger'cpu'arguments
+--    ExpModInteger'memory'arguments
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)
