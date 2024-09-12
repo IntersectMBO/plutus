@@ -510,7 +510,10 @@ instance Show Signature where
             case ty of
                 PLC.TyBuiltin _ t -> show $ PP.pretty t
                 PLC.TyApp{}       -> showMultiTyApp $ unwrapTyApp ty
-                _                 -> show $ PP.pretty ty
+                -- prettyPlcClassicSimple -> omit indices in type variables.
+                _                 -> show $ PP.prettyPlcClassicSimple ty
+                -- We may want more cases here if more complex types (eg function types)
+                -- are allowed for builtin arguments.
         unwrapTyApp ty =
             case ty of
                 PLC.TyApp _ t1 t2 -> unwrapTyApp t1 ++ [t2]

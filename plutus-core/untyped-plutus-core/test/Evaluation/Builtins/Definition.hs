@@ -1068,6 +1068,8 @@ test_Bitwise =
                 mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsXor
             , testPropertyNamed "found index set, lower indices clear" "ffs_index" $
                 mapTestLimitAtLeast 50 (`div` 20) Bitwise.ffsIndex
+            , testPropertyNamed "regression #6453 check" "regression_6453" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffs6453
             ]
         ]
 
