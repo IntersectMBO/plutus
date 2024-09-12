@@ -179,6 +179,7 @@ test-suite plutus-tx-plugin-tests
 
   build-depends:
     , base                                            >=4.9   && <5
+    , base16-bytestring
     , bytestring
     , containers
     , deepseq

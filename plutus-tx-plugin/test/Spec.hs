@@ -39,7 +39,7 @@ tests =
     , AsData.Budget.tests
     , Optimization.tests
     , Strictness.tests
-    , Blueprint.Tests.goldenTests
+    , Blueprint.Tests.tests
     , AssocMap.goldenTests
     , embed ShortCircuit.tests
     , embed Unicode.tests

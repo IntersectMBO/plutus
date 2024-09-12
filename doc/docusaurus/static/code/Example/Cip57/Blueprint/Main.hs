@@ -208,7 +208,7 @@ myValidator =
             , argumentPurpose = Set.singleton Spend
             , argumentSchema = definitionRef @MyDatum
             }
-    , validatorCompiledCode = Nothing -- you can optionally provide the compiled code here
+    , validatorCompiled = Nothing -- you can optionally provide the compiled code here
     }
 
 -- END validator blueprint declaration

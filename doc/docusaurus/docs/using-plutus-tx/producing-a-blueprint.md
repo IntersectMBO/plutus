@@ -129,19 +129,20 @@ Our contract can contain one or more validators. For each one we need to provide
 
 > ``` haskell
 > data ValidatorBlueprint (referencedTypes :: [Type]) = MkValidatorBlueprint
->   { validatorTitle        :: Text
+>   { validatorTitle       :: Text
 >   -- ^ A short and descriptive name for the validator.
->   , validatorDescription  :: Maybe Text
+>   , validatorDescription :: Maybe Text
 >   -- ^ An informative description of the validator.
->   , validatorRedeemer     :: ArgumentBlueprint referencedTypes
+>   , validatorRedeemer    :: ArgumentBlueprint referencedTypes
 >   -- ^ A description of the redeemer format expected by this validator.
->   , validatorDatum        :: Maybe (ArgumentBlueprint referencedTypes)
+>   , validatorDatum       :: Maybe (ArgumentBlueprint referencedTypes)
 >   -- ^ A description of the datum format expected by this validator.
->   , validatorParameters   :: Maybe (NonEmpty (ParameterBlueprint referencedTypes))
+>   , validatorParameters  :: [ParameterBlueprint referencedTypes]
 >   -- ^ A list of parameters required by the script.
->   , validatorCompiledCode :: Maybe ByteString
->   -- ^ A full compiled and CBOR-encoded serialized flat script.
+>   , validatorCompiled    :: Maybe CompiledValidator
+>   -- ^ A full compiled and CBOR-encoded serialized flat script together with its hash.
 >   }
+>   deriving stock (Show, Eq, Ord)
 > ```
 
 In our example, this would be:
@@ -150,6 +151,17 @@ In our example, this would be:
 
 The `definitionRef` function is used to reference a schema definition of a given type. 
 It is smart enough to discover the schema definition from the `referencedType` list and fails to compile if the referenced type is not included.
+
+If you want to provide validator code with its hash, you can use the `compiledValidator` function:
+
+``` haskell
+compiledValidator
+  :: PlutusVersion
+  -- ^ Plutus version (e.g. `PlutusV3`) to calculate the hash of the validator code.
+  -> ByteString
+  -- ^ The compiled validator code.
+  -> CompiledValidator
+```
 
 ## Writing the blueprint to a file
 
