@@ -211,7 +211,7 @@ test-suite plutus-ledger-api-plugin-test
     Spec.Value
 
   if os(windows)
-    buildable: false 
+    buildable: False 
 
   build-depends:
     , base                                                              >=4.9   && <5
