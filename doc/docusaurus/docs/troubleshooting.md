@@ -82,20 +82,24 @@ myScript redeemer ctx = case redeemer of
 The `Strict` extension makes all bindings strict, which means even if `redeemer` matches `A`, `condition2` will still be evaluated.
 This can be inefficient at best and, at worst, cause unexpected failures if `condition2` is not met when the redeemer matches `A`.
 
-To fix this, either make `condition1` and `condition2` nonstrict by adding tildes:
+There are multiple ways to fix this:
+
+1. You can make `condition1` and `condition2` non-strict by adding tildes:
 
 ```haskell
 ~condition1 = ...
 ~condition2 = ...
 ```
 
-or put the bindings of `condition1` and `condition2` under the `case` branches:
+2. Alternatively, you can define `condition1` and `condition2` within the `case` branches:
 
 ```haskell
 case redeemer of
   A -> let condition1 = ... in condition1
   B -> let condition2 = ... in condition2
 ```
+
+3. Another option is to turn `condition1` and `condition2` into functions that take some arguments and return a `Bool`, as functions are not evaluated until all their arguments are provided.
 
 ## Haddock
 
