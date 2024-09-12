@@ -1,9 +1,9 @@
 ---
-title: VerifiedCompilation.UForceDelay
+title: VerifiedCompilation.UFloatDelay
 layout: page
 ---
 
-# Force-Delay Translation Phase
+# Float-Delay Translation Phase
 ```
 module VerifiedCompilation.UFloatDelay where
 
@@ -11,7 +11,7 @@ module VerifiedCompilation.UFloatDelay where
 ## Imports
 
 ```
-open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
+open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise,decEq-⊢,decEq-Maybe)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation; convert; reflexive)
 open import Relation.Nullary.Product using (_×-dec_)

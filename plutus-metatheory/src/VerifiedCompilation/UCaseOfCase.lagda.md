@@ -34,7 +34,7 @@ open import Data.List using (List; _∷_; [])
 ## Translation Relation
 
 This compiler stage only applies to the very specific case where an `IfThenElse` builtin exists in a `case` expression.
-It moves the `IfThenElse` outside and creates two `case` expressions with each of the possible lists of cases. 
+It moves the `IfThenElse` outside and creates two `case` expressions with each of the possible lists of cases.
 
 This will just be an instance of the `Translation` relation once we define the "before" and "after" patterns.
 
@@ -76,7 +76,7 @@ isCoCCase? t  | no ¬CoCCase = no λ { (isCoCCase b tn fn alts tt ft) → ¬CoCC
                                                                                    (isconstr tn (allterms alts)))
                                                                                   (isconstr fn (allterms tt)))
                                                                                  (allterms ft)) }
-                                                                                 
+
 data CoCForce {X : Set} :  (X ⊢) → Set where
   isCoCForce : (b : (X ⊢)) (tn fn : ℕ) (tt' ft' alts' : List (X ⊢)) → CoCForce (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
 isCoCForce? : {X : Set} {{ _ : DecEq X }} → Unary.Decidable (CoCForce {X})
@@ -103,12 +103,12 @@ isUntypedCaseOfCase? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translati
 isCoC? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (CoC {X})
 isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
 ... | no ¬cf = no λ { (isCoC b tn fn tt tt' ft ft' alts alts' x x₁ x₂) → ¬cf
-                                                                          (isCoCCase b tn fn tt ft alts , isCoCForce b tn fn tt' ft' alts') }
+      (isCoCCase b tn fn tt ft alts , isCoCForce b tn fn tt' ft' alts') }
 ... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁) ×-dec (decPointwise isUntypedCaseOfCase? tt tt') ×-dec (decPointwise isUntypedCaseOfCase? ft ft') ×-dec (decPointwise isUntypedCaseOfCase? alts alts')
 ... | yes (refl , refl , refl , ttpw , ftpw , altpw) = yes (isCoC b tn fn tt tt' ft ft' alts alts' altpw ttpw ftpw)
 ... | no ¬p = no λ { (isCoC .b .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p (refl , refl , refl , x₁ , x₂ , x) }
 
-isUntypedCaseOfCase? {X} = translation? {X} isCoC? 
+isUntypedCaseOfCase? {X} = translation? {X} isCoC?
 ```
 
 ## Semantic Equivalence
@@ -125,11 +125,11 @@ The `stepper` function uses the CEK machine to evaluate a term. Here we call it 
 large gas budget and begin in an empty context (which assumes the term is closed).
 
 ```
--- TODO: Several approaches are possible. 
+-- TODO: Several approaches are possible.
 --semantic_equivalence : ∀ {X set} {ast ast' : ⊥ ⊢}
  --                    → ⊥ ⊢̂ ast ⊳̂ ast'
- -- <Some stuff about whether one runs out of gas -- as long as neither runs out of gas, _then_ they are equivilent> 
+ -- <Some stuff about whether one runs out of gas -- as long as neither runs out of gas, _then_ they are equivilent>
  --                    → (stepper maxsteps  (Stack.ϵ ; [] ▻ ast)) ≡ (stepper maxsteps (Stack.ε ; [] ▻ ast'))
 
--- ∀ {s : ℕ} → stepper s ast ≡ <valid terminate state> ⇔ ∃ { s' : ℕ } [ stepper s' ast' ≡ <same valid terminate state> ] 
+-- ∀ {s : ℕ} → stepper s ast ≡ <valid terminate state> ⇔ ∃ { s' : ℕ } [ stepper s' ast' ≡ <same valid terminate state> ]
 ```
