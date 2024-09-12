@@ -1,0 +1,8 @@
+{
+    "label": "Example: An Auction Smart Contract",
+    "position": 30,
+    "link": {
+      "type": "generated-index",
+      "description": "In this example we first present the Plutus Tx code for writing the on-chain validator script of a smart contract that controls the auction of an asset, which can be executed on the Cardano blockchain. We will then walk you through the steps to run it end-to-end on Cardano's Preview testnet."
+    }
+  }
