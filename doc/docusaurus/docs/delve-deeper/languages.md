@@ -73,7 +73,7 @@ By reusing the host language's ASTs, programs maintain simple and regular types 
 
 A case in point is Plutus Tx, which is a subset of Haskell, and its compiler is a GHC plugin.
 It reuses GHC components like the parser and type checker, and transforms GHC Core (GHC's intermediate representation) into UPLC.
-Alternatively, meta-programming methods can be used to access and manipluate the host language's AST, such as quotes and splices[^2].
+Alternatively, meta-programming methods can be used to access and manipulate the host language's AST, such as quotes and splices[^2].
 
 Nonetheless, developing a new language as a subset of an existing language presents several challenges.
 The compiler components of the host language are most likely not tailored for the new language, and making them work for the new language can be difficult.
