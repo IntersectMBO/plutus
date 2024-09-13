@@ -7,7 +7,7 @@ sidebar_position: 38
 Untyped Plutus Core (UPLC) is the assembly-like language that runs in Cardano nodes for transaction validation.
 The Cardano node ships with a UPLC evaluator, which is a [CEK machine](https://en.wikipedia.org/wiki/CEK_Machine).
 
-UPLC is a low-level programming language, and UPLC programs are as difficult to read as assembly code.
+UPLC is a low-level programming language, and is not intended to be written or modified by hand.
 Besides Plutus Tx, several other high-level languages are designed to target UPLC.
 These languages can be grouped into three categories:
 
@@ -25,8 +25,8 @@ By crafting a new language from scratch, you avoid inheriting the limitations an
 
 On the other hand, standalone DSLs have some disadvantages.
 First, designing and implementing them can be challenging.
-Not only must the syntax and semantics be created from scratch, but you also need to build the compiler components - such as lexers, parsers, type checkers, desugarers, and optimizers - from the ground up.
-This can be a formidable task, as developing, testing, and maintaining compilers is a substantial effort, particularly with the addition of new language features over time.
+Not only must the syntax and semantics be created from scratch, but you also need to build all necessary compiler components, tooling, and a library ecosystem from the ground up.
+This can be a formidable task, as developing, testing, and maintaining compilers and tooling, along with establishing and maintining a library ecosystem, require substantial efforts, particularly with the addition of new language features over time.
 
 Second, users will need to adopt a new programming language and incorporate it into their existing tech stacks.
 This can present a considerable challenge, as it involves a learning curve, increased cognitive load, and the necessity to introduce and manage additional tools.
@@ -43,6 +43,7 @@ When using an embedded DSL, you are essentially writing programs that create and
 Take, for instance, a program that accepts two integers as input, and checks if the first is less than the second.
 Normally, you would write a function of type `Integer -> Integer -> Bool`, which takes two integers and returns a boolean.
 However, when working with an eDSL, your program might have a type like `AST Integer -> AST Integer -> AST Bool`, which takes two ASTs that evaluate to integers, combines them, and yields a larger AST that evaluates to a boolean.
+The complexity increases further if the comparison is polymorphic, since it is unlikely that the usual method of writing polymorphic functions (such as Haskell's `Ord` instance) can be reused.
 Like standalone DSLs, this also introduces additional learning curves and cognitive load, though for a different reason.
 
 Another disadvantage of eDSLs is that it is harder, compared to the other two approaches, to produce readable target code or accurate source mappings for debuggers.
@@ -65,13 +66,14 @@ All existing eDSLs targeting UPLC are examples of deep embeddings.
 
 Similar to eDSLs, this approach can be particularly appealing if your team or project is already using the host language.
 It allows for even greater reuse of existing functions, types and idioms from the hosting language, compared to eDSLs.
-For instance, a program that tests whether one integer is less than another can retain the type `Integer -> Integer -> Bool`, and can even reuse the `<` operator in the hosting language's standard library[^1].
+For instance, a program that tests whether one integer is less than another can retain the type `forall a. Ord a => a -> a -> Bool`, and can even reuse the `<` operator in the hosting language's standard library[^1].
 
 This is achieved by leveraging the host language's compiler frontend, which might include lexer, parser, type checker, AST and optimization passes, while developing a custom backend for the new language.
 By reusing the host language's ASTs, programs maintain simple and regular types without the need for custom AST construction, which is often necessary in eDSLs.
 
 A case in point is Plutus Tx, which is a subset of Haskell, and its compiler is a GHC plugin.
 It reuses GHC components like the parser and type checker, and transforms GHC Core (GHC's intermediate representation) into UPLC.
+Alternatively, meta-programming methods can be used to access and manipluate the host language's AST, such as quotes and splices[^2].
 
 Nonetheless, developing a new language as a subset of an existing language presents several challenges.
 The compiler components of the host language are most likely not tailored for the new language, and making them work for the new language can be difficult.
@@ -81,7 +83,10 @@ Additionally, the desugaring process might transform code in such a way that it 
 Furthermore, complications arise when the new language and the host language do not exactly agree on semantics or evaluation strategies.
 This disparity can lead to behaviors where the same code might act differently when compiled and executed in the host language versus the new language.
 It can also result in idioms that work well in the host language being inappropriate for the new language.
-For example, while guarded recursion is a useful idiom in Haskell, it is unsuitable for Plutus Tx due to Plutus Tx's use of call-by-value evaluation.
+For example, while guarded recursion is a useful idiom in Haskell, it might not be suitable for Plutus Tx due to Plutus Tx's use of call-by-value evaluation.
+
+Another drawback of using a subset of a language is that, determining whether a program conforms to the allowed subset typically doesn't happen at type checking time, but at target code generation time.
+This not only delays error detection cmpared to eDSLs, but makes it harder to produce clear error messages, since by target code generation time, the AST may have already been transformed and optimized, obscuring its connection to the original source code.
 
 ## List of Existing Languages
 
@@ -100,3 +105,5 @@ For example, while guarded recursion is a useful idiom in Haskell, it is unsuita
 [^1]: This statement is not entirely true for Plutus Tx, a subset of Haskell.
 Due to certain GHC-specific technical limitations, it can't easily reuse many functions and operations from the `base` library, so it ships with its own standard library instead.
 Nevertheless, the `<` operator in Plutus Tx's standard library still has the type `Integer -> Integer -> Bool`.
+
+[^2]: For further reading, check out [_Everything old is new again: Quoted Domain Specific Languages_](https://homepages.inf.ed.ac.uk/wadler/topics/qdsl.html).
