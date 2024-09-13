@@ -86,7 +86,7 @@ It can also result in idioms that work well in the host language being inappropr
 For example, while guarded recursion is a useful idiom in Haskell, it might not be suitable for Plutus Tx due to Plutus Tx's use of call-by-value evaluation.
 
 Another drawback of using a subset of a language is that, determining whether a program conforms to the allowed subset typically doesn't happen at type checking time, but at target code generation time.
-This not only delays error detection cmpared to eDSLs, but makes it harder to produce clear error messages, since by target code generation time, the AST may have already been transformed and optimized, obscuring its connection to the original source code.
+This not only delays error detection compared to eDSLs, but makes it harder to produce clear error messages, since by target code generation time, the AST may have already been transformed and optimized, obscuring its connection to the original source code.
 
 ## List of Existing Languages
 
