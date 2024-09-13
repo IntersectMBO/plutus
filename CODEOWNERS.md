@@ -1,12 +1,18 @@
 # Plutus Codeowners
 
-# These are the default owners for everything in the repository.
-# Currently commented out to avoid notifying everyone on every PR. 
-# * @IntersectMBO/plutus-core-maintainers
+/nix/  @zeme-wana
+/.github/workflows/  @zeme-wana
+/scripts/  @zeme-wana
+flake.nix  @zeme-wana
+flake.lock  @zeme-wana
 
-# @zeme-wana is the owner of CI/DevX/Nix code.
-/nix/ @zeme-wana
-/.github/workflows/ @zeme-wana
-/scripts/ @zeme-wana
-flake.nix @zeme-wana
-flake.lock @zeme-wana
+/plutus-tx/src/PlutusTx/Blueprint/  @Unisay
+/plutus-metatheory/  @ramsay-t
+/plutus-ledger-api/  @bezirg @Unisay
+/cardano-constitution/  @bezirg
+/plutus-benchmark/  @kwxm
+/plutus-conformance/  @kwxm
+/plutus-executables/  @kwxm
+/plutus-core/  @kwxm @effectfully
+/doc/plutus-core-spec/  @kwxm
+/prettyprint-configurable/ @effectfully
