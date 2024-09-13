@@ -1,0 +1,1 @@
+forall a. forall b. SomeConstant DefaultUni [TyVarRep * ('TyNameRep * "a" 0)] -> BuiltinResult (SomeConstant DefaultUni [TyVarRep * ('TyNameRep * "b" 1)])

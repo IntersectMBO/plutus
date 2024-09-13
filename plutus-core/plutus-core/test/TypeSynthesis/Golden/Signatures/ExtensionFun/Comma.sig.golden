@@ -1,0 +1,1 @@
+forall a. forall b. SomeConstant DefaultUni (TyVarRep * ('TyNameRep * "a" 0)) -> SomeConstant DefaultUni (TyVarRep * ('TyNameRep * "b" 1)) -> SomeConstant DefaultUni ((TyVarRep * ('TyNameRep * "a" 0)),(TyVarRep * ('TyNameRep * "b" 1)))

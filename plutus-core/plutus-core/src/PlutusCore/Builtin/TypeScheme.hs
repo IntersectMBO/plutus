@@ -27,8 +27,8 @@ import PlutusCore.Name.Unique
 import Data.Kind qualified as GHC (Type)
 import Data.Proxy
 import Data.Text qualified as Text
+import Data.Typeable
 import GHC.TypeLits
-import Type.Reflection
 
 infixr 9 `TypeSchemeArrow`
 
@@ -78,9 +78,27 @@ typeSchemeToType :: TypeScheme val args res -> Type TyName (UniOf val) ()
 typeSchemeToType sch@TypeSchemeResult       = toTypeAst sch
 typeSchemeToType sch@(TypeSchemeArrow schB) =
     TyFun () (toTypeAst $ argProxy sch) $ typeSchemeToType schB
-typeSchemeToType (TypeSchemeAll proxy schK) = case proxy of
-    (_ :: Proxy '(text, uniq, kind)) ->
-        let text = Text.pack $ symbolVal @text Proxy
-            uniq = fromIntegral $ natVal @uniq Proxy
-            a    = TyName $ Name text $ Unique uniq
-        in TyForall () a (demoteKind $ knownKind @kind) $ typeSchemeToType schK
+typeSchemeToType (TypeSchemeAll (_ :: Proxy '(text, uniq, kind)) schB) =
+    let text = Text.pack $ symbolVal @text Proxy
+        uniq = fromIntegral $ natVal @uniq Proxy
+        a    = TyName $ Name text $ Unique uniq
+    in TyForall () a (demoteKind $ knownKind @kind) $ typeSchemeToType schB
+
+-- The precedence of @->@ is @-1@, which is why this number appears in the implementation of the
+-- instance.
+instance Show (TypeScheme val args res) where
+    showsPrec p sch@TypeSchemeResult =
+        showParen (p > 0)
+            $ showsPrec (-1) (typeRep sch)
+    showsPrec p sch@(TypeSchemeArrow schB) =
+        showParen (p > 0)
+            $ -- @0@ is to account for associativity, see https://stackoverflow.com/a/43639618
+              showsPrec 0 (typeRep $ argProxy sch)
+            . showString " -> "
+            . showsPrec (-1) schB
+    showsPrec p (TypeSchemeAll (_ :: Proxy '(text, uniq, kind)) schB) =
+        showParen (p > 0)
+            $ showString "forall "
+            . showString (symbolVal @text Proxy)
+            . showString ". "
+            . showsPrec 0 schB

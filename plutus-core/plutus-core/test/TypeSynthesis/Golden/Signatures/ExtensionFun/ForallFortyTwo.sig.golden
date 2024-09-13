@@ -1,0 +1,1 @@
+forall a. MetaForall (TyNameRep *) ('TyNameRep * "a" 0) Integer
