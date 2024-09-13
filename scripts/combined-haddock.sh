@@ -226,8 +226,32 @@ time linkchecker "${OUTPUT_DIR}/index.html" \
   --no-warnings \
   --output failures \
   --file-output text 
-
-
 if [[ "$?" != "0" ]]; then 
   echo "Found broken or unreachable 'href=' links in the files above (also see ./linkchecker-out.txt)"
 fi 
+
+
+echo "Injecting additional prologue html"
+ALL_VERSIONS=(
+  "master"
+  "latest"
+  "1.34.0.0"
+  "1.33.0.0"
+  "1.32.0.0"
+  "1.31.0.0"
+  "1.30.0.0"
+  "1.29.0.0"
+  "1.28.0.0"
+  "1.27.0.0"
+  "1.27.0.0"
+)
+VERSION_SELECT=("<select>")
+for version in "${ALL_VERSIONS[@]}"; do
+  VERSION_SELECT+=("<option><pre><a href=\"https://plutus.cardano.intersectmbo.org/haddock/$version/\">$version</a></pre></option>")
+done
+VERSION_SELECT+=("</select>")
+GIT_REV_SHORT=4634cfd35
+OUTPUT_DIR=haddocks
+sed "s|$GIT_REV_SHORT</a></p>|$GIT_REV_SHORT</a></p><p>Goto other version: ${VERSION_SELECT[@]}</p>|g" "$OUTPUT_DIR/index.html"
+
+# s|4634cfd35</a></p>|4634cfd35</a></p><p>Goto other version: <select> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/master/">master</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/latest/">latest</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.34.0.0/">1.34.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.33.0.0/">1.33.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.32.0.0/">1.32.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.31.0.0/">1.31.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.30.0.0/">1.30.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.29.0.0/">1.29.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.28.0.0/">1.28.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.27.0.0/">1.27.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.27.0.0/">1.27.0.0</a></pre></option> </select></p>|g
