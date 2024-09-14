@@ -913,9 +913,16 @@ test_Version =
     testCase "Version" $ do
         let expr1 = apply () (builtin () $ Right ExtensionVersion) unitval
         Right (EvaluationSuccess $ cons @Integer 0) @=?
-              typecheckEvaluateCekNoEmit (PairV @DefaultFun def ExtensionFunSemanticsVariantX) defaultBuiltinCostModelExt expr1
-        Right (EvaluationSuccess $ cons @Integer 1) @=?
-              typecheckEvaluateCekNoEmit (PairV @DefaultFun def def) defaultBuiltinCostModelExt expr1
+            typecheckEvaluateCekNoEmit
+                (PairV @DefaultFun def ExtensionFunSemanticsVariant0)
+                defaultBuiltinCostModelExt
+                expr1
+        Right (EvaluationSuccess $ cons @Integer $ fromIntegral $
+                fromEnum (maxBound :: BuiltinSemanticsVariant ExtensionFun)) @=?
+            typecheckEvaluateCekNoEmit
+                (PairV @DefaultFun def def)
+                defaultBuiltinCostModelExt
+                expr1
 
 -- | Check that 'ConsByteString' wraps around for plutus' builtin-version == 1, and fails in plutus's builtin-versions >=2.
 -- See Note [Builtin semantics variants]
@@ -1068,6 +1075,8 @@ test_Bitwise =
                 mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsXor
             , testPropertyNamed "found index set, lower indices clear" "ffs_index" $
                 mapTestLimitAtLeast 50 (`div` 20) Bitwise.ffsIndex
+            , testPropertyNamed "regression #6453 check" "regression_6453" $
+                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffs6453
             ]
         ]
 

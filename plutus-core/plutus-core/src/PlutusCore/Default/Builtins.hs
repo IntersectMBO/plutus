@@ -1128,7 +1128,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         = DefaultFunSemanticsVariantA
         | DefaultFunSemanticsVariantB
         | DefaultFunSemanticsVariantC
-        deriving stock (Eq, Enum, Bounded, Show, Generic)
+        deriving stock (Eq, Ord, Enum, Bounded, Show, Generic)
         deriving anyclass (NFData, NoThunks)
 
     -- Integers

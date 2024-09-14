@@ -67,7 +67,7 @@ library
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.33
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.34
     , process
     , text
     , transformers
@@ -150,6 +150,7 @@ library
     MAlonzo.Code.Data.Empty.Irrelevant
     MAlonzo.Code.Data.Empty.Polymorphic
     MAlonzo.Code.Data.Fin.Base
+    MAlonzo.Code.Data.Float.Properties
     MAlonzo.Code.Data.Integer
     MAlonzo.Code.Data.Integer.Base
     MAlonzo.Code.Data.Integer.Properties
@@ -215,8 +216,11 @@ library
     MAlonzo.Code.Data.Tree.AVL.Key
     MAlonzo.Code.Data.Tree.AVL.Map
     MAlonzo.Code.Data.Tree.AVL.Value
+    MAlonzo.Code.Data.Unit.Base
+    MAlonzo.Code.Data.Unit.Properties
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
+    MAlonzo.Code.Data.Word.Properties
     MAlonzo.Code.Declarative
     MAlonzo.Code.Evaluator.Base
     MAlonzo.Code.Evaluator.Program
@@ -245,6 +249,19 @@ library
     MAlonzo.Code.Main
     MAlonzo.Code.Raw
     MAlonzo.Code.RawU
+    MAlonzo.Code.Reflection
+    MAlonzo.Code.Reflection.Abstraction
+    MAlonzo.Code.Reflection.Argument
+    MAlonzo.Code.Reflection.Argument.Information
+    MAlonzo.Code.Reflection.Argument.Modality
+    MAlonzo.Code.Reflection.Argument.QQuantity
+    MAlonzo.Code.Reflection.Argument.Relevance
+    MAlonzo.Code.Reflection.Argument.Visibility
+    MAlonzo.Code.Reflection.Literal
+    MAlonzo.Code.Reflection.Meta
+    MAlonzo.Code.Reflection.Name
+    MAlonzo.Code.Reflection.Show
+    MAlonzo.Code.Reflection.Term
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
     MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
@@ -309,6 +326,12 @@ library
     MAlonzo.Code.Utils.Decidable
     MAlonzo.Code.Utils.List
     MAlonzo.Code.Utils.Reflection
+    MAlonzo.Code.VerifiedCompilation
+    MAlonzo.Code.VerifiedCompilation.Equality
+    MAlonzo.Code.VerifiedCompilation.UCaseOfCase
+    MAlonzo.Code.VerifiedCompilation.UForceDelay
+    MAlonzo.Code.VerifiedCompilation.UntypedTranslation
+    MAlonzo.Code.VerifiedCompilation.UntypedViews
     MAlonzo.RTE
     MAlonzo.RTE.Float
 
@@ -446,10 +469,12 @@ library
     MAlonzo.Code.Data.Tree.AVL.Value
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
+    MAlonzo.Code.Data.Word.Properties
     MAlonzo.Code.Declarative
     MAlonzo.Code.Evaluator.Base
     MAlonzo.Code.Evaluator.Program
     MAlonzo.Code.Evaluator.Term
+    MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.Function.Base
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
@@ -474,6 +499,21 @@ library
     MAlonzo.Code.Main
     MAlonzo.Code.Raw
     MAlonzo.Code.RawU
+    MAlonzo.Code.Reflection
+    MAlonzo.Code.Data.Float.Properties
+    MAlonzo.Code.Data.Word.Properties
+    MAlonzo.Code.Reflection.Abstraction
+    MAlonzo.Code.Reflection.Argument
+    MAlonzo.Code.Reflection.Argument.Information
+    MAlonzo.Code.Reflection.Argument.Modality
+    MAlonzo.Code.Reflection.Argument.QQuantity
+    MAlonzo.Code.Reflection.Argument.Relevance
+    MAlonzo.Code.Reflection.Argument.Visibility
+    MAlonzo.Code.Reflection.Literal
+    MAlonzo.Code.Reflection.Meta
+    MAlonzo.Code.Reflection.Name
+    MAlonzo.Code.Reflection.Show
+    MAlonzo.Code.Reflection.Term
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
     MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
@@ -549,43 +589,6 @@ executable plc-agda
     , base
     , plutus-metatheory
 
-test-suite test-simple
-  import:             lang, os-support
-  type:               exitcode-stdio-1.0
-  main-is:            Spec.hs
-  hs-source-dirs:     test/simple
-  build-tool-depends:
-    , plutus-core:plc   ^>=1.33
-    , plutus-core:uplc  ^>=1.33
-
-  build-depends:
-    , base
-    , extra
-    , plutus-metatheory
-    , process
-
-test-suite test-detailed
-  import:             lang, os-support
-  type:               exitcode-stdio-1.0
-  main-is:            Spec.hs
-  hs-source-dirs:     test/detailed
-  build-tool-depends:
-    , plutus-core:plc   ^>=1.33
-    , plutus-core:uplc  ^>=1.33
-
-  build-depends:
-    , base
-    , bytestring
-    , Cabal
-    , directory
-    , extra
-    , plutus-core        ^>=1.33
-    , plutus-metatheory
-    , process
-    , tasty
-    , tasty-hunit
-    , text
-
 test-suite test-NEAT
   import:         lang, os-support
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
@@ -596,7 +599,7 @@ test-suite test-NEAT
     , base
     , lazy-search
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.33
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.34
     , plutus-metatheory
     , size-based
     , Stream

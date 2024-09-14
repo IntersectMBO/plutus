@@ -1,0 +1,1 @@
+forall a. Void -> Opaque Val (TyVarRep * ('TyNameRep * "a" 0))

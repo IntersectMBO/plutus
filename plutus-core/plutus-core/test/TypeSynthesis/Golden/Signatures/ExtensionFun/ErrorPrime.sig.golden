@@ -1,0 +1,1 @@
+forall a. BuiltinResult (Opaque Val (TyVarRep * ('TyNameRep * "a" 0)))

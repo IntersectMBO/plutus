@@ -8,13 +8,16 @@
 
 module TypeSynthesis.Spec
     ( test_typecheck
+    , lookupLastLessThanOrEqualTo
     ) where
 
 import PlutusPrelude
 
 import PlutusCore
 import PlutusCore.Builtin
+import PlutusCore.Default
 import PlutusCore.Error
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.FsTree
 import PlutusCore.Pretty
 
@@ -24,6 +27,7 @@ import PlutusCore.StdLib.Everything (stdLib)
 
 import Control.Monad (unless)
 import Control.Monad.Except (MonadError, runExcept)
+import Data.Text qualified as Text
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.HUnit
@@ -152,10 +156,105 @@ test_typecheckDefaultFuns =
             , map (test_typecheckAllFun @ExtensionFun "ExtensionFun") enumerate
             ]
 
+-- | A value type to use in instantiated built-in signatures. We could use 'Term' or 'CekValue',
+-- but those have type parameters and look unwieldy in type signatures, so we define a dedicated
+-- value type to make golden tests more concise.
+data Val = Val
+type instance UniOf Val = DefaultUni
+instance ExMemoryUsage Val where
+    memoryUsage = error "Not supposed to be executed"
+instance HasConstant Val where
+    asConstant _ = throwNotAConstant
+    fromConstant _ = Val
+
+-- | Return the last element of the list that is smaller than or equal to the given one.
+--
+-- >>> let xs = [0, 2 .. 8 :: Int]
+-- >>> lookupLastLessThanOrEqualTo (-1) xs
+-- Nothing
+-- >>> lookupLastLessThanOrEqualTo 0 xs
+-- Just 0
+-- >>> lookupLastLessThanOrEqualTo 3 xs
+-- Just 2
+-- >>> lookupLastLessThanOrEqualTo 11 xs
+-- Just 8
+lookupLastLessThanOrEqualTo :: Ord a => a -> [a] -> Maybe a
+lookupLastLessThanOrEqualTo _  []         = Nothing
+lookupLastLessThanOrEqualTo xI (x0 : xs0)
+    | xI < x0   = Nothing
+    | otherwise = Just $ go x0 xs0
+    where
+        go x []        = x
+        go x (x' : xs)
+            | xI < x'   = x
+            | otherwise = go x' xs
+
+-- | Dump the type signature of the denotation of each of the built-in functions to a golden file.
+-- If the signature of the denotation of a built-in function has ever changed and that is reflected
+-- in the semantics variants, then the signatures are dumped to @n + 1@ files where @n@ is the
+-- number of changes (e.g. if there was only one, there'll be two golden files: the one for the
+-- original signature and the other for the updated one). The number of semantics variants doesn't
+-- matter, only the number of type signature changes (controlled by the second argument).
+--
+-- This design ensures that all type signature changes of denotations are explicitly reflected and
+-- the addition of another semantics variant won't mask an unexpected change in the signature of a
+-- denotation.
+test_dumpTypeRepAllFun
+    :: forall fun.
+       ( ToBuiltinMeaning DefaultUni fun
+       , Show fun
+       , Show (BuiltinSemanticsVariant fun)
+       , Ord (BuiltinSemanticsVariant fun)
+       , Bounded (BuiltinSemanticsVariant fun)
+       )
+    => String
+    -> [(fun, [BuiltinSemanticsVariant fun])]
+    -> BuiltinSemanticsVariant fun
+    -> TestNested
+test_dumpTypeRepAllFun nameSet semVarChanges semVar
+    = testNestedNamed nameSet (show semVar)
+    . map testFun
+    $ enumerate @fun
+  where
+    testFun fun =
+        withTypeSchemeOfBuiltinFunction @Val semVar fun $ \sch -> do
+            let name = show fun ++
+                    case lookup fun semVarChanges of
+                        Nothing      -> ""
+                        Just semVars -> ('_' :) . show $
+                            case lookupLastLessThanOrEqualTo semVar semVars of
+                                Nothing           -> minBound
+                                Just semVarLatest -> semVarLatest
+            nestedGoldenVsText name ".sig" . Text.pack $ show sch
+
+test_dumpTypeRepDefaultFuns :: TestTree
+test_dumpTypeRepDefaultFuns =
+    testGroup "builtin signatures" . pure $
+        runTestNested ["plutus-core", "test", "TypeSynthesis", "Golden", "Signatures"] $ concat
+            [ let semVarChanges =
+                      -- Keep the inner lists sorted.
+                      [ ( ConsByteString
+                        , [ DefaultFunSemanticsVariantC
+                          ]
+                        )
+                      ]
+              in map (test_dumpTypeRepAllFun @DefaultFun "DefaultFun" semVarChanges) enumerate
+            , let semVarChanges =
+                      -- Keep the inner lists sorted.
+                      [ ( IntNoIntegerNoWord
+                        , [ ExtensionFunSemanticsVariant1
+                          , ExtensionFunSemanticsVariant3
+                          ]
+                        )
+                      ]
+              in map (test_dumpTypeRepAllFun @ExtensionFun "ExtensionFun" semVarChanges) enumerate
+            ]
+
 test_typecheck :: TestTree
 test_typecheck =
     testGroup "typecheck"
         [ test_typecheckDefaultFuns
+        , test_dumpTypeRepDefaultFuns
         , test_typecheckAvailable
         , test_typecheckIllTyped
         ]

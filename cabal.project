@@ -22,6 +22,7 @@ packages: cardano-constitution
           plutus-benchmark
           plutus-conformance
           plutus-core
+          plutus-executables
           plutus-ledger-api
           plutus-metatheory
           plutus-tx
@@ -99,8 +100,8 @@ allow-newer:
 --
 -- package cardano-constitution
 --   flags: +force-build
--- allow-newer: cardano-constitution:plutus-ledger-api
--- allow-newer: cardano-constitution:prettyprinter-configurable
+-- allow-newer: *:plutus-ledger-api
+-- allow-newer: *:prettyprinter-configurable
 -- allow-older: *:nothunks
 
 -- -------------------------------------------------------------------------------------------------

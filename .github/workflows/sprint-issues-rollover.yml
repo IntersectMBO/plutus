@@ -21,6 +21,6 @@ jobs:
         number: 18 # Find this number by looking at the project's page URL
         token: ${{ secrets.PLUTUS_BACKLOG_AUTOMATION }} # Needs project write permissions
         iteration-field: Sprint
-        iteration: last
-        new-iteration: current
+        iteration: current
+        new-iteration: next
         excluded-statuses: ❌ - won't do,🚀 - done

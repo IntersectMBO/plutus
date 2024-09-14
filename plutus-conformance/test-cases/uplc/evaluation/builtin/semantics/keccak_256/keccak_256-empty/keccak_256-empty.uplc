@@ -5,7 +5,7 @@
 -- modified version of that.
 (program 1.0.0
  [
-  [ 
+  [
    (builtin equalsByteString)
    [
     (builtin keccak_256)

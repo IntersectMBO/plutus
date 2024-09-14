@@ -1,0 +1,1 @@
+ByteString -> ListCostedByLength Integer -> ListCostedByLength Bool -> BuiltinResult ByteString

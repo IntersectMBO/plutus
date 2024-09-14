@@ -27,9 +27,11 @@ In order to demonstrate the usage of the `writeBlueprint` function, let's consid
 
 <LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="validator" start="-- BEGIN validator" end="-- END validator" />
 
-## Importing required functionality
+## Required pragmas and imports
 
-First of all, we need to import required functionality:
+First of all, we need to specify required pragmas and import necessary modules:
+
+<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="pragmas" start="-- BEGIN pragmas" end="-- END pragmas" />
 
 <LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="imports" start="-- BEGIN imports" end="-- END imports" />
 
@@ -57,21 +59,7 @@ data ContractBlueprint where
 > 
 > The `referencedTypes` type parameter is used to track the types used in the contract making sure their schemas are included in the blueprint and that they are referenced in a type-safe way.
 > 
-> The blueprint will contain JSON schema definitions for all the types used in the contract, including the types **nested** within the top-level types ([MyParams], [MyDatum], [MyRedeemer]):
-> 
-> - `Integer` - nested within [MyDatum] and [MyParams].
-> - `Bool` - nested within [MyParams].
-> 
-> This way, the [referencedTypes] type variable is inferred to be the following list:
-> 
-> ``` haskell
-> '[ MyParams    -- top-level type
->  , MyDatum     -- top-level type
->  , MyRedeemer  -- top-level type 
->  , Integer     -- nested type
->  , Bool        -- nested type
->  ]
-> ```
+> The blueprint will contain JSON schema definitions for all the types used in the contract, including the types **nested** within the top-level types (`MyParams`, `MyDatum`, `MyRedeemer`) recursively.
 
 We can construct a value of this type in the following way:
 
@@ -109,17 +97,25 @@ It can be constructed using the `deriveDefinitions` function which automatically
 
 Since every type in the `referencedTypes` list is going to have its derived JSON-schema in the `contractDefinitions` registry under a certain unique `DefinitionId` key, we need to make sure that it has the following instances:
 
-- An instance of the `GHC.Generics.Generic` type class:
+- `instance HasBlueprintDefinition MyType` allows to add a `MyType` schema definition to the `contractDefinitions` registry by providing a `DefinitionId` value for `MyType`, e.g. `"my-type"`.
 
-<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="generic instances" start="-- BEGIN generic instances" end="-- END generic instances" />
+  The good news is that most of the time these instances either already exist (for types defined in the Plutus libraries) or can be derived automatically:
 
-- An instance of the `HasBlueprintDefinition` type class. Most of the time it could be derived generically with the `anyclass` strategy; for example:
+  <LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="Generically-derived HasBlueprintDefinition instances" start="-- BEGIN derived instances" end="-- END derived instances" />
 
-<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="HasBlueprintDefinition instances" start="-- BEGIN HasBlueprintDefinition instances" end="-- END HasBlueprintDefinition instances" />
+- `instance HasBlueprintSchema MyType` allows to derive a JSON schema for `MyType`.
 
-- An instance of the `HasBlueprintSchema` type class. If your validator exposes standard supported types like `Integer` or `Bool`, you don't need to define this instance. If your validator uses custom types, then you should be deriving it using the `makeIsDataSchemaIndexed` Template Haskell function, which derives it alongside with the corresponding [ToBuiltinData]/[FromBuiltinData] instances; for example:
+  Types that are covered by a blueprint are exposed via the validator arguments and therefore must be convertible to/from `Data` representation. The conversion is done using instances of `ToData`, `FromData` and optionally `UnsafeFromData`. 
+  
+  You probably already have these instances derived with Template Haskell functions `makeIsDataIndexed` or `unstableMakeIsData` which are located in the `PlutusTx.IsData.TH` module. You can add derivation of the 
+  `HasBlueprintSchema` instance very easily: 
+    - Replace usages of `PlutusTx.IsData.TH.makeIsDataIndexed` with `PlutusTx.Blueprint.TH.makeIsDataSchemaIndexed`.
+    - Replace usages of `PlutusTx.IsData.TH.unstableMakeIsData` with `PlutusTx.Blueprint.TH.unstableMakeIsDataSchema`.
+   
+  (This way `HasBlueprintSchema` instance is guaranteed to correspond to the `ToData` and `FromData` instances which are derived with it.)
 
-<LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="makeIsDataSchemaIndexed" start="-- BEGIN makeIsDataSchemaIndexed" end="-- END makeIsDataSchemaIndexed" />
+  Here is an example:
+  <LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="TH-derived HasBlueprintSchema instances" start="-- BEGIN makeIsDataSchemaIndexed" end="-- END makeIsDataSchemaIndexed" />
 
 ## Defining a validator blueprint
 
@@ -129,19 +125,20 @@ Our contract can contain one or more validators. For each one we need to provide
 
 > ``` haskell
 > data ValidatorBlueprint (referencedTypes :: [Type]) = MkValidatorBlueprint
->   { validatorTitle        :: Text
+>   { validatorTitle       :: Text
 >   -- ^ A short and descriptive name for the validator.
->   , validatorDescription  :: Maybe Text
+>   , validatorDescription :: Maybe Text
 >   -- ^ An informative description of the validator.
->   , validatorRedeemer     :: ArgumentBlueprint referencedTypes
+>   , validatorRedeemer    :: ArgumentBlueprint referencedTypes
 >   -- ^ A description of the redeemer format expected by this validator.
->   , validatorDatum        :: Maybe (ArgumentBlueprint referencedTypes)
+>   , validatorDatum       :: Maybe (ArgumentBlueprint referencedTypes)
 >   -- ^ A description of the datum format expected by this validator.
->   , validatorParameters   :: Maybe (NonEmpty (ParameterBlueprint referencedTypes))
+>   , validatorParameters  :: [ParameterBlueprint referencedTypes]
 >   -- ^ A list of parameters required by the script.
->   , validatorCompiledCode :: Maybe ByteString
->   -- ^ A full compiled and CBOR-encoded serialized flat script.
+>   , validatorCompiled    :: Maybe CompiledValidator
+>   -- ^ A full compiled and CBOR-encoded serialized flat script together with its hash.
 >   }
+>   deriving stock (Show, Eq, Ord)
 > ```
 
 In our example, this would be:
@@ -150,6 +147,17 @@ In our example, this would be:
 
 The `definitionRef` function is used to reference a schema definition of a given type. 
 It is smart enough to discover the schema definition from the `referencedType` list and fails to compile if the referenced type is not included.
+
+If you want to provide validator code with its hash, you can use the `compiledValidator` function:
+
+``` haskell
+compiledValidator
+  :: PlutusVersion
+  -- ^ Plutus version (e.g. `PlutusV3`) to calculate the hash of the validator code.
+  -> ByteString
+  -- ^ The compiled validator code.
+  -> CompiledValidator
+```
 
 ## Writing the blueprint to a file
 
@@ -263,9 +271,7 @@ myValidator =
 
 ## Resulting full blueprint example
 
-Here is the full [CIP-0057](https://cips.cardano.org/cip/CIP-0057) blueprint produced by this example:
-
-<LiteralInclude file="plutus.json" language="json" title="Complete JSON Example" />
+Here is the full [CIP-0057](https://cips.cardano.org/cip/CIP-0057) blueprint produced by this example: [plutus.json](/plutus.json)
 
 > :pushpin: **NOTE** 
 > 

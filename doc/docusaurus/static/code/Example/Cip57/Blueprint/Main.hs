@@ -1,4 +1,3 @@
--- BLOCK1
 -- BEGIN pragmas
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
@@ -35,7 +34,6 @@
 
 module Main where
 
--- BLOCK2
 -- BEGIN imports
 import PlutusTx.Blueprint
 
@@ -54,14 +52,12 @@ import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 import Paths_docusaurus_examples (getDataFileName)
 import Prelude (FilePath, IO)
 
--- BLOCK3
 -- BEGIN MyParams annotations
 
 {-# ANN MkMyParams (SchemaTitle "Title for the MyParams definition") #-}
 {-# ANN MkMyParams (SchemaDescription "Description for the MyParams definition") #-}
 
 -- END MyParams annotations
--- BLOCK4
 -- BEGIN MyRedeemer annotations
 
 {-# ANN R0 (SchemaComment "Redeemer 0") #-}
@@ -69,7 +65,6 @@ import Prelude (FilePath, IO)
 {-# ANN R2 (SchemaComment "Redeemer 2") #-}
 
 -- END MyRedeemer annotations
--- BLOCK5
 -- BEGIN interface types
 
 type MyDatum = Integer
@@ -105,28 +100,21 @@ data MyParams = MkMyParams
   }
 
 -- END interface types
--- BLOCK6
--- BEGIN makeIsDataSchemaIndexed MyParams
+-- BEGIN makeIsDataSchemaIndexed
 
 $(makeIsDataSchemaIndexed ''MyParams [('MkMyParams, 0)])
 $(makeIsDataSchemaIndexed ''MyRedeemer [('R0, 0), ('R1, 1), ('R2, 2)])
 
--- END makeIsDataSchemaIndexed MyParams
--- BLOCK7
--- BEGIN generic instances
+-- END makeIsDataSchemaIndexed
+-- BEGIN derived instances
 
 deriving stock instance Generic MyParams
-deriving stock instance Generic MyRedeemer
-
--- END generic instances
--- BLOCK8
--- BEGIN HasBlueprintDefinition instances
-
 deriving anyclass instance HasBlueprintDefinition MyParams
+
+deriving stock instance Generic MyRedeemer
 deriving anyclass instance HasBlueprintDefinition MyRedeemer
 
--- END HasBlueprintDefinition instances
--- BLOCK9
+-- END derived instances
 -- BEGIN validator
 
 typedValidator :: MyParams -> MyDatum -> MyRedeemer -> Bool
@@ -151,7 +139,6 @@ untypedValidator params scriptContext =
       _ -> False
 
 -- END validator
--- BLOCK10
 -- BEGIN contract blueprint declaration
 
 myContractBlueprint :: ContractBlueprint
@@ -164,7 +151,6 @@ myContractBlueprint =
     }
 
 -- END contract blueprint declaration
--- BLOCK11
 -- BEGIN preamble declaration
 
 myPreamble :: Preamble
@@ -178,7 +164,6 @@ myPreamble =
     }
 
 -- END preamble declaration
--- BLOCK12
 -- BEGIN validator blueprint declaration
 
 myValidator =
@@ -208,11 +193,10 @@ myValidator =
             , argumentPurpose = Set.singleton Spend
             , argumentSchema = definitionRef @MyDatum
             }
-    , validatorCompiledCode = Nothing -- you can optionally provide the compiled code here
+    , validatorCompiled = Nothing -- you can optionally provide the compiled code here
     }
 
 -- END validator blueprint declaration
--- BLOCK13
 -- BEGIN write blueprint to file
 
 -- >>> writeBlueprintToFile "plutus.json"
