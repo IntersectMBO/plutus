@@ -1,12 +1,12 @@
-[ entering f-144
-, entering addInteger-138
-, exiting addInteger-138
-, exiting f-144
-, entering f-144
-, entering addInteger-138
-, exiting addInteger-138
-, exiting f-144
-, entering addInteger-138
-, exiting addInteger-138
-, entering multiplyInteger-146
-, exiting multiplyInteger-146 ]
+[ entering f
+, entering addInteger
+, exiting addInteger
+, exiting f
+, entering f
+, entering addInteger
+, exiting addInteger
+, exiting f
+, entering addInteger
+, exiting addInteger
+, entering multiplyInteger
+, exiting multiplyInteger ]
