@@ -40,7 +40,7 @@ Writing a Plutus Tx validator script for a smart contract often involves the fol
 
 ### 1. Contract parameters
 
-These are fixed properties of the contract.
+These are fixed properties of the contract. You can put here values that will never change during the contract's life cycle.
 In our example, it is the `AuctionParams` type, containing properties like seller and minimum bid.
 
 ### 2. Datum
