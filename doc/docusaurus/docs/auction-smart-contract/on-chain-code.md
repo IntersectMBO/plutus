@@ -141,7 +141,7 @@ Finally, we need to compile the validator written in Plutus Tx into Plutus Core,
 
 <LiteralInclude file="AuctionValidator.hs" language="haskell" title="Compiling the validator" start="-- BLOCK8" end="-- BLOCK9" />
 
-The type of a compiled Plutus V2 spending validator should be is `CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit)`, as explained in [Plutus Ledger Language Version](../working-with-scripts/ledger-language-version.md).
+The type of a compiled Plutus V2 spending validator should be `CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit)`, as explained in [Plutus Ledger Language Version](../working-with-scripts/ledger-language-version.md).
 The call to `PlutusTx.unsafeFromBuiltinData` is the reason we need the `PlutusTx.unstableMakeIsData` shown before, which derives `UnsafeFromData` instances.
 And instead of returning a `Bool`, it simply returns `()`, and the validation succeeds if the script evaluates without error.
 
