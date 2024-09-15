@@ -66,7 +66,7 @@ PlutusTx.makeIsDataSchemaIndexed ''AuctionParams [('AuctionParams, 0)]
 
 data Bid = Bid
   { bAddr   :: PlutusTx.BuiltinByteString
-  -- ^ Bodder's wallet address
+  -- ^ Bidder's wallet address
   , bPkh    :: PubKeyHash
   -- ^ Bidder's public key hash.
   , bAmount :: Lovelace
