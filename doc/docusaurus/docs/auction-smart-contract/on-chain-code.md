@@ -46,7 +46,7 @@ In our example, it is the `AuctionParams` type, containing properties like selle
 ### 2. Datum
 
 This is part of a script UTXO.
-It should be thought of as the state of the contract.
+It's commonly used to hold the state of the contract and values that can change throughout the contract's life cycle.
 Our example requires only one piece of state: the current highest bid.
 We use the `AuctionDatum` type to represent this.
 
