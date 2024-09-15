@@ -5,11 +5,14 @@ sidebar_position: 5
 # Generating Keys and Addresses
 
 To start, clone the plutus-tx-template repository into the `on-chain` directory.
-Then, create a separate `off-chain` directory.
+Then, create a separate `off-chain` directory, set up `package.json` and add the required dependencies:
 
 ```
 git clone git@github.com:IntersectMBO/plutus-tx-template.git on-chain
-mkdir off-chain
+mkdir off-chain && cd $_
+yarn init -y
+yarn add @meshsdk/core
+yarn add cbor
 ```
 
 We recommend using the Nix shell that comes with `plutus-tx-template` to run this example.
