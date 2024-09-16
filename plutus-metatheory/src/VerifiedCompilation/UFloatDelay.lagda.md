@@ -61,11 +61,15 @@ data FlD {X : Set} {{de : DecEq X}} : (X ⊢) → (X ⊢) → Set₁ where
           → Translation FlD (subs-delay nothing x) x'
           → Translation FlD y y'
           → FlD (ƛ x · (delay y)) (ƛ x' · y')
+
+FloatDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+FloatDelay = Translation FlD
+
 ```
 ## Decision Procedure
 ```
 
-isFloatDelay? : {X : Set} {{de : DecEq X}} → Binary.Decidable (Translation FlD {X})
+isFloatDelay? : {X : Set} {{de : DecEq X}} → Binary.Decidable (FloatDelay {X})
 
 {-# TERMINATING #-}
 isFlD? : {X : Set} {{de : DecEq X}} → Binary.Decidable (FlD {X})
