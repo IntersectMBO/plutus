@@ -11,7 +11,7 @@ Each transaction that places a bid must do the following:
 - Spend the UTxO that contains the token being auctioned.
   For bidder1, the transaction that produced the UTxO is the one that minted the token.
   For bidder2, the transaction that produced the UTxO is bidder1's transaction.
-  The address of this UTxO is always the auction validator's script address, so each bidding transaction must include the auction validator and a redeemr[^1].
+  The address of this UTxO is always the auction validator's script address, so each bidding transaction must include the auction validator and a redeemer[^1].
 - Place a bid (via the redeemer) with an amount at least as high as the auction's minimum bid, and higher than the previous highest bid (if any).
   The existence and the details of a previous highest bid can be determined by inspecting the datum attached to the aforementioned UTxO.
   This is enforced by the auction validator's `sufficientBid` condition.
