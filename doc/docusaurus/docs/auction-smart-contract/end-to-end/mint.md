@@ -5,7 +5,7 @@ sidebar_position: 15
 # Minting the Token to be Auctioned
 
 Before we can start the auction, we need to mint a token to be auctioned.
-On Cardano, each token has a currency symbol and a token name.
+To do so, we first must determine the token's currency symbol and name.
 To mint or burn tokens with a specific currency symbol (`currencySymbol`), a Plutus script whose hash matches `currencySymbol` must be provided, and is used to validate the minting or burning action.
 Therefore, we'll first write the on-chain script, then compute its hash and use it as the currency symbol.
 
