@@ -18,7 +18,7 @@ const wallet = new MeshWallet({
   submitter: blockchainProvider,
   key: {
     type: 'root',
-    bech32: fs.readFileSync('seller.skey').toString()
+    bech32: fs.readFileSync('seller.skey').toString().trim()
   }
 })
 
