@@ -1,5 +1,5 @@
 ---
-sidebar_position: 25
+sidebar_position: 3
 ---
 
 # Producing a Plutus contract blueprint
@@ -14,7 +14,7 @@ writeBlueprint
   -- ^ The file path where the blueprint will be written to,
   --  e.g. '/tmp/plutus.json'
   -> ContractBlueprint
-  -- ^ Contains all the necessary information to generate 
+  -- ^ Contains all the necessary information to generate
   -- a blueprint for a Plutus contract.
   -> IO ()
 ```
@@ -55,10 +55,10 @@ data ContractBlueprint where
     -> ContractBlueprint
 ```
 
-> :pushpin: **NOTE** 
-> 
+> :pushpin: **NOTE**
+>
 > The `referencedTypes` type parameter is used to track the types used in the contract making sure their schemas are included in the blueprint and that they are referenced in a type-safe way.
-> 
+>
 > The blueprint will contain JSON schema definitions for all the types used in the contract, including the types **nested** within the top-level types (`MyParams`, `MyDatum`, `MyRedeemer`) recursively.
 
 We can construct a value of this type in the following way:
@@ -92,7 +92,7 @@ Here is an example construction:
 
 <LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="preamble declaration" start="-- BEGIN preamble declaration" end="-- END preamble declaration" />
 
-The `contractDefinitions` field is a registry of schema definitions used across the blueprint. 
+The `contractDefinitions` field is a registry of schema definitions used across the blueprint.
 It can be constructed using the `deriveDefinitions` function which automatically constructs schema definitions for all the types it is applied to including the types nested within them.
 
 Since every type in the `referencedTypes` list is going to have its derived JSON-schema in the `contractDefinitions` registry under a certain unique `DefinitionId` key, we need to make sure that it has the following instances:
@@ -105,13 +105,13 @@ Since every type in the `referencedTypes` list is going to have its derived JSON
 
 - `instance HasBlueprintSchema MyType` allows to derive a JSON schema for `MyType`.
 
-  Types that are covered by a blueprint are exposed via the validator arguments and therefore must be convertible to/from `Data` representation. The conversion is done using instances of `ToData`, `FromData` and optionally `UnsafeFromData`. 
-  
-  You probably already have these instances derived with Template Haskell functions `makeIsDataIndexed` or `unstableMakeIsData` which are located in the `PlutusTx.IsData.TH` module. You can add derivation of the 
-  `HasBlueprintSchema` instance very easily: 
+  Types that are covered by a blueprint are exposed via the validator arguments and therefore must be convertible to/from `Data` representation. The conversion is done using instances of `ToData`, `FromData` and optionally `UnsafeFromData`.
+
+  You probably already have these instances derived with Template Haskell functions `makeIsDataIndexed` or `unstableMakeIsData` which are located in the `PlutusTx.IsData.TH` module. You can add derivation of the
+  `HasBlueprintSchema` instance very easily:
     - Replace usages of `PlutusTx.IsData.TH.makeIsDataIndexed` with `PlutusTx.Blueprint.TH.makeIsDataSchemaIndexed`.
     - Replace usages of `PlutusTx.IsData.TH.unstableMakeIsData` with `PlutusTx.Blueprint.TH.unstableMakeIsDataSchema`.
-   
+
   (This way `HasBlueprintSchema` instance is guaranteed to correspond to the `ToData` and `FromData` instances which are derived with it.)
 
   Here is an example:
@@ -145,7 +145,7 @@ In our example, this would be:
 
 <LiteralInclude file="Example/Cip57/Blueprint/Main.hs" language="haskell" title="validator blueprint declaration" start="-- BEGIN validator blueprint declaration" end="-- END validator blueprint declaration" />
 
-The `definitionRef` function is used to reference a schema definition of a given type. 
+The `definitionRef` function is used to reference a schema definition of a given type.
 It is smart enough to discover the schema definition from the `referencedType` list and fails to compile if the referenced type is not included.
 
 If you want to provide validator code with its hash, you can use the `compiledValidator` function:
@@ -273,7 +273,7 @@ myValidator =
 
 Here is the full [CIP-0057](https://cips.cardano.org/cip/CIP-0057) blueprint produced by this example: [plutus.json](/plutus.json)
 
-> :pushpin: **NOTE** 
-> 
+> :pushpin: **NOTE**
+>
 > You can find a more elaborate example of a contract blueprint in the `Blueprint.Tests` module of the Plutus repository.
 
