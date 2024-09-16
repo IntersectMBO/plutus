@@ -50,7 +50,7 @@ This should produce a blueprint file named `off-chain/plutus-auction-minting-pol
 One final step before minting the token: since we want to lock the minted token at the script address corresponding to the auction validator,
 we must supply the parameters (i.e., `AuctionParams`) to the auction validator, compile the auction validator, and calculate its script address.
 
-Open `AuctionValidator.hs` in the `on-chain` directory, and replace all placeholders:
+Open `GenAuctionValidatorBlueprint.hs` in the `on-chain` directory, and replace all placeholders:
 - Replace `error "Replace with sellerh pkh"` with the content of `off-chain/seller.pkh`.
 - Replace `error "Replace with currency symbol"` with the minting policy hash, which you can find in the `hash` field in `off-chain/plutus-auction-minting-policy.json`.
 - Replace `error "Replace with the auction's end time"` with a POSIX timestamp for a time in the near future (say 24 hours from now).
