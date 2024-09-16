@@ -4,7 +4,6 @@ import {
   MeshWallet,
   Transaction,
   serializePlutusScript,
-  resolveScriptHash
 } from '@meshsdk/core'
 
 import fs from 'node:fs'
