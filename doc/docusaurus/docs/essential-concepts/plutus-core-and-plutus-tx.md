@@ -27,7 +27,7 @@ TPLC is closely related to UPLC, and compiling TPLC into UPLC is simply a matter
 
 Plutus IR (PIR) is a high-level IR also used by the Plutus Tx compiler.
 It extends TPLC by adding recursive bindings and recursive data types.
-The fact that recursion is explicitly in PIR, rather than encoded using fixed point operators as in TPLC and UPLC, makes PIR significantly more readable than TPLC and UPLC.
+The fact that recursion is explicit in PIR, rather than encoded using fixed point operators as in TPLC and UPLC, makes PIR significantly more readable than TPLC and UPLC.
 When optimizing the cost or size of Plutus scripts written in Plutus Tx, it is usually useful to look into PIR.
 
 ## Plutus Tx
