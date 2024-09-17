@@ -1,6 +1,6 @@
-[ entering runIdentity-136
-, exiting runIdentity-136
-, entering newtypeFunction-144
-, exiting newtypeFunction-144
-, entering `$fFoldableIdentity`-138
-, exiting `$fFoldableIdentity`-138 ]
+[ entering runIdentity
+, exiting runIdentity
+, entering newtypeFunction
+, exiting newtypeFunction
+, entering `$fFoldableIdentity`
+, exiting `$fFoldableIdentity` ]
