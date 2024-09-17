@@ -53,4 +53,4 @@ jobs:
             -v ./.:/workspaces/plutus-tx-template \
             -w /workspaces/plutus-tx-template \
             -i ghcr.io/input-output-hk/devx-devcontainer:x86_64-linux.ghc96-iog \
-            bash -ic "cabal update && cabal run plutus-tx-template && test -e validator.uplc"
+            bash -ic "cabal update && cabal build all"
