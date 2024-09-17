@@ -5,7 +5,7 @@ sidebar_position: 5
 # Generating Keys and Addresses
 
 To start, clone the plutus-tx-template repository into the `on-chain` directory.
-Then, create a separate `off-chain` directory, set up `package.json` and add the required dependencies:
+Make sure to have [NodeJS](https://nodejs.org/en) and [yarn](https://yarnpkg.com/) (or [npm](https://github.com/npm/cli), which comes bundled with NodeJS) installed. Then, create a separate `off-chain` directory, set up `package.json`, and add the required dependencies:
 
 ```
 git clone git@github.com:IntersectMBO/plutus-tx-template.git on-chain
