@@ -21,7 +21,6 @@ import PlutusTx.Builtins.Internal
 import Data.Kind qualified as GHC
 import Data.String (IsString (..))
 import Data.Text qualified as Text
-import GHC.Magic qualified as Magic
 import Prelude qualified as Haskell (String)
 #if MIN_VERSION_base(4,20,0)
 import Prelude (type (~))
@@ -49,26 +48,18 @@ of 'stringToBuiltinString' (since the newtype constructor vanishes), so we have 
 some obfuscation to the body to prevent it inlining.
 -}
 
-obfuscatedId :: a -> a
-obfuscatedId a = a
-{-# NOINLINE obfuscatedId #-}
-
 stringToBuiltinByteString :: Haskell.String -> BuiltinByteString
 stringToBuiltinByteString str = encodeUtf8 $ stringToBuiltinString str
-{-# INLINABLE stringToBuiltinByteString #-}
+{-# NOINLINE stringToBuiltinByteString #-}
 
 stringToBuiltinString :: Haskell.String -> BuiltinString
--- To explain why the obfuscatedId is here
--- See Note [noinline hack]
-stringToBuiltinString str = obfuscatedId (BuiltinString $ Text.pack str)
-{-# INLINABLE stringToBuiltinString #-}
+stringToBuiltinString str = BuiltinString (Text.pack str)
+{-# NOINLINE stringToBuiltinString #-}
 
-{- Same noinline hack as with `String` type. -}
 instance IsString BuiltinByteString where
     -- Try and make sure the dictionary selector goes away, it's simpler to match on
     -- the application of 'stringToBuiltinByteString'
-    -- See Note [noinline hack]
-    fromString = Magic.noinline stringToBuiltinByteString
+    fromString = stringToBuiltinByteString
     {-# INLINE fromString #-}
 
 -- We can't put this in `Builtins.hs`, since that force `O0` deliberately, which prevents
@@ -76,8 +67,7 @@ instance IsString BuiltinByteString where
 instance IsString BuiltinString where
     -- Try and make sure the dictionary selector goes away, it's simpler to match on
     -- the application of 'stringToBuiltinString'
-    -- See Note [noinline hack]
-    fromString = Magic.noinline stringToBuiltinString
+    fromString = stringToBuiltinString
     {-# INLINE fromString #-}
 
 {- Note [Built-in types and their Haskell counterparts]
