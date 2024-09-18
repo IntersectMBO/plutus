@@ -362,6 +362,10 @@ instance,
 \item The CPU cost of calling the \texttt{bData} function on a bytestring will
   be a constant $11183$ \texttt{ExCPU} units and $32$ \texttt{ExMemory} units,
   irrespective of the size of the input.
+\item The CPU cost of the Plutus Core evaluator's basic \texttt{apply} operation
+  (and all of the other basic operations (machine steps)) is a constant 16000
+  \texttt{ExCPU} units and the memory cost is a constant 100 \texttt{ExMemory}
+  units.
 \item For string arguments $X$ of size $x$ and $Y$ of size $y$, the CPU cost of
   calling the \texttt{equalsString} function to check if $X$ and $Y$ are equal
   will be $1000 + 60594x$ \texttt{ExCPU} units if $x=y$ and 39184 \texttt{ExCPU}
@@ -389,6 +393,13 @@ instance,
                    "appendString-memory-arguments-slope": 1,
                    "bData-cpu-arguments": 11183,
                    "bData-memory-arguments": 32,
+                   ...
+                   "cekApplyCost-exBudgetCPU": 16000,
+                   "cekApplyCost-exBudgetMemory": 100,
+                   "cekBuiltinCost-exBudgetCPU": 16000,
+                   "cekBuiltinCost-exBudgetMemory": 100,
+                   "cekCaseCost-exBudgetCPU": 16000,
+                   "cekCaseCost-exBudgetMemory": 100,
                    ...
                    "equalsString-cpu-arguments-constant": 39184,
                    "equalsString-cpu-arguments-intercept": 1000,
