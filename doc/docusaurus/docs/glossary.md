@@ -113,7 +113,7 @@ See [Plutus Core and Plutus Tx](./essential-concepts/plutus-core-and-plutus-tx.m
 
 The formalization of typed and untyped Plutus Core.
 In the future we may add Plutus IR to the formalization.
-It is "meta" in the sense that it seeks to answer the questions of whether the language and its semantics are correct, rather than whether a particular program is correct.
+It is "meta" in the sense that it is a framework for reasoning about the Plutus Core languages themselves.
 
 ### Plutus Script/Validator
 
