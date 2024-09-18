@@ -21,7 +21,7 @@ A UPLC program included in a Cardano transaction is often referred to as a Plutu
 ### Typed Plutus Core and Plutus IR
 
 Typed Plutus Core (TPLC) is the intrinsically typed counterpart of UPLC.
-It is based on higher-order polymorphic lambda calculus (System Fω).
+It is based on higher-order polymorphic lambda calculus with isorecursive types (System Fωμ).
 TPLC serves as a low-level intermediate representation (IR) for the Plutus Tx compiler.
 TPLC is closely related to UPLC, and compiling TPLC into UPLC is simply a matter of erasing types.
 
@@ -41,7 +41,5 @@ See [Overview of Languages Compiling to UPLC](../delve-deeper/languages.md) for 
 ## Further reading
 
 The formal details of Plutus Core are in its [specification](https://github.com/IntersectMBO/plutus#specifications-and-design).
-
-The design is discussed in our [technical report](https://plutus.cardano.intersectmbo.org/resources/plutus-report.pdf).
 
 PIR is discussed in [_Unraveling recursion: compiling an IR with recursion to System F_](https://iohk.io/en/research/library/papers/unraveling-recursion-compiling-an-ir-with-recursion-to-system-f/).
