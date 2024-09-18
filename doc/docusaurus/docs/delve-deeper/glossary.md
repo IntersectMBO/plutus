@@ -41,11 +41,11 @@ A script which must be satisfied in order for a transaction to mint tokens of th
 
 ### Hydra
 
-A Layer 2 scalability solution for Cardano. 
+A Layer 2 scalability solution for Cardano.
 
-For a detailed technical report, please see: 
+For a detailed technical report, please see:
 
-> Manuel M. T. Chakravarty, Sandro Coretti, Matthias Fitzi, Peter Gazi, Philipp Kant, Aggelos Kiayias, and Alexander Russell. [Hydra: Fast Isomorphic State Channels. Technical Report, Cryptology ePrint Archive, Report 2020/299, 2020](https://eprint.iacr.org/2020/299). 
+> Manuel M. T. Chakravarty, Sandro Coretti, Matthias Fitzi, Peter Gazi, Philipp Kant, Aggelos Kiayias, and Alexander Russell. [Hydra: Fast Isomorphic State Channels. Technical Report, Cryptology ePrint Archive, Report 2020/299, 2020](https://eprint.iacr.org/2020/299).
 
 ### distributed ledger
 
@@ -55,9 +55,9 @@ For a detailed technical report, please see:
 
 ### Marlowe
 
-A domain-specific language for writing financial contract applications. 
+A domain-specific language for writing financial contract applications.
 
-> See [Marlowe documentation](https://docs.marlowe.iohk.io/docs/introduction). 
+> See [Marlowe documentation](https://docs.marlowe.iohk.io/docs/introduction).
 
 ### multi-asset
 
@@ -73,14 +73,14 @@ The part of a contract application’s code which runs on the chain (i.e. as scr
 
 ### Plutus Core
 
-Plutus Core is our "assembly language." 
-It is a low-level language based on higher-order polymorphic lambda calculus, a well-studied formalism for computing. 
+Plutus Core is our "assembly language."
+It is a low-level language based on higher-order polymorphic lambda calculus, a well-studied formalism for computing.
 Using the lambda calculus makes it an easy compilation target for functional programming languages, and allows us to have a simple, formally verified evaluator.
 
-Plutus Core is the code that runs on-chain, i.e., by every node validating the transaction, using an interpreter known as the CEK machine. 
+Plutus Core is the code that runs on-chain, i.e., by every node validating the transaction, using an interpreter known as the CEK machine.
 A Plutus Core program included in a Cardano transaction is often referred to as Plutus script or Plutus validator.
 
-Plutus Core is designed for simplicity, determinism, and to allow careful cost control of program execution. 
+Plutus Core is designed for simplicity, determinism, and to allow careful cost control of program execution.
 
 ### Plutus IR
 
@@ -96,14 +96,14 @@ The combined software support for writing contract applications, including:
 
    2. Plutus application framework
 
-   Please see: 
-   
+   Please see:
+
    - [Plutus platform](../essential-concepts/plutus-platform.mdx)
-   - [Plutus foundation](../essential-concepts/plutus-foundation.md)
+   - [Plutus Core and Plutus Tx](../essential-concepts/plutus-core-and-plutus-tx.md)
 
 ### Plutus Tx
 
-Plutus Tx is a high-level language for writing the validation logic of a smart contract, the logic that determines whether a transaction is allowed to spend a UTXO. Plutus Tx is not a new language, but rather a subset of Haskell, and it is compiled into Plutus Core, a low-level language based on higher-order polymorphic lambda calculus. Plutus Core is the code that runs on-chain, i.e., by every node validating the transaction, using an interpreter known as the CEK machine. 
+Plutus Tx is a high-level language for writing the validation logic of a smart contract, the logic that determines whether a transaction is allowed to spend a UTXO. Plutus Tx is not a new language, but rather a subset of Haskell, and it is compiled into Plutus Core, a low-level language based on higher-order polymorphic lambda calculus. Plutus Core is the code that runs on-chain, i.e., by every node validating the transaction, using an interpreter known as the CEK machine.
 
 Plutus Tx is also the libraries and compiler for compiling Haskell into Plutus Core to form the on-chain part of a contract application.
 
