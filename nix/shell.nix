@@ -52,6 +52,7 @@ in
     # Needed to make building things work, not for commands
     pkgs.zlib
     pkgs.cacert
+    pkgs.upx
 
     # Needed for the cabal CLI to download under https
     pkgs.curl
