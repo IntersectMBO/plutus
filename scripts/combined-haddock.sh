@@ -231,27 +231,49 @@ if [[ "$?" != "0" ]]; then
 fi 
 
 
+# Add a <select> element into the prologue for navigating to other haddock versions.
 echo "Injecting additional prologue html"
-ALL_VERSIONS=(
-  "master"
-  "latest"
-  "1.34.0.0"
-  "1.33.0.0"
-  "1.32.0.0"
-  "1.31.0.0"
-  "1.30.0.0"
-  "1.29.0.0"
-  "1.28.0.0"
-  "1.27.0.0"
-  "1.27.0.0"
-)
-VERSION_SELECT=("<select>")
-for version in "${ALL_VERSIONS[@]}"; do
-  VERSION_SELECT+=("<option><pre><a href=\"https://plutus.cardano.intersectmbo.org/haddock/$version/\">$version</a></pre></option>")
-done
-VERSION_SELECT+=("</select>")
-GIT_REV_SHORT=4634cfd35
-OUTPUT_DIR=haddocks
-sed "s|$GIT_REV_SHORT</a></p>|$GIT_REV_SHORT</a></p><p>Goto other version: ${VERSION_SELECT[@]}</p>|g" "$OUTPUT_DIR/index.html"
 
-# s|4634cfd35</a></p>|4634cfd35</a></p><p>Goto other version: <select> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/master/">master</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/latest/">latest</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.34.0.0/">1.34.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.33.0.0/">1.33.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.32.0.0/">1.32.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.31.0.0/">1.31.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.30.0.0/">1.30.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.29.0.0/">1.29.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.28.0.0/">1.28.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.27.0.0/">1.27.0.0</a></pre></option> <option><pre><a href="https://plutus.cardano.intersectmbo.org/haddock/1.27.0.0/">1.27.0.0</a></pre></option> </select></p>|g
+list-valid-plutus-versions() {
+  local versions="$(git tag | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | sort -rV | uniq | tr ' ' '\n')"
+  local min_ver="1.27.0.0"
+  echo master 
+  echo latest
+  for ver in $versions; do
+    if [[ "$(echo -ne "$ver\n$min_ver" | sort -V | head -n 1 | tr -d '\n')" == "$min_ver" ]]; then
+      echo "$ver"  
+    fi
+  done
+}
+
+inject-text-at-char() {
+  local file="$1"
+  local char="$2"
+  local text="$3"
+  cat <<EOF > "$file"
+$(cut -c 1-$char "$file")
+$(echo -n "$text")
+$(cut -c $((char+1))- "$file")
+EOF
+}
+
+build-version-select-html() {
+  html+='<p>Select another plutus version: '
+  html+='<select name="page" onchange="window.location.href = this.value;">'
+  for version in $(list-valid-plutus-versions); do
+    if [[ "$version" == "$PLUTUS_VERSION" ]]; then
+      html+='<option selected'
+    else 
+      html+='<option'
+    fi 
+    html+=" value=\"https://plutus.cardano.intersectmbo.org/haddock/$version/\">$version</option>"
+  done
+  html+="</select></p>"
+  echo "$html"
+}
+
+inject-text-at-char "$OUTPUT_DIR/index.html" 1465 "$(build-version-select-html)"
+
+
+
+
