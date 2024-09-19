@@ -128,7 +128,6 @@ library
     , deriving-compat
     , extra
     , flat                                  ^>=0.6
-    , ghc-prim
     , hashable
     , lens
     , memory
