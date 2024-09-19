@@ -2,7 +2,6 @@
 {-# LANGUAGE DefaultSignatures        #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE FunctionalDependencies   #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
@@ -27,7 +26,7 @@ import Prelude (type (~))
 #endif
 
 
-{- Note [noinline hack]
+{- Note [GHC.Magic.noinline]
 For some functions we have two conflicting desires:
 - We want to have the unfolding available for the plugin.
 - We don't want the function to *actually* get inlined before the plugin runs, since we rely
@@ -41,20 +40,15 @@ that function is compiled later into the body of another function.
 
 We do therefore need to handle 'noinline' in the plugin, as it itself does not have
 an unfolding.
-
-Another annoying quirk: even if you have 'noinline'd a function call, if the body is
-a single variable, it will still inline! This is the case for the obvious definition
-of 'stringToBuiltinString' (since the newtype constructor vanishes), so we have to add
-some obfuscation to the body to prevent it inlining.
 -}
 
 stringToBuiltinByteString :: Haskell.String -> BuiltinByteString
 stringToBuiltinByteString str = encodeUtf8 $ stringToBuiltinString str
-{-# NOINLINE stringToBuiltinByteString #-}
+{-# OPAQUE stringToBuiltinByteString #-}
 
 stringToBuiltinString :: Haskell.String -> BuiltinString
 stringToBuiltinString str = BuiltinString (Text.pack str)
-{-# NOINLINE stringToBuiltinString #-}
+{-# OPAQUE stringToBuiltinString #-}
 
 instance IsString BuiltinByteString where
     -- Try and make sure the dictionary selector goes away, it's simpler to match on
