@@ -60,7 +60,7 @@ UTXO-based ledgers typically start out with a very simple model of "ownership" o
 An output will have a public key (strictly, the hash of a public key) attached to it, and in order to spend this output, the spending transaction must be signed by the corresponding private key.
 We call this a "pay-to-pubkey" output.
 
-Cardano uses an extended model called the [Extended UTXO Model](../glossary.md#extended-utxo-model) (EUTXO).
+Cardano uses an extended model called the [Extended UTXO Model](../glossary.md#extended-utxo-model-eutxo) (EUTXO).
 In the EUTXO model, an output can be locked by (the hash of) a *script*.
 We call this a "pay-to-script" output.
 A script is a *program* that decides whether or not the transaction which spends the output is
