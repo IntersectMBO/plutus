@@ -112,6 +112,12 @@ _ = force (force (delay (delay (tr reflexive))))
 _ : FD {Maybe ⊥} □ (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
 _ = force (force (app (abs (app (abs (delay (delay (tr reflexive)))) (tr reflexive))) (tr reflexive)))
 
+testPure : {y v : X} → {x : (Maybe (Maybe X))} → pureFD (force (((ƛ (ƛ (delay (` x)))) · (` y)) · (` v)))  (((ƛ (ƛ (` x))) · (` y)) · (` v))
+testPure = (translationfd (Translation.force (Translation.istranslation appfd))) ⨾ ((pushfd (translationfd reflexive) (translationfd reflexive)) ⨾ ((translationfd (Translation.app (Translation.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive)))) reflexive )) ⨾ (translationfd (Translation.app (Translation.ƛ (Translation.app (Translation.ƛ (Translation.istranslation (forcedelay (translationfd reflexive)))) reflexive)) reflexive) ⨾ appfd⁻¹)))
+
+testFD : {y v : X} → {x : (Maybe (Maybe X))} → FD □ (force (((ƛ (ƛ (delay (` x)))) · (` y)) · (` v))) (((ƛ (ƛ (` x))) · (` y)) · (` v))
+testFD = force (app (app (abs (abs (delay (tr reflexive)))) (tr reflexive)) (tr reflexive))
+
 ForceDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
 ForceDelay = Translation (FD □)
 
