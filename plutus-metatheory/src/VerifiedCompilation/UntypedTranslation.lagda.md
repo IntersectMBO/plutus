@@ -12,6 +12,8 @@ import Relation.Unary as Unary using (Decidable)
 import Relation.Binary as Binary using (Decidable)
 open import Relation.Nullary.Product using (_×-dec_)
 open import Data.Product using (_,_)
+open import Data.List using (List; []; _∷_)
+open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import VerifiedCompilation.UntypedViews using (Pred; ListPred)
 open import Utils as U using (Maybe)
@@ -68,12 +70,24 @@ for each pair of term types.
 ```
 open import Data.Product
 
--- Yes, I know, but for now...
-{-# TERMINATING #-}
 translation?
   : {X' : Set} {{ _ : DecEq X'}} {R : Relation}
   → ({ X : Set } {{ _ : DecEq X}} → Binary.Decidable (R {X}))
   → Binary.Decidable (Translation R {X'})
+
+decPointwiseTranslation?
+  : {X' : Set} {{ _ : DecEq X'}} {R : Relation}
+  → ({ X : Set } {{ _ : DecEq X}} → Binary.Decidable (R {X}))
+  → Binary.Decidable (Pointwise (Translation R {X'}))
+decPointwiseTranslation? isR? [] [] = yes Pointwise.[]
+decPointwiseTranslation? isR? [] (x ∷ ys) = no (λ ())
+decPointwiseTranslation? isR? (x ∷ xs) [] = no (λ ())
+decPointwiseTranslation? isR? (x ∷ xs) (y ∷ ys)
+    with translation? isR? x y | decPointwiseTranslation? isR? xs ys
+... | yes p | yes q = yes (p Pointwise.∷ q)
+... | yes _ | no ¬q = no λ where (_ Pointwise.∷ xs~ys) → ¬q xs~ys
+... | no ¬p | _     = no λ where (x∼y Pointwise.∷ _) → ¬p x∼y
+
 translation? {{de}} isR? ast ast' with (isR? ast ast')
 ... | yes p = yes (istranslation p)
 translation? isR? (` x) ast' | no ¬p with (` x) ≟ ast'
@@ -153,7 +167,7 @@ translation? isR? (constr i xs) (ast' · ast'') | no ¬p = no λ { (istranslatio
 translation? isR? (constr i xs) (force ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
 translation? isR? (constr i xs) (delay ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
 translation? isR? (constr i xs) (con x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (constr i xs) (constr i₁ xs₁) | no ¬p with (i ≟ i₁) ×-dec (decPointwise (translation? isR?) xs xs₁)
+translation? isR? (constr i xs) (constr i₁ xs₁) | no ¬p with (i ≟ i₁) ×-dec (decPointwiseTranslation? isR? xs xs₁)
 ... | yes (refl , pxs) = yes (constr pxs)
 ... | no ¬ixs = no λ { (istranslation x) → ¬p x ; (constr x) → ¬ixs (refl , x) }
 translation? isR? (constr i xs) (case ast' ts) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
@@ -167,7 +181,7 @@ translation? isR? (case ast ts) (force ast') | no ¬p = no λ { (istranslation x
 translation? isR? (case ast ts) (delay ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
 translation? isR? (case ast ts) (con x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
 translation? isR? (case ast ts) (constr i xs) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (case ast ts) (case ast' ts₁) | no ¬p with (translation? isR? ast ast') ×-dec (decPointwise (translation? isR?) ts ts₁)
+translation? isR? (case ast ts) (case ast' ts₁) | no ¬p with (translation? isR? ast ast') ×-dec (decPointwiseTranslation? isR? ts ts₁)
 ... | yes ( pa , pts ) = yes (case pts pa)
 ... | no ¬papts = no λ { (istranslation x) → ¬p x ; (case x xxx) → ¬papts (xxx , x) }
 translation? isR? (case ast ts) (builtin b) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
