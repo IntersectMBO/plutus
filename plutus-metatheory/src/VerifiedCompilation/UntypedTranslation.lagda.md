@@ -91,7 +91,7 @@ translation? isR? (ƛ ast) error | no ¬p = no λ { (istranslation x₁) → ¬p
 
 translation? isR? (ast · ast₁) (` x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
 translation? isR? (ast · ast₁) (ƛ ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ast · ast₁) (ast' · ast'') | no ¬p  with (translation? isR? ast ast') ×-dec (translation? isR? ast₁ ast'')
+translation? isR? (ast · ast₁) (ast' · ast₁') | no ¬p  with (translation? isR? ast ast') ×-dec (translation? isR? ast₁ ast₁')
 ... | yes (p , q) = yes (app p q)
 ... | no ¬ppqq = no λ { (istranslation x) → ¬p x ; (app ppp ppp₁) → ¬ppqq (ppp , ppp₁)}
 translation? isR? (ast · ast₁) (force ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
