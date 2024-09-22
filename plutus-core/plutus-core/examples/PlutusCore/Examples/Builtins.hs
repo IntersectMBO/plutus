@@ -137,6 +137,7 @@ data ExtensionFun
     | ExtensionVersion -- Reflect the version of the Extension
     | TrackCosts  -- For checking that each cost is released and can be picked up by GC once it's
                   -- accounted for in the evaluator.
+    | IntNoIntegerNoWord  -- For testing the signature dump test.
     deriving stock (Show, Eq, Ord, Enum, Bounded, Ix, Generic)
     deriving anyclass (Hashable)
 
@@ -231,9 +232,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     type CostingPart uni ExtensionFun = ()
 
     data BuiltinSemanticsVariant ExtensionFun =
-              ExtensionFunSemanticsVariantX
-            | ExtensionFunSemanticsVariantY
-        deriving stock (Enum, Bounded, Show)
+              ExtensionFunSemanticsVariant0
+            | ExtensionFunSemanticsVariant1
+            | ExtensionFunSemanticsVariant2
+            | ExtensionFunSemanticsVariant3
+            | ExtensionFunSemanticsVariant4
+        deriving stock (Eq, Ord, Enum, Bounded, Show)
 
     toBuiltinMeaning :: forall val. HasMeaningIn uni val
                      => BuiltinSemanticsVariant ExtensionFun
@@ -464,8 +468,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         makeBuiltinMeaning
             @(() -> Integer)
             (\_ -> case semvar of
-                ExtensionFunSemanticsVariantX -> 0
-                ExtensionFunSemanticsVariantY -> 1)
+                ExtensionFunSemanticsVariant0 -> 0
+                ExtensionFunSemanticsVariant1 -> 1
+                ExtensionFunSemanticsVariant2 -> 2
+                ExtensionFunSemanticsVariant3 -> 3
+                ExtensionFunSemanticsVariant4 -> 4)
             whatever
 
     -- We want to know if the CEK machine releases individual budgets after accounting for them and
@@ -537,5 +544,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (\_ -> unsafePerformIO $ reverse <$> readMVar numsOfGcedVar)
             (\_ -> unsafePerformIO . regBudgets . runCostingFunOneArgument model)
 
+    toBuiltinMeaning semvar IntNoIntegerNoWord =
+        case semvar of
+            ExtensionFunSemanticsVariant0 -> makeBuiltinMeaning @(Int     -> ()) mempty whatever
+            ExtensionFunSemanticsVariant1 -> makeBuiltinMeaning @(Integer -> ()) mempty whatever
+            ExtensionFunSemanticsVariant2 -> makeBuiltinMeaning @(Integer -> ()) mempty whatever
+            ExtensionFunSemanticsVariant3 -> makeBuiltinMeaning @(Word    -> ()) mempty whatever
+            ExtensionFunSemanticsVariant4 -> makeBuiltinMeaning @(Word    -> ()) mempty whatever
+
 instance Default (BuiltinSemanticsVariant ExtensionFun) where
-    def = ExtensionFunSemanticsVariantY
+    def = maxBound

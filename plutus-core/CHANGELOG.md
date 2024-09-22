@@ -1,4 +1,15 @@
 
+<a id='changelog-1.34.1.0'></a>
+# 1.34.1.0 — 2024-09-14
+
+## Removed
+
+- Removed the `uplc`, `plc` and `pir` executables from this package. They are now in the new `plutus-executables` package.
+
+## Fixed
+
+- A bug in the`findFirstSetBit` builtin has been fixed.
+
 <a id='changelog-1.34.0.0'></a>
 # 1.34.0.0 — 2024-09-09
 

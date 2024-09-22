@@ -1,0 +1,1 @@
+forall f. Opaque Val (TyForallRep * ('TyNameRep * "b" 1) (TyAppRep * * (TyVarRep (* -> *) ('TyNameRep (* -> *) "f" 0)) (TyVarRep * ('TyNameRep * "b" 1)))) -> Opaque Val (TyForallRep * ('TyNameRep * "b" 1) (TyAppRep * * (TyVarRep (* -> *) ('TyNameRep (* -> *) "f" 0)) (TyVarRep * ('TyNameRep * "b" 1))))

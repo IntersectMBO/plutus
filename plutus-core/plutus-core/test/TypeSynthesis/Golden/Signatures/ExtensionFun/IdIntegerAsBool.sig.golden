@@ -1,0 +1,1 @@
+SomeConstant DefaultUni Integer -> BuiltinResult (SomeConstant DefaultUni Integer)

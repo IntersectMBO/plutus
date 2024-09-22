@@ -52,7 +52,7 @@ So a transaction that sends 5 USD from Alice to Bob would do so by spending some
 
 UTXO-based ledgers are more complicated, but avoid some of the issues of account-based ledgers, since any transaction deals only with the inputs that it spends.
 Cardano is a UTXO-based ledger, and we heavily rely on this.
-For example, [Hydra](../delve-deeper/glossary.md#hydra), Cardano's scalability solution, uses the fact that independent parts of the transaction graph can be processed in parallel to improve throughput.
+For example, Hydra, Cardano's scalability solution, uses the fact that independent parts of the transaction graph can be processed in parallel to improve throughput.
 
 ## Scripts and the Extended UTXO Model
 
@@ -60,7 +60,7 @@ UTXO-based ledgers typically start out with a very simple model of "ownership" o
 An output will have a public key (strictly, the hash of a public key) attached to it, and in order to spend this output, the spending transaction must be signed by the corresponding private key.
 We call this a "pay-to-pubkey" output.
 
-Cardano uses an extended model called the [Extended UTXO Model](../delve-deeper/glossary.md#extended-utxo-model) (EUTXO).
+Cardano uses an extended model called the [Extended UTXO Model](../glossary.md#extended-utxo-model-eutxo) (EUTXO).
 In the EUTXO model, an output can be locked by (the hash of) a *script*.
 We call this a "pay-to-script" output.
 A script is a *program* that decides whether or not the transaction which spends the output is

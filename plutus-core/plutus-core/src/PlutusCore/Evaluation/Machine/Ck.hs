@@ -18,8 +18,8 @@ module PlutusCore.Evaluation.Machine.Ck
     , CkM
     , CkValue
     , runCk
-    , extractEvaluationResult
-    , unsafeToEvaluationResult
+    , splitStructuralOperational
+    , unsafeSplitStructuralOperational
     , evaluateCk
     , evaluateCkNoEmit
     , readKnownCk

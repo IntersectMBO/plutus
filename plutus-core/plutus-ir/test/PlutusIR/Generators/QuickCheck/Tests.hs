@@ -7,24 +7,33 @@
 
 module PlutusIR.Generators.QuickCheck.Tests where
 
+import PlutusPrelude
+
 import PlutusCore.Generators.QuickCheck
 import PlutusIR.Generators.QuickCheck
 
+import PlutusCore.Builtin (fromValue)
 import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename
+import PlutusCore.Test (toUPlc)
+import PlutusCore.Version (latestVersion)
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
+import PlutusIR.Test ()
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek (restricting, runCekNoEmit,
+                                                 unsafeSplitStructuralOperational)
 
+import Control.Exception
 import Control.Monad.Reader
-import Data.Bifunctor
 import Data.Char
 import Data.Either
-import Data.Function
 import Data.Hashable
 import Data.HashMap.Strict qualified as HashMap
-import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map.Strict qualified as Map
 import Test.QuickCheck
 
@@ -184,3 +193,27 @@ prop_noTermShrinkLoops = withMaxSuccess 10 $
   forAllDoc "ty,tm" genTypeAndTerm_
     (\(ty', tm') -> filter ((/= tm') . snd) $ shrinkClosedTypedTerm (ty', tm')) $ \(ty, tm) ->
   tm `notElem` map snd (shrinkClosedTypedTerm (ty, tm))
+
+-- | Check that evaluation of the given term doesn't fail with a structural error.
+noStructuralErrors :: UPLC.Term Name DefaultUni DefaultFun () -> IO ()
+noStructuralErrors term =
+  -- Throw on a structural evaluation error and succeed on both an operational evaluation error and
+  -- evaluation success.
+  void . evaluate . unsafeSplitStructuralOperational . fst $ do
+    let -- The numbers are picked so that evaluation of the arbitrarily generated term always
+        -- finishes in reasonable time even if evaluation loops (in which case we'll get an
+        -- out-of-budget failure).
+        budgeting = restricting . ExRestrictingBudget $ ExBudget 1000000000 1000000000
+    runCekNoEmit defaultCekParametersForTesting budgeting term
+
+-- | Test that evaluation of well-typed terms doesn't fail with a structural error.
+prop_noStructuralErrors :: Property
+prop_noStructuralErrors = withMaxSuccess 99 $
+  forAllDoc "ty,tm" genTypeAndTerm_ shrinkClosedTypedTerm $ \(_, termPir) -> ioProperty $ do
+    termUPlc <- fmap UPLC._progTerm . modifyError throw . toUPlc $ Program () latestVersion termPir
+    noStructuralErrors termUPlc
+
+-- | Test that evaluation of an ill-typed terms fails with a structural error.
+prop_yesStructuralErrors :: Property
+prop_yesStructuralErrors = expectFailure . ioProperty $
+    noStructuralErrors $ UPLC.Apply () (fromValue True) (fromValue ())
