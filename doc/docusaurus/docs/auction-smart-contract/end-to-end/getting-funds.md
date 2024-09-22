@@ -9,6 +9,7 @@ We can get funds from Cardano's [testnet faucet](https://docs.cardano.org/cardan
 
 To request funds, enter the seller's address into the address field and click "request funds."
 This will deposit 10,000 (test) ADA into the seller's wallet.
+Make sure you select the correct network (Preview).
 
 Since the faucet limits how frequently you can request funds, and 10,000 ADA is more than sufficient for this example, we'll share the 10,000 ADA among the seller, bidder1, and bidder2.
 To do so, create a file named `off-chain/send-lovelace.mjs` with the following content:

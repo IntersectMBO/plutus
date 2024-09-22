@@ -27,6 +27,7 @@ The first run of `nix develop` may take some time so please be patient.
 
 We'll use [mesh](https://meshjs.dev/), a JavaScript framework, for writing off-chain code.
 We'll use [Blockfrost](https://blockfrost.io/) as the blockchain provider, to avoid the need of running a local node.
+If you don't have a Blockfrost account, you can sign up for one, and create a project for the Preview network.
 
 The first step is to generate keys and addresses for the seller and the bidders.
 Add a new file named `off-chain/generate-keys.mjs`, with the following content:
