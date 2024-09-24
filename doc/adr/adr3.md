@@ -73,7 +73,7 @@ enterComputeCek debug ctx (Closure term env) =
         -> Closure uni fun
         -> CekM uni fun s (CekState uni fun)
     computeCek = if debug then computeCekDebug else computeCekStep
-    {-# NOINLINE computeCek #-}  -- Making sure the `if` is only evaluated once.
+    {-# OPAQUE computeCek #-}  -- Making sure the `if` is only evaluated once.
 
     -- in debugging mode, immediately returns the current `CekState` and halts execution. Debugging mode details to be worked out.
     computeCekDebug
@@ -101,7 +101,7 @@ enterComputeCek debug ctx (Closure term env) =
     -- similarly for the returning step
 
     returnCek = if debug then returnCekDebug else returnCekStep
-    {-# NOINLINE returnCek #-}
+    {-# OPAQUE returnCek #-}
 
     returnCekDebug = ...
 

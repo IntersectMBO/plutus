@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE KindSignatures     #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
 
@@ -11,6 +12,7 @@ import Prelude
 import Data.Aeson (ToJSON (..))
 import Data.Aeson.Extra (buildObject, optionalField, requiredField)
 import Data.ByteString (ByteString)
+import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.Kind (Type)
 import Data.List.NonEmpty qualified as NE
@@ -19,6 +21,7 @@ import Data.Text.Encoding qualified as Text
 import PlutusCore.Crypto.Hash (blake2b_224)
 import PlutusTx.Blueprint.Argument (ArgumentBlueprint)
 import PlutusTx.Blueprint.Parameter (ParameterBlueprint)
+import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (..))
 
 {- | A blueprint of a validator, as defined by the CIP-0057
 
@@ -27,20 +30,39 @@ making sure their schemas are included in the blueprint and that they are refere
 in a type-safe way.
 -}
 data ValidatorBlueprint (referencedTypes :: [Type]) = MkValidatorBlueprint
-  { validatorTitle        :: Text
+  { validatorTitle       :: Text
   -- ^ A short and descriptive name for the validator.
-  , validatorDescription  :: Maybe Text
+  , validatorDescription :: Maybe Text
   -- ^ An informative description of the validator.
-  , validatorRedeemer     :: ArgumentBlueprint referencedTypes
+  , validatorRedeemer    :: ArgumentBlueprint referencedTypes
   -- ^ A description of the redeemer format expected by this validator.
-  , validatorDatum        :: Maybe (ArgumentBlueprint referencedTypes)
+  , validatorDatum       :: Maybe (ArgumentBlueprint referencedTypes)
   -- ^ A description of the datum format expected by this validator.
-  , validatorParameters   :: [ParameterBlueprint referencedTypes]
+  , validatorParameters  :: [ParameterBlueprint referencedTypes]
   -- ^ A list of parameters required by the script.
-  , validatorCompiledCode :: Maybe ByteString
-  -- ^ A full compiled and CBOR-encoded serialized flat script.
+  , validatorCompiled    :: Maybe CompiledValidator
+  -- ^ A full compiled and CBOR-encoded serialized flat script together with its hash.
   }
   deriving stock (Show, Eq, Ord)
+
+data CompiledValidator = MkCompiledValidator
+  { compiledValidatorCode :: ByteString
+  , compiledValidatorHash :: ByteString
+  }
+  deriving stock (Show, Eq, Ord)
+
+compiledValidator :: PlutusVersion -> ByteString -> CompiledValidator
+compiledValidator version code =
+  MkCompiledValidator
+    { compiledValidatorCode = code
+    , compiledValidatorHash =
+        blake2b_224 (BS.singleton (versionTag version) <> code)
+    }
+  where
+    versionTag = \case
+      PlutusV1 -> 0x1
+      PlutusV2 -> 0x2
+      PlutusV3 -> 0x3
 
 instance ToJSON (ValidatorBlueprint referencedTypes) where
   toJSON MkValidatorBlueprint{..} =
@@ -50,8 +72,8 @@ instance ToJSON (ValidatorBlueprint referencedTypes) where
         . optionalField "description" validatorDescription
         . optionalField "datum" validatorDatum
         . optionalField "parameters" (NE.nonEmpty validatorParameters)
-        . optionalField "compiledCode" (toHex <$> validatorCompiledCode)
-        . optionalField "hash" (toHex . blake2b_224 <$> validatorCompiledCode)
-   where
-    toHex :: ByteString -> Text
-    toHex = Text.decodeUtf8 . Base16.encode
+        . optionalField "compiledCode" (toHex . compiledValidatorCode <$> validatorCompiled)
+        . optionalField "hash" (toHex . compiledValidatorHash <$> validatorCompiled)
+    where
+      toHex :: ByteString -> Text
+      toHex = Text.decodeUtf8 . Base16.encode

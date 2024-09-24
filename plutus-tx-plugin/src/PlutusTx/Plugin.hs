@@ -185,7 +185,7 @@ Note also, this `sm_pre_inline` pass doesn't include some of the inlining GHC do
 plugin.
 The GHC desugarer generates a large number of intermediate definitions and general clutter that
 should be removed quickly. So GHC's "simple optimiser" (GHC.Core.SimpleOpt) also inlines things with
-single occurrences. This is why the NOINLINE pragma is needed to avoid inlining of bindings that
+single occurrences. This is why the OPAQUE pragma is needed to avoid inlining of bindings that
 have single occurrence.
 None of -fmax-simplifier-iterations=0  -fforce-recomp -O0 would prevent it,
 nor will turning off `sm_pre_inline`.

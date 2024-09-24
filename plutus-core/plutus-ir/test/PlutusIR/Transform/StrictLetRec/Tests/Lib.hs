@@ -30,7 +30,7 @@ import PlutusIR.Core qualified as PIR
 import PlutusIR.Parser (pTerm)
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (CekValue, EvaluationResult (..), evaluateCek,
-                                                 logEmitter, unsafeToEvaluationResult)
+                                                 logEmitter, unsafeSplitStructuralOperational)
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts)
 
 pirTermFromFile
@@ -83,7 +83,7 @@ evaluateUplcProgramWithTraces
   :: UPLC.Program Name DefaultUni DefaultFun ()
   -> (EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ()), [Text])
 evaluateUplcProgramWithTraces uplcProg =
-  first unsafeToEvaluationResult $
+  first unsafeSplitStructuralOperational $
     evaluateCek logEmitter machineParameters (uplcProg ^. UPLC.progTerm)
  where
   costModel :: CostModel CekMachineCosts BuiltinCostModel =

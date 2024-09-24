@@ -25,12 +25,25 @@ This error can also occur if the identifier simply doesn't have an unfolding, e.
 Clearly there is no unfolding for `x`, so it is impossible for it to work.
 
 Alternatively, this error may happen when using GHCi, which is not fully supported by the plugin.
-Not only does GHCi often hides unfoldings from the plugin, but it may also introduce debugging information like breakpoints in GHC Core, causing the plugin to fail.
+Not only does GHCi often hide unfoldings from the plugin, but it may also introduce debugging information like breakpoints in GHC Core, causing the plugin to fail.
 
-### "Unsupported feature: Cannot case on a value on type"
+### "Unsupported feature: Cannot case on a value on type: \{type\}"
 
-To convert a builtin type to the corresponding Haskell type (such as `BuiltinBool` to `Bool` or `BuiltinList` to a Haskell list) in Plutus Tx, you should use `fromOpaque`.
+If `{type}` is a builtin type like `BuiltinBool`: to convert a builtin type to the corresponding Haskell type (such as `BuiltinBool` to `Bool` or `BuiltinList` to a Haskell list) in Plutus Tx, you should use `fromOpaque`.
 Pattern matching on the builtin type or using `fromBuiltin` is not permitted, and will lead to the above error.
+
+If `{type}` is a GHC type like `GHC.Num.Integer.Integer`: you may be using operations from `base` (such as `GHC.Classes.==`) on that type, or using a literal of that type in a pattern.
+An example of the latter:
+
+```haskell
+case (x :: Maybe Integer) of Just 42 -> ...
+```
+
+This is not supported, and you should instead write
+
+```haskell
+case (x :: Maybe Integer) of Just y | y PlutusTx.== 42 -> ...
+```
 
 ### "Unsupported feature: Cannot construct a value of type"
 
@@ -44,6 +57,49 @@ If your expected trace messages are missing, check the following [plugin flags](
 
 - If the `remove-trace` flag (default off) is on, all trace messages will be removed.
 - If the `preserve-logging` flag (default off) is off, the compiler may remove some trace messages during optimization.
+
+### Unexpected Evaluation Failure
+
+It is usually [advisable](./using-plutus-tx/compiling-plutus-tx) to use the `Strict` extension when writing Plutus Tx, which improves performance.
+However, be cautious, as this can result in unexpected evaluation failures.
+Consider the following script:
+
+```haskell
+{-# LANGUAGE Strict #-}
+
+data MyRedeemer = A | B
+
+myScript :: MyRedeemer -> ScriptContext -> Bool
+myScript redeemer ctx = case redeemer of
+  A -> condition1
+  B -> condition2
+  where
+    condition1, condition2 :: Bool
+    condition1 = ...
+    condition2 = if ... then True else traceError "condition 2 not met"
+```
+
+The `Strict` extension makes all bindings strict, which means even if `redeemer` matches `A`, `condition2` will still be evaluated.
+This can be inefficient at best and, at worst, cause unexpected failures if `condition2` is not met when the redeemer matches `A`.
+
+There are multiple ways to fix this:
+
+1. You can make `condition1` and `condition2` non-strict by adding tildes:
+
+```haskell
+~condition1 = ...
+~condition2 = ...
+```
+
+2. Alternatively, you can define `condition1` and `condition2` within the `case` branches:
+
+```haskell
+case redeemer of
+  A -> let condition1 = ... in condition1
+  B -> let condition2 = ... in condition2
+```
+
+3. Another option is to turn `condition1` and `condition2` into functions that take some arguments and return a `Bool`, as functions are not evaluated until all their arguments are provided.
 
 ## Haddock
 

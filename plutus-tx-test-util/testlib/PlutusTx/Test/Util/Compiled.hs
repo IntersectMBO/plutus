@@ -65,7 +65,7 @@ haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
 {- | Just run a term to obtain an `EvaluationResult` (used for tests etc.) -}
 unsafeRunTermCek :: Term -> EvaluationResult Term
 unsafeRunTermCek =
-    unsafeToEvaluationResult
+    unsafeSplitStructuralOperational
         . (\(res, _, _) -> res)
         . runCekDeBruijn PLC.defaultCekParametersForTesting Cek.restrictingEnormous Cek.noEmitter
 

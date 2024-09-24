@@ -98,6 +98,7 @@ module PlutusPrelude
     , distinct
     , unsafeFromRight
     , tryError
+    , modifyError
     , lowerInitialChar
     ) where
 
@@ -108,7 +109,7 @@ import Control.DeepSeq (NFData)
 import Control.Exception (Exception, throw)
 import Control.Lens (Fold, Lens', ala, lens, over, set, view, (%~), (&), (.~), (<&>), (^.))
 import Control.Monad
-import Control.Monad.Except (MonadError, catchError)
+import Control.Monad.Except (ExceptT, MonadError, catchError, runExceptT, throwError)
 import Control.Monad.Reader (MonadReader, ask)
 import Data.Array (Array, Ix, listArray)
 import Data.Bifunctor (first, second)
@@ -264,6 +265,15 @@ timesA = ala Endo . stimes
 {-# INLINE tryError #-}
 tryError :: MonadError e m => m a -> m (Either e a)
 tryError a = (Right <$> a) `catchError` (pure . Left)
+
+{- A different 'MonadError' analogue to the 'withExceptT' function.
+Modify the value (and possibly the type) of an error in an @ExceptT@-transformed
+monad, while stripping the @ExceptT@ layer.
+
+TODO: remove when we switch to mtl>=2.3.1
+-}
+modifyError :: MonadError e' m => (e -> e') -> ExceptT e m a -> m a
+modifyError f m = runExceptT m >>= either (throwError . f) pure
 
 allSame :: Eq a => [a] -> Bool
 allSame []     = True
