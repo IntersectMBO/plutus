@@ -54,7 +54,7 @@ testMachine machine eval =
             let resExp =
                     eraseTerm <$>
                         makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
-            case extractEvaluationResult . eval $ eraseTerm term of
+            case splitStructuralOperational . eval $ eraseTerm term of
                 Left err     -> fail $ show err
                 Right resAct -> resAct === resExp
 

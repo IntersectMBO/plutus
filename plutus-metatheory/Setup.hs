@@ -68,7 +68,7 @@ data AgdaProgramStatus
 
 agdaProgramStatus :: IORef AgdaProgramStatus
 agdaProgramStatus = unsafePerformIO (newIORef NotRun)
-{-# NOINLINE agdaProgramStatus #-}
+{-# OPAQUE agdaProgramStatus #-}
 
 
 main :: IO ()
