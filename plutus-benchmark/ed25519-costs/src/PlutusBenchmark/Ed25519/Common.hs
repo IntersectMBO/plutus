@@ -71,7 +71,7 @@ builtinHash :: BuiltinHashFun
 builtinHash = Tx.sha2_256
 
 -- Create a list containing n bytestrings of length l.  This could be better.
-{-# NOINLINE listOfByteStringsOfLength #-}
+{-# OPAQUE listOfByteStringsOfLength #-}
 listOfByteStringsOfLength :: Integer -> Integer -> [ByteString]
 listOfByteStringsOfLength n l = unsafePerformIO . G.sample $
                              G.list (R.singleton $ fromIntegral n)
