@@ -15,7 +15,7 @@ If it already has the `INLINABLE` pragma, try adding the GHC flags
 `-fno-ignore-interface-pragmas` and `-fno-omit-interface-pragmas`.
 
 If this doesn't resolve the issue, or if the identifier in question isn't directly defined in the code but is produced by GHC optimizations,
-ensure that you apply all GHC flags listed in [Compiling Plutus Tx](./using-plutus-tx/compiling-plutus-tx.md).
+ensure that you apply all GHC flags listed in [GHC Extensions, Flags and Pragmas](./using-plutus-tx/extensions-flags-pragmas.md).
 These flags disable GHC optimizations that can interfere with the plugin, and ensure that unfoldings are neither omitted nor ignored.
 
 If the identifier with missing unfolding is from `base` or invoked by a function from `base`, you should use instead the corresponding function from the `plutus-tx` package.
@@ -60,7 +60,7 @@ If your expected trace messages are missing, check the following [plugin flags](
 
 ### Unexpected Evaluation Failure
 
-It is usually [advisable](./using-plutus-tx/compiling-plutus-tx) to use the `Strict` extension when writing Plutus Tx, which improves performance.
+It is usually [advisable](./using-plutus-tx/extensions-flags-pragmas.md) to use the `Strict` extension when writing Plutus Tx, which improves performance.
 However, be cautious, as this can result in unexpected evaluation failures.
 Consider the following script:
 
