@@ -168,6 +168,10 @@ data family RepHole x
 type TypeHole :: forall hole. GHC.Type -> hole
 data family TypeHole a
 
+-- | Turn a hole in the @GHC.Type -> GHC.Type@ form into one of the 'Hole' form. This only changes
+-- the kind of the given argument. This is a way of encoding @forall a. a -> Hole@ at the kind
+-- level, which we don't attempt to use, because GHC apparently hates polymorphism at the kind
+-- level and chokes upon encountering it.
 type RunHole :: (GHC.Type -> GHC.Type) -> a -> Hole
 type family RunHole hole where
     RunHole RepHole  = RepHole

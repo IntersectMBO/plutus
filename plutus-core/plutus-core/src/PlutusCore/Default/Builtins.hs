@@ -1112,10 +1112,14 @@ throw an "operational" evaluation error). Please respect the distinction when ad
 functions.
 -}
 
+-- | Take a function and a list of arguments and apply the former to the latter.
 headSpine :: Opaque val ab -> [val] -> Opaque (HeadSpine val) b
 headSpine (Opaque f) = Opaque . \case
     []      -> HeadOnly f
-    x0 : xs -> HeadSpine f $ foldr (\x2 r x1 -> SpineCons x1 $ r x2) SpineLast xs x0
+    x0 : xs ->
+        -- It's critical to use 'foldr' here, so that deforestation kicks in.
+        -- See @GHC.List.foldl'@ and related Notes around for an explanation of the trick.
+        HeadSpine f $ foldr (\x2 r x1 -> SpineCons x1 $ r x2) SpineLast xs x0
 {-# INLINE headSpine #-}
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
@@ -1486,8 +1490,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     DefaultUniList _ -> pure $ case xs of
                         []    -> a
                         _ : _ -> b
-                    -- See Note [Structural vs operational errors within builtins].
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ ->
+                        -- See Note [Structural vs operational errors within builtins].
+                        throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE chooseListDenotation #-}
         in makeBuiltinMeaning
             chooseListDenotation
@@ -1504,8 +1509,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     DefaultUniList uniA -> pure $ case xs0 of
                         []     -> headSpine z []
                         x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
-                      -- See Note [Operational vs structural errors within builtins].
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ ->
+                        -- See Note [Structural vs operational errors within builtins].
+                        throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE caseListDenotation #-}
         in makeBuiltinMeaning
             caseListDenotation
@@ -1649,8 +1655,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unConstrDataDenotation :: Data -> BuiltinResult (Integer, [Data])
             unConstrDataDenotation = \case
                 Constr i ds -> pure (i, ds)
-                -- See Note [Structural vs operational errors within builtins].
-                _           -> fail "Expected the Constr constructor but got a different one"
+                _           ->
+                    -- See Note [Structural vs operational errors within builtins].
+                    fail "Expected the Constr constructor but got a different one"
             {-# INLINE unConstrDataDenotation #-}
         in makeBuiltinMeaning
             unConstrDataDenotation
@@ -1660,8 +1667,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unMapDataDenotation :: Data -> BuiltinResult [(Data, Data)]
             unMapDataDenotation = \case
                 Map es -> pure es
-                -- See Note [Structural vs operational errors within builtins].
-                _      -> fail "Expected the Map constructor but got a different one"
+                _      ->
+                    -- See Note [Structural vs operational errors within builtins].
+                    fail "Expected the Map constructor but got a different one"
             {-# INLINE unMapDataDenotation #-}
         in makeBuiltinMeaning
             unMapDataDenotation
@@ -1671,8 +1679,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unListDataDenotation :: Data -> BuiltinResult [Data]
             unListDataDenotation = \case
                 List ds -> pure ds
-                -- See Note [Structural vs operational errors within builtins].
-                _       -> fail "Expected the List constructor but got a different one"
+                _       ->
+                    -- See Note [Structural vs operational errors within builtins].
+                    fail "Expected the List constructor but got a different one"
             {-# INLINE unListDataDenotation #-}
         in makeBuiltinMeaning
             unListDataDenotation
@@ -1682,8 +1691,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unIDataDenotation :: Data -> BuiltinResult Integer
             unIDataDenotation = \case
                 I i -> pure i
-                -- See Note [Structural vs operational errors within builtins].
-                _   -> fail "Expected the I constructor but got a different one"
+                _   ->
+                    -- See Note [Structural vs operational errors within builtins].
+                    fail "Expected the I constructor but got a different one"
             {-# INLINE unIDataDenotation #-}
         in makeBuiltinMeaning
             unIDataDenotation
@@ -1693,8 +1703,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let unBDataDenotation :: Data -> BuiltinResult BS.ByteString
             unBDataDenotation = \case
                 B b -> pure b
-                -- See Note [Structural vs operational errors within builtins].
-                _   -> fail "Expected the B constructor but got a different one"
+                _   ->
+                    -- See Note [Structural vs operational errors within builtins].
+                    fail "Expected the B constructor but got a different one"
             {-# INLINE unBDataDenotation #-}
         in makeBuiltinMeaning
             unBDataDenotation
