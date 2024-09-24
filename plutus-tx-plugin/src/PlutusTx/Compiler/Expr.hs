@@ -419,7 +419,7 @@ This is very fiddly:
 - Sometimes the selector has been inlined.
     - We can't easily get access to the name of the method definition itself, so instead we mark
       that as INLINE and look for a special function ('stringToBuiltinString') that is in its
-      body (which we put inside 'noinline', see Note [noinline hack]).
+      body (and we use the OPAQUE pragma on that function to ensure it isn't inlined).
 - Sometimes our heuristics fail.
     - The actual definition of 'stringToBuiltinString' works, so in the worst case we fall back
       to using it and converting the list of characters into an expression.
@@ -751,11 +751,11 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
             Nothing ->
               throwSd UnsupportedError $
                 "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
-    -- 'stringToBuiltinByteString' invocation, will be wrapped in a 'noinline'
+    -- 'stringToBuiltinByteString' invocation
     (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs)
       | GHC.getName n == sbbsName ->
           pure $ PIR.Constant annMayInline $ PLC.someValue bs
-    -- 'stringToBuiltinString' invocation, will be wrapped in a 'noinline'
+    -- 'stringToBuiltinString' invocation
     (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbsName ->
       case TE.decodeUtf8' bs of
         Right t -> pure $ PIR.Constant annMayInline $ PLC.someValue t
@@ -785,7 +785,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- Unboxed unit, (##).
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) | dc == GHC.unboxedUnitDataCon -> pure (PIR.mkConstant annMayInline ())
     -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
-    -- See Note [noinline hack]
+    -- See Note [GHC.Magic.noinline]
     GHC.Var n `GHC.App` GHC.Type _ `GHC.App` arg | GHC.getName n == GHC.noinlineIdName -> compileExpr arg
     -- See Note [GHC runtime errors]
     -- <error func> <runtime rep> <overall type> <call stack> <message>

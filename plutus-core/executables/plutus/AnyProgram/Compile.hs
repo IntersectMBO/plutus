@@ -29,7 +29,7 @@ import UntypedPlutusCore.Check.Uniques qualified as UPLC
 
 import Control.Lens hiding ((%~))
 import Control.Monad.Error.Lens
-import Control.Monad.Except
+import Control.Monad.Except (MonadError)
 import Control.Monad.Reader
 import Control.Monad.State (StateT (runStateT))
 import Data.Singletons.Decide

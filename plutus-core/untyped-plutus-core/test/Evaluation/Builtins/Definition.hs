@@ -260,7 +260,7 @@ test_ScottToMetaUnit =
         let runtime = mkMachineParameters def $ CostModel defaultCekMachineCostsForTesting ()
         -- @scottToMetaUnit Scott.map@ is ill-typed, but still runs successfully, since the builtin
         -- doesn't look at the argument.
-        unsafeToEvaluationResult (evaluateCekNoEmit runtime (eraseTerm $ applyTerm Scott.map)) @?=
+        unsafeSplitStructuralOperational (evaluateCekNoEmit runtime (eraseTerm $ applyTerm Scott.map)) @?=
             res
 
 -- | Test that an exception thrown in the builtin application code does not get caught in the CEK
@@ -489,7 +489,7 @@ test_SerialiseDataImpossible =
             dataLoop = Apply () (Builtin () SerialiseData) $ mkConstant () loop where
                 loop = List [loop]
             budgetMode = restricting . ExRestrictingBudget $ ExBudget 10000000000 10000000
-            evalRestricting params = unsafeToEvaluationResult . fst . runCekNoEmit params budgetMode
+            evalRestricting params = unsafeSplitStructuralOperational . fst . runCekNoEmit params budgetMode
         typecheckAnd def evalRestricting defaultBuiltinCostModelForTesting dataLoop @?=
             Right EvaluationFailure
 

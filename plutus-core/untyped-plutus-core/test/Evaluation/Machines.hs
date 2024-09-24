@@ -52,7 +52,7 @@ testMachine machine eval =
         testPropertyNamed name (fromString name) . withTests 99 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
             let resExp = makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
-            case extractEvaluationResult . eval $ eraseTerm term of
+            case splitStructuralOperational . eval $ eraseTerm term of
                 Left err     -> fail $ show err
                 Right resAct -> fmap HeadOnly resAct === fmap (fmap eraseTerm) resExp
 

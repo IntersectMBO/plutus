@@ -38,7 +38,7 @@ makeRead
     => a -> EvaluationResult a
 makeRead x = do
   fXsTerm <- makeKnownOrFail @_ @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
-  case extractEvaluationResult <$> typecheckReadKnownCek def
+  case splitStructuralOperational <$> typecheckReadKnownCek def
     TPLC.defaultBuiltinCostModelForTesting (foldl1 (TPLC.Apply ()) fXsTerm) of
       Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
       Right (Left err)  -> error $ "Evaluation error: " ++ show err

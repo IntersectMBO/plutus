@@ -11,7 +11,7 @@
 into
 
 @
-    force ifThenElse b (case (constr t) alts) (case (constr f) alts)
+    force ifThenElse b (delay (case (constr t) alts)) (delay (case (constr f) alts))
 @
 
 This is always an improvement.

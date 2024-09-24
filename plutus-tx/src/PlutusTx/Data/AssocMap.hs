@@ -206,11 +206,12 @@ safeFromList =
     . toOpaque
     . List.foldr (uncurry go) []
   where
+    go :: k -> a -> [(BuiltinData, BuiltinData)] -> [(BuiltinData, BuiltinData)]
     go k v [] = [(P.toBuiltinData k, P.toBuiltinData v)]
     go k v ((k', v') : rest) =
       if P.toBuiltinData k == k'
         then (P.toBuiltinData k, P.toBuiltinData v) : go k v rest
-        else (P.toBuiltinData k', P.toBuiltinData v') : go k v rest
+        else (k', v') : go k v rest
 
 {-# INLINEABLE unsafeFromList #-}
 -- | Unsafely create an 'Map' from a list of pairs.
@@ -234,7 +235,7 @@ noDuplicateKeys (Map m) = go m
         True
         ( \hd tl ->
             let k = BI.fst hd
-             in if member k (Map tl) then False else go tl
+             in if member' k tl then False else go tl
         )
 
 {-# INLINEABLE all #-}
