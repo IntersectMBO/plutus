@@ -36,9 +36,9 @@ back in would yield the original expression.
 
 ```
 data UCSE : Relation where
-  cse : {X : Set} {x : Maybe X ⊢} {x' e : X ⊢}
-    → Translation UCSE (x [ e ]) x'
-    → UCSE ((ƛ x) · e) x'
+  cse : {X : Set} {x' : Maybe X ⊢} {x e : X ⊢}
+    → Translation UCSE x (x' [ e ])
+    → UCSE x ((ƛ x') · e)
 
 UntypedCSE : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
 UntypedCSE = Translation UCSE
@@ -53,9 +53,9 @@ isUntypedCSE? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation UCSE
 
 {-# TERMINATING #-}
 isUCSE? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (UCSE {X})
-isUCSE? ast ast' with (isApp? (isLambda? isTerm?) isTerm?) ast
+isUCSE? ast ast' with (isApp? (isLambda? isTerm?) isTerm?) ast'
 ... | no ¬match = no λ { (cse x) → ¬match (isapp (islambda (isterm _)) (isterm _)) }
-... | yes (isapp (islambda (isterm x)) (isterm e)) with isUntypedCSE? (x [ e ]) ast'
+... | yes (isapp (islambda (isterm x')) (isterm e)) with isUntypedCSE? ast (x' [ e ])
 ... | no ¬p = no λ { (cse x) → ¬p x }
 ... | yes p = yes (cse p)
 
