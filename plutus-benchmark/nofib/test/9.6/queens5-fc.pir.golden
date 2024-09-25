@@ -183,27 +183,34 @@
                       ds
                       {all dead. List a}
                       (/\dead -> Nil {a})
-                      (\(y : a) (ys : List a) ->
+                      (\(y : a) ->
                          letrec
-                           !go : List a -> List a
+                           !go : List a -> Bool
                              = \(ds : List a) ->
                                  List_match
                                    {a}
                                    ds
-                                   {all dead. List a}
-                                   (/\dead ->
-                                      Cons {a} y (nubBy' ys (Cons {a} y ds)))
+                                   {all dead. Bool}
+                                   (/\dead -> False)
                                    (\(x : a) (xs : List a) ->
                                       /\dead ->
                                         Bool_match
                                           (eq x y)
-                                          {all dead. List a}
-                                          (/\dead -> nubBy' ys ds)
+                                          {all dead. Bool}
+                                          (/\dead -> True)
                                           (/\dead -> go xs)
                                           {all dead. dead})
                                    {all dead. dead}
                          in
-                         /\dead -> go ds)
+                         \(ys : List a) ->
+                           /\dead ->
+                             Bool_match
+                               (go ds)
+                               {all dead. List a}
+                               (/\dead -> nubBy' ys ds)
+                               (/\dead ->
+                                  Cons {a} y (nubBy' ys (Cons {a} y ds)))
+                               {all dead. dead})
                       {all dead. dead}
             in
             \(xs : List a) (ys : List a) ->
