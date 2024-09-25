@@ -5,8 +5,8 @@ sidebar_position: 5
 # On-chain Code: The Auction Validator
 
 :::caution
-This conceptual guide to an auction smart contract in Plutus introduces fundamentals for educational use.
-However, it is not optimized for security or efficiency and should not be deployed in production environments.
+The code in this example is not a production-ready implementation, as it is not optimized for security or efficiency.
+It is provided purely as an example for illustration and ecudational purposes.
 Refer to resources like **[Cardano Plutus Script Vulnerability Guide](https://library.mlabs.city/common-plutus-security-vulnerabilities)** for best practices on developing secure smart contracts.
 :::
 
