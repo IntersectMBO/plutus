@@ -80,7 +80,7 @@ instance PersonLike Alien where
 multiFunction :: CompiledCode (Person -> Bool)
 multiFunction = plc (Proxy @"multiFunction") (
     let
-        {-# NOINLINE predicate #-}
+        {-# OPAQUE predicate #-}
         predicate :: (PersonLike p) => p -> Bool
         predicate p = likesAnimal p Cat P.&& (age p `Builtins.lessThanInteger` 30)
     in \(p::Person) -> predicate p)
@@ -88,7 +88,7 @@ multiFunction = plc (Proxy @"multiFunction") (
 defaultMethods :: CompiledCode (Integer -> Integer)
 defaultMethods = plc (Proxy @"defaultMethods") (
     let
-        {-# NOINLINE f #-}
+        {-# OPAQUE f #-}
         f :: (DefaultMethods a) => a -> Integer
         f a = method2 a
     in \(a::Integer) -> f a)
