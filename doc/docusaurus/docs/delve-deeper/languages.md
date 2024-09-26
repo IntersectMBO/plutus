@@ -26,7 +26,7 @@ By crafting a new language from scratch, you avoid inheriting the limitations an
 On the other hand, standalone DSLs have some disadvantages.
 First, designing and implementing them can be challenging.
 Not only must the syntax and semantics be created from scratch, but you also need to build all necessary compiler components, tooling, and a library ecosystem from the ground up.
-This can be a formidable task, as developing, testing, and maintaining compilers and tooling, along with establishing and maintining a library ecosystem, require substantial efforts, particularly with the addition of new language features over time.
+This can be a formidable task, as developing, testing, and maintaining compilers and tooling, along with establishing and maintaining a library ecosystem, require substantial efforts, particularly with the addition of new language features over time.
 
 Second, users will need to adopt a new programming language and incorporate it into their existing tech stacks.
 This can present a considerable challenge, as it involves a learning curve, increased cognitive load, and the necessity to introduce and manage additional tools.
@@ -36,7 +36,7 @@ This can present a considerable challenge, as it involves a learning curve, incr
 An embedded DSL (commonly referred to as an eDSL) generally takes the form of a library in a host programming language.
 Functional languages such as Haskell are particularly well-suited for hosting eDSLs, as the implementation of an eDSL largely involves functions that construct and transform abstract syntax trees (ASTs).
 
-Embedded DSLs can be much easier than standlone DSLs to develop, and to integrate into projects that already use the host language.
+Embedded DSLs can be much easier than standalone DSLs to develop, and to integrate into projects that already use the host language.
 Embedded DSLs, however, come with the drawback that the complexity of constructing and manipulating ASTs are exposed to the users.
 When using an embedded DSL, you are essentially writing programs that create and manage ASTs, rather than straightforward code.
 

@@ -42,7 +42,7 @@ See [_The Extended UTXO Model_](https://iohk.io/en/research/library/papers/the-e
 
 ### Guardrail Script
 
-A guardrail script, sometimes referred to as a consitution script or a proposing script, is a Plutus V3 script used to validate two kinds of governance actions: parameter change and treasury withdrawal.
+A guardrail script, sometimes referred to as a constitution script or a proposing script, is a Plutus V3 script used to validate two kinds of governance actions: parameter change and treasury withdrawal.
 See [Script Purposes](./working-with-scripts/script-purposes.md).
 
 ### Hard Fork

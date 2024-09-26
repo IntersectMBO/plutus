@@ -10,8 +10,8 @@ sidebar_position: 80
 
 This means the plugin cannot access to the definition of a Haskell identifier, which it needs to be able to compile that identifier to Plutus Core.
 
-If the identifier in question is defined in the source code, try adding the `INLINABLE` pragma to it (not the `INLINE` pragma, which should generally be avoided).
-If it already has the `INLINABLE` pragma, try adding the GHC flags
+If the identifier in question is defined in the source code, try adding the `INLINEABLE` pragma to it (not the `INLINE` pragma, which should generally be avoided).
+If it already has the `INLINEABLE` pragma, try adding the GHC flags
 `-fno-ignore-interface-pragmas` and `-fno-omit-interface-pragmas`.
 
 If this doesn't resolve the issue, or if the identifier in question isn't directly defined in the code but is produced by GHC optimizations,

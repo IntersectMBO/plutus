@@ -6,7 +6,7 @@ sidebar_position: 5
 
 :::caution
 The code in this example is not a production-ready implementation, as it is not optimized for security or efficiency.
-It is provided purely as an example for illustration and ecudational purposes.
+It is provided purely as an example for illustration and educational purposes.
 Refer to resources like **[Cardano Plutus Script Vulnerability Guide](https://library.mlabs.city/common-plutus-security-vulnerabilities)** for best practices on developing secure smart contracts.
 :::
 
@@ -63,7 +63,7 @@ In our example, our validator verifies several conditions of the transaction; e.
 
 Different [ledger language versions](../working-with-scripts/ledger-language-version.md) use different script context types.
 In this example we are writing a Plutus V2 scripts, so we import the `ScriptContext` data type from `PlutusLedgerApi.V2.Contexts`.
-It can be easiely adapted for Plutus V1 or V3.
+It can be easily adapted for Plutus V1 or V3.
 
 > :pushpin: **NOTE**
 >

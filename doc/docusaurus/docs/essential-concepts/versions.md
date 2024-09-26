@@ -65,4 +65,4 @@ When evaluating a standalone program using the `uplc` executable, flag `-S` or `
 
 Several Plutus components are regularly released as libraries, such as `plutus-core`, `plutus-ledger-api` and `plutus-tx-plugin`.
 These packages are published on the [Cardano Haskell Package repository](https://github.com/IntersectMBO/cardano-haskell-packages) (CHaP), rather than Hackage, Haskell's default package archive.
-Each release has a version following a standard release versioning scheme, and this is completely orthogonal and irrelevant to all other aformentioned notions of version.
+Each release has a version following a standard release versioning scheme, and this is completely orthogonal and irrelevant to all other aforementioned notions of version.

@@ -34,7 +34,7 @@ The following substitutions are needed:
 - Substitute your Blockfrost project ID for `Replace with Blockfrost Project ID`.
 - Substitute a slot number no later than the auction's end time for `Replace with transaction expiration time`.
   For instance, if you set the auction's end time to be approximately 24 hours from now, you can use a slot number corresponding to approximately 12 hours from now.
-  To determine the slot nmber, go to [Cardanoscan](https://preview.cardanoscan.io/), click on a recent transaction, take its Absolute Slot, and add 12 hours (43200) to it.
+  To determine the slot number, go to [Cardanoscan](https://preview.cardanoscan.io/), click on a recent transaction, take its Absolute Slot, and add 12 hours (43200) to it.
 
 Place the first bid by running
 
