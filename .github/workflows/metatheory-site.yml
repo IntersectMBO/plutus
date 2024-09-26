@@ -8,11 +8,10 @@
 name: "🔮 Metatheory Site"
 
 on:
-  pull_request:
-
   push: 
     branches: 
       - master 
+  pull_request:
 
   workflow_dispatch:
     inputs:

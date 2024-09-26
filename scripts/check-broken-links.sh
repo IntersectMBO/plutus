@@ -1,7 +1,7 @@
 TARGETS=(
     .github/{ISSUE_TEMPLATE/*,*.md,*.yml} 
     **/{LICENSE,NOTICE,README.md,TRIAGE.md} 
-    CODE_OF_CONDUCT.md 
+    *.md 
     *.adoc
 )
 
