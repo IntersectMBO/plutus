@@ -30,7 +30,7 @@ In the compilation trace, to make it easier to figure out how the compilation go
 
 A `CompiledCode` obtained through normal compilation includes a UPLC program along with the corresponding PIR program.
 PIR is an intermediate representation used by the Plutus Tx compiler.
-It is much more readable than UPLC, so for tasks such as debugging and performance tuning, it is usually more helpful to insepct PIR, but there are also instances where looking into UPLC directly is necessary.
+It is much more readable than UPLC, so for tasks such as debugging and performance tuning, it is usually more helpful to inspect PIR, but there are also instances where looking into UPLC directly is necessary.
 
 The PIR and UPLC programs can be retrieved from the `CompiledCode` via `getPirNoAnn` and `getPlcNoAnn` from [`PlutusTx.Code`](https://plutus.cardano.intersectmbo.org/haddock/latest/plutus-tx/PlutusTx-Code.html).
 The annotations are usually not needed, but if you do need them, use `getPir` and `getPlc` instead.

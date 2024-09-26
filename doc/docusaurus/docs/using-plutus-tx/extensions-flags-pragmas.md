@@ -23,7 +23,7 @@ Given these facts, making let bindings strict by default has the following advan
 This is what one would come to expect, as it is the case in most other programming languages, regardless of whether the language is strict or non-strict.
 - Using non-strict bindings can cause an expression to be inadvertently evaluated for an unbounded number of times.
 Consider `let x = <expensive> in \y -> x + y`.
-If `x` is non-strict, `<expensive>` will be evalutated every time `\y -> x + y` is applied to an argument, which means it can be evaluated 0 times, 1 time, 2 times, or any number of times (this is not the case if lazy evaluation was employed).
+If `x` is non-strict, `<expensive>` will be evaluated every time `\y -> x + y` is applied to an argument, which means it can be evaluated 0 times, 1 time, 2 times, or any number of times (this is not the case if lazy evaluation was employed).
 On the other hand, if `x` is strict, it is always evaluated once, which is at most one more time than what is necessary.
 
 ### Flags

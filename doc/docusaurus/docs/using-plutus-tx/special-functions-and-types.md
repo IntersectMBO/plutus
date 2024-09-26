@@ -18,7 +18,7 @@ The list of builtin functions and types can be found in the [Plutus Core Specifi
 
 In [`PlutusTx.Builtins.Internal`](https://plutus.cardano.intersectmbo.org/haddock/latest/plutus-tx/PlutusTx-Builtins-Internal.html), functions marked `OPAQUE` are directly converted to the corresponding builtin function.
 For instance, `PlutusTx.Builtins.Internal.addInteger` is converted to UPLC term `(builtin addInteger)`.
-Using the `OPAQUE` pramga prevents GHC from inlining these functions, allowing the Plutus Tx compiler to determine where exactly they are invoked, and compile them appropriately.
+Using the `OPAQUE` pragma prevents GHC from inlining these functions, allowing the Plutus Tx compiler to determine where exactly they are invoked, and compile them appropriately.
 
 Builtin types are handled similarly: rather than compiling their definition, they are directly converted to builtin types in PIR.
 In UPLC, most types are erased, but constants remain tagged with the corresponding builtin types.
