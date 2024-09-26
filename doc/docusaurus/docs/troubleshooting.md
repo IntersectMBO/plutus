@@ -47,7 +47,7 @@ case (x :: Maybe Integer) of Just y | y PlutusTx.== 42 -> ...
 
 ### "Unsupported feature: Cannot construct a value of type"
 
-Conversely, to convert a Haskell type to the correspoding builtin type in Plutus Tx, you should use `toOpaque`, rather than directly using the data constructor or `toBuiltin`.
+Conversely, to convert a Haskell type to the corresponding builtin type in Plutus Tx, you should use `toOpaque`, rather than directly using the data constructor or `toBuiltin`.
 
 ## Runtime Issues
 
