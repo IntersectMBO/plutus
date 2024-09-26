@@ -39,7 +39,7 @@ Note that in regular Haskell, `&&` and `||` are _not_ special, as Haskell suppor
 
 ## `IsString` Instances
 
-[`IsString`](https://hackage.haskell.org/package/base/docs/Data-String.html#t:IsString) is a type class from `base`, and can be used along with the `OverloadedString` language extension to convert string literals to types other than `String`.
+[`IsString`](https://hackage.haskell.org/package/base/docs/Data-String.html#t:IsString) is a type class from `base`, and can be used along with the `OverloadedStrings` language extension to convert string literals to types other than `String`.
 
 Most `IsString` instances are unsupported by the Plutus Tx compiler, other than a few special cases.
 At present, it provides support for `BuiltinString` and `BuiltinByteString`, with the caveat that the `fromString` method must be applied to a string literal.

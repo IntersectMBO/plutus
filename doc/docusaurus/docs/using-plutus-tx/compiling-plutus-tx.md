@@ -64,4 +64,6 @@ myPlutusTxCodeCompiled :: CompiledCode (Integer -> Integer)
 myPlutusTxCodeCompiled = plc (Proxy @"location info") myPlutusTxCode
 ```
 
+Here you can manually provide the location info to be included in error messages, but it's not essential, especially if `plc` is only called once in the module, since there won't be any confusion about which `plc` is causing the issue if the module fails to compile.
+
 The `-fplugin` flag must be used on every module that invokes `plc`.

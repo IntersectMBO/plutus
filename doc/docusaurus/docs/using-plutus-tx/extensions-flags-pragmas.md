@@ -56,9 +56,10 @@ These flags can be specified either in a Haskell module, for example:
 or in a build file.
 For example, if your project is built using Cabal, you can add the flags to the `.cabal` files, like so:
 
-> ghc-options:
->
-> :   -fno-ignore-interface-pragmas
+```
+ghc-options:
+  -fno-ignore-interface-pragmas
+```
 
 > :pushpin: **NOTE**
 >
