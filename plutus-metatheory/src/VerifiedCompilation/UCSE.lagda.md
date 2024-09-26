@@ -24,7 +24,7 @@ open Eq using (_≡_; refl)
 open import Data.Empty using (⊥)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped.RenamingSubstitution using (_[_])
---open import VerifiedCompilation.Purity using (UPure; isUPure?)
+open import VerifiedCompilation.Purity using (UPure; isUPure?)
 ```
 ## Translation Relation
 
@@ -37,7 +37,8 @@ back in would yield the original expression.
 
 ```
 data UCSE : Relation where
-  cse : {X : Set} {x' : Maybe X ⊢} {x e : X ⊢}
+  cse : {X : Set} {{ _ : DecEq X}} {x' : Maybe X ⊢} {x e : X ⊢}
+    → UPure X e
     → Translation UCSE x (x' [ e ])
     → UCSE x ((ƛ x') · e)
 
@@ -55,10 +56,10 @@ isUntypedCSE? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation UCSE
 {-# TERMINATING #-}
 isUCSE? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (UCSE {X})
 isUCSE? ast ast' with (isApp? (isLambda? isTerm?) isTerm?) ast'
-... | no ¬match = no λ { (cse x) → ¬match (isapp (islambda (isterm _)) (isterm _)) }
-... | yes (isapp (islambda (isterm x')) (isterm e)) with isUntypedCSE? ast (x' [ e ])
-... | no ¬p = no λ { (cse x) → ¬p x }
-... | yes p = yes (cse p)
+... | no ¬match = no λ { (cse up x) → ¬match (isapp (islambda (isterm _)) (isterm _)) }
+... | yes (isapp (islambda (isterm x')) (isterm e)) with (isUntypedCSE? ast (x' [ e ])) ×-dec (isUPure? e)
+... | no ¬p = no λ { (cse up x) → ¬p (x , up) }
+... | yes (p , upure) = yes (cse upure p)
 
 isUntypedCSE? = translation? isUCSE?
 ```
