@@ -1,5 +1,5 @@
 ---
-sidebar_position: 20
+sidebar_position: 35
 ---
 
 # Optimizing scripts with `asData`
@@ -46,7 +46,7 @@ The Plutus Tx library provides some helper functions to make this second style e
 
 The `asData` function takes the definition of a data type and replaces it with an equivalent definition whose representation uses `Data` directly.
 
-For example, if we wanted to use it on the types from the [auction example](../../auction-smart-contract/on-chain-code.md), we would put the datatype declarations inside a Template Haskell quote and call `asData` on it.
+For example, if we wanted to use it on the types from the [auction example](../auction-smart-contract/on-chain-code.md), we would put the datatype declarations inside a Template Haskell quote and call `asData` on it.
 
 <LiteralInclude file="AuctionValidator.hs" language="haskell" title="" start="-- BLOCK9" end="-- BLOCK10" />
 
