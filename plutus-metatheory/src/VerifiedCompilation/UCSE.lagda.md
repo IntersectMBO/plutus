@@ -24,6 +24,7 @@ open Eq using (_≡_; refl)
 open import Data.Empty using (⊥)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped.RenamingSubstitution using (_[_])
+--open import VerifiedCompilation.Purity using (UPure; isUPure?)
 ```
 ## Translation Relation
 
