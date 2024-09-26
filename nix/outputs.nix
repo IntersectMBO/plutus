@@ -34,6 +34,7 @@ in
 
   {
     packages.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
+    packages.docusaurus-site = repoRoot.nix.docusaurus-site;
     packages.pre-commit-check = ghc96.pre-commit-check;
   }
 
