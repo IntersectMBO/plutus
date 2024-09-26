@@ -28,7 +28,7 @@ jobs:
         run: nix develop --no-warn-dirty --accept-flake-config --command bash -c 'yarn && yarn build'
 
       - name: Deploy Site 
-        if: github.event_name == 'push'
+        if: ${{ github.event_name == 'push' }}
         uses: JamesIves/github-pages-deploy-action@v4.6.4
         with:
           folder: doc/docusaurus/build
