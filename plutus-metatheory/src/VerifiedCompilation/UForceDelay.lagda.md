@@ -256,7 +256,7 @@ FD→pureFD {x = x} {x' = x'} (ffd (afd .zero (ffd .zero args x₁))) = FD→pur
 
 
 ```
-{-
+
 
 isForceDelay? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation (FD zero zero) {X})
 
@@ -299,6 +299,6 @@ isFD? n nₐ ast ast' | yes (isforce (isterm t)) | no ¬isApp | no ¬ƛ with isF
 ... | no ¬p = no λ { (forcefd .n .nₐ xx) → ¬p xx ; (multiappliedfd .n .nₐ x xx) → ¬isApp (isapp (isterm _) (isterm _)) ; (multiabstractfd .n nₐ xx) → ¬ƛ (islambda (isterm _)) }
 
 isForceDelay? = translation? (isFD? zero zero)
--}
+
 
 ```
