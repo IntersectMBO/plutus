@@ -16,7 +16,9 @@ let
       node-modules
     ];
     buildPhase = ''
-      ln -s ${node-modules}/libexec/node_modules node_modules
+      export HOME=$(pwd)
+      ln -s ${node-modules}/libexec/docusaurus/node_modules node_modules
+      yarn
       yarn build
     '';
     installPhase = ''
@@ -27,4 +29,4 @@ let
 
 in
 
-docusaurus-site
+{ inherit node-modules docusaurus-site; }
