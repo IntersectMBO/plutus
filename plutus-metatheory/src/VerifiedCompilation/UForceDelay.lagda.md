@@ -256,49 +256,49 @@ FD→pureFD {x = x} {x' = x'} (ffd (afd .zero (ffd .zero args x₁))) = FD→pur
 
 
 ```
-{-
+
 
 isForceDelay? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation (FD zero zero) {X})
 
 {-# TERMINATING #-}
-isFD? : {X : Set} {{_ : DecEq X}} → (n args : ℕ) → Binary.Decidable (FD n args {X})
+isFD? : {X : Set} {{_ : DecEq X}} → (n nₐ : ℕ) → Binary.Decidable (FD {X} n nₐ)
 
 isFD? n args ast ast' with isForce? isTerm? ast
 
 -- If it doesn't start with force then it isn't going to match this translation, unless we have some delays left
-isFD? zero args ast ast' | no ¬force = no λ { (forcefd .zero .args xx) → ¬force (isforce (isterm _)) ; (multiappliedfd .zero .args x xx) → ¬force (isforce (isterm (_ · _))) ; (multiabstractfd .zero args xx) → ¬force (isforce (isterm (ƛ _))) }
-isFD? (suc n) args ast ast' | no ¬force with (isDelay? isTerm? ast)
-... | no ¬delay = no λ { (forcefd .(suc n) .args xx) → ¬force (isforce (isterm _)) ; (delayfd .n .args xx) → ¬delay (isdelay (isterm _)) ; (lastdelay n args x) → ¬delay (isdelay (isterm _)) ; (multiappliedfd .(suc n) .args x xx) → ¬force (isforce (isterm (_ · _))) ; (multiabstractfd .(suc n) args xx) → ¬force (isforce (isterm (ƛ _)))}
-... | yes (isdelay (isterm t)) with (isForceDelay? t ast') ×-dec (n ≟ zero) ×-dec (args ≟ zero)
+isFD? zero nₐ ast ast' | no ¬force = no λ { (forcefd .zero .nₐ xx) → ¬force (isforce (isterm _)) ; (multiappliedfd .zero .nₐ x xx) → ¬force (isforce (isterm (_ · _))) ; (multiabstractfd .zero nₐ xx) → ¬force (isforce (isterm (ƛ _))) }
+isFD? (suc n) nₐ ast ast' | no ¬force with (isDelay? isTerm? ast)
+... | no ¬delay = no λ { (forcefd .(suc n) .nₐ xx) → ¬force (isforce (isterm _)) ; (delayfd .n .nₐ xx) → ¬delay (isdelay (isterm _)) ; (lastdelay n nₐ x) → ¬delay (isdelay (isterm _)) ; (multiappliedfd .(suc n) .nₐ x xx) → ¬force (isforce (isterm (_ · _))) ; (multiabstractfd .(suc n) nₐ xx) → ¬force (isforce (isterm (ƛ _)))}
+... | yes (isdelay (isterm t)) with (isForceDelay? t ast') ×-dec (n ≟ zero) ×-dec (nₐ ≟ zero)
 ... | yes (p , refl , refl) = yes (lastdelay zero zero p)
-... | no ¬zero with isFD? n args t ast'
-... | no ¬p = no λ { (delayfd .n .args xx) → ¬p xx ; (lastdelay n args x) → ¬zero (x , refl , refl)}
-... | yes p = yes (delayfd n args p)
+... | no ¬zero with isFD? n nₐ t ast'
+... | no ¬p = no λ { (delayfd .n .nₐ xx) → ¬p xx ; (lastdelay n nₐ x) → ¬zero (x , refl , refl)}
+... | yes p = yes (delayfd n nₐ p)
 
 -- If there is an application we can increment the application counter
-isFD? n args ast ast' | yes (isforce (isterm t)) with (isApp? isTerm? isTerm?) t
-isFD? n args ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) with (isApp? isTerm? isTerm?) ast'
-isFD? n args ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) | no ¬isApp = no λ { (multiappliedfd .n .args x xx) → ¬isApp (isapp (isterm _) (isterm _)) }
-isFD? n args ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) | yes (isapp (isterm t₁') (isterm t₂')) with (isFD? n (suc args) (force t₁) t₁') ×-dec (isForceDelay? t₂ t₂')
-... | yes (pfd , pfd2) = yes (multiappliedfd n args pfd2 pfd)
-... | no ¬FD = no λ { (multiappliedfd .n .args x xx) → ¬FD (xx , x) }
+isFD? n nₐ ast ast' | yes (isforce (isterm t)) with (isApp? isTerm? isTerm?) t
+isFD? n nₐ ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) with (isApp? isTerm? isTerm?) ast'
+isFD? n nₐ ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) | no ¬isApp = no λ { (multiappliedfd .n .nₐ x xx) → ¬isApp (isapp (isterm _) (isterm _)) }
+isFD? n nₐ ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) | yes (isapp (isterm t₁') (isterm t₂')) with (isFD? n (suc nₐ) (force t₁) t₁') ×-dec (isForceDelay? t₂ t₂')
+... | yes (pfd , pfd2) = yes (multiappliedfd n nₐ pfd2 pfd)
+... | no ¬FD = no λ { (multiappliedfd .n .nₐ x xx) → ¬FD (xx , x) }
 
 -- If there is a lambda we can decrement the application counter unless we have reached zero
-isFD? n args ast ast' | yes (isforce (isterm t)) | no ¬isApp with (isLambda? isTerm? t)
-isFD? n (suc args ) ast ast' | yes (isforce (isterm t)) | no ¬isApp | yes (islambda (isterm t₂)) with (isLambda? isTerm?) ast'
-... | no ¬ƛ = no λ { (multiabstractfd .n .args xx) → ¬ƛ (islambda (isterm _)) }
-... | yes (islambda (isterm t₂')) with (isFD? n args (force t₂) t₂')
-... | yes p = yes (multiabstractfd n args p)
-... | no ¬p = no λ { (multiabstractfd .n .args xx) → ¬p xx }
+isFD? n nₐ ast ast' | yes (isforce (isterm t)) | no ¬isApp with (isLambda? isTerm? t)
+isFD? n (suc nₐ ) ast ast' | yes (isforce (isterm t)) | no ¬isApp | yes (islambda (isterm t₂)) with (isLambda? isTerm?) ast'
+... | no ¬ƛ = no λ { (multiabstractfd .n .nₐ xx) → ¬ƛ (islambda (isterm _)) }
+... | yes (islambda (isterm t₂')) with (isFD? n nₐ (force t₂) t₂')
+... | yes p = yes (multiabstractfd n nₐ p)
+... | no ¬p = no λ { (multiabstractfd .n .nₐ xx) → ¬p xx }
 -- If we have zero in the application counter then we can't descend further
 isFD? n zero ast ast' | yes (isforce (isterm t)) | no ¬isApp | yes (islambda (isterm t₂)) = no λ { (forcefd .n .zero ()) }
 
 -- If we have matched none of the patterns then we need to consider nesting.
-isFD? n args ast ast' | yes (isforce (isterm t)) | no ¬isApp | no ¬ƛ with isFD? (suc n) args t ast'
-... | yes p = yes (forcefd n args p)
-... | no ¬p = no λ { (forcefd .n .args xx) → ¬p xx ; (multiappliedfd .n .args x xx) → ¬isApp (isapp (isterm _) (isterm _)) ; (multiabstractfd .n args xx) → ¬ƛ (islambda (isterm _)) }
+isFD? n nₐ ast ast' | yes (isforce (isterm t)) | no ¬isApp | no ¬ƛ with isFD? (suc n) nₐ t ast'
+... | yes p = yes (forcefd n nₐ p)
+... | no ¬p = no λ { (forcefd .n .nₐ xx) → ¬p xx ; (multiappliedfd .n .nₐ x xx) → ¬isApp (isapp (isterm _) (isterm _)) ; (multiabstractfd .n nₐ xx) → ¬ƛ (islambda (isterm _)) }
 
 isForceDelay? = translation? (isFD? zero zero)
--}
+
 
 ```
