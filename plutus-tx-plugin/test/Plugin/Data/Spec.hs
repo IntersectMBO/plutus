@@ -354,6 +354,7 @@ typeFamilies = testNested "families" [
     , goldenPir "associated" associated
     , goldenPir "associatedParam" associatedParam
     , goldenPir "basicData" basicData
+    , goldenPir "stakingCredential" stakingCredential
     , goldenUPlc "irreducible" irreducible
   ]
 
@@ -405,3 +406,13 @@ data instance BasicData Bool = Inst Integer
 
 basicData :: CompiledCode (BasicData Bool -> Integer)
 basicData = plc (Proxy @"basicData") (\(x :: BasicData Bool) -> let Inst i = x in i)
+
+data Credential
+  = PubKeyCredential
+data StakingCredential
+  = StakingHash Credential
+  | StakingPtr
+
+-- | Check that a data type used in an unused construtor of a used data type doesn't get eliminated.
+stakingCredential :: CompiledCode StakingCredential
+stakingCredential = plc (Proxy @"StakingCredential") StakingPtr
