@@ -302,7 +302,7 @@ instance
         -- exception at any stage, that would be a bug regardless.
         toMonoF @val @args @res $! do
             (f, exF) <- getBoth
-            x <- readKnown arg
+            !x <- readKnown arg
             -- See Note [Strict application in runtime denotations].
             let !exY = exF x
             pure (f x, exY)
