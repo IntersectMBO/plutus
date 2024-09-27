@@ -50,17 +50,21 @@ class GenTypedTerm uni where
         Gen (Term TyName Name uni fun ())
 
 instance GenTypedTerm DefaultUni where
-    -- TODO: currently it mostly generates constant terms.
+    -- TODO: currently it generates constants or constant functions returning constants.
     genTypedTerm tr0 = go (toTypeAst tr0) tr0 where
         go ::
             forall (a :: GHC.Type) fun.
             Type TyName DefaultUni () ->
             TypeRep a ->
             Gen (Term TyName Name DefaultUni fun ())
-        go (TyApp _ dom _) tr
+        go sch tr
+            | trOpaque `App` _ `App` trEl <- tr
+            , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
+                go sch trEl
+        go (TyFun _ dom cod) tr
             | trFun `App` _ `App` trCod <- tr
             , Just HRefl <- eqTypeRep trFun (typeRep @(->)) =
-                LamAbs () (Name "_" (Unique 0)) dom <$> go dom trCod
+                LamAbs () (Name "_" (Unique 0)) dom <$> go cod trCod
         go _ tr = case genConstant tr of
             SomeGen gen -> Constant () . someValue <$> gen
 
@@ -118,15 +122,9 @@ genConstant tr
     | trSomeConstant `App` _ `App` trEl <- tr
     , Just HRefl <- eqTypeRep trSomeConstant (typeRep @SomeConstant) =
         genConstant trEl
-    | trFun `App` _ `App` trB <- tr
-    , Just HRefl <- eqTypeRep trFun (typeRep @(->)) =
-        genConstant trB
     | trLastArg `App` _ `App` trY <- tr
     , Just HRefl <- eqTypeRep trLastArg (typeRep @LastArg) =
         genConstant trY
-    | trOpaque `App` _ `App` trEl <- tr
-    , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
-        genConstant trEl
     | trTyVarRep `App` _ <- tr
     , Just HRefl <- eqTypeRep trTyVarRep (typeRep @(TyVarRep @GHC.Type)) =
         -- In the current implementation, all type variables are instantiated

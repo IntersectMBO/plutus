@@ -140,9 +140,9 @@ smallConstant tr
     | trSomeConstant `App` _ `App` trEl <- tr
     , Just HRefl <- eqTypeRep trSomeConstant (typeRep @SomeConstant) =
         smallConstant trEl
-    | trOpaque `App` _ `App` trEl <- tr
-    , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
-        smallConstant trEl
+    | trLastArg `App` _ `App` trY <- tr
+    , Just HRefl <- eqTypeRep trLastArg (typeRep @LastArg) =
+        smallConstant trY
     | trTyVarRep `App` _ <- tr
     , Just HRefl <- eqTypeRep trTyVarRep (typeRep @(TyVarRep @GHC.Type)) =
         -- In the current implementation, all type variables are instantiated
@@ -151,6 +151,8 @@ smallConstant tr
     | otherwise = error $
         "smallConstant: I don't know how to generate constants of type " <> show tr
 
+-- | Return a trivial constant or an n-ary function returning a trivial constant, depending on the
+-- given 'TypeRep'.
 smallTerm ::
     forall (a :: GHC.Type).
     KnownTypeAst PLC.TyName DefaultUni a =>
@@ -162,10 +164,14 @@ smallTerm tr0 = go (toTypeAst tr0) tr0 where
         PLC.Type PLC.TyName DefaultUni () ->
         TypeRep b ->
         PLC.Term PLC.TyName PLC.Name DefaultUni fun ()
-    go (PLC.TyApp _ dom _) tr
+    go sch tr
+        | trOpaque `App` _ `App` trEl <- tr
+        , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
+            go sch trEl
+    go (PLC.TyFun _ dom cod) tr
         | trFun `App` _ `App` trCod <- tr
         , Just HRefl <- eqTypeRep trFun (typeRep @(->)) =
-            PLC.LamAbs () (PLC.Name "_" (PLC.Unique 0)) dom $ go dom trCod
+            PLC.LamAbs () (PLC.Name "_" (PLC.Unique 0)) dom $ go cod trCod
     go _ tr = case smallConstant tr of
         SomeConst x -> PLC.Constant () (PLC.someValue x)
 
@@ -199,7 +205,7 @@ testCosts
   :: BuiltinSemanticsVariant DefaultFun
   -> BuiltinsRuntime DefaultFun Term
   -> DefaultFun
-  -> Assertion
+  -> TestTree
 testCosts semvar runtimes bn =
   let args0 = genArgs semvar bn
       runtime0 = lookupBuiltin bn runtimes
@@ -214,7 +220,7 @@ testCosts semvar runtimes bn =
         error $ "Wrong number of args for builtin " <> show bn <> ": " <> show args0
 
       ExBudget cpuUsage memUsage = eval args0 runtime0
-  in do
+  in testCase (show bn) $ do
     -- Every builtin is expected to have a CPU cost of at least 1000 ExCPU (~ 1
     -- ns).  There's code in models.R which is supposed to ensure this.
     assertBool ("CPU cost < 1000 in " ++ show bn) $ cpuUsage >= 1000
@@ -222,20 +228,21 @@ testCosts semvar runtimes bn =
     -- should be OK since there should never be any inputs of size zero.
     assertBool ("Memory usage <= 0 in " ++ show bn) $ memUsage > 0
 
-testBuiltinCostModel :: BuiltinSemanticsVariant DefaultFun -> BuiltinCostModel -> Assertion
+testBuiltinCostModel :: BuiltinSemanticsVariant DefaultFun -> BuiltinCostModel -> [TestTree]
 testBuiltinCostModel semvar model =
   {- The next line is where toBuiltinsRuntime might ignore what's in the model and
      supply its own costing function (see the comment at the top of the file). -}
   let runtimes = toBuiltinsRuntime semvar model
-  in mapM_ (testCosts semvar runtimes) (enumerate @DefaultFun)
+  in map (testCosts semvar runtimes) (enumerate @DefaultFun)
 
 test_costModelSafety :: TestTree
 test_costModelSafety =
   let mkTest semvar =
         let CostModel machineCosts builtinCosts = cekCostModelForVariant semvar
-        in testGroup ("Cost model for " ++ show semvar) $
-           [ testCase "Machine costs" $ testMachineCostModel machineCosts
-           , testCase "Builtin costs" $ testBuiltinCostModel semvar builtinCosts]
+        in testGroup ("Cost model for " ++ show semvar)
+            [ testCase "Machine costs" $ testMachineCostModel machineCosts
+            , testGroup "Builtin costs" $ testBuiltinCostModel semvar builtinCosts
+            ]
   in testGroup "Cost model safety test" $
      map mkTest $ enumerate @(BuiltinSemanticsVariant DefaultFun)
 

@@ -819,9 +819,13 @@ enterComputeCek = computeCek
         when (unbudgetedStepsTotal >= ?cekSlippage) spendAccumulatedBudget
     {-# INLINE stepAndMaybeSpend #-}
 
-    -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
-    -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
-    -- fully saturated or not.
+    -- | Take a possibly partial builtin application and
+    --
+    -- - either create a 'CekValue' by evaluating the application if it's saturated (emitting logs,
+    --    if any, along the way), potentially failing evaluation
+    -- - or create a partial builtin application otherwise
+    --
+    -- and proceed with the returning phase of the CEK machine.
     evalBuiltinApp
         :: Context uni fun ann
         -> fun

@@ -443,9 +443,13 @@ returnCekHeadSpine
 returnCekHeadSpine _   ctx (HeadOnly  x)    = pure $ Returning ctx x
 returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (pushArgs ann xs ctx) f
 
--- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
--- 'makeKnown' or a partial builtin application depending on whether the built-in function is
--- fully saturated or not.
+-- | Take a possibly partial builtin application and
+--
+-- - either create a 'CekValue' by evaluating the application if it's saturated (emitting logs, if
+--    any, along the way), potentially failing evaluation
+-- - or create a partial builtin application otherwise
+--
+-- and proceed with the returning phase of the CEK machine.
 evalBuiltinApp
     :: (GivenCekReqs uni fun ann s, ThrowableBuiltins uni fun)
     => ann

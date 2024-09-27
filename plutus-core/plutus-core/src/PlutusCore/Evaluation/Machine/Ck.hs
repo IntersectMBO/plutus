@@ -133,6 +133,9 @@ data Frame uni fun
     | FrameConstr (Type TyName uni ()) Word64 [Term TyName Name uni fun ()] [CkValue uni fun]
     | FrameCase [Term TyName Name uni fun ()]
 
+deriving stock instance (GShow uni, Closed uni, uni `Everywhere` Show, Show fun) =>
+    Show (Frame uni fun)
+
 type Context uni fun = [Frame uni fun]
 
 -- See Note [ExMemoryUsage instances for non-constants].
@@ -227,9 +230,17 @@ FrameCase cs : stack <| e = case e of
         Nothing -> throwingWithCause _MachineError (MissingCaseBranch i) (Just $ ckValueToTerm e)
     _ -> throwingWithCause _MachineError NonConstrScrutinized (Just $ ckValueToTerm e)
 
+-- | Push arguments onto the stack. The first argument will be the most recent entry.
+--
+-- >>> import PlutusCore.Default
+-- >>> import PlutusCore.Builtin
+-- >>> pushArgs (SpineCons (fromValue (1 :: Integer)) (SpineLast (fromValue (2 :: Integer)))) [FrameUnwrap :: Frame DefaultUni DefaultFun]
+-- [FrameAwaitFunValue (VCon (Some (ValueOf DefaultUniInteger 1))),FrameAwaitFunValue (VCon (Some (ValueOf DefaultUniInteger 2))),FrameUnwrap]
 pushArgs :: Spine (CkValue uni fun) -> Context uni fun -> Context uni fun
 pushArgs args ctx = foldr ((:) . FrameAwaitFunValue) ctx args
 
+-- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
+-- the returning phase of the CK machine, i.e. @<|@.
 returnCkHeadSpine
     :: Context uni fun
     -> HeadSpine (CkValue uni fun)
@@ -237,9 +248,13 @@ returnCkHeadSpine
 returnCkHeadSpine stack (HeadOnly  x)    = stack <| x
 returnCkHeadSpine stack (HeadSpine f xs) = pushArgs xs stack <| f
 
--- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
--- 'makeKnown' or a partial builtin application depending on whether the built-in function is
--- fully saturated or not.
+-- | Take a possibly partial builtin application and
+--
+-- - either create a 'CkValue' by evaluating the application if it's saturated (emitting logs, if
+--    any, along the way), potentially failing evaluation
+-- - or create a partial builtin application otherwise
+--
+-- and proceed with the returning phase of the CK machine.
 evalBuiltinApp
     :: Context uni fun
     -> Term TyName Name uni fun ()
