@@ -54,6 +54,7 @@ module PlutusCore.MkPlc
     , mkIterTyAppNoAnn
     , mkIterKindArrow
     , mkFreshTermLet
+    , headSpineToTerm
     ) where
 
 import PlutusPrelude
@@ -334,3 +335,6 @@ mkFreshTermLet aT a = do
     genName <- freshName "generated"
     pure (var mempty genName, termLet mempty (Def (VarDecl mempty genName aT) a))
 
+-- | 'apply' the head of the application to the arguments iteratively.
+headSpineToTerm :: TermLike term tyname name uni fun => HeadSpine (term ()) -> term ()
+headSpineToTerm = foldl1 (apply ())

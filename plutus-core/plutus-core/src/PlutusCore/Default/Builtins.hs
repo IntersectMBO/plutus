@@ -938,8 +938,9 @@ Read Note [Pattern matching on built-in types] next.
 Pattern matching over an enumeration built-in type ('Void', 'Unit', 'Bool' etc) is trivially
 implementable, see the 'IfThenElse' example in Note [How to add a built-in function: simple cases].
 Not so much for algebraic data types with at least one constructor carrying some kind of content.
-For example the @(:)@ constructor of @[a]@ carries an @a@ and all constructors of 'Data' carry
-something (e.g. 'I' carries an 'Integer' and 'Constr' carries an @Integer@ and a @[Data]@).
+For example the @(:)@ constructor of @[a]@ has two arguments (an @a@ and a @[a]@) and all
+constructors of 'Data' carry something (e.g. 'I' carries an 'Integer' and 'Constr' carries an
+@Integer@ and a @[Data]@).
 
 In Haskell we'd represent the pattern matching function for lists as follows:
 
@@ -953,19 +954,20 @@ for the CEK machine) and we don't know to apply one @val@ to another. We could t
 @val@ to implement some kind of "apply" function or try to somehow "parse" it into Haskell so that
 it becomes @val -> val@, but even if there was a way of doing either thing, it would be very
 complex and, more importantly, it's just not the job of the builtins machinery to evaluate such
-applications, it's what the actual evaluator does.
+applications, it's what the actual evaluator is supposed to do.
 
 Hence we employ a very simple strategy: whenever we want to return an iterated application of a
 @val@ to a bunch of @val@s from a built-in function, we just construct it as is without trying to
 evaluate it and let the evaluator perform all the necessary reductions.
 
-So if you want to return an application from a built-in function, you need to use 'HeadSpine at the
+So if you want to return an application from a built-in function, you need to use 'HeadSpine' at the
 type level and 'headSpine' at the term level, where the latter has the following signature:
 
     headSpine :: Opaque val asToB -> [val] -> Opaque (HeadSpine val) b
 
 'headSpine' takes the head of the application, i.e. a function from @a0@, @a1@ ... @an@ to @b@, and
-applies it to a list of values of respective types, returning a `b`.
+applies it to a list of values of respective types, returning a `b`. Whether types match or not is
+not checked, since that would be hard and largely pointless, so don't make mistakes.
 
 Back to the pattern matcher for lists:
 
@@ -996,7 +998,7 @@ Here's how we can define it as a built-in function using 'headSpine':
 All the unlifting logic is the same as with, say, 'NullList' from
 Note [How to add a built-in function: complicated cases], the only things that are different are [1]
 and [2]. In [2] we have an iterated application of the given function @f@ to the head of the list
-@x@ (lifted from a constant value to @val@ visa 'fromValueOf') and the tail of the list @xs@ (lifted
+@x@ (lifted from a constant value to @val@ via 'fromValueOf') and the tail of the list @xs@ (lifted
 to @val@ the same way). In [1] we return the given @z@, but since we need to return a 'HeadSpine'
 (required by [2]), we have to use 'headSpine' just like in [2] except with an empty spine, since @z@
 isn't applied to anything.
@@ -1096,7 +1098,8 @@ headSpine (Opaque f) = Opaque . \case
     []      -> HeadOnly f
     x0 : xs ->
         -- It's critical to use 'foldr' here, so that deforestation kicks in.
-        -- See @GHC.List.foldl'@ and related Notes around for an explanation of the trick.
+        -- See Note [Definition of foldl'] in "GHC.List" and related Notes around for an explanation
+        -- of the trick.
         HeadSpine f $ foldr (\x2 r x1 -> SpineCons x1 $ r x2) SpineLast xs x0
 {-# INLINE headSpine #-}
 

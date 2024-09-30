@@ -714,12 +714,15 @@ enterComputeCek = computeCek
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
 
+    -- | Push arguments onto the stack. The first argument will be the most recent entry.
     pushArgs
         :: Spine (CekValue uni fun ann)
         -> Context uni fun ann
         -> Context uni fun ann
     pushArgs args ctx = foldr FrameAwaitFunValue ctx args
 
+    -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
+    -- the returning phase of the CEK machine.
     returnCekHeadSpine
         :: Context uni fun ann
         -> HeadSpine (CekValue uni fun ann)

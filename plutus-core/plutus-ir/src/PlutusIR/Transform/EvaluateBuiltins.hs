@@ -11,6 +11,7 @@ module PlutusIR.Transform.EvaluateBuiltins
     ) where
 
 import PlutusCore.Builtin
+import PlutusCore.MkPlc (headSpineToTerm)
 import PlutusIR.Contexts
 import PlutusIR.Core
 
@@ -34,9 +35,6 @@ evaluateBuiltinsPass tcconfig preserveLogging binfo costModel =
       (pure . evaluateBuiltins preserveLogging binfo costModel)
       [Typechecks tcconfig]
       [ConstCondition (Typechecks tcconfig)]
-
-headSpineToTerm :: HeadSpine (Term tyname name uni fun ()) -> Term tyname name uni fun ()
-headSpineToTerm = foldl1 (Apply ())
 
 evaluateBuiltins
   :: forall tyname name uni fun a

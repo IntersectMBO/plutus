@@ -198,6 +198,7 @@ mkNilOpaque = BuiltinList []
 class MkNil arep where
     mkNil :: BuiltinList arep
     mkNil = mkNilOpaque
+    {-# INLINABLE mkNil #-}
 instance MkNil BuiltinInteger
 instance MkNil BuiltinBool
 instance MkNil BuiltinData

@@ -432,9 +432,12 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
             var = Var () varName
         Just val -> pure val
 
+-- | Push arguments onto the stack. The first argument will be the most recent entry.
 pushArgs :: ann -> Spine (CekValue uni fun ann) -> Context uni fun ann -> Context uni fun ann
 pushArgs ann args ctx = foldr (FrameAwaitFunValue ann) ctx args
 
+-- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
+-- the returning phase of the CEK machine.
 returnCekHeadSpine
     :: ann
     -> Context uni fun ann

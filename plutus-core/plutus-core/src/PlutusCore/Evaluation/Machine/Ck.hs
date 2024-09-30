@@ -23,6 +23,9 @@ module PlutusCore.Evaluation.Machine.Ck
     , evaluateCk
     , evaluateCkNoEmit
     , readKnownCk
+    -- Exported to make doctests work.
+    , Frame (..)
+    , pushArgs
     ) where
 
 import PlutusPrelude
@@ -231,7 +234,7 @@ FrameCase cs : stack <| e = case e of
     _ -> throwingWithCause _MachineError NonConstrScrutinized (Just $ ckValueToTerm e)
 
 -- | Push arguments onto the stack. The first argument will be the most recent entry.
---
+
 -- >>> import PlutusCore.Default
 -- >>> import PlutusCore.Builtin
 -- >>> pushArgs (SpineCons (fromValue (1 :: Integer)) (SpineLast (fromValue (2 :: Integer)))) [FrameUnwrap :: Frame DefaultUni DefaultFun]

@@ -289,8 +289,8 @@ data Spine a
 -- | The head-spine form of an iterated application. Provides O(1) access to the head of the
 -- application. Isomorphic to @NonEmpty@, except is strict and the no-spine case is made a separate
 -- constructor for performance reasons (it only takes a single pattern match to access the head when
--- there's no spine this way, and otherwise we'd also need to match on the spine to ensure that it's
--- empty -- and the no-spine case is by far the most common one, hence we want to optimize it).
+-- there's no spine this way, while otherwise we'd also need to match on the spine to ensure that
+-- it's empty -- and the no-spine case is by far the most common one, hence we want to optimize it).
 --
 -- Used in built-in functions returning function applications such as 'CaseList'.
 data HeadSpine a
