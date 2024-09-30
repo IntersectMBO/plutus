@@ -40,8 +40,8 @@ on:
         default: true
 
 jobs:
-  deploy:
-    name: Deploy
+  run:
+    name: Run
     runs-on: [self-hosted, plutus-shared]
     permissions:
       contents: write
