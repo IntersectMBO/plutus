@@ -935,93 +935,71 @@ Read Note [Pattern matching on built-in types] next.
 -}
 
 {- Note [Pattern matching on built-in types]
-At the moment we really only support direct pattern matching on enumeration types: 'Void', 'Unit',
-'Bool' etc. This is because the denotation of a builtin cannot construct general terms (as opposed
-to constants), only juggle the ones that were provided as arguments without changing them.
-So e.g. if we wanted to add the following data type:
+Pattern matching over an enumeration built-in type ('Void', 'Unit', 'Bool' etc) is trivially
+implementable, see the 'IfThenElse' example in Note [How to add a built-in function: simple cases].
+Not so much for algebraic data types with at least one constructor carrying some kind of content.
+For example the @(:)@ constructor of @[a]@ carries an @a@ and all constructors of 'Data' carry
+something (e.g. 'I' carries an 'Integer' and 'Constr' carries an @Integer@ and a @[Data]@).
 
-    newtype AnInt = AnInt Int
+In Haskell we'd represent the pattern matching function for lists as follows:
 
-as a built-in type, we wouldn't be able to add the following function as its pattern matcher:
+    caseList f z xs0 = case xs0 of
+       []   -> z
+       x:xs -> f x xs
 
-    matchAnInt :: AnInt -> (Int -> r) -> r
-    matchAnInt (AnInt i) f = f i
+but in the denotation of a built-in function all those @f@, @z@ and @xs0@ are of type @val@, i.e.
+the type of values that the given evaluator uses (e.g. 'CkValue' for the CK machine or 'CekValue'
+for the CEK machine) and we don't know to apply one @val@ to another. We could try to constrain
+@val@ to implement some kind of "apply" function or try to somehow "parse" it into Haskell so that
+it becomes @val -> val@, but even if there was a way of doing either thing, it would be very
+complex and, more importantly, it's just not the job of the builtins machinery to evaluate such
+applications, it's what the actual evaluator does.
 
-because currently we cannot express the @f i@ part using the builtins machinery as that would
-require applying an arbitrary Plutus Core function in the denotation of a builtin, which would
-allow us to return arbitrary terms from the builtin application machinery, which is something
-that we originally had, but decided to abandon due to performance concerns.
+Hence we employ a very simple strategy: whenever we want to return an iterated application of a
+@val@ to a bunch of @val@s from a built-in function, we just construct it as is without trying to
+evaluate it and let the evaluator perform all the necessary reductions.
 
-But it's still possible to have @AnInt@ as a built-in type, it's just that instead of trying to
-make its pattern matcher into a builtin we can have the following builtin:
+So if you want to return an application from a built-in function, you need to use 'HeadSpine at the
+type level and 'headSpine' at the term level, where the latter has the following signature:
 
-    anIntToInt :: AnInt -> Int
-    anIntToInt (AnInt i) = i
+    headSpine :: Opaque val asToB -> [val] -> Opaque (HeadSpine val) b
 
-which fits perfectly well into the builtins machinery.
+'headSpine' takes the head of the application, i.e. a function from @a0@, @a1@ ... @an@ to @b@, and
+applies it to a list of values of respective types, returning a `b`.
 
-Although that becomes annoying for more complex data types. For tuples we need to provide two
-projection functions ('fst' and 'snd') instead of a single pattern matcher, which is not too bad,
-but to get pattern matching on lists we need a more complicated setup. For example we can have three
-built-in functions: @null@, @head@ and @tail@, plus require `Bool` to be in the universe, so that we
-can define an equivalent of
+Back to the pattern matcher for lists:
 
-    matchList :: [a] -> r -> (a -> [a] -> r) -> r
-    matchList xs z f = if null xs then z else f (head xs) (tail xs)
+    caseList f z xs0 = case xs0 of
+       []   -> z
+       x:xs -> f x xs
 
-If a constructor stores more than one value, the corresponding projection function packs them
-into a (possibly nested) pair, for example for
+Here's how we can define it as a built-in function using 'headSpine':
 
-    data Data
-        = Constr Integer [Data]
-        | <...>
+    toBuiltinMeaning _ver CaseList =
+        let caseListDenotation
+                :: Opaque val b
+                -> Opaque val (a -> [a] -> b)
+                -> SomeConstant uni [a]
+                -> BuiltinResult (Opaque (HeadSpine val) b)
+            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) = do
+                case uniListA of
+                    DefaultUniList uniA -> pure $ case xs0 of
+                        []     -> headSpine z []                                             -- [1]
+                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]  -- [2]
+                    _ ->
+                        throwing _StructuralUnliftingError "Expected a list but got something else"
+            {-# INLINE caseListDenotation #-}
+        in makeBuiltinMeaning
+            caseListDenotation
+            <costingFunction>
 
-we have (pseudocode):
-
-    unConstrData (Constr i ds) = (i, ds)
-
-In order to get pattern matching over 'Data' we need a projection function per constructor as well
-as with lists, but writing (where the @Data@ suffix indicates that a function is a builtin that
-somehow corresponds to a constructor of 'Data')
-
-    if isConstrData d
-        then uncurry fConstr $ unConstrData d
-        else if isMapData d
-            then fMap $ unMapData d
-            else if isListData d
-                then fList $ unListData d
-                else <...>
-
-is tedious and inefficient and so instead we have a single @chooseData@ builtin that matches on
-its @Data@ argument and chooses the appropriate branch (type instantiations and strictness concerns
-are omitted for clarity):
-
-     chooseData
-        (uncurry fConstr $ unConstrData d)
-        (fMap $ unMapData d)
-        (fList $ unListData d)
-        <...>
-        d
-
-which, for example, evaluates to @fMap es@ when @d@ is @Map es@
-
-We decided to handle lists the same way by using @chooseList@ rather than @null@ for consistency.
-
-On the bright side, this encoding of pattern matchers does work, so maybe it's indeed worth to
-prioritize performance over convenience, especially given the fact that performance is of a concern
-to every single end user while the inconvenience is only a concern for the compiler writers and
-we don't add complex built-in types too often.
-
-It is not however clear if we can't get more performance gains by defining matchers directly as
-higher-order built-in functions compared to forbidding them. Particularly since if higher-order
-built-in functions were allowed, we could define not only matchers, but also folds and keep
-recursion on the Haskell side for conversions from 'Data', which can potentially have a huge
-positive impact on performance.
-
-See https://github.com/IntersectMBO/plutus/pull/5486 for how higher-order builtins would look
-like.
-
-Read Note [Representable built-in functions over polymorphic built-in types] next.
+All the unlifting logic is the same as with, say, 'NullList' from
+Note [How to add a built-in function: complicated cases], the only things that are different are [1]
+and [2]. In [2] we have an iterated application of the given function @f@ to the head of the list
+@x@ (lifted from a constant value to @val@ visa 'fromValueOf') and the tail of the list @xs@ (lifted
+to @val@ the same way). In [1] we return the given @z@, but since we need to return a 'HeadSpine'
+(required by [2]), we have to use 'headSpine' just like in [2] except with an empty spine, since @z@
+isn't applied to anything.
 -}
 
 {- Note [Representable built-in functions over polymorphic built-in types]
@@ -1113,7 +1091,7 @@ functions.
 -}
 
 -- | Take a function and a list of arguments and apply the former to the latter.
-headSpine :: Opaque val ab -> [val] -> Opaque (HeadSpine val) b
+headSpine :: Opaque val asToB -> [val] -> Opaque (HeadSpine val) b
 headSpine (Opaque f) = Opaque . \case
     []      -> HeadOnly f
     x0 : xs ->
@@ -2299,3 +2277,75 @@ instance Flat DefaultFun where
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
+
+{- Note [Legacy pattern matching on built-in types]
+We used to only support direct pattern matching on enumeration types: 'Void', 'Unit', 'Bool'
+etc. This is because it was impossible to return an iterated application from a built-in function.
+
+So e.g. if we wanted to add the following data type:
+
+    newtype AnInt = AnInt Int
+
+as a built-in type, we wouldn't be able to add the following function as its pattern matcher:
+
+    matchAnInt :: AnInt -> (Int -> r) -> r
+    matchAnInt (AnInt i) f = f i
+
+because we could not express the @f i@ part using the builtins machinery.
+
+But it still was possible to have @AnInt@ as a built-in type, it's just that instead of trying to
+make its pattern matcher into a builtin we could have the following builtin:
+
+    anIntToInt :: AnInt -> Int
+    anIntToInt (AnInt i) = i
+
+Although that was an annoyance for more complex data types. For tuples we needed to provide two
+projection functions ('fst' and 'snd') instead of a single pattern matcher, which is not too bad,
+but to get pattern matching on lists we needed a more complicated setup. For example originally we
+would define three built-in functions: @null@, @head@ and @tail@, plus require `Bool` to be in the
+universe, so that we can define an equivalent of
+
+    matchList :: [a] -> r -> (a -> [a] -> r) -> r
+    matchList xs z f = if null xs then z else f (head xs) (tail xs)
+
+If a constructor stores more than one value, the corresponding projection function would pack them
+into a (possibly nested) pair, for example for
+
+    data Data
+        = Constr Integer [Data]
+        | <...>
+
+we had (pseudocode):
+
+    unConstrData (Constr i ds) = (i, ds)
+
+and we still have that built-in function for backwards compatibility reasons.
+
+In order to get pattern matching over 'Data' we needed a projection function per constructor as well
+as with lists, but writing (where the @Data@ suffix indicates that a function is a builtin that
+somehow corresponds to a constructor of 'Data')
+
+    if isConstrData d
+        then uncurry fConstr $ unConstrData d
+        else if isMapData d
+            then fMap $ unMapData d
+            else if isListData d
+                then fList $ unListData d
+                else <...>
+
+is tedious and inefficient and so instead we introduced a single @chooseData@ builtin that matches
+on its @Data@ argument and chooses the appropriate branch (type instantiations and strictness
+concerns are omitted for clarity):
+
+     chooseData
+        (uncurry fConstr $ unConstrData d)
+        (fMap $ unMapData d)
+        (fList $ unListData d)
+        <...>
+        d
+
+which, for example, evaluates to @fMap es@ when @d@ is @Map es@
+
+We decided to handle lists the same way by using @chooseList@ rather than @null@ for consistency,
+before introduction of pattern matching builtins.
+-}
