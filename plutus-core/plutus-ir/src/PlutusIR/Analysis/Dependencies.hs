@@ -172,23 +172,10 @@ bindingDeps b = case b of
     vDeps <- tyVarDeclDeps d
     tvDeps <- traverse tyVarDeclDeps tvs
     cstrDeps <- traverse varDeclDeps constrs
-    -- Destructors depend on the datatype and the argument types of all the constructors,
-    -- because e.g. a destructor for Maybe looks like:
-    -- forall a . Maybe a -> (a -> r) -> r -> r
-    -- i.e. the argument type of the Just constructor appears as the argument to the branch.
-    --
-    -- We can get the effect of that by having it depend on all the constructor types
-    -- (which also include the datatype).
-    -- This is more diligent than currently necessary since we're going to make all the
-    -- term-level parts depend on each other later, but it's good practice and will be
-    -- useful if we ever stop doing that.
-    destrDeps <-
-      G.overlays
-        <$> (withCurrent destr $ traverse (typeDeps . _varDeclType) constrs)
-    let tus = fmap (view PLC.theUnique) (destr : fmap _varDeclName constrs)
-    -- See Note [Dependencies for datatype bindings, and pruning them]
-    let nonDatatypeClique = G.clique (fmap Variable tus)
-    pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [destrDeps] ++ [nonDatatypeClique]
+    let tyus = fmap (view PLC.theUnique) $ _tyVarDeclName d : fmap _tyVarDeclName tvs
+    let tus = fmap (view PLC.theUnique) $ destr : fmap _varDeclName constrs
+    let localDeps = G.clique (fmap Variable $ tyus ++ tus)
+    pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [localDeps]
 
 varDeclDeps ::
   ( DepGraph g
