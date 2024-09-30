@@ -126,45 +126,49 @@
                   let
                     !`$j` : Bool -> integer
                       = \(cond : Bool) ->
-                          let
-                            ~`$j` : integer
-                              = Bool_match
-                                  cond
-                                  {all dead. integer}
-                                  (/\dead -> x)
-                                  (/\dead ->
-                                     Bool_match
-                                       cond
-                                       {all dead. integer}
-                                       (/\dead -> xB)
-                                       (/\dead -> x)
-                                       {all dead. dead})
-                                  {all dead. dead}
-                            ~`$j` : integer
-                              = Bool_match
-                                  cond
-                                  {all dead. integer}
-                                  (/\dead ->
-                                     Bool_match
-                                       cond
-                                       {all dead. integer}
-                                       (/\dead -> xAB)
-                                       (/\dead -> `$j`)
-                                       {all dead. dead})
-                                  (/\dead -> `$j`)
-                                  {all dead. dead}
-                          in
                           Bool_match
-                            cond
+                            (Bool_match
+                               cond
+                               {all dead. Bool}
+                               (/\dead ->
+                                  Bool_match
+                                    cond
+                                    {all dead. Bool}
+                                    (/\dead -> False)
+                                    (/\dead -> True)
+                                    {all dead. dead})
+                               (/\dead -> False)
+                               {all dead. dead})
                             {all dead. integer}
+                            (/\dead -> xA)
                             (/\dead ->
                                Bool_match
-                                 cond
+                                 (Bool_match
+                                    cond
+                                    {all dead. Bool}
+                                    (/\dead -> cond)
+                                    (/\dead -> False)
+                                    {all dead. dead})
                                  {all dead. integer}
-                                 (/\dead -> `$j`)
-                                 (/\dead -> xA)
+                                 (/\dead -> xAB)
+                                 (/\dead ->
+                                    Bool_match
+                                      (Bool_match
+                                         (Bool_match
+                                            cond
+                                            {all dead. Bool}
+                                            (/\dead -> False)
+                                            (/\dead -> True)
+                                            {all dead. dead})
+                                         {all dead. Bool}
+                                         (/\dead -> cond)
+                                         (/\dead -> False)
+                                         {all dead. dead})
+                                      {all dead. integer}
+                                      (/\dead -> xB)
+                                      (/\dead -> x)
+                                      {all dead. dead})
                                  {all dead. dead})
-                            (/\dead -> `$j`)
                             {all dead. dead}
                   in
                   Bool_match

@@ -50,11 +50,6 @@ common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
 
-flag use-ghc-stub
-  description: Use the `plutus-ghc-stub` package instead of `ghc`.
-  default:     False
-  manual:      True
-
 library
   import:          lang, ghc-version-support, os-support
   hs-source-dirs:  src
@@ -85,6 +80,7 @@ library
     , either
     , extra
     , flat                                  ^>=0.6
+    , ghc
     , lens
     , mtl
     , plutus-core:{plutus-core, plutus-ir}  ^>=1.34
@@ -93,14 +89,6 @@ library
     , template-haskell
     , text
     , uniplate
-
-  if flag(use-ghc-stub)
-    build-depends: plutus-ghc-stub
-    ghc-options:
-      -Wno-unused-packages -Wno-unused-imports -Wno-overlapping-patterns
-
-  else
-    build-depends: ghc
 
 executable gen-plugin-opts-doc
   import:           lang, ghc-version-support, os-support
@@ -121,10 +109,6 @@ executable gen-plugin-opts-doc
 
 test-suite plutus-tx-plugin-tests
   import:             lang, ghc-version-support, os-support
-
-  if flag(use-ghc-stub)
-    buildable: False
-
   type:               exitcode-stdio-1.0
   hs-source-dirs:     test
   main-is:            Spec.hs

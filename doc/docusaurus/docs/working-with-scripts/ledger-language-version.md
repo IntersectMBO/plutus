@@ -41,7 +41,7 @@ Thus in Plutus Tx, a spending script has the following type:
 BuiltinData -> BuiltinData -> BuiltinData -> any
 ```
 
-To create a Plutus script using Plutus Tx, it is common to first write a function that takes the corresonding Haskell domain types and returns `Bool`.
+To create a Plutus script using Plutus Tx, it is common to first write a function that takes the corresponding Haskell domain types and returns `Bool`.
 For example, the following function can be used to implement the main business logic of a Plutus V1 spending script:
 
 ```haskell

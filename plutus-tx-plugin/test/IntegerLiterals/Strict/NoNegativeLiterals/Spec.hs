@@ -20,7 +20,7 @@ import Test.Tasty.Extras
 
 tests :: TestNested
 tests = testNested "IntegerLiterals" . pure $ testNestedGhc
-  [ goldenPir "integerLiterals-Strict-NoNegativeLiterals" integerLiterals
+  [ goldenPirReadable "integerLiterals-Strict-NoNegativeLiterals" integerLiterals
   ]
 
 integerLiterals :: CompiledCode (Integer -> Integer)
