@@ -1,12 +1,3 @@
-<a id='changelog-1.34.0.1'></a>
-# 1.34.0.1 — 2024-09-30
-
-## Added
-
-- `hashScriptWithPrefix` to `PlutusLedgerApi.Common.SerialisedScript`. 
-
-- Exported `hashScriptWithPrefix` from `PlutusLedgerApi.Common`
-
 <a id='changelog-1.34.0.0'></a>
 # 1.34.0.0 — 2024-09-09
 
