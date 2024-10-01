@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-template
-version:         0.1.0.0
+version:         0.2.0.0
 license:
 build-type:      Simple
 extra-doc-files: README.md
@@ -17,10 +17,10 @@ executable plutus-tx-template
     , base
     , base16-bytestring
     , bytestring
-    , plutus-core        ^>=1.26.0.0
-    , plutus-ledger-api  ^>=1.26.0.0
-    , plutus-tx          ^>=1.26.0.0
-    , plutus-tx-plugin   ^>=1.26.0.0
+    , plutus-core        ^>=1.34.1.0
+    , plutus-ledger-api  ^>=1.34.1.0
+    , plutus-tx          ^>=1.34.1.0
+    , plutus-tx-plugin   ^>=1.34.1.0
     , text
     , time
     , flat

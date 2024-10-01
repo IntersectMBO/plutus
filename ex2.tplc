@@ -1,4 +1,0 @@
-(program
-  1.1.0
-  { (abs Bool (type) (lam x Bool (lam y Bool x))) (all a (type) (fun a a)) }
-)
