@@ -43,7 +43,7 @@ import Data.ByteString (ByteString)
 -- >      (fI : integer -> r)
 -- >      (fB : bytestring -> r) ->
 -- >          fix {data} {r} \(rec : data -> r) (d : data) ->
--- >              caseData
+-- >              matchData
 -- >                  d
 -- >                  {r}
 -- >                  (\(i : integer) (ds : list data) -> fConstr i (omapList {data} rec ds)
@@ -68,7 +68,7 @@ ofoldrData = runQuote $ do
     let listData = mkTyBuiltin @_ @[Data] ()
         listR = TyApp () list r
         opair a = mkIterTyAppNoAnn pair [a, a]
-        unwrap' ann = apply ann $ mapFun Left caseData
+        unwrap' ann = apply ann $ mapFun Left matchData
     return
         . lamAbs () fConstr (TyFun () integer $ TyFun () listR r)
         . lamAbs () fMap (TyFun () (TyApp () list $ opair r) r)

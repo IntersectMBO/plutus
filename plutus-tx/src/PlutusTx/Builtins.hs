@@ -45,6 +45,7 @@ module PlutusTx.Builtins (
                          -- * Data
                          , BuiltinData
                          , chooseData
+                         , BI.caseData'
                          , matchData
                          , matchData'
                          , equalsData
@@ -73,6 +74,7 @@ module PlutusTx.Builtins (
                          , mkNil
                          , mkNilOpaque
                          , null
+                         , BI.caseList'
                          , matchList
                          , matchList'
                          , headMaybe
@@ -133,7 +135,6 @@ module PlutusTx.Builtins (
                          ) where
 
 import Data.Maybe
-import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.HasBuiltin
 import PlutusTx.Builtins.HasOpaque
@@ -420,21 +421,20 @@ null l = fromOpaque (BI.null l)
 
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> (() -> r) -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.chooseList l nilCase (\_ -> consCase (BI.head l) (BI.tail l)) ()
+matchList l nilCase consCase = BI.caseList' nilCase (\x xs _ -> consCase x xs) l ()
 
 {-# INLINABLE matchList' #-}
--- | Like `matchList` but evaluates @nilCase@ strictly.
 matchList' :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList' l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
+matchList' l nilCase consCase = BI.caseList' nilCase consCase l
 
 {-# INLINE headMaybe #-}
 headMaybe :: BI.BuiltinList a -> Maybe a
-headMaybe l = matchList' l Nothing (\h _ -> Just h)
+headMaybe = BI.caseList' Nothing (\h _ -> Just h)
 
 {-# INLINE uncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
 uncons :: BI.BuiltinList a -> Maybe (a, BI.BuiltinList a)
-uncons l = matchList' l Nothing (\h t -> Just (h, t))
+uncons = BI.caseList' Nothing (\h t -> Just (h, t))
 
 {-# INLINE unsafeUncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
@@ -512,6 +512,18 @@ unsafeDataAsB = BI.unsafeDataAsB
 equalsData :: BuiltinData -> BuiltinData -> Bool
 equalsData d1 d2 = fromOpaque (BI.equalsData d1 d2)
 
+{-# INLINABLE matchData' #-}
+matchData'
+    :: BuiltinData
+    -> (Integer -> BI.BuiltinList BuiltinData -> r)
+    -> (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> r)
+    -> (BI.BuiltinList BuiltinData -> r)
+    -> (Integer -> r)
+    -> (BuiltinByteString -> r)
+    -> r
+matchData' d constrCase mapCase listCase iCase bCase =
+    BI.caseData' constrCase mapCase listCase iCase bCase d
+
 {-# INLINABLE matchData #-}
 -- | Given a 'BuiltinData' value and matching functions for the five constructors,
 -- applies the appropriate matcher to the arguments of the constructor and returns the result.
@@ -524,35 +536,12 @@ matchData
     -> (BuiltinByteString -> r)
     -> r
 matchData d constrCase mapCase listCase iCase bCase =
-   chooseData
-   d
-   (\_ -> uncurry constrCase (unsafeDataAsConstr d))
-   (\_ -> mapCase (unsafeDataAsMap d))
-   (\_ -> listCase (unsafeDataAsList d))
-   (\_ -> iCase (unsafeDataAsI d))
-   (\_ -> bCase (unsafeDataAsB d))
-   ()
-
-{-# INLINABLE matchData' #-}
--- | Given a 'BuiltinData' value and matching functions for the five constructors,
--- applies the appropriate matcher to the arguments of the constructor and returns the result.
-matchData'
-    :: BuiltinData
-    -> (Integer -> BI.BuiltinList BuiltinData -> r)
-    -> (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> r)
-    -> (BI.BuiltinList BuiltinData -> r)
-    -> (Integer -> r)
-    -> (BuiltinByteString -> r)
-    -> r
-matchData' d constrCase mapCase listCase iCase bCase =
-   chooseData
-   d
-   (\_ -> let tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
-   (\_ -> mapCase (BI.unsafeDataAsMap d))
-   (\_ -> listCase (BI.unsafeDataAsList d))
-   (\_ -> iCase (unsafeDataAsI d))
-   (\_ -> bCase (unsafeDataAsB d))
-   ()
+   matchData' d
+     (\i ds -> constrCase i (fromOpaque ds))
+     (\ps -> mapCase (fromOpaque ps))
+     (\ds -> listCase (fromOpaque ds))
+     iCase
+     bCase
 
 -- G1 --
 {-# INLINABLE bls12_381_G1_equals #-}

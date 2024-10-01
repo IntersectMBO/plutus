@@ -714,6 +714,22 @@ enterComputeCek = computeCek
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
 
+    -- | Push arguments onto the stack. The first argument will be the most recent entry.
+    pushArgs
+        :: Spine (CekValue uni fun ann)
+        -> Context uni fun ann
+        -> Context uni fun ann
+    pushArgs args ctx = foldr FrameAwaitFunValue ctx args
+
+    -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
+    -- the returning phase of the CEK machine.
+    returnCekHeadSpine
+        :: Context uni fun ann
+        -> HeadSpine (CekValue uni fun ann)
+        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+    returnCekHeadSpine ctx (HeadOnly  x)    = returnCek ctx x
+    returnCekHeadSpine ctx (HeadSpine f xs) = returnCek (pushArgs xs ctx) f
+
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
     -- if v is a builtin application then check that it's expecting a type argument,
@@ -731,12 +747,11 @@ enterComputeCek = computeCek
         case runtime of
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
-            BuiltinExpectForce runtime' -> do
+            BuiltinExpectForce runtime' ->
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
-                res <- evalBuiltinApp fun term' runtime'
-                returnCek ctx res
+                evalBuiltinApp ctx fun term' runtime'
             _ ->
                 throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
     forceEvaluate !_ val =
@@ -766,9 +781,8 @@ enterComputeCek = computeCek
         case runtime of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            BuiltinExpectArgument f -> do
-                res <- evalBuiltinApp fun term' $ f arg
-                returnCek ctx res
+            BuiltinExpectArgument f ->
+                evalBuiltinApp ctx fun term' $ f arg
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
     applyEvaluate !_ val _ =
@@ -808,28 +822,36 @@ enterComputeCek = computeCek
         when (unbudgetedStepsTotal >= ?cekSlippage) spendAccumulatedBudget
     {-# INLINE stepAndMaybeSpend #-}
 
-    -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
-    -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
-    -- fully saturated or not.
+    -- | Take a possibly partial builtin application and
+    --
+    -- - either create a 'CekValue' by evaluating the application if it's saturated (emitting logs,
+    --    if any, along the way), potentially failing evaluation
+    -- - or create a partial builtin application otherwise
+    --
+    -- and proceed with the returning phase of the CEK machine.
     evalBuiltinApp
-        :: fun
+        :: Context uni fun ann
+        -> fun
         -> NTerm uni fun ()
         -> BuiltinRuntime (CekValue uni fun ann)
-        -> CekM uni fun s (CekValue uni fun ann)
-    evalBuiltinApp fun term runtime = case runtime of
-        BuiltinCostedResult budgets0 getX -> do
+        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+    evalBuiltinApp ctx fun term runtime = case runtime of
+        BuiltinCostedResult budgets0 getFXs -> do
             let exCat = BBuiltinApp fun
                 spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
                 spendBudgets (ExBudgetCons budget budgets) =
                     spendBudget exCat budget *> spendBudgets budgets
             spendBudgets budgets0
-            case getX of
-                BuiltinSuccess x              -> pure x
-                BuiltinSuccessWithLogs logs x -> ?cekEmitter logs $> x
-                BuiltinFailure logs err       -> do
+            case getFXs of
+                BuiltinSuccess fXs ->
+                    returnCekHeadSpine ctx fXs
+                BuiltinSuccessWithLogs logs fXs -> do
+                    ?cekEmitter logs
+                    returnCekHeadSpine ctx fXs
+                BuiltinFailure logs err -> do
                     ?cekEmitter logs
                     throwBuiltinErrorWithCause term err
-        _ -> pure $ VBuiltin fun term runtime
+        _ -> returnCek ctx $ VBuiltin fun term runtime
     {-# INLINE evalBuiltinApp #-}
 
     spendBudget :: ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
