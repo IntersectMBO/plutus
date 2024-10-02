@@ -46,6 +46,7 @@ module PlutusTx.Builtins (
                          , BuiltinData
                          , chooseData
                          , BI.caseData'
+                         , caseData
                          , matchData
                          , matchData'
                          , equalsData
@@ -75,6 +76,7 @@ module PlutusTx.Builtins (
                          , mkNilOpaque
                          , null
                          , BI.caseList'
+                         , caseList
                          , matchList
                          , matchList'
                          , headMaybe
@@ -419,9 +421,13 @@ encodeUtf8 = BI.encodeUtf8
 null :: forall a. BI.BuiltinList a -> Bool
 null l = fromOpaque (BI.null l)
 
+{-# INLINABLE caseList #-}
+caseList :: forall a r . (() -> r) -> (a -> BI.BuiltinList a -> r) -> BI.BuiltinList a -> r
+caseList nilCase consCase l = BI.caseList' nilCase (\x xs _ -> consCase x xs) l ()
+
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> (() -> r) -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.caseList' nilCase (\x xs _ -> consCase x xs) l ()
+matchList l nilCase consCase = caseList nilCase consCase l
 
 {-# INLINABLE matchList' #-}
 matchList' :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
@@ -512,6 +518,23 @@ unsafeDataAsB = BI.unsafeDataAsB
 equalsData :: BuiltinData -> BuiltinData -> Bool
 equalsData d1 d2 = fromOpaque (BI.equalsData d1 d2)
 
+{-# INLINABLE caseData #-}
+caseData
+    :: (Integer -> [BuiltinData] -> r)
+    -> ([(BuiltinData, BuiltinData)] -> r)
+    -> ([BuiltinData] -> r)
+    -> (Integer -> r)
+    -> (BuiltinByteString -> r)
+    -> BuiltinData
+    -> r
+caseData constrCase mapCase listCase iCase bCase =
+   BI.caseData'
+     (\i ds -> constrCase i (fromOpaque ds))
+     (\ps -> mapCase (fromOpaque ps))
+     (\ds -> listCase (fromOpaque ds))
+     iCase
+     bCase
+
 {-# INLINABLE matchData' #-}
 matchData'
     :: BuiltinData
@@ -536,12 +559,7 @@ matchData
     -> (BuiltinByteString -> r)
     -> r
 matchData d constrCase mapCase listCase iCase bCase =
-   matchData' d
-     (\i ds -> constrCase i (fromOpaque ds))
-     (\ps -> mapCase (fromOpaque ps))
-     (\ds -> listCase (fromOpaque ds))
-     iCase
-     bCase
+   caseData constrCase mapCase listCase iCase bCase d
 
 -- G1 --
 {-# INLINABLE bls12_381_G1_equals #-}
