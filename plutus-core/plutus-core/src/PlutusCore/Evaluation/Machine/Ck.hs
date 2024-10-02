@@ -25,7 +25,7 @@ module PlutusCore.Evaluation.Machine.Ck
     , readKnownCk
     -- Exported to make doctests work.
     , Frame (..)
-    , pushArgs
+    , transferSpine
     ) where
 
 import PlutusPrelude
@@ -233,14 +233,14 @@ FrameCase cs : stack <| e = case e of
         Nothing -> throwingWithCause _MachineError (MissingCaseBranch i) (Just $ ckValueToTerm e)
     _ -> throwingWithCause _MachineError NonConstrScrutinized (Just $ ckValueToTerm e)
 
--- | Push arguments onto the stack. The first argument will be the most recent entry.
-
+-- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
+--
 -- >>> import PlutusCore.Default
 -- >>> import PlutusCore.Builtin
--- >>> pushArgs (SpineCons (fromValue (1 :: Integer)) (SpineLast (fromValue (2 :: Integer)))) [FrameUnwrap :: Frame DefaultUni DefaultFun]
+-- >>> transferSpine (SpineCons (fromValue (1 :: Integer)) (SpineLast (fromValue (2 :: Integer)))) [FrameUnwrap :: Frame DefaultUni DefaultFun]
 -- [FrameAwaitFunValue (VCon (Some (ValueOf DefaultUniInteger 1))),FrameAwaitFunValue (VCon (Some (ValueOf DefaultUniInteger 2))),FrameUnwrap]
-pushArgs :: Spine (CkValue uni fun) -> Context uni fun -> Context uni fun
-pushArgs args ctx = foldr ((:) . FrameAwaitFunValue) ctx args
+transferSpine :: Spine (CkValue uni fun) -> Context uni fun -> Context uni fun
+transferSpine args ctx = foldr ((:) . FrameAwaitFunValue) ctx args
 
 -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
 -- the returning phase of the CK machine, i.e. @<|@.
@@ -249,7 +249,7 @@ returnCkHeadSpine
     -> HeadSpine (CkValue uni fun)
     -> CkM uni fun s (Term TyName Name uni fun ())
 returnCkHeadSpine stack (HeadOnly  x)    = stack <| x
-returnCkHeadSpine stack (HeadSpine f xs) = pushArgs xs stack <| f
+returnCkHeadSpine stack (HeadSpine f xs) = transferSpine xs stack <| f
 
 -- | Take a possibly partial builtin application and
 --

@@ -573,6 +573,14 @@ transferArgStack :: ArgStack uni fun ann -> Context uni fun ann -> Context uni f
 transferArgStack EmptyStack c           = c
 transferArgStack (ConsStack arg rest) c = transferArgStack rest (FrameAwaitFunValue arg c)
 
+-- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
+transferSpine
+    :: Spine (CekValue uni fun ann)
+    -> Context uni fun ann
+    -> Context uni fun ann
+transferSpine args ctx = foldr FrameAwaitFunValue ctx args
+{-# INLINE transferSpine #-}
+
 runCekM
     :: forall a cost uni fun ann
     . ThrowableBuiltins uni fun
@@ -714,13 +722,6 @@ enterComputeCek = computeCek
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
 
-    -- | Push arguments onto the stack. The first argument will be the most recent entry.
-    pushArgs
-        :: Spine (CekValue uni fun ann)
-        -> Context uni fun ann
-        -> Context uni fun ann
-    pushArgs args ctx = foldr FrameAwaitFunValue ctx args
-
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
     -- the returning phase of the CEK machine.
     returnCekHeadSpine
@@ -728,7 +729,7 @@ enterComputeCek = computeCek
         -> HeadSpine (CekValue uni fun ann)
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     returnCekHeadSpine ctx (HeadOnly  x)    = returnCek ctx x
-    returnCekHeadSpine ctx (HeadSpine f xs) = returnCek (pushArgs xs ctx) f
+    returnCekHeadSpine ctx (HeadSpine f xs) = returnCek (transferSpine xs ctx) f
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;

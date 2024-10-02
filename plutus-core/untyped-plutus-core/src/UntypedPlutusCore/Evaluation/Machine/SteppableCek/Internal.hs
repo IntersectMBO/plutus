@@ -113,6 +113,10 @@ transferArgStack ann = go
     go EmptyStack c           = c
     go (ConsStack arg rest) c = go rest (FrameAwaitFunValue ann arg c)
 
+-- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
+transferSpine :: ann -> Spine (CekValue uni fun ann) -> Context uni fun ann -> Context uni fun ann
+transferSpine ann args ctx = foldr (FrameAwaitFunValue ann) ctx args
+
 computeCek
     :: forall uni fun ann s
     . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
@@ -432,10 +436,6 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
             var = Var () varName
         Just val -> pure val
 
--- | Push arguments onto the stack. The first argument will be the most recent entry.
-pushArgs :: ann -> Spine (CekValue uni fun ann) -> Context uni fun ann -> Context uni fun ann
-pushArgs ann args ctx = foldr (FrameAwaitFunValue ann) ctx args
-
 -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
 -- the returning phase of the CEK machine.
 returnCekHeadSpine
@@ -444,7 +444,7 @@ returnCekHeadSpine
     -> HeadSpine (CekValue uni fun ann)
     -> CekM uni fun s (CekState uni fun ann)
 returnCekHeadSpine _   ctx (HeadOnly  x)    = pure $ Returning ctx x
-returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (pushArgs ann xs ctx) f
+returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (transferSpine ann xs ctx) f
 
 -- | Take a possibly partial builtin application and
 --
