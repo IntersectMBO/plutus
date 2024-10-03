@@ -568,11 +568,27 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue
         VConstr {}  -> singletonRose 1
     {-# INLINE memoryUsage #-}
 
+{- Note [ArgStack vs Spine]
+We use 'ArgStack' for collecting the arguments of a constructor to later pass it to the function in
+the appropriate branch. Originally, all arguments of a constructor are terms and hence before we can
+pass them to a function they need to be evaluated to values, which means that in case of the CEK
+machine the evaluated arguments are going to be reversed: you evaluate the first argument and put
+the result into a 'FrameConstr', then the second one and put it in a 'FrameConstr' again, this time
+prepending it to the one that is already there etc -- in the end you get the arguments in reversed
+order. Which is why 'transferArgStack' is a left fold (just like 'reverse').
+
+But in case of 'Spine' the builtins machinery directly produces values, not terms. Meaning, a
+'Spine' that we get from the builtins machinery isn't reversed, hence we can pass its contents
+directly to the head of the application. Which is why 'transferSpine' is a right fold.
+-}
+
+-- See Note [ArgStack vs Spine].
 -- | Transfers an 'ArgStack' to a series of 'Context' frames.
 transferArgStack :: ArgStack uni fun ann -> Context uni fun ann -> Context uni fun ann
 transferArgStack EmptyStack c           = c
 transferArgStack (ConsStack arg rest) c = transferArgStack rest (FrameAwaitFunValue arg c)
 
+-- See Note [ArgStack vs Spine].
 -- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
 transferSpine
     :: Spine (CekValue uni fun ann)
