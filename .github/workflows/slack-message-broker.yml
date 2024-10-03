@@ -4,6 +4,7 @@
 name: "📮 Slack Message Broker"
 
 on:
+  workflow_dispatch: # Only used for testing
   workflow_run:
     types: [completed, requested, in_progress]
     workflows: 
