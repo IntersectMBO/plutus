@@ -1,4 +1,19 @@
 
+<a id='changelog-1.35.0.0'></a>
+# 1.35.0.0 — 2024-10-04
+
+## Removed
+
+- Removed `PlutusIR.Core.Instance.Pretty.Readable.PrettyPir`.
+  Use `PlutusCore.Pretty.Readable.PrettyReadable` instead.
+
+## Changed
+
+- Renamed `PlutusIR.Core.Instance.Pretty.Readable.prettyPirReadable`
+  to `PlutusCore.Pretty.Readable.prettyReadable`.
+- Renamed `PlutusIR.Core.Instance.Pretty.Readable.prettyPirReadableSimple`
+  to `PlutusCore.Pretty.Readable.prettyReadableSimple`.
+
 <a id='changelog-1.34.1.0'></a>
 # 1.34.1.0 — 2024-09-14
 
