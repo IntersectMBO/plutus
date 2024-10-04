@@ -8,11 +8,13 @@
 {-# LANGUAGE TypeSynonymInstances      #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE NamedFieldPuns            #-}
 module Main (main) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
-import PlutusCore.Compiler.Types (UPLCSimplifierTrace (..), initUPLCSimplifierTrace)
+import PlutusCore.Compiler.Types (UPLCSimplification (..), UPLCSimplifierTrace (..),
+                                  initUPLCSimplifierTrace)
 import PlutusCore.Data (Data)
 import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
@@ -275,11 +277,12 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
   runCertifier cert simplificationTrace
   where
     runCertifier (Just certName) (UPLCSimplifierTrace uplcSimplTrace) = do
-      let processAgdaAST t =
-              case UPLC.deBruijnTerm t of
-                Right res                            -> res
-                Left (err :: UPLC.FreeVariableError) -> error $ show err
-          rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
+      let processAgdaAST UPLCSimplification {beforeAST, stage, afterAST} =
+              case (UPLC.deBruijnTerm beforeAST, UPLC.deBruijnTerm afterAST) of
+                (Right before', Right after')             -> (stage, (AgdaFFI.conv (void before'), AgdaFFI.conv (void after')))
+                (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
+                (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
+          rawAgdaTrace = processAgdaAST <$> uplcSimplTrace
       Agda.runCertifier (T.pack certName) rawAgdaTrace
     runCertifier Nothing _ = pure ()
 

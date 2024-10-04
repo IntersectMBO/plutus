@@ -27,6 +27,7 @@ containing the generated proof object, a.k.a. the _certificate_. The certificate
 it into Agda and checking that it is correctly typed.
 
 ```
+{-# OPTIONS --allow-unsolved-metas #-}
 module VerifiedCompilation where
 ```
 
@@ -55,6 +56,17 @@ import Relation.Binary as Binary using (Decidable)
 open import VerifiedCompilation.UntypedTranslation using (Translation; Relation; translation?)
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
+
+data SimplifierTag : Set where
+  floatDelayT : SimplifierTag
+  forceDelayT : SimplifierTag
+  caseOfCaseT : SimplifierTag
+  caseReduceT : SimplifierTag
+  inlineT : SimplifierTag
+  cseT : SimplifierTag
+
+{-# COMPILE GHC SimplifierTag = data UPLCSimplifierStage (FloatDelay | ForceDelay | CaseOfCase | CaseReduce | Inline | CSE) #-}
+
 ```
 
 ## Compiler optimisation traces
@@ -80,31 +92,19 @@ which produces a `Trace` always produces a correct one, although it might be use
 
 ```
 
-data Trace (R : Relation) : { X : Set } {{_ : DecEq X}} → List ((X ⊢) × (X ⊢)) → Set₁ where
+data Trace (R : Relation) : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
   empty : {X : Set}{{_ : DecEq X}}  → Trace R {X} []
-  cons : {X : Set}{{_ : DecEq X}}  {x x' : X ⊢} {xs : List ((X ⊢) × (X ⊢))} → R x x' → Trace R {X} xs → Trace R {X} ((x , x') ∷ xs)
+  cons : {X : Set}{{_ : DecEq X}}  {tag : SimplifierTag} {x x' : X ⊢} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → R x x' → Trace R {X} xs → Trace R {X} ((tag , x , x') ∷ xs)
 
 data IsTransformation : Relation where
   isCoC : {X : Set}{{_ : DecEq X}}  → (ast ast' : X ⊢) → UCC.CoC ast ast' → IsTransformation ast ast'
   isFD : {X : Set}{{_ : DecEq X}}  → (ast ast' : X ⊢) → UFD.FD zero zero ast ast' → IsTransformation ast ast'
 
 isTrace? : {X : Set} {{_ : DecEq X}} {R : Relation} → Binary.Decidable (R {X}) → Unary.Decidable (Trace R {X})
-isTrace? {X} {R} isR? [] = yes empty
-isTrace? {X} {R} isR? ((x₁ , x₂) ∷ xs) with isTrace? {X} {R} isR? xs
-... | no ¬p = no λ {(cons a as) → ¬p as}
-... | yes p with isR? x₁ x₂
-...   | no ¬p = no λ {(cons x x₁) → ¬p x}
-...   | yes p₁ = yes (cons p₁ p)
+isTrace? {X} {R} isR? t = {!   !}
 
 isTransformation? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (IsTransformation {X})
-isTransformation? ast₁ ast₂ with UCC.isCoC? ast₁ ast₂
-... | scrt with UFD.isFD? zero zero ast₁ ast₂
-isTransformation? ast₁ ast₂ | no ¬p | no ¬p₁ = no λ {(isCoC .ast₁ .ast₂ x) → ¬p x
-                                                   ; (isFD .ast₁ .ast₂ x) → ¬p₁ x}
-isTransformation? ast₁ ast₂ | no ¬p | yes p = yes (isFD ast₁ ast₂ p)
-isTransformation? ast₁ ast₂ | yes p | no ¬p = yes (isCoC ast₁ ast₂ p)
--- TODO: this does not make much sense, see TODO above
-isTransformation? ast₁ ast₂ | yes p | yes p₁ = yes (isCoC ast₁ ast₂ p)
+isTransformation? ast₁ ast₂ = {!   !}
 
 ```
 ## Serialising the proofs
@@ -127,11 +127,11 @@ showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ "
 showTranslation Translation.builtin = "builtin"
 showTranslation Translation.error = "error"
 
-showTrace : {X : Set} {{_ : DecEq X}} {xs : List ((X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
+showTrace : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
 showTrace empty = "empty"
 showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
 
-serializeTraceProof : {X : Set} {{_ : DecEq X}} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
+serializeTraceProof : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
 serializeTraceProof (no ¬p) = "no"
 serializeTraceProof (yes p) = "yes " ++ showTrace p
 
@@ -149,6 +149,7 @@ with the top-level decision procedures by the `runCertifier` function.
 {-# FOREIGN GHC import qualified Data.Text.IO as TextIO #-}
 {-# FOREIGN GHC import qualified System.IO as IO #-}
 {-# FOREIGN GHC import qualified Data.Text as Text #-}
+{-# FOREIGN GHC import PlutusCore.Compiler.Types #-}
 
 postulate FileHandle : Set
 {-# COMPILE GHC FileHandle = type IO.Handle #-}
@@ -167,26 +168,20 @@ buildPairs [] = []
 buildPairs (x ∷ []) = (x , x) ∷ []
 buildPairs (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ buildPairs (x₂ ∷ xs)
 
-traverseEitherList : {A B E : Set} → (A → Either E B) → List A → Either E (List B)
+traverseEitherList : {A B E : Set} → (A → Either E B) → List (SimplifierTag × A × A) → Either E (List (SimplifierTag × B × B))
 traverseEitherList _ [] = inj₂ []
-traverseEitherList f (x ∷ xs) with f x
-... | inj₁ err = inj₁ err
-... | inj₂ x' with traverseEitherList f xs
-...     | inj₁ err = inj₁ err
-...     | inj₂ resList = inj₂ (x' ∷ resList)
+traverseEitherList f ((tag , before , after) ∷ xs) = {!   !}
 
 certifier
   : {X : Set} {{_ : DecEq X}}
-  → List Untyped
+  → List (SimplifierTag × Untyped × Untyped)
   → Unary.Decidable (Trace (Translation IsTransformation) {Maybe X})
   → Either ScopeError String
 certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
 ... | inj₁ err = inj₁ err
-... | inj₂ rawTrace =
-  let inputTrace = buildPairs rawTrace
-   in inj₂ (serializeTraceProof (isRTrace? inputTrace))
+... | inj₂ inputTrace = inj₂ (serializeTraceProof (isRTrace? inputTrace))
 
-runCertifier : String → List Untyped → IO ⊤
+runCertifier : String → List (SimplifierTag × Untyped × Untyped) → IO ⊤
 runCertifier fileName rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
 ... | inj₁ err = hPutStrLn stderr "error" -- TODO: pretty print error
 ... | inj₂ result = writeFile (fileName ++ ".agda") result
