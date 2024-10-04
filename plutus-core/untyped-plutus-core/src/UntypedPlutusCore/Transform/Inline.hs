@@ -26,6 +26,7 @@ module UntypedPlutusCore.Transform.Inline (inline, InlineHints (..)) where
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
+import PlutusCore.Compiler.Types
 import PlutusCore.MkPlc (mkIterApp)
 import PlutusCore.Name.Unique
 import PlutusCore.Name.UniqueMap qualified as UMap
@@ -173,20 +174,24 @@ See Note [Inlining and global uniqueness]
 -}
 inline ::
   forall name uni fun m a.
-  (ExternalConstraints name uni fun m) =>
+  MonadState (UPLCSimplifierTrace name uni fun a) m =>
+  ExternalConstraints name uni fun m =>
   -- | inline constants
   Bool ->
   InlineHints name a ->
   PLC.BuiltinSemanticsVariant fun ->
   Term name uni fun a ->
   m (Term name uni fun a)
-inline inlineConstants hints builtinSemanticsVariant t =
-  liftQuote $ flip evalStateT mempty $ runReaderT (processTerm t) InlineInfo
-    { _iiUsages = Usages.termUsages t
-    , _iiHints  = hints
-    , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
-    , _iiInlineConstants = inlineConstants
-    }
+inline inlineConstants hints builtinSemanticsVariant t = do
+  result <-
+    liftQuote $ flip evalStateT mempty $ runReaderT (processTerm t) InlineInfo
+      { _iiUsages = Usages.termUsages t
+      , _iiHints  = hints
+      , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
+      , _iiInlineConstants = inlineConstants
+      }
+  recordSimplification t Inline result
+  return result
 
 -- See Note [Differences from PIR inliner] 3
 

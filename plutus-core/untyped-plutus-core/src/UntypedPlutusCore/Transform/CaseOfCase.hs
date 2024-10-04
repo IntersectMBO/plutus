@@ -19,13 +19,25 @@ This is always an improvement.
 module UntypedPlutusCore.Transform.CaseOfCase (caseOfCase) where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Compiler.Types
 import PlutusCore.MkPlc
 import UntypedPlutusCore.Core
 
 import Control.Lens
+import Control.Monad.State.Class (MonadState)
 
-caseOfCase :: (fun ~ PLC.DefaultFun) => Term name uni fun a -> Term name uni fun a
-caseOfCase = transformOf termSubterms $ \case
+caseOfCase
+    :: MonadState (UPLCSimplifierTrace name uni fun a) m
+    => fun ~ PLC.DefaultFun
+    => Term name uni fun a
+    -> m (Term name uni fun a)
+caseOfCase term = do
+  let result = transformOf termSubterms processTerm term
+  recordSimplification term CaseOfCase result
+  return result
+
+processTerm :: (fun ~ PLC.DefaultFun) => Term name uni fun a -> Term name uni fun a
+processTerm = \case
   Case ann scrut alts
     | ( ite@(Force a (Builtin _ PLC.IfThenElse))
         , [cond, (trueAnn, true@Constr{}), (falseAnn, false@Constr{})]

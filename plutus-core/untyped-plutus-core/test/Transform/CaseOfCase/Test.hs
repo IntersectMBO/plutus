@@ -111,7 +111,7 @@ caseOfCaseWithError =
 testCaseOfCaseWithError :: TestTree
 testCaseOfCaseWithError =
   testCase "Transformation doesn't evaluate error eagerly" do
-    let simplifiedTerm = caseOfCase caseOfCaseWithError
+    simplifiedTerm <- caseOfCase caseOfCaseWithError
     evaluateUplc simplifiedTerm @?= evaluateUplc caseOfCaseWithError
 
 ----------------------------------------------------------------------------------------------------

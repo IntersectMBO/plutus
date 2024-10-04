@@ -8,6 +8,7 @@ module UntypedPlutusCore.Transform.Cse (cse) where
 
 import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
+import PlutusCore.Compiler.Types
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
 import UntypedPlutusCore.Size (termSize)
@@ -15,6 +16,7 @@ import UntypedPlutusCore.Size (termSize)
 import Control.Arrow ((>>>))
 import Control.Lens (foldrOf, transformOf)
 import Control.Monad (join, void)
+import Control.Monad.State.Class (MonadState)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, local)
 import Control.Monad.Trans.State.Strict (State, evalState, get, put)
@@ -209,6 +211,7 @@ data CseCandidate uni fun ann = CseCandidate
 
 cse ::
   ( MonadQuote m
+  , MonadState (UPLCSimplifierTrace Name uni fun ann) m
   , Hashable (Term Name uni fun ())
   , Rename (Term Name uni fun ann)
   , ToBuiltinMeaning uni fun
@@ -229,7 +232,9 @@ cse builtinSemanticsVariant t0 = do
           . join
           . Map.elems
           $ countOccs builtinSemanticsVariant annotated
-  mkCseTerm commonSubexprs annotated
+  result <- mkCseTerm commonSubexprs annotated
+  recordSimplification t0 CSE result
+  return result
 
 -- | The second pass. See Note [CSE].
 annotate :: Term name uni fun ann -> Term name uni fun (Path, ann)
