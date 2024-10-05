@@ -168,7 +168,7 @@ As of PlutusV3, the Plutus language versions and corresponding prefixes are as f
   PlutusV3 -> 0x3
 -}
 hashScriptWithPrefix :: Word8 -> SerialisedScript -> BS.ByteString
-hashScriptWithPrefix prefix script = Hash.blake2b_224 $ BS.singleton prefix <> (fromShort script)
+hashScriptWithPrefix prefix script = Hash.blake2b_224 (BS.singleton prefix <> fromShort script)
 
 {- | Deserialises a 'SerialisedScript' back into an AST. Does *not* do
 ledger-language-version-specific checks like for allowable builtins.
