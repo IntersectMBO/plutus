@@ -56,6 +56,7 @@ import Relation.Binary as Binary using (Decidable)
 open import VerifiedCompilation.UntypedTranslation using (Translation; Relation; translation?)
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
+import Relation.Nary as Nary using (Decidable)
 
 data SimplifierTag : Set where
   floatDelayT : SimplifierTag
@@ -91,19 +92,25 @@ which produces a `Trace` always produces a correct one, although it might be use
 `IsTransformation?` is currently quadratic in the number of transformations, which is not ideal.
 
 ```
+TaggedRelation = { X : Set } → {{_ : DecEq X}} → SimplifierTag → (X ⊢) → (X ⊢) → Set₁
 
-data Trace (R : Relation) : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
+data Trace (R : TaggedRelation) : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
   empty : {X : Set}{{_ : DecEq X}}  → Trace R {X} []
-  cons : {X : Set}{{_ : DecEq X}}  {tag : SimplifierTag} {x x' : X ⊢} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → R x x' → Trace R {X} xs → Trace R {X} ((tag , x , x') ∷ xs)
+  cons : {X : Set}{{_ : DecEq X}}  {tag : SimplifierTag} {x x' : X ⊢} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → R tag x x' → Trace R {X} xs → Trace R {X} ((tag , x , x') ∷ xs)
 
 data IsTransformation : Relation where
-  isCoC : {X : Set}{{_ : DecEq X}}  → (ast ast' : X ⊢) → UCC.CoC ast ast' → IsTransformation ast ast'
-  isFD : {X : Set}{{_ : DecEq X}}  → (ast ast' : X ⊢) → UFD.FD zero zero ast ast' → IsTransformation ast ast'
+  isCoC : {X : Set}{{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → UCC.CoC ast ast' → IsTransformation ast ast'
+  isFD : {X : Set}{{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → UFD.FD zero zero ast ast' → IsTransformation ast ast'
 
-isTrace? : {X : Set} {{_ : DecEq X}} {R : Relation} → Binary.Decidable (R {X}) → Unary.Decidable (Trace R {X})
-isTrace? {X} {R} isR? t = {!   !}
+isTrace? : {X : Set} {{_ : DecEq X}} {R : TaggedRelation} → Nary.Decidable (R {X}) → Unary.Decidable (Trace R {X})
+isTrace? {X} {R = R} isR? [] = yes empty
+isTrace? {X} {R = R} isR? ((tag , x₁ , x₂) ∷ xs) with isTrace? {X} {R = R} isR? xs
+... | no ¬pₜ = no λ {(cons _ rest) → ¬pₜ rest}
+... | yes pₜ with isR? tag x₁ x₂
+... | no ¬pₑ = no λ {(cons x _) → ¬pₑ x}
+... | yes pₑ = yes (cons pₑ pₜ)
 
-isTransformation? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (IsTransformation {X})
+isTransformation? : {X : Set} {{_ : DecEq X}} → Nary.Decidable (IsTransformation {X})
 isTransformation? ast₁ ast₂ = {!   !}
 
 ```
@@ -114,26 +121,26 @@ The proof objects are converted to a textual representation which can be written
 **TODO**: Finish the implementation. A textual representation is not usually ideal, but it is a good starting point.
 
 ```
-showTranslation : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Translation IsTransformation ast ast' → String
-showTranslation (Translation.istranslation x) = "istranslation TODO"
-showTranslation Translation.var = "var"
-showTranslation (Translation.ƛ t) = "(ƛ " ++ showTranslation t ++ ")"
-showTranslation (Translation.app t t₁) = "(app " ++ showTranslation t ++ " " ++ showTranslation t₁ ++ ")"
-showTranslation (Translation.force t) = "(force " ++ showTranslation t ++ ")"
-showTranslation (Translation.delay t) = "(delay " ++ showTranslation t ++ ")"
-showTranslation Translation.con = "con"
-showTranslation (Translation.constr x) = "(constr TODO)"
-showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ ")"
-showTranslation Translation.builtin = "builtin"
-showTranslation Translation.error = "error"
+-- showTranslation : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Translation IsTransformation ast ast' → String
+-- showTranslation (Translation.istranslation x) = "istranslation TODO"
+-- showTranslation Translation.var = "var"
+-- showTranslation (Translation.ƛ t) = "(ƛ " ++ showTranslation t ++ ")"
+-- showTranslation (Translation.app t t₁) = "(app " ++ showTranslation t ++ " " ++ showTranslation t₁ ++ ")"
+-- showTranslation (Translation.force t) = "(force " ++ showTranslation t ++ ")"
+-- showTranslation (Translation.delay t) = "(delay " ++ showTranslation t ++ ")"
+-- showTranslation Translation.con = "con"
+-- showTranslation (Translation.constr x) = "(constr TODO)"
+-- showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ ")"
+-- showTranslation Translation.builtin = "builtin"
+-- showTranslation Translation.error = "error"
+-- 
+-- showTrace : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
+-- showTrace empty = "empty"
+-- showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
 
-showTrace : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
-showTrace empty = "empty"
-showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
-
-serializeTraceProof : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
-serializeTraceProof (no ¬p) = "no"
-serializeTraceProof (yes p) = "yes " ++ showTrace p
+-- serializeTraceProof : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
+-- serializeTraceProof (no ¬p) = "no"
+-- serializeTraceProof (yes p) = "yes " ++ showTrace p
 
 ```
 
@@ -179,7 +186,7 @@ certifier
   → Either ScopeError String
 certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
 ... | inj₁ err = inj₁ err
-... | inj₂ inputTrace = inj₂ (serializeTraceProof (isRTrace? inputTrace))
+... | inj₂ inputTrace = inj₂ ? -- (serializeTraceProof (isRTrace? inputTrace))
 
 runCertifier : String → List (SimplifierTag × Untyped × Untyped) → IO ⊤
 runCertifier fileName rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
