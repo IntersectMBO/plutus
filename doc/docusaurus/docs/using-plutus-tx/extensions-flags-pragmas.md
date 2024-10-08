@@ -69,7 +69,7 @@ ghc-options:
 
 ### Pragmas
 
-All functions and methods should have the `INLINEABLE` pragma, so that their unfoldings are made available to the Plutus Tx compiler.
+All functions and methods should have the `INLINEABLE` pragma (not the `INLINE` pragma, which should generally be avoided), so that their unfoldings are made available to the Plutus Tx compiler.
 
 The `-fexpose-all-unfoldings` flag also makes GHC expose all unfoldings, but unfoldings exposed this way can be more optimized than unfoldings exposed via `INLINEABLE`.
 In general, we do not want GHC to perform optimizations, since GHC optimizes a program based on the assumption that it has non-strict semantics and is evaluated lazily (call by need), which is not true for Plutus Tx programs.
