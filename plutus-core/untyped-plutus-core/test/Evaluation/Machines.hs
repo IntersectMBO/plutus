@@ -44,7 +44,7 @@ testMachine
     => String
     -> (Term Name uni fun () ->
            Either
-               (EvaluationException operational structural (Term Name uni fun ()))
+               (EvaluationException structural operational (Term Name uni fun ()))
                (Term Name uni fun ()))
     -> TestTree
 testMachine machine eval =
@@ -54,7 +54,7 @@ testMachine machine eval =
             let resExp =
                     eraseTerm <$>
                         makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
-            case extractEvaluationResult . eval $ eraseTerm term of
+            case splitStructuralOperational . eval $ eraseTerm term of
                 Left err     -> fail $ show err
                 Right resAct -> resAct === resExp
 

@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE PolyKinds                 #-}
+{-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE StandaloneKindSignatures  #-}
 {-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
@@ -90,15 +91,26 @@ class
         -> fun
         -> BuiltinMeaning val (CostingPart uni fun)
 
+-- | Feed the 'TypeScheme' of the given built-in function to the continuation.
+withTypeSchemeOfBuiltinFunction
+    :: forall val fun r.
+       (ToBuiltinMeaning (UniOf val) fun, ExMemoryUsage val, Typeable val, HasConstant val)
+    => BuiltinSemanticsVariant fun
+    -> fun
+    -> (forall args res. TypeScheme val args res -> r)
+    -> r
+withTypeSchemeOfBuiltinFunction semVar fun k =
+    case toBuiltinMeaning semVar fun of
+        BuiltinMeaning sch _ _ -> k sch
+
 -- | Get the type of a built-in function.
 typeOfBuiltinFunction
     :: forall uni fun. ToBuiltinMeaning uni fun
     => BuiltinSemanticsVariant fun
     -> fun
     -> Type TyName uni ()
-typeOfBuiltinFunction semvar fun =
-    case toBuiltinMeaning @_ @_ @(Term TyName Name uni fun ()) semvar fun of
-        BuiltinMeaning sch _ _ -> typeSchemeToType sch
+typeOfBuiltinFunction semVar fun =
+    withTypeSchemeOfBuiltinFunction @(Term TyName Name uni fun ()) semVar fun typeSchemeToType
 
 {- Note [Builtin semantics variants]
 The purpose of the "builtin semantics variant" feature is to provide multiple,
@@ -405,7 +417,7 @@ toBuiltinsRuntime semvar cost =
     -- binding the @cost@ variable, which makes the optimizations useless.
     -- By using 'lazy' we tell GHC to create a separate thunk, which it can properly optimize,
     -- because the other bazillion things don't get in the way. We used to use an explicit
-    -- 'let'-binding marked with @NOINLINE@, but that turned out to be unreliable, because GHC
+    -- 'let'-binding marked with @OPAQUE@, but that turned out to be unreliable, because GHC
     -- feels free to turn it into a join point instead of a proper thunk.
     lazy . BuiltinsRuntime $ toBuiltinRuntime cost . inline toBuiltinMeaning semvar
 {-# INLINE toBuiltinsRuntime #-}

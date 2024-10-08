@@ -1,9 +1,13 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE BlockArguments       #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingVia          #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
@@ -13,14 +17,20 @@ module PlutusLedgerApi.V3.Tx (
 ) where
 
 import Control.DeepSeq (NFData)
+import Data.Function ((&))
 import Data.String (IsString)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
-import PlutusTx qualified
+import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition, definitionRef)
+import PlutusTx.Blueprint.Schema (withSchemaInfo)
+import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..))
+import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Builtins.Internal qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.IsData.Class (FromData, ToData, UnsafeFromData)
+import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as PlutusTx
 import Prettyprinter (Pretty, pretty)
 
@@ -31,7 +41,7 @@ You may want to add checks for its invariants. See the Shelley ledger specificat
 -}
 newtype TxId = TxId {getTxId :: PlutusTx.BuiltinByteString}
   deriving stock (Eq, Ord, Generic)
-  deriving anyclass (NFData)
+  deriving anyclass (NFData, HasBlueprintDefinition)
   deriving newtype (PlutusTx.Eq, PlutusTx.Ord, ToData, FromData, UnsafeFromData)
   deriving
     ( -- | from hex encoding
@@ -42,6 +52,12 @@ newtype TxId = TxId {getTxId :: PlutusTx.BuiltinByteString}
       Pretty
     )
     via LedgerBytes
+
+instance HasBlueprintSchema TxId referencedTypes where
+  schema =
+    schema @PlutusTx.BuiltinByteString
+      & withSchemaInfo \info ->
+        info{title = Just "TxId"}
 
 {- | A reference to a transaction output. This is a
 pair of a transaction ID (`TxId`), and an index indicating which of the outputs
@@ -54,7 +70,7 @@ data TxOutRef = TxOutRef
   -- ^ Index into the referenced transaction's outputs
   }
   deriving stock (Show, Eq, Ord, Generic)
-  deriving anyclass (NFData)
+  deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance Pretty TxOutRef where
   pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
@@ -65,7 +81,9 @@ instance PlutusTx.Eq TxOutRef where
     (txOutRefId l PlutusTx.== txOutRefId r)
       PlutusTx.&& (txOutRefIdx l PlutusTx.== txOutRefIdx r)
 
-PlutusTx.makeLift ''TxId
+----------------------------------------------------------------------------------------------------
+-- TH Splices --------------------------------------------------------------------------------------
 
-PlutusTx.makeLift ''TxOutRef
-PlutusTx.makeIsDataIndexed ''TxOutRef [('TxOutRef, 0)]
+$(makeLift ''TxId)
+$(makeIsDataSchemaIndexed ''TxOutRef [('TxOutRef, 0)])
+$(makeLift ''TxOutRef)

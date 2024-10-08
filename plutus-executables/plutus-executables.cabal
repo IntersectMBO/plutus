@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-executables
-version:         0.1.0.0
+version:         1.34.0.0
 synopsis:        Tools for running plutus core programs
 homepage:        https://github.com/IntersectMBO/plutus
 license:         Apache-2.0
@@ -15,6 +15,10 @@ build-type:      Simple
 extra-doc-files:
   CHANGELOG.md
   README.md
+
+source-repository head
+  type:     git
+  location: https://github.com/IntersectMBO/plutus
 
 common lang
   default-language:   Haskell2010
@@ -58,7 +62,7 @@ executable pir
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib, plutus-ir}  ^>=1.32
+    , plutus-core:{plutus-core, plutus-core-execlib, plutus-ir}  ^>=1.35
     , text
     , transformers
 
@@ -71,10 +75,10 @@ executable plc
     , bytestring
     , flat                                            ^>=0.6
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.32
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.35
 
 executable uplc
-  import:         lang
+  import:         lang, os-support
   main-is:        uplc/Main.hs
   hs-source-dirs: executables
   build-depends:
@@ -86,7 +90,7 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.32
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.35
     , plutus-metatheory
     , prettyprinter
     , split
@@ -116,7 +120,7 @@ test-suite test-detailed
     , base
     , directory
     , extra
-    , plutus-core        ^>=1.32
+    , plutus-core        ^>=1.35
     , plutus-metatheory
     , process
     , tasty

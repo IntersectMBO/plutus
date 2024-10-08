@@ -29,7 +29,6 @@ packages: cardano-constitution
           plutus-tx-plugin
           plutus-tx-test-util
           prettyprinter-configurable
-          stubs/plutus-ghc-stub
           doc/docusaurus/docusaurus-examples.cabal
 
 -- We never, ever, want this.
@@ -60,11 +59,6 @@ if impl(ghc < 9.0) || os(windows)
   allow-older: plutus-cert:base
 
 if os(windows)
-   -- When cross compiling we don't have a `ghc` package, so use
-  -- the `plutus-ghc-stub` package instead.
-  package plutus-tx-plugin
-    flags: +use-ghc-stub
-
   -- Exclude tests that use `doctest`.  They will not work for
   -- cross compilation and `cabal` will not be able to make a plan.
   package prettyprinter-configurable
@@ -100,8 +94,8 @@ allow-newer:
 --
 -- package cardano-constitution
 --   flags: +force-build
--- allow-newer: cardano-constitution:plutus-ledger-api
--- allow-newer: cardano-constitution:prettyprinter-configurable
+-- allow-newer: *:plutus-ledger-api
+-- allow-newer: *:prettyprinter-configurable
 -- allow-older: *:nothunks
 
 -- -------------------------------------------------------------------------------------------------

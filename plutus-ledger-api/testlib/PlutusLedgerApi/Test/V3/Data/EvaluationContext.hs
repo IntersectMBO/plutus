@@ -76,13 +76,13 @@ clearBuiltinCostModel r = r
                , paramXorByteString = mempty
                , paramComplementByteString = mempty
                , paramReadBit = mempty
-               , paramWriteBits = mempty
                , paramReplicateByte = mempty
                , paramShiftByteString = mempty
                , paramRotateByteString = mempty
                , paramCountSetBits = mempty
                , paramFindFirstSetBit = mempty
                , paramRipemd_160 = mempty
+               , paramWriteBits = mempty
                , paramExpModInteger = mempty
                }
 
@@ -93,17 +93,6 @@ clearBuiltinCostModel' :: (m ~ MBuiltinCostModel) => m -> m
 clearBuiltinCostModel' r = r
                { -- , paramIntegerToByteString = mempty -- Required for V2
                -- , paramByteStringToInteger = mempty -- Required for V2
-                 paramAndByteString = mempty
-               , paramOrByteString = mempty
-               , paramXorByteString = mempty
-               , paramComplementByteString = mempty
-               , paramReadBit = mempty
-               , paramWriteBits = mempty
-               , paramReplicateByte = mempty
-               , paramShiftByteString = mempty
-               , paramRotateByteString = mempty
-               , paramCountSetBits = mempty
-               , paramFindFirstSetBit = mempty
-               , paramRipemd_160 = mempty
+                 paramWriteBits = mempty
                , paramExpModInteger = mempty
                }

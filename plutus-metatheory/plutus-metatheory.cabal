@@ -67,7 +67,7 @@ library
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.32
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.35
     , process
     , text
     , transformers
@@ -267,17 +267,18 @@ library
     MAlonzo.Code.Raw
     MAlonzo.Code.RawU
     MAlonzo.Code.Reflection
-    MAlonzo.Code.Reflection.AST.Abstraction
-    MAlonzo.Code.Reflection.AST.Argument
-    MAlonzo.Code.Reflection.AST.Argument.Information
-    MAlonzo.Code.Reflection.AST.Argument.Modality
-    MAlonzo.Code.Reflection.AST.Argument.QQuantity
-    MAlonzo.Code.Reflection.AST.Argument.Relevance
-    MAlonzo.Code.Reflection.AST.Argument.Visibility
-    MAlonzo.Code.Reflection.AST.Literal
-    MAlonzo.Code.Reflection.AST.Meta
-    MAlonzo.Code.Reflection.AST.Name
-    MAlonzo.Code.Reflection.AST.Term
+    MAlonzo.Code.Reflection.Abstraction
+    MAlonzo.Code.Reflection.Argument
+    MAlonzo.Code.Reflection.Argument.Information
+    MAlonzo.Code.Reflection.Argument.Modality
+    MAlonzo.Code.Reflection.Argument.QQuantity
+    MAlonzo.Code.Reflection.Argument.Relevance
+    MAlonzo.Code.Reflection.Argument.Visibility
+    MAlonzo.Code.Reflection.Literal
+    MAlonzo.Code.Reflection.Meta
+    MAlonzo.Code.Reflection.Name
+    MAlonzo.Code.Reflection.Show
+    MAlonzo.Code.Reflection.Term
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
     MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
@@ -555,6 +556,18 @@ library
     MAlonzo.Code.Reflection
     MAlonzo.Code.Data.Float.Properties
     MAlonzo.Code.Data.Word.Properties
+    MAlonzo.Code.Reflection.Abstraction
+    MAlonzo.Code.Reflection.Argument
+    MAlonzo.Code.Reflection.Argument.Information
+    MAlonzo.Code.Reflection.Argument.Modality
+    MAlonzo.Code.Reflection.Argument.QQuantity
+    MAlonzo.Code.Reflection.Argument.Relevance
+    MAlonzo.Code.Reflection.Argument.Visibility
+    MAlonzo.Code.Reflection.Literal
+    MAlonzo.Code.Reflection.Meta
+    MAlonzo.Code.Reflection.Name
+    MAlonzo.Code.Reflection.Show
+    MAlonzo.Code.Reflection.Term
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
     MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
@@ -637,7 +650,7 @@ test-suite test-NEAT
     , base
     , lazy-search
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.32
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.35
     , plutus-metatheory
     , size-based
     , Stream

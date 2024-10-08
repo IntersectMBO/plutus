@@ -1,0 +1,1 @@
+forall a. forall b. SomeConstant DefaultUni [TyVarRep * ('TyNameRep * "a" 0)] -> Opaque Val (TyVarRep * ('TyNameRep * "b" 1)) -> Opaque Val (TyVarRep * ('TyNameRep * "b" 1)) -> BuiltinResult (Opaque Val (TyVarRep * ('TyNameRep * "b" 1)))

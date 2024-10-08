@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeOperators    #-}
 
 module Evaluation.Builtins.Common
-    ( unsafeToEvaluationResult
+    ( unsafeSplitStructuralOperational
     , evaluateCek
     , evaluateCekNoEmit
     , readKnownCek
@@ -62,7 +62,7 @@ typecheckEvaluateCek
     -> m (EvaluationResult (UPLC.Term Name uni fun ()), [Text])
 typecheckEvaluateCek semvar =
     typecheckAnd semvar $ \params ->
-        first unsafeToEvaluationResult . evaluateCek logEmitter params
+        first unsafeSplitStructuralOperational . evaluateCek logEmitter params
 
 -- | Type check and evaluate a term, logging disabled.
 typecheckEvaluateCekNoEmit
@@ -75,7 +75,7 @@ typecheckEvaluateCekNoEmit
     -> m (EvaluationResult (UPLC.Term Name uni fun ()))
 typecheckEvaluateCekNoEmit semvar =
     typecheckAnd semvar $ \params ->
-        unsafeToEvaluationResult . evaluateCekNoEmit params
+        unsafeSplitStructuralOperational . evaluateCekNoEmit params
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCek

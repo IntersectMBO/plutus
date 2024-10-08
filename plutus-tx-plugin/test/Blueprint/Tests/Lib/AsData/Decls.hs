@@ -12,12 +12,12 @@ module Blueprint.Tests.Lib.AsData.Decls where
 
 import GHC.Generics (Generic)
 import Language.Haskell.TH qualified as TH
-import PlutusTx.Blueprint.Definition.Id (AsDefinitionId)
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition)
 
 datum2 :: TH.DecsQ
 datum2 =
   [d|
     data Datum2 = MkDatum2 {datum2integer :: Integer, datum2bool :: Bool}
       deriving stock (Generic)
-      deriving anyclass (AsDefinitionId)
+      deriving anyclass (HasBlueprintDefinition)
     |]

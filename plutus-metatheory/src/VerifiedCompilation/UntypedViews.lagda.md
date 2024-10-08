@@ -29,7 +29,7 @@ to recognise that pattern and extract the variables.
 Following suggestions from Philip Wadler: creating Views for each Term type and then
 allowing them to accept arbitrary sub-views should make this reusable. We can create
 patterns using nested calls to these views, and decide them with nested calls to the
-decision procedures. 
+decision procedures.
 ```
 
 Pred : Set₁

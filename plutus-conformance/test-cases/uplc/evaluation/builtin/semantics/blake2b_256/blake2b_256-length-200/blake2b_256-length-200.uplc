@@ -2,7 +2,7 @@
 -- Output obtained using the b2sum program from https://github.com/BLAKE2/BLAKE2
 (program 1.0.0
  [
-  [ 
+  [
    (builtin equalsByteString)
    [
     (builtin blake2b_256)

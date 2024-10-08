@@ -1,0 +1,1 @@
+Opaque Val Bool -> BuiltinResult Bool

@@ -105,10 +105,10 @@ instance AsEvaluationError UnliftingEvaluationError UnliftingError UnliftingErro
     {-# INLINE _EvaluationError #-}
 
 -- | An 'UnliftingEvaluationError' /is/ an 'EvaluationError', hence for this instance we only
--- require both @operational@ and @structural@ to have '_UnliftingError' prisms, so that we can
+-- require both @structural@ and @operational@ to have '_UnliftingError' prisms, so that we can
 -- handle both the cases pointwisely.
-instance (AsUnliftingError operational, AsUnliftingError structural) =>
-        AsUnliftingEvaluationError (EvaluationError operational structural) where
+instance (AsUnliftingError structural, AsUnliftingError operational) =>
+        AsUnliftingEvaluationError (EvaluationError structural operational) where
     _UnliftingEvaluationError = go . coerced where
         go =
             prism'

@@ -1,4 +1,46 @@
 
+<a id='changelog-1.35.0.0'></a>
+# 1.35.0.0 — 2024-10-04
+
+## Removed
+
+- Removed `PlutusIR.Core.Instance.Pretty.Readable.PrettyPir`.
+  Use `PlutusCore.Pretty.Readable.PrettyReadable` instead.
+
+## Changed
+
+- Renamed `PlutusIR.Core.Instance.Pretty.Readable.prettyPirReadable`
+  to `PlutusCore.Pretty.Readable.prettyReadable`.
+- Renamed `PlutusIR.Core.Instance.Pretty.Readable.prettyPirReadableSimple`
+  to `PlutusCore.Pretty.Readable.prettyReadableSimple`.
+
+<a id='changelog-1.34.1.0'></a>
+# 1.34.1.0 — 2024-09-14
+
+## Removed
+
+- Removed the `uplc`, `plc` and `pir` executables from this package. They are now in the new `plutus-executables` package.
+
+## Fixed
+
+- A bug in the`findFirstSetBit` builtin has been fixed.
+
+<a id='changelog-1.34.0.0'></a>
+# 1.34.0.0 — 2024-09-09
+
+## Changed
+
+- Swapped around the type arguments of `EvaluationError` and `EvaluationException`.
+
+<a id='changelog-1.33.0.0'></a>
+# 1.33.0.0 — 2024-08-22
+
+## Added
+
+- An initial DRAFT implementation of 'modularExponentiation' builtin
+
+- Builtin function `ripemd_160` implementing RIPEMD-160 hashing.
+
 <a id='changelog-1.32.0.0'></a>
 # 1.32.0.0 — 2024-08-06
 

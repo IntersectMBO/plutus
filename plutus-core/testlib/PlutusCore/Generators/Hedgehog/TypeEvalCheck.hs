@@ -98,7 +98,7 @@ typeEvalCheckBy
        )
     => (Term TyName Name uni fun () ->
            Either
-               (EvaluationException operational structural (Term TyName Name uni fun ()))
+               (EvaluationException structural operational (Term TyName Name uni fun ()))
                (Term TyName Name uni fun ()))
        -- ^ An evaluator.
     -> TermOf (Term TyName Name uni fun ()) a
@@ -110,7 +110,7 @@ typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
         config <- getDefTypeCheckConfig ()
         inferType config term
     if tyExpected == tyActual
-        then case extractEvaluationResult $ eval term of
+        then case splitStructuralOperational $ eval term of
                 Right valActual ->
                     if valExpected == valActual
                         then return $ TypeEvalCheckResult tyExpected valActual

@@ -43,8 +43,8 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , ExBudgetCategory(..)
     , StepKind(..)
     , ThrowableBuiltins
-    , extractEvaluationResult
-    , unsafeToEvaluationResult
+    , splitStructuralOperational
+    , unsafeSplitStructuralOperational
     , runCekDeBruijn
     , dischargeCekValue
     , Context (..)
@@ -402,7 +402,7 @@ newtype CekM uni fun s a = CekM
 
 -- | The CEK machine-specific 'EvaluationException'.
 type CekEvaluationException name uni fun =
-    EvaluationException CekUserError (MachineError fun) (Term name uni fun ())
+    EvaluationException (MachineError fun) CekUserError (Term name uni fun ())
 
 {- Note [Throwing exceptions in ST]
 This note represents MPJ's best understanding right now, might be wrong.
@@ -435,7 +435,7 @@ But in our case this is okay, because:
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
     :: ThrowableBuiltins uni fun
-    => AReview (EvaluationError CekUserError (MachineError fun)) t
+    => AReview (EvaluationError (MachineError fun) CekUserError) t
     -> t
     -> CekValue uni fun ann
     -> CekM uni fun s x
@@ -782,7 +782,7 @@ enterComputeCek = computeCek
         resetCounter ctr
     -- It's very important for this definition not to get inlined. Inlining it caused performance to
     -- degrade by 16+%: https://github.com/IntersectMBO/plutus/pull/5931
-    {-# NOINLINE spendAccumulatedBudget #-}
+    {-# OPAQUE spendAccumulatedBudget #-}
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.

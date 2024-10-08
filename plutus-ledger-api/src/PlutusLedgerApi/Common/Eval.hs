@@ -4,7 +4,6 @@
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
 
 module PlutusLedgerApi.Common.Eval
     ( EvaluationError (..)

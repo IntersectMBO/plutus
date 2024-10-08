@@ -79,7 +79,7 @@ This updates versions and version bounds, and assembles the changelogs.open a PR
 - Click `Publish release`.
 7. Open a PR in the https://github.com/IntersectMBO/cardano-haskell-packages[CHaP repository] for publishing the new version. +
 If you are making PR from your own fork then don't forget to sync your fork with the upstream first. +
-Run `./scripts/add-from-github.sh "https://github.com/IntersectMBO/plutus" COMMIT-SHA LIST-OF-UPDATED-PACKAGES` (see https://github.com/IntersectMBO/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/IntersectMBO/cardano-haskell-packages/pull/764.
+Run `./scripts/add-from-github.sh "https://github.com/IntersectMBO/plutus" COMMIT-SHA plutus-core plutus-ledger-api plutus-tx plutus-tx-plugin prettyprinter-configurable` (see https://github.com/IntersectMBO/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/IntersectMBO/cardano-haskell-packages/pull/764.
 - If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
 - Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
 It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.
@@ -87,28 +87,23 @@ For instance, if `plutus-ledger-api` is the only package changed, there is no ne
 Another example is if a security audit is done on `rc1`, and the changes in `rc2` do not modify the audited code, then the audit does not need to be re-done.
 - If another CHaP PR gets merged before yours it will invalidate the timestamps and you won't be able to merge: see the https://github.com/IntersectMBO/cardano-haskell-packages/blob/main/README.md[CHaP README file], in particular https://github.com/IntersectMBO/cardano-haskell-packages/blob/main/README.md#monotonically-increasing-timestamps[this section].  Read https://github.com/IntersectMBO/cardano-haskell-packages/blob/main/README.md#dealing-with-timestamp-conflicts[this section] for advice on how to deal with this problem.
 
-8. Once the CHaP PR has been merged, make a PR to update the version used in `cardano-ledger`. Example: https://github.com/IntersectMBO/cardano-ledger/pull/3563.
-- Update the version bounds in cabal files.
-- Update the CHaP index state in `cabal.project`.
-- Update the CHaP flake input with `nix flake update CHaP`.  If you get "error: cannot find flake 'flake:CHaP' in the flake registries" your nix installation probably needs to be updated.
-
-9. Make a PR to update the version used in `plutus-tx-template`
+8. Make a PR to update the version used in `plutus-tx-template`
 - Navigate to the https://github.com/IntersectMBO/plutus-tx-template/actions/workflows/bump-plutus-version.yml[Bump Plutus Version Action] on GitHub
 - Click the `Run workflow` button on the right, enter the new release version and confirm
 - This will automatically open a PR in `plutus-tx-template` with auto-merge enabled
 - Ensure that CI is green and the PR gets merged
 
-10. Publish the updated Metatheory site
+9. Publish the updated Metatheory site
 - Navigate to the https://github.com/IntersectMBO/plutus/actions/workflows/metatheory-site.yml[Metatheory Site Action] on GitHub
-- Click the `Run workflow` button on the right, enter the new release version and confirm
+- Click the `Run workflow` button on the right, enter the new release version 2 times, leave the checkbox Enabled, and confirm
 - Ensure that the action completes successfully
 
-11. Publish the updated Haddock site
+10. Publish the updated Haddock site
 - Navigate to the https://github.com/IntersectMBO/plutus/actions/workflows/haddock-site.yml[Haddock Site Action] on GitHub
 - Click the `Run workflow` button on the right, enter the new release version 2 times, leave the checkbox Enabled, and confirm
 - Ensure that the action completes successfully
 
-12. Delete unused branches and tags
+11. Delete unused branches and tags
 - If it was created, delete the `release/*` branch locally and on GitHub
 - If they were created, delete any release candidate `-rc*` tags locally and on GitHub
 

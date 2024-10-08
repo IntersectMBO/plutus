@@ -26,20 +26,20 @@ import Data.Proxy
 
 laziness :: TestNested
 laziness = testNested "Laziness" . pure $ testNestedGhc
-  [ goldenPir "joinError" joinErrorPir
+  [ goldenPirReadable "joinError" joinErrorPir
   , goldenUEval "joinErrorEval" [ toUPlc joinErrorPir, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False]
-  , goldenPir "lazyDepUnit" lazyDepUnit
+  , goldenPirReadable "lazyDepUnit" lazyDepUnit
   ]
 
 joinErrorPir :: CompiledCode (Bool -> Bool -> ())
 joinErrorPir = plc (Proxy @"joinError") joinError
 
-{-# NOINLINE monoId #-}
+{-# OPAQUE monoId #-}
 monoId :: Builtins.BuiltinByteString -> Builtins.BuiltinByteString
 monoId x = x
 
 -- This is a non-value let-binding, so will be delayed, and needs a dependency on Unit
-{-# NOINLINE aByteString #-}
+{-# OPAQUE aByteString #-}
 aByteString :: Builtins.BuiltinByteString
 aByteString = monoId Builtins.emptyByteString
 

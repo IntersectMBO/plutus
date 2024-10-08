@@ -28,8 +28,8 @@ module PlutusCore.Evaluation.Machine.Exception
     , throwing
     , throwing_
     , throwingWithCause
-    , extractEvaluationResult
-    , unsafeToEvaluationResult
+    , splitStructuralOperational
+    , unsafeSplitStructuralOperational
     ) where
 
 import PlutusPrelude
@@ -70,7 +70,7 @@ mtraverse makeClassyPrisms
     ]
 
 instance structural ~ MachineError fun =>
-        AsMachineError (EvaluationError operational structural) fun where
+        AsMachineError (EvaluationError structural operational) fun where
     _MachineError = _StructuralEvaluationError
     {-# INLINE _MachineError #-}
 
@@ -78,38 +78,40 @@ instance AsUnliftingError (MachineError fun) where
     _UnliftingError = _UnliftingMachineError
     {-# INLINE _UnliftingError #-}
 
-type EvaluationException operational structural =
-    ErrorWithCause (EvaluationError operational structural)
+type EvaluationException structural operational =
+    ErrorWithCause (EvaluationError structural operational)
 
 {- Note [Ignoring context in OperationalEvaluationError]
-The 'OperationalEvaluationError' error has a term argument, but 'extractEvaluationResult' just
+The 'OperationalEvaluationError' error has a term argument, but 'splitStructuralOperational' just
 discards this and returns 'EvaluationFailure'. This means that, for example, if we use the @plc@
 command to execute a program containing a division by zero, @plc@ exits silently without reporting
 that anything has gone wrong (but returning a non-zero exit code to the shell via 'exitFailure').
 This is because 'OperationalEvaluationError' is used in cases when a PLC program itself goes wrong
-(see the Haddocks of 'EvaluationError'). This is used to signal unsuccessful validation and so is
+(see the Haddock of 'EvaluationError'). This is used to signal unsuccessful validation and so is
 not regarded as a real error; in contrast structural errors are genuine errors and we report their
 context if available.
 -}
 
+-- See the Haddock of 'EvaluationError' for what structural and operational errors are.
 -- See Note [Ignoring context in OperationalEvaluationError].
 -- | Preserve the contents of an 'StructuralEvaluationError' as a 'Left' and turn an
--- 'OperationalEvaluationError' into a @Right EvaluationFailure@.
-extractEvaluationResult
-    :: Either (EvaluationException operational structural term) a
+-- 'OperationalEvaluationError' into a @Right EvaluationFailure@ (thus erasing the content of the
+-- error in the latter case).
+splitStructuralOperational
+    :: Either (EvaluationException structural operational term) a
     -> Either (ErrorWithCause structural term) (EvaluationResult a)
-extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
-extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
-    StructuralEvaluationError err -> Left  $ ErrorWithCause err cause
+splitStructuralOperational (Right term) = Right $ EvaluationSuccess term
+splitStructuralOperational (Left (ErrorWithCause evalErr cause)) = case evalErr of
+    StructuralEvaluationError err -> Left $ ErrorWithCause err cause
     OperationalEvaluationError _  -> Right EvaluationFailure
 
 -- | Throw on a 'StructuralEvaluationError' and turn an 'OperationalEvaluationError' into an
--- 'EvaluationFailure'.
-unsafeToEvaluationResult
-    :: (PrettyPlc internal, PrettyPlc term, Typeable internal, Typeable term)
-    => Either (EvaluationException user internal term) a
+-- 'EvaluationFailure' (thus erasing the content of the error in the latter case).
+unsafeSplitStructuralOperational
+    :: (PrettyPlc structural, PrettyPlc term, Typeable structural, Typeable term)
+    => Either (EvaluationException structural operational term) a
     -> EvaluationResult a
-unsafeToEvaluationResult = unsafeFromEither . extractEvaluationResult
+unsafeSplitStructuralOperational = unsafeFromEither . splitStructuralOperational
 
 instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
             PrettyBy config (MachineError fun) where

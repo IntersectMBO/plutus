@@ -107,10 +107,10 @@ builtinsIntroducedIn = Map.fromList [
   ((PlutusV2, valentinePV), Set.fromList [
           VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
           ]),
-  ((PlutusV2, conwayPlus1PV), Set.fromList [
+  ((PlutusV2, changPlus1PV), Set.fromList [
           IntegerToByteString, ByteStringToInteger
           ]),
-  ((PlutusV3, conwayPV), Set.fromList [
+  ((PlutusV3, changPV), Set.fromList [
           Bls12_381_G1_add, Bls12_381_G1_neg, Bls12_381_G1_scalarMul,
           Bls12_381_G1_equal, Bls12_381_G1_hashToGroup,
           Bls12_381_G1_compress, Bls12_381_G1_uncompress,
@@ -120,11 +120,14 @@ builtinsIntroducedIn = Map.fromList [
           Bls12_381_millerLoop, Bls12_381_mulMlResult, Bls12_381_finalVerify,
           Keccak_256, Blake2b_224, IntegerToByteString, ByteStringToInteger
           ]),
-  ((PlutusV3, futurePV), Set.fromList [
+  ((PlutusV3, changPlus1PV), Set.fromList [
           AndByteString, OrByteString, XorByteString, ComplementByteString,
-          ReadBit, WriteBits, ReplicateByte,
+          ReadBit, ReplicateByte,
           ShiftByteString, RotateByteString, CountSetBits, FindFirstSetBit,
-          Ripemd_160, ExpModInteger
+          Ripemd_160
+          ]),
+  ((PlutusV3, futurePV), Set.fromList [
+          WriteBits, ExpModInteger
           ])
   ]
 
@@ -137,7 +140,7 @@ See Note [New builtins/language versions and protocol versions]
 plcVersionsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set Version)
 plcVersionsIntroducedIn = Map.fromList [
   ((PlutusV1, alonzoPV), Set.fromList [ plcVersion100 ]),
-  ((PlutusV3, conwayPV), Set.fromList [ plcVersion110 ])
+  ((PlutusV3, changPV), Set.fromList [ plcVersion110 ])
   ]
 
 {-| Query the protocol version that a specific Plutus ledger language was first introduced in.
@@ -146,7 +149,7 @@ ledgerLanguageIntroducedIn :: PlutusLedgerLanguage -> MajorProtocolVersion
 ledgerLanguageIntroducedIn = \case
     PlutusV1 -> alonzoPV
     PlutusV2 -> vasilPV
-    PlutusV3 -> conwayPV
+    PlutusV3 -> changPV
 
 {-| Which Plutus language versions are available in the given 'MajorProtocolVersion'?
 

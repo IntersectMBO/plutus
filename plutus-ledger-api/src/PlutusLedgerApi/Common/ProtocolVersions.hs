@@ -8,8 +8,8 @@ module PlutusLedgerApi.Common.ProtocolVersions
     , alonzoPV
     , vasilPV
     , valentinePV
-    , conwayPV
-    , conwayPlus1PV
+    , changPV
+    , changPlus1PV
     , knownPVs
     , futurePV
     ) where
@@ -55,22 +55,23 @@ maryPV = MajorProtocolVersion 4
 alonzoPV :: MajorProtocolVersion
 alonzoPV = MajorProtocolVersion 5
 
--- | Vasil era was introduced in protocol version 7.0
+-- | The Vasil HF introduced the Babbage era and Plutus V2
 vasilPV :: MajorProtocolVersion
 vasilPV = MajorProtocolVersion 7
 
--- | Protocol version 8.0 was the Valentine intra-era HF
+-- | Valentine was an intra-era HF where builtin functions @VerifyEcdsaSecp256k1Signature@ and
+-- @VerifySchnorrSecp256k1Signature@ were enabled.
 valentinePV :: MajorProtocolVersion
 valentinePV = MajorProtocolVersion 8
 
--- | Conway era was introduced in protocol version 9.0
-conwayPV :: MajorProtocolVersion
-conwayPV = MajorProtocolVersion 9
+-- | The Chang HF introduced the Conway era and Plutus V3
+changPV :: MajorProtocolVersion
+changPV = MajorProtocolVersion 9
 
--- | The next HF after Conway. It doesn't yet have a name, and it's not
--- yet known whether it will be an intra-era HF or introduce a new era.
-conwayPlus1PV :: MajorProtocolVersion
-conwayPlus1PV = MajorProtocolVersion 10
+-- | The Chang+1 HF will be an intra-era HF where some new builtin functions
+-- are introduced in Plutus V2 and V3.
+changPlus1PV :: MajorProtocolVersion
+changPlus1PV = MajorProtocolVersion 10
 
 -- | The set of protocol versions that are "known", i.e. that have been released
 -- and have actual differences associated with them.
@@ -83,8 +84,8 @@ knownPVs =
     , alonzoPV
     , vasilPV
     , valentinePV
-    , conwayPV
-    , conwayPlus1PV
+    , changPV
+    , changPlus1PV
     ]
 
 -- | This is a placeholder for when we don't yet know what protocol version will

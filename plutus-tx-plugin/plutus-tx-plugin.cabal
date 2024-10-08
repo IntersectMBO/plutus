@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.32.0.0
+version:         1.35.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -50,11 +50,6 @@ common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
 
-flag use-ghc-stub
-  description: Use the `plutus-ghc-stub` package instead of `ghc`.
-  default:     False
-  manual:      True
-
 library
   import:          lang, ghc-version-support, os-support
   hs-source-dirs:  src
@@ -85,22 +80,15 @@ library
     , either
     , extra
     , flat                                  ^>=0.6
+    , ghc
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.32
-    , plutus-tx                             ^>=1.32
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.35
+    , plutus-tx                             ^>=1.35
     , prettyprinter
     , template-haskell
     , text
     , uniplate
-
-  if flag(use-ghc-stub)
-    build-depends: plutus-ghc-stub
-    ghc-options:
-      -Wno-unused-packages -Wno-unused-imports -Wno-overlapping-patterns
-
-  else
-    build-depends: ghc
 
 executable gen-plugin-opts-doc
   import:           lang, ghc-version-support, os-support
@@ -112,7 +100,7 @@ executable gen-plugin-opts-doc
     , containers
     , lens
     , optparse-applicative
-    , plutus-tx-plugin      ^>=1.32
+    , plutus-tx-plugin      ^>=1.35
     , prettyprinter
     , PyF                   >=0.11.1.0
     , text
@@ -121,10 +109,6 @@ executable gen-plugin-opts-doc
 
 test-suite plutus-tx-plugin-tests
   import:             lang, ghc-version-support, os-support
-
-  if flag(use-ghc-stub)
-    buildable: False
-
   type:               exitcode-stdio-1.0
   hs-source-dirs:     test
   main-is:            Spec.hs
@@ -179,6 +163,7 @@ test-suite plutus-tx-plugin-tests
 
   build-depends:
     , base                                            >=4.9   && <5
+    , base16-bytestring
     , bytestring
     , containers
     , deepseq
@@ -187,10 +172,10 @@ test-suite plutus-tx-plugin-tests
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.32
-    , plutus-tx-plugin                                ^>=1.32
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.35
+    , plutus-tx-plugin                                ^>=1.35
     , plutus-tx-test-util
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.32
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.35
     , serialise
     , tasty
     , tasty-golden
@@ -219,9 +204,9 @@ test-suite size
   hs-source-dirs:     test/size
   build-depends:
     , base                                            >=4.9   && <5.0
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.32
-    , plutus-tx-plugin                                ^>=1.32
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.32
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.35
+    , plutus-tx-plugin                                ^>=1.35
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.35
     , tagged
     , tasty
 

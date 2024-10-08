@@ -25,7 +25,7 @@ testMachine
     => String
     -> (Term TyName Name uni fun () ->
            Either
-               (EvaluationException operational structural (Term TyName Name uni fun ()))
+               (EvaluationException structural operational (Term TyName Name uni fun ()))
                (Term TyName Name uni fun ()))
     -> TestTree
 testMachine machine eval =

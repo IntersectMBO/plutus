@@ -18,8 +18,8 @@ module PlutusCore.Evaluation.Machine.Ck
     , CkM
     , CkValue
     , runCk
-    , extractEvaluationResult
-    , unsafeToEvaluationResult
+    , splitStructuralOperational
+    , unsafeSplitStructuralOperational
     , evaluateCk
     , evaluateCkNoEmit
     , readKnownCk
@@ -105,7 +105,7 @@ data CkUserError =
 
 -- | The CK machine-specific 'EvaluationException'.
 type CkEvaluationException uni fun =
-    EvaluationException CkUserError (MachineError fun) (Term TyName Name uni fun ())
+    EvaluationException (MachineError fun) CkUserError (Term TyName Name uni fun ())
 
 type CkM uni fun s =
     ReaderT (CkEnv uni fun s)

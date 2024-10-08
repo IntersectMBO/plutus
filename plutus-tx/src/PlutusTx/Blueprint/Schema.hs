@@ -143,6 +143,27 @@ instance ToJSON (Schema referencedTypes) where
         & optionalField "description" (description info)
         & optionalField "$comment" (comment info)
 
+withSchemaInfo :: (SchemaInfo -> SchemaInfo) -> Schema referencedTypes -> Schema referencedTypes
+withSchemaInfo f = \case
+  SchemaInteger info schema -> SchemaInteger (f info) schema
+  SchemaBytes info schema -> SchemaBytes (f info) schema
+  SchemaList info schema -> SchemaList (f info) schema
+  SchemaMap info schema -> SchemaMap (f info) schema
+  SchemaConstructor info schema -> SchemaConstructor (f info) schema
+  SchemaBuiltInData info -> SchemaBuiltInData (f info)
+  SchemaBuiltInUnit info -> SchemaBuiltInUnit (f info)
+  SchemaBuiltInBoolean info -> SchemaBuiltInBoolean (f info)
+  SchemaBuiltInInteger info -> SchemaBuiltInInteger (f info)
+  SchemaBuiltInBytes info -> SchemaBuiltInBytes (f info)
+  SchemaBuiltInString info -> SchemaBuiltInString (f info)
+  SchemaBuiltInPair info schema -> SchemaBuiltInPair (f info) schema
+  SchemaBuiltInList info schema -> SchemaBuiltInList (f info) schema
+  SchemaOneOf schemas -> SchemaOneOf schemas
+  SchemaAnyOf schemas -> SchemaAnyOf schemas
+  SchemaAllOf schemas -> SchemaAllOf schemas
+  SchemaNot schema -> SchemaNot schema
+  SchemaDefinitionRef definitionId -> SchemaDefinitionRef definitionId
+
 data IntegerSchema = MkIntegerSchema
   { multipleOf       :: Maybe Integer
   -- ^ An instance is valid if division by this value results in an integer.

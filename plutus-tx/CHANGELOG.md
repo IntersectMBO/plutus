@@ -1,4 +1,24 @@
 
+<a id='changelog-1.34.0.0'></a>
+# 1.34.0.0 — 2024-09-09
+
+## Changed
+
+- CIP-57 (Blueprints) related changes:
+  - `HasSchema` typeclass renamed to `HasBlueprintSchema`
+  - `AsDefinitionId` typeclass renamed to `HasBlueprintDefinition`
+  - `Unroll` type-family made into an associated type of `HasBlueprintSchema` in order to make it open for extension.
+  - `HasBlueprintSchema` and `HasBlueprintDefinition` instances for data types.
+
+<a id='changelog-1.33.0.0'></a>
+# 1.33.0.0 — 2024-08-22
+
+## Added
+
+- Enabled the draft modularExponentation builtin.
+
+- Builtin function `ripemd_160` implementing RIPEMD-160 hashing.
+
 <a id='changelog-1.32.0.0'></a>
 # 1.32.0.0 — 2024-08-06
 
