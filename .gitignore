@@ -104,6 +104,7 @@ node.sock
 secrets/*/.gpg-id
 ghcid.txt
 haddock
+.private
 linkchecker-out.txt
 plutus-pab/test-node/testnet/db
 plutus-pab/test-node/alonzo-purple/db
