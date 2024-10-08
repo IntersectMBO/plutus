@@ -1,10 +1,11 @@
-# This workflow sends a message to the plutus-ci channel whenever a status check.
+# This workflow sends a message to the plutus-ci channel whenever a status check fails, 
+# and tried to notify the author of the commit that caused the failure.
 
 name: "📮 Slack Message Broker"
 
 on:
-  status:
-    
+  status
+
 jobs:
   Send:
     runs-on: [ubuntu-latest]
