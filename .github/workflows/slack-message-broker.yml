@@ -3,9 +3,8 @@
 name: "📮 Slack Message Broker"
 
 on:
-  check_run: 
-    types: [completed]
-
+  status:
+    
 jobs:
   Send:
     runs-on: [ubuntu-latest]
@@ -17,14 +16,43 @@ jobs:
           script: | 
             console.log(${{ toJson(github.event) }});
 
-            const sender = "${{ github.event.sender.login }}";
-            const name = "${{ github.event.check_run.name }}";
-            const status = "${{ github.event.check_run.status }}";
-            const conclusion = "${{ github.event.check_run.conclusion }}";
-            const url = "${{ github.event.check_run.html_url }}";
+            const state = github.event.state;
+            const statusContext = github.event.context;  
+            const contextDescription = github.event.description;
+            const targetUrl = github.event.target_url 
+            const commitUrl = github.event.commit.html_url;
+            const commitSha = github.event.commit.sha.slice(0, 9);
+            const senderLogin = github.event.sender.login;
 
-            let message = `${name} \`${conclusion}\` <${url}|View Logs> @${sender}`;
-            let shouldSendMessage = conclusion == "failure";
+            function getSlackMemberToBeNotified() {
+              const slackMemberIds = {
+                "zeme-wana": "U03HGDNDRKR",
+                "effecfully": "UBH8K0ZU2",
+                "kwxm": "UCF4SL4BT",
+                "Unisay": "U02V796524S",
+                "ramsay-t": "U05T49F9FV1",
+                "ana-pantilie": "U05V2854W86",
+                "zliu41": "U03BP2HTKDK",
+                "bezirg": "UQ1LUSR8B"
+              };
+              if (senderLogin in slackMemberIds) {
+                return `<@${slackMemberIds[senderLogin]}>`;
+              } else {
+                return "@here";
+              }
+            }
+
+            let message;
+            let shouldSendMessage;
+
+            if (["failure", "error"].includes(state)) {
+              message = `🔴 ${getSlackMemberToBeNotified()} your commit <${commitUrl}|\`${commitSha}\`> failed <${targetUrl}|${statusContext}>.`
+              shouldSendMessage = true;
+            } 
+            else {
+              message = `🟢 ${getSlackMemberToBeNotified()} your commit <${commitUrl}|\`${commitSha}\`> passed <${targetUrl}|${statusContext}>.`
+              shouldSendMessage = false;
+            }
 
             console.log(`message:  ${message}`);
             console.log(`shouldSendMessage:  ${shouldSendMessage}`);
