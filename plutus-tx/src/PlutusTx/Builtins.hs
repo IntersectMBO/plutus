@@ -834,9 +834,9 @@ readBit bs i = fromOpaque (BI.readBit bs i)
 writeBits ::
   BuiltinByteString ->
   [Integer] ->
-  [Bool] ->
+  Bool ->
   BuiltinByteString
-writeBits bs ixes bits = BI.writeBits bs (toOpaque ixes) (toOpaque bits)
+writeBits bs ixes bit = BI.writeBits bs (toOpaque ixes) (toOpaque bit)
 
 -- | Given a length (first argument) and a byte (second argument), produce a 'BuiltinByteString' of
 -- that length, with that byte in every position. Will error if given a negative length, or a second
