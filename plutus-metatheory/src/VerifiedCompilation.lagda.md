@@ -59,6 +59,7 @@ open import VerifiedCompilation.UntypedTranslation using (Translation; Relation;
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
+import Relation.Nary as Nary using (Decidable)
 ```
 
 ## Compiler optimisation traces
@@ -167,7 +168,7 @@ buildPairs [] = []
 buildPairs (x ∷ []) = (x , x) ∷ []
 buildPairs (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ buildPairs (x₂ ∷ xs)
 
-traverseEitherList : {A B E : Set} → (A → Either E B) → List A → Either E (List B)
+traverseEitherList : {A B E : Set} → (A → Either E B) → List (SimplifierTag × A × A) → Either E (List (SimplifierTag × B × B))
 traverseEitherList _ [] = inj₂ []
 traverseEitherList f ((tag , before , after) ∷ xs) with f before
 ... | inj₁ e = inj₁ e
