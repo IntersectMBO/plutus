@@ -8,6 +8,6 @@
    ]
    (con (list integer) [-9223372036854775809])  -- (minBound :: Int) - 1
   ]
-  (con (list bool) [True])
+  (con bool True)
  ]
 )

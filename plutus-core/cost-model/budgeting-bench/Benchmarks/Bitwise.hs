@@ -124,18 +124,12 @@ benchReadBit =
   in createTwoTermBuiltinBenchElementwise ReadBit [] $ pairWith topBitIndex xs
 
 {- The `writeBits` function takes a bytestring, a list of positions to write to,
-   and a list of True/False values to write at those positions.  It behaves like
-   `zip` in that if the two lists are of different lengths, the trailing
-   elements of the longer list are ignored.  Because of this we only run
-   benchmarks with lists of equal length because in the general case the time
-   taken will depend only on the length of the smaller list and there's nothing
-   to be gained by traversing a two-dimensional space of inputs.  Moreover,
-   benchmarks show that the time taken by `writeBits` depends mostly on the
-   number of updates (and not on the length of the bytestring), although it may
-   take a little longer to write bits with larger indices.  We run benchmarks
-   involving increasing numbers of updates to 1024-byte bytestrings, always
-   writing the highest-indexed bit to take account of this.  We use a fresh
-   bytestring for each set of updates.
+   and a boolean value to write at those positions.  Benchmarks show that the
+   time taken by `writeBits` depends mostly on the number of updates (and not on
+   the length of the bytestring), although it may take a little longer to write
+   bits with larger indices.  We run benchmarks involving increasing numbers of
+   updates to 1024-byte bytestrings, always writing the highest-indexed bit to
+   take account of this.  We use a fresh bytestring for each set of updates.
 -}
 benchWriteBits :: Benchmark
 benchWriteBits =
@@ -145,11 +139,9 @@ benchWriteBits =
       positions = zipWith (\x n -> replicate (10*n) (topBitIndex x)) xs updateCounts
       -- Given an integer k, return a list of updates which write a bit 10*k
       -- times.  Here k will range from 1 to numSamples, which is 150.
-      mkUpdatesFor k = take (10*k) $ cycle [False, True]
-      updates = fmap mkUpdatesFor updateCounts
-      inputs = zip3 xs positions updates
+      inputs = zip3 xs positions (replicate numSamples True)
   in createThreeTermBuiltinBenchElementwiseWithWrappers
-       (id, ListCostedByLength, ListCostedByLength)
+       (id, ListCostedByLength, id)
        WriteBits [] inputs
   {- This is like createThreeTermBuiltinBenchElementwise except that the benchmark
    name contains the length of the list of updates, not the memory usage.  The

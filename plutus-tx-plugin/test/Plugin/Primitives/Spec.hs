@@ -194,4 +194,4 @@ matchData1 = plc (Proxy @"matchData1") (\(d :: Builtins.BuiltinData) -> (Builtin
 
 writeBitsIntegerToByteString :: CompiledCode (P.BuiltinByteString)
 writeBitsIntegerToByteString = plc (Proxy @"writeBitsIntegerToByteString")
-    (P.writeBits (P.integerToByteString Builtins.BigEndian 6 15) [0, 2, 5] [True, False, True])
+    (P.writeBits (P.writeBits (P.integerToByteString Builtins.BigEndian 6 15) [0, 5] True) [2] False)
