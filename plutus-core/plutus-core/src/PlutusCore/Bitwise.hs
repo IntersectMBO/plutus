@@ -29,7 +29,7 @@ import PlutusCore.Evaluation.Result (evaluationFailure)
 
 import ByteString.StrictBuilder (Builder)
 import ByteString.StrictBuilder qualified as Builder
-import Control.Exception (Exception, throw, try)
+import Control.Exception (Exception, throwIO, try)
 import Control.Monad (guard, unless, when)
 import Data.Bits (unsafeShiftL, unsafeShiftR, (.|.))
 import Data.Bits qualified as Bits
@@ -578,8 +578,8 @@ writeBits bs ixs bit = case unsafeDupablePerformIO . try $ go of
     bitLen = fromIntegral len * 8
     setOrClearAtIx :: Ptr Word8 -> Integer -> IO ()
     setOrClearAtIx ptr i
-      | i < 0 = throw $ WriteBitsException i
-      | i >= bitLen = throw $ WriteBitsException i
+      | i < 0 = throwIO $ WriteBitsException i
+      | i >= bitLen = throwIO $ WriteBitsException i
       | otherwise = do
           let (bigIx, littleIx) = i `quotRem` 8
           let flipIx = len - fromIntegral bigIx - 1
