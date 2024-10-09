@@ -14,6 +14,8 @@
 
     nixpkgs.follows = "haskell-nix/nixpkgs";
 
+    nixpkgs-unstable.follows = "haskell-nix/nixpkgs-unstable";
+
     hackage = {
       url = "github:input-output-hk/hackage.nix";
       flake = false;
