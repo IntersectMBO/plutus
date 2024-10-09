@@ -12,9 +12,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nixpkgs.follows = "haskell-nix/nixpkgs";
-
-    nixpkgs-unstable.follows = "haskell-nix/nixpkgs-unstable";
+    nixpkgs.follows = "haskell-nix/nixpkgs-2405";
 
     hackage = {
       url = "github:input-output-hk/hackage.nix";
@@ -27,7 +25,8 @@
     };
 
     haskell-nix = {
-      url = "github:input-output-hk/haskell.nix";
+      # url = "github:input-output-hk/haskell.nix?ref=2024.08.04";
+      url = "github:input-output-hk/haskell.nix/a921f7340c0c1a561f0e743d4b07b8130ea5c5be";
       inputs.hackage.follows = "hackage";
     };
   };

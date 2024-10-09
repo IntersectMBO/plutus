@@ -36,7 +36,7 @@ in
     pkgs.R
 
     # LaTeX environment
-    pkgs.texlive.latexmk
+    pkgs.texliveFull
 
     # Misc useful stuff, could make these commands but there's a lot already
     pkgs.jekyll

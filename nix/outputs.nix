@@ -35,7 +35,7 @@ in
   {
     packages.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
     packages.pre-commit-check = ghc96.pre-commit-check;
-    packages.agda-project = repoRoot.nix.agda-project;
+    packages.agda-project = repoRoot.nix.agda-project.hsPkgs.Agda.components.exes.agda;
   }
 
   (lib.optionalAttrs (system == "x86_64-linux" || system == "x86_64-darwin")
