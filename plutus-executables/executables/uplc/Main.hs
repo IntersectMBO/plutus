@@ -1,6 +1,7 @@
  -- editorconfig-checker-disable
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE OverloadedStrings         #-}
@@ -54,6 +55,8 @@ import Text.Read (readMaybe)
 
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
+
+import Agda.Syntax.Abstract qualified as HAgda
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
@@ -282,6 +285,52 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
           rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
       Agda.runCertifier (T.pack certName) rawAgdaTrace
     runCertifier Nothing _ = pure ()
+
+f :: AgdaFFI.UTerm -> HAgda.Expr
+f = undefined
+
+g :: AgdaFFI.UTerm -> String
+g (AgdaFFI.UVar x)       = "(UVar " ++ show x ++ ")"
+g (AgdaFFI.ULambda t)    = "(ULambda " ++ g t ++ ")"
+g (AgdaFFI.UApp t u)     = "(UApp " ++ g t ++ " " ++ g u ++ ")"
+g (AgdaFFI.UCon c)       = "(UCon " ++ gTagCon c ++ ")"
+g AgdaFFI.UError         = "UError"
+g (AgdaFFI.UBuiltin b)   = "(UBuiltin " ++ gBuiltin b ++ ")"
+g (AgdaFFI.UDelay t)     = "(UDelay " ++ g t ++ ")"
+g (AgdaFFI.UForce t)     = "(UForce " ++ g t ++ ")"
+g (AgdaFFI.UConstr i es) = "(UConstr " ++ show i ++ " " ++ gList g es ++ ")"
+g (AgdaFFI.UCase t cs)   = "(UCase " ++ g t ++ " " ++ gList g cs ++ ")"
+
+gTagCon :: PLC.Some (PLC.ValueOf UPLC.DefaultUni) -> String
+gTagCon x@(PLC.Some (PLC.ValueOf uni _)) = "(tagCon " ++ gUni uni ++ terribleHack (show x) ++ ")"
+
+gBuiltin :: UPLC.DefaultFun -> String
+gBuiltin = undefined
+
+gList :: (a -> String) -> [a] -> String
+gList = undefined
+
+gUni :: UPLC.DefaultUni a -> String
+gUni PLC.DefaultUniInteger              = "integer"
+gUni PLC.DefaultUniByteString           = "bytestring"
+gUni PLC.DefaultUniString               = "string"
+gUni PLC.DefaultUniBool                 = "bool"
+gUni PLC.DefaultUniUnit                 = "unit"
+gUni PLC.DefaultUniData                 = "pdata"
+gUni (PLC.DefaultUniPair t1 t2)         = "(pair " ++ gUni t1 ++ gUni t2 ++ ")"
+gUni (PLC.DefaultUniList t)             = "(list " ++ gUni t ++ ")"
+gUni PLC.DefaultUniBLS12_381_G1_Element = "bls12_381_g1_element"
+gUni PLC.DefaultUniBLS12_381_G2_Element = "bls12_381_g2_element"
+gUni PLC.DefaultUniBLS12_381_MlResult   = "bls12_381_ml_result"
+gUni _                                  = "BUG in gUni"
+
+terribleHack :: String -> String
+terribleHack str =
+  case words str of
+    ["Some", "(ValueOf", type'] : rawValue
+      | isSimpleType type' ->
+        "(" ++ unwords rawValue
+      | otherwise -> undefined
 
 ---------------- Script application ----------------
 
