@@ -36,8 +36,8 @@ module VerifiedCompilation where
 import Data.Bool.Base using (Bool; true; false; T; _∧_; _∨_; not)
 open import Data.Nat using (ℕ; zero; suc)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
-import Relation.Nullary.Negation using (¬?)
-import Relation.Nullary.Product using (_×-dec_)
+import Relation.Nullary using (¬?)
+import Relation.Nullary using (_×-dec_)
 import Relation.Binary using (Decidable)
 open import Untyped
 open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;List;[];_∷_;_×_;_,_)
@@ -55,6 +55,16 @@ import Relation.Binary as Binary using (Decidable)
 open import VerifiedCompilation.UntypedTranslation using (Translation; Relation; translation?)
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
+import Tactic
+open import Tactic.Defaults
+import Agda.Builtin.List as DList
+import Data.Product.Base as DProd
+open import Class.Show.Core
+open import Algorithmic using (⟦_⟧)
+open import Type.BetaNormal using (_⊢Nf⋆_; _⊢Ne⋆_)
+open import Type using (_∋⋆_)
+open import Builtin.Constant.Type using (TyCon; AtomicTyCon)
+open import Data.Vec.Base using (Vec)
 ```
 
 ## Compiler optimisation traces
@@ -126,13 +136,13 @@ showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ "
 showTranslation Translation.builtin = "builtin"
 showTranslation Translation.error = "error"
 
-showTrace : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
-showTrace empty = "empty"
-showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
+-- showTrace : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
+-- showTrace empty = "empty"
+-- showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
 
-serializeTraceProof : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
-serializeTraceProof (no ¬p) = "no" 
-serializeTraceProof (yes p) = "yes " ++ showTrace p -- ++ show p
+-- serializeTraceProof : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
+-- serializeTraceProof (no ¬p) = "no" 
+-- serializeTraceProof (yes p) = "yes " ++ showTrace p -- ++ show p
 
 {-# TERMINATING #-}
 derive-Show' = Tactic.derive-Show
@@ -217,7 +227,7 @@ certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
 ... | inj₁ err = inj₁ err
 ... | inj₂ rawTrace =
   let inputTrace = buildPairs rawTrace
-   in inj₂ (serializeTraceProof (isRTrace? inputTrace))
+   in ? -- inj₂ (serializeTraceProof (isRTrace? inputTrace))
 
 runCertifier : String → List Untyped → IO ⊤
 runCertifier fileName rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
