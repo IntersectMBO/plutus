@@ -39,6 +39,14 @@ let a = <expr1>
 To avoid this, you can write either `~b = <expr2>`, or `a && <expr2>` (recall that `&&` and `||` are [special](../using-plutus-tx/special-functions-and-types.md) in Plutus Tx in that their second arguments are non-strict, unlike ordinary Plutus Tx functions).
 However, keep in mind that with `~b = <expr2>`, `<expr2>` will be evaluated each time `b` is referenced, since Plutus Tx does not employ lazy evaluation, i.e., there is no memoization.
 
+## Avoiding the `INLINE` Pragma
+
+The `INLINE` pragma strongly encourages GHC to inline a function, even if it has a large body and is used multiple times.
+This can lead to significant increase in the size of the resulting UPLC program, which is problematic since size is a much scarcer resource for Plutus scripts than for regular Haskell programs.
+
+Instead, use the `INLINEABLE` pragma.
+This would leave most inlining decisions to the PIR and UPLC inliners, which are tailored for Plutus scripts and make more informed inlining decisions.
+
 ## Be Mindful of Strict Applications
 
 In Plutus Tx, as with all strict languages, function applications are strict (call by value), with the exception of a few special functions like `&&` and `||`, which are treated specially by the compiler.
