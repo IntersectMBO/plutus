@@ -3,7 +3,6 @@ TARGETS=(
     **/{LICENSE,NOTICE,README.md,TRIAGE.md} 
     CODE_OF_CONDUCT.md 
     *.adoc
-    CONTRIBUTING.adoc
 )
 
 # For some reason linkchecker fails to check these URLs though they are valid.
