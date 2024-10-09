@@ -105,3 +105,9 @@ constraints:
   -- The API has changed for version 2.2, ledger depends on the old version and ledger will not
   -- be updated until after the Conway release.
   , cardano-crypto-class ^>= 2.1
+
+-- agda v2.6.4
+source-repository-package
+    type: git
+    location: https://github.com/agda/agda
+    tag: f42acb696e43d382639f04f869e9a99ab36a91c6
