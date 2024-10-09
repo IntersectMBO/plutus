@@ -3,7 +3,7 @@
 pkgs.haskell-nix.hackage-project {
   name = "Agda";
 
-  version = "2.7.0";
+  version = "2.6.4";
 
   compiler-nix-name = "ghc96";
 

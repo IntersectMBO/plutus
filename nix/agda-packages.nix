@@ -1,10 +1,4 @@
-{ repoRoot
-, inputs
-, pkgs
-, system
-, lib
-,
-}:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 # We want to keep control of which version of Agda we use, so we supply our own and override
 # the one from nixpkgs.
@@ -24,26 +18,25 @@
 let
   Agda = repoRoot.nix.agda-project.hsPkgs.Agda;
 
-  frankenAgdaBin = pkgs.symlinkJoin {
+  frankenAgda = (pkgs.symlinkJoin {
     name = "agda";
-    version = Agda.identifier.version;
     paths = [
       Agda.components.exes.agda
       Agda.components.exes.agda-mode
     ];
+  }) //
+  {
+    version = Agda.identifier.version;
   };
 
-  frankenAgda = frankenAgdaBin // {
-    # Newer Agda is built with enableSeparateBinOutput, hence this hacky workaround.
-    # https://github.com/NixOS/nixpkgs/commit/294245f7501e0a8e69b83346a4fa5afd4ed33ab3
-    bin = frankenAgdaBin;
-  };
-
-  frankenPkgs = pkgs // {
-    haskellPackages = pkgs.haskellPackages // {
-      inherit (repoRoot.nix.agda-project) ghcWithPackages;
+  frankenPkgs =
+    pkgs //
+    {
+      haskellPackages = pkgs.haskellPackages //
+      {
+        inherit (repoRoot.nix.agda-project) ghcWithPackages;
+      };
     };
-  };
 in
 
 pkgs.agdaPackages.override {
