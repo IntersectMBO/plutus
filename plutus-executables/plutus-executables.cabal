@@ -78,10 +78,11 @@ executable plc
     , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.35
 
 executable uplc
-  import:         lang, os-support
-  main-is:        uplc/Main.hs
-  hs-source-dirs: executables
+  import:             lang, os-support
+  main-is:            uplc/Main.hs
+  hs-source-dirs:     executables
   build-depends:
+    , Agda                                            ==2.6.4
     , base                                            >=4.9   && <5
     , bytestring
     , criterion
@@ -95,6 +96,8 @@ executable uplc
     , prettyprinter
     , split
     , text
+
+  build-tool-depends: Agda:agda
 
 test-suite test-simple
   import:             lang, os-support
