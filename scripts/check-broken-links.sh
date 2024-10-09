@@ -3,29 +3,39 @@ TARGETS=(
     **/{LICENSE,NOTICE,README.md,TRIAGE.md} 
     CODE_OF_CONDUCT.md 
     *.adoc
+    CONTRIBUTING.adoc
 )
 
+# For some reason linkchecker fails to check these URLs though they are valid.
+# It's plausible that these domains are blocking the linkchecker user agent, or 
+# that we are running into rate-limiting issues.
 IGNORE_URLS=(
-    --ignore-url https://img.shields.io/matrix/plutus-core%3Amatrix.org # For some reason linkchecker fails to check this URL though it is valid
+    https://pvp.haskell.org
+    https://www.haskell.org/cabal
 )
 
 FAILED=0
 
-grep_links() {
-    grep -oE "\b(https?://|www\.)[^\[\(\)\"]+\b" "$1"
-}
-
 check_links() {
-    linkchecker --no-warnings --recursion-level 0 --output failures --check-extern "${IGNORE_URLS[@]}" --stdin 
+    linkchecker --no-warnings --recursion-level 0 --output failures --check-extern --stdin
 }
 
-for file in $(find "${TARGETS[@]}"); do 
-    echo "Checking ${file}"
-    grep_links "${file}" | check_links
-    if [ $? -ne 0 ]; then 
-        echo "${file} has broken links, see output above"
-        FAILED=1
-    fi 
-done 
+grep_links() {
+    for file in $(find "${TARGETS[@]}"); do
+        grep -oE "\b(https?://|www\.)[^\[\(\)\"]+\b" "${file}"
+    done
+}
 
-exit "${FAILED}"
+valid_links() {
+    local all_links="$(grep_links | sort | uniq | tr ' ' '\n')"
+    local ignore_links="$(echo "${IGNORE_URLS[@]}" | sort | uniq | tr ' ' '\n')"
+    comm -3 <(echo "$all_links") <(echo "$ignore_links")
+}
+
+check_links <<< "$(valid_links)"
+
+if [[ "$?" != "0" ]]; then
+    echo "Found broken links, see output above"
+    exit 1
+fi
+
