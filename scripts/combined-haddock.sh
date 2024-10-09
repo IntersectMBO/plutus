@@ -235,6 +235,7 @@ fi
 echo "Injecting additional prologue html"
 
 list-valid-plutus-versions() {
+  git fetch --tags --force
   local versions="$(git tag | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | sort -rV | uniq | tr ' ' '\n')"
   local min_ver="1.27.0.0"
   echo master 
