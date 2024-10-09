@@ -6,8 +6,8 @@ TARGETS=(
 )
 
 IGNORE_URLS=(
-    --ignore-url https://img.shields.io/matrix/plutus-core%3Amatrix.org # For some reason linkchecker fails to check these URLs though they are valid
-    --ignore-url https://pvp.haskell.org
+    --ignore-url="https://img.shields.io/matrix/plutus-core%3Amatrix.org" # For some reason linkchecker fails to check these URLs though they are valid
+    --ignore-url="https://pvp.haskell.org"
 )
 
 FAILED=0
