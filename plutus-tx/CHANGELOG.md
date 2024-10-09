@@ -10,17 +10,17 @@
 BuiltinByteString ->  [Integer] ->  [Bool] ->  BuiltinByteString
 ```
 
-to
+   to
 
 ```
 BuiltinByteString ->  [Integer] ->  Bool ->  BuiltinByteString
 ```
 
-Instead of a list of boolean values to write to bit positions specified in the
-second argument it now takes a single boolean value which is used to update the
-bits at all of the given positions.  If it's necessary to set some bits and
-clear others then the function should be called twice, once with `True` as the
-third argument and once with `False`.
+   Instead of a list of boolean values to write to bit positions specified in the
+   second argument it now takes a single boolean value which is used to update the
+   bits at all of the given positions.  If it's necessary to set some bits and
+   clear others then the function should be called twice, once with `True` as the
+   third argument and once with `False`.
 
 <a id='changelog-1.34.0.0'></a>
 # 1.34.0.0 — 2024-09-09
