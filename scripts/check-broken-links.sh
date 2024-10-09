@@ -1,3 +1,5 @@
+set -x
+
 TARGETS=(
     .github/{ISSUE_TEMPLATE/*,*.md,*.yml} 
     **/{LICENSE,NOTICE,README.md,TRIAGE.md} 
