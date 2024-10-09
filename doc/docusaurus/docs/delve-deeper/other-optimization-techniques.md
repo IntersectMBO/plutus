@@ -45,7 +45,7 @@ The `INLINE` pragma strongly encourages GHC to inline a function, even if it has
 This can lead to significant increase in the size of the resulting UPLC program, which is problematic since size is a much scarcer resource for Plutus scripts than for regular Haskell programs.
 
 Instead, use the `INLINEABLE` pragma.
-This would leave most inlining decisions to the PIR or UPLC inliners, which are tailored for Plutus scripts and make more informed inlining decisions.
+This would leave most inlining decisions to the PIR and UPLC inliners, which are tailored for Plutus scripts and make more informed inlining decisions.
 
 ## Be Mindful of Strict Applications
 
