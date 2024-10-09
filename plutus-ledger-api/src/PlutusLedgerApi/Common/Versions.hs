@@ -122,12 +122,12 @@ builtinsIntroducedIn = Map.fromList [
           ]),
   ((PlutusV3, changPlus1PV), Set.fromList [
           AndByteString, OrByteString, XorByteString, ComplementByteString,
-          ReadBit, ReplicateByte,
+          ReadBit, WriteBits, ReplicateByte,
           ShiftByteString, RotateByteString, CountSetBits, FindFirstSetBit,
           Ripemd_160
           ]),
   ((PlutusV3, futurePV), Set.fromList [
-          WriteBits, ExpModInteger
+          ExpModInteger
           ])
   ]
 
