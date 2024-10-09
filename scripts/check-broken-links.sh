@@ -5,8 +5,11 @@ TARGETS=(
     *.adoc
 )
 
+# For some reason linkchecker fails to check these URLs though they are valid
 IGNORE_URLS=(
-    --ignore-url https://img.shields.io/matrix/plutus-core%3Amatrix.org # For some reason linkchecker fails to check this URL though it is valid
+    --ignore-url="^https://pvp\.haskell\.org.*" 
+    --ignore-url="^https://www\.haskell\.org/cabal.*" 
+    --ignore-url="^https://img\.shields\.io/matrix/plutus-core%3Amatrix\.org.*" 
 )
 
 FAILED=0
