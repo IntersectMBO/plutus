@@ -71,7 +71,7 @@ $\bar{\bitone} = \bitzero$.
                                         \end{cases}$}
                                         & Yes & \\[14mm]  %% Odd, but it gives reasonable spacing
     \TT{writeBits} & $[\ty{bytestring}, \listOf{\ty{integer}}, $
-        \text{$\;\; \listOf{\ty{bool}}] \to \ty{bytestring}$} & $\mathsf{writeBits}$ & Yes & \ref{note:writebits} \\[2mm]
+        \text{$\;\; \ty{bool}] \to \ty{bytestring}$} & $\mathsf{writeBits}$ & Yes & \ref{note:writebits} \\[2mm]
     \TT{replicateByte} & $[\ty{integer}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$}
                                         & $\mathsf{replicateByte}$
                                         & Yes & \ref{note:replicateByte}\\[2mm]
@@ -195,28 +195,19 @@ $$
 \note{Writing bits.}
 \label{note:writebits}
 The denotation $\mathsf{writeBits}$ of the \texttt{writeBits} builtin takes a
-bytestring $s$, a list of $J$ of integer indices, and a list $V$ of booleans.
-If the lists are of different lengths then the longer one is truncated to make
-them both the same length.  After this, an error occurs if any of the indices in
-$J$ is not a valid bit index for $s$.  If all of the indices are within bounds
-then for each index $j$ in $J$ the $j$-th bit of $s$ is updated according to the
-value of the corresponding element of $V$ ($\bitzero$
-for \textsf{false}, $\bitone$ for \textsf{true}).  Conceptually the updates
-take place in sequence according to their positions in the lists: if a bit at a
-particular position is updated multiple times then the final update takes
-precedence.
+bytestring $s$, a list of $J$ of integer indices, and a boolean value $u$.  An
+error occurs if any of the indices in $J$ is not a valid bit index for $s$.  If
+all of the indices are within bounds then for each index $j$ in $J$ the $j$-th
+bit of $s$ is updated according to the value of $u$ ($\bitzero$
+for \textsf{false}, $\bitone$ for \textsf{true}).  The list $J$ is allowed to
+contain repetitions.
 
 \smallskip
 \noindent Formally, 
 $$
-\mathsf{writeBits}\,(s, [j_0 , \ldots, j_{k-1}], [v_0, \ldots, v_{l-1}]) =
-    \mathsf{writeBits}^{\prime}(s, [(j_0, v_0) , \ldots, (j_{\min\{k,l\}-1}, v_{\min\{k,l\}-1})])
-$$
-
-$$
-\mathsf{writeBits}^{\prime}(b_{n-1}{\cdots}b_0, [(j_0,v_0), \ldots, (j_{l-1}, v_{l-1})]) = 
+\mathsf{writeBits}(b_{n-1}{\cdots}b_0, [j_0, \ldots, j_{l-1}], u) = 
 \begin{cases}
-\errorX & \text{if $\exists k \in \{0, \ldots, l-1\}$ such that $j_k<0$ or $j_k \geq n$} \\
+\errorX & \text{if $\exists k \in \{0, \ldots, l-1\}$ such that $j_k < 0$ or $j_k \geq n$} \\
 d_{n-1}{\cdots}d_0 & \text{otherwise}
 \end{cases}
 $$
@@ -226,11 +217,8 @@ $$
   d_i =
   \begin{cases}
     b_i & \text{if $i \not{\in} \{j_0, \ldots, j_{l-1}\}$}\\
-    w & \text{otherwise, where $m = \max\{k : j_k = i\}$ and }
-      w=\begin{cases}
-      \bitzero & \text{if $v_m = \false$}\\
-      \bitone & \text{if $v_m = \true$}.
-    \end{cases}
+      \bitzero & \text{if $i \in \{j_0, \ldots, j_{l-1}\}$ and $u = \false$}\\
+      \bitone & \text{if $i \in \{j_0, \ldots, j_{l-1}\}$ and $u = \true$}.
   \end{cases}
 $$
 
