@@ -39,6 +39,14 @@ on:
         required: true 
         default: true
 
+      script_ref: 
+          description: |
+            What branch to fetch the combined-haddock.sh script from.
+            Leave this to 'master' unless you are testing a new version of the script.
+          type: string
+          required: true 
+          default: 'master'
+
 jobs:
   deploy:
     name: Deploy
@@ -55,7 +63,7 @@ jobs:
 
       - name: Checkout Haddock Script
         run: | 
-          git fetch origin master
+          git fetch origin ${{ inputs.script_ref || 'master' }}
           git checkout origin/master ./scripts/combined-haddock.sh
             
       - name: Build Site
