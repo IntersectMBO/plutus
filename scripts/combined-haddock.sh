@@ -273,7 +273,9 @@ build-version-select-html() {
   echo "$html"
 }
 
-inject-text-at-char "$OUTPUT_DIR/index.html" 1465 "$(build-version-select-html)"
+SELECT_ELEM_POSITION_IN_INDEX_HTML=1465
+
+inject-text-at-char "$OUTPUT_DIR/index.html" $SELECT_ELEM_POSITION_IN_INDEX_HTML "$(build-version-select-html)"
 
 
 
