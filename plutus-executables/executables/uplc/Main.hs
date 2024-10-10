@@ -15,7 +15,7 @@ module Main (main) where
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
 import PlutusCore.Data (Data)
-import PlutusCore.Default (BuiltinSemanticsVariant (..))
+import PlutusCore.Default (BuiltinSemanticsVariant (..), DSum (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -44,6 +44,7 @@ import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
 import Data.ByteString.Lazy as BSL (readFile)
 import Data.Foldable
+import Data.Functor.Identity
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
 import Flat (unflat)
@@ -57,6 +58,7 @@ import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
 import Agda.Syntax.Abstract qualified as HAgda
+import PlutusCore.Default qualified as PLC
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
@@ -289,48 +291,84 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
 f :: AgdaFFI.UTerm -> HAgda.Expr
 f = undefined
 
-g :: AgdaFFI.UTerm -> String
-g (AgdaFFI.UVar x)       = "(UVar " ++ show x ++ ")"
-g (AgdaFFI.ULambda t)    = "(ULambda " ++ g t ++ ")"
-g (AgdaFFI.UApp t u)     = "(UApp " ++ g t ++ " " ++ g u ++ ")"
-g (AgdaFFI.UCon c)       = "(UCon " ++ gTagCon c ++ ")"
-g AgdaFFI.UError         = "UError"
-g (AgdaFFI.UBuiltin b)   = "(UBuiltin " ++ gBuiltin b ++ ")"
-g (AgdaFFI.UDelay t)     = "(UDelay " ++ g t ++ ")"
-g (AgdaFFI.UForce t)     = "(UForce " ++ g t ++ ")"
-g (AgdaFFI.UConstr i es) = "(UConstr " ++ show i ++ " " ++ gList g es ++ ")"
-g (AgdaFFI.UCase t cs)   = "(UCase " ++ g t ++ " " ++ gList g cs ++ ")"
+-- g :: AgdaFFI.UTerm -> String
+-- g (AgdaFFI.UVar x)       = "(UVar " ++ show x ++ ")"
+-- g (AgdaFFI.ULambda t)    = "(ULambda " ++ g t ++ ")"
+-- g (AgdaFFI.UApp t u)     = "(UApp " ++ g t ++ " " ++ g u ++ ")"
+-- g (AgdaFFI.UCon c)       = "(UCon " ++ gTagCon c ++ ")"
+-- g AgdaFFI.UError         = "UError"
+-- g (AgdaFFI.UBuiltin b)   = "(UBuiltin " ++ gBuiltin b ++ ")"
+-- g (AgdaFFI.UDelay t)     = "(UDelay " ++ g t ++ ")"
+-- g (AgdaFFI.UForce t)     = "(UForce " ++ g t ++ ")"
+-- g (AgdaFFI.UConstr i es) = "(UConstr " ++ show i ++ " " ++ gList g es ++ ")"
+-- g (AgdaFFI.UCase t cs)   = "(UCase " ++ g t ++ " " ++ gList g cs ++ ")"
+--
+-- gTagCon :: PLC.Some (PLC.ValueOf UPLC.DefaultUni) -> String
+-- gTagCon x@(PLC.Some (PLC.ValueOf uni _)) = "(tagCon " ++ gUni uni ++ terribleHack (show x) ++ ")"
+--
+-- gBuiltin :: UPLC.DefaultFun -> String
+-- gBuiltin = undefined
+--
+-- gList :: (a -> String) -> [a] -> String
+-- gList = undefined
+--
+-- gUni :: UPLC.DefaultUni a -> String
+-- gUni PLC.DefaultUniInteger              = "integer"
+-- gUni PLC.DefaultUniByteString           = "bytestring"
+-- gUni PLC.DefaultUniString               = "string"
+-- gUni PLC.DefaultUniBool                 = "bool"
+-- gUni PLC.DefaultUniUnit                 = "unit"
+-- gUni PLC.DefaultUniData                 = "pdata"
+-- gUni (PLC.DefaultUniPair t1 t2)         = "(pair " ++ gUni t1 ++ gUni t2 ++ ")"
+-- gUni (PLC.DefaultUniList t)             = "(list " ++ gUni t ++ ")"
+-- gUni PLC.DefaultUniBLS12_381_G1_Element = "bls12_381_g1_element"
+-- gUni PLC.DefaultUniBLS12_381_G2_Element = "bls12_381_g2_element"
+-- gUni PLC.DefaultUniBLS12_381_MlResult   = "bls12_381_ml_result"
+-- gUni _                                  = "BUG in gUni"
 
-gTagCon :: PLC.Some (PLC.ValueOf UPLC.DefaultUni) -> String
-gTagCon x@(PLC.Some (PLC.ValueOf uni _)) = "(tagCon " ++ gUni uni ++ terribleHack (show x) ++ ")"
+-- terribleHack :: String -> String
+-- terribleHack str =
+--   case words str of
+--     ["Some", "(ValueOf", type'] : rawValue
+--       | isSimpleType type' ->
+--         "(" ++ unwords rawValue
+--       | isListType type' ->
+--         undefined
 
-gBuiltin :: UPLC.DefaultFun -> String
-gBuiltin = undefined
+agdaUnparseValue :: DSum (PLC.ValueOf UPLC.DefaultUni) Identity -> String
+agdaUnparseValue =
+  \case
+    PLC.ValueOf PLC.DefaultUniInteger _ :=> Identity val -> show val
+    PLC.ValueOf PLC.DefaultUniByteString _ :=> Identity val -> show val -- maybe this should be encoded some other way
+    PLC.ValueOf PLC.DefaultUniString _ :=> Identity val -> T.unpack val
+    PLC.ValueOf PLC.DefaultUniBool _ :=> Identity val -> agdaUnparseBool val
+    PLC.ValueOf PLC.DefaultUniUnit _ :=> Identity _ -> "⊤"
+    PLC.ValueOf PLC.DefaultUniData _ :=> Identity val -> agdaUnparseData val
+    PLC.ValueOf (PLC.DefaultUniList elemType) _ :=> Identity val ->
+      agdaUnparseList elemType val
+    PLC.ValueOf (PLC.DefaultUniPair type1 type2) _ :=> Identity val ->
+      agdaUnparsePair type1 type2 val
+    PLC.ValueOf PLC.DefaultUniBLS12_381_G1_Element _ :=> Identity val ->
+      agdaUnparseG1Element val
+    PLC.ValueOf PLC.DefaultUniBLS12_381_G2_Element _ :=> Identity val ->
+      agdaUnparseG2Element val
+    PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult _ :=> Identity val ->
+      agdaUnparseMlResult val
+  where
+    agdaUnparseBool :: Bool -> String
+    agdaUnparseBool =
+      \case
+        True -> "true"
+        False -> "false"
+    agdaUnparseData = undefined
+    agdaUnparseList = undefined
+    agdaUnparsePair = undefined
+    agdaUnparseG1Element = undefined
+    agdaUnparseG2Element = undefined
+    agdaUnparseMlResult = undefined
 
-gList :: (a -> String) -> [a] -> String
-gList = undefined
-
-gUni :: UPLC.DefaultUni a -> String
-gUni PLC.DefaultUniInteger              = "integer"
-gUni PLC.DefaultUniByteString           = "bytestring"
-gUni PLC.DefaultUniString               = "string"
-gUni PLC.DefaultUniBool                 = "bool"
-gUni PLC.DefaultUniUnit                 = "unit"
-gUni PLC.DefaultUniData                 = "pdata"
-gUni (PLC.DefaultUniPair t1 t2)         = "(pair " ++ gUni t1 ++ gUni t2 ++ ")"
-gUni (PLC.DefaultUniList t)             = "(list " ++ gUni t ++ ")"
-gUni PLC.DefaultUniBLS12_381_G1_Element = "bls12_381_g1_element"
-gUni PLC.DefaultUniBLS12_381_G2_Element = "bls12_381_g2_element"
-gUni PLC.DefaultUniBLS12_381_MlResult   = "bls12_381_ml_result"
-gUni _                                  = "BUG in gUni"
-
-terribleHack :: String -> String
-terribleHack str =
-  case words str of
-    ["Some", "(ValueOf", type'] : rawValue
-      | isSimpleType type' ->
-        "(" ++ unwords rawValue
-      | otherwise -> undefined
+mkValueDSum :: PLC.Some (PLC.ValueOf UPLC.DefaultUni) -> DSum (PLC.ValueOf UPLC.DefaultUni) Identity
+mkValueDSum (PLC.Some valueOf@(PLC.ValueOf _ a)) = valueOf :=> Identity a
 
 ---------------- Script application ----------------
 
