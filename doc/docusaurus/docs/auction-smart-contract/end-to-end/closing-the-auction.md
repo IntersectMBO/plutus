@@ -13,3 +13,7 @@ This transaction needs to do the following:
 - Set a validity interval that starts no earlier than the auction's end time.
 
 The off-chain code for building and submitting this transaction will be very similar to the code for the bidding transactions, so the details are left as an exercise.
+
+Illustration of this transaction:
+
+![Settlement](../../../static/img/tx4.png)
