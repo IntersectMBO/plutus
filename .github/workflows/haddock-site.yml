@@ -63,8 +63,8 @@ jobs:
 
       - name: Checkout Haddock Script
         run: | 
-          git fetch origin ${{ inputs.script_ref }}
-          git checkout origin/${{ inputs.script_ref }} ./scripts/combined-haddock.sh
+          git fetch origin ${{ inputs.script_ref || github.ref_name }}
+          git checkout origin/${{ inputs.script_ref || github.ref_name }} ./scripts/combined-haddock.sh
             
       - name: Build Site
         run: | 
