@@ -58,6 +58,9 @@ import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
 import Agda.Syntax.Abstract qualified as HAgda
+import Data.ByteString (ByteString)
+import Data.Text (Text)
+import PlutusCore.Data qualified as Data
 import PlutusCore.Default qualified as PLC
 
 uplcHelpText :: String
@@ -335,15 +338,45 @@ f = undefined
 --       | isListType type' ->
 --         undefined
 
+class AgdaUnparse a where
+  agdaUnparse :: a -> String
+
+instance AgdaUnparse Integer where
+  agdaUnparse = show
+
+instance AgdaUnparse Bool where
+  agdaUnparse True  = "true"
+  agdaUnparse False = "false"
+
+instance AgdaUnparse Text where
+  agdaUnparse = T.unpack
+
+instance AgdaUnparse ByteString where
+  agdaUnparse = show  -- maybe this should be encoded some other way
+
+instance AgdaUnparse () where
+  agdaUnparse = "⊤"
+
+instance AgdaUnparse a => AgdaUnparse [a] where
+  agdaUnparse []       = "[]"
+  agdaUnparse (x : xs) = agdaUnparse x ++ " ∷ " ++ agdaUnparse xs
+
+instance (AgdaUnparse a, AgdaUnparse b) => AgdaUnparse (a, b) where
+  agdaUnparse (x, y) = "(" ++ agdaUnparse x ++ " , " ++ agdaUnparse y ++ ")"
+
+instance AgdaUnparse Data where
+  agdaUnparse (Data.Constr i args) =
+    "ConstrData" ++ " " ++ agdaUnparse i ++ " " ++ agdaUnparse args
+
 agdaUnparseValue :: DSum (PLC.ValueOf UPLC.DefaultUni) Identity -> String
 agdaUnparseValue =
   \case
-    PLC.ValueOf PLC.DefaultUniInteger _ :=> Identity val -> show val
-    PLC.ValueOf PLC.DefaultUniByteString _ :=> Identity val -> show val -- maybe this should be encoded some other way
+    PLC.ValueOf PLC.DefaultUniInteger _ :=> Identity val -> agdaUnparse val
+    PLC.ValueOf PLC.DefaultUniByteString _ :=> Identity val -> agdaUnparse val
     PLC.ValueOf PLC.DefaultUniString _ :=> Identity val -> T.unpack val
-    PLC.ValueOf PLC.DefaultUniBool _ :=> Identity val -> agdaUnparseBool val
-    PLC.ValueOf PLC.DefaultUniUnit _ :=> Identity _ -> "⊤"
-    PLC.ValueOf PLC.DefaultUniData _ :=> Identity val -> agdaUnparseData val
+    PLC.ValueOf PLC.DefaultUniBool _ :=> Identity val -> agdaUnparse val
+    PLC.ValueOf PLC.DefaultUniUnit _ :=> Identity _ -> agdaUnparse ()
+    PLC.ValueOf PLC.DefaultUniData _ :=> Identity val -> agdaUnparse val
     PLC.ValueOf (PLC.DefaultUniList elemType) _ :=> Identity val ->
       agdaUnparseList elemType val
     PLC.ValueOf (PLC.DefaultUniPair type1 type2) _ :=> Identity val ->
@@ -354,18 +387,10 @@ agdaUnparseValue =
       agdaUnparseG2Element val
     PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult _ :=> Identity val ->
       agdaUnparseMlResult val
+    _ -> "BUG: agdaUnparseValue: unexpected value"
   where
-    agdaUnparseBool :: Bool -> String
-    agdaUnparseBool =
-      \case
-        True -> "true"
-        False -> "false"
-    agdaUnparseData = undefined
-    agdaUnparseList = undefined
-    agdaUnparsePair = undefined
-    agdaUnparseG1Element = undefined
-    agdaUnparseG2Element = undefined
-    agdaUnparseMlResult = undefined
+    agdaUnparseDList = undefined
+    agdaUnparseDPair = undefined
 
 mkValueDSum :: PLC.Some (PLC.ValueOf UPLC.DefaultUni) -> DSum (PLC.ValueOf UPLC.DefaultUni) Identity
 mkValueDSum (PLC.Some valueOf@(PLC.ValueOf _ a)) = valueOf :=> Identity a
