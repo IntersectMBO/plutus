@@ -1,0 +1,52 @@
+% I tried resetting the note number from V1-builtins here, but that made
+% some hyperlinks wrong.  To get note numbers starting at one in each section, I
+% think we have to define a new counter every time.
+\newcounter{notenumberE}
+\renewcommand{\note}[1]{
+  \bigskip
+  \refstepcounter{notenumberE}
+  \noindent\textbf{Note \thenotenumberE. #1}
+}
+
+\subsection{Batch X}
+\label{sec:default-builtins-X}
+
+\subsubsection{Built-in functions}
+\label{sec:built-in-functions-X}
+The Xth batch of builtin operations is defined in Table~\ref{table:built-in-functions-X}.
+
+\setlength{\LTleft}{2mm}  % Shift the table right a bit to centre it on the page
+\begin{longtable}[H]{|l|p{67mm}|p{18mm}|c|c|}
+    \hline
+    \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
+    & & & fail? & \\
+    \hline
+    \endfirsthead
+    \hline
+    \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
+    & & & fail? & \\
+    \hline
+    \endhead
+    \hline
+    \caption{Built-in Functions}
+    \endfoot
+    \caption[]{Built-in Functions}
+    \label{table:built-in-functions-X}
+    \endlastfoot
+    \TT{expModInteger}        & $[\ty{integer}, \ty{integer}, $ \text{$\;\; \ty{integer}] \to \ty{integer}$}
+        & $ b^e (\modfn m)$  & Yes & \ref{note:exp-mod-integer}\\
+\hline
+\end{longtable}
+
+\note{Modular Exponentiation.}
+\label{note:exp-mod-integer}
+The \texttt{expModInteger} function performs modular exponentiation,
+an operation with many uses in cryptography. The implementation
+is time and memory efficient when compared to the naive approach
+of multiplying $e$ times  $(b \times b \times ... \times b)$ followed by $(\modfn m)$.
+
+The operation fails with \texttt{error} in any of the following cases:
+\begin{enumerate}
+\item $m \le 0$
+\item $e < 0$, and integer $b$ does not have a multiplicative inverse w.r.t. $(\modfn m)$
+\end{enumerate}
