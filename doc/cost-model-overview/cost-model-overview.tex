@@ -32,20 +32,20 @@
 \title{An overview of the Plutus Core cost model\\
 }
 
-\date{17th September 2024}
+\date{10th October 2024}
 
 \begin{document}
 \maketitle
 
 \section{Introduction}
-Plutus Core (PLC) is the on-chain language of the Cardano blockchain.  It is a
-low-level language which is used for purposes such as transaction validation,
-enabling the use of \textit{smart contracts} on Cardano.  Scripts will generally
-be written in some higher-level language and then compiled into Plutus Core.
-Plutus Core scripts are assigned costs which depend on their execution time and
-memory consumption, and a user must pay a charge based on the script cost in
-order to have their script executed on the chain.  These charges have two
-purposes:
+Plutus Core, or more precisely Untyped Plutus Core (UPLC for short), is the
+on-chain language of the Cardano blockchain.  It is a low-level language which
+is used for purposes such as transaction validation, enabling the use of
+\textit{smart contracts} on Cardano.  Scripts will generally be written in some
+higher-level language and then compiled into Plutus Core.  Plutus Core scripts
+are assigned costs which depend on their execution time and memory consumption,
+and a user must pay a charge based on the script cost in order to have their
+script executed on the chain.  These charges have two purposes:
 
 \begin{itemize}
 \item To make sure that users pay for the computational resources which they consume.
@@ -75,7 +75,7 @@ prebuilt version of the specification is available as a PDF at
 \url{https://ci.iog.io/job/input-output-hk-plutus/master/x86_64-linux.packages.plutus-core-spec/latest/download/1}.}
 
 
-We have a \textit{cost model} which assigns CPU and memory costs to every PLC
+We have a \textit{cost model} which assigns CPU and memory costs to every UPLC
 script.  CPU costs are measured in units called \texttt{ExCPU}: one
 \texttt{ExCPU} unit is notionally equivalent to one picosecond of CPU time on a
 dedicated benchmarking machine.  Memory usage is measured in \texttt{ExMemory}
@@ -181,9 +181,9 @@ exceeded, so we never call a function if its execution will be too expensive.
 
 There are per-script limits for CPU and memory usage of scripts on the chain.
 These are the \texttt{steps} and \texttt{memory} components of the
-\texttt{maxTxExecution\-Units} protocol parameter and in Protocol Version 9 they
-have values of 10,000,000,000 \texttt{ExCPU} and 14,000,000 \texttt{ExMemory}
-respectively.  There are also per-block bounds in
+\texttt{maxTxExecution\-Units} protocol parameter and at the time of writing
+(in Protocol Version 9) they have values of 10,000,000,000 \texttt{ExCPU} and
+14,000,000 \texttt{ExMemory} respectively.  There are also per-block bounds in
 \texttt{maxBlock\-Exe\-cutionUnits} on total CPU usage (20,000,000,000
 \texttt{ExCPU}, twice the maximum script CPU usage) and total memory usage
 (62,000,000 \texttt{ExMemory}, about 4.4 times the maximum script memory usage).
@@ -196,8 +196,9 @@ $5.77\times10^{-2}$ Ada per \texttt{ExMemory} unit.
 \section{Costing functions for Plutus Core builtins}
 Tables~\ref{table:costing-functions-1} and~\ref{table:costing-functions-2} show
 the forms of the CPU and memory costing functions for the Plutus Core built-in
-functions on Cardano for PlutusV3 and Protocol Version 9.  The symbols $x, y, z,
-\ldots$ refer to the arguments of the costing functions, which are the
+functions on Cardano for PlutusV3 and Protocol Version 9 (the Protocol Version
+in effect on the Cardano chain at the time of writing).  The symbols $x, y,
+z, \ldots$ refer to the arguments of the costing functions, which are the
 \textit{sizes} of the actual arguments of the builtin; occasionally we will need
 to refer to the actual \textit{value} of an argument, and in that case we use
 the symbols $\mathbf{x}, \mathbf{y}, \mathbf{z}, \ldots$.
@@ -317,6 +318,7 @@ this.
         \verb|verifyEcdsaSecp256k1Signature|   & 3 & \const & \const \\
         \verb|verifyEd25519Signature|          & 3 & \linY & \const \\
         \verb|verifySchnorrSecp256k1Signature| & 3 & \linY & \const \\
+        \verb|writeBits|                       & 2 & $a+b\cdot\mathrm{length}(\mathbf{y})$ & \linY \\
         \verb|xorByteString|                   & 2 & \linYZ & \linmaxYZ \\
         \hline
 \end{tabular}
