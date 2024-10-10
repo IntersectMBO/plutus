@@ -16,7 +16,7 @@ on:
     inputs:
       ref:
         description: |
-          The $ref to build off of, e.g. "1.29.0.0", "master", or any other valid git ref.
+          The ref to build off of, e.g. "1.29.0.0", "master", or any other valid git ref.
           When making a release, this is usually the version tag, e.g. "1.29.0.0", and will be
           equal to the $destination input below. When back-porting this could be a commit sha instead.
         required: true
@@ -24,7 +24,7 @@ on:
 
       destination:
         description: |
-          The $destination folder, e.g. when "1.29.0.0" the haddock site will be deployed to:
+          The destination folder, e.g. when "1.29.0.0" the haddock site will be deployed to:
           https://plutus.cardano.intersectmbo.org/haddock/1.29.0.0
         required: true
         type: string
@@ -33,7 +33,8 @@ on:
         description: |
           If true, then the haddock site will also be deployed to:
           https://plutus.cardano.intersectmbo.org/haddock/latest.
-          You want to leave this to true unless you are deploying old versions or back-porting.
+          You want to check this when you are making a release.
+          You want to uncheck this when you are deploying old versions or back-porting.
         type: boolean
         required: true 
         default: true
