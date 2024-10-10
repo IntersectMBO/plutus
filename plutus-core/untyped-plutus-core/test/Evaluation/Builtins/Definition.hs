@@ -675,10 +675,10 @@ test_List = testNestedM "List" $ do
                 (nullViaChooseList [1..10])
 
   where
-   -- the null function that utilizes the ChooseList builtin (through the caseList helper function)
+   -- the null function that utilizes the ChooseList builtin (through the matchList helper function)
    nullViaChooseList :: [Integer] -> Term TyName Name DefaultUni DefaultFun ()
    nullViaChooseList l = mkIterAppNoAnn
-                      (tyInst () (apply () (tyInst () Builtin.caseList integer) $ cons l) bool)
+                      (tyInst () (apply () (tyInst () Builtin.matchList integer) $ cons l) bool)
                       [ -- zero
                         true
                         -- cons
@@ -729,7 +729,7 @@ test_Data = testNestedM "Data" $ do
 
     -- ChooseData
     let actualExp = mkIterAppNoAnn
-                      (tyInst () (apply () caseData $ cons $ I 3) bool)
+                      (tyInst () (apply () matchData $ cons $ I 3) bool)
                       [ -- constr
                         runQuote $ do
                               a1 <- freshName "a1"

@@ -31,67 +31,49 @@
                               ((\rs' ->
                                   (\ls' -> go rs' ls') (go nt))
                                  (fix1
-                                    (\go
-                                      xs ->
+                                    (\go ->
                                        force
-                                         (force chooseList)
-                                         xs
-                                         (\ds -> [])
-                                         (\ds ->
-                                            (\hd ->
-                                               (\tl' ->
-                                                  force
-                                                    (case
-                                                       ((\k ->
-                                                           fix1
-                                                             (\go
-                                                               xs ->
-                                                                force
-                                                                  (force
-                                                                     chooseList)
-                                                                  xs
-                                                                  (\ds ->
-                                                                     constr 1
-                                                                       [])
-                                                                  (\ds ->
-                                                                     force
+                                         (force caseList)
+                                         []
+                                         (\hd
+                                           tl ->
+                                            (\tl' ->
+                                               force
+                                                 (case
+                                                    ((\k ->
+                                                        fix1
+                                                          (\go ->
+                                                             force
+                                                               (force caseList)
+                                                               (constr 1 [])
+                                                               (\hd ->
+                                                                  force
+                                                                    (force
                                                                        (force
-                                                                          (force
-                                                                             ifThenElse
-                                                                             (equalsData
-                                                                                k
+                                                                          ifThenElse
+                                                                          (equalsData
+                                                                             k
+                                                                             (force
                                                                                 (force
-                                                                                   (force
-                                                                                      fstPair)
-                                                                                   (force
-                                                                                      headList
-                                                                                      xs)))
+                                                                                   fstPair)
+                                                                                hd))
+                                                                          (delay
                                                                              (delay
-                                                                                (delay
-                                                                                   ((\ds ->
-                                                                                       constr 0
-                                                                                         [  ])
-                                                                                      (force
-                                                                                         tailList
-                                                                                         xs))))
+                                                                                (\ds ->
+                                                                                   constr 0
+                                                                                     [  ])))
+                                                                          (delay
                                                                              (delay
-                                                                                (delay
-                                                                                   (go
-                                                                                      (force
-                                                                                         tailList
-                                                                                         xs)))))))
-                                                                  (constr 0 []))
-                                                             nt)
-                                                          (force (force fstPair)
-                                                             hd))
-                                                       [ (delay tl')
-                                                       , (delay
-                                                            (force mkCons
-                                                               hd
-                                                               tl')) ]))
-                                                 (go (force tailList xs)))
-                                              (force headList xs))
-                                         (constr 0 []))
+                                                                                go))))))
+                                                          nt)
+                                                       (force (force fstPair)
+                                                          hd))
+                                                    [ (delay tl')
+                                                    , (delay
+                                                         (force mkCons
+                                                            hd
+                                                            tl')) ]))
+                                              (go tl)))
                                     nt)))
                            (unsafeFromList
                               (\i -> iData i)
@@ -114,81 +96,60 @@
                                                      , (constr 0
                                                           []) ]) ]) ]) ]) ])))
                         (fix1
-                           (\go
-                             xs ->
+                           (\go ->
                               force
-                                (force chooseList)
-                                xs
-                                (\ds -> [])
-                                (\ds ->
-                                   (\hd ->
-                                      (\tl ->
-                                         (\v' ->
-                                            (\k' ->
-                                               force
-                                                 (case
-                                                    (fix1
-                                                       (\go
-                                                         xs ->
-                                                          force
-                                                            (force chooseList)
-                                                            xs
-                                                            (\ds -> constr 1 [])
-                                                            (\ds ->
-                                                               (\hd ->
-                                                                  force
+                                (force caseList)
+                                []
+                                (\hd
+                                  tl ->
+                                   (\v' ->
+                                      (\k' ->
+                                         force
+                                           (case
+                                              (fix1
+                                                 (\go ->
+                                                    force
+                                                      (force caseList)
+                                                      (constr 1 [])
+                                                      (\hd ->
+                                                         force
+                                                           (force
+                                                              (force
+                                                                 ifThenElse
+                                                                 (equalsData
+                                                                    k'
                                                                     (force
                                                                        (force
-                                                                          ifThenElse
-                                                                          (equalsData
-                                                                             k'
-                                                                             (force
-                                                                                (force
-                                                                                   fstPair)
-                                                                                hd))
-                                                                          (delay
-                                                                             (delay
-                                                                                ((\ds ->
-                                                                                    constr 0
-                                                                                      [ (force
-                                                                                           (force
-                                                                                              sndPair)
-                                                                                           hd) ])
-                                                                                   (force
-                                                                                      tailList
-                                                                                      xs))))
-                                                                          (delay
-                                                                             (delay
-                                                                                (go
-                                                                                   (force
-                                                                                      tailList
-                                                                                      xs)))))))
-                                                                 (force headList
-                                                                    xs))
-                                                            (constr 0 []))
-                                                       nt)
-                                                    [ (\r ->
-                                                         delay
-                                                           (force
-                                                              mkCons
-                                                              (mkPairData
-                                                                 k'
-                                                                 (bData
-                                                                    (appendByteString
-                                                                       (unBData
-                                                                          v')
-                                                                       (unBData
-                                                                          r))))
-                                                              (go tl)))
-                                                    , (delay
-                                                         (force mkCons
-                                                            (mkPairData k' v')
-                                                            (go tl))) ]))
-                                              (force (force fstPair) hd))
-                                           (force (force sndPair) hd))
-                                        (force tailList xs))
-                                     (force headList xs))
-                                (constr 0 []))))
+                                                                          fstPair)
+                                                                       hd))
+                                                                 (delay
+                                                                    (delay
+                                                                       (\ds ->
+                                                                          constr 0
+                                                                            [ (force
+                                                                                 (force
+                                                                                    sndPair)
+                                                                                 hd) ])))
+                                                                 (delay
+                                                                    (delay
+                                                                       go))))))
+                                                 nt)
+                                              [ (\r ->
+                                                   delay
+                                                     (force mkCons
+                                                        (mkPairData
+                                                           k'
+                                                           (bData
+                                                              (appendByteString
+                                                                 (unBData v')
+                                                                 (unBData r))))
+                                                        (go tl)))
+                                              , (delay
+                                                   (force mkCons
+                                                      (mkPairData k' v')
+                                                      (go tl))) ]))
+                                        (force (force fstPair) hd))
+                                     (force (force sndPair) hd)))))
                      (unsafeFromList
                         (\i -> iData i)
                         bData
@@ -230,29 +191,18 @@
                               (case d [(\d d -> mkPairData d d)])
                               (goList ds)) ])))
             (fix1
-               (\go acc xs ->
-                  force (force chooseList)
-                    xs
-                    (\ds -> acc)
-                    (\ds ->
-                       go
-                         (force mkCons (force headList xs) acc)
-                         (force tailList xs))
-                    (constr 0 []))))
+               (\go acc ->
+                  force (force caseList)
+                    acc
+                    (\hd -> go (force mkCons hd acc)))))
          (fix1
-            (\go xs ->
-               force (force chooseList)
-                 xs
-                 (\ds -> constr 0 [])
-                 (\ds ->
-                    (\hd ->
-                       (\tl ->
-                          constr 1
-                            [ (constr 0
-                                 [ (unIData (force (force fstPair) hd))
-                                 , (unBData (force (force sndPair) hd)) ])
-                            , (go tl) ])
-                         (force tailList xs))
-                      (force headList xs))
-                 (constr 0 []))))
+            (\go ->
+               force (force caseList)
+                 (constr 0 [])
+                 (\hd tl ->
+                    constr 1
+                      [ (constr 0
+                           [ (unIData (force (force fstPair) hd))
+                           , (unBData (force (force sndPair) hd)) ])
+                      , (go tl) ]))))
       (\f -> (\s -> s s) (\s -> f (\x -> s s x)))))

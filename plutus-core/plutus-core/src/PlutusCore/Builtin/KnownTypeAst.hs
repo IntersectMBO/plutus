@@ -19,11 +19,12 @@ module PlutusCore.Builtin.KnownTypeAst
     , TyForallRep
     , Hole
     , RepHole
+    , TypeHole
+    , RunHole
     , HasTermLevel
     , HasTypeLevel
     , HasTypeAndTermLevel
     , mkTyBuiltin
-    , TypeHole
     , KnownBuiltinTypeAst
     , KnownTypeAst (..)
     , toTypeAst
@@ -116,16 +117,32 @@ that barrier must always be some explicit type constructor that switches the con
 Rep. We've only considered 'Opaque' as an example of such type constructor, but we also have
 'SomeConstant' as another example.
 
-Some type constructors turn any context into the Type one, for example 'EvaluationResult' and
+Some type constructors turn any context into the Type one, for example 'BuiltinResult' and
 'Emitter', although they are useless inside the Rep context, given that it's only for type checking
 Plutus and they don't exist in the type language of Plutus.
 
-These @*Rep@ data families like 'TyVarRep', 'TyAppRep' etc all require the Rep context and preserve
-it, since they're only for representing Plutus types for type checking purposes.
+These @*Rep@ data families like 'TyVarRep', 'TyForallRep' etc all require the Rep context and
+preserve it, since they're only for representing Plutus types for type checking purposes. There's
+however an exception: builtin applications get elaborated to iterated 'TyAppRep' calls (see e.g.
+'ElaborateBuiltinDefaultUni') and those do appear in the Type context. This is purely for historical
+reasons and what we should have instead is 'TyAppRep' that preserves the current context, whether
+it's Rep or Type. The only reason why we can't have that right now is the Type context not including
+higher-kinded types, which is also purely for historical reasons.
 
-We call a thing in a Rep or 'Type' context a 'RepHole' or 'TypeHole' respectively. The reason for
-the name is that the inference machinery looks at the thing and tries to instantiate it, like fill
-a hole.
+Some type constructors preserve the current context, i.e. turn the Rep one back into Rep and the
+Type one back into Type. @(->)@ is a prime example of such a type constructor.
+
+The context-switching logic is mostly internal to the 'ToHoles' type family, however none of the
+requirements are checked there, e.g. from the 'ToHoles' point of view it's totally fine to have
+'TyVarRep' within the Type context. Instead, some of those requirements are checked in the
+elaboration machinery, just to give the user some helpful type error. We do it later in the
+pipeline, because this way if the elaborator fails we can at least check what it failed on (see
+'elaborateDebug'), while if we entangled it all together, it would be very hard to debug the
+elaborator (and it's very complex).
+
+We call a thing in a Rep or Type context a 'RepHole' or 'TypeHole' respectively. The reason for the
+name is that the elaboration machinery looks at the thing and tries to instantiate it, like fill a
+hole.
 
 We could also have a third type of hole/context, Name, because binders bind names rather than
 variables and so it makes sense to infer names sometimes, like for 'TyForallRep' for example.
@@ -150,6 +167,15 @@ data family RepHole x
 -- | A hole in the Type context.
 type TypeHole :: forall hole. GHC.Type -> hole
 data family TypeHole a
+
+-- | Turn a hole in the @GHC.Type -> GHC.Type@ form into one of the 'Hole' form. This only changes
+-- the kind of the given argument. This is a way of encoding @forall a. a -> Hole@ at the kind
+-- level, which we don't attempt to use, because GHC apparently hates polymorphism at the kind
+-- level and chokes upon encountering it.
+type RunHole :: (GHC.Type -> GHC.Type) -> a -> Hole
+type family RunHole hole where
+    RunHole RepHole  = RepHole
+    RunHole TypeHole = TypeHole
 
 {- Note [Name generality of KnownTypeAst]
 The 'KnownTypeAst' class takes a @tyname@ argument. The reason for this is that we want to be able
@@ -202,8 +228,12 @@ class KnownTypeAst tyname uni x where
     -- | Return every part of the type that can be a to-be-instantiated type variable.
     -- For example, in @Integer@ there's no such types and in @(a, b)@ it's the two arguments
     -- (@a@ and @b@) and the same applies to @a -> b@ (to mention a type that is not built-in).
-    type ToHoles uni x :: [Hole]
-    type ToHoles uni x = ToHoles uni (ElaborateBuiltin uni x)
+    --
+    -- Takes a @hole@ in the @GHC.Type -> GHC.Type@ form (a convention originally adopted in the
+    -- elaborator, perhaps not a very helpful one), which can be turned into an actual 'Hole' via
+    -- 'RunHole'.
+    type ToHoles uni (hole :: GHC.Type -> GHC.Type) x :: [Hole]
+    type ToHoles uni hole x = ToHoles uni hole (ElaborateBuiltin uni x)
 
     -- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
     -- in an accumulator and return the accumulator once a leaf is reached.
@@ -219,28 +249,28 @@ class KnownTypeAst tyname uni x where
 
 instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (EvaluationResult a) where
     type IsBuiltin _ (EvaluationResult a) = 'False
-    type ToHoles _ (EvaluationResult a) = '[TypeHole a]
+    type ToHoles _ _ (EvaluationResult a) = '[TypeHole a]
     type ToBinds uni acc (EvaluationResult a) = ToBinds uni acc a
     typeAst = toTypeAst $ Proxy @a
     {-# INLINE typeAst #-}
 
 instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (BuiltinResult a) where
     type IsBuiltin _ (BuiltinResult a) = 'False
-    type ToHoles _ (BuiltinResult a) = '[TypeHole a]
+    type ToHoles _ _ (BuiltinResult a) = '[TypeHole a]
     type ToBinds uni acc (BuiltinResult a) = ToBinds uni acc a
     typeAst = toTypeAst $ Proxy @a
     {-# INLINE typeAst #-}
 
 instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (SomeConstant uni rep) where
     type IsBuiltin _ (SomeConstant uni rep) = 'False
-    type ToHoles _ (SomeConstant _ rep) = '[RepHole rep]
+    type ToHoles _ _ (SomeConstant _ rep) = '[RepHole rep]
     type ToBinds uni acc (SomeConstant _ rep) = ToBinds uni acc rep
     typeAst = toTypeAst $ Proxy @rep
     {-# INLINE typeAst #-}
 
 instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (Opaque val rep) where
     type IsBuiltin _ (Opaque val rep) = 'False
-    type ToHoles _ (Opaque _ rep) = '[RepHole rep]
+    type ToHoles _ _ (Opaque _ rep) = '[RepHole rep]
     type ToBinds uni acc (Opaque _ rep) = ToBinds uni acc rep
     typeAst = toTypeAst $ Proxy @rep
     {-# INLINE typeAst #-}
@@ -263,15 +293,22 @@ toTyNameAst _ =
 
 instance uni `Contains` f => KnownTypeAst tyname uni (BuiltinHead f) where
     type IsBuiltin _ (BuiltinHead f) = 'True
-    type ToHoles _ (BuiltinHead f) = '[]
+    type ToHoles _ _ (BuiltinHead f) = '[]
     type ToBinds _ acc (BuiltinHead f) = acc
     typeAst = TyBuiltin () $ someType @_ @f
+    {-# INLINE typeAst #-}
+
+instance KnownTypeAst tyname uni y => KnownTypeAst tyname uni (LastArg x y) where
+    type IsBuiltin uni (LastArg x y) = IsBuiltin uni y
+    type ToHoles _ hole (LastArg x y) = '[RunHole hole x, RunHole hole y]
+    type ToBinds uni acc (LastArg x y) = ToBinds uni (ToBinds uni acc x) y
+    typeAst = toTypeAst $ Proxy @y
     {-# INLINE typeAst #-}
 
 instance (KnownTypeAst tyname uni a, KnownTypeAst tyname uni b) =>
         KnownTypeAst tyname uni (a -> b) where
     type IsBuiltin _ (a -> b) = 'False
-    type ToHoles _ (a -> b) = '[TypeHole a, TypeHole b]
+    type ToHoles _ hole (a -> b) = '[RunHole hole a, RunHole hole b]
     type ToBinds uni acc (a -> b) = ToBinds uni (ToBinds uni acc a) b
     typeAst = TyFun () (toTypeAst $ Proxy @a) (toTypeAst $ Proxy @b)
     {-# INLINE typeAst #-}
@@ -279,7 +316,7 @@ instance (KnownTypeAst tyname uni a, KnownTypeAst tyname uni b) =>
 instance (tyname ~ TyName, name ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
             KnownTypeAst tyname uni (TyVarRep name) where
     type IsBuiltin _ (TyVarRep name) = 'False
-    type ToHoles _ (TyVarRep name) = '[]
+    type ToHoles _ _ (TyVarRep name) = '[]
     type ToBinds _ acc (TyVarRep name) = Insert ('GADT.Some name) acc
     typeAst = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
     {-# INLINE typeAst #-}
@@ -287,7 +324,7 @@ instance (tyname ~ TyName, name ~ 'TyNameRep text uniq, KnownSymbol text, KnownN
 instance (KnownTypeAst tyname uni fun, KnownTypeAst tyname uni arg) =>
         KnownTypeAst tyname uni (TyAppRep fun arg) where
     type IsBuiltin uni (TyAppRep fun arg) = IsBuiltin uni fun && IsBuiltin uni arg
-    type ToHoles _ (TyAppRep fun arg) = '[RepHole fun, RepHole arg]
+    type ToHoles _ _ (TyAppRep fun arg) = '[RepHole fun, RepHole arg]
     type ToBinds uni acc (TyAppRep fun arg) = ToBinds uni (ToBinds uni acc fun) arg
     typeAst = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
     {-# INLINE typeAst #-}
@@ -297,7 +334,7 @@ instance
         , KnownKind kind, KnownTypeAst tyname uni a
         ) => KnownTypeAst tyname uni (TyForallRep name a) where
     type IsBuiltin _ (TyForallRep name a) = 'False
-    type ToHoles _ (TyForallRep name a) = '[RepHole a]
+    type ToHoles _ _ (TyForallRep name a) = '[RepHole a]
     type ToBinds uni acc (TyForallRep name a) = Delete ('GADT.Some name) (ToBinds uni acc a)
     typeAst =
         TyForall ()

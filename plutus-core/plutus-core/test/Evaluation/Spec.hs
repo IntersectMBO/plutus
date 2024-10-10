@@ -121,14 +121,20 @@ prop_builtinEvaluation ::
     (fun -> Gen [Term uni fun]) ->
     -- | A function that takes a builtin function, a list of arguments, and the evaluation
     -- outcome, and decides whether to pass or fail the property.
-    (fun -> [Term uni fun] -> Either SomeException (BuiltinResult (Term uni fun)) -> PropertyT IO ()) ->
+    (fun ->
+        [Term uni fun] ->
+        Either SomeException (BuiltinResult (HeadSpine (Term uni fun))) ->
+        PropertyT IO ()) ->
     Property
 prop_builtinEvaluation runtimes bn mkGen f = property $ do
     args0 <- forAllNoShow $ mkGen bn
     let
-        eval :: [Term uni fun] -> BuiltinRuntime (Term uni fun) -> BuiltinResult (Term uni fun)
-        eval [] (BuiltinCostedResult _ getX) =
-            getX
+        eval ::
+            [Term uni fun] ->
+            BuiltinRuntime (Term uni fun) ->
+            BuiltinResult (HeadSpine (Term uni fun))
+        eval [] (BuiltinCostedResult _ getFxs) =
+            getFxs
         eval (arg : args) (BuiltinExpectArgument toRuntime) =
             eval args (toRuntime arg)
         eval args (BuiltinExpectForce runtime) =
@@ -162,7 +168,7 @@ genArgs ::
     forall uni fun.
     ToBuiltinMeaning uni fun
     => PLC.BuiltinSemanticsVariant fun
-    -> (forall (a :: GHC.Type). TypeRep a -> Gen (Term uni fun))
+    -> (forall (a :: GHC.Type). KnownTypeAst TyName uni a => TypeRep a -> Gen (Term uni fun))
     -> fun
     -> Gen [Term uni fun]
 genArgs semvar genArg bn = sequenceA $ case meaning of

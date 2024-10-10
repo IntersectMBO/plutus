@@ -64,13 +64,13 @@ stdLib =
                   ]
               , treeFolderContents "List"
                   [ plcTypeFile "List"      list
-                  , plcTermFile "CaseList"  Builtin.caseList
+                  , plcTermFile "MatchList"  Builtin.matchList
                   , plcTermFile "FoldrList" Builtin.foldrList
                   , plcTermFile "FoldList"  Builtin.foldList
                   ]
               , treeFolderContents "Data"
                   [ plcTypeFile "Data"     dataTy
-                  , plcTermFile "caseData" caseData
+                  , plcTermFile "matchData" matchData
                   ]
               , treeFolderContents "ScottList"
                   [ plcTypeFile "List"       listTy

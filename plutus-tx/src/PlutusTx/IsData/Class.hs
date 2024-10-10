@@ -77,7 +77,8 @@ instance ToData Integer where
     toBuiltinData i = mkI i
 instance FromData Integer where
     {-# INLINABLE fromBuiltinData #-}
-    fromBuiltinData d = matchData' d (\_ _ -> Nothing) (const Nothing) (const Nothing) (\i -> Just i) (const Nothing)
+    fromBuiltinData =
+        caseData' (\_ _ -> Nothing) (\_ -> Nothing) (\_ -> Nothing) Just (\_ -> Nothing)
 instance UnsafeFromData Integer where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData = BI.unsafeDataAsI
@@ -87,7 +88,8 @@ instance ToData Builtins.BuiltinByteString where
     toBuiltinData = mkB
 instance FromData Builtins.BuiltinByteString where
     {-# INLINABLE fromBuiltinData #-}
-    fromBuiltinData d = matchData' d (\_ _ -> Nothing) (const Nothing) (const Nothing) (const Nothing) (\b -> Just b)
+    fromBuiltinData =
+        caseData' (\_ _ -> Nothing) (\_ -> Nothing) (\_ -> Nothing) (\_ -> Nothing) Just
 instance UnsafeFromData Builtins.BuiltinByteString where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData = BI.unsafeDataAsB
@@ -105,21 +107,20 @@ instance ToData a => ToData [a] where
                 go (x:xs) = BI.mkCons (toBuiltinData x) (go xs)
 instance FromData a => FromData [a] where
     {-# INLINABLE fromBuiltinData #-}
-    fromBuiltinData d =
-        matchData'
-        d
+    fromBuiltinData =
+        caseData'
         (\_ _ -> Nothing)
-        (const Nothing)
+        (\_ -> Nothing)
         traverseFromBuiltin
-        (const Nothing)
-        (const Nothing)
+        (\_ -> Nothing)
+        (\_ -> Nothing)
         where
           {-# INLINE traverseFromBuiltin #-}
           traverseFromBuiltin :: BI.BuiltinList BI.BuiltinData -> Maybe [a]
           traverseFromBuiltin = go
             where
                 go :: BI.BuiltinList BI.BuiltinData -> Maybe [a]
-                go l = BI.chooseList l (const (pure [])) (\_ -> liftA2 (:) (fromBuiltinData (BI.head l)) (go (BI.tail l))) ()
+                go = caseList' (pure []) (\x xs -> liftA2 (:) (fromBuiltinData x) (go xs))
 instance UnsafeFromData a => UnsafeFromData [a] where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData d = mapFromBuiltin (BI.unsafeDataAsList d)
@@ -129,7 +130,7 @@ instance UnsafeFromData a => UnsafeFromData [a] where
           mapFromBuiltin = go
             where
                 go :: BI.BuiltinList BI.BuiltinData -> [a]
-                go l = BI.chooseList l (const []) (\_ -> unsafeFromBuiltinData (BI.head l) : go (BI.tail l)) ()
+                go = caseList' [] (\x xs -> unsafeFromBuiltinData x : go xs)
 
 instance ToData Void where
     {-# INLINABLE toBuiltinData #-}

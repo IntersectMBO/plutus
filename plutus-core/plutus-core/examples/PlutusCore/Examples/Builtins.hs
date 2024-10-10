@@ -41,7 +41,7 @@ import Data.Tuple
 import Data.Void
 import GHC.Generics
 import GHC.Ix
-import GHC.TypeLits
+import GHC.TypeLits as GHC
 import Prettyprinter
 import System.IO.Unsafe (unsafeInterleaveIO, unsafePerformIO)
 import System.Mem (performMinorGC)
@@ -174,7 +174,7 @@ instance
         , KnownKind kind, KnownTypeAst tyname uni a
         ) => KnownTypeAst tyname uni (MetaForall name a) where
     type IsBuiltin _ (MetaForall name a) = 'False
-    type ToHoles _ (MetaForall name a) = '[TypeHole a]
+    type ToHoles _ _ (MetaForall name a) = '[TypeHole a]
     type ToBinds uni acc (MetaForall name a) = ToBinds uni (Insert ('GADT.Some name) acc) a
     typeAst = toTypeAst $ Proxy @a
 instance MakeKnownIn DefaultUni term a => MakeKnownIn DefaultUni term (MetaForall name a) where
@@ -185,13 +185,13 @@ data PlcListRep (a :: GHC.Type)
 instance (tyname ~ TyName, KnownTypeAst tyname uni a) =>
         KnownTypeAst tyname uni (PlcListRep a) where
     type IsBuiltin _ (PlcListRep a) = 'False
-    type ToHoles _ (PlcListRep a) = '[RepHole a]
+    type ToHoles _ _ (PlcListRep a) = '[RepHole a]
     type ToBinds uni acc (PlcListRep a) = ToBinds uni acc a
     typeAst = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 
 instance tyname ~ TyName => KnownTypeAst tyname DefaultUni Void where
     type IsBuiltin _ _ = 'False
-    type ToHoles _ _ = '[]
+    type ToHoles _ _ _ = '[]
     type ToBinds _ acc _ = acc
     typeAst = runQuote $ do
         a <- freshTyName "a"
@@ -328,13 +328,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _semvar ScottToMetaUnit =
         makeBuiltinMeaning
             ((\_ -> ())
-                -- @(->)@ switches from the Rep context to the Type one. We could make @(->)@
-                -- preserve the current context, but there's no such notion in the current
-                -- elaboration machinery and we'd better not complicate it further just for the sake
-                -- of tests looking a bit nicer. Instead we simply wrap the 'TyVarRep' with 'Opaque'
-                -- (unlike in the case of @IdRank2@ where 'TyAppRep' preserves the Rep context).
-                :: oa ~ Opaque val (TyVarRep a)
-                => Opaque val (TyForallRep a (oa -> oa)) -> ())
+                :: va ~ TyVarRep a
+                => Opaque val (TyForallRep a (va -> va)) -> ())
             whatever
 
     toBuiltinMeaning _semvar FailingSucc =
