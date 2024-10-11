@@ -49,6 +49,8 @@ open import Agda.Builtin.Unit using (⊤;tt)
 import IO.Primitive as IO using (return;_>>=_)
 import VerifiedCompilation.UCaseOfCase as UCC
 import VerifiedCompilation.UForceDelay as UFD
+import VerifiedCompilation.UFloatDelay as UFlD
+import VerifiedCompilation.UCSE as UCSE
 open import Data.Empty using (⊥)
 open import Scoped using (ScopeError;deBError)
 open import VerifiedCompilation.Equality using (DecEq)
@@ -98,6 +100,8 @@ TaggedRelation = { X : Set } → {{_ : DecEq X}} → SimplifierTag → (X ⊢) �
 data Transformation : SimplifierTag → Relation where
   isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CaseOfCase ast ast' → Transformation caseOfCaseT ast ast'
   isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation forceDelayT ast ast'
+  isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation floatDelayT ast ast'
+  isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation cseT ast ast'
 
 data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
   empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
@@ -105,7 +109,9 @@ data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (
 
 isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (Transformation tag ast ast')
 isTransformation? tag ast ast' with tag
-isTransformation? tag ast ast' | floatDelayT = {!!}
+isTransformation? tag ast ast' | floatDelayT with UFlD.isFloatDelay? ast ast'
+... | no ¬p = no λ { (isFlD x) → ¬p x }
+... | yes p = yes (isFlD p)
 isTransformation? tag ast ast' | forceDelayT with UFD.isForceDelay? ast ast'
 ... | no ¬p = no λ { (isFD x) → ¬p x }
 ... | yes p = yes (isFD p)
@@ -114,7 +120,9 @@ isTransformation? tag ast ast' | caseOfCaseT with UCC.isCaseOfCase? ast ast'
 ... | yes p = yes (isCoC p)
 isTransformation? tag ast ast' | caseReduceT = {!!}
 isTransformation? tag ast ast' | inlineT = {!!}
-isTransformation? tag ast ast' | cseT = {!!}
+isTransformation? tag ast ast' | cseT with UCSE.isUntypedCSE? ast ast'
+... | no ¬p = no λ { (isCSE x) → ¬p x }
+... | yes p = yes (isCSE p)
 
 isTrace? : {X : Set} {{_ : DecEq X}} → Unary.Decidable (Trace {X})
 isTrace? [] = yes empty
