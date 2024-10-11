@@ -58,8 +58,7 @@ import Relation.Binary as Binary using (Decidable)
 open import VerifiedCompilation.UntypedTranslation using (Translation; Relation; translation?)
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
-import Relation.Nary as Nary using (Decidable)
-
+import Agda.Builtin.Int
 ```
 
 ## Compiler optimisation traces
@@ -177,7 +176,18 @@ postulate
 {-# COMPILE GHC stderr = IO.stderr #-}
 {-# COMPILE GHC hPutStrLn = TextIO.hPutStr #-}
 
-traverseEitherList : {A B E : Set} → (A → Either E B) → List (SimplifierTag × A × A) → Either E (List (SimplifierTag × B × B))
+h : Agda.Builtin.Int.Int
+h = Agda.Builtin.Int.pos 42
+
+x : Either ? (⊥ ⊢) 
+x = toWellScoped (RawU.UCon (RawU.tagCon RawU.integer h))
+
+buildPairs : {X : Set} → List (Maybe X ⊢) -> List ((Maybe X ⊢) × (Maybe X ⊢))
+buildPairs [] = []
+buildPairs (x ∷ []) = (x , x) ∷ []
+buildPairs (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ buildPairs (x₂ ∷ xs)
+
+traverseEitherList : {A B E : Set} → (A → Either E B) → List A → Either E (List B)
 traverseEitherList _ [] = inj₂ []
 traverseEitherList f ((tag , before , after) ∷ xs) with f before
 ... | inj₁ e = inj₁ e

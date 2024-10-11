@@ -57,7 +57,9 @@ import Text.Read (readMaybe)
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
-import Agda.Syntax.Abstract qualified as HAgda
+import Agda.Syntax.Abstract qualified as HAgda.Abstract
+import Agda.Syntax.Abstract qualified as HAgda.Concrete
+import Agda.Syntax.Parser qualified as HAgda.Parser
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -295,8 +297,13 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
       Agda.runCertifier (T.pack certName) rawAgdaTrace
     runCertifier Nothing _ = pure ()
 
-f :: AgdaFFI.UTerm -> HAgda.Expr
-f = undefined
+runAgda :: AgdaFFI.UTerm -> IO () -- HAgda.Concrete.Expr
+runAgda uTerm = do
+  let rawExpr = agdaUnparse uTerm
+  (Right res, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser rawExpr
+  putStrLn $ "Parsed: " ++ show res
+
+-- https://hackage.haskell.org/package/Agda-2.7.0.1/docs/Agda-Interaction-BasicOps.html#v:evalInCurrent
 
 instance AgdaUnparse AgdaFFI.UTerm where
   agdaUnparse =
@@ -365,31 +372,33 @@ instance AgdaUnparse BLS12_381.Pairing.MlResult where
   agdaUnparse = show
 
 agdaUnparseValue :: DSum (PLC.ValueOf UPLC.DefaultUni) Identity -> String
-agdaUnparseValue =
-  \case
-    PLC.ValueOf PLC.DefaultUniInteger _ :=> Identity val ->
-      "(integer " ++ agdaUnparse val ++ ")"
-    PLC.ValueOf PLC.DefaultUniByteString _ :=> Identity val ->
-      "(bytestring " ++ agdaUnparse val ++ ")"
-    PLC.ValueOf PLC.DefaultUniString _ :=> Identity val ->
-      "(string " ++ agdaUnparse val ++ ")"
-    PLC.ValueOf PLC.DefaultUniBool _ :=> Identity val ->
-      "(bool " ++ agdaUnparse val ++ ")"
-    PLC.ValueOf PLC.DefaultUniUnit _ :=> Identity _ ->
-      "(unit " ++ agdaUnparse () ++ ")"
-    PLC.ValueOf PLC.DefaultUniData _ :=> Identity val ->
-      "(pdata " ++ agdaUnparse val ++ ")"
-    PLC.ValueOf (PLC.DefaultUniList elemType) _ :=> Identity val ->
-      "(list " ++ agdaUnparseDList elemType val ++ ")"
-    PLC.ValueOf (PLC.DefaultUniPair type1 type2) _ :=> Identity val ->
-      "(pair " ++ agdaUnparseDPair type1 type2 val ++ ")"
-    PLC.ValueOf PLC.DefaultUniBLS12_381_G1_Element _ :=> Identity val ->
-      "(bls12-381-g1-element " ++  agdaUnparse val ++ ")"
-    PLC.ValueOf PLC.DefaultUniBLS12_381_G2_Element _ :=> Identity val ->
-      "(bls12-381-g2-element " ++  agdaUnparse val ++ ")"
-    PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult _ :=> Identity val ->
-      "(bls12-381-mlresult " ++ agdaUnparse val ++ ")"
-    _ -> "BUG: agdaUnparseValue: unexpected value"
+agdaUnparseValue dSum =
+  "(tagCon " ++
+    case dSum of
+      PLC.ValueOf PLC.DefaultUniInteger _ :=> Identity val ->
+        "integer " ++ agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniByteString _ :=> Identity val ->
+        "bytestring " ++ agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniString _ :=> Identity val ->
+        "string " ++ agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniBool _ :=> Identity val ->
+        "bool " ++ agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniUnit _ :=> Identity _ ->
+        "unit " ++ agdaUnparse ()
+      PLC.ValueOf PLC.DefaultUniData _ :=> Identity val ->
+        "pdata " ++ agdaUnparse val
+      PLC.ValueOf (PLC.DefaultUniList elemType) _ :=> Identity val ->
+        "list " ++ agdaUnparseDList elemType val
+      PLC.ValueOf (PLC.DefaultUniPair type1 type2) _ :=> Identity val ->
+        "pair " ++ agdaUnparseDPair type1 type2 val
+      PLC.ValueOf PLC.DefaultUniBLS12_381_G1_Element _ :=> Identity val ->
+        "bls12-381-g1-element " ++  agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniBLS12_381_G2_Element _ :=> Identity val ->
+        "bls12-381-g2-element " ++  agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult _ :=> Identity val ->
+        "bls12-381-mlresult " ++ agdaUnparse val
+      _ -> error "BUG: agdaUnparseValue: unexpected value"
+  ++ ")"
   where
     agdaUnparseDList elemType xs =
       let xs' :: [DSum (PLC.ValueOf PLC.DefaultUni) Identity]
