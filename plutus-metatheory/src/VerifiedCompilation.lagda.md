@@ -59,7 +59,10 @@ open import VerifiedCompilation.UntypedTranslation using (Translation; Relation;
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
+<<<<<<< HEAD
 import Relation.Nary as Nary using (Decidable)
+=======
+>>>>>>> fc012893d (Fix)
 ```
 
 ## Compiler optimisation traces
@@ -162,6 +165,12 @@ postulate
 {-# COMPILE GHC writeFile = \f -> TextIO.writeFile (Text.unpack f) #-}
 {-# COMPILE GHC stderr = IO.stderr #-}
 {-# COMPILE GHC hPutStrLn = TextIO.hPutStr #-}
+
+h : Agda.Builtin.Int.Int
+h = Agda.Builtin.Int.pos 42
+
+x : Either ? (⊥ ⊢) 
+x = toWellScoped (RawU.UCon (RawU.tagCon RawU.integer h))
 
 buildPairs : {X : Set} → List (Maybe X ⊢) -> List ((Maybe X ⊢) × (Maybe X ⊢))
 buildPairs [] = []
