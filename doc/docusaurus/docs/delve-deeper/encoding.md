@@ -84,7 +84,7 @@ head = \xs -> xs (\y ys -> y) 42
 
 However, `tail` is much more complex and less efficient with Church encoding compared to Scott encoding.
 Intuitively, expressing `tail` on a Church-encoded list involves taking a term where `c` is applied a number of times, and producing a new term where `c` is applied one less time - not a trivial task.
-This is also the case with many other operations on Church encoded values, which is the main reason Scott encoding is chosen over Church encoding in Plutus Core 1.0.0.
+This is also the case with many other operations on Church encoded values, which is the main reason Scott encoding is chosen over Church encoding in the Plutus Tx compiler.
 
 In Typed Plutus Core (TPLC), Scott encoding requires the ability to represent recursive types, hence the existence of isorecursive types in TPLC.
 Church encoding, on the other hand, can be done in plain System F, a non-Turing-complete subset of TPLC.
