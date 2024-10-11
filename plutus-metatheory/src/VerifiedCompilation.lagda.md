@@ -95,34 +95,35 @@ which produces a `Trace` always produces a correct one, although it might be use
 ```
 TaggedRelation = { X : Set } → {{_ : DecEq X}} → SimplifierTag → (X ⊢) → (X ⊢) → Set₁
 
-data Trace (R : TaggedRelation) : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
-  empty : {X : Set}{{_ : DecEq X}}  → Trace R {X} []
-  cons : {X : Set}{{_ : DecEq X}}  {tag : SimplifierTag} {x x' : X ⊢} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → R tag x x' → Trace R {X} xs → Trace R {X} ((tag , x , x') ∷ xs)
+data Transformation : SimplifierTag → Relation where
+  isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CaseOfCase ast ast' → Transformation caseOfCaseT ast ast'
+  isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation forceDelayT ast ast'
 
-data IsTransformation : SimplifierTag → Relation where
-  isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CoC ast ast' → IsTransformation caseOfCaseT ast ast'
-  isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.FD zero zero ast ast' → IsTransformation forceDelayT ast ast'
+data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
+  empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
+  cons : {X : Set}{{_ : DecEq X}}  {tag : SimplifierTag} {x x' : X ⊢} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Transformation tag x x' → Trace xs → Trace ((tag , x , x') ∷ xs)
 
-isTrace? : {X : Set} {{_ : DecEq X}} {R : TaggedRelation} → Nary.Decidable (R {X}) → Unary.Decidable (Trace R {X})
-isTrace? {X} {R = R} isR? [] = yes empty
-isTrace? {X} {R = R} isR? ((tag , x₁ , x₂) ∷ xs) with isTrace? {X} {R = R} isR? xs
-... | no ¬pₜ = no λ {(cons _ rest) → ¬pₜ rest}
-... | yes pₜ with isR? tag x₁ x₂
-...                 | no ¬pₑ = no λ {(cons x _) → ¬pₑ x}
-...                 | yes pₑ = yes (cons pₑ pₜ)
-
-isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (IsTransformation tag ast ast')
+isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (Transformation tag ast ast')
 isTransformation? tag ast ast' with tag
 isTransformation? tag ast ast' | floatDelayT = {!!}
-isTransformation? tag ast ast' | forceDelayT with UFD.isFD? zero zero ast ast'
+isTransformation? tag ast ast' | forceDelayT with UFD.isForceDelay? ast ast'
 ... | no ¬p = no λ { (isFD x) → ¬p x }
 ... | yes p = yes (isFD p)
-isTransformation? tag ast ast' | caseOfCaseT with UCC.isCoC? ast ast'
-... | no ¬p = {!!}
+isTransformation? tag ast ast' | caseOfCaseT with UCC.isCaseOfCase? ast ast'
+... | no ¬p = no λ { (isCoC x) → ¬p x }
 ... | yes p = yes (isCoC p)
 isTransformation? tag ast ast' | caseReduceT = {!!}
 isTransformation? tag ast ast' | inlineT = {!!}
 isTransformation? tag ast ast' | cseT = {!!}
+
+isTrace? : {X : Set} {{_ : DecEq X}} → Unary.Decidable (Trace {X})
+isTrace? [] = yes empty
+isTrace? ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
+... | no ¬pₜ = no λ {(cons _ rest) → ¬pₜ rest}
+... | yes pₜ with isTransformation? tag x₁ x₂
+...                 | no ¬pₑ = no λ {(cons x _) → ¬pₑ x}
+...                 | yes pₑ = yes (cons pₑ pₜ)
+
 
 ```
 ## Serialising the proofs
@@ -145,13 +146,16 @@ The proof objects are converted to a textual representation which can be written
 -- showTranslation Translation.builtin = "builtin"
 -- showTranslation Translation.error = "error"
 --
--- showTrace : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
+-- showTrace : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Trace (Translation Transformation) xs → String
 -- showTrace empty = "empty"
 -- showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
 
--- serializeTraceProof : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
--- serializeTraceProof (no ¬p) = "no"
--- serializeTraceProof (yes p) = "yes " ++ showTrace p
+postulate
+  showTrace : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Trace xs → String
+
+serializeTraceProof : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Dec (Trace xs) → String
+serializeTraceProof (no ¬p) = "no"
+serializeTraceProof (yes p) = "yes " ++ showTrace p
 
 ```
 
@@ -202,7 +206,7 @@ certifier
   → Either ScopeError String
 certifier {X} rawInput with traverseEitherList (toWellScoped {X}) rawInput
 ... | inj₁ err = inj₁ err
-... | inj₂ inputTrace = inj₂ {!!} -- (serializeTraceProof (isRTrace? inputTrace))
+... | inj₂ inputTrace = inj₂ (serializeTraceProof (isTrace? inputTrace))
 
 runCertifier : String → List (SimplifierTag × Untyped × Untyped) → IO ⊤
 runCertifier fileName rawInput with certifier {⊥} rawInput
