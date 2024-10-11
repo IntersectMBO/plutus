@@ -65,6 +65,7 @@ data SimplifierTag : Set where
   caseReduceT : SimplifierTag
   inlineT : SimplifierTag
   cseT : SimplifierTag
+--  initT : SimplifierTag
 
 {-# COMPILE GHC SimplifierTag = data UPLCSimplifierStage (FloatDelay | ForceDelay | CaseOfCase | CaseReduce | Inline | CSE) #-}
 
@@ -99,19 +100,27 @@ data Trace (R : TaggedRelation) : { X : Set } {{_ : DecEq X}} → List (Simplifi
   cons : {X : Set}{{_ : DecEq X}}  {tag : SimplifierTag} {x x' : X ⊢} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → R tag x x' → Trace R {X} xs → Trace R {X} ((tag , x , x') ∷ xs)
 
 data IsTransformation : Relation where
-  isCoC : {X : Set}{{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → UCC.CoC ast ast' → IsTransformation ast ast'
-  isFD : {X : Set}{{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → UFD.FD zero zero ast ast' → IsTransformation ast ast'
+  isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CoC ast ast' → IsTransformation ast ast'
+  isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.FD zero zero ast ast' → IsTransformation ast ast'
 
 isTrace? : {X : Set} {{_ : DecEq X}} {R : TaggedRelation} → Nary.Decidable (R {X}) → Unary.Decidable (Trace R {X})
 isTrace? {X} {R = R} isR? [] = yes empty
 isTrace? {X} {R = R} isR? ((tag , x₁ , x₂) ∷ xs) with isTrace? {X} {R = R} isR? xs
 ... | no ¬pₜ = no λ {(cons _ rest) → ¬pₜ rest}
 ... | yes pₜ with isR? tag x₁ x₂
-... | no ¬pₑ = no λ {(cons x _) → ¬pₑ x}
-... | yes pₑ = yes (cons pₑ pₜ)
+...                 | no ¬pₑ = no λ {(cons x _) → ¬pₑ x}
+...                 | yes pₑ = yes (cons pₑ pₜ)
 
-isTransformation? : {X : Set} {{_ : DecEq X}} → Nary.Decidable (IsTransformation {X})
-isTransformation? ast₁ ast₂ = {!   !}
+isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (IsTransformation {X} ast ast')
+isTransformation? tag ast ast' with tag
+isTransformation? tag ast ast' | floatDelayT = {!!}
+isTransformation? tag ast ast' | forceDelayT with UFD.isFD? zero zero ast ast'
+... | no ¬p = no λ { x → {!!} } -- FIXME this will be the hard bit... We need something dependent so the others are impossible due to the tag...
+... | yes p = yes (isFD p)
+isTransformation? tag ast ast' | caseOfCaseT = {!!}
+isTransformation? tag ast ast' | caseReduceT = {!!}
+isTransformation? tag ast ast' | inlineT = {!!}
+isTransformation? tag ast ast' | cseT = {!!}
 
 ```
 ## Serialising the proofs
@@ -133,7 +142,7 @@ The proof objects are converted to a textual representation which can be written
 -- showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ ")"
 -- showTranslation Translation.builtin = "builtin"
 -- showTranslation Translation.error = "error"
--- 
+--
 -- showTrace : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
 -- showTrace empty = "empty"
 -- showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
@@ -177,19 +186,24 @@ buildPairs (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ buildPairs (x₂ ∷ xs)
 
 traverseEitherList : {A B E : Set} → (A → Either E B) → List (SimplifierTag × A × A) → Either E (List (SimplifierTag × B × B))
 traverseEitherList _ [] = inj₂ []
-traverseEitherList f ((tag , before , after) ∷ xs) = {!   !}
+traverseEitherList f ((tag , before , after) ∷ xs) with f before
+... | inj₁ e = inj₁ e
+... | inj₂ b with f after
+... | inj₁ e = inj₁ e
+... | inj₂ a with traverseEitherList f xs
+... | inj₁ e = inj₁ e
+... | inj₂ xs' = inj₂ (((tag , b , a)) ∷ xs')
 
 certifier
   : {X : Set} {{_ : DecEq X}}
   → List (SimplifierTag × Untyped × Untyped)
-  → Unary.Decidable (Trace (Translation IsTransformation) {Maybe X})
   → Either ScopeError String
-certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
+certifier {X} rawInput with traverseEitherList (toWellScoped {X}) rawInput
 ... | inj₁ err = inj₁ err
-... | inj₂ inputTrace = inj₂ ? -- (serializeTraceProof (isRTrace? inputTrace))
+... | inj₂ inputTrace = inj₂ {!!} -- (serializeTraceProof (isRTrace? inputTrace))
 
 runCertifier : String → List (SimplifierTag × Untyped × Untyped) → IO ⊤
-runCertifier fileName rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
+runCertifier fileName rawInput with certifier {⊥} rawInput
 ... | inj₁ err = hPutStrLn stderr "error" -- TODO: pretty print error
 ... | inj₂ result = writeFile (fileName ++ ".agda") result
 {-# COMPILE GHC runCertifier as runCertifier #-}
