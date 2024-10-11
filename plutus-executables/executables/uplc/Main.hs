@@ -57,9 +57,17 @@ import Text.Read (readMaybe)
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
+import Agda.Interaction.FindFile qualified as HAgda.File
+import Agda.Interaction.Imports qualified as HAgda.Imp
+import Agda.Interaction.Options (CommandLineOptions (optIncludePaths), defaultOptions)
 import Agda.Syntax.Abstract qualified as HAgda.Abstract
 import Agda.Syntax.Abstract qualified as HAgda.Concrete
 import Agda.Syntax.Parser qualified as HAgda.Parser
+import Agda.TypeChecking.Monad.Base (TCM)
+
+import Agda.Compiler.Backend (setCommandLineOptions)
+import Agda.Main (runTCMPrettyErrors)
+import Agda.Utils.FileName qualified as HAgda.File
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -302,6 +310,15 @@ runAgda uTerm = do
   let rawExpr = agdaUnparse uTerm
   (Right res, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser rawExpr
   putStrLn $ "Parsed: " ++ show res
+
+runAgda' :: IO () -- TCM () -- HAgda.Imp.CheckResult
+runAgda' = do
+  let inputFile = HAgda.File.AbsolutePath "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src/Test.agda"
+  runTCMPrettyErrors $ do
+    let opts = defaultOptions {optIncludePaths = ["/home/ana/Workspace/IOG/plutus/plutus-metatheory/src"]}
+    setCommandLineOptions defaultOptions
+    result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
+    liftIO $ putStrLn (show . HAgda.Imp.crInterface $ result)
 
 -- https://hackage.haskell.org/package/Agda-2.7.0.1/docs/Agda-Interaction-BasicOps.html#v:evalInCurrent
 

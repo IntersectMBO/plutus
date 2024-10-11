@@ -176,12 +176,6 @@ postulate
 {-# COMPILE GHC stderr = IO.stderr #-}
 {-# COMPILE GHC hPutStrLn = TextIO.hPutStr #-}
 
-h : Agda.Builtin.Int.Int
-h = Agda.Builtin.Int.pos 42
-
-x : Either ? (⊥ ⊢) 
-x = toWellScoped (RawU.UCon (RawU.tagCon RawU.integer h))
-
 buildPairs : {X : Set} → List (Maybe X ⊢) -> List ((Maybe X ⊢) × (Maybe X ⊢))
 buildPairs [] = []
 buildPairs (x ∷ []) = (x , x) ∷ []
