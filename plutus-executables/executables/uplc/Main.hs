@@ -59,17 +59,21 @@ import System.Console.Haskeline qualified as Repl
 
 import Agda.Interaction.FindFile qualified as HAgda.File
 import Agda.Interaction.Imports qualified as HAgda.Imp
-import Agda.Interaction.Options (CommandLineOptions (optIncludePaths), defaultOptions)
+import Agda.Interaction.Options (CommandLineOptions (optIncludePaths, optLibraries, optLocalInterfaces),
+                                 defaultOptions)
 import Agda.Syntax.Abstract qualified as HAgda.Abstract
 import Agda.Syntax.Abstract qualified as HAgda.Concrete
+import Agda.Syntax.Common.Pretty qualified as HAgda.Pretty
 import Agda.Syntax.Parser qualified as HAgda.Parser
 import Agda.TypeChecking.Monad.Base (TCM)
 
 import Agda.Compiler.Backend (setCommandLineOptions)
 import Agda.Main (runTCMPrettyErrors)
+import Agda.Syntax.Translation.ConcreteToAbstract (ToAbstract (toAbstract))
 import Agda.Utils.FileName qualified as HAgda.File
 import Data.ByteString (ByteString)
 import Data.Text (Text)
+import Data.Traversable (forM)
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -295,14 +299,14 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
   writeProgram outp ofmt mode simplified
   runCertifier cert simplificationTrace
   where
-    runCertifier (Just certName) (SimplifierTrace simplTrace) = do
-      let processAgdaAST Simplification {beforeAST, stage, afterAST} =
-              case (UPLC.deBruijnTerm beforeAST, UPLC.deBruijnTerm afterAST) of
-                (Right before', Right after')             -> (stage, (AgdaFFI.conv (void before'), AgdaFFI.conv (void after')))
-                (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
-                (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
-          rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
-      Agda.runCertifier (T.pack certName) rawAgdaTrace
+    runCertifier (Just certName) (UPLCSimplifierTrace uplcSimplTrace) = do
+      let processAgdaAST t =
+              case UPLC.deBruijnTerm t of
+                Right res                            -> res
+                Left (err :: UPLC.FreeVariableError) -> error $ show err
+          rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
+      -- Agda.runCertifier (T.pack certName) rawAgdaTrace
+      runAgda' rawAgdaTrace
     runCertifier Nothing _ = pure ()
 
 runAgda :: AgdaFFI.UTerm -> IO () -- HAgda.Concrete.Expr
@@ -311,14 +315,28 @@ runAgda uTerm = do
   (Right res, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser rawExpr
   putStrLn $ "Parsed: " ++ show res
 
-runAgda' :: IO () -- TCM () -- HAgda.Imp.CheckResult
-runAgda' = do
+runAgda' :: [AgdaFFI.UTerm] -> IO () -- TCM () -- HAgda.Imp.CheckResult
+runAgda' rawTrace = do
+  (parseTraceResult, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser $ agdaUnparse rawTrace
+  let parsedTrace =
+        case parseTraceResult of
+          Right (res, _) -> res
+          Left err       -> error $ show err
   let inputFile = HAgda.File.AbsolutePath "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src/Test.agda"
   runTCMPrettyErrors $ do
-    let opts = defaultOptions {optIncludePaths = ["/home/ana/Workspace/IOG/plutus/plutus-metatheory/src"]}
-    setCommandLineOptions defaultOptions
+    let opts =
+          defaultOptions
+            { optIncludePaths =
+                [ "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src"
+                , "/nix/store/g9vi7hzrp1cqgm21355549yyqcpkjnxx-standard-library-1.7.3/src"
+                ]
+            , optLocalInterfaces = True
+            }
+    setCommandLineOptions opts
     result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
-    liftIO $ putStrLn (show . HAgda.Imp.crInterface $ result)
+    liftIO $ putStrLn (show . HAgda.Pretty.pretty $ parsedTrace)
+    internalisedTrace <- toAbstract parsedTrace
+    liftIO $ putStrLn (show internalisedTrace)
 
 -- https://hackage.haskell.org/package/Agda-2.7.0.1/docs/Agda-Interaction-BasicOps.html#v:evalInCurrent
 
