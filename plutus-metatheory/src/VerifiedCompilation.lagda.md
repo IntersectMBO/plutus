@@ -99,9 +99,9 @@ data Trace (R : TaggedRelation) : { X : Set } {{_ : DecEq X}} → List (Simplifi
   empty : {X : Set}{{_ : DecEq X}}  → Trace R {X} []
   cons : {X : Set}{{_ : DecEq X}}  {tag : SimplifierTag} {x x' : X ⊢} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → R tag x x' → Trace R {X} xs → Trace R {X} ((tag , x , x') ∷ xs)
 
-data IsTransformation : Relation where
-  isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CoC ast ast' → IsTransformation ast ast'
-  isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.FD zero zero ast ast' → IsTransformation ast ast'
+data IsTransformation : SimplifierTag → Relation where
+  isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CoC ast ast' → IsTransformation caseOfCaseT ast ast'
+  isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.FD zero zero ast ast' → IsTransformation forceDelayT ast ast'
 
 isTrace? : {X : Set} {{_ : DecEq X}} {R : TaggedRelation} → Nary.Decidable (R {X}) → Unary.Decidable (Trace R {X})
 isTrace? {X} {R = R} isR? [] = yes empty
@@ -111,13 +111,15 @@ isTrace? {X} {R = R} isR? ((tag , x₁ , x₂) ∷ xs) with isTrace? {X} {R = R}
 ...                 | no ¬pₑ = no λ {(cons x _) → ¬pₑ x}
 ...                 | yes pₑ = yes (cons pₑ pₜ)
 
-isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (IsTransformation {X} ast ast')
+isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (IsTransformation tag ast ast')
 isTransformation? tag ast ast' with tag
 isTransformation? tag ast ast' | floatDelayT = {!!}
 isTransformation? tag ast ast' | forceDelayT with UFD.isFD? zero zero ast ast'
-... | no ¬p = no λ { x → {!!} } -- FIXME this will be the hard bit... We need something dependent so the others are impossible due to the tag...
+... | no ¬p = no λ { (isFD x) → ¬p x }
 ... | yes p = yes (isFD p)
-isTransformation? tag ast ast' | caseOfCaseT = {!!}
+isTransformation? tag ast ast' | caseOfCaseT with UCC.isCoC? ast ast'
+... | no ¬p = {!!}
+... | yes p = yes (isCoC p)
 isTransformation? tag ast ast' | caseReduceT = {!!}
 isTransformation? tag ast ast' | inlineT = {!!}
 isTransformation? tag ast ast' | cseT = {!!}
