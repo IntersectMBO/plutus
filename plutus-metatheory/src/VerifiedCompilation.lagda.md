@@ -49,6 +49,8 @@ open import Agda.Builtin.Unit using (⊤;tt)
 import IO.Primitive as IO using (return;_>>=_)
 import VerifiedCompilation.UCaseOfCase as UCC
 import VerifiedCompilation.UForceDelay as UFD
+import VerifiedCompilation.UFloatDelay as UFlD
+import VerifiedCompilation.UCSE as UCSE
 open import Data.Empty using (⊥)
 open import Scoped using (ScopeError;deBError)
 open import VerifiedCompilation.Equality using (DecEq)
@@ -65,6 +67,7 @@ data SimplifierTag : Set where
   caseReduceT : SimplifierTag
   inlineT : SimplifierTag
   cseT : SimplifierTag
+--  initT : SimplifierTag
 
 {-# COMPILE GHC SimplifierTag = data UPLCSimplifierStage (FloatDelay | ForceDelay | CaseOfCase | CaseReduce | Inline | CSE) #-}
 
@@ -94,24 +97,41 @@ which produces a `Trace` always produces a correct one, although it might be use
 ```
 TaggedRelation = { X : Set } → {{_ : DecEq X}} → SimplifierTag → (X ⊢) → (X ⊢) → Set₁
 
-data Trace (R : TaggedRelation) : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
-  empty : {X : Set}{{_ : DecEq X}}  → Trace R {X} []
-  cons : {X : Set}{{_ : DecEq X}}  {tag : SimplifierTag} {x x' : X ⊢} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → R tag x x' → Trace R {X} xs → Trace R {X} ((tag , x , x') ∷ xs)
+data Transformation : SimplifierTag → Relation where
+  isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CaseOfCase ast ast' → Transformation caseOfCaseT ast ast'
+  isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation forceDelayT ast ast'
+  isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation floatDelayT ast ast'
+  isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation cseT ast ast'
 
-data IsTransformation : Relation where
-  isCoC : {X : Set}{{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → UCC.CoC ast ast' → IsTransformation ast ast'
-  isFD : {X : Set}{{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → UFD.FD zero zero ast ast' → IsTransformation ast ast'
+data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
+  empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
+  cons : {X : Set}{{_ : DecEq X}}  {tag : SimplifierTag} {x x' : X ⊢} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Transformation tag x x' → Trace xs → Trace ((tag , x , x') ∷ xs)
 
-isTrace? : {X : Set} {{_ : DecEq X}} {R : TaggedRelation} → Nary.Decidable (R {X}) → Unary.Decidable (Trace R {X})
-isTrace? {X} {R = R} isR? [] = yes empty
-isTrace? {X} {R = R} isR? ((tag , x₁ , x₂) ∷ xs) with isTrace? {X} {R = R} isR? xs
+isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (Transformation tag ast ast')
+isTransformation? tag ast ast' with tag
+isTransformation? tag ast ast' | floatDelayT with UFlD.isFloatDelay? ast ast'
+... | no ¬p = no λ { (isFlD x) → ¬p x }
+... | yes p = yes (isFlD p)
+isTransformation? tag ast ast' | forceDelayT with UFD.isForceDelay? ast ast'
+... | no ¬p = no λ { (isFD x) → ¬p x }
+... | yes p = yes (isFD p)
+isTransformation? tag ast ast' | caseOfCaseT with UCC.isCaseOfCase? ast ast'
+... | no ¬p = no λ { (isCoC x) → ¬p x }
+... | yes p = yes (isCoC p)
+isTransformation? tag ast ast' | caseReduceT = {!!}
+isTransformation? tag ast ast' | inlineT = {!!}
+isTransformation? tag ast ast' | cseT with UCSE.isUntypedCSE? ast ast'
+... | no ¬p = no λ { (isCSE x) → ¬p x }
+... | yes p = yes (isCSE p)
+
+isTrace? : {X : Set} {{_ : DecEq X}} → Unary.Decidable (Trace {X})
+isTrace? [] = yes empty
+isTrace? ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
 ... | no ¬pₜ = no λ {(cons _ rest) → ¬pₜ rest}
-... | yes pₜ with isR? tag x₁ x₂
-... | no ¬pₑ = no λ {(cons x _) → ¬pₑ x}
-... | yes pₑ = yes (cons pₑ pₜ)
+... | yes pₜ with isTransformation? tag x₁ x₂
+...                 | no ¬pₑ = no λ {(cons x _) → ¬pₑ x}
+...                 | yes pₑ = yes (cons pₑ pₜ)
 
-isTransformation? : {X : Set} {{_ : DecEq X}} → Nary.Decidable (IsTransformation {X})
-isTransformation? ast₁ ast₂ = {!   !}
 
 ```
 ## Serialising the proofs
@@ -133,14 +153,17 @@ The proof objects are converted to a textual representation which can be written
 -- showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ ")"
 -- showTranslation Translation.builtin = "builtin"
 -- showTranslation Translation.error = "error"
--- 
--- showTrace : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
+--
+-- showTrace : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Trace (Translation Transformation) xs → String
 -- showTrace empty = "empty"
 -- showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
 
--- serializeTraceProof : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
--- serializeTraceProof (no ¬p) = "no"
--- serializeTraceProof (yes p) = "yes " ++ showTrace p
+postulate
+  showTrace : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Trace xs → String
+
+serializeTraceProof : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Dec (Trace xs) → String
+serializeTraceProof (no ¬p) = "no"
+serializeTraceProof (yes p) = "yes " ++ showTrace p
 
 ```
 
@@ -177,19 +200,24 @@ buildPairs (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ buildPairs (x₂ ∷ xs)
 
 traverseEitherList : {A B E : Set} → (A → Either E B) → List (SimplifierTag × A × A) → Either E (List (SimplifierTag × B × B))
 traverseEitherList _ [] = inj₂ []
-traverseEitherList f ((tag , before , after) ∷ xs) = {!   !}
+traverseEitherList f ((tag , before , after) ∷ xs) with f before
+... | inj₁ e = inj₁ e
+... | inj₂ b with f after
+... | inj₁ e = inj₁ e
+... | inj₂ a with traverseEitherList f xs
+... | inj₁ e = inj₁ e
+... | inj₂ xs' = inj₂ (((tag , b , a)) ∷ xs')
 
 certifier
   : {X : Set} {{_ : DecEq X}}
   → List (SimplifierTag × Untyped × Untyped)
-  → Unary.Decidable (Trace (Translation IsTransformation) {Maybe X})
   → Either ScopeError String
-certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
+certifier {X} rawInput with traverseEitherList (toWellScoped {X}) rawInput
 ... | inj₁ err = inj₁ err
-... | inj₂ inputTrace = inj₂ ? -- (serializeTraceProof (isRTrace? inputTrace))
+... | inj₂ inputTrace = inj₂ (serializeTraceProof (isTrace? inputTrace))
 
 runCertifier : String → List (SimplifierTag × Untyped × Untyped) → IO ⊤
-runCertifier fileName rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
+runCertifier fileName rawInput with certifier {⊥} rawInput
 ... | inj₁ err = hPutStrLn stderr "error" -- TODO: pretty print error
 ... | inj₂ result = writeFile (fileName ++ ".agda") result
 {-# COMPILE GHC runCertifier as runCertifier #-}

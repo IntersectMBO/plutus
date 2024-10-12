@@ -48,8 +48,8 @@ data CoC : Relation where
                (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
                (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
 
-UntypedCaseOfCase : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
-UntypedCaseOfCase = Translation CoC
+CaseOfCase : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+CaseOfCase = Translation CoC
 
 ```
 ## Decision Procedure
@@ -97,18 +97,18 @@ the individual pattern decision `isCoC?` and the overall translation decision `i
 recursive, so the `isUntypedCaseOfCase?` type declaration comes first, with the implementation later.
 
 ```
-isUntypedCaseOfCase? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation CoC {X})
+isCaseOfCase? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation CoC {X})
 
 {-# TERMINATING #-}
 isCoC? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (CoC {X})
 isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
 ... | no ¬cf = no λ { (isCoC b tn fn tt tt' ft ft' alts alts' x x₁ x₂) → ¬cf
       (isCoCCase b tn fn tt ft alts , isCoCForce b tn fn tt' ft' alts') }
-... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁) ×-dec (decPointwise isUntypedCaseOfCase? tt tt') ×-dec (decPointwise isUntypedCaseOfCase? ft ft') ×-dec (decPointwise isUntypedCaseOfCase? alts alts')
+... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁) ×-dec (decPointwise isCaseOfCase? tt tt') ×-dec (decPointwise isCaseOfCase? ft ft') ×-dec (decPointwise isCaseOfCase? alts alts')
 ... | yes (refl , refl , refl , ttpw , ftpw , altpw) = yes (isCoC b tn fn tt tt' ft ft' alts alts' altpw ttpw ftpw)
 ... | no ¬p = no λ { (isCoC .b .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p (refl , refl , refl , x₁ , x₂ , x) }
 
-isUntypedCaseOfCase? {X} = translation? {X} isCoC?
+isCaseOfCase? {X} = translation? {X} isCoC?
 ```
 
 ## Semantic Equivalence
