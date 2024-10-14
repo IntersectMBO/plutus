@@ -24,6 +24,9 @@ open import Relation.Binary.PropositionalEquality using (refl;sym;trans;cong)
 open import Data.List using (List;[];_∷_)
 open import Data.Product using (_,_)
 
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl)
+
 open import Untyped using (_⊢)
 open _⊢
 open import Untyped.RenamingSubstitution using (Sub;sub;lifts)
@@ -600,6 +603,10 @@ lookup? : ∀{A} → ℕ → List A → Maybe A
 lookup? n [] = nothing
 lookup? zero (x ∷ xs) = just x
 lookup? (suc n) (x ∷ xs) = lookup? n xs
+
+lookup?-deterministic : {A : Set} {x₁ x₂ : A} → (n : ℕ) → (xs : List A) → lookup? n xs ≡ just x₁ → lookup? n xs ≡ just x₂ → x₁ ≡ x₂
+lookup?-deterministic n xs p₁ p₂ with trans (sym p₁) p₂
+... | refl = refl
 
 step : State → State
 step (s ; ρ ▻ ` x)               = s ◅ lookup ρ x
