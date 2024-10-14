@@ -1,13 +1,11 @@
-program
-  1.1.0
-  (let
-    ~id : all a. a -> a
-      = /\a ->
-          \(x : a) ->
-            trace
-              {unit -> a}
-              "entering id"
-              (\(thunk : unit) -> trace {a} "exiting id" x)
-              ()
-  in
-  id {integer} (id {integer} 1))
+let
+  ~id : all a. a -> a
+    = /\a ->
+        \(x : a) ->
+          trace
+            {unit -> a}
+            "entering id"
+            (\(thunk : unit) -> trace {a} "exiting id" x)
+            ()
+in
+id {integer} (id {integer} 1)

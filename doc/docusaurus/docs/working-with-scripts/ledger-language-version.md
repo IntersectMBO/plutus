@@ -22,18 +22,20 @@ As a result, The script contexts for Plutus V1, V2 and V3 also have different fi
 We cannot modify the script context fields of an existing ledger language version once it is published, since it would break existing scripts.
 
 In general, a ledger language version cannot be used in a transaction, if the ledger language version was introduced in ledger era A, the transaction uses features in ledger era B, and A is earlier than B.
-For instance, Plutus V1 (introduced in the Alonzo era) scripts cannot be used in a transaction which utilizes inline datum (a Babbage era feature); Plutus V2 (introduced in the Babbage era) scripts cannot be used in a transaction that registers a DRep (introduced in the Conway era)[^1].
+For instance, Plutus V1 (introduced in the Alonzo era) scripts cannot be used in a transaction which utilizes inline datums (a Babbage era feature); Plutus V2 (introduced in the Babbage era) scripts cannot be used in a transaction that registers a DRep (introduced in the Conway era)[^1].
 
 
-## Plutus V1 and Plutus V2
+## Plutus V1
 
-Plutus V1 and Plutus V2 scripts have four [script purposes](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-V1-Contexts.html#t:ScriptPurpose): spending, minting, certifying, and rewarding[^2].
-The arguments a Plutus V1 or V2 script receives depend on the script purpose.
-There is no requirement on the return value of a Plutus V1 and V2 script: script evaluation succeeds as long as the evaluation terminates without error, and the execution budget is not exceeded.
+Plutus V1 is the initial ledger language version, enabled at the Alonzo hard fork, a hard fork that introduced the Alonzo era.
+
+Plutus V1 scripts have four [script purposes](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-V1-Contexts.html#t:ScriptPurpose): spending, minting, certifying, and rewarding[^2].
+The arguments a Plutus V1 script receives depend on the script purpose.
+There is no requirement on the return value of a Plutus V1 script: script evaluation succeeds as long as the evaluation terminates without error, and the execution budget is not exceeded.
 
 ### Spending Scripts
 
-A Plutus V1/V2 spending script receives three arguments corresponding to datum, redeemer and script context.
+A Plutus V1 spending script receives three arguments corresponding to datum, redeemer and script context.
 All arguments are encoded as `BuiltinData`.
 Thus in Plutus Tx, a spending script has the following type:
 
@@ -49,7 +51,6 @@ myV1SpendingScriptTyped :: MyDatum -> MyRedeemer -> PlutusLedgerApi.V1.ScriptCon
 ```
 
 where `MyDatum` and `MyRedeemer` are your user-defined Haskell types specific to your contract.
-If you are writing a Plutus V2 script, use `PlutusLedgerApi.V2.ScriptContext`.
 
 From `myV1SpendingScriptTyped`, you can obtain `BuiltinData -> BuiltinData -> BuiltinData -> any`, and subsequently compile it to UPLC, via
 
@@ -72,11 +73,11 @@ Each call to `unsafeFromBuiltinData` decodes a `BuiltinData` into a value of a H
 The `check` function takes a `Bool` and returns a `BuiltinUnit`, throwing an error if the input is `False`.
 It is needed because returning `False` does not cause the validation to fail; to fail the validation, an error needs to be thrown.
 
-In this example the script happens to return `BuiltinUnit`, but this is not a requirement for Plutus V1 or V2.
+In this example the script happens to return `BuiltinUnit`, but this is not a requirement for Plutus V1.
 
 ### Minting, Certifying and Rewarding Scripts
 
-Unlike spending scripts, Plutus V1 and V2 scripts for minting, certifying and rewarding purposes take one fewer argument: there is no datum argument.
+Unlike spending scripts, Plutus V1 scripts for minting, certifying and rewarding purposes take one fewer argument: there is no datum argument.
 Thus in Plutus Tx, a minting, certifying or rewarding script should have the following type:
 
 ```haskell
@@ -102,11 +103,29 @@ As said before, evaluating a Plutus V1 and V2 script succeeds as long as the eva
 This means, crucially, that an unsaturated script (a script expecting more arguments than it receives) succeeds trivially, since the evaluation terminates almost immediately and returns a lambda.
 Thus be careful: if, for example, you accidentally use a spending script (which expects three arguments) as a minting script (which will receive two arguments), it will always succeed, which is obviously not what you want.
 
+## Plutus V2
+
+Plutus V2 was enabled at the Vasil hard fork, which introduced the Babbage era.
+
+Plutus V2 shares several similarities with Plutus V1:
+- It supports the same four script purposes.
+- The number of arguments a Plutus V2 script receives is identical to Plutus V1: three for minting scripts, and two for other script purposes.
+- Script evaluation succeeds as long as no errors occur and the budget is not exceeded.
+
+The differences between Plutus V1 and Plutus V2 include:
+- Plutus V2 can be used in transactions that utilizes Babbage era features like [inline datums](https://cips.cardano.org/cip/CIP-0032) and [collateral output](https://cips.cardano.org/cip/CIP-0040), while Plutus V1 cannot (except for reference scripts, as noted earlier).
+- Plutus V2's script context contains more fields than Plutus V1 due to new transaction features.
+  When writing a Plutus V2 script, you should use the `ScriptContext` data type from `PlutusLedgerApi.V2`.
+- For now, Plutus V2 supports more builtin functions than Plutus V1, including `serialiseData`, `verifyEcdsaSecp256k1Signature` and `verifySchnorrSecp256k1Signature`.
+  However, as explained in [Different Notions of Version](../essential-concepts/versions.md), we plan to enable all builtin functions across all ledger language versions in the future.
+
 ## Plutus V3
+
+Plutus V3 was enabled at the Chang hard fork, which introduced the Conway era.
 
 Plutus V3 has two additional [script purposes](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-V3-Contexts.html#t:ScriptPurpose) for validating governance actions: voting and proposing.
 
-Besides the usual differences between different Plutus ledger language versions, there are three additional key differences between Plutus V3 and V1/V2:
+Additional key differences between Plutus V3 and V1/V2 include:
 
 1. All Plutus V3 scripts, regardless of script purpose, take a single argument: the script context.
    The datum (for spending scripts) and the redeemer are part of the Plutus V3 script context.
@@ -114,8 +133,10 @@ Besides the usual differences between different Plutus ledger language versions,
 2. The datum is now optional for spending scripts.
    The script context may or may not contain a datum, depending on whether the UTXO being spent has a datum associated with it.
 3. There is an additional condition for the evaluation of a Plutus V3 script to be considered successful: the return value must be a `BuiltinUnit`.
+4. For now, Plutus V3 supports Plutus Core 1.1.0, a Plutus Core language version that introduced [sums-of-products](https://cips.cardano.org/cip/CIP-0085), as well as more builtin functions than Plutus V2.
+   However, we plan to enable all Plutus Core versions and all builtin functions across all ledger language versions in the future.
 
-The first two points are attributed to [CIP-69](https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0069/), whereas the third point is attributed to [CIP-117](https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0117/).
+The first two points above are attributed to [CIP-69](https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0069/), whereas the third point is attributed to [CIP-117](https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0117/).
 
 In other words, all Plutus V3 scripts should have the following type in Plutus Tx:
 
@@ -127,6 +148,6 @@ Updating a Plutus V1/V2 script to turn it into a Plutus V3 script mostly involve
 
 ---
 
-[^1]: There is one exception to this: Plutus V1 can be used in transactions with reference inputs, even though reference inputs were introduced in the Babbage era.
+[^1]: There is one exception to this: Plutus V1 can be used in transactions with reference scripts, even though reference scripts were introduced in the Babbage era.
 
 [^2]: For more information on script purposes, refer to [Script Purposes](script-purposes.md).

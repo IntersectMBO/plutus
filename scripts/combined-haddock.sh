@@ -235,8 +235,9 @@ fi
 echo "Injecting additional prologue html"
 
 list-valid-plutus-versions() {
+  git fetch --tags --force
   local versions="$(git tag | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | sort -rV | uniq | tr ' ' '\n')"
-  local min_ver="1.27.0.0"
+  local min_ver="1.30.0.0"
   echo master 
   echo latest
   for ver in $versions; do
@@ -272,7 +273,9 @@ build-version-select-html() {
   echo "$html"
 }
 
-inject-text-at-char "$OUTPUT_DIR/index.html" 1465 "$(build-version-select-html)"
+SELECT_ELEM_POSITION_IN_INDEX_HTML=1465
+
+inject-text-at-char "$OUTPUT_DIR/index.html" $SELECT_ELEM_POSITION_IN_INDEX_HTML "$(build-version-select-html)"
 
 
 

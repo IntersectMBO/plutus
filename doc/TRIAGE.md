@@ -2,7 +2,14 @@
 
 ## Preface
 
-This document elaborates on the triage process that we use to prioritize and resolve incoming requests, bug reports, questions -- anything relevant to the contents of this repo that the reporter wants to bring to our attention. The goal is to make sure that every issue or pull request opened on GitHub gets evaluated, classified, put into the queue and eventually resolved.
+This document elaborates on the triage process that we use to prioritize and resolve incoming requests, bug reports, questions -- anything relevant to the contents of this repo that the reporter wants to bring to our attention. The goal is to make sure that every report gets evaluated, classified, put into the queue and eventually resolved.
+
+The triage person is responsible for monitoring the following places:
+
+- GitHub [issues](https://github.com/IntersectMBO/plutus/issues) and [PRs](https://github.com/IntersectMBO/plutus/pulls)
+- Plutus-related [CIPs](https://github.com/cardano-foundation/CIPs/pulls?q=is%3Apr+is%3Aopen+label%3A%22Category%3A+Plutus%22)
+- the [#plutus](https://input-output-rnd.slack.com/archives/C21UF2WVC) Slack channel
+- the [#plutus-working-group](https://discord.com/channels/1136727663583698984/1239888614796820531) Discord channel
 
 ## Why
 
@@ -144,5 +151,5 @@ is:issue is:open assignee:@me sort:updated-asc
 Issues that don't have an assignee and may require attention:
 
 ```
-is:issue is:open no:assignee -label:"Internal" -label:"Low priority" -label:"status: needs info from the reporter"
+is:issue is:open no:assignee -label:"Low priority" -label:"Internal" -label:"Objective" -label:"status: needs info from the reporter"
 ```

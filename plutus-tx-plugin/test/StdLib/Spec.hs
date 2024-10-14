@@ -35,7 +35,7 @@ import PlutusTx.Ord qualified as PlutusTx
 import PlutusTx.Plugin (plc)
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio qualified as Ratio
-import PlutusTx.Test (goldenPir)
+import PlutusTx.Test (goldenPirReadable)
 import Test.Tasty (TestName, TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (assertFailure, testCase, (@?=))
@@ -54,7 +54,7 @@ tests =
     , embed $ testPropertyNamed "divMod" "testDivMod" testDivMod
     , embed $ testPropertyNamed "quotRem" "testQuotRem" testQuotRem
     , embed $ testPropertyNamed "Eq @Data" "eqData" eqData
-    , goldenPir "errorTrace" errorTrace
+    , goldenPirReadable "errorTrace" errorTrace
     ]
 
 -- We really should use something like "Control.Exception.Enclosed" here and in other similar

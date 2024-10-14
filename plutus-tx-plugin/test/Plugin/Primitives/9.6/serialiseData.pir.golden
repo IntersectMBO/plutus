@@ -1,7 +1,5 @@
-program
-  1.1.0
-  (let
-    !serialiseData : data -> bytestring = serialiseData
-    ~serialiseData : data -> bytestring = serialiseData
-  in
-  serialiseData)
+let
+  !serialiseData : data -> bytestring = serialiseData
+  ~serialiseData : data -> bytestring = serialiseData
+in
+serialiseData

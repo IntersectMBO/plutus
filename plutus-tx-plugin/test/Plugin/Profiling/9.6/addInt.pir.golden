@@ -1,32 +1,30 @@
-program
-  1.1.0
-  (let
-    !addInteger : integer -> integer -> integer = addInteger
-    ~addInteger : integer -> integer -> integer
-      = \(x : integer) ->
+let
+  !addInteger : integer -> integer -> integer = addInteger
+  ~addInteger : integer -> integer -> integer
+    = \(x : integer) ->
+        let
+          !x : integer = x
+        in
+        \(y : integer) ->
           let
-            !x : integer = x
-          in
-          \(y : integer) ->
-            let
-              !y : integer = y
-            in
-            trace
-              {unit -> integer}
-              "entering addInteger"
-              (\(thunk : unit) ->
-                 trace {integer} "exiting addInteger" (addInteger x y))
-              ()
-    ~addInt : integer -> integer -> integer
-      = \(x : integer) ->
-          let
-            !x : integer = x
+            !y : integer = y
           in
           trace
-            {unit -> integer -> integer}
-            "entering addInt"
+            {unit -> integer}
+            "entering addInteger"
             (\(thunk : unit) ->
-               trace {integer -> integer} "exiting addInt" (addInteger x))
+               trace {integer} "exiting addInteger" (addInteger x y))
             ()
-  in
-  addInt)
+  ~addInt : integer -> integer -> integer
+    = \(x : integer) ->
+        let
+          !x : integer = x
+        in
+        trace
+          {unit -> integer -> integer}
+          "entering addInt"
+          (\(thunk : unit) ->
+             trace {integer -> integer} "exiting addInt" (addInteger x))
+          ()
+in
+addInt

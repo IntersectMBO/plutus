@@ -56,7 +56,7 @@ coverage = testNested "Coverage" . pure $ testNestedGhc
          , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [37, 41, 42, 43]
          , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [49]
          ]
- , goldenPir "coverageCode" boolOtherFunction ]
+ , goldenPirReadable "coverageCode" boolOtherFunction ]
 
 mkTests :: String -> CompiledCode t -> Set String -> [Int] -> TestTree
 mkTests nm cc heads ls = testGroup nm [ applicationHeadsCorrect cc heads , linesInCoverageIndex cc ls ]

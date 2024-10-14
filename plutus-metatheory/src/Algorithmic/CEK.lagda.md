@@ -327,7 +327,7 @@ BUILTIN complementByteString (base $ V-con s) = inj₂ (V-con (complementBYTESTR
 BUILTIN readBit (base $ V-con s $ V-con i) with readBIT s i
 ... | just r = inj₂ (V-con r)
 ... | nothing  = inj₁ (con (ne (^ (atomic aBool))))
-BUILTIN writeBits (base $ V-con s $ V-con ps $ V-con us) with writeBITS s (toList ps) (toList us)
+BUILTIN writeBits (base $ V-con s $ V-con ps $ V-con u) with writeBITS s (toList ps) u
 ... | just r = inj₂ (V-con r)
 ... | nothing  = inj₁ (con (ne (^ (atomic aBytestring))))
 BUILTIN replicateByte (base  $ V-con l $ V-con w) with replicateBYTE l w

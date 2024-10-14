@@ -36,25 +36,6 @@
       Cons : a -> List a -> List a
   in
   letrec
-    !goList : List Bool -> list bool
-      = \(ds : List Bool) ->
-          List_match
-            {Bool}
-            ds
-            {list bool}
-            []
-            (\(d : Bool) (ds : List Bool) ->
-               mkCons
-                 {bool}
-                 (Bool_match
-                    d
-                    {all dead. bool}
-                    (/\dead -> True)
-                    (/\dead -> False)
-                    {all dead. dead})
-                 (goList ds))
-  in
-  letrec
     !goList : List integer -> list integer
       = \(ds : List integer) ->
           List_match
@@ -66,9 +47,17 @@
                mkCons {integer} d (goList ds))
   in
   let
-    !writeBits : bytestring -> List integer -> List Bool -> bytestring
-      = \(bs : bytestring) (ixes : List integer) (bits : List Bool) ->
-          writeBits bs (goList ixes) (goList bits)
+    !writeBits : bytestring -> List integer -> Bool -> bytestring
+      = \(bs : bytestring) (ixes : List integer) (bit : Bool) ->
+          writeBits
+            bs
+            (goList ixes)
+            (Bool_match
+               bit
+               {all dead. bool}
+               (/\dead -> True)
+               (/\dead -> False)
+               {all dead. dead})
   in
   \(dim : data) ->
     let
@@ -140,14 +129,7 @@
                                          (\(ds : integer) (ds : List integer) ->
                                             Cons {integer} ds ds)
                                          (Nil {integer}))
-                                      ((let
-                                           a = List Bool
-                                         in
-                                         \(c : Bool -> a -> a) (n : a) ->
-                                           c True n)
-                                         (\(ds : Bool) (ds : List Bool) ->
-                                            Cons {Bool} ds ds)
-                                         (Nil {Bool})))
+                                      True)
                                    -1
                              !newLeft : bytestring
                                = shiftByteString
@@ -161,14 +143,7 @@
                                          (\(ds : integer) (ds : List integer) ->
                                             Cons {integer} ds ds)
                                          (Nil {integer}))
-                                      ((let
-                                           a = List Bool
-                                         in
-                                         \(c : Bool -> a -> a) (n : a) ->
-                                           c True n)
-                                         (\(ds : Bool) (ds : List Bool) ->
-                                            Cons {Bool} ds ds)
-                                         (Nil {Bool})))
+                                      True)
                                    1
                              !newDown : bytestring
                                = writeBits
@@ -181,13 +156,7 @@
                                       (\(ds : integer) (ds : List integer) ->
                                          Cons {integer} ds ds)
                                       (Nil {integer}))
-                                   ((let
-                                        a = List Bool
-                                      in
-                                      \(c : Bool -> a -> a) (n : a) -> c True n)
-                                      (\(ds : Bool) (ds : List Bool) ->
-                                         Cons {Bool} ds ds)
-                                      (Nil {Bool}))
+                                   True
                              !newControl : bytestring
                                = complementByteString
                                    (orByteString

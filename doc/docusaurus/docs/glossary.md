@@ -45,6 +45,15 @@ See [_The Extended UTXO Model_](https://iohk.io/en/research/library/papers/the-e
 A guardrail script, sometimes referred to as a constitution script or a proposing script, is a Plutus V3 script used to validate two kinds of governance actions: parameter change and treasury withdrawal.
 See [Script Purposes](./working-with-scripts/script-purposes.md).
 
+### Inline Datum
+
+Inline datums are a feature introduced in the Babbage era.
+Before babbage, a UTXO could only contain a datum hash, not the datum itself.
+To spend such a UTXO, the corresponding datum must be provided in the transaction.
+Inline datums allow datums to be directly attached to UTXOs.
+
+For more details, see [CIP-32](https://cips.cardano.org/cip/CIP-32).
+
 ### Hard Fork
 
 A hard fork is an update of the major protocol version, i.e., transitioning the protocol version from `x.y` to `x+1.0`.
@@ -144,11 +153,47 @@ A piece of data included in a transaction that serves as an input to a Plutus sc
 
 If a smart contract is regarded as a state machine, the redeemer would be the input that ticks the state machine.
 
+### Reference Input
+
+Reference inputs are a feature introduced in the Babbage era.
+A reference input is a UTXO that a transaction can inspect without having to consume it.
+Recall that a UTXO can only be consumed once.
+Since a UTXO can only be consumed once, reference inputs help avoid the need to keep consuming and recreating similar UTXOs.
+
+For more details, see [CIP-31](https://cips.cardano.org/cip/CIP-31).
+
+### Reference Script
+
+Reference scripts are a feature introduced in the Babbage era.
+Before Babbage, a UTXO could not contain scripts, so spending a UTXO with a script address required the script to be included in the transaction.
+Reference scripts allow scripts to be attached to UTXOs, which can then be used as reference inputs.
+This reduces transaction sizes, and avoids the need to include the same scripts in multiple transactions.
+
+For more details, see [CIP-33](https://cips.cardano.org/cip/CIP-33).
+
+### Scott Encoding
+
+Scott encoding is a method for encoding datatypes in lambda calculus.
+The Plutus Tx compiler adopts Scott encoding for Plutus Tx datatypes when compiling to Plutus Core 1.0.0.
+When compiling to Plutus Core 1.1.0, sums of products is used instead, which makes scripts smaller and cheaper compared to Scott encoding.
+Currently, Plutus V1 and V2 are only compatible with Plutus Core 1.0.0, whereas Plutus V3 is also compatible with Plutus Core 1.1.0.
+However, we plan to make all Plutus ledger language versions compatible with all Plutus Core versions in the future.
+
+For more details, see the [Wikipedia page](https://en.wikipedia.org/wiki/Mogensen%E2%80%93Scott_encoding) on Scott encoding.
+
 ### Script Context
 
 An input to a Plutus script created by the ledger.
 It includes details of the transaction being validated.
 Additionally, since a transaction may do multiple things, each of which needs to be validated by a separate script, the script context also specifies what exactly the current script is responsible for validating.
+
+### Sums of Products
+
+Sums of products is an alternative method to Scott encoding for encoding datatypes.
+The Plutus Core language supports sums of products since version 1.1.0.
+Currently, Plutus Core 1.1.0 is only compatible with Plutus V3, but we plan to make it compatible with Plutus V1 and V2 in the future.
+
+For more details, see [CIP-85](https://cips.cardano.org/cip/CIP-0085).
 
 ### Typed Plutus Core
 

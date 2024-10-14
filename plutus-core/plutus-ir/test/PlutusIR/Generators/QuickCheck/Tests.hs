@@ -17,12 +17,12 @@ import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
 import PlutusCore.Name.Unique
+import PlutusCore.Pretty
 import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.Test (toUPlc)
 import PlutusCore.Version (latestVersion)
 import PlutusIR
-import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Test ()
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (restricting, runCekNoEmit,
@@ -142,7 +142,7 @@ prop_stats_leaves :: Property
 prop_stats_leaves = withMaxSuccess 10 $
   -- No shrinking here because we are only collecting stats
   forAllDoc "_,tm" genTypeAndTerm_ (const []) $ \ (_, tm) ->
-  tabulate "leaves" (map (filter isAlpha . show . prettyPirReadable) $ leaves tm) $ property True
+  tabulate "leaves" (map (filter isAlpha . show . prettyReadable) $ leaves tm) $ property True
   where
     -- Figure out what's at the leaves of the AST,
     -- including variable names, error, and builtins.

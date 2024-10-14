@@ -13,9 +13,9 @@ import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Name.Unique
 import PlutusCore.Normalize
+import PlutusCore.Pretty
 import PlutusCore.Quote (runQuote)
 import PlutusIR
-import PlutusIR.Core.Instance.Pretty.Readable
 
 import Control.Monad (replicateM, when)
 import Control.Monad.Reader (asks, local)
@@ -89,9 +89,9 @@ genType k = do
           Right _  -> pure ()
           Left err ->
               error . show $ fold
-                  [ "genType - checkInvariants: type " <> prettyPirReadable ty
-                  , " does not match kind " <> prettyPirReadable k
-                  , " in context " <> prettyPirReadable ctx
+                  [ "genType - checkInvariants: type " <> prettyReadable ty
+                  , " does not match kind " <> prettyReadable k
+                  , " in context " <> prettyReadable ctx
                   , " with error message " <> fromString err
                   ]
     pure ty

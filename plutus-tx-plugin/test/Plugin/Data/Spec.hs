@@ -40,24 +40,24 @@ datat = testNested "Data" . pure . testNestedGhc $
 
 monoData :: TestNested
 monoData = testNested "monomorphic" [
-    goldenPir "enum" basicEnum
-  , goldenPir "monoDataType" monoDataType
-  , goldenPir "monoConstructor" monoConstructor
-  , goldenPir "monoConstructed" monoConstructed
-  , goldenPir "monoCase" monoCase
-  , goldenPir "monoCaseStrict" monoCaseStrict
+    goldenPirReadable "enum" basicEnum
+  , goldenPirReadable "monoDataType" monoDataType
+  , goldenPirReadable "monoConstructor" monoConstructor
+  , goldenPirReadable "monoConstructed" monoConstructed
+  , goldenPirReadable "monoCase" monoCase
+  , goldenPirReadable "monoCaseStrict" monoCaseStrict
   , goldenUEval "monoConstDest" [ toUPlc monoCase, toUPlc monoConstructed ]
-  , goldenPir "defaultCase" defaultCase
-  , goldenPir "irrefutableMatch" irrefutableMatch
-  , goldenPir "atPattern" atPattern
+  , goldenPirReadable "defaultCase" defaultCase
+  , goldenPirReadable "irrefutableMatch" irrefutableMatch
+  , goldenPirReadable "atPattern" atPattern
   , goldenUEval "monoConstDestDefault" [ toUPlc monoCase, toUPlc monoConstructed ]
-  , goldenPir "monoRecord" monoRecord
-  , goldenPir "recordNewtype" recordNewtype
-  , goldenPir "recordWithStrictField" recordWithStrictField
-  , goldenPir "unusedWrapper" unusedWrapper
-  , goldenPir "nonValueCase" nonValueCase
-  , goldenPir "strictDataMatch" strictDataMatch
-  , goldenPir "synonym" synonym
+  , goldenPirReadable "monoRecord" monoRecord
+  , goldenPirReadable "recordNewtype" recordNewtype
+  , goldenPirReadable "recordWithStrictField" recordWithStrictField
+  , goldenPirReadable "unusedWrapper" unusedWrapper
+  , goldenPirReadable "nonValueCase" nonValueCase
+  , goldenPirReadable "strictDataMatch" strictDataMatch
+  , goldenPirReadable "synonym" synonym
   ]
 
 data MyEnum = Enum1 | Enum2
@@ -170,9 +170,9 @@ synonym = plc (Proxy @"synonym") (1::Synonym)
 
 polyData :: TestNested
 polyData = testNested "polymorphic" [
-    goldenPir "polyDataType" polyDataType
-  , goldenPir "polyConstructed" polyConstructed
-  , goldenPir "defaultCasePoly" defaultCasePoly
+    goldenPirReadable "polyDataType" polyDataType
+  , goldenPirReadable "polyConstructed" polyConstructed
+  , goldenPirReadable "defaultCasePoly" defaultCasePoly
   ]
 
 data MyPolyData a b = Poly1 a b | Poly2 a
@@ -195,14 +195,14 @@ defaultCasePoly = plc (Proxy @"defaultCasePoly") (\(x :: MyPolyData Integer Inte
 
 newtypes :: TestNested
 newtypes = testNested "newtypes" [
-    goldenPir "basicNewtype" basicNewtype
-   , goldenPir "newtypeMatch" newtypeMatch
-   , goldenPir "newtypeCreate" newtypeCreate
-   , goldenPir "newtypeId" newtypeId
-   , goldenPir "newtypeCreate2" newtypeCreate2
-   , goldenPir "nestedNewtypeMatch" nestedNewtypeMatch
+    goldenPirReadable "basicNewtype" basicNewtype
+   , goldenPirReadable "newtypeMatch" newtypeMatch
+   , goldenPirReadable "newtypeCreate" newtypeCreate
+   , goldenPirReadable "newtypeId" newtypeId
+   , goldenPirReadable "newtypeCreate2" newtypeCreate2
+   , goldenPirReadable "nestedNewtypeMatch" nestedNewtypeMatch
    , goldenUEval "newtypeCreatDest" [ toUPlc $ newtypeMatch, toUPlc $ newtypeCreate2 ]
-   , goldenPir "paramNewtype" paramNewtype
+   , goldenPirReadable "paramNewtype" paramNewtype
    ]
 
 newtype MyNewtype = MyNewtype Integer
@@ -236,14 +236,14 @@ paramNewtype = plc (Proxy @"paramNewtype") (\(x ::ParamNewtype Integer) -> case 
 
 recursiveTypes :: TestNested
 recursiveTypes = testNested "recursive" [
-    goldenPir "listConstruct" listConstruct
-    , goldenPir "listConstruct2" listConstruct2
-    , goldenPir "listConstruct3" listConstruct3
-    , goldenPir "listMatch" listMatch
+    goldenPirReadable "listConstruct" listConstruct
+    , goldenPirReadable "listConstruct2" listConstruct2
+    , goldenPirReadable "listConstruct3" listConstruct3
+    , goldenPirReadable "listMatch" listMatch
     , goldenUEval "listConstDest" [ toUPlc listMatch, toUPlc listConstruct ]
     , goldenUEval "listConstDest2" [ toUPlc listMatch, toUPlc listConstruct2 ]
-    , goldenPir "ptreeConstruct" ptreeConstruct
-    , goldenPir "ptreeMatch" ptreeMatch
+    , goldenPirReadable "ptreeConstruct" ptreeConstruct
+    , goldenPirReadable "ptreeMatch" ptreeMatch
     , goldenUEval "ptreeConstDest" [ toUPlc ptreeMatch, toUPlc ptreeConstruct ]
     , goldenUEval "polyRecEval" [ toUPlc polyRec, toUPlc ptreeConstruct ]
     , goldenUEval "ptreeFirstEval" [ toUPlc ptreeFirst, toUPlc ptreeConstruct ]
@@ -349,11 +349,11 @@ processInterList = plc (Proxy @"foldrInterList") (
 
 typeFamilies :: TestNested
 typeFamilies = testNested "families" [
-    goldenPir "basicClosed" basicClosed
-    , goldenPir "basicOpen" basicOpen
-    , goldenPir "associated" associated
-    , goldenPir "associatedParam" associatedParam
-    , goldenPir "basicData" basicData
+    goldenPirReadable "basicClosed" basicClosed
+    , goldenPirReadable "basicOpen" basicOpen
+    , goldenPirReadable "associated" associated
+    , goldenPirReadable "associatedParam" associatedParam
+    , goldenPirReadable "basicData" basicData
     , goldenUPlc "irreducible" irreducible
   ]
 

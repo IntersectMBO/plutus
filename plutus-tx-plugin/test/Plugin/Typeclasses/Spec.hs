@@ -28,16 +28,16 @@ import Data.Proxy
 
 typeclasses :: TestNested
 typeclasses = testNested "Typeclasses" . pure $ testNestedGhc
-  [ goldenPir "sizedBasic" sizedBasic
-  , goldenPir "sizedPair" sizedPair
-  , goldenPir "multiFunction" multiFunction
-  , goldenPir "defaultMethods" defaultMethods
-  , goldenPir "partialApplication" partialApplication
-  , goldenPir "sequenceTest" sequenceTest
-  , goldenPir "compareTest" compareTest
-  , goldenPir "concatTest" concatTest
-  , goldenPir "sumTest" sumTest
-  , goldenPir "fmapDefaultTest" fmapDefaultTest
+  [ goldenPirReadable "sizedBasic" sizedBasic
+  , goldenPirReadable "sizedPair" sizedPair
+  , goldenPirReadable "multiFunction" multiFunction
+  , goldenPirReadable "defaultMethods" defaultMethods
+  , goldenPirReadable "partialApplication" partialApplication
+  , goldenPirReadable "sequenceTest" sequenceTest
+  , goldenPirReadable "compareTest" compareTest
+  , goldenPirReadable "concatTest" concatTest
+  , goldenPirReadable "sumTest" sumTest
+  , goldenPirReadable "fmapDefaultTest" fmapDefaultTest
   ]
 
 class Sized a where

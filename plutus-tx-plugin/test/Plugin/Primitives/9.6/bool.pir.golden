@@ -1,8 +1,6 @@
-program
-  1.1.0
-  (let
-    data Bool | Bool_match where
-      True : Bool
-      False : Bool
-  in
-  True)
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+True

@@ -530,8 +530,8 @@ BUILTIN readBit = λ
   ; _ -> inj₁ userError
   }
 BUILTIN writeBits = λ
-  { (app (app (app base (V-con bytestring s)) (V-con (list integer) ps)) (V-con (list bool) us)) ->
-     case writeBITS s (toList ps) (toList us) of λ
+  { (app (app (app base (V-con bytestring s)) (V-con (list integer) ps)) (V-con bool u)) ->
+     case writeBITS s (toList ps) u of λ
        { (just r) -> inj₂ (V-con bytestring r)
        ; nothing  -> inj₁ userError
        }

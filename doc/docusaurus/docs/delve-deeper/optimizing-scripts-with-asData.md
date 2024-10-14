@@ -1,8 +1,8 @@
 ---
-sidebar_position: 35
+sidebar_position: 10
 ---
 
-# Optimizing scripts with `asData`
+# Optimizing Scripts with `asData`
 
 The Plutus libraries contain a `PlutusTx.asData` module that contains Template Haskell (TH) code for encoding algebraic data types (ADTs) as `Data` objects in Plutus Core, as opposed to sums-of-products terms.
 In general, `asData` pushes the burden of a computation nearer to where a value is used, in a crude sense making the evaluation less strict and more lazy.

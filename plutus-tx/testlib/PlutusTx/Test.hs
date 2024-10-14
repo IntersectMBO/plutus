@@ -52,7 +52,6 @@ import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test
 import PlutusIR.Analysis.Builtins as PIR
-import PlutusIR.Core.Instance.Pretty.Readable (prettyPirReadableSimple)
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
 import PlutusIR.Transform.RewriteRules as PIR
@@ -118,12 +117,16 @@ goldenBudget name compiledCode = goldenUEvalBudget name [compiledCode]
 
 -- Compilation testing
 
+-- | Does not print uniques.
 goldenPir ::
   (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
   String ->
   CompiledCodeIn uni fun a ->
   TestNested
-goldenPir name value = nestedGoldenVsDoc name ".pir" $ prettyPirReadableSimple $ getPirNoAnn value
+goldenPir name value =
+  nestedGoldenVsDoc name ".pir"
+    . maybe "PIR not found in CompiledCode" (prettyClassicSimple . view progTerm)
+    $ getPirNoAnn value
 
 -- | Does not print uniques.
 goldenPirReadable ::
@@ -133,7 +136,7 @@ goldenPirReadable ::
   TestNested
 goldenPirReadable name value =
   nestedGoldenVsDoc name ".pir"
-    . maybe "PIR not found in CompiledCode" (prettyPirReadableSimple . view progTerm)
+    . maybe "PIR not found in CompiledCode" (prettyReadableSimple . view progTerm)
     $ getPirNoAnn value
 
 goldenPirBy ::

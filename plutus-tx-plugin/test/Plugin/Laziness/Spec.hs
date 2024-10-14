@@ -26,9 +26,9 @@ import Data.Proxy
 
 laziness :: TestNested
 laziness = testNested "Laziness" . pure $ testNestedGhc
-  [ goldenPir "joinError" joinErrorPir
+  [ goldenPirReadable "joinError" joinErrorPir
   , goldenUEval "joinErrorEval" [ toUPlc joinErrorPir, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False]
-  , goldenPir "lazyDepUnit" lazyDepUnit
+  , goldenPirReadable "lazyDepUnit" lazyDepUnit
   ]
 
 joinErrorPir :: CompiledCode (Bool -> Bool -> ())

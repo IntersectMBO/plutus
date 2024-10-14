@@ -1,8 +1,6 @@
-program
-  1.1.0
-  (let
-    data MyEnum | MyEnum_match where
-      Enum : MyEnum
-      Enum : MyEnum
-  in
-  Enum)
+let
+  data MyEnum | MyEnum_match where
+    Enum : MyEnum
+    Enum : MyEnum
+in
+Enum

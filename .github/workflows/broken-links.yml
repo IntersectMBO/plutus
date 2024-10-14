@@ -4,6 +4,7 @@ name: "🔗 Broken Links"
 
 on:
   workflow_dispatch: # Or manually dispatch the job
+  pull_request:
   push:
     branches:
       master

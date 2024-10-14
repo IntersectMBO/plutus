@@ -32,10 +32,10 @@ import PlutusCore.Core (argsFunKind)
 import PlutusCore.Default
 import PlutusCore.MkPlc (mkConstantOf)
 import PlutusCore.Name.Unique
+import PlutusCore.Pretty
 import PlutusCore.Subst (typeSubstClosedType)
 import PlutusIR
 import PlutusIR.Compiler
-import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Subst
 
 import Control.Lens ((<&>))
@@ -55,7 +55,6 @@ import Data.Set.Lens (setOf)
 import Data.String
 import GHC.Stack
 import Prettyprinter
-import Text.PrettyBy
 
 -- | This type keeps track of what kind of argument, term argument (`InstArg`) or
 -- type argument (`InstApp`) is required for a function. This type is used primarily
@@ -264,10 +263,10 @@ genTerm mty = checkInvariants $ do
       if debug then
         case typeCheckTermInContext tyctx tmctx tm ty of
           Left err ->
-             (error . show $ "genTerm - checkInvariants: term " <> prettyPirReadable tm
-                           <> " does not type check at type " <> prettyPirReadable ty
-                           <> " in type context " <> prettyPirReadable tyctx
-                           <> " and term context " <> prettyPirReadable tmctx
+             (error . show $ "genTerm - checkInvariants: term " <> prettyReadable tm
+                           <> " does not type check at type " <> prettyReadable ty
+                           <> " in type context " <> prettyReadable tyctx
+                           <> " and term context " <> prettyReadable tmctx
                            <> " with error message " <> fromString err)
           _ -> return (ty, tm)
       else

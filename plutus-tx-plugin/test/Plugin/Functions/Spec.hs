@@ -37,15 +37,15 @@ functions = testNested "Functions" . pure $ testNestedGhc
 
 recursiveFunctions :: TestNested
 recursiveFunctions = testNested "recursive" [
-    goldenPir "fib" fib
+    goldenPirReadable "fib" fib
     , goldenUEval "fib4" [ toUPlc fib, toUPlc $ plc (Proxy @"4") (4::Integer) ]
-    , goldenPir "sum" sumDirect
+    , goldenPirReadable "sum" sumDirect
     , goldenUEval "sumList" [ toUPlc sumDirect, toUPlc listConstruct3 ]
-    , goldenPir "even" evenMutual
+    , goldenPirReadable "even" evenMutual
     , goldenUEval "even3" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3::Integer) ]
     , goldenUEval "even4" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4::Integer) ]
-    , goldenPir "strictLength" strictLength
-    , goldenPir "lazyLength" lazyLength
+    , goldenPirReadable "strictLength" strictLength
+    , goldenPirReadable "lazyLength" lazyLength
   ]
 
 fib :: CompiledCode (Integer -> Integer)
@@ -94,24 +94,24 @@ lazyLength = plc (Proxy @"lazyLength") (lengthLazy @Integer)
 
 unfoldings :: TestNested
 unfoldings = testNested "unfoldings" [
-    goldenPir "nandDirect" nandPlcDirect
-    , goldenPir "andDirect" andPlcDirect
-    , goldenPir "andExternal" andPlcExternal
-    , goldenPir "allDirect" allPlcDirect
-    , goldenPir "mutualRecursionUnfoldings" mutualRecursionUnfoldings
-    , goldenPir "recordSelector" recordSelector
-    , goldenPir "recordSelectorExternal" recordSelectorExternal
+    goldenPirReadable "nandDirect" nandPlcDirect
+    , goldenPirReadable "andDirect" andPlcDirect
+    , goldenPirReadable "andExternal" andPlcExternal
+    , goldenPirReadable "allDirect" allPlcDirect
+    , goldenPirReadable "mutualRecursionUnfoldings" mutualRecursionUnfoldings
+    , goldenPirReadable "recordSelector" recordSelector
+    , goldenPirReadable "recordSelectorExternal" recordSelectorExternal
     -- We used to have problems with polymorphic let bindings where the generalization was
     -- on the outside of the let, which hit the value restriction. Now we hit the simplifier
     -- it seems to sometimes float these in, but we should keep an eye on these.
-    , goldenPir "polyMap" polyMap
-    , goldenPir "applicationFunction" applicationFunction
-    , goldenPir "unboxedTuples2" unboxedTuples2
-    , goldenPir "unboxedTuples3" unboxedTuples3
-    , goldenPir "unboxedTuples4" unboxedTuples4
-    , goldenPir "unboxedTuples5" unboxedTuples5
-    , goldenPir "unboxedTuples2Tuples" unboxedTuples2Tuples
-    , goldenPir "unboxedTuples3Tuples" unboxedTuples3Tuples
+    , goldenPirReadable "polyMap" polyMap
+    , goldenPirReadable "applicationFunction" applicationFunction
+    , goldenPirReadable "unboxedTuples2" unboxedTuples2
+    , goldenPirReadable "unboxedTuples3" unboxedTuples3
+    , goldenPirReadable "unboxedTuples4" unboxedTuples4
+    , goldenPirReadable "unboxedTuples5" unboxedTuples5
+    , goldenPirReadable "unboxedTuples2Tuples" unboxedTuples2Tuples
+    , goldenPirReadable "unboxedTuples3Tuples" unboxedTuples3Tuples
   ]
 
 andDirect :: Bool -> Bool -> Bool
