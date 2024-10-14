@@ -1,5 +1,5 @@
 ---
-sidebar_position: 15
+sidebar_position: 25
 ---
 
 # Other Optimization Techniques
@@ -20,7 +20,7 @@ Certain optimizations, such as inlining constants, can occasionally have negativ
 It is worth disabling them to see how it affects your script.
 You can do this using the `conservative-optimisation` plugin flag, which implies several other flags like `no-inline-constants`.
 Alternatively, try turning on the flags implied by `conservative-optimisation` individually.
-See [Plutus Tx Compiler Options](./plutus-tx-compiler-options.md).
+See [Plutus Tx Compiler Options](../delve-deeper/plutus-tx-compiler-options.md).
 
 ## Using the `Strict` Extension
 
