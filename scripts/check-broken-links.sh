@@ -7,13 +7,13 @@ TARGETS=(
 
 # For some reason linkchecker fails to check these URLs though they are valid.
 # It's plausible that these domains are blocking the linkchecker user agent, or 
-# that we are running into rate-limiting issues.
+# that we are running into rate-limiting issues, or that linkchecker is 
+# not following redirects properly.
 IGNORE_URLS=(
     https://pvp.haskell.org
     https://www.haskell.org/cabal
+    https://github.com/cardano-foundation/CIPs/pulls?q=is:pr%20is:open%20label:%22Category:%20Plutus%22
 )
-
-FAILED=0
 
 check_links() {
     linkchecker --no-warnings --recursion-level 0 --output failures --check-extern --stdin
