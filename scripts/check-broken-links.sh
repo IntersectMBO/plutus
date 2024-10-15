@@ -10,9 +10,9 @@ TARGETS=(
 # that we are running into rate-limiting issues, or that linkchecker is 
 # not following redirects properly.
 IGNORE_URLS=(
-    https://pvp.haskell.org
     https://www.haskell.org/cabal
-    https://github.com/cardano-foundation/CIPs/pulls?q=is:pr%20is:open%20label:%22Category:%20Plutus%22
+    https://pvp.haskell.org
+    https://github.com/cardano-foundation/CIPs/pulls\?q\=is%3Apr+is%3Aopen+label%3A%22Category%3A+Plutus%22
 )
 
 check_links() {
@@ -26,8 +26,8 @@ grep_links() {
 }
 
 valid_links() {
-    local all_links="$(grep_links | sort | uniq | tr ' ' '\n')"
-    local ignore_links="$(echo "${IGNORE_URLS[@]}" | sort | uniq | tr ' ' '\n')"
+    local all_links="$(grep_links | tr ' ' '\n' | sort | uniq)"
+    local ignore_links="$(echo "${IGNORE_URLS[@]}" | tr ' ' '\n' | sort | uniq)"
     comm -3 <(echo "$all_links") <(echo "$ignore_links")
 }
 
