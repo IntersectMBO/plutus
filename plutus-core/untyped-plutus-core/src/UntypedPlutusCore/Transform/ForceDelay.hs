@@ -135,21 +135,21 @@ module UntypedPlutusCore.Transform.ForceDelay
     ( forceDelay
     ) where
 
-import PlutusCore.Compiler.Types
 import UntypedPlutusCore.Core
+import UntypedPlutusCore.Transform.Simplifier (Simplifier, SimplifierStage (ForceDelay),
+                                               recordSimplification)
 
 import Control.Lens (transformOf)
 import Control.Monad (guard)
-import Control.Monad.State.Class (MonadState)
 import Data.Foldable as Foldable (foldl')
 
 {- | Traverses the term, for each node applying the optimisation
  detailed above. For implementation details see 'optimisationProcedure'.
 -}
 forceDelay
-    :: MonadState (UPLCSimplifierTrace name uni fun a) m
+    :: Monad m
     => Term name uni fun a
-    -> m (Term name uni fun a)
+    -> Simplifier name uni fun a m (Term name uni fun a)
 forceDelay term = do
     let result = transformOf termSubterms processTerm term
     recordSimplification term ForceDelay result

@@ -5,7 +5,9 @@
 module UntypedPlutusCore.Simplify (
     module Opts,
     simplifyTerm,
+    simplifyTermWithTrace,
     simplifyProgram,
+    simplifyProgramWithTrace,
     InlineHints (..),
 ) where
 
@@ -21,17 +23,16 @@ import UntypedPlutusCore.Transform.Cse
 import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
 import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
+import UntypedPlutusCore.Transform.Simplifier
 
 import Control.Monad
-import Control.Monad.State.Class (MonadState)
+import Control.Monad.State (StateT (runStateT), evalStateT)
 import Data.List as List (foldl')
 import Data.Typeable
 
 simplifyProgram ::
     forall name uni fun m a.
-    (Compiling m uni fun name a
-    , MonadState (UPLCSimplifierTrace name uni fun a) m
-    ) =>
+    (Compiling m uni fun name a) =>
     SimplifyOpts name a ->
     BuiltinSemanticsVariant fun ->
     Program name uni fun a ->
@@ -39,29 +40,60 @@ simplifyProgram ::
 simplifyProgram opts builtinSemanticsVariant (Program a v t) =
   Program a v <$> simplifyTerm opts builtinSemanticsVariant t
 
+simplifyProgramWithTrace ::
+    forall name uni fun m a.
+    (Compiling m uni fun name a) =>
+    SimplifyOpts name a ->
+    BuiltinSemanticsVariant fun ->
+    Program name uni fun a ->
+    m (Program name uni fun a, SimplifierTrace name uni fun a)
+simplifyProgramWithTrace opts builtinSemanticsVariant (Program a v t) = do
+  (result, trace) <-
+    runStateT
+      (simplifyTerm opts builtinSemanticsVariant t)
+      initSimplifierTrace
+  pure (Program a v result, trace)
+
 simplifyTerm ::
     forall name uni fun m a.
-    ( Compiling m uni fun name a
-    , MonadState (UPLCSimplifierTrace name uni fun a) m
-    ) =>
+    (Compiling m uni fun name a) =>
     SimplifyOpts name a ->
     BuiltinSemanticsVariant fun ->
     Term name uni fun a ->
     m (Term name uni fun a)
-simplifyTerm opts builtinSemanticsVariant =
+simplifyTerm opts builtinSemanticsVariant term =
+  evalStateT (simplifyTermWithTrace opts builtinSemanticsVariant term) initSimplifierTrace
+
+simplifyTermWithTrace ::
+    forall name uni fun m a.
+    (Compiling m uni fun name a) =>
+    SimplifyOpts name a ->
+    BuiltinSemanticsVariant fun ->
+    Term name uni fun a ->
+    Simplifier name uni fun a m (Term name uni fun a)
+simplifyTermWithTrace opts builtinSemanticsVariant =
     simplifyNTimes (_soMaxSimplifierIterations opts) >=> cseNTimes cseTimes
   where
     -- Run the simplifier @n@ times
-    simplifyNTimes :: Int -> Term name uni fun a -> m (Term name uni fun a)
+    simplifyNTimes ::
+      Int ->
+      Term name uni fun a ->
+      Simplifier name uni fun a m (Term name uni fun a)
     simplifyNTimes n = List.foldl' (>=>) pure $ map simplifyStep [1..n]
 
     -- Run CSE @n@ times, interleaved with the simplifier.
     -- See Note [CSE]
-    cseNTimes :: Int -> Term name uni fun a -> m (Term name uni fun a)
+    cseNTimes ::
+      Int ->
+      Term name uni fun a ->
+      Simplifier name uni fun a m (Term name uni fun a)
     cseNTimes n = foldl' (>=>) pure $ concatMap (\i -> [cseStep i, simplifyStep i]) [1..n]
 
     -- generate simplification step
-    simplifyStep :: Int -> Term name uni fun a -> m (Term name uni fun a)
+    simplifyStep ::
+      Int ->
+      Term name uni fun a ->
+      Simplifier name uni fun a m (Term name uni fun a)
     simplifyStep _ =
         floatDelay
         >=> forceDelay
@@ -69,12 +101,17 @@ simplifyTerm opts builtinSemanticsVariant =
         >=> caseReduce
         >=> inline (_soInlineConstants opts) (_soInlineHints opts) builtinSemanticsVariant
 
-    caseOfCase' :: Term name uni fun a -> m (Term name uni fun a)
+    caseOfCase' ::
+      Term name uni fun a ->
+      Simplifier name uni fun a m (Term name uni fun a)
     caseOfCase' = case eqT @fun @DefaultFun of
       Just Refl -> caseOfCase
       Nothing   -> pure
 
-    cseStep :: Int -> Term name uni fun a -> m (Term name uni fun a)
+    cseStep ::
+      Int ->
+      Term name uni fun a ->
+      Simplifier name uni fun a m (Term name uni fun a)
     cseStep _ =
       case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
         (Just Refl, Just Refl) -> cse builtinSemanticsVariant

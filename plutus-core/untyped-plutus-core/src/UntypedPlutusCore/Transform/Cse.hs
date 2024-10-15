@@ -8,15 +8,15 @@ module UntypedPlutusCore.Transform.Cse (cse) where
 
 import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
-import PlutusCore.Compiler.Types
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
 import UntypedPlutusCore.Size (termSize)
+import UntypedPlutusCore.Transform.Simplifier (Simplifier, SimplifierStage (CSE),
+                                               recordSimplification)
 
 import Control.Arrow ((>>>))
 import Control.Lens (foldrOf, transformOf)
 import Control.Monad (join, void)
-import Control.Monad.State.Class (MonadState)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, local)
 import Control.Monad.Trans.State.Strict (State, evalState, get, put)
@@ -211,14 +211,13 @@ data CseCandidate uni fun ann = CseCandidate
 
 cse ::
   ( MonadQuote m
-  , MonadState (UPLCSimplifierTrace Name uni fun ann) m
   , Hashable (Term Name uni fun ())
   , Rename (Term Name uni fun ann)
   , ToBuiltinMeaning uni fun
   ) =>
   BuiltinSemanticsVariant fun ->
   Term Name uni fun ann ->
-  m (Term Name uni fun ann)
+  Simplifier Name uni fun ann m (Term Name uni fun ann)
 cse builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t

@@ -56,25 +56,24 @@ Why is this optimization performed on UPLC, not PIR?
 module UntypedPlutusCore.Transform.FloatDelay (floatDelay) where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Compiler.Types
 import PlutusCore.Name.Unique qualified as PLC
 import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Name.UniqueSet qualified as USet
 import UntypedPlutusCore.Core.Plated (termSubterms)
 import UntypedPlutusCore.Core.Type (Term (..))
+import UntypedPlutusCore.Transform.Simplifier (Simplifier, SimplifierStage (FloatDelay),
+                                               recordSimplification)
 
 import Control.Lens (forOf, forOf_, transformOf)
-import Control.Monad.State.Class (MonadState)
 import Control.Monad.Trans.Writer.CPS (Writer, execWriter, runWriter, tell)
 
 floatDelay ::
   ( PLC.MonadQuote m
   , PLC.Rename (Term name uni fun a)
   , PLC.HasUnique name PLC.TermUnique
-  , MonadState (UPLCSimplifierTrace name uni fun a) m
   ) =>
   Term name uni fun a ->
-  m (Term name uni fun a)
+  Simplifier name uni fun a m (Term name uni fun a)
 floatDelay term = do
   result <-
     PLC.rename term >>= \t ->

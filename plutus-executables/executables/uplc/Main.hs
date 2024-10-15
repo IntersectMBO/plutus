@@ -13,8 +13,6 @@ module Main (main) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
-import PlutusCore.Compiler.Types (UPLCSimplification (..), UPLCSimplifierTrace (..),
-                                  initUPLCSimplifierTrace)
 import PlutusCore.Data (Data)
 import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
@@ -35,6 +33,7 @@ import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn (FreeVariableError)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
+import UntypedPlutusCore.Transform.Simplifier
 
 import Control.DeepSeq (force)
 import Control.Monad.Except (runExcept)
@@ -271,18 +270,18 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
     renamed <- PLC.rename prog
     let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
         defaultBuiltinSemanticsVariant = def
-    flip runStateT initUPLCSimplifierTrace
+    flip runStateT initSimplifierTrace
       $ UPLC.simplifyProgram UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
   writeProgram outp ofmt mode simplified
   runCertifier cert simplificationTrace
   where
-    runCertifier (Just certName) (UPLCSimplifierTrace uplcSimplTrace) = do
-      let processAgdaAST UPLCSimplification {beforeAST, stage, afterAST} =
+    runCertifier (Just certName) (SimplifierTrace simplTrace) = do
+      let processAgdaAST Simplification {beforeAST, stage, afterAST} =
               case (UPLC.deBruijnTerm beforeAST, UPLC.deBruijnTerm afterAST) of
                 (Right before', Right after')             -> (stage, (AgdaFFI.conv (void before'), AgdaFFI.conv (void after')))
                 (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
                 (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
-          rawAgdaTrace = processAgdaAST <$> uplcSimplTrace
+          rawAgdaTrace = processAgdaAST <$> simplTrace
       Agda.runCertifier (T.pack certName) rawAgdaTrace
     runCertifier Nothing _ = pure ()
 

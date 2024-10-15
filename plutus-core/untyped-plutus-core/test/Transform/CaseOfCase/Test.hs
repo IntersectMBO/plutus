@@ -4,6 +4,7 @@
 
 module Transform.CaseOfCase.Test where
 
+import Control.Monad.State (evalState)
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text.Encoding (encodeUtf8)
 import Data.Vector qualified as V
@@ -26,6 +27,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek (CekMachineCosts, CekValue, Eval
                                                  evaluateCek, noEmitter,
                                                  unsafeSplitStructuralOperational)
 import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
+import UntypedPlutusCore.Transform.Simplifier (initSimplifierTrace)
 
 test_caseOfCase :: TestTree
 test_caseOfCase =
@@ -111,11 +113,16 @@ caseOfCaseWithError =
 testCaseOfCaseWithError :: TestTree
 testCaseOfCaseWithError =
   testCase "Transformation doesn't evaluate error eagerly" do
-    simplifiedTerm <- caseOfCase caseOfCaseWithError
+    let simplifiedTerm = evalCaseOfCase caseOfCaseWithError
     evaluateUplc simplifiedTerm @?= evaluateUplc caseOfCaseWithError
 
 ----------------------------------------------------------------------------------------------------
 -- Helper functions --------------------------------------------------------------------------------
+
+evalCaseOfCase
+  :: Term Name DefaultUni DefaultFun ()
+  -> Term Name DefaultUni DefaultFun ()
+evalCaseOfCase term = evalState (caseOfCase term) initSimplifierTrace
 
 evaluateUplc
   :: UPLC.Term Name DefaultUni DefaultFun ()
@@ -136,4 +143,4 @@ goldenVsSimplified name =
     . encodeUtf8
     . render
     . prettyClassicSimple
-    . caseOfCase
+    . evalCaseOfCase
