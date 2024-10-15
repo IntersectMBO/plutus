@@ -150,7 +150,7 @@ The optimal encoding method may vary for different types within the same script.
 Generally speaking, the more a data type is used, the more advantageous it is to use Scott or SOP encoding, compared to manipulating Data objects directly, as the efficiency of Scott/SOP can justify the conversion overhead between Data and Scott/SOP.
 
 When writing Plutus Tx, it is possible to have your data types encoded using Data objects, rather than Scott/SOP, by utilizing the `asData` mechanism.
-For more details, see [Optimizing Scripts with asData](./optimizing-scripts-with-asData.md).
+For more details, see [Optimizing Scripts with asData](../working-with-scripts/optimizing-scripts-with-asData.md).
 
 As for script context, we are actively working on a Data-encoded script context API, though it is still in development. In the absence of that, you can also interact with Data objects directly using builtin functions that operate on Data.
 For example, the following function extracts the `ScriptInfo` field from Plutus V3's `ScriptContext`, which is its third field:
