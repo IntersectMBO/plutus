@@ -35,6 +35,9 @@ in
     repoRoot.nix.r-with-packages
     pkgs.R
 
+    # LaTeX environment
+    pkgs.texliveFull
+
     # Misc useful stuff, could make these commands but there's a lot already
     pkgs.jekyll
     pkgs.plantuml
