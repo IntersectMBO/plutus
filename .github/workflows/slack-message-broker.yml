@@ -32,7 +32,7 @@ jobs:
 
 
             function getSlackMemberToBeNotified() {
-              const senderLogin = github.event.sender.login;
+              const senderLogin = "${{ github.event.sender.login }}";
               const slackMemberIds = {
                 "zeme-wana": "U03HGDNDRKR",
                 "effecfully": "UBH8K0ZU2",
