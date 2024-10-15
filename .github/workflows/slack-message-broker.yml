@@ -4,7 +4,20 @@
 name: "📮 Slack Message Broker"
 
 on:
-  status
+  check_run:
+    types: [completed]
+  workflow_run:
+    workflows: 
+      - "🔗 Broken Links"
+      - "🗽 Cardano Constitution Tests"
+      - "💰 Cost Model Benchmark"
+      - "🦕 Docusaurus Site" 
+      - "📜 Haddock Site"
+      - "🩺 Longitudinal Benchmark"
+      - "🔮 Metatheory Site"
+      - "🌘 Nightly Testsuite"
+      - "📝 Papers & Specs"
+      - "🏛️ PlutusTx Template"
 
 jobs:
   Send:
@@ -17,15 +30,9 @@ jobs:
           script: | 
             console.log(${{ toJson(github.event) }});
 
-            const state = github.event.state;
-            const statusContext = github.event.context;  
-            const contextDescription = github.event.description;
-            const targetUrl = github.event.target_url 
-            const commitUrl = github.event.commit.html_url;
-            const commitSha = github.event.commit.sha.slice(0, 9);
-            const senderLogin = github.event.sender.login;
 
             function getSlackMemberToBeNotified() {
+              const senderLogin = github.event.sender.login;
               const slackMemberIds = {
                 "zeme-wana": "U03HGDNDRKR",
                 "effecfully": "UBH8K0ZU2",
@@ -43,16 +50,60 @@ jobs:
               }
             }
 
-            let message;
-            let shouldSendMessage;
 
-            if (["failure", "error"].includes(state)) {
-              message = `🔴 ${getSlackMemberToBeNotified()} your commit <${commitUrl}|\`${commitSha}\`> failed <${targetUrl}|${statusContext}>.`
+            let message = "";
+            let shouldSendMessage = false;
+            let slackMember = getSlackMemberToBeNotified();
+            
+         
+            function handleWorkflowRunEvent() {
+              const name = "${{ github.event.workflow_run.name }}";
+              const url = "${{ github.event.workflow_run.html_url }}";
+              const status = "${{ github.event.workflow_run.status }}";
+              const conclusion = "${{ github.event.workflow_run.conclusion }}";
+              const failureConclusions = [ "failure", "null", "cancelled", "action_required", "neutral", "timed_out" ];
+
+              if (conclusion == "") {
+                message = `${name} \`${status}\` ⏳ <${url}|View Logs> ${slackMember}`;
+              } else if (conclusion == "success") {
+                message = `${name} \`${conclusion}\` ✅ <${url}|View Logs> ${slackMember}`;
+              } else if (conclusion == "skipped") {
+                message = `${name} \`${conclusion}\` ⏩ <${url}|View Logs> ${slackMember}`;
+              } else if (failureConclusions.includes(conclusion)) {
+                message = `${name} \`${conclusion}\` ❌ <${url}|View Logs> ${slackMember}`;
+                shouldSendMessage = true;
+              } else {
+                message = `${name} \`${conclusion}\` ⁉️ <${url}|View Logs> Unknown Conclusion @channel`;
+                shouldSendMessage = true;
+              }
+            }
+
+
+            function handleCheckRunEvent() {
+              const name = "${{ github.event.check_run.name }}";
+              const status = "${{ github.event.check_run.status }}";
+              const conclusion = "${{ github.event.check_run.conclusion }}";
+              const url = "${{ github.event.check_run.html_url }}";
+
+              if (conclusion == "success") {
+                message = `${name} \`${conclusion}\` ✅ <${url}|View Logs> ${slackMember}`;
+              } else if (conclusion == "failure") {
+                message = `${name} \`${conclusion}\` ❌ <${url}|View Logs> ${slackMember}`;
+                shouldSendMessage = true;
+              } else {
+                message = `${name} \`${conclusion}\` ⁉️ <${url}|View Logs> Unknown Conclusion @channel`;
+                shouldSendMessage = true;
+              }
+            }
+
+
+            if ("${{ github.event_name }}" == "workflow_run") {
+              handleWorkflowRunEvent();
+            } else if ("${{ github.event_name }}" == "check_run") {
+              handleCheckRunEvent();
+            } else {
+              message = `Unknown event: ${{ github.event_name }}`;
               shouldSendMessage = true;
-            } 
-            else {
-              message = `🟢 ${getSlackMemberToBeNotified()} your commit <${commitUrl}|\`${commitSha}\`> passed <${targetUrl}|${statusContext}>.`
-              shouldSendMessage = false;
             }
 
             console.log(`message:  ${message}`);
