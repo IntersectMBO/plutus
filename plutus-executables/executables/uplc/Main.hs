@@ -38,7 +38,6 @@ import UntypedPlutusCore.Transform.Simplifier
 import Control.DeepSeq (force)
 import Control.Monad.Except (runExcept)
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.State (runStateT)
 import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
@@ -270,8 +269,7 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
     renamed <- PLC.rename prog
     let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
         defaultBuiltinSemanticsVariant = def
-    flip runStateT initSimplifierTrace
-      $ UPLC.simplifyProgram UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
+    UPLC.simplifyProgramWithTrace UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
   writeProgram outp ofmt mode simplified
   runCertifier cert simplificationTrace
   where
