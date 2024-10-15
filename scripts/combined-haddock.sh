@@ -75,7 +75,7 @@ PLUTUS_VERSION="$(find ${BUILD_CONTENTS}/plutus-core-* -printf '%f\n' -quit | se
 
 GIT_REV="$(git rev-parse HEAD)"
 
-GIT_REV_SHORT="$(git rev-parse --short HEAD)"
+GIT_REV_SHORT="$(git rev-parse --short HEAD | cut -c 1-7)"
 
 
 # Here we merge each package's internal libraries into a single folder, for example:
@@ -273,7 +273,7 @@ build-version-select-html() {
   echo "$html"
 }
 
-SELECT_ELEM_POSITION_IN_INDEX_HTML=1465
+SELECT_ELEM_POSITION_IN_INDEX_HTML=1463
 
 inject-text-at-char "$OUTPUT_DIR/index.html" $SELECT_ELEM_POSITION_IN_INDEX_HTML "$(build-version-select-html)"
 
