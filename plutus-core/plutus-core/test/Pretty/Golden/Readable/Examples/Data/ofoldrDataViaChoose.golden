@@ -1,0 +1,210 @@
+\(fConstr : integer -> list data -> data)
+ (fMap : list (pair data data) -> data)
+ (fList : list data -> data)
+ (fI : integer -> data)
+ (fB : bytestring -> data) ->
+  (/\a b ->
+     \(f : (a -> b) -> a -> b) ->
+       (/\a ->
+          \(s : (\a -> ifix (\(self :: * -> *) a -> self a -> a) a) a) ->
+            unwrap s s)
+         {a -> b}
+         (iwrap
+            (\(self :: * -> *) a -> self a -> a)
+            (a -> b)
+            (\(s :
+                 (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+                   (a -> b)) ->
+               f
+                 (\(x : a) ->
+                    (/\a ->
+                       \(s :
+                           (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+                             a) ->
+                         unwrap s s)
+                      {a -> b}
+                      s
+                      x))))
+    {data}
+    {data}
+    (\(rec : data -> data) (d : data) ->
+       (\(d : data) ->
+          /\r ->
+            \(fConstr : integer -> list data -> r)
+             (fMap : list (pair data data) -> r)
+             (fList : list data -> r)
+             (fI : integer -> r)
+             (fB : bytestring -> r) ->
+              (Left caseData) {r} fConstr fMap fList fI fB d)
+         d
+         {data}
+         (\(i : integer) (ds : list data) ->
+            fConstr
+              i
+              ((/\a ->
+                  \(f : a -> a) ->
+                    (/\a b ->
+                       \(f : (a -> b) -> a -> b) ->
+                         (/\a ->
+                            \(s :
+                                (\a ->
+                                   ifix (\(self :: * -> *) a -> self a -> a) a)
+                                  a) ->
+                              unwrap s s)
+                           {a -> b}
+                           (iwrap
+                              (\(self :: * -> *) a -> self a -> a)
+                              (a -> b)
+                              (\(s :
+                                   (\a ->
+                                      ifix
+                                        (\(self :: * -> *) a -> self a -> a)
+                                        a)
+                                     (a -> b)) ->
+                                 f
+                                   (\(x : a) ->
+                                      (/\a ->
+                                         \(s :
+                                             (\a ->
+                                                ifix
+                                                  (\(self :: * -> *) a ->
+                                                     self a -> a)
+                                                  a)
+                                               a) ->
+                                           unwrap s s)
+                                        {a -> b}
+                                        s
+                                        x))))
+                      {list a}
+                      {list a}
+                      (\(rec : list a -> list a) (xs : list a) ->
+                         (/\a ->
+                            \(xs : list a) ->
+                              /\r ->
+                                \(z : r) (f : a -> list a -> r) ->
+                                  (Left caseList) {a} {r} z f xs)
+                           {a}
+                           xs
+                           {list a}
+                           xs
+                           (\(x : a) (xs' : list a) ->
+                              (Left mkCons) {a} (f x) (rec xs'))))
+                 {data}
+                 rec
+                 ds))
+         (\(es : list (pair data data)) ->
+            fMap
+              ((/\a ->
+                  \(f : a -> a) ->
+                    (/\a b ->
+                       \(f : (a -> b) -> a -> b) ->
+                         (/\a ->
+                            \(s :
+                                (\a ->
+                                   ifix (\(self :: * -> *) a -> self a -> a) a)
+                                  a) ->
+                              unwrap s s)
+                           {a -> b}
+                           (iwrap
+                              (\(self :: * -> *) a -> self a -> a)
+                              (a -> b)
+                              (\(s :
+                                   (\a ->
+                                      ifix
+                                        (\(self :: * -> *) a -> self a -> a)
+                                        a)
+                                     (a -> b)) ->
+                                 f
+                                   (\(x : a) ->
+                                      (/\a ->
+                                         \(s :
+                                             (\a ->
+                                                ifix
+                                                  (\(self :: * -> *) a ->
+                                                     self a -> a)
+                                                  a)
+                                               a) ->
+                                           unwrap s s)
+                                        {a -> b}
+                                        s
+                                        x))))
+                      {list a}
+                      {list a}
+                      (\(rec : list a -> list a) (xs : list a) ->
+                         (/\a ->
+                            \(xs : list a) ->
+                              /\r ->
+                                \(z : r) (f : a -> list a -> r) ->
+                                  (Left caseList) {a} {r} z f xs)
+                           {a}
+                           xs
+                           {list a}
+                           xs
+                           (\(x : a) (xs' : list a) ->
+                              (Left mkCons) {a} (f x) (rec xs'))))
+                 {pair data data}
+                 ((/\a ->
+                     \(f : a -> a) (p : pair a a) ->
+                       (Right Comma)
+                         {a}
+                         {a}
+                         (f ((Left fstPair) {a} {a} p))
+                         (f ((Left sndPair) {a} {a} p)))
+                    {data}
+                    rec)
+                 es))
+         (\(ds : list data) ->
+            fList
+              ((/\a ->
+                  \(f : a -> a) ->
+                    (/\a b ->
+                       \(f : (a -> b) -> a -> b) ->
+                         (/\a ->
+                            \(s :
+                                (\a ->
+                                   ifix (\(self :: * -> *) a -> self a -> a) a)
+                                  a) ->
+                              unwrap s s)
+                           {a -> b}
+                           (iwrap
+                              (\(self :: * -> *) a -> self a -> a)
+                              (a -> b)
+                              (\(s :
+                                   (\a ->
+                                      ifix
+                                        (\(self :: * -> *) a -> self a -> a)
+                                        a)
+                                     (a -> b)) ->
+                                 f
+                                   (\(x : a) ->
+                                      (/\a ->
+                                         \(s :
+                                             (\a ->
+                                                ifix
+                                                  (\(self :: * -> *) a ->
+                                                     self a -> a)
+                                                  a)
+                                               a) ->
+                                           unwrap s s)
+                                        {a -> b}
+                                        s
+                                        x))))
+                      {list a}
+                      {list a}
+                      (\(rec : list a -> list a) (xs : list a) ->
+                         (/\a ->
+                            \(xs : list a) ->
+                              /\r ->
+                                \(z : r) (f : a -> list a -> r) ->
+                                  (Left caseList) {a} {r} z f xs)
+                           {a}
+                           xs
+                           {list a}
+                           xs
+                           (\(x : a) (xs' : list a) ->
+                              (Left mkCons) {a} (f x) (rec xs'))))
+                 {data}
+                 rec
+                 ds))
+         fI
+         fB)

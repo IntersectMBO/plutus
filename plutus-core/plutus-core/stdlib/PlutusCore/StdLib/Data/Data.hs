@@ -20,6 +20,7 @@ import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import PlutusCore.StdLib.Data.Integer
+import PlutusCore.StdLib.Data.MatchOption
 
 import Data.ByteString (ByteString)
 
@@ -44,8 +45,8 @@ dataTy = mkTyBuiltin @_ @Data ()
 -- >               fI
 -- >               fB
 -- >               d
-matchData :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-matchData = runQuote $ do
+matchData :: TermLike term TyName Name DefaultUni DefaultFun => MatchOption -> term ()
+matchData optMatch = runQuote $ do
     r       <- freshTyName "r"
     fConstr <- freshName "fConstr"
     fMap    <- freshName "fMap"

@@ -64,13 +64,17 @@ stdLib =
                   ]
               , treeFolderContents "List"
                   [ plcTypeFile "List"      list
-                  , plcTermFile "MatchList"  Builtin.matchList
-                  , plcTermFile "FoldrList" Builtin.foldrList
-                  , plcTermFile "FoldList"  Builtin.foldList
+                  , plcTermFile "MatchList" $ Builtin.matchList UseCase
+                  , plcTermFile "FoldrList" $ Builtin.foldrList UseCase
+                  , plcTermFile "FoldList"  $ Builtin.foldList  UseCase
+                  , plcTermFile "MatchListViaChoose" $ Builtin.matchList UseChoose
+                  , plcTermFile "FoldrListViaChoose" $ Builtin.foldrList UseChoose
+                  , plcTermFile "FoldListViaChoose"  $ Builtin.foldList  UseChoose
                   ]
               , treeFolderContents "Data"
                   [ plcTypeFile "Data"     dataTy
-                  , plcTermFile "matchData" matchData
+                  , plcTermFile "matchData" $ matchData UseCase
+                  , plcTermFile "matchDataViaChoose" $ matchData UseChoose
                   ]
               , treeFolderContents "ScottList"
                   [ plcTypeFile "List"       listTy
