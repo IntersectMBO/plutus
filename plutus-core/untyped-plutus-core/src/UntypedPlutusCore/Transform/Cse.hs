@@ -11,7 +11,7 @@ import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
 import UntypedPlutusCore.Size (termSize)
-import UntypedPlutusCore.Transform.Simplifier (Simplifier, SimplifierStage (CSE),
+import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CSE), SimplifierT,
                                                recordSimplification)
 
 import Control.Arrow ((>>>))
@@ -217,7 +217,7 @@ cse ::
   ) =>
   BuiltinSemanticsVariant fun ->
   Term Name uni fun ann ->
-  Simplifier Name uni fun ann m (Term Name uni fun ann)
+  SimplifierT Name uni fun ann m (Term Name uni fun ann)
 cse builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t

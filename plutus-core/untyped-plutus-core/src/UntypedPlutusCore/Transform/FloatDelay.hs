@@ -61,7 +61,7 @@ import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Name.UniqueSet qualified as USet
 import UntypedPlutusCore.Core.Plated (termSubterms)
 import UntypedPlutusCore.Core.Type (Term (..))
-import UntypedPlutusCore.Transform.Simplifier (Simplifier, SimplifierStage (FloatDelay),
+import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (FloatDelay), SimplifierT,
                                                recordSimplification)
 
 import Control.Lens (forOf, forOf_, transformOf)
@@ -73,7 +73,7 @@ floatDelay ::
   , PLC.HasUnique name PLC.TermUnique
   ) =>
   Term name uni fun a ->
-  Simplifier name uni fun a m (Term name uni fun a)
+  SimplifierT name uni fun a m (Term name uni fun a)
 floatDelay term = do
   result <-
     PLC.rename term >>= \t ->

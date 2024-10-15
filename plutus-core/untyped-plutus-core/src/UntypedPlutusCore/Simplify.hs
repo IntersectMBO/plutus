@@ -5,7 +5,6 @@
 module UntypedPlutusCore.Simplify (
     module Opts,
     simplifyTerm,
-    simplifyTermWithTrace,
     simplifyProgram,
     simplifyProgramWithTrace,
     InlineHints (..),
@@ -26,7 +25,6 @@ import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
 import UntypedPlutusCore.Transform.Simplifier
 
 import Control.Monad
-import Control.Monad.State (StateT (runStateT), evalStateT)
 import Data.List as List (foldl')
 import Data.Typeable
 
@@ -49,9 +47,8 @@ simplifyProgramWithTrace ::
     m (Program name uni fun a, SimplifierTrace name uni fun a)
 simplifyProgramWithTrace opts builtinSemanticsVariant (Program a v t) = do
   (result, trace) <-
-    runStateT
-      (simplifyTerm opts builtinSemanticsVariant t)
-      initSimplifierTrace
+    runSimplifierT
+      $ termSimplifier opts builtinSemanticsVariant t
   pure (Program a v result, trace)
 
 simplifyTerm ::
@@ -62,23 +59,23 @@ simplifyTerm ::
     Term name uni fun a ->
     m (Term name uni fun a)
 simplifyTerm opts builtinSemanticsVariant term =
-  evalStateT (simplifyTermWithTrace opts builtinSemanticsVariant term) initSimplifierTrace
+  evalSimplifierT $ termSimplifier opts builtinSemanticsVariant term
 
-simplifyTermWithTrace ::
+termSimplifier ::
     forall name uni fun m a.
     (Compiling m uni fun name a) =>
     SimplifyOpts name a ->
     BuiltinSemanticsVariant fun ->
     Term name uni fun a ->
-    Simplifier name uni fun a m (Term name uni fun a)
-simplifyTermWithTrace opts builtinSemanticsVariant =
+    SimplifierT name uni fun a m (Term name uni fun a)
+termSimplifier opts builtinSemanticsVariant =
     simplifyNTimes (_soMaxSimplifierIterations opts) >=> cseNTimes cseTimes
   where
     -- Run the simplifier @n@ times
     simplifyNTimes ::
       Int ->
       Term name uni fun a ->
-      Simplifier name uni fun a m (Term name uni fun a)
+      SimplifierT name uni fun a m (Term name uni fun a)
     simplifyNTimes n = List.foldl' (>=>) pure $ map simplifyStep [1..n]
 
     -- Run CSE @n@ times, interleaved with the simplifier.
@@ -86,14 +83,14 @@ simplifyTermWithTrace opts builtinSemanticsVariant =
     cseNTimes ::
       Int ->
       Term name uni fun a ->
-      Simplifier name uni fun a m (Term name uni fun a)
+      SimplifierT name uni fun a m (Term name uni fun a)
     cseNTimes n = foldl' (>=>) pure $ concatMap (\i -> [cseStep i, simplifyStep i]) [1..n]
 
     -- generate simplification step
     simplifyStep ::
       Int ->
       Term name uni fun a ->
-      Simplifier name uni fun a m (Term name uni fun a)
+      SimplifierT name uni fun a m (Term name uni fun a)
     simplifyStep _ =
         floatDelay
         >=> forceDelay
@@ -103,7 +100,7 @@ simplifyTermWithTrace opts builtinSemanticsVariant =
 
     caseOfCase' ::
       Term name uni fun a ->
-      Simplifier name uni fun a m (Term name uni fun a)
+      SimplifierT name uni fun a m (Term name uni fun a)
     caseOfCase' = case eqT @fun @DefaultFun of
       Just Refl -> caseOfCase
       Nothing   -> pure
@@ -111,7 +108,7 @@ simplifyTermWithTrace opts builtinSemanticsVariant =
     cseStep ::
       Int ->
       Term name uni fun a ->
-      Simplifier name uni fun a m (Term name uni fun a)
+      SimplifierT name uni fun a m (Term name uni fun a)
     cseStep _ =
       case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
         (Just Refl, Just Refl) -> cse builtinSemanticsVariant

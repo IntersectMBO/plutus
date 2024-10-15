@@ -4,7 +4,6 @@
 
 module Transform.CaseOfCase.Test where
 
-import Control.Monad.State (evalState)
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text.Encoding (encodeUtf8)
 import Data.Vector qualified as V
@@ -27,7 +26,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek (CekMachineCosts, CekValue, Eval
                                                  evaluateCek, noEmitter,
                                                  unsafeSplitStructuralOperational)
 import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
-import UntypedPlutusCore.Transform.Simplifier (initSimplifierTrace)
+import UntypedPlutusCore.Transform.Simplifier (evalSimplifier)
 
 test_caseOfCase :: TestTree
 test_caseOfCase =
@@ -122,7 +121,7 @@ testCaseOfCaseWithError =
 evalCaseOfCase
   :: Term Name DefaultUni DefaultFun ()
   -> Term Name DefaultUni DefaultFun ()
-evalCaseOfCase term = evalState (caseOfCase term) initSimplifierTrace
+evalCaseOfCase term = evalSimplifier $ caseOfCase term
 
 evaluateUplc
   :: UPLC.Term Name DefaultUni DefaultFun ()

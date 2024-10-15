@@ -136,7 +136,7 @@ module UntypedPlutusCore.Transform.ForceDelay
     ) where
 
 import UntypedPlutusCore.Core
-import UntypedPlutusCore.Transform.Simplifier (Simplifier, SimplifierStage (ForceDelay),
+import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (ForceDelay), SimplifierT,
                                                recordSimplification)
 
 import Control.Lens (transformOf)
@@ -149,7 +149,7 @@ import Data.Foldable as Foldable (foldl')
 forceDelay
     :: Monad m
     => Term name uni fun a
-    -> Simplifier name uni fun a m (Term name uni fun a)
+    -> SimplifierT name uni fun a m (Term name uni fun a)
 forceDelay term = do
     let result = transformOf termSubterms processTerm term
     recordSimplification term ForceDelay result

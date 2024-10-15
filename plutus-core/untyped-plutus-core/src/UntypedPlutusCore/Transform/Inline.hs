@@ -41,7 +41,7 @@ import UntypedPlutusCore.Purity
 import UntypedPlutusCore.Rename ()
 import UntypedPlutusCore.Size
 import UntypedPlutusCore.Subst
-import UntypedPlutusCore.Transform.Simplifier (Simplifier, SimplifierStage (Inline),
+import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (Inline), SimplifierT,
                                                recordSimplification)
 
 import Control.Lens hiding (Strict)
@@ -181,7 +181,7 @@ inline ::
   InlineHints name a ->
   PLC.BuiltinSemanticsVariant fun ->
   Term name uni fun a ->
-  Simplifier name uni fun a m (Term name uni fun a)
+  SimplifierT name uni fun a m (Term name uni fun a)
 inline inlineConstants hints builtinSemanticsVariant t = do
   result <-
     liftQuote $ flip evalStateT mempty $ runReaderT (processTerm t) InlineInfo
