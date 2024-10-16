@@ -35,13 +35,14 @@ jobs:
               const senderLogin = "${{ github.event.sender.login }}";
               const slackMemberIds = {
                 "zeme-wana": "U03HGDNDRKR",
-                "effectfully": "UBH8K0ZU2",
+                "effecfully": "UBH8K0ZU2",
                 "kwxm": "UCF4SL4BT",
                 "Unisay": "U02V796524S",
                 "ramsay-t": "U05T49F9FV1",
                 "ana-pantilie": "U05V2854W86",
                 "zliu41": "U03BP2HTKDK",
-                "bezirg": "UQ1LUSR8B"
+                "bezirg": "UQ1LUSR8B",
+                "erikd": "U914V9D2B"
               };
               if (senderLogin in slackMemberIds) {
                 return `<@${slackMemberIds[senderLogin]}>`;
@@ -85,16 +86,9 @@ jobs:
               const conclusion = "${{ github.event.check_run.conclusion }}";
               const url = "${{ github.event.check_run.html_url }}";
 
-              const checkRunWatchlist = [
-                "ci/hydra-build:aarch64-darwin.required",
-                "ci/hydra-build:x86_64-darwin.required",
-                "ci/hydra-build:x86_64-linux.required",
-                "ci/eval"
-              ];
-
               if (conclusion == "success") {
                 message = `${name} \`${conclusion}\` ✅ <${url}|View Logs> ${slackMember}`;
-              } else if (conclusion == "failure" && checkRunWatchlist.includes(name)) {
+              } else if (conclusion == "failure") {
                 message = `${name} \`${conclusion}\` ❌ <${url}|View Logs> ${slackMember}`;
                 shouldSendMessage = true;
               } else {
