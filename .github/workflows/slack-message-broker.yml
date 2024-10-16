@@ -41,7 +41,8 @@ jobs:
                 "ramsay-t": "U05T49F9FV1",
                 "ana-pantilie": "U05V2854W86",
                 "zliu41": "U03BP2HTKDK",
-                "bezirg": "UQ1LUSR8B"
+                "bezirg": "UQ1LUSR8B",
+                "erikd": "U914V9D2B"
               };
               if (senderLogin in slackMemberIds) {
                 return `<@${slackMemberIds[senderLogin]}>`;
