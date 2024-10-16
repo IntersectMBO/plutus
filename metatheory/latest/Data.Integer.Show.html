@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Integer.Show</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Showing integers</a>
+<a id="126" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="200" class="Symbol">{-#</a> <a id="204" class="Keyword">OPTIONS</a> <a id="212" class="Pragma">--cubical-compatible</a> <a id="233" class="Pragma">--safe</a> <a id="240" class="Symbol">#-}</a>
+
+<a id="245" class="Keyword">module</a> <a id="252" href="Data.Integer.Show.html" class="Module">Data.Integer.Show</a> <a id="270" class="Keyword">where</a>
+
+<a id="277" class="Keyword">open</a> <a id="282" class="Keyword">import</a> <a id="289" href="Data.Integer.Base.html" class="Module">Data.Integer.Base</a> <a id="307" class="Keyword">using</a> <a id="313" class="Symbol">(</a><a id="314" href="Agda.Builtin.Int.html#245" class="Datatype">ℤ</a><a id="315" class="Symbol">;</a> <a id="317" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">+_</a><a id="319" class="Symbol">;</a> <a id="321" href="Agda.Builtin.Int.html#290" class="InductiveConstructor">-[1+_]</a><a id="327" class="Symbol">)</a>
+<a id="329" class="Keyword">open</a> <a id="334" class="Keyword">import</a> <a id="341" href="Data.Nat.Base.html" class="Module">Data.Nat.Base</a> <a id="355" class="Keyword">using</a> <a id="361" class="Symbol">(</a><a id="362" href="Agda.Builtin.Nat.html#234" class="InductiveConstructor">suc</a><a id="365" class="Symbol">)</a>
+<a id="367" class="Keyword">open</a> <a id="372" class="Keyword">import</a> <a id="379" href="Data.Nat.Show.html" class="Module">Data.Nat.Show</a> <a id="393" class="Keyword">using</a> <a id="399" class="Symbol">()</a> <a id="402" class="Keyword">renaming</a> <a id="411" class="Symbol">(</a><a id="412" href="Data.Nat.Show.html#1937" class="Function">show</a> <a id="417" class="Symbol">to</a> <a id="420" class="Function">showℕ</a><a id="425" class="Symbol">)</a>
+<a id="427" class="Keyword">open</a> <a id="432" class="Keyword">import</a> <a id="439" href="Data.String.Base.html" class="Module">Data.String.Base</a> <a id="456" class="Keyword">using</a> <a id="462" class="Symbol">(</a><a id="463" href="Agda.Builtin.String.html#335" class="Postulate">String</a><a id="469" class="Symbol">;</a> <a id="471" href="Data.String.Base.html#2375" class="Function Operator">_++_</a><a id="475" class="Symbol">)</a>
+
+<a id="478" class="Comment">------------------------------------------------------------------------</a>
+<a id="551" class="Comment">-- Show</a>
+
+<a id="560" class="Comment">-- Decimal notation</a>
+<a id="580" class="Comment">-- Time complexity is O(log₁₀(n))</a>
+
+<a id="show"></a><a id="615" href="Data.Integer.Show.html#615" class="Function">show</a> <a id="620" class="Symbol">:</a> <a id="622" href="Agda.Builtin.Int.html#245" class="Datatype">ℤ</a> <a id="624" class="Symbol">→</a> <a id="626" href="Agda.Builtin.String.html#335" class="Postulate">String</a>
+<a id="633" href="Data.Integer.Show.html#615" class="Function">show</a> <a id="638" class="Symbol">(</a><a id="639" href="Agda.Builtin.Int.html#263" class="InductiveConstructor Operator">+</a> <a id="641" href="Data.Integer.Show.html#641" class="Bound">n</a><a id="642" class="Symbol">)</a>    <a id="647" class="Symbol">=</a> <a id="649" href="Data.Integer.Show.html#420" class="Function">showℕ</a> <a id="655" href="Data.Integer.Show.html#641" class="Bound">n</a>
+<a id="657" href="Data.Integer.Show.html#615" class="Function">show</a> <a id="662" href="Agda.Builtin.Int.html#290" class="InductiveConstructor Operator">-[1+</a> <a id="667" href="Data.Integer.Show.html#667" class="Bound">n</a> <a id="669" href="Agda.Builtin.Int.html#290" class="InductiveConstructor Operator">]</a> <a id="671" class="Symbol">=</a> <a id="673" class="String">&quot;-&quot;</a> <a id="677" href="Data.String.Base.html#2375" class="Function Operator">++</a> <a id="680" href="Data.Integer.Show.html#420" class="Function">showℕ</a> <a id="686" class="Symbol">(</a><a id="687" href="Agda.Builtin.Nat.html#234" class="InductiveConstructor">suc</a> <a id="691" href="Data.Integer.Show.html#667" class="Bound">n</a><a id="692" class="Symbol">)</a>
+</pre></body></html>

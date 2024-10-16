@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Relation.Binary.Indexed.Heterogeneous</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Heterogeneously-indexed binary relations</a>
+<a id="150" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="224" class="Symbol">{-#</a> <a id="228" class="Keyword">OPTIONS</a> <a id="236" class="Pragma">--cubical-compatible</a> <a id="257" class="Pragma">--safe</a> <a id="264" class="Symbol">#-}</a>
+
+<a id="269" class="Keyword">module</a> <a id="276" href="Relation.Binary.Indexed.Heterogeneous.html" class="Module">Relation.Binary.Indexed.Heterogeneous</a> <a id="314" class="Keyword">where</a>
+
+<a id="321" class="Comment">------------------------------------------------------------------------</a>
+<a id="394" class="Comment">-- Publicly export core definitions</a>
+
+<a id="431" class="Keyword">open</a> <a id="436" class="Keyword">import</a> <a id="443" href="Relation.Binary.Indexed.Heterogeneous.Core.html" class="Module">Relation.Binary.Indexed.Heterogeneous.Core</a> <a id="486" class="Keyword">public</a>
+<a id="493" class="Keyword">open</a> <a id="498" class="Keyword">import</a> <a id="505" href="Relation.Binary.Indexed.Heterogeneous.Definitions.html" class="Module">Relation.Binary.Indexed.Heterogeneous.Definitions</a> <a id="555" class="Keyword">public</a>
+<a id="562" class="Keyword">open</a> <a id="567" class="Keyword">import</a> <a id="574" href="Relation.Binary.Indexed.Heterogeneous.Structures.html" class="Module">Relation.Binary.Indexed.Heterogeneous.Structures</a> <a id="623" class="Keyword">public</a>
+<a id="630" class="Keyword">open</a> <a id="635" class="Keyword">import</a> <a id="642" href="Relation.Binary.Indexed.Heterogeneous.Bundles.html" class="Module">Relation.Binary.Indexed.Heterogeneous.Bundles</a> <a id="688" class="Keyword">public</a>
+
+
+<a id="697" class="Comment">------------------------------------------------------------------------</a>
+<a id="770" class="Comment">-- DEPRECATED NAMES</a>
+<a id="790" class="Comment">------------------------------------------------------------------------</a>
+<a id="863" class="Comment">-- Please use the new names as continuing support for the old names is</a>
+<a id="934" class="Comment">-- not guaranteed.</a>
+
+<a id="954" class="Comment">-- Version 0.17</a>
+
+<a id="REL"></a><a id="971" href="Relation.Binary.Indexed.Heterogeneous.html#971" class="Function">REL</a> <a id="975" class="Symbol">=</a> <a id="977" href="Relation.Binary.Indexed.Heterogeneous.Core.html#682" class="Function">IREL</a>
+<a id="982" class="Symbol">{-#</a> <a id="986" class="Keyword">WARNING_ON_USAGE</a> <a id="1003" class="Pragma">REL</a>
+<a id="1007" class="String">&quot;Warning: REL was deprecated in v0.17.
+Please use IREL instead.&quot;</a>
+<a id="1072" class="Symbol">#-}</a>
+<a id="Rel"></a><a id="1076" href="Relation.Binary.Indexed.Heterogeneous.html#1076" class="Function">Rel</a> <a id="1080" class="Symbol">=</a> <a id="1082" href="Relation.Binary.Indexed.Heterogeneous.Core.html#865" class="Function">IRel</a>
+<a id="1087" class="Symbol">{-#</a> <a id="1091" class="Keyword">WARNING_ON_USAGE</a> <a id="1108" class="Pragma">Rel</a>
+<a id="1112" class="String">&quot;Warning: Rel was deprecated in v0.17.
+Please use IRel instead.&quot;</a>
+<a id="1177" class="Symbol">#-}</a>
+<a id="Setoid"></a><a id="1181" href="Relation.Binary.Indexed.Heterogeneous.html#1181" class="Function">Setoid</a> <a id="1188" class="Symbol">=</a> <a id="1190" href="Relation.Binary.Indexed.Heterogeneous.Bundles.html#798" class="Record">IndexedSetoid</a>
+<a id="1204" class="Symbol">{-#</a> <a id="1208" class="Keyword">WARNING_ON_USAGE</a> <a id="1225" class="Pragma">Setoid</a>
+<a id="1232" class="String">&quot;Warning: Setoid was deprecated in v0.17.
+Please use IndexedSetoid instead.&quot;</a>
+<a id="1309" class="Symbol">#-}</a>
+<a id="IsEquivalence"></a><a id="1313" href="Relation.Binary.Indexed.Heterogeneous.html#1313" class="Function">IsEquivalence</a> <a id="1327" class="Symbol">=</a> <a id="1329" href="Relation.Binary.Indexed.Heterogeneous.Structures.html#861" class="Record">IsIndexedEquivalence</a>
+<a id="1350" class="Symbol">{-#</a> <a id="1354" class="Keyword">WARNING_ON_USAGE</a> <a id="1371" class="Pragma">IsEquivalence</a>
+<a id="1385" class="String">&quot;Warning: IsEquivalence was deprecated in v0.17.
+Please use IsIndexedEquivalence instead.&quot;</a>
+<a id="1476" class="Symbol">#-}</a>
+</pre></body></html>
