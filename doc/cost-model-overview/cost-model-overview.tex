@@ -197,11 +197,16 @@ $5.77\times10^{-2}$ Ada per \texttt{ExMemory} unit.
 Tables~\ref{table:costing-functions-1} and~\ref{table:costing-functions-2} show
 the forms of the CPU and memory costing functions for the Plutus Core built-in
 functions on Cardano for PlutusV3 and Protocol Version 9 (the Protocol Version
-in effect on the Cardano chain at the time of writing).  The symbols $x, y,
-z, \ldots$ refer to the arguments of the costing functions, which are the
-\textit{sizes} of the actual arguments of the builtin; occasionally we will need
-to refer to the actual \textit{value} of an argument, and in that case we use
-the symbols $\mathbf{x}, \mathbf{y}, \mathbf{z}, \ldots$.
+in effect on the Cardano chain at the time of writing).  They also include some
+new built-in functions (extra bitwise operations on bytestrings and the
+\texttt{RIPEMD-160} hash function) which we expect will become available in
+Protocol Version 10: see Section 4.3.5 of the Plutus Core specification.
+
+The symbols $x, y, z, \ldots$ refer to the arguments of the costing functions,
+which are the \textit{sizes} of the actual arguments of the builtin;
+occasionally we will need to refer to the actual \textit{value} of an argument,
+and in that case we use the symbols $\mathbf{x}, \mathbf{y}, \mathbf{z},
+\ldots$.
 
 Symbols such as $a, b, c, \ldots$ refer to the coefficients of the costing
 functions.  Concrete values for these coefficients are stored in the Cardano
