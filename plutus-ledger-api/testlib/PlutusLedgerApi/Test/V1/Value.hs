@@ -69,6 +69,9 @@ instance Arbitrary FaceValue where
         , (1, FaceValue . fromIntegral <$> arbitrary @Int)
         ]
 
+instance Show FaceValue where
+    show (FaceValue value) = show value
+
 -- | A wrapper for satisfying an @Arbitrary a@ constraint without implementing an 'Arbitrary'
 -- instance for @a@.
 newtype NoArbitrary a = NoArbitrary

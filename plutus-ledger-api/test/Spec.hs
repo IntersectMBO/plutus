@@ -136,6 +136,7 @@ tests = testGroup "plutus-ledger-api"
         , Spec.CostModelParams.tests
         , Spec.ContextDecoding.tests
         , Value.test_Value
+        , Value.test_FaceValue
         ]
       , testGroup "Data"
         [ Spec.Data.Eval.tests
