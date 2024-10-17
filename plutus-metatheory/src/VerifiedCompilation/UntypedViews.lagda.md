@@ -10,7 +10,7 @@ open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; b
 open import Relation.Unary as Unary using (Decidable)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Utils as U using (Maybe; nothing; just; Either)
-open import Relation.Nullary.Product using (_×-dec_)
+open import Relation.Nullary using (_×-dec_)
 open import Data.Product using (_,_)
 open import RawU using (TmCon)
 open import Builtin using (Builtin)

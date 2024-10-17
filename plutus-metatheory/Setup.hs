@@ -114,7 +114,7 @@ agdaPreProcessor _ lbi _ = D.PreProcessor
       , "--compile"
       , "--ghc-dont-call-ghc"
       , "--local-interfaces"
-      , "src/Main.lagda.md"
+      , "src/MetatheoryMain.lagda.md"
       ]
 
     agdaProgram :: D.ConfiguredProgram

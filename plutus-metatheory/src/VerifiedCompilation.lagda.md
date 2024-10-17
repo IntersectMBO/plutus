@@ -36,8 +36,8 @@ module VerifiedCompilation where
 import Data.Bool.Base using (Bool; true; false; T; _∧_; _∨_; not)
 open import Data.Nat using (ℕ; zero; suc)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
-import Relation.Nullary.Negation using (¬?)
-import Relation.Nullary.Product using (_×-dec_)
+import Relation.Nullary using (¬?)
+import Relation.Nullary using (_×-dec_)
 import Relation.Binary using (Decidable)
 open import Untyped
 open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;List;[];_∷_;_×_;_,_)
@@ -55,6 +55,16 @@ import Relation.Binary as Binary using (Decidable)
 open import VerifiedCompilation.UntypedTranslation using (Translation; Relation; translation?)
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
+import Tactic
+open import Tactic.Defaults
+import Agda.Builtin.List as DList
+import Data.Product.Base as DProd
+open import Class.Show.Core
+open import Algorithmic using (⟦_⟧)
+open import Type.BetaNormal using (_⊢Nf⋆_; _⊢Ne⋆_)
+open import Type using (_∋⋆_)
+open import Builtin.Constant.Type using (TyCon; AtomicTyCon)
+open import Data.Vec.Base using (Vec)
 ```
 
 ## Compiler optimisation traces
@@ -95,7 +105,6 @@ isTrace? {X} {R} isR? ((x₁ , x₂) ∷ xs) with isTrace? {X} {R} isR? xs
 ... | yes p with isR? x₁ x₂
 ...   | no ¬p = no λ {(cons x x₁) → ¬p x}
 ...   | yes p₁ = yes (cons p₁ p)
-
 isTransformation? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (IsTransformation {X})
 isTransformation? ast₁ ast₂ with UCC.isCoC? ast₁ ast₂
 ... | scrt with UFD.isFD? zero zero ast₁ ast₂
@@ -127,13 +136,47 @@ showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ "
 showTranslation Translation.builtin = "builtin"
 showTranslation Translation.error = "error"
 
-showTrace : {X : Set} {{_ : DecEq X}} {xs : List ((X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
-showTrace empty = "empty"
-showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
+-- showTrace : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
+-- showTrace empty = "empty"
+-- showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
 
-serializeTraceProof : {X : Set} {{_ : DecEq X}} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
-serializeTraceProof (no ¬p) = "no"
-serializeTraceProof (yes p) = "yes " ++ showTrace p
+-- serializeTraceProof : {X : Set} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
+-- serializeTraceProof (no ¬p) = "no" 
+-- serializeTraceProof (yes p) = "yes " ++ showTrace p -- ++ show p
+
+{-# TERMINATING #-}
+derive-Show' = Tactic.derive-Show
+
+
+unquoteDecl Show-Maybe = Tactic.derive-Show ((quote Maybe DProd., Show-Maybe) DList.∷ DList.[])
+
+unquoteDecl Show-DList =
+  Tactic.derive-Show ((quote DList.List DProd., Show-DList) DList.∷ DList.[])
+unquoteDecl Show-Vec =
+  Tactic.derive-Show ((quote Vec DProd., Show-Vec) DList.∷ DList.[])
+unquoteDecl Show-AtomicTyCon =
+  Tactic.derive-Show ((quote AtomicTyCon DProd., Show-AtomicTyCon) DList.∷ DList.[])
+unquoteDecl Show-TyCon =
+  Tactic.derive-Show ((quote TyCon DProd., Show-TyCon) DList.∷ DList.[])
+
+unquoteDecl Show-MAD1 Show-MAD2 Show-MAD3 Show-TmCon
+  = derive-Show'
+    ( (quote (_⊢Nf⋆_) DProd., Show-MAD1)
+      DList.∷ (quote (_⊢Ne⋆_) DProd., Show-MAD2)
+      DList.∷ (quote (_∋⋆_) DProd., Show-MAD3)
+      DList.∷ (quote RawU.TmCon DProd., Show-TmCon)
+      DList.∷ DList.[]
+    )
+
+-- unquoteDecl Show-_⊢ = Tactic.derive-Show ((quote (_⊢) DProd., Show-_⊢) DList.∷ DList.[])
+-- unquoteDecl Show-CoC = Tactic.derive-Show ((quote UCC.CoC DProd., Show-CoC) DList.∷ DList.[])
+-- unquoteDecl Show-IsTransformation =
+--  Tactic.derive-Show ((quote IsTransformation DProd., Show-IsTransformation) DList.∷ DList.[])
+
+-- Uncomment to find a bug!
+-- unquoteDecl Show-Translation = Tactic.derive-Show ((quote Translation DProd., Show-Translation) DList.∷ DList.[])
+
+-- unquoteDecl Show-Trace = Tactic.derive-Show ((quote Trace DProd., Show-Trace) DList.∷ DList.[])
 
 ```
 
@@ -184,7 +227,7 @@ certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
 ... | inj₁ err = inj₁ err
 ... | inj₂ rawTrace =
   let inputTrace = buildPairs rawTrace
-   in inj₂ (serializeTraceProof (isRTrace? inputTrace))
+   in ? -- inj₂ (serializeTraceProof (isRTrace? inputTrace))
 
 runCertifier : String → List Untyped → IO ⊤
 runCertifier fileName rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
