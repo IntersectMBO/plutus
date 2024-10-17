@@ -25,7 +25,7 @@
     };
 
     haskell-nix = {
-      url = "github:input-output-hk/haskell.nix/f3a4a6c302399bd09e4491df6580d2ca6bfac662";
+      url = "github:input-output-hk/haskell.nix";
       inputs.hackage.follows = "hackage";
     };
   };
