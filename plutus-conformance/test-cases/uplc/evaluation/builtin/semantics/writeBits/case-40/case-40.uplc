@@ -8,6 +8,6 @@
    ]
    (con (list integer) [18446744073709551616])  -- 2^64
   ]
-  (con (list bool) [True])
+  (con bool True)
  ]
 )

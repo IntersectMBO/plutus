@@ -7,6 +7,7 @@ This document elaborates on the triage process that we use to prioritize and res
 The triage person is responsible for monitoring the following places:
 
 - GitHub [issues](https://github.com/IntersectMBO/plutus/issues) and [PRs](https://github.com/IntersectMBO/plutus/pulls)
+- Plutus-related [CIPs](https://github.com/cardano-foundation/CIPs/pulls?q=is%3Apr+is%3Aopen+label%3A%22Category%3A+Plutus%22)
 - the [#plutus](https://input-output-rnd.slack.com/archives/C21UF2WVC) Slack channel
 - the [#plutus-working-group](https://discord.com/channels/1136727663583698984/1239888614796820531) Discord channel
 

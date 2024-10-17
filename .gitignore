@@ -103,7 +103,7 @@ node.sock
 .pre-commit-config.yaml
 secrets/*/.gpg-id
 ghcid.txt
-haddock
+haddock*
 .private
 linkchecker-out.txt
 plutus-pab/test-node/testnet/db

@@ -29,7 +29,7 @@ import PlutusCore.Evaluation.Result (evaluationFailure)
 
 import ByteString.StrictBuilder (Builder)
 import ByteString.StrictBuilder qualified as Builder
-import Control.Exception (Exception, throw, try)
+import Control.Exception (Exception, throwIO, try)
 import Control.Monad (guard, unless, when)
 import Data.Bits (unsafeShiftL, unsafeShiftR, (.|.))
 import Data.Bits qualified as Bits
@@ -553,8 +553,8 @@ readBit bs ix
 
 -- | Bulk bit write, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 {-# INLINEABLE writeBits #-}
-writeBits :: ByteString -> [Integer] -> [Bool] -> BuiltinResult ByteString
-writeBits bs ixs bits = case unsafeDupablePerformIO . try $ go of
+writeBits :: ByteString -> [Integer] -> Bool -> BuiltinResult ByteString
+writeBits bs ixs bit = case unsafeDupablePerformIO . try $ go of
   Left (WriteBitsException i) -> do
     emit "writeBits: index out of bounds"
     emit $ "Index: " <> (pack . show $ i)
@@ -567,28 +567,28 @@ writeBits bs ixs bits = case unsafeDupablePerformIO . try $ go of
     go = BS.useAsCString bs $ \srcPtr ->
           BSI.create len $
             \dstPtr ->
-              let go2 (i:is) (v:vs) = setAtIx dstPtr i v *> go2 is vs
-                  go2 _ _           = pure ()
+              let go2 (i:is) = setOrClearAtIx dstPtr i *> go2 is
+                  go2 _      = pure ()
               in do
                 copyBytes dstPtr (castPtr srcPtr) len
-                go2 ixs bits
+                go2 ixs
     len :: Int
     len = BS.length bs
     bitLen :: Integer
     bitLen = fromIntegral len * 8
-    setAtIx :: Ptr Word8 -> Integer -> Bool -> IO ()
-    setAtIx ptr i b
-      | i < 0 = throw $ WriteBitsException i
-      | i >= bitLen = throw $ WriteBitsException i
+    setOrClearAtIx :: Ptr Word8 -> Integer -> IO ()
+    setOrClearAtIx ptr i
+      | i < 0 = throwIO $ WriteBitsException i
+      | i >= bitLen = throwIO $ WriteBitsException i
       | otherwise = do
           let (bigIx, littleIx) = i `quotRem` 8
           let flipIx = len - fromIntegral bigIx - 1
           w8 :: Word8 <- peekByteOff ptr flipIx
-          let toWrite = if b
+          let toWrite = if bit
                         then Bits.setBit w8 . fromIntegral $ littleIx
                         else Bits.clearBit w8 . fromIntegral $ littleIx
           pokeByteOff ptr flipIx toWrite
-    {-# INLINEABLE setAtIx #-}
+    {-# INLINEABLE setOrClearAtIx #-}
 
 -- | Byte replication, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 -- We want to cautious about the allocation of huge amounts of memory so we

@@ -8,6 +8,6 @@
    ]
    (con (list integer) [9223372036854775807])  -- maxBound :: Int
   ]
-  (con (list bool) [True])
+  (con bool True)
  ]
 )

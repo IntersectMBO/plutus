@@ -45,6 +45,10 @@ node bid.mjs <minting-transaction-hash> bidder1 100000000
 Replace `<minting-transaction-hash>` with the hash of the transaction we previously submitted for minting the token.
 This hash is used by the off-chain code to locate the UTxO that contains the token.
 
+Illustration of the first bid:
+
+![First bid](../../../static/img/tx2.png)
+
 After the first bidding transaction is confirmed, we can submit the second bid from bidder2, with a similar command:
 
 ```
@@ -52,6 +56,10 @@ node bid.mjs <bidder1-transaction-hash> bidder2 200000000
 ```
 
 Replace `<bidder1-transaction-hash>` with the hash of the previous transaction.
+
+Illustration of the second bid:
+
+![Second bid](../../../static/img/tx3.png)
 
 ---
 
