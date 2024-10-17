@@ -35,7 +35,23 @@
              (fList : list data -> r)
              (fI : integer -> r)
              (fB : bytestring -> r) ->
-              (Left caseData) {r} fConstr fMap fList fI fB d)
+              (Left chooseData)
+                {unit -> r}
+                d
+                (\(u : unit) ->
+                   (/\a b c ->
+                      \(f : a -> b -> c) (p : pair a b) ->
+                        f ((Left fstPair) {a} {b} p) ((Left sndPair) {a} {b} p))
+                     {integer}
+                     {list data}
+                     {r}
+                     fConstr
+                     ((Left unConstrData) d))
+                (\(u : unit) -> fMap ((Left unMapData) d))
+                (\(u : unit) -> fList ((Left unListData) d))
+                (\(u : unit) -> fI ((Left unIData) d))
+                (\(u : unit) -> fB ((Left unBData) d))
+                ())
          d
          {data}
          (\(i : integer) (ds : list data) ->
@@ -82,7 +98,16 @@
                             \(xs : list a) ->
                               /\r ->
                                 \(z : r) (f : a -> list a -> r) ->
-                                  (Left caseList) {a} {r} z f xs)
+                                  (Left chooseList)
+                                    {a}
+                                    {unit -> r}
+                                    xs
+                                    (\(u : unit) -> z)
+                                    (\(u : unit) ->
+                                       f
+                                         ((Left headList) {a} xs)
+                                         ((Left tailList) {a} xs))
+                                    ())
                            {a}
                            xs
                            {list a}
@@ -135,7 +160,16 @@
                             \(xs : list a) ->
                               /\r ->
                                 \(z : r) (f : a -> list a -> r) ->
-                                  (Left caseList) {a} {r} z f xs)
+                                  (Left chooseList)
+                                    {a}
+                                    {unit -> r}
+                                    xs
+                                    (\(u : unit) -> z)
+                                    (\(u : unit) ->
+                                       f
+                                         ((Left headList) {a} xs)
+                                         ((Left tailList) {a} xs))
+                                    ())
                            {a}
                            xs
                            {list a}
@@ -196,7 +230,16 @@
                             \(xs : list a) ->
                               /\r ->
                                 \(z : r) (f : a -> list a -> r) ->
-                                  (Left caseList) {a} {r} z f xs)
+                                  (Left chooseList)
+                                    {a}
+                                    {unit -> r}
+                                    xs
+                                    (\(u : unit) -> z)
+                                    (\(u : unit) ->
+                                       f
+                                         ((Left headList) {a} xs)
+                                         ((Left tailList) {a} xs))
+                                    ())
                            {a}
                            xs
                            {list a}

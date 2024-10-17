@@ -27,7 +27,15 @@
       (\(rec : list a -> r) (xs : list a) ->
          (/\a ->
             \(xs : list a) ->
-              /\r -> \(z : r) (f : a -> list a -> r) -> caseList {a} {r} z f xs)
+              /\r ->
+                \(z : r) (f : a -> list a -> r) ->
+                  chooseList
+                    {a}
+                    {unit -> r}
+                    xs
+                    (\(u : unit) -> z)
+                    (\(u : unit) -> f (headList {a} xs) (tailList {a} xs))
+                    ())
            {a}
            xs
            {r}

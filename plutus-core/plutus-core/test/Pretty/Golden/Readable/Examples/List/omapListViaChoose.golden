@@ -29,7 +29,14 @@
             \(xs : list a) ->
               /\r ->
                 \(z : r) (f : a -> list a -> r) ->
-                  (Left caseList) {a} {r} z f xs)
+                  (Left chooseList)
+                    {a}
+                    {unit -> r}
+                    xs
+                    (\(u : unit) -> z)
+                    (\(u : unit) ->
+                       f ((Left headList) {a} xs) ((Left tailList) {a} xs))
+                    ())
            {a}
            xs
            {list a}

@@ -25,6 +25,7 @@ import PlutusCore.Quote
 
 import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Data.MatchOption
+import PlutusCore.StdLib.Data.Unit
 
 -- | @[]@ as a built-in PLC type.
 list :: uni `HasTypeLevel` [] => Type tyname uni ()
@@ -34,6 +35,8 @@ list = mkTyBuiltin @_ @[] ()
 -- | Pattern matching on built-in lists. @matchList {a} xs@ on built-in lists is
 -- equivalent to @unwrap xs@ on lists defined in PLC itself (hence why we bind @r@ after @xs@).
 --
+-- Either
+--
 -- > /\(a :: *) -> \(xs : list a) -> /\(r :: *) -> (z : r) (f : a -> list a -> r) ->
 -- >     matchList
 -- >         {a}
@@ -41,29 +44,59 @@ list = mkTyBuiltin @_ @[] ()
 -- >         z
 -- >         f
 -- >         xs
+--
+-- or
+--
+-- > /\(a :: *) -> \(xs : list a) -> /\(r :: *) -> (z : r) (f : a -> list a -> r) ->
+-- >     chooseList
+-- >         {a}
+-- >         {() -> r}
+-- >         xs
+-- >         (\(u : ()) -> z)
+-- >         (\(u : ()) -> f (head {a} xs) (tail {a} xs))
+-- >         ()
+--
+-- depending on the 'MatchOption' argument.
 matchList :: TermLike term TyName Name DefaultUni DefaultFun => MatchOption -> term ()
-matchList _ = runQuote $ do
+matchList optMatch = runQuote $ do
     a <- freshTyName "a"
     r <- freshTyName "r"
     xs <- freshName "xs"
     z <- freshName "z"
     f <- freshName "f"
+    u <- freshName "u"
     let listA = TyApp () list $ TyVar () a
+        funAtXs fun = apply () (tyInst () (builtin () fun) $ TyVar () a) $ var () xs
     return
         . tyAbs () a (Type ())
         . lamAbs () xs listA
         . tyAbs () r (Type ())
         . lamAbs () z (TyVar () r)
         . lamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
-        $ mkIterAppNoAnn
-                (mkIterInstNoAnn (builtin () CaseList)
-                    [ TyVar () a
-                    , TyVar () r
-                    ])
-            [ var () z
-            , var () f
-            , var () xs
-            ]
+        $ case optMatch of
+            UseCase ->
+                mkIterAppNoAnn
+                    (mkIterInstNoAnn (builtin () CaseList)
+                        [ TyVar () a
+                        , TyVar () r
+                        ])
+                    [ var () z
+                    , var () f
+                    , var () xs
+                    ]
+            UseChoose ->
+                mkIterAppNoAnn
+                    (mkIterInstNoAnn (builtin () ChooseList)
+                        [ TyVar () a
+                        , TyFun () unit $ TyVar () r
+                        ])
+                    [ var () xs
+                    , lamAbs () u unit $ var () z
+                    ,   lamAbs () u unit
+                      $ mkIterAppNoAnn (var () f)
+                          [funAtXs HeadList, funAtXs TailList]
+                    , unitval
+                    ]
 
 -- |  @foldr@ over built-in lists.
 --
