@@ -211,6 +211,7 @@ library
     UntypedPlutusCore.Rename
     UntypedPlutusCore.Size
     UntypedPlutusCore.Transform.CaseOfCase
+    UntypedPlutusCore.Transform.Simplifier
 
   other-modules:
     Data.Aeson.Flatten

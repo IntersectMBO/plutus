@@ -193,7 +193,7 @@ instance
   toUPlc =
     pure
       . TPLC.runQuote
-      . TPLC.evalCompile TPLC.defaultCompilationOpts
+      . flip runReaderT TPLC.defaultCompilationOpts
       . TPLC.compileProgram
 
 instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where
