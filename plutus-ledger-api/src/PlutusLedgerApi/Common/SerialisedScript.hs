@@ -20,6 +20,7 @@ module PlutusLedgerApi.Common.SerialisedScript (
   deserialiseScript,
   serialisedScript,
   deserialisedScript,
+  hashScriptWithPrefix,
 ) where
 
 import PlutusCore
@@ -27,6 +28,7 @@ import PlutusLedgerApi.Common.Versions
 import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
 
+import PlutusCore.Crypto.Hash qualified as Hash
 -- this allows us to safe, 0-cost coerce from FND->ND. Unfortunately, since Coercible is symmetric,
 -- we cannot expose this safe Coercible FND ND w.o. also allowing the unsafe Coercible ND FND.
 import PlutusCore.DeBruijn.Internal (FakeNamedDeBruijn (FakeNamedDeBruijn))
@@ -42,10 +44,12 @@ import Control.Lens
 import Control.Monad (unless, when)
 import Control.Monad.Error.Lens
 import Control.Monad.Except (MonadError)
+import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short
 import Data.Coerce
 import Data.Set as Set
+import Data.Word (Word8)
 import GHC.Generics
 import NoThunks.Class
 import Prettyprinter
@@ -154,6 +158,17 @@ serialiseUPLC =
   -- Currently, this is off because the old implementation didn't actually work, so we
   -- need to be careful about introducing a working version
   toShort . BSL.toStrict . serialise . SerialiseViaFlat . UPLC.UnrestrictedProgram
+
+{- | Hash a 'SerialisedScript' with the given version prefix. Each prefix corresponds
+to a specific version of the Plutus language.
+
+As of PlutusV3, the Plutus language versions and corresponding prefixes are as follows:
+  PlutusV1 -> 0x1
+  PlutusV2 -> 0x2
+  PlutusV3 -> 0x3
+-}
+hashScriptWithPrefix :: Word8 -> SerialisedScript -> BS.ByteString
+hashScriptWithPrefix prefix script = Hash.blake2b_224 (BS.cons prefix (fromShort script))
 
 {- | Deserialises a 'SerialisedScript' back into an AST. Does *not* do
 ledger-language-version-specific checks like for allowable builtins.

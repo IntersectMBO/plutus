@@ -8,6 +8,7 @@ import PlutusLedgerApi.Test.V3.EvaluationContext qualified as V3
 import PlutusLedgerApi.V1 as V1
 import PlutusLedgerApi.V3 as V3
 import PlutusPrelude
+import Spec.ApiUtils qualified
 import Spec.CBOR.DeserialiseFailureInfo qualified
 import Spec.ContextDecoding qualified
 import Spec.CostModelParams qualified
@@ -128,6 +129,7 @@ tests = testGroup "plutus-ledger-api"
       [ Spec.Interval.tests
       , Spec.CBOR.DeserialiseFailureInfo.tests
       , Spec.ScriptDecodeError.tests
+      , Spec.ApiUtils.tests
       ]
     , testGroup "Context-dependent tests"
       [ testGroup "Original"
