@@ -91,6 +91,6 @@ recordSimplification beforeAST stage afterAST =
   let simplification = Simplification { beforeAST, stage, afterAST }
     in
       modify $ \st ->
-        st { simplifierTrace = simplifierTrace st ++ [simplification] }
+        st { simplifierTrace = simplification : simplifierTrace st }
   where
     modify f = SimplifierT $ State.modify' f

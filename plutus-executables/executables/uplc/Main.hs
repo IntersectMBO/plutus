@@ -279,7 +279,7 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
                 (Right before', Right after')             -> (stage, (AgdaFFI.conv (void before'), AgdaFFI.conv (void after')))
                 (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
                 (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
-          rawAgdaTrace = processAgdaAST <$> simplTrace
+          rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
       Agda.runCertifier (T.pack certName) rawAgdaTrace
     runCertifier Nothing _ = pure ()
 
