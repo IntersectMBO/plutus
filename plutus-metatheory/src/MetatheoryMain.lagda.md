@@ -3,7 +3,7 @@ title: Main
 layout: page
 ---
 ```
-module Main where
+module MetatheoryMain where
 
 import VerifiedCompilation
 open import Agda.Builtin.IO using (IO)

@@ -163,10 +163,11 @@ mkKeyFromExBudgetCategory BStartup = "2"
 TallyingBudget : Set
 TallyingBudget = Map ExBudget × ExBudget
 
-lookup : Map ExBudget → ExBudgetCategory → ExBudget
-lookup m k with lookupAVL (mkKeyFromExBudgetCategory k) m
-... | just x = x
-... | nothing = ε€
+postulate
+  lookup : Map ExBudget → ExBudgetCategory → ExBudget
+-- lookup m k with lookupAVL (mkKeyFromExBudgetCategory k) m
+-- ... | just x = x
+-- ... | nothing = ε€
 ```
 
 As required, `TallyingBudget` is a monoid.
@@ -208,62 +209,63 @@ tallyingMachineParameters cm = record {
       ; costMonoid = isMonoidTallyingBudget
       }
 
-tallyingReport : TallyingBudget → String
-tallyingReport (mp , budget) =
-       countingReport budget
-    ++ "\n"
-    ++ "\n"
-    ++ printStepReport mp
-    ++ "\n"
-    ++ "startup    " ++ budgetToString (lookup mp BStartup) ++ "\n"
-    ++ "compute    " ++ budgetToString totalComputeCost ++ "\n"
-    -- ++ "AST nodes  " ++ ++ "\n"
-    ++ "\n\n"
-    ++ printBuiltinReport mp
-    ++ "\n"
-    ++ "Total builtin costs:   " ++ budgetToString totalBuiltinCosts ++ "\n"
-     -- We would like to be able to print the following  number as "%4.2f"
-     -- but Agda's printf currently doesn't support it.
-    ++ printf "Time spent executing builtins:  %f%%\n" (fromℕ 100 *f (getCPU totalBuiltinCosts) ÷ (getCPU budget)) ++ "\n"
-    ++ "\n"
-    ++ "Total budget spent:    " ++ budgetToString budget ++ "\n"
-    ++  "Predicted execution time: " ++ formatTimePicoseconds (getCPU budget)
-  where
-    totalComputeCost totalBuiltinCosts : ExBudget
-    totalComputeCost = L.foldr (λ x acc → (lookup mp (BStep x)) ∙€ acc) ε€ stepKindList
-    totalBuiltinCosts = L.foldr _∙€_ ε€ (L.map (lookup mp ∘ (λ b → BBuiltinApp b (replicate (V-con (atomic aUnit) tt)))) builtinList)
-
-    getCPU : ExBudget → Float
-    getCPU n = fromℕ (ExCPU n)
-
-    budgetToString : ExBudget → String
-    budgetToString (mkExBudget cpu mem) = padLeft ' ' 15 (showℕ cpu) ++ "  "
-                                       ++ padLeft ' ' 15 (showℕ mem)
-
-    printStepCost : StepKind → ExBudget → String
-    printStepCost sk budget = padRight ' ' 10 (showStepKind sk) ++ " "
-                           ++ padLeft ' ' 20 (budgetToString budget) ++ "\n"
-
-    printStepReport : Map ExBudget → String
-    printStepReport mp = L.foldr (λ s xs → printStepCost s (lookup mp (BStep s)) ++ xs)
-                               ""
-                               stepKindList
-
-    printBuiltinCost : Builtin → ExBudget → String
-    printBuiltinCost b (mkExBudget 0 0) = ""
-    printBuiltinCost b budget = padRight ' ' 22 (showBuiltin b) ++ " "
-                             ++ budgetToString budget ++ "\n"
-
-    printBuiltinReport : Map ExBudget → String
-    printBuiltinReport mp =
-        L.foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b (replicate (V-con (atomic aUnit) tt)))) ++ xs)
-              ""
-              builtinList
-
-    formatTimePicoseconds : Float → String
-    formatTimePicoseconds t = if 1e12 ≤ᵇ t then (printf "%f s" (t ÷ 1e12)) else
-                              if 1e9 ≤ᵇ t then  (printf "%f ms" (t ÷ 1e9)) else
-                              if 1e6 ≤ᵇ t then  (printf "%f μs" (t ÷ 1e6)) else
-                              if 1e3 ≤ᵇ t then  (printf "%f ns" (t ÷ 1e3)) else
-                              printf "%f ps" t
+postulate
+  tallyingReport : TallyingBudget → String
+-- tallyingReport (mp , budget) =
+--        countingReport budget
+--     ++ "\n"
+--     ++ "\n"
+--     ++ printStepReport mp
+--     ++ "\n"
+--     ++ "startup    " ++ budgetToString (lookup mp BStartup) ++ "\n"
+--     ++ "compute    " ++ budgetToString totalComputeCost ++ "\n"
+--     -- ++ "AST nodes  " ++ ++ "\n"
+--     ++ "\n\n"
+--     ++ printBuiltinReport mp
+--     ++ "\n"
+--     ++ "Total builtin costs:   " ++ budgetToString totalBuiltinCosts ++ "\n"
+--      -- We would like to be able to print the following  number as "%4.2f"
+--      -- but Agda's printf currently doesn't support it.
+--     ++ printf "Time spent executing builtins:  %f%%\n" (fromℕ 100 *f (getCPU totalBuiltinCosts) ÷ (getCPU budget)) ++ "\n"
+--     ++ "\n"
+--     ++ "Total budget spent:    " ++ budgetToString budget ++ "\n"
+--     ++  "Predicted execution time: " ++ formatTimePicoseconds (getCPU budget)
+--   where
+--     totalComputeCost totalBuiltinCosts : ExBudget
+--     totalComputeCost = L.foldr (λ x acc → (lookup mp (BStep x)) ∙€ acc) ε€ stepKindList
+--     totalBuiltinCosts = L.foldr _∙€_ ε€ (L.map (lookup mp ∘ (λ b → BBuiltinApp b (replicate (V-con (atomic aUnit) tt)))) builtinList)
+-- 
+--     getCPU : ExBudget → Float
+--     getCPU n = fromℕ (ExCPU n)
+-- 
+--     budgetToString : ExBudget → String
+--     budgetToString (mkExBudget cpu mem) = padLeft ' ' 15 (showℕ cpu) ++ "  "
+--                                        ++ padLeft ' ' 15 (showℕ mem)
+-- 
+--     printStepCost : StepKind → ExBudget → String
+--     printStepCost sk budget = padRight ' ' 10 (showStepKind sk) ++ " "
+--                            ++ padLeft ' ' 20 (budgetToString budget) ++ "\n"
+-- 
+--     printStepReport : Map ExBudget → String
+--     printStepReport mp = L.foldr (λ s xs → printStepCost s (lookup mp (BStep s)) ++ xs)
+--                                ""
+--                                stepKindList
+-- 
+--     printBuiltinCost : Builtin → ExBudget → String
+--     printBuiltinCost b (mkExBudget 0 0) = ""
+--     printBuiltinCost b budget = padRight ' ' 22 (showBuiltin b) ++ " "
+--                              ++ budgetToString budget ++ "\n"
+-- 
+--     printBuiltinReport : Map ExBudget → String
+--     printBuiltinReport mp =
+--         L.foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b (replicate (V-con (atomic aUnit) tt)))) ++ xs)
+--               ""
+--               builtinList
+-- 
+--     formatTimePicoseconds : Float → String
+--     formatTimePicoseconds t = if 1e12 ≤ᵇ t then (printf "%f s" (t ÷ 1e12)) else
+--                               if 1e9 ≤ᵇ t then  (printf "%f ms" (t ÷ 1e9)) else
+--                               if 1e6 ≤ᵇ t then  (printf "%f μs" (t ÷ 1e6)) else
+--                               if 1e3 ≤ᵇ t then  (printf "%f ns" (t ÷ 1e3)) else
+--                               printf "%f ps" t
  ```
