@@ -808,28 +808,27 @@ readBit ::
   Bool
 readBit bs i = fromOpaque (BI.readBit bs i)
 
--- | Given a 'BuiltinByteString', a list of indexes to change, and a list of values to change those
--- indexes to, set the /bit/ at each of the specified index as follows:
+-- | Given a 'BuiltinByteString', a list of indexes to change, and a boolean
+-- value 'b' to change those indexes to, set the /bit/ at each of the specified
+-- index as follows:
 --
--- * If the corresponding entry in the list of values is 'True', set that bit;
+-- * If 'b' is 'True', set that bit;
 -- * Otherwise, clear that bit.
 --
 -- Will error if any of the indexes are out-of-bounds: that is, if the index is either negative, or
 -- equal to or greater than the total number of bits in the 'BuiltinByteString' argument.
 --
--- If the two list arguments have mismatched lengths, the longer argument will be truncated to match
--- the length of the shorter one:
---
--- * @writeBits bs [0, 1, 4] [True]@ is the same as @writeBits bs [0] [True]@
--- * @writeBits bs [0] [True, False, True]@ is the same as @writeBits bs [0] [True]@
---
 -- = Note
 --
 -- This differs slightly from the description of the [corresponding operation in
--- CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#writebits); instead of a
--- single changelist argument comprised of pairs, we instead pass two lists, one for indexes to
--- change, and one for the values to change those indexes to. Effectively, we are passing the
--- changelist argument \'unzipped\'.
+-- CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#writebits);
+-- instead of a single changelist argument comprised of pairs, we instead pass a
+-- single list of indexes to change, and a single boolean value to change those
+-- indexes to. The original proposal allowed one to set and clear bits in a
+-- single operation, but constructing the list of boolean values for the updates
+-- was somewhat expensive.  If it's really necessary to set some bits and clear
+-- others then it is easier to call the function twice, once to set bits and
+-- and once to clear them.
 --
 -- = See also
 --
@@ -841,9 +840,9 @@ readBit bs i = fromOpaque (BI.readBit bs i)
 writeBits ::
   BuiltinByteString ->
   [Integer] ->
-  [Bool] ->
+  Bool ->
   BuiltinByteString
-writeBits bs ixes bits = BI.writeBits bs (toOpaque ixes) (toOpaque bits)
+writeBits bs ixes bit = BI.writeBits bs (toOpaque ixes) (toOpaque bit)
 
 -- | Given a length (first argument) and a byte (second argument), produce a 'BuiltinByteString' of
 -- that length, with that byte in every position. Will error if given a negative length, or a second

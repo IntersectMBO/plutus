@@ -822,10 +822,10 @@ readBit (BuiltinByteString bs) i =
 writeBits ::
   BuiltinByteString ->
   BuiltinList BuiltinInteger ->
-  BuiltinList BuiltinBool ->
+  BuiltinBool ->
   BuiltinByteString
-writeBits (BuiltinByteString bs) (BuiltinList ixes) (BuiltinList bits) =
-  case Bitwise.writeBits bs ixes (fmap (\(BuiltinBool b) -> b) bits) of
+writeBits (BuiltinByteString bs) (BuiltinList ixes) (BuiltinBool bit) =
+  case Bitwise.writeBits bs ixes bit of
     BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
       Haskell.error "writeBits errored."
     BuiltinSuccess bs' -> BuiltinByteString bs'

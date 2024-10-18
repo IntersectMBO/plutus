@@ -773,10 +773,7 @@ modelFun <- function(path) {
     readBitModel              <- constantModel ("ReadBit")
     writeBitsModel            <- linearInY ("WriteBits")
     ## ^ The Y value here is the length of the list of positions because we use ListCostedByLength
-    ## in the relevant costing benchmark.  The time actually depends on the minimum of the lengths
-    ## of the second and third arguments of `writeBits`, but that will be at most Y, so using
-    ## linearInY is conservatively safe.  If `writeBits` is used correctly then the lengths of the
-    ## second and third arguments will always be the same anyway.
+    ## in the relevant costing benchmark.
     replicateByteModel        <- linearInX ("ReplicateByte")
     shiftByteStringModel      <- linearInX ("ShiftByteString")
     rotateByteStringModel     <- linearInX ("RotateByteString")
