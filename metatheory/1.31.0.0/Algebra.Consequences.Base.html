@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Algebra.Consequences.Base</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Lemmas relating algebraic definitions (such as associativity and</a>
+<a id="174" class="Comment">-- commutativity) that don&#39;t the equality relation to be a setoid.</a>
+<a id="241" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="315" class="Symbol">{-#</a> <a id="319" class="Keyword">OPTIONS</a> <a id="327" class="Pragma">--cubical-compatible</a> <a id="348" class="Pragma">--safe</a> <a id="355" class="Symbol">#-}</a>
+
+<a id="360" class="Keyword">module</a> <a id="367" href="Algebra.Consequences.Base.html" class="Module">Algebra.Consequences.Base</a>
+  <a id="395" class="Symbol">{</a><a id="396" href="Algebra.Consequences.Base.html#396" class="Bound">a</a><a id="397" class="Symbol">}</a> <a id="399" class="Symbol">{</a><a id="400" href="Algebra.Consequences.Base.html#400" class="Bound">A</a> <a id="402" class="Symbol">:</a> <a id="404" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="408" href="Algebra.Consequences.Base.html#396" class="Bound">a</a><a id="409" class="Symbol">}</a> <a id="411" class="Keyword">where</a>
+
+<a id="418" class="Keyword">open</a> <a id="423" class="Keyword">import</a> <a id="430" href="Algebra.Core.html" class="Module">Algebra.Core</a>
+<a id="443" class="Keyword">open</a> <a id="448" class="Keyword">import</a> <a id="455" href="Algebra.Definitions.html" class="Module">Algebra.Definitions</a>
+<a id="475" class="Keyword">open</a> <a id="480" class="Keyword">import</a> <a id="487" href="Data.Sum.Base.html" class="Module">Data.Sum.Base</a>
+<a id="501" class="Keyword">open</a> <a id="506" class="Keyword">import</a> <a id="513" href="Relation.Binary.Core.html" class="Module">Relation.Binary.Core</a>
+
+<a id="sel⇒idem"></a><a id="535" href="Algebra.Consequences.Base.html#535" class="Function">sel⇒idem</a> <a id="544" class="Symbol">:</a> <a id="546" class="Symbol">∀</a> <a id="548" class="Symbol">{</a><a id="549" href="Algebra.Consequences.Base.html#549" class="Bound">ℓ</a><a id="550" class="Symbol">}</a> <a id="552" class="Symbol">{</a><a id="553" href="Algebra.Consequences.Base.html#553" class="Bound Operator">_•_</a> <a id="557" class="Symbol">:</a> <a id="559" href="Algebra.Core.html#527" class="Function">Op₂</a> <a id="563" href="Algebra.Consequences.Base.html#400" class="Bound">A</a><a id="564" class="Symbol">}</a> <a id="566" class="Symbol">(</a><a id="567" href="Algebra.Consequences.Base.html#567" class="Bound Operator">_≈_</a> <a id="571" class="Symbol">:</a> <a id="573" href="Relation.Binary.Core.html#891" class="Function">Rel</a> <a id="577" href="Algebra.Consequences.Base.html#400" class="Bound">A</a> <a id="579" href="Algebra.Consequences.Base.html#549" class="Bound">ℓ</a><a id="580" class="Symbol">)</a> <a id="582" class="Symbol">→</a>
+           <a id="595" href="Algebra.Definitions.html#2791" class="Function">Selective</a> <a id="605" href="Algebra.Consequences.Base.html#567" class="Bound Operator">_≈_</a> <a id="609" href="Algebra.Consequences.Base.html#553" class="Bound Operator">_•_</a> <a id="613" class="Symbol">→</a> <a id="615" href="Algebra.Definitions.html#2656" class="Function">Idempotent</a> <a id="626" href="Algebra.Consequences.Base.html#567" class="Bound Operator">_≈_</a> <a id="630" href="Algebra.Consequences.Base.html#553" class="Bound Operator">_•_</a>
+<a id="634" href="Algebra.Consequences.Base.html#535" class="Function">sel⇒idem</a> <a id="643" class="Symbol">_</a> <a id="645" href="Algebra.Consequences.Base.html#645" class="Bound">sel</a> <a id="649" href="Algebra.Consequences.Base.html#649" class="Bound">x</a> <a id="651" class="Keyword">with</a> <a id="656" href="Algebra.Consequences.Base.html#645" class="Bound">sel</a> <a id="660" href="Algebra.Consequences.Base.html#649" class="Bound">x</a> <a id="662" href="Algebra.Consequences.Base.html#649" class="Bound">x</a>
+<a id="664" class="Symbol">...</a> <a id="668" class="Symbol">|</a> <a id="670" href="Data.Sum.Base.html#793" class="InductiveConstructor">inj₁</a> <a id="675" href="Algebra.Consequences.Base.html#675" class="Bound">x•x≈x</a> <a id="681" class="Symbol">=</a> <a id="683" href="Algebra.Consequences.Base.html#675" class="Bound">x•x≈x</a>
+<a id="689" class="Symbol">...</a> <a id="693" class="Symbol">|</a> <a id="695" href="Data.Sum.Base.html#818" class="InductiveConstructor">inj₂</a> <a id="700" href="Algebra.Consequences.Base.html#700" class="Bound">x•x≈x</a> <a id="706" class="Symbol">=</a> <a id="708" href="Algebra.Consequences.Base.html#700" class="Bound">x•x≈x</a>
+</pre></body></html>

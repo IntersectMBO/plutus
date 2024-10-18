@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Unit.Base</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- The unit type and the total relation on unit</a>
+<a id="154" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="228" class="Symbol">{-#</a> <a id="232" class="Keyword">OPTIONS</a> <a id="240" class="Pragma">--cubical-compatible</a> <a id="261" class="Pragma">--safe</a> <a id="268" class="Symbol">#-}</a>
+
+<a id="273" class="Keyword">open</a> <a id="278" class="Keyword">import</a> <a id="285" href="Agda.Builtin.Equality.html" class="Module">Agda.Builtin.Equality</a> <a id="307" class="Keyword">using</a> <a id="313" class="Symbol">(</a><a id="314" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a><a id="317" class="Symbol">)</a>
+
+<a id="320" class="Keyword">module</a> <a id="327" href="Data.Unit.Base.html" class="Module">Data.Unit.Base</a> <a id="342" class="Keyword">where</a>
+
+<a id="349" class="Comment">------------------------------------------------------------------------</a>
+<a id="422" class="Comment">-- A unit type defined as a record type</a>
+
+<a id="463" class="Comment">-- Note that by default the unit type is not universe polymorphic as it</a>
+<a id="535" class="Comment">-- often results in unsolved metas. See `Data.Unit.Polymorphic` for a</a>
+<a id="605" class="Comment">-- universe polymorphic variant.</a>
+
+<a id="639" class="Comment">-- Note also that the name of this type is &quot;\top&quot;, not T.</a>
+
+<a id="698" class="Keyword">open</a> <a id="703" class="Keyword">import</a> <a id="710" href="Agda.Builtin.Unit.html" class="Module">Agda.Builtin.Unit</a> <a id="728" class="Keyword">public</a>
+  <a id="737" class="Keyword">using</a> <a id="743" class="Symbol">(</a><a id="744" href="Agda.Builtin.Unit.html#175" class="Record">⊤</a><a id="745" class="Symbol">;</a> <a id="747" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">tt</a><a id="749" class="Symbol">)</a>
+
+<a id="752" class="Comment">------------------------------------------------------------------------</a>
+<a id="825" class="Comment">-- DEPRECATED NAMES</a>
+<a id="845" class="Comment">------------------------------------------------------------------------</a>
+<a id="918" class="Comment">-- Please use the new names as continuing support for the old names is</a>
+<a id="989" class="Comment">-- not guaranteed.</a>
+
+<a id="1009" class="Comment">-- Version 1.2</a>
+
+<a id="1025" class="Keyword">record</a> <a id="_≤_"></a><a id="1032" href="Data.Unit.Base.html#1032" class="Record Operator">_≤_</a> <a id="1036" class="Symbol">(</a><a id="1037" href="Data.Unit.Base.html#1037" class="Bound">x</a> <a id="1039" href="Data.Unit.Base.html#1039" class="Bound">y</a> <a id="1041" class="Symbol">:</a> <a id="1043" href="Agda.Builtin.Unit.html#175" class="Record">⊤</a><a id="1044" class="Symbol">)</a> <a id="1046" class="Symbol">:</a> <a id="1048" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="1052" class="Keyword">where</a>
+<a id="1058" class="Symbol">{-#</a> <a id="1062" class="Keyword">WARNING_ON_USAGE</a> <a id="1079" class="Pragma">_≤_</a>
+<a id="1083" class="String">&quot;Warning: _≤_ was deprecated in v1.2.
+Please use _≡_ from Relation.Binary.PropositionalEquality instead.&quot;</a>
+<a id="1189" class="Symbol">#-}</a>
+</pre></body></html>
