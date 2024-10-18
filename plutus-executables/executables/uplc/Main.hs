@@ -65,10 +65,11 @@ import Agda.Syntax.Abstract qualified as HAgda.Abstract
 import Agda.Syntax.Abstract qualified as HAgda.Concrete
 import Agda.Syntax.Common.Pretty qualified as HAgda.Pretty
 import Agda.Syntax.Parser qualified as HAgda.Parser
-import Agda.TypeChecking.Monad.Base (TCM)
+import Agda.TypeChecking.Monad.Base (Interface (iModuleName), TCM)
 
-import Agda.Compiler.Backend (setCommandLineOptions)
+import Agda.Compiler.Backend (getTCState, setCommandLineOptions, stScope)
 import Agda.Main (runTCMPrettyErrors)
+import Agda.Syntax.Scope.Monad (getCurrentScope, setCurrentModule)
 import Agda.Syntax.Translation.ConcreteToAbstract (ToAbstract (toAbstract))
 import Agda.Utils.FileName qualified as HAgda.File
 import Data.ByteString (ByteString)
@@ -334,7 +335,13 @@ runAgda' rawTrace = do
             }
     setCommandLineOptions opts
     result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
-    liftIO $ putStrLn (show . HAgda.Pretty.pretty $ parsedTrace)
+    x <- getTCState
+    liftIO $ print (view stScope x)
+    -- setCurrentModule (iModuleName . HAgda.Imp.crInterface $ result)
+    -- liftIO $ putStrLn (show . iModuleName . HAgda.Imp.crInterface $ result)
+    -- x <- getCurrentScope
+    -- liftIO $ putStrLn (show x)
+    -- liftIO $ putStrLn (show . HAgda.Pretty.pretty $ parsedTrace)
     internalisedTrace <- toAbstract parsedTrace
     liftIO $ putStrLn (show internalisedTrace)
 
@@ -343,7 +350,7 @@ runAgda' rawTrace = do
 instance AgdaUnparse AgdaFFI.UTerm where
   agdaUnparse =
     \case
-      AgdaFFI.UVar i -> "(UVar " ++ agdaUnparse i ++ ")"
+      AgdaFFI.UVar n -> "(UVar " ++ agdaUnparse (fromInteger n :: Natural) ++ ")"
       AgdaFFI.ULambda term -> "(ULambda " ++ agdaUnparse term ++ ")"
       AgdaFFI.UApp t u -> "(UApp " ++ agdaUnparse t ++ " " ++ agdaUnparse u ++ ")"
       AgdaFFI.UCon someValue -> "(UCon " ++ (agdaUnparseValue . mkValueDSum) someValue ++ ")"
@@ -354,14 +361,18 @@ instance AgdaUnparse AgdaFFI.UTerm where
       AgdaFFI.UConstr i terms -> "(UConstr " ++ agdaUnparse i ++ " " ++ agdaUnparse terms ++ ")"
       AgdaFFI.UCase term cases -> "(UCase " ++ agdaUnparse term ++ " " ++ agdaUnparse cases ++ ")"
 
+
 instance AgdaUnparse UPLC.DefaultFun where
   agdaUnparse = lowerInitialChar . show
 
 class AgdaUnparse a where
   agdaUnparse :: a -> String
 
-instance AgdaUnparse Integer where
+instance AgdaUnparse Natural where
   agdaUnparse = show
+
+instance AgdaUnparse Integer where
+  agdaUnparse x = "(ℤ.pos " ++ show x ++ ")"
 
 instance AgdaUnparse Bool where
   agdaUnparse True  = "true"
@@ -563,6 +574,9 @@ runDbg (DbgOptions inp ifmt cekModel semvar) = do
     -- nilSlippage is important so as to get correct live up-to-date budget
     cekTrans <- fst <$> D.mkCekTrans cekparams Cek.restrictingEnormous Cek.noEmitter D.nilSlippage
     Repl.runInputT replSettings $
+        -- MAYBE: use cutoff or partialIterT to prevent runaway
+        -- MAYBE: use cutoff or partialIterT to prevent runaway
+
         -- MAYBE: use cutoff or partialIterT to prevent runaway
         D.iterTM (handleDbg cekTrans) $ D.runDriverT nterm
 
