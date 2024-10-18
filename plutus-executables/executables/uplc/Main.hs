@@ -1,6 +1,7 @@
  -- editorconfig-checker-disable
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE OverloadedStrings         #-}
@@ -14,7 +15,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
 import PlutusCore.Compiler.Types (UPLCSimplifierTrace (..), initUPLCSimplifierTrace)
 import PlutusCore.Data (Data)
-import PlutusCore.Default (BuiltinSemanticsVariant (..))
+import PlutusCore.Default (BuiltinSemanticsVariant (..), DSum (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -43,6 +44,7 @@ import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
 import Data.ByteString.Lazy as BSL (readFile)
 import Data.Foldable
+import Data.Functor.Identity
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
 import Flat (unflat)
@@ -54,6 +56,31 @@ import Text.Read (readMaybe)
 
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
+
+import Agda.Interaction.FindFile qualified as HAgda.File
+import Agda.Interaction.Imports qualified as HAgda.Imp
+import Agda.Interaction.Options (CommandLineOptions (optIncludePaths, optLibraries, optLocalInterfaces),
+                                 defaultOptions)
+import Agda.Syntax.Abstract qualified as HAgda.Abstract
+import Agda.Syntax.Abstract qualified as HAgda.Concrete
+import Agda.Syntax.Common.Pretty qualified as HAgda.Pretty
+import Agda.Syntax.Parser qualified as HAgda.Parser
+import Agda.TypeChecking.Monad.Base (Interface (iModuleName), TCM)
+
+import Agda.Compiler.Backend (getTCState, setCommandLineOptions, stScope)
+import Agda.Main (runTCMPrettyErrors)
+import Agda.Syntax.Scope.Monad (getCurrentScope, setCurrentModule)
+import Agda.Syntax.Translation.ConcreteToAbstract (ToAbstract (toAbstract))
+import Agda.Utils.FileName qualified as HAgda.File
+import Data.ByteString (ByteString)
+import Data.Text (Text)
+import Data.Traversable (forM)
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
+import PlutusCore.Data qualified as Data
+import PlutusCore.Default qualified as PLC
+import PlutusPrelude qualified as UPLC
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
@@ -280,8 +307,157 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
                 Right res                            -> res
                 Left (err :: UPLC.FreeVariableError) -> error $ show err
           rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
-      Agda.runCertifier (T.pack certName) rawAgdaTrace
+      -- Agda.runCertifier (T.pack certName) rawAgdaTrace
+      runAgda' rawAgdaTrace
     runCertifier Nothing _ = pure ()
+
+runAgda :: AgdaFFI.UTerm -> IO () -- HAgda.Concrete.Expr
+runAgda uTerm = do
+  let rawExpr = agdaUnparse uTerm
+  (Right res, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser rawExpr
+  putStrLn $ "Parsed: " ++ show res
+
+runAgda' :: [AgdaFFI.UTerm] -> IO () -- TCM () -- HAgda.Imp.CheckResult
+runAgda' rawTrace = do
+  (parseTraceResult, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser $ agdaUnparse rawTrace
+  let parsedTrace =
+        case parseTraceResult of
+          Right (res, _) -> res
+          Left err       -> error $ show err
+  let inputFile = HAgda.File.AbsolutePath "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src/Test.agda"
+  runTCMPrettyErrors $ do
+    let opts =
+          defaultOptions
+            { optIncludePaths =
+                [ "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src"
+                , "/nix/store/g9vi7hzrp1cqgm21355549yyqcpkjnxx-standard-library-1.7.3/src"
+                ]
+            , optLocalInterfaces = True
+            }
+    setCommandLineOptions opts
+    result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
+    x <- getTCState
+    liftIO $ print (view stScope x)
+    -- setCurrentModule (iModuleName . HAgda.Imp.crInterface $ result)
+    -- liftIO $ putStrLn (show . iModuleName . HAgda.Imp.crInterface $ result)
+    -- x <- getCurrentScope
+    -- liftIO $ putStrLn (show x)
+    -- liftIO $ putStrLn (show . HAgda.Pretty.pretty $ parsedTrace)
+    internalisedTrace <- toAbstract parsedTrace
+    liftIO $ putStrLn (show internalisedTrace)
+
+-- https://hackage.haskell.org/package/Agda-2.7.0.1/docs/Agda-Interaction-BasicOps.html#v:evalInCurrent
+
+instance AgdaUnparse AgdaFFI.UTerm where
+  agdaUnparse =
+    \case
+      AgdaFFI.UVar n -> "(UVar " ++ agdaUnparse (fromInteger n :: Natural) ++ ")"
+      AgdaFFI.ULambda term -> "(ULambda " ++ agdaUnparse term ++ ")"
+      AgdaFFI.UApp t u -> "(UApp " ++ agdaUnparse t ++ " " ++ agdaUnparse u ++ ")"
+      AgdaFFI.UCon someValue -> "(UCon " ++ (agdaUnparseValue . mkValueDSum) someValue ++ ")"
+      AgdaFFI.UError -> "UError"
+      AgdaFFI.UBuiltin fun -> "(UBuiltin " ++ agdaUnparse fun ++ ")"
+      AgdaFFI.UDelay term -> "(UDelay " ++ agdaUnparse term ++ ")"
+      AgdaFFI.UForce term -> "(UForce " ++ agdaUnparse term ++ ")"
+      AgdaFFI.UConstr i terms -> "(UConstr " ++ agdaUnparse i ++ " " ++ agdaUnparse terms ++ ")"
+      AgdaFFI.UCase term cases -> "(UCase " ++ agdaUnparse term ++ " " ++ agdaUnparse cases ++ ")"
+
+
+instance AgdaUnparse UPLC.DefaultFun where
+  agdaUnparse = lowerInitialChar . show
+
+class AgdaUnparse a where
+  agdaUnparse :: a -> String
+
+instance AgdaUnparse Natural where
+  agdaUnparse = show
+
+instance AgdaUnparse Integer where
+  agdaUnparse x = "(ℤ.pos " ++ show x ++ ")"
+
+instance AgdaUnparse Bool where
+  agdaUnparse True  = "true"
+  agdaUnparse False = "false"
+
+instance AgdaUnparse Char where
+  agdaUnparse c = [c]
+instance AgdaUnparse Text where
+  agdaUnparse = T.unpack
+
+instance AgdaUnparse ByteString where
+  agdaUnparse = show  -- maybe this should be encoded some other way
+
+instance AgdaUnparse () where
+  agdaUnparse _ = "⊤"
+
+instance AgdaUnparse a => AgdaUnparse [a] where
+  agdaUnparse []       = "[]"
+  agdaUnparse (x : xs) = agdaUnparse x ++ " ∷ " ++ agdaUnparse xs
+
+instance (AgdaUnparse a, AgdaUnparse b) => AgdaUnparse (a, b) where
+  agdaUnparse (x, y) = "(" ++ agdaUnparse x ++ " , " ++ agdaUnparse y ++ ")"
+
+instance AgdaUnparse Data where
+  agdaUnparse (Data.Constr i args) =
+    "(ConstrDATA" ++ " " ++ agdaUnparse i ++ " " ++ agdaUnparse args ++ ")"
+  agdaUnparse (Data.Map assocList) =
+    "(MapDATA" ++ " " ++ agdaUnparse assocList ++ ")"
+  agdaUnparse (Data.List xs) =
+    "(ListDATA" ++ " " ++ agdaUnparse xs ++ ")"
+  agdaUnparse (Data.I i) =
+    "(iDATA" ++ " " ++ agdaUnparse i ++ ")"
+  agdaUnparse (Data.B b) =
+    "(bDATA" ++ " " ++ agdaUnparse b ++ ")"
+
+instance AgdaUnparse BLS12_381.G1.Element where
+  agdaUnparse = show
+
+instance AgdaUnparse BLS12_381.G2.Element where
+  agdaUnparse = show
+
+instance AgdaUnparse BLS12_381.Pairing.MlResult where
+  agdaUnparse = show
+
+agdaUnparseValue :: DSum (PLC.ValueOf UPLC.DefaultUni) Identity -> String
+agdaUnparseValue dSum =
+  "(tagCon " ++
+    case dSum of
+      PLC.ValueOf PLC.DefaultUniInteger _ :=> Identity val ->
+        "integer " ++ agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniByteString _ :=> Identity val ->
+        "bytestring " ++ agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniString _ :=> Identity val ->
+        "string " ++ agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniBool _ :=> Identity val ->
+        "bool " ++ agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniUnit _ :=> Identity _ ->
+        "unit " ++ agdaUnparse ()
+      PLC.ValueOf PLC.DefaultUniData _ :=> Identity val ->
+        "pdata " ++ agdaUnparse val
+      PLC.ValueOf (PLC.DefaultUniList elemType) _ :=> Identity val ->
+        "list " ++ agdaUnparseDList elemType val
+      PLC.ValueOf (PLC.DefaultUniPair type1 type2) _ :=> Identity val ->
+        "pair " ++ agdaUnparseDPair type1 type2 val
+      PLC.ValueOf PLC.DefaultUniBLS12_381_G1_Element _ :=> Identity val ->
+        "bls12-381-g1-element " ++  agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniBLS12_381_G2_Element _ :=> Identity val ->
+        "bls12-381-g2-element " ++  agdaUnparse val
+      PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult _ :=> Identity val ->
+        "bls12-381-mlresult " ++ agdaUnparse val
+      _ -> error "BUG: agdaUnparseValue: unexpected value"
+  ++ ")"
+  where
+    agdaUnparseDList elemType xs =
+      let xs' :: [DSum (PLC.ValueOf PLC.DefaultUni) Identity]
+          xs' = mkValueDSum . PLC.Some . PLC.ValueOf elemType <$> xs
+        in agdaUnparse $ agdaUnparseValue <$> xs'
+    agdaUnparseDPair type1 type2 (x, y) =
+      let x' = mkValueDSum $ PLC.Some $ PLC.ValueOf type1 x
+          y' = mkValueDSum $ PLC.Some $ PLC.ValueOf type2 y
+        in agdaUnparse (agdaUnparseValue x', agdaUnparseValue y')
+
+mkValueDSum :: PLC.Some (PLC.ValueOf UPLC.DefaultUni) -> DSum (PLC.ValueOf UPLC.DefaultUni) Identity
+mkValueDSum (PLC.Some valueOf@(PLC.ValueOf _ a)) = valueOf :=> Identity a
 
 ---------------- Script application ----------------
 
@@ -399,6 +575,9 @@ runDbg (DbgOptions inp ifmt cekModel semvar) = do
     -- nilSlippage is important so as to get correct live up-to-date budget
     cekTrans <- fst <$> D.mkCekTrans cekparams Cek.restrictingEnormous Cek.noEmitter D.nilSlippage
     Repl.runInputT replSettings $
+        -- MAYBE: use cutoff or partialIterT to prevent runaway
+        -- MAYBE: use cutoff or partialIterT to prevent runaway
+
         -- MAYBE: use cutoff or partialIterT to prevent runaway
         D.iterTM (handleDbg cekTrans) $ D.runDriverT nterm
 
