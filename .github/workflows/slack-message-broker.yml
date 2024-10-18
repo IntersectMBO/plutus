@@ -47,7 +47,7 @@ jobs:
               if (senderLogin in slackMemberIds) {
                 return `<@${slackMemberIds[senderLogin]}>`;
               } else {
-                return "@here";
+                return "@{senderLogin}";
               }
             }
 
@@ -62,20 +62,14 @@ jobs:
               const url = "${{ github.event.workflow_run.html_url }}";
               const status = "${{ github.event.workflow_run.status }}";
               const conclusion = "${{ github.event.workflow_run.conclusion }}";
-              const failureConclusions = [ "failure", "null", "cancelled", "action_required", "neutral", "timed_out" ];
+              const failureConclusions = [ "failure", "null", "action_required", "neutral", "timed_out" ];
 
-              if (conclusion == "") {
-                message = `${name} \`${status}\` ⏳ <${url}|View Logs> ${slackMember}`;
-              } else if (conclusion == "success") {
-                message = `${name} \`${conclusion}\` ✅ <${url}|View Logs> ${slackMember}`;
-              } else if (conclusion == "skipped") {
-                message = `${name} \`${conclusion}\` ⏩ <${url}|View Logs> ${slackMember}`;
-              } else if (failureConclusions.includes(conclusion)) {
-                message = `${name} \`${conclusion}\` ❌ <${url}|View Logs> ${slackMember}`;
+              if (failureConclusions.includes(conclusion)) {
+                message = `❌ ${name} \`${conclusion}\` <${url}|View Logs> ${slackMember}`;
                 shouldSendMessage = true;
               } else {
-                message = `${name} \`${conclusion}\` ⁉️ <${url}|View Logs> Unknown Conclusion @channel`;
-                shouldSendMessage = true;
+                message = `${name} \`${status}\` \`${conclusion}\` <${url}|View Logs> ${slackMember}`;
+                shouldSendMessage = false;
               }
             }
 
@@ -93,14 +87,12 @@ jobs:
                 "ci/eval"
               ];
 
-              if (conclusion == "success") {
-                message = `${name} \`${conclusion}\` ✅ <${url}|View Logs> ${slackMember}`;
-              } else if (conclusion == "failure" && checkRunWatchlist.includes(name)) {
-                message = `${name} \`${conclusion}\` ❌ <${url}|View Logs> ${slackMember}`;
+              if (conclusion == "failure" && checkRunWatchlist.includes(name)) {
+                message = `❌ ${name} \`${conclusion}\` <${url}|View Logs> ${slackMember}`;
                 shouldSendMessage = true;
               } else {
-                message = `${name} \`${conclusion}\` ⁉️ <${url}|View Logs> Unknown Conclusion @channel`;
-                shouldSendMessage = true;
+                message = `${name} \`${status}\` \`${conclusion}\` <${url}|View Logs> ${slackMember}`;
+                shouldSendMessage = false;
               }
             }
 
