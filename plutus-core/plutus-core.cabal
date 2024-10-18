@@ -172,6 +172,7 @@ library
     PlutusCore.StdLib.Data.Function
     PlutusCore.StdLib.Data.Integer
     PlutusCore.StdLib.Data.List
+    PlutusCore.StdLib.Data.MatchOption
     PlutusCore.StdLib.Data.Nat
     PlutusCore.StdLib.Data.Pair
     PlutusCore.StdLib.Data.ScottList

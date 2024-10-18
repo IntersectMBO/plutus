@@ -111,9 +111,8 @@ instance (ToData k, ToData v) => ToData (Map k v) where
 -- encoded in the 'Data' is well-formed, i.e. 'fromBuiltinData' does not perform any
 -- deduplication of keys or of key-value pairs!
 instance (FromData k, FromData v) => FromData (Map k v) where
-  fromBuiltinData d =
-    P.matchData'
-      d
+  fromBuiltinData =
+    P.caseData'
       (\_ _ -> Nothing)
       (\es -> Map <$> traverseFromBuiltin es)
       (const Nothing)
@@ -127,18 +126,15 @@ instance (FromData k, FromData v) => FromData (Map k v) where
       traverseFromBuiltin = go
         where
           go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> Maybe [(k, v)]
-          go l =
-            BI.chooseList
-              l
-              (const (pure []))
-              ( \_ ->
-                  let tup = BI.head l
-                   in liftA2
-                        (:)
-                        (liftA2 (,) (fromBuiltinData $ BI.fst tup) (fromBuiltinData $ BI.snd tup))
-                        (go (BI.tail l))
+          go =
+            P.caseList'
+              (pure [])
+              ( \tup tups ->
+                   liftA2
+                       (:)
+                       (liftA2 (,) (fromBuiltinData $ BI.fst tup) (fromBuiltinData $ BI.snd tup))
+                       (go tups)
               )
-              ()
 
 -- | A hand-written transformation from 'Data' to 'Map'. It is unsafe because the
 -- caller must provide the guarantee that the 'Data' is constructed using the 'Data's
@@ -158,16 +154,13 @@ instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
       mapFromBuiltin = go
         where
           go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
-          go l =
-            BI.chooseList
-              l
-              (const [])
-              ( \_ ->
-                  let tup = BI.head l
-                   in (unsafeFromBuiltinData $ BI.fst tup, unsafeFromBuiltinData $ BI.snd tup)
-                        : go (BI.tail l)
+          go =
+            P.caseList'
+              []
+              ( \tup tups ->
+                   (unsafeFromBuiltinData $ BI.fst tup, unsafeFromBuiltinData $ BI.snd tup)
+                       : go tups
               )
-              ()
 
 instance
   (HasBlueprintDefinition k, HasBlueprintDefinition v)
