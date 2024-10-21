@@ -50,8 +50,11 @@ in
     pkgs.gawk
     pkgs.scriv
     pkgs.fswatch
-    pkgs.linkchecker
     pkgs.yarn
+
+    # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
+    # pkgs.linkchecker
+    inputs.nixpkgs-2405.linkchecker
 
     # Needed to make building things work, not for commands
     pkgs.zlib
