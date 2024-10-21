@@ -1,0 +1,921 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Builtin.Emitter</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.30.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Builtin.Emitter.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Builtin.Emitter</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Emitter"
+	      >Emitter</a
+	      > a = <a href="#v:Emitter"
+	      >Emitter</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unEmitter"
+		  >unEmitter</a
+		  > &#8759; Writer (DList Text) a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:runEmitter"
+	      >runEmitter</a
+	      > &#8759; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+	      >Emitter</a
+	      > a &#8594; (a, DList Text)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:MonadEmitter"
+	      >MonadEmitter</a
+	      > m <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:emit"
+		  >emit</a
+		  > &#8759; Text &#8594; m ()</li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Emitter" class="def"
+	    >Emitter</a
+	    > a <a href="src/PlutusCore.Builtin.Emitter.html#Emitter" class="link"
+	    >Source</a
+	    > <a href="#t:Emitter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A monad for logging.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Emitter" class="def"
+		  >Emitter</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unEmitter" class="def"
+			  >unEmitter</a
+			  > &#8759; Writer (DList Text) a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Emitter"
+	    >Instances</h4
+	    ><details id="i:Emitter" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Emitter:Applicative:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+		      >Emitter</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Emitter.html#line-14" class="link"
+		    >Source</a
+		    > <a href="#t:Emitter" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Emitter:Applicative:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Emitter.html"
+			>PlutusCore.Builtin.Emitter</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > (a &#8594; b) &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > b &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > c <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > b &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > b &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Emitter:Functor:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+		      >Emitter</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Emitter.html#line-14" class="link"
+		    >Source</a
+		    > <a href="#t:Emitter" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Emitter:Functor:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Emitter.html"
+			>PlutusCore.Builtin.Emitter</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > b &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Emitter:Monad:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+		      >Emitter</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Emitter.html#line-14" class="link"
+		    >Source</a
+		    > <a href="#t:Emitter" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Emitter:Monad:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Emitter.html"
+			>PlutusCore.Builtin.Emitter</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a &#8594; (a &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > b) &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > b &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > b <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Emitter:MonadEmitter:4"
+		      ></span
+		      > <a href="PlutusCore-Builtin-Emitter.html#t:MonadEmitter" title="PlutusCore.Builtin.Emitter"
+		      >MonadEmitter</a
+		      > <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+		      >Emitter</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Emitter.html#line-24" class="link"
+		    >Source</a
+		    > <a href="#t:Emitter" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Emitter:MonadEmitter:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Emitter.html"
+			>PlutusCore.Builtin.Emitter</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:emit"
+			  >emit</a
+			  > &#8759; Text &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > () <a href="src/PlutusCore.Builtin.Emitter.html#emit" class="link"
+			  >Source</a
+			  > <a href="#v:emit" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Emitter:KnownTypeAst:5"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname uni a &#8658; <a href="PlutusCore-Builtin-KnownTypeAst.html#t:KnownTypeAst" title="PlutusCore.Builtin.KnownTypeAst"
+		      >KnownTypeAst</a
+		      > tyname uni (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+		      >Emitter</a
+		      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#line-235" class="link"
+		    >Source</a
+		    > <a href="#t:KnownTypeAst" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Emitter:KnownTypeAst:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-KnownTypeAst.html"
+			>PlutusCore.Builtin.KnownTypeAst</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			  >IsBuiltin</a
+			  > uni (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#IsBuiltin" class="link"
+			  >Source</a
+			  > <a href="#t:IsBuiltin" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToHoles</a
+			  > uni (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a) &#8759; [<a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			  >Hole</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToHoles" class="link"
+			  >Source</a
+			  > <a href="#t:ToHoles" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			  >ToBinds</a
+			  > uni acc (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a) &#8759; [Some <a href="PlutusCore-Builtin-Polymorphism.html#t:TyNameRep" title="PlutusCore.Builtin.Polymorphism"
+			  >TyNameRep</a
+			  >] <a href="src/PlutusCore.Builtin.KnownTypeAst.html#ToBinds" class="link"
+			  >Source</a
+			  > <a href="#t:ToBinds" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeAst"
+			  >typeAst</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#v:Type0" title="PlutusCore.Core.Type"
+			  >Type0</a
+			  > tyname uni () <a href="src/PlutusCore.Builtin.KnownTypeAst.html#typeAst" class="link"
+			  >Source</a
+			  > <a href="#v:typeAst" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Emitter:MakeKnownIn:6"
+		      ></span
+		      > <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnownIn</a
+		      > uni val a &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:MakeKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >MakeKnownIn</a
+		      > uni val (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+		      >Emitter</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Builtin.KnownType.html#line-348" class="link"
+		    >Source</a
+		    > <a href="#t:MakeKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Emitter:MakeKnownIn:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-KnownType.html"
+			>PlutusCore.Builtin.KnownType</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:makeKnown"
+			  >makeKnown</a
+			  > &#8759; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > val <a href="src/PlutusCore.Builtin.KnownType.html#makeKnown" class="link"
+			  >Source</a
+			  > <a href="#v:makeKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Emitter:ReadKnownIn:7"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		      >TypeError</a
+		      > ('<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		      >Text</a
+		      > &quot;\8216Emitter\8217 cannot appear in the type of an argument&quot;) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Constraint" title="Data.Kind"
+		      >Constraint</a
+		      >, uni <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		      >UniOf</a
+		      > val) &#8658; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownIn" title="PlutusCore.Builtin.KnownType"
+		      >ReadKnownIn</a
+		      > uni val (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+		      >Emitter</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Builtin.KnownType.html#line-354" class="link"
+		    >Source</a
+		    > <a href="#t:ReadKnownIn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Emitter:ReadKnownIn:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-KnownType.html"
+			>PlutusCore.Builtin.KnownType</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:readKnown"
+			  >readKnown</a
+			  > &#8759; val &#8594; <a href="PlutusCore-Builtin-KnownType.html#t:ReadKnownM" title="PlutusCore.Builtin.KnownType"
+			  >ReadKnownM</a
+			  > (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > a) <a href="src/PlutusCore.Builtin.KnownType.html#readKnown" class="link"
+			  >Source</a
+			  > <a href="#v:readKnown" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Emitter:ToBinds:8"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToBinds</a
+		      > uni acc (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+		      >Emitter</a
+		      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#line-238" class="link"
+		    >Source</a
+		    > <a href="#t:ToBinds" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Emitter:ToBinds:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-KnownTypeAst.html"
+			>PlutusCore.Builtin.KnownTypeAst</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> uni acc (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			>Emitter</a
+			> a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) = <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToBinds" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToBinds</a
+			> uni acc a</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Emitter:IsBuiltin:9"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+		      >IsBuiltin</a
+		      > uni (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+		      >Emitter</a
+		      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#line-236" class="link"
+		    >Source</a
+		    > <a href="#t:IsBuiltin" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Emitter:IsBuiltin:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-KnownTypeAst.html"
+			>PlutusCore.Builtin.KnownTypeAst</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:IsBuiltin" title="PlutusCore.Builtin.KnownTypeAst"
+			>IsBuiltin</a
+			> uni (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			>Emitter</a
+			> a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) = '<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Emitter:ToHoles:10"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+		      >ToHoles</a
+		      > uni (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+		      >Emitter</a
+		      > a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusCore.Builtin.KnownTypeAst.html#line-237" class="link"
+		    >Source</a
+		    > <a href="#t:ToHoles" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Emitter:ToHoles:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-KnownTypeAst.html"
+			>PlutusCore.Builtin.KnownTypeAst</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusCore-Builtin-KnownTypeAst.html#t:ToHoles" title="PlutusCore.Builtin.KnownTypeAst"
+			>ToHoles</a
+			> uni (<a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			>Emitter</a
+			> a &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) = '[<a href="PlutusCore-Builtin-KnownTypeAst.html#t:TypeHole" title="PlutusCore.Builtin.KnownTypeAst"
+			>TypeHole</a
+			> a &#8759; <a href="PlutusCore-Builtin-KnownTypeAst.html#t:Hole" title="PlutusCore.Builtin.KnownTypeAst"
+			>Hole</a
+			>]</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runEmitter" class="def"
+	    >runEmitter</a
+	    > &#8759; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+	    >Emitter</a
+	    > a &#8594; (a, DList Text) <a href="src/PlutusCore.Builtin.Emitter.html#runEmitter" class="link"
+	    >Source</a
+	    > <a href="#v:runEmitter" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:MonadEmitter" class="def"
+	    >MonadEmitter</a
+	    > m <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Builtin.Emitter.html#MonadEmitter" class="link"
+	    >Source</a
+	    > <a href="#t:MonadEmitter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A type class for &quot;this monad supports logging&quot;.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:emit" class="def"
+	      >emit</a
+	      > &#8759; Text &#8594; m () <a href="src/PlutusCore.Builtin.Emitter.html#emit" class="link"
+	      >Source</a
+	      > <a href="#v:emit" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MonadEmitter"
+	    >Instances</h4
+	    ><details id="i:MonadEmitter" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadEmitter:MonadEmitter:1"
+		      ></span
+		      > <a href="PlutusCore-Builtin-Emitter.html#t:MonadEmitter" title="PlutusCore.Builtin.Emitter"
+		      >MonadEmitter</a
+		      > <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+		      >Emitter</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Emitter.html#line-24" class="link"
+		    >Source</a
+		    > <a href="#t:MonadEmitter" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadEmitter:MonadEmitter:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Emitter.html"
+			>PlutusCore.Builtin.Emitter</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:emit"
+			  >emit</a
+			  > &#8759; Text &#8594; <a href="PlutusCore-Builtin-Emitter.html#t:Emitter" title="PlutusCore.Builtin.Emitter"
+			  >Emitter</a
+			  > () <a href="src/PlutusCore.Builtin.Emitter.html#emit" class="link"
+			  >Source</a
+			  > <a href="#v:emit" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadEmitter:MonadEmitter:2"
+		      ></span
+		      > <a href="PlutusCore-Builtin-Emitter.html#t:MonadEmitter" title="PlutusCore.Builtin.Emitter"
+		      >MonadEmitter</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-142" class="link"
+		    >Source</a
+		    > <a href="#t:MonadEmitter" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadEmitter:MonadEmitter:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:emit"
+			  >emit</a
+			  > &#8759; Text &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > () <a href="src/PlutusCore.Builtin.Emitter.html#emit" class="link"
+			  >Source</a
+			  > <a href="#v:emit" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

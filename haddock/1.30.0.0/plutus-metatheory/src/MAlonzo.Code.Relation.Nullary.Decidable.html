@@ -1,0 +1,3418 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE EmptyCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE EmptyDataDecls #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ExistentialQuantification #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoMonomorphismRestriction #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-overlapping-patterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >MAlonzo.Code.Relation.Nullary.Decidable</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html"
+	><span class="hs-identifier"
+	  >MAlonzo.RTE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier"
+	  >coe</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier"
+	  >erased</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#addInt"
+	><span class="hs-identifier"
+	  >addInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#subInt"
+	><span class="hs-identifier"
+	  >subInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#mulInt"
+	><span class="hs-identifier"
+	  >mulInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#quotInt"
+	><span class="hs-identifier"
+	  >quotInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#remInt"
+	><span class="hs-identifier"
+	  >remInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#geqInt"
+	><span class="hs-identifier"
+	  >geqInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#ltInt"
+	><span class="hs-identifier"
+	  >ltInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#eqInt"
+	><span class="hs-identifier"
+	  >eqInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#add64"
+	><span class="hs-identifier"
+	  >add64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#sub64"
+	><span class="hs-identifier"
+	  >sub64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#mul64"
+	><span class="hs-identifier"
+	  >mul64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#quot64"
+	><span class="hs-identifier"
+	  >quot64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#rem64"
+	><span class="hs-identifier"
+	  >rem64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#lt64"
+	><span class="hs-identifier"
+	  >lt64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#eq64"
+	><span class="hs-identifier"
+	  >eq64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#word64FromNat"
+	><span class="hs-identifier"
+	  >word64FromNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#word64ToNat"
+	><span class="hs-identifier"
+	  >word64ToNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html"
+	><span class="hs-identifier"
+	  >MAlonzo.RTE</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Text</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Equality.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Builtin.Equality</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Unit.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Builtin.Unit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Primitive</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Function.Bundles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Equality.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Function.Equality</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Equivalence.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Function.Equivalence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Injection.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Function.Injection</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.Bundles</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Nullary</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Reflects.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Nullary.Reflects</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-comment"
+      >-- Relation.Nullary.Decidable.map</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#d_map_14"
+	><span class="hs-identifier hs-type"
+	  >d_map_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Equivalence.html#T_Equivalence_16"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Equivalence.T_Equivalence_16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.html#T_Dec_32"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.T_Dec_32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.html#T_Dec_32"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.T_Dec_32</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="d_map_14"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_map_14 :: T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Equivalence_16
+-&gt; T_Dec_32
+-&gt; T_Dec_32
+</span
+	  ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#d_map_14"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_map_14</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490190"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621680490190"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490191"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621680490191"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490192"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621680490192"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490193"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621680490193"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490194"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Equivalence_16
+</span
+	  ><a href="#local-6989586621680490194"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Equivalence_16 -&gt; T_Dec_32 -&gt; T_Dec_32
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#du_map_14"
+	><span class="hs-identifier hs-var"
+	  >du_map_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Equivalence_16
+</span
+	><a href="#local-6989586621680490194"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#du_map_14"
+	><span class="hs-identifier hs-type"
+	  >du_map_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Equivalence.html#T_Equivalence_16"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Equivalence.T_Equivalence_16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.html#T_Dec_32"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.T_Dec_32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.html#T_Dec_32"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.T_Dec_32</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="du_map_14"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_map_14 :: T_Equivalence_16 -&gt; T_Dec_32 -&gt; T_Dec_32
+</span
+	  ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#du_map_14"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_map_14</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490196"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Equivalence_16
+</span
+	  ><a href="#local-6989586621680490196"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any) -&gt; T_Dec_32 -&gt; T_Dec_32)
+-&gt; Any -&gt; T_Dec_32 -&gt; T_Dec_32
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any) -&gt; T_Dec_32 -&gt; T_Dec_32
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#du_map%278242%27_168"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_&#928;_16 -&gt; Any -&gt; Any) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_&#928;_16 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Equality.html#d__%2710216%27%2736%27%2710217%27__38"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Equality.d__'10216''36''10217'__38</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Equivalence_16 -&gt; T_&#928;_16) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Equivalence_16 -&gt; T_&#928;_16
+</span
+	><a href="MAlonzo.Code.Function.Equivalence.html#d_to_34"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Equivalence.d_to_34</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Equivalence_16 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Equivalence_16
+</span
+	><a href="#local-6989586621680490196"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-comment"
+      >-- Relation.Nullary.Decidable._._._&#8776;_</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#d__%278776%27__62"
+	><span class="hs-identifier hs-type"
+	  >d__'8776'__62</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Injection.html#T_Injection_88"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Injection.T_Injection_88</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="d__%278776%27__62"
+      ><span class="annot"
+	><span class="annottext"
+	  >d__'8776'__62 :: T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Setoid_44
+-&gt; T_Injection_88
+-&gt; Any
+-&gt; Any
+-&gt; T_Level_18
+</span
+	  ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#d__%278776%27__62"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d__'8776'__62</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Setoid_44
+-&gt; T_Injection_88
+-&gt; Any
+-&gt; Any
+-&gt; T_Level_18
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-comment"
+      >-- Relation.Nullary.Decidable._._._&#8776;_</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#d__%278776%27__66"
+	><span class="hs-identifier hs-type"
+	  >d__'8776'__66</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Injection.html#T_Injection_88"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Injection.T_Injection_88</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="d__%278776%27__66"
+      ><span class="annot"
+	><span class="annottext"
+	  >d__'8776'__66 :: T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Setoid_44
+-&gt; T_Injection_88
+-&gt; Any
+-&gt; Any
+-&gt; T_Level_18
+</span
+	  ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#d__%278776%27__66"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d__'8776'__66</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Setoid_44
+-&gt; T_Injection_88
+-&gt; Any
+-&gt; Any
+-&gt; T_Level_18
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="hs-comment"
+      >-- Relation.Nullary.Decidable._.via-injection</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#d_via%2745%27injection_68"
+	><span class="hs-identifier hs-type"
+	  >d_via'45'injection_68</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Injection.html#T_Injection_88"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Injection.T_Injection_88</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.html#T_Dec_32"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.T_Dec_32</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.html#T_Dec_32"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.T_Dec_32</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span id="d_via%2745%27injection_68"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_via'45'injection_68 :: T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Level_18
+-&gt; T_Setoid_44
+-&gt; T_Setoid_44
+-&gt; T_Injection_88
+-&gt; (Any -&gt; Any -&gt; T_Dec_32)
+-&gt; Any
+-&gt; Any
+-&gt; T_Dec_32
+</span
+	  ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#d_via%2745%27injection_68"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_via'45'injection_68</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490203"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621680490203"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490204"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621680490204"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490205"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621680490205"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490206"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621680490206"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490207"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621680490207"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490208"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Setoid_44
+</span
+	  ><a href="#local-6989586621680490208"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490209"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Injection_88
+</span
+	  ><a href="#local-6989586621680490209"
+	  ><span class="hs-identifier hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490210"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any -&gt; Any -&gt; T_Dec_32
+</span
+	  ><a href="#local-6989586621680490210"
+	  ><span class="hs-identifier hs-var"
+	    >v7</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490211"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621680490211"
+	  ><span class="hs-identifier hs-var"
+	    >v8</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490212"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621680490212"
+	  ><span class="hs-identifier hs-var"
+	    >v9</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Injection_88
+-&gt; (Any -&gt; Any -&gt; T_Dec_32) -&gt; Any -&gt; Any -&gt; T_Dec_32
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#du_via%2745%27injection_68"
+	><span class="hs-identifier hs-var"
+	  >du_via'45'injection_68</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Injection_88
+</span
+	><a href="#local-6989586621680490209"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any -&gt; T_Dec_32
+</span
+	><a href="#local-6989586621680490210"
+	><span class="hs-identifier hs-var"
+	  >v7</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621680490211"
+	><span class="hs-identifier hs-var"
+	  >v8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621680490212"
+	><span class="hs-identifier hs-var"
+	  >v9</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#du_via%2745%27injection_68"
+	><span class="hs-identifier hs-type"
+	  >du_via'45'injection_68</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Injection.html#T_Injection_88"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Injection.T_Injection_88</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.html#T_Dec_32"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.T_Dec_32</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.html#T_Dec_32"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.T_Dec_32</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span id="du_via%2745%27injection_68"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_via'45'injection_68 :: T_Injection_88
+-&gt; (Any -&gt; Any -&gt; T_Dec_32) -&gt; Any -&gt; Any -&gt; T_Dec_32
+</span
+	  ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#du_via%2745%27injection_68"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_via'45'injection_68</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490214"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Injection_88
+</span
+	  ><a href="#local-6989586621680490214"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490215"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any -&gt; Any -&gt; T_Dec_32
+</span
+	  ><a href="#local-6989586621680490215"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490216"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621680490216"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490217"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621680490217"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any) -&gt; T_Dec_32 -&gt; T_Dec_32) -&gt; Any -&gt; Any -&gt; T_Dec_32
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any) -&gt; T_Dec_32 -&gt; T_Dec_32
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#du_map%278242%27_168"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Injection_88 -&gt; Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; T_Injection_88 -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Injection_88 -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Injection.html#d_injective_108"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Injection.d_injective_108</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Injection_88
+</span
+	><a href="#local-6989586621680490214"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621680490216"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621680490217"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; T_Dec_32) -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any -&gt; T_Dec_32
+</span
+	><a href="#local-6989586621680490215"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_&#928;_16 -&gt; Any -&gt; Any) -&gt; T_&#928;_16 -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_&#928;_16 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Equality.html#d__%2710216%27%2736%27%2710217%27__38"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Equality.d__'10216''36''10217'__38</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Injection_88 -&gt; T_&#928;_16
+</span
+	><a href="MAlonzo.Code.Function.Injection.html#d_to_106"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Injection.d_to_106</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Injection_88 -&gt; T_Injection_88
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Injection_88
+</span
+	><a href="#local-6989586621680490214"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621680490216"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_&#928;_16 -&gt; Any -&gt; Any) -&gt; T_&#928;_16 -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_&#928;_16 -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Equality.html#d__%2710216%27%2736%27%2710217%27__38"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Equality.d__'10216''36''10217'__38</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Injection_88 -&gt; T_&#928;_16
+</span
+	><a href="MAlonzo.Code.Function.Injection.html#d_to_106"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Injection.d_to_106</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Injection_88 -&gt; T_Injection_88
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Injection_88
+</span
+	><a href="#local-6989586621680490214"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621680490217"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="hs-comment"
+      >-- Relation.Nullary.Decidable.True-&#8596;</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#d_True%2745%27%278596%27_78"
+	><span class="hs-identifier hs-type"
+	  >d_True'45''8596'_78</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.html#T_Dec_32"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.T_Dec_32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >   </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Equality.html#T__%278801%27__12"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Inverse_1048"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Inverse_1048</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span id="d_True%2745%27%278596%27_78"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_True'45''8596'_78 :: T_Level_18
+-&gt; T_Level_18
+-&gt; T_Dec_32
+-&gt; (Any -&gt; Any -&gt; T__'8801'__12)
+-&gt; T_Inverse_1048
+</span
+	  ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#d_True%2745%27%278596%27_78"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_True'45''8596'_78</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490221"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621680490221"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490222"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621680490222"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490223"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Dec_32
+</span
+	  ><a href="#local-6989586621680490223"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621680490224"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any -&gt; Any -&gt; T__'8801'__12
+</span
+	  ><a href="#local-6989586621680490224"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Dec_32 -&gt; T_Inverse_1048
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#du_True%2745%27%278596%27_78"
+	><span class="hs-identifier hs-var"
+	  >du_True'45''8596'_78</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Dec_32
+</span
+	><a href="#local-6989586621680490223"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#du_True%2745%27%278596%27_78"
+	><span class="hs-identifier hs-type"
+	  >du_True'45''8596'_78</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.html#T_Dec_32"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.T_Dec_32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Bundles.html#T_Inverse_1048"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Function.Bundles.T_Inverse_1048</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span id="du_True%2745%27%278596%27_78"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_True'45''8596'_78 :: T_Dec_32 -&gt; T_Inverse_1048
+</span
+	  ><a href="MAlonzo.Code.Relation.Nullary.Decidable.html#du_True%2745%27%278596%27_78"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_True'45''8596'_78</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490226"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Dec_32
+</span
+	  ><a href="#local-6989586621680490226"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Dec_32 -&gt; T_Dec_32
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Dec_32
+</span
+	><a href="#local-6989586621680490226"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.html#C__because__46"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.C__because__46</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490228"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621680490228"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680490229"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Reflects_14
+</span
+	  ><a href="#local-6989586621680490229"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621680490228"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any)
+ -&gt; (Any -&gt; Any)
+ -&gt; (Any -&gt; T__'8801'__12)
+ -&gt; (Any -&gt; T__'8801'__12)
+ -&gt; T_Inverse_1048)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; T_Inverse_1048
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any)
+-&gt; (Any -&gt; Any)
+-&gt; (Any -&gt; T__'8801'__12)
+-&gt; (Any -&gt; T__'8801'__12)
+-&gt; T_Inverse_1048
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_mk%278596%27%278242%27_1382"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_mk'8596''8242'_1382</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621680490231"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621680490231"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >                          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Reflects_14 -&gt; Any) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_14 -&gt; Any
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Reflects.html#du_invert_20"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Nullary.Reflects.du_invert_20</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_14 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_14
+</span
+	><a href="#local-6989586621680490229"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621680490233"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621680490233"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Level_18 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Level_18
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.Unit.html#C_tt_8"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.Unit.C_tt_8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any -&gt; T_Inverse_1048
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#seq"
+	><span class="hs-identifier hs-var"
+	  >seq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_14 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_14
+</span
+	><a href="#local-6989586621680490229"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any)
+ -&gt; (Any -&gt; Any)
+ -&gt; (Any -&gt; T__'8801'__12)
+ -&gt; (Any -&gt; T__'8801'__12)
+ -&gt; T_Inverse_1048)
+-&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >                       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any)
+-&gt; (Any -&gt; Any)
+-&gt; (Any -&gt; T__'8801'__12)
+-&gt; (Any -&gt; T__'8801'__12)
+-&gt; T_Inverse_1048
+</span
+	><a href="MAlonzo.Code.Function.Bundles.html#du_mk%278596%27%278242%27_1382"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Bundles.du_mk'8596''8242'_1382</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >                       </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Reflects_14 -&gt; Any) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >                          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_14 -&gt; Any
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Reflects.html#du_invert_20"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Nullary.Reflects.du_invert_20</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >                          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_14 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_14
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.html#C_of%278319%27_26"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Nullary.C_of'8319'_26</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >                       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Dec_32
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Inverse_1048
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
