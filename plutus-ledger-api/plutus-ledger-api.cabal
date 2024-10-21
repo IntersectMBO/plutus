@@ -156,6 +156,7 @@ test-suite plutus-ledger-api-test
   hs-source-dirs: test
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   other-modules:
+    Spec.ApiUtils
     Spec.CBOR.DeserialiseFailureInfo
     Spec.ContextDecoding
     Spec.CostModelParams
@@ -172,10 +173,12 @@ test-suite plutus-ledger-api-test
 
   build-depends:
     , base                                                              >=4.9   && <5
+    , base16-bytestring
     , bytestring
     , cborg
     , containers
     , extra
+    , filepath
     , hedgehog
     , lens
     , mtl
@@ -189,6 +192,7 @@ test-suite plutus-ledger-api-test
     , tasty-hedgehog
     , tasty-hunit
     , tasty-quickcheck
+    , text
 
 -- A suite for tests that use the Plutus Tx plugin. We don't merge those into
 -- @plutus-ledger-api-test@, because @plutus-ledger-api@ has to be buildable for older versions of

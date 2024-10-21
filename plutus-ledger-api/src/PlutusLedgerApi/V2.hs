@@ -11,6 +11,7 @@ module PlutusLedgerApi.V2 (
   Common.serialiseUPLC,
   deserialiseScript,
   Common.uncheckedDeserialiseUPLC,
+  hashScript,
 
   -- * Running scripts
   evaluateScriptRestricting,
@@ -129,6 +130,8 @@ module PlutusLedgerApi.V2 (
   Common.ScriptDecodeError (..),
 ) where
 
+import Data.ByteString qualified as BS
+
 import PlutusLedgerApi.Common qualified as Common
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2.Contexts qualified as Contexts
@@ -199,3 +202,7 @@ evaluateScriptRestricting ::
   [Common.Data] ->
   (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
 evaluateScriptRestricting = Common.evaluateScriptRestricting thisLedgerLanguage
+
+-- | Hash a 'SerialisedScript' with the Plutus language version 2 prefix.
+hashScript :: Common.SerialisedScript -> BS.ByteString
+hashScript = Common.hashScriptWithPrefix 0x2
