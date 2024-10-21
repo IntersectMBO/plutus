@@ -975,7 +975,7 @@
         "iogx": "iogx",
         "nixpkgs": [
           "haskell-nix",
-          "nixpkgs-2405"
+          "nixpkgs-unstable"
         ]
       }
     },
