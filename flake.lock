@@ -976,6 +976,10 @@
         "nixpkgs": [
           "haskell-nix",
           "nixpkgs-unstable"
+        ],
+        "nixpkgs-2405": [
+          "haskell-nix",
+          "nixpkgs-2405"
         ]
       }
     },
