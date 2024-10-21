@@ -54,7 +54,7 @@ in
 
     # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
     # pkgs.linkchecker
-    inputs.nixpkgs-2405.linkchecker
+    inputs.nixpkgs-2405.legacyPackages.linkchecker
 
     # Needed to make building things work, not for commands
     pkgs.zlib
