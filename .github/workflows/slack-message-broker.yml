@@ -26,6 +26,9 @@ jobs:
       - name: Prepare Slack Message
         uses: actions/github-script@main
         id: prepare-slack-message
+        if: > 
+          (github.event_name == 'workflow_run' && !github.event.workflow_run.pull_requests[0].draft) || 
+          (github.event_name == 'check_run' && !github.event.check_run.check_suite.pull_requests[0].draft)
         with:
           script: | 
             console.log(${{ toJson(github.event) }});
