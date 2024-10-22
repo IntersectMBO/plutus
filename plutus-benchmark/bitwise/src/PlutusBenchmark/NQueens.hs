@@ -74,4 +74,4 @@ selectByteString which bs
 
 {-# INLINE writeBit #-}
 writeBit :: BuiltinByteString -> Integer -> Bool -> BuiltinByteString
-writeBit bs i b = writeBits bs [i] [b]
+writeBit bs i b = writeBits bs [i] b

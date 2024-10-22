@@ -49,7 +49,7 @@ The script might set conditions on reward distribution, such as ensuring that an
 
 A certifying script can validate a number of certificate-related transactions, such as: (1) registering a staking credential, and in doing so, creating a reward account associated with the staking credential; (2) de-registering a staking credential, and in doing so, terminating the reward account; (3) delegating a staking credential to a particular delegatee.
 
-In all these cases except registration, if the staking credential in question contains a script hash (as opposed to a public key hash), the script with that hash must be included in the transaction, and is executed to validate the action. 
+In all these cases except registration, if the staking credential in question contains a script hash (as opposed to a public key hash), the script with that hash must be included in the transaction, and is executed to validate the action.
 
 Such a script may, for instance, check that certain signatures be provided for de-registration and delegation, or that the delegatee must be among the allowed delegatees.
 
@@ -72,7 +72,7 @@ The ledger enforces that no other proposing script is accepted.
 The proposing script is updated only when there is a change to the constitution, via the `NewConstitution` governance action.
 
 Note that what the proposing script decides is whether the _proposal_ of a governance action is allowed to go through, rather than whether the governance action will be enacted.
-After a proposal goes through, it will need to meet the appropriate criteria (such as gathering enough votes from consitution committee members, DReps and/or SPOs) in order to be enacted.
+After a proposal goes through, it will need to meet the appropriate criteria (such as gathering enough votes from constitution committee members, DReps and/or SPOs) in order to be enacted.
 
 ---
 

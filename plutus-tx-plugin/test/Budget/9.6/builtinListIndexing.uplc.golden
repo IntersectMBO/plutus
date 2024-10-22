@@ -3,19 +3,15 @@
    ((\go d -> go (unListData d) 5)
       ((\s -> s s)
          (\s xs i ->
-            force (force chooseList)
-              xs
+            force (force caseList)
               (\ds -> error)
-              (\ds ds ->
-                 (\hd ->
-                    (\tl ->
-                       force
-                         (force
-                            (force ifThenElse
-                               (equalsInteger 0 i)
-                               (delay (delay hd))
-                               (delay (delay (s s tl (subtractInteger i 1)))))))
-                      (force tailList xs))
-                   (force headList xs))
+              (\x xs ds eta ->
+                 force
+                   (force
+                      (force ifThenElse
+                         (equalsInteger 0 i)
+                         (delay (delay x))
+                         (delay (delay (s s xs (subtractInteger i 1)))))))
+              xs
               (constr 0 [])
               (constr 0 [])))))

@@ -34,13 +34,13 @@ open import Data.List using (List; _∷_; [])
 ## Translation Relation
 
 This compiler stage only applies to the very specific case where an `IfThenElse` builtin exists in a `case` expression.
-It moves the `IfThenElse` outside and creates two `case` expressions with each of the possible lists of cases. 
+It moves the `IfThenElse` outside and creates two `case` expressions with each of the possible lists of cases.
 
 This will just be an instance of the `Translation` relation once we define the "before" and "after" patterns.
 
 ```
 data CoC : Relation where
-  isCoC : {X : Set} → (b : X ⊢) (tn fn : ℕ)  (tt tt' ft ft' alts alts' : List (X ⊢)) →
+  isCoC : {X : Set} {{_ : DecEq X}} → (b : X ⊢) (tn fn : ℕ)  (tt tt' ft ft' alts alts' : List (X ⊢)) →
              Pointwise (Translation CoC) alts alts' →
              Pointwise (Translation CoC) tt tt' →
              Pointwise (Translation CoC) ft ft' →
@@ -48,8 +48,8 @@ data CoC : Relation where
                (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
                (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
 
-UntypedCaseOfCase : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
-UntypedCaseOfCase = Translation CoC
+CaseOfCase : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+CaseOfCase = Translation CoC
 
 ```
 ## Decision Procedure
@@ -76,7 +76,7 @@ isCoCCase? t  | no ¬CoCCase = no λ { (isCoCCase b tn fn alts tt ft) → ¬CoCC
                                                                                    (isconstr tn (allterms alts)))
                                                                                   (isconstr fn (allterms tt)))
                                                                                  (allterms ft)) }
-                                                                                 
+
 data CoCForce {X : Set} :  (X ⊢) → Set where
   isCoCForce : (b : (X ⊢)) (tn fn : ℕ) (tt' ft' alts' : List (X ⊢)) → CoCForce (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
 isCoCForce? : {X : Set} {{ _ : DecEq X }} → Unary.Decidable (CoCForce {X})
@@ -97,18 +97,18 @@ the individual pattern decision `isCoC?` and the overall translation decision `i
 recursive, so the `isUntypedCaseOfCase?` type declaration comes first, with the implementation later.
 
 ```
-isUntypedCaseOfCase? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation CoC {X})
+isCaseOfCase? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation CoC {X})
 
 {-# TERMINATING #-}
 isCoC? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (CoC {X})
 isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
 ... | no ¬cf = no λ { (isCoC b tn fn tt tt' ft ft' alts alts' x x₁ x₂) → ¬cf
-                                                                          (isCoCCase b tn fn tt ft alts , isCoCForce b tn fn tt' ft' alts') }
-... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁) ×-dec (decPointwise isUntypedCaseOfCase? tt tt') ×-dec (decPointwise isUntypedCaseOfCase? ft ft') ×-dec (decPointwise isUntypedCaseOfCase? alts alts')
+      (isCoCCase b tn fn tt ft alts , isCoCForce b tn fn tt' ft' alts') }
+... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁) ×-dec (decPointwise isCaseOfCase? tt tt') ×-dec (decPointwise isCaseOfCase? ft ft') ×-dec (decPointwise isCaseOfCase? alts alts')
 ... | yes (refl , refl , refl , ttpw , ftpw , altpw) = yes (isCoC b tn fn tt tt' ft ft' alts alts' altpw ttpw ftpw)
 ... | no ¬p = no λ { (isCoC .b .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p (refl , refl , refl , x₁ , x₂ , x) }
 
-isUntypedCaseOfCase? {X} = translation? {X} isCoC? 
+isCaseOfCase? {X} = translation? {X} isCoC?
 ```
 
 ## Semantic Equivalence
@@ -125,11 +125,11 @@ The `stepper` function uses the CEK machine to evaluate a term. Here we call it 
 large gas budget and begin in an empty context (which assumes the term is closed).
 
 ```
--- TODO: Several approaches are possible. 
+-- TODO: Several approaches are possible.
 --semantic_equivalence : ∀ {X set} {ast ast' : ⊥ ⊢}
  --                    → ⊥ ⊢̂ ast ⊳̂ ast'
- -- <Some stuff about whether one runs out of gas -- as long as neither runs out of gas, _then_ they are equivilent> 
+ -- <Some stuff about whether one runs out of gas -- as long as neither runs out of gas, _then_ they are equivilent>
  --                    → (stepper maxsteps  (Stack.ϵ ; [] ▻ ast)) ≡ (stepper maxsteps (Stack.ε ; [] ▻ ast'))
 
--- ∀ {s : ℕ} → stepper s ast ≡ <valid terminate state> ⇔ ∃ { s' : ℕ } [ stepper s' ast' ≡ <same valid terminate state> ] 
+-- ∀ {s : ℕ} → stepper s ast ≡ <valid terminate state> ⇔ ∃ { s' : ℕ } [ stepper s' ast' ≡ <same valid terminate state> ]
 ```

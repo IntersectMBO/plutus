@@ -1,4 +1,3 @@
--- Bounds are not checked for unused indices
 (program 1.0.0
  [
   [
@@ -8,6 +7,6 @@
    ]
    (con (list integer) [340, 342, 344, 1000000])
   ]
-  (con (list bool) [True, True, True])
+  (con bool True)
  ]
 )

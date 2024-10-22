@@ -56,7 +56,8 @@
 \usepackage{float}  %% Try to improve placement of figures.  Doesn't work well with subcaption package.
 \usepackage{subcaption}
 \usepackage{fancyvrb}
-%% \usepackage{caption}
+\usepackage[tableposition=below]{caption}
+\captionsetup[longtable]{skip=6pt}
 
 \usepackage{subfiles}
 \usepackage{geometry}
@@ -262,8 +263,8 @@
 \newcommand\integer{\ensuremath{\mathit{integer}}}
 \newcommand\bytestring{\ensuremath{\mathit{bytestring}}}
 \newcommand\str{\ensuremath{\mathit{str}}}
-\newcommand\true{\ensuremath{\mathit{true}}}
-\newcommand\false{\ensuremath{\mathit{false}}}
+\newcommand\true{\ensuremath{\mathsf{true}}}
+\newcommand\false{\ensuremath{\mathsf{false}}}
 \newcommand\case{\ensuremath{\mathit{case}}}
 \newcommand\signed{\ensuremath{\mathit{signed}}}
 \newcommand\txhash{\ensuremath{\mathit{txhash}}}
@@ -303,6 +304,7 @@
 \newcommand{\Nplus}{\N^{+}}
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\B}{\mathbb{B}}
+\renewcommand{\b}{\mathbb{b}}
 \newcommand{\U}{\mathbb{U}}
 \newcommand{\cn}{\textit{cn}}
 \newcommand{\tn}{\textit{T}}
@@ -429,9 +431,12 @@
 \newcommand\Dbinder{\decode{\text{$\lambda$}var}}
 \newcommand\Dtype{\decode{type}}
 
-\newcommand\Bits{\mathbb{S}}
 \newcommand\bit{\mathsf{b}}
+\newcommand\Bits{\bit^*}
 \newcommand\bits[1]{\mathtt{#1}}
+
+\newcommand\bytesof{\mathsf{bytes}}
+\newcommand\bitsof{\mathsf{bits}}
 
 \newcommand\pad{\mathsf{pad}}
 % \newcommand\Pad{\mathsf{pad}^{+}}

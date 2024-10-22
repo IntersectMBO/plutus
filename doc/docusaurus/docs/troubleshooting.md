@@ -10,12 +10,12 @@ sidebar_position: 80
 
 This means the plugin cannot access to the definition of a Haskell identifier, which it needs to be able to compile that identifier to Plutus Core.
 
-If the identifier in question is defined in the source code, try adding the `INLINABLE` pragma to it (not the `INLINE` pragma, which should generally be avoided).
-If it already has the `INLINABLE` pragma, try adding the GHC flags
+If the identifier in question is defined in the source code, try adding the `INLINEABLE` pragma to it (not the `INLINE` pragma, which should generally be avoided).
+If it already has the `INLINEABLE` pragma, try adding the GHC flags
 `-fno-ignore-interface-pragmas` and `-fno-omit-interface-pragmas`.
 
 If this doesn't resolve the issue, or if the identifier in question isn't directly defined in the code but is produced by GHC optimizations,
-ensure that you apply all GHC flags listed in [Compiling Plutus Tx](./using-plutus-tx/compiling-plutus-tx.md).
+ensure that you apply all GHC flags listed in [GHC Extensions, Flags and Pragmas](./using-plutus-tx/extensions-flags-pragmas.md).
 These flags disable GHC optimizations that can interfere with the plugin, and ensure that unfoldings are neither omitted nor ignored.
 
 If the identifier with missing unfolding is from `base` or invoked by a function from `base`, you should use instead the corresponding function from the `plutus-tx` package.
@@ -47,7 +47,7 @@ case (x :: Maybe Integer) of Just y | y PlutusTx.== 42 -> ...
 
 ### "Unsupported feature: Cannot construct a value of type"
 
-Conversely, to convert a Haskell type to the correspoding builtin type in Plutus Tx, you should use `toOpaque`, rather than directly using the data constructor or `toBuiltin`.
+Conversely, to convert a Haskell type to the corresponding builtin type in Plutus Tx, you should use `toOpaque`, rather than directly using the data constructor or `toBuiltin`.
 
 ## Runtime Issues
 
@@ -60,7 +60,7 @@ If your expected trace messages are missing, check the following [plugin flags](
 
 ### Unexpected Evaluation Failure
 
-It is usually [advisable](./using-plutus-tx/compiling-plutus-tx) to use the `Strict` extension when writing Plutus Tx, which improves performance.
+It is usually [advisable](./using-plutus-tx/extensions-flags-pragmas.md) to use the `Strict` extension when writing Plutus Tx, which improves performance.
 However, be cautious, as this can result in unexpected evaluation failures.
 Consider the following script:
 

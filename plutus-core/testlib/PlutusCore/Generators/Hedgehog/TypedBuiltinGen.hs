@@ -33,12 +33,12 @@ import Hedgehog.Range qualified as Range
 import Prettyprinter
 import Type.Reflection
 
--- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
+-- | Generate a UTF-8 lazy 'ByteString' containing lower-case letters.
 genLowerBytes :: Monad m => Range Int -> GenT m BS.ByteString
 genLowerBytes range = Gen.utf8 range Gen.lower
 
 -- TODO: rename me to @TermWith@.
--- | A @term@ along with the correspoding Haskell value.
+-- | A @term@ along with the corresponding Haskell value.
 data TermOf term a = TermOf
     { _termOfTerm  :: term  -- ^ The term
     , _termOfValue :: a     -- ^ The Haskell value.
@@ -67,7 +67,9 @@ attachCoercedTerm a = do
             [ "Got 'EvaluationFailure' when generating a value of a built-in type: "
             , render $ prettyConst botRenderContext x
             ]
-        EvaluationSuccess v -> pure $ TermOf v x
+        EvaluationSuccess res -> case res of
+            HeadOnly v -> pure $ TermOf v x
+            _          -> fail "Iterated application is not supported"
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen
