@@ -178,12 +178,12 @@ class HandleHole uni i j val hole | uni i val hole -> j
 -- In the Rep context @x@ is attempted to be specialized as a 'TyVarRep'.
 instance
     ( TrySpecializeAsUnappliedVar i j RepHole 'Nothing x
-    , HandleHoles uni j k val x
+    , HandleHoles uni j k val RepHole x
     ) => HandleHole uni i k val (RepHole x)
 -- In the Type context @a@ is attempted to be specialized as a 'TyVarRep' wrapped in @Opaque val@.
 instance
     ( TrySpecializeAsUnappliedVar i j TypeHole ('Just (Opaque val)) a
-    , HandleHoles uni j k val a
+    , HandleHoles uni j k val TypeHole a
     ) => HandleHole uni i k val (TypeHole a)
 
 -- | Call 'HandleHole' over each hole from the list, threading the state (the fresh unique) through
@@ -225,12 +225,12 @@ type family UnknownTypeError val x where
 
 -- | Get the holes of @x@ and recurse into them.
 type HandleHoles
-    :: forall a. (GHC.Type -> GHC.Type) -> Nat -> Nat -> GHC.Type -> a -> GHC.Constraint
-type HandleHoles uni i j val x =
+    :: forall a. (GHC.Type -> GHC.Type) -> Nat -> Nat -> GHC.Type -> (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
+type HandleHoles uni i j val hole x =
     -- Here we detect a stuck application of 'ToHoles' and throw 'UnknownTypeError' on it.
     -- See https://blog.csongor.co.uk/report-stuck-families for a detailed description of how
     -- detection of stuck type families works.
-    HandleHolesGo uni i j val (ThrowOnStuckList (UnknownTypeError val x) (ToHoles uni x))
+    HandleHolesGo uni i j val (ThrowOnStuckList (UnknownTypeError val x) (ToHoles uni hole x))
 
 -- Check out the following for a detailed explanation of the idea (after learning about 'TryUnify'):
 -- https://github.com/effectfully-ou/sketches/tree/cbf3ee9d11e0e3d4fc397ce7bf419418224122e2/poly-type-of-saga/part2-enumerate-type-vars

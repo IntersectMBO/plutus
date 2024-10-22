@@ -14,7 +14,7 @@ on:
 jobs:
   run:
     name: Run 
-    runs-on: [self-hosted, plutus-shared]
+    runs-on: [self-hosted, plutus-ci]
     permissions:
       contents: write
     environment:

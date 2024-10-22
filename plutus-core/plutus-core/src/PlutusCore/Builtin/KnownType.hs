@@ -22,6 +22,8 @@ module PlutusCore.Builtin.KnownType
     , KnownBuiltinType
     , BuiltinResult (..)
     , ReadKnownM
+    , Spine (..)
+    , HeadSpine (..)
     , MakeKnownIn (..)
     , readKnownConstant
     , MakeKnown
@@ -42,9 +44,12 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Data.Either.Extras
+import Data.Functor.Identity
 import Data.String
 import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
+import Prettyprinter
+import Text.PrettyBy.Internal
 import Universe
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
@@ -274,12 +279,55 @@ readKnownConstant val = asConstant val >>= oneShot \case
             Nothing   -> throwing _UnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
+-- | A non-empty spine. Isomorphic to 'NonEmpty', except is strict and is defined as a single
+-- recursive data type.
+data Spine a
+    = SpineLast a
+    | SpineCons a (Spine a)
+    deriving stock (Show, Eq, Foldable, Functor)
+
+-- | The head-spine form of an iterated application. Provides O(1) access to the head of the
+-- application. Isomorphic to @NonEmpty@, except is strict and the no-spine case is made a separate
+-- constructor for performance reasons (it only takes a single pattern match to access the head when
+-- there's no spine this way, while otherwise we'd also need to match on the spine to ensure that
+-- it's empty -- and the no-spine case is by far the most common one, hence we want to optimize it).
+--
+-- Used in built-in functions returning function applications such as 'CaseList'.
+data HeadSpine a
+    = HeadOnly a
+    | HeadSpine a (Spine a)
+    deriving stock (Show, Eq, Functor, Foldable)
+
+-- |
+--
+-- >>> import Text.Pretty
+-- >>> pretty (SpineCons 'a' $ SpineLast 'b')
+-- [a, b]
+instance Pretty a => Pretty (Spine a) where pretty = pretty . map Identity . toList
+instance PrettyBy config a => DefaultPrettyBy config (Spine a)
+deriving via PrettyCommon (Spine a)
+    instance PrettyDefaultBy config (Spine a) => PrettyBy config (Spine a)
+
+-- |
+--
+-- >>> import Text.Pretty
+-- >>> pretty (HeadOnly 'z')
+-- z
+-- >>> pretty (HeadSpine 'f' (SpineCons 'x' $ SpineLast 'y'))
+-- f `applyN` [x, y]
+instance Pretty a => Pretty (HeadSpine a) where
+    pretty (HeadOnly x)     = pretty x
+    pretty (HeadSpine f xs) = pretty f <+> "`applyN`" <+> pretty xs
+instance PrettyBy config a => DefaultPrettyBy config (HeadSpine a)
+deriving via PrettyCommon (HeadSpine a)
+    instance PrettyDefaultBy config (HeadSpine a) => PrettyBy config (HeadSpine a)
+
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => MakeKnownIn uni val a where
     -- | Convert a Haskell value to the corresponding PLC value.
     -- The inverse of 'readKnown'.
-    makeKnown :: a -> BuiltinResult val
-    default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult val
+    makeKnown :: a -> BuiltinResult (HeadSpine val)
+    default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult (HeadSpine val)
     -- Everything on evaluation path has to be strict in production, so in theory we don't need to
     -- force anything here. In practice however all kinds of weird things happen in tests and @val@
     -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
@@ -288,7 +336,7 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     --
     -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
     -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
-    makeKnown x = pure . fromValue $! x
+    makeKnown x = pure . HeadOnly . fromValue $! x
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
@@ -306,7 +354,7 @@ class uni ~ UniOf val => ReadKnownIn uni val a where
 type ReadKnown val = ReadKnownIn (UniOf val) val
 
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
-makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult val
+makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult (HeadSpine val)
 makeKnownOrFail x = case makeKnown x of
     BuiltinSuccess val           -> EvaluationSuccess val
     BuiltinSuccessWithLogs _ val -> EvaluationSuccess val
@@ -352,7 +400,7 @@ instance
     {-# INLINE readKnown #-}
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where
-    makeKnown = coerceArg $ pure . fromConstant
+    makeKnown = coerceArg $ pure . HeadOnly . fromConstant
     {-# INLINE makeKnown #-}
 
 instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) where
@@ -360,9 +408,13 @@ instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) whe
     {-# INLINE readKnown #-}
 
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
-    makeKnown = coerceArg pure
+    makeKnown = coerceArg $ pure . HeadOnly
     {-# INLINE makeKnown #-}
 
 instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
     readKnown = coerceArg pure
     {-# INLINE readKnown #-}
+
+instance uni ~ UniOf val => MakeKnownIn uni val (Opaque (HeadSpine val) rep) where
+    makeKnown = coerceArg pure
+    {-# INLINE makeKnown #-}

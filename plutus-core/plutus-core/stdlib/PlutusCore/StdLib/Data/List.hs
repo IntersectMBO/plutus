@@ -6,7 +6,8 @@
 
 module PlutusCore.StdLib.Data.List
     ( list
-    , caseList
+    , MatchOption (..)
+    , matchList
     , foldrList
     , foldList
     , sum
@@ -23,6 +24,7 @@ import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import PlutusCore.StdLib.Data.Function
+import PlutusCore.StdLib.Data.MatchOption
 import PlutusCore.StdLib.Data.Unit
 
 -- | @[]@ as a built-in PLC type.
@@ -30,8 +32,20 @@ list :: uni `HasTypeLevel` [] => Type tyname uni ()
 list = mkTyBuiltin @_ @[] ()
 
 -- See Note [Pattern matching on built-in types].
--- | Pattern matching on built-in lists. @caseList {a} xs@ on built-in lists is
+-- | Pattern matching on built-in lists. @matchList {a} xs@ on built-in lists is
 -- equivalent to @unwrap xs@ on lists defined in PLC itself (hence why we bind @r@ after @xs@).
+--
+-- Either
+--
+-- > /\(a :: *) -> \(xs : list a) -> /\(r :: *) -> (z : r) (f : a -> list a -> r) ->
+-- >     matchList
+-- >         {a}
+-- >         {r}
+-- >         z
+-- >         f
+-- >         xs
+--
+-- or
 --
 -- > /\(a :: *) -> \(xs : list a) -> /\(r :: *) -> (z : r) (f : a -> list a -> r) ->
 -- >     chooseList
@@ -41,11 +55,13 @@ list = mkTyBuiltin @_ @[] ()
 -- >         (\(u : ()) -> z)
 -- >         (\(u : ()) -> f (head {a} xs) (tail {a} xs))
 -- >         ()
-caseList :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-caseList = runQuote $ do
+--
+-- depending on the 'MatchOption' argument.
+matchList :: TermLike term TyName Name DefaultUni DefaultFun => MatchOption -> term ()
+matchList optMatch = runQuote $ do
     a <- freshTyName "a"
     r <- freshTyName "r"
-    xs <- freshName "x"
+    xs <- freshName "xs"
     z <- freshName "z"
     f <- freshName "f"
     u <- freshName "u"
@@ -57,24 +73,38 @@ caseList = runQuote $ do
         . tyAbs () r (Type ())
         . lamAbs () z (TyVar () r)
         . lamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
-        $ mkIterAppNoAnn
-                (mkIterInstNoAnn (builtin () ChooseList)
-                    [ TyVar () a
-                    , TyFun () unit $ TyVar () r
-                    ])
-            [ var () xs
-            , lamAbs () u unit $ var () z
-            , lamAbs () u unit $ mkIterAppNoAnn (var () f) [funAtXs HeadList, funAtXs TailList]
-            , unitval
-            ]
+        $ case optMatch of
+            UseCase ->
+                mkIterAppNoAnn
+                    (mkIterInstNoAnn (builtin () CaseList)
+                        [ TyVar () a
+                        , TyVar () r
+                        ])
+                    [ var () z
+                    , var () f
+                    , var () xs
+                    ]
+            UseChoose ->
+                mkIterAppNoAnn
+                    (mkIterInstNoAnn (builtin () ChooseList)
+                        [ TyVar () a
+                        , TyFun () unit $ TyVar () r
+                        ])
+                    [ var () xs
+                    , lamAbs () u unit $ var () z
+                    ,   lamAbs () u unit
+                      $ mkIterAppNoAnn (var () f)
+                          [funAtXs HeadList, funAtXs TailList]
+                    , unitval
+                    ]
 
 -- |  @foldr@ over built-in lists.
 --
 -- > /\(a :: *) (r :: *) -> \(f : a -> r -> r) (z : r) ->
 -- >     fix {list a} {r} \(rec : list a -> r) (xs : list a) ->
--- >         caseList {a} xs {r} z \(x : a) (xs' : list a) -> f x (rec xs')
-foldrList :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-foldrList = runQuote $ do
+-- >         matchList {a} xs {r} z \(x : a) (xs' : list a) -> f x (rec xs')
+foldrList :: TermLike term TyName Name DefaultUni DefaultFun => MatchOption -> term ()
+foldrList optMatch = runQuote $ do
     a   <- freshTyName "a"
     r   <- freshTyName "r"
     f   <- freshName "f"
@@ -84,7 +114,7 @@ foldrList = runQuote $ do
     x   <- freshName "x"
     xs' <- freshName "xs'"
     let listA = TyApp () list $ TyVar () a
-        unwrap' ann = apply ann . tyInst () caseList $ TyVar () a
+        unwrap' ann = apply ann . tyInst () (matchList optMatch) $ TyVar () a
     -- Copypasted verbatim from @foldrList@ over Scott-encoded lists.
     return
         . tyAbs () a (Type ())
@@ -106,9 +136,9 @@ foldrList = runQuote $ do
 --
 -- > /\(a :: *) (r :: *) -> \(f : r -> a -> r) ->
 -- >     fix {r} {list a -> r} \(rec : r -> list a -> r) (z : r) (xs : list a) ->
--- >         caseList {a} xs {r} z \(x : a) (xs' : list a) -> rec (f z x) xs'
-foldList :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-foldList = runQuote $ do
+-- >         matchList {a} xs {r} z \(x : a) (xs' : list a) -> rec (f z x) xs'
+foldList :: TermLike term TyName Name DefaultUni DefaultFun => MatchOption -> term ()
+foldList optMatch = runQuote $ do
     a   <- freshTyName "a"
     r   <- freshTyName "r"
     f   <- freshName "f"
@@ -118,7 +148,7 @@ foldList = runQuote $ do
     x   <- freshName "x"
     xs' <- freshName "xs'"
     let listA = TyApp () list $ TyVar () a
-        unwrap' ann = apply ann . tyInst () caseList $ TyVar () a
+        unwrap' ann = apply ann . tyInst () (matchList optMatch) $ TyVar () a
     return
         . tyAbs () a (Type ())
         . tyAbs () r (Type ())
@@ -134,31 +164,32 @@ foldList = runQuote $ do
         $ [ mkIterAppNoAnn (var () f) [var () z, var () x]
           , var () xs'
           ]
+
 -- > foldList {integer} {integer} addInteger 0
-sum :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-sum = runQuote $ do
+sum :: TermLike term TyName Name DefaultUni DefaultFun => MatchOption -> term ()
+sum optMatch = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         add = builtin () AddInteger
     return
-        . mkIterAppNoAnn (mkIterInstNoAnn foldList [int, int])
+        . mkIterAppNoAnn (mkIterInstNoAnn (foldList optMatch) [int, int])
         $ [ add , mkConstant @Integer () 0]
 
 -- > foldrList {integer} {integer} 0 addInteger
-sumr :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-sumr = runQuote $ do
+sumr :: TermLike term TyName Name DefaultUni DefaultFun => MatchOption -> term ()
+sumr optMatch = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         add = builtin () AddInteger
     return
-        . mkIterAppNoAnn (mkIterInstNoAnn foldrList [int, int])
+        . mkIterAppNoAnn (mkIterInstNoAnn (foldrList optMatch) [int, int])
         $ [ add, mkConstant @Integer () 0 ]
 
 -- |  'product' as a PLC term.
 --
 -- > foldList {integer} {integer} multiplyInteger 1
-product :: TermLike term TyName Name DefaultUni DefaultFun => term ()
-product = runQuote $ do
+product :: TermLike term TyName Name DefaultUni DefaultFun => MatchOption -> term ()
+product optMatch = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         mul = builtin () MultiplyInteger
     return
-        . mkIterAppNoAnn (mkIterInstNoAnn foldList [int, int])
+        . mkIterAppNoAnn (mkIterInstNoAnn (foldList optMatch) [int, int])
         $ [ mul , mkConstant @Integer () 1]

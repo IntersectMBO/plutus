@@ -8,22 +8,18 @@ in
 letrec
   !go : list data -> integer -> data
     = \(xs : list data) (i : integer) ->
-        chooseList
+        caseList
           {data}
           {Unit -> Unit -> data}
-          xs
           (\(ds : Unit) -> error {Unit -> data})
-          (\(ds : Unit) (ds : Unit) ->
-             let
-               !hd : data = headList {data} xs
-               !tl : list data = tailList {data} xs
-             in
+          (\(x : data) (xs : list data) (ds : Unit) (eta : Unit) ->
              Bool_match
                (ifThenElse {Bool} (equalsInteger 0 i) True False)
                {all dead. data}
-               (/\dead -> hd)
-               (/\dead -> go tl (subtractInteger i 1))
+               (/\dead -> x)
+               (/\dead -> go xs (subtractInteger i 1))
                {all dead. dead})
+          xs
           Unit
           Unit
 in

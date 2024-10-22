@@ -19,7 +19,7 @@ env:
 jobs:
   run:
     name: Run
-    runs-on: [self-hosted, plutus-shared]
+    runs-on: [self-hosted, plutus-ci]
     steps:
       - name: Checkout
         uses: actions/checkout@main

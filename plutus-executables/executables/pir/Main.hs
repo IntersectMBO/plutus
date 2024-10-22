@@ -170,7 +170,7 @@ compileToUplc optimise plcProg =
             then PLC.defaultCompilationOpts
             else PLC.defaultCompilationOpts
                     & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
-    in runQuote $ PLC.evalCompile plcCompilerOpts $ PLC.compileProgram plcProg
+    in runQuote $ flip runReaderT plcCompilerOpts $ PLC.compileProgram plcProg
 
 loadPirAndCompile :: CompileOptions -> IO ()
 loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do

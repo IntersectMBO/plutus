@@ -8,11 +8,11 @@
 {-# LANGUAGE TypeSynonymInstances      #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE NamedFieldPuns            #-}
 module Main (main) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
-import PlutusCore.Compiler.Types (UPLCSimplifierTrace (..), initUPLCSimplifierTrace)
 import PlutusCore.Data (Data)
 import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
@@ -33,11 +33,11 @@ import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn (FreeVariableError)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
+import UntypedPlutusCore.Transform.Simplifier
 
 import Control.DeepSeq (force)
 import Control.Monad.Except (runExcept)
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.State (runStateT)
 import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
@@ -269,17 +269,17 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
     renamed <- PLC.rename prog
     let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
         defaultBuiltinSemanticsVariant = def
-    flip runStateT initUPLCSimplifierTrace
-      $ UPLC.simplifyProgram UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
+    UPLC.simplifyProgramWithTrace UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
   writeProgram outp ofmt mode simplified
   runCertifier cert simplificationTrace
   where
-    runCertifier (Just certName) (UPLCSimplifierTrace uplcSimplTrace) = do
-      let processAgdaAST t =
-              case UPLC.deBruijnTerm t of
-                Right res                            -> res
-                Left (err :: UPLC.FreeVariableError) -> error $ show err
-          rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
+    runCertifier (Just certName) (SimplifierTrace simplTrace) = do
+      let processAgdaAST Simplification {beforeAST, stage, afterAST} =
+              case (UPLC.deBruijnTerm beforeAST, UPLC.deBruijnTerm afterAST) of
+                (Right before', Right after')             -> (stage, (AgdaFFI.conv (void before'), AgdaFFI.conv (void after')))
+                (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
+                (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
+          rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
       Agda.runCertifier (T.pack certName) rawAgdaTrace
     runCertifier Nothing _ = pure ()
 

@@ -50,7 +50,7 @@ on:
 jobs:
   deploy:
     name: Deploy
-    runs-on: [self-hosted, plutus-shared]
+    runs-on: [self-hosted, plutus-ci]
     permissions:
       contents: write
     environment:

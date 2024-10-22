@@ -41,6 +41,8 @@ import UntypedPlutusCore.Purity
 import UntypedPlutusCore.Rename ()
 import UntypedPlutusCore.Size
 import UntypedPlutusCore.Subst
+import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (Inline), SimplifierT,
+                                               recordSimplification)
 
 import Control.Lens hiding (Strict)
 import Control.Monad.Extra
@@ -173,20 +175,23 @@ See Note [Inlining and global uniqueness]
 -}
 inline ::
   forall name uni fun m a.
-  (ExternalConstraints name uni fun m) =>
+  ExternalConstraints name uni fun m =>
   -- | inline constants
   Bool ->
   InlineHints name a ->
   PLC.BuiltinSemanticsVariant fun ->
   Term name uni fun a ->
-  m (Term name uni fun a)
-inline inlineConstants hints builtinSemanticsVariant t =
-  liftQuote $ flip evalStateT mempty $ runReaderT (processTerm t) InlineInfo
-    { _iiUsages = Usages.termUsages t
-    , _iiHints  = hints
-    , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
-    , _iiInlineConstants = inlineConstants
-    }
+  SimplifierT name uni fun a m (Term name uni fun a)
+inline inlineConstants hints builtinSemanticsVariant t = do
+  result <-
+    liftQuote $ flip evalStateT mempty $ runReaderT (processTerm t) InlineInfo
+      { _iiUsages = Usages.termUsages t
+      , _iiHints  = hints
+      , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
+      , _iiInlineConstants = inlineConstants
+      }
+  recordSimplification t Inline result
+  return result
 
 -- See Note [Differences from PIR inliner] 3
 

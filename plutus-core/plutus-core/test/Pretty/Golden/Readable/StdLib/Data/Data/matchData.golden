@@ -1,0 +1,8 @@
+\(d : data) ->
+  /\r ->
+    \(fConstr : integer -> list data -> r)
+     (fMap : list (pair data data) -> r)
+     (fList : list data -> r)
+     (fI : integer -> r)
+     (fB : bytestring -> r) ->
+      caseData {r} fConstr fMap fList fI fB d

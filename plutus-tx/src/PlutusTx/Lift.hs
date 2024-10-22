@@ -49,14 +49,12 @@ import Control.Lens hiding (lifted)
 import Control.Monad (void)
 import Control.Monad.Except (ExceptT, MonadError, liftEither, runExceptT)
 import Control.Monad.Reader (runReaderT)
-import Control.Monad.State (evalStateT)
 import Data.Bifunctor
 import Data.Default.Class
 import Data.Hashable
 import Data.Proxy
 
 -- We do not use qualified import because the whole module contains off-chain code
-import PlutusCore.Compiler.Types (initUPLCSimplifierTrace)
 import Prelude as Haskell
 
 -- | Get a Plutus Core term corresponding to the given value.
@@ -89,7 +87,7 @@ safeLift v x = do
           & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
           & PLC.coSimplifyOpts . UPLC.soMaxCseIterations .~ 0
     plc <- flip runReaderT ccConfig $ compileProgram (Program () v pir)
-    uplc <- flip evalStateT initUPLCSimplifierTrace $ flip runReaderT ucOpts $ PLC.compileProgram plc
+    uplc <- flip runReaderT ucOpts $ PLC.compileProgram plc
     UPLC.Program _ _ db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm uplc
     pure (void pir, void db)
 
@@ -268,8 +266,7 @@ typeCode
 typeCode p prog = do
     _ <- typeCheckAgainst p prog
     compiled <-
-        flip evalStateT initUPLCSimplifierTrace
-        $ flip runReaderT PLC.defaultCompilationOpts
+        flip runReaderT PLC.defaultCompilationOpts
         $ PLC.compileProgram prog
     db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm compiled
     pure $ DeserializedCode (mempty <$ db) Nothing mempty

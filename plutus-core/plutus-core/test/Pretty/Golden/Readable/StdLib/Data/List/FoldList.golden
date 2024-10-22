@@ -26,16 +26,8 @@
       {list a -> r}
       (\(rec : r -> list a -> r) (z : r) (xs : list a) ->
          (/\a ->
-            \(x : list a) ->
-              /\r ->
-                \(z : r) (f : a -> list a -> r) ->
-                  chooseList
-                    {a}
-                    {unit -> r}
-                    x
-                    (\(u : unit) -> z)
-                    (\(u : unit) -> f (headList {a} x) (tailList {a} x))
-                    ())
+            \(xs : list a) ->
+              /\r -> \(z : r) (f : a -> list a -> r) -> caseList {a} {r} z f xs)
            {a}
            xs
            {r}

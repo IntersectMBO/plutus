@@ -365,7 +365,7 @@ newtype AsInteger a = AsInteger
 
 instance KnownTypeAst tyname DefaultUni (AsInteger a) where
     type IsBuiltin _ _ = 'False
-    type ToHoles _ _ = '[]
+    type ToHoles _ _ _ = '[]
     type ToBinds _ acc _ = acc
     typeAst = toTypeAst $ Proxy @Integer
 

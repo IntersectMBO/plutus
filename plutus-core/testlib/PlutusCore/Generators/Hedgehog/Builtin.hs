@@ -1,6 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PolyKinds           #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -43,14 +44,29 @@ import Type.Reflection
 class GenTypedTerm uni where
     -- | Generate a `Term` in @uni@ with the given type.
     genTypedTerm ::
-        forall (a :: GHC.Type) tyname name fun.
+        forall (a :: GHC.Type) fun.
+        KnownTypeAst TyName uni a =>
         TypeRep a ->
-        Gen (Term tyname name uni fun ())
+        Gen (Term TyName Name uni fun ())
 
 instance GenTypedTerm DefaultUni where
-    -- TODO: currently it only generates constant terms.
-    genTypedTerm tr = case genConstant tr of
-        SomeGen gen -> Constant () . someValue <$> gen
+    -- TODO: currently it generates constants or constant functions returning constants.
+    genTypedTerm tr0 = go (toTypeAst tr0) tr0 where
+        go ::
+            forall (a :: GHC.Type) fun.
+            Type TyName DefaultUni () ->
+            TypeRep a ->
+            Gen (Term TyName Name DefaultUni fun ())
+        go sch tr
+            | trOpaque `App` _ `App` trEl <- tr
+            , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
+                go sch trEl
+        go (TyFun _ dom cod) tr
+            | trFun `App` _ `App` trCod <- tr
+            , Just HRefl <- eqTypeRep trFun (typeRep @(->)) =
+                LamAbs () (Name "_" (Unique 0)) dom <$> go cod trCod
+        go _ tr = case genConstant tr of
+            SomeGen gen -> Constant () . someValue <$> gen
 
 -- | This class exists so we can provide an ad-hoc arbitrary term generator
 -- for various universes.
@@ -106,9 +122,9 @@ genConstant tr
     | trSomeConstant `App` _ `App` trEl <- tr
     , Just HRefl <- eqTypeRep trSomeConstant (typeRep @SomeConstant) =
         genConstant trEl
-    | trOpaque `App` _ `App` trEl <- tr
-    , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
-        genConstant trEl
+    | trLastArg `App` _ `App` trY <- tr
+    , Just HRefl <- eqTypeRep trLastArg (typeRep @LastArg) =
+        genConstant trY
     | trTyVarRep `App` _ <- tr
     , Just HRefl <- eqTypeRep trTyVarRep (typeRep @(TyVarRep @GHC.Type)) =
         -- In the current implementation, all type variables are instantiated

@@ -98,10 +98,9 @@ lookup'
   -> Maybe BuiltinData
 lookup' k m = go m
   where
-    go xs =
-      P.matchList
-        xs
-        (\() -> Nothing)
+    go =
+      P.caseList'
+        Nothing
         ( \hd ->
             let k' = BI.fst hd
              in if P.equalsData k k'
@@ -118,10 +117,9 @@ member' :: BuiltinData -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData
 member' k = go
   where
     go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
-    go xs =
-      P.matchList
-        xs
-        (\() -> False)
+    go =
+      P.caseList'
+        False
         ( \hd ->
             let k' = BI.fst hd
              in if P.equalsData k k'
@@ -142,13 +140,13 @@ insert'
   -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
 insert' k a = go
   where
+    nilCase = BI.mkCons (BI.mkPairData k a) nil
     go ::
       BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
       BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-    go xs =
-      P.matchList
-        xs
-        (\() -> BI.mkCons (BI.mkPairData k a) nil)
+    go =
+      P.caseList'
+        nilCase
         ( \hd tl ->
             let k' = BI.fst hd
              in if P.equalsData k k'
@@ -172,10 +170,9 @@ delete' k = go
     go ::
       BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
       BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-    go xs =
-      P.matchList
-        xs
-        (\() -> nil)
+    go =
+      P.caseList'
+        nil
         ( \hd tl ->
             let k' = BI.fst hd
              in if P.equalsData k k'
@@ -233,10 +230,9 @@ noDuplicateKeys :: forall k a. Map k a -> Bool
 noDuplicateKeys (Map m) = go m
   where
     go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
-    go xs =
-      P.matchList
-        xs
-        (\() -> True)
+    go =
+      P.caseList'
+        True
         ( \hd tl ->
             let k = BI.fst hd
              in if member' k tl then False else go tl
@@ -248,10 +244,9 @@ all :: forall k a. (P.UnsafeFromData a) => (a -> Bool) -> Map k a -> Bool
 all p (Map m) = go m
   where
     go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
-    go xs =
-      P.matchList
-        xs
-        (\() -> True)
+    go =
+      P.caseList'
+        True
         ( \hd ->
             let a = P.unsafeFromBuiltinData (BI.snd hd)
              in if p a then go else \_ -> False
@@ -263,10 +258,9 @@ any :: forall k a. (P.UnsafeFromData a) => (a -> Bool) -> Map k a -> Bool
 any p (Map m) = go m
   where
     go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
-    go xs =
-      P.matchList
-        xs
-        (\() -> False)
+    go =
+      P.caseList'
+        False
         ( \hd ->
             let a = P.unsafeFromBuiltinData (BI.snd hd)
              in if p a then \_ -> True else go
@@ -283,10 +277,9 @@ union ::
   Map k (These a b)
 union (Map ls) (Map rs) = Map res
   where
-    goLeft xs =
-      P.matchList
-        xs
-        (\() -> nil)
+    goLeft =
+      P.caseList'
+        nil
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
@@ -303,10 +296,9 @@ union (Map ls) (Map rs) = Map res
              in BI.mkCons (BI.mkPairData k v') (goLeft tl)
         )
 
-    goRight xs =
-      P.matchList
-        xs
-        (\() -> nil)
+    goRight =
+      P.caseList'
+        nil
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
@@ -326,9 +318,9 @@ union (Map ls) (Map rs) = Map res
     res = goLeft ls `safeAppend` goRight rs
 
     safeAppend xs1 xs2 =
-      P.matchList
+      P.matchList'
         xs1
-        (\() -> xs2)
+        xs2
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
@@ -350,10 +342,9 @@ unionWith f (Map ls) (Map rs) =
     ls' :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
     ls' = go ls
       where
-        go xs =
-          P.matchList
-            xs
-            (\() -> nil)
+        go =
+          P.caseList'
+            nil
             ( \hd tl ->
                 let k' = BI.fst hd
                     v' = BI.snd hd
@@ -368,10 +359,9 @@ unionWith f (Map ls) (Map rs) =
     rs' :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
     rs' = go rs
       where
-        go xs =
-          P.matchList
-            xs
-            (\() -> nil)
+        go =
+          P.caseList'
+            nil
             ( \hd tl ->
                 let k' = BI.fst hd
                     tl' = go tl
@@ -383,10 +373,9 @@ unionWith f (Map ls) (Map rs) =
     res :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
     res = go rs' ls'
       where
-        go acc xs =
-          P.matchList
-            xs
-            (\() -> acc)
+        go acc =
+          P.caseList'
+            acc
             (\hd -> go (BI.mkCons hd acc))
 
 {-# INLINEABLE toList #-}
@@ -395,10 +384,9 @@ unionWith f (Map ls) (Map rs) =
 toList :: (P.UnsafeFromData k, P.UnsafeFromData a) => Map k a -> [(k, a)]
 toList d = go (toBuiltinList d)
   where
-    go xs =
-      P.matchList
-        xs
-        (\() -> [])
+    go =
+      P.caseList'
+        []
         ( \hd tl ->
             (P.unsafeFromBuiltinData (BI.fst hd), P.unsafeFromBuiltinData (BI.snd hd))
               : go tl
@@ -429,10 +417,9 @@ keys'
   -> BI.BuiltinList BuiltinData
 keys' = go
   where
-    go xs =
-      P.matchList
-        xs
-        (\() -> P.mkNil)
+    go =
+      P.caseList'
+        P.mkNil
         ( \hd tl ->
             let k = BI.fst hd
              in BI.mkCons k (go tl)
@@ -449,6 +436,7 @@ mapThese
   => (v -> These a b) -> Map k v -> (Map k a, Map k b)
 mapThese f (Map m) = (Map ls, Map rs)
   where
+    nilCase = (nil, nil)
     (ls, rs) = go m
     go
       :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
@@ -456,10 +444,9 @@ mapThese f (Map m) = (Map ls, Map rs)
         ( BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
         , BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
         )
-    go xs =
-      P.matchList
-        xs
-        (\() -> (nil, nil))
+    go =
+      P.caseList'
+        nilCase
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
@@ -479,10 +466,9 @@ mapThese f (Map m) = (Map ls, Map rs)
 map :: forall k a b. (P.UnsafeFromData a, P.ToData b) => (a -> b) -> Map k a -> Map k b
 map f (Map m) = Map $ go m
   where
-    go xs =
-      P.matchList
-        xs
-        (\() -> nil)
+    go =
+      P.caseList'
+        nil
         ( \hd tl ->
             let k = BI.fst hd
                 v = BI.snd hd
@@ -496,10 +482,9 @@ map f (Map m) = Map $ go m
 foldr :: forall a b k. (P.UnsafeFromData a) => (a -> b -> b) -> b -> Map k a -> b
 foldr f z (Map m) = go m
   where
-    go xs =
-      P.matchList
-        xs
-        (\() -> z)
+    go =
+      P.caseList'
+        z
         ( \hd tl ->
             let v = BI.snd hd
              in f (P.unsafeFromBuiltinData v) (go tl)
