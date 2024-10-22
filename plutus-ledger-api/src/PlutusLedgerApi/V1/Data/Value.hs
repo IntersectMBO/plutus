@@ -68,6 +68,7 @@ import Prelude qualified as Haskell
 
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
+import Data.Coerce (coerce)
 import Data.Data (Data, Typeable)
 import Data.Function ((&))
 import Data.String (IsString (fromString))
@@ -420,14 +421,7 @@ unionVal (Value l) (Value r) =
 -- | Combine two 'Value' maps with the argument function.
 -- Assumes the well-definedness of the two maps.
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
-unionWith f ls rs =
-    let
-        combined = unionVal ls rs
-        unThese k' = case k' of
-            This a    -> f a 0
-            That b    -> f 0 b
-            These a b -> f a b
-    in Value (Map.map (Map.map unThese) combined)
+unionWith f = coerce (Map.unionWith (Map.unionWith f))
 
 {-# INLINABLE flattenValue #-}
 -- | Convert a 'Value' to a simple list, keeping only the non-zero amounts.
