@@ -67,7 +67,8 @@ import Agda.Syntax.Common.Pretty qualified as HAgda.Pretty
 import Agda.Syntax.Parser qualified as HAgda.Parser
 import Agda.TypeChecking.Monad.Base (Interface (iModuleName), TCM)
 
-import Agda.Compiler.Backend (getTCState, setCommandLineOptions, stScope)
+import Agda.Compiler.Backend (Interface (iModuleName), crInterface, getScope, getTCState,
+                              iInsideScope, iScope, setCommandLineOptions, setScope, stScope)
 import Agda.Main (runTCMPrettyErrors)
 import Agda.Syntax.Scope.Monad (getCurrentScope, setCurrentModule)
 import Agda.Syntax.Translation.ConcreteToAbstract (ToAbstract (toAbstract))
@@ -335,15 +336,23 @@ runAgda' rawTrace = do
             }
     setCommandLineOptions opts
     result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
-    x <- getTCState
-    liftIO $ print (view stScope x)
+    let interface = crInterface result
+        moduleName = iModuleName interface
+        insideScope = iInsideScope interface
+    -- liftIO $ print insideScope
+    setScope insideScope
+    -- liftIO $ print (iScope . crInterface $ result)
+    -- setCurrentScope (iModuleName . crInterface $ result) (iScope . crInterface $ result)
+    -- x <- getTCState
+    -- liftIO $ print (view stScope x)
     -- setCurrentModule (iModuleName . HAgda.Imp.crInterface $ result)
     -- liftIO $ putStrLn (show . iModuleName . HAgda.Imp.crInterface $ result)
     -- x <- getCurrentScope
     -- liftIO $ putStrLn (show x)
     -- liftIO $ putStrLn (show . HAgda.Pretty.pretty $ parsedTrace)
     internalisedTrace <- toAbstract parsedTrace
-    liftIO $ putStrLn (show internalisedTrace)
+    return ()
+    -- liftIO $ putStrLn (show internalisedTrace)
 
 -- https://hackage.haskell.org/package/Agda-2.7.0.1/docs/Agda-Interaction-BasicOps.html#v:evalInCurrent
 
