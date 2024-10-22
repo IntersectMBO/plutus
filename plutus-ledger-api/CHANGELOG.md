@@ -1,4 +1,3 @@
-
 <a id='changelog-1.34.0.0'></a>
 # 1.34.0.0 — 2024-09-09
 
@@ -29,7 +28,7 @@
   + `ExMemory (..)`
   + `SatInt (unSatInt)`
   + `fromSatInt`
-  + `toOpaque,
+  + `toOpaque`
   + `fromOpaque`
   + `BuiltinData (..)`
   + `ToData (..)`
