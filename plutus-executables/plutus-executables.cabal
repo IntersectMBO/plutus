@@ -88,6 +88,7 @@ executable uplc
     , Agda                                            ==2.6.4
     , base                                            >=4.9   && <5
     , bytestring
+    , containers
     , criterion
     , deepseq
     , flat                             ^>=0.6
