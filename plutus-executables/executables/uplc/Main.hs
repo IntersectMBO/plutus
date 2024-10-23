@@ -310,13 +310,13 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
   writeProgram outp ofmt mode simplified
   runCertifier cert simplificationTrace
   where
-    runCertifier (Just certName) (UPLCSimplifierTrace uplcSimplTrace) = do
-      let processAgdaAST t =
-              case UPLC.deBruijnTerm t of
-                Right res                            -> res
-                Left (err :: UPLC.FreeVariableError) -> error $ show err
-          rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
-      -- Agda.runCertifier (T.pack certName) rawAgdaTrace
+    runCertifier (Just certName) (SimplifierTrace simplTrace) = do
+      let processAgdaAST Simplification {beforeAST, stage, afterAST} =
+              case (UPLC.deBruijnTerm beforeAST, UPLC.deBruijnTerm afterAST) of
+                (Right before', Right after')             -> (stage, (AgdaFFI.conv (void before'), AgdaFFI.conv (void after')))
+                (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
+                (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
+          rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
       runAgda' rawAgdaTrace
     runCertifier Nothing _ = pure ()
 
@@ -326,9 +326,9 @@ runAgda uTerm = do
   (Right res, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser rawExpr
   putStrLn $ "Parsed: " ++ show res
 
-runAgda' :: [AgdaFFI.UTerm] -> IO () -- TCM () -- HAgda.Imp.CheckResult
+runAgda' :: [(SimplifierStage, (AgdaFFI.UTerm, AgdaFFI.UTerm))] -> IO () -- TCM () -- HAgda.Imp.CheckResult
 runAgda' rawTrace = do
-  let program = "runCertifier \"bla\" (" ++ agdaUnparse rawTrace ++ ")"
+  let program = "runCertifier (" ++ agdaUnparse rawTrace ++ ")"
   (parseTraceResult, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser $ program
   let parsedTrace =
         case parseTraceResult of
@@ -381,6 +381,14 @@ instance AgdaUnparse UPLC.DefaultFun where
 
 class AgdaUnparse a where
   agdaUnparse :: a -> String
+
+instance AgdaUnparse SimplifierStage where
+  agdaUnparse FloatDelay = "floatDelayT"
+  agdaUnparse ForceDelay = "forceDelayT"
+  agdaUnparse CaseOfCase = "caseOfCaseT"
+  agdaUnparse CaseReduce = "caseReduceT"
+  agdaUnparse Inline     = "inlineT"
+  agdaUnparse CSE        = "cseT"
 
 instance AgdaUnparse Natural where
   agdaUnparse = show

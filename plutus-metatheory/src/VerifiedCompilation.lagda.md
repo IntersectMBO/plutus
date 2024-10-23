@@ -135,21 +135,7 @@ isTrace? ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
 
 
 ```
-## Serialising the proofs
 
-The proof objects are converted to a textual representation which can be written to a file.
-
-**TODO**: This is currently not supported. The `showTrace` function is a placeholder for the actual serialisation function.
-
-```
-showTrace : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Trace xs → String
-showTrace _ = "TODO"
-
-serializeTraceProof : {X : Set} {{_ : DecEq X}} {xs : List (SimplifierTag × (X ⊢) × (X ⊢))} → Dec (Trace xs) → String
-serializeTraceProof (no ¬p) = "no"
-serializeTraceProof (yes p) = "yes " ++ showTrace p
-
-```
 
 ## The certification function
 
@@ -191,16 +177,13 @@ traverseEitherList f ((tag , before , after) ∷ xs) with f before
 ... | inj₁ e = inj₁ e
 ... | inj₂ xs' = inj₂ (((tag , b , a)) ∷ xs')
 
-certifier
-  : {X : Set} {{_ : DecEq X}}
-  → List (SimplifierTag × Untyped × Untyped)
-  → Either ScopeError String
-certifier {X} rawInput with traverseEitherList (toWellScoped {X}) rawInput
-... | inj₁ err = inj₁ err
-... | inj₂ inputTrace = inj₂ (serializeTraceProof (isTrace? inputTrace))
+data Proof : Set₁ where
+  proof
+    : {X : Set} {result : List (SimplifierTag × (X ⊢) × (X ⊢))} {{_ : DecEq X}}
+    → Dec (Trace {X} result)
+    → Proof
 
-runCertifier : String → List (SimplifierTag × Untyped × Untyped) → IO ⊤
-runCertifier fileName rawInput with certifier {⊥} rawInput
-... | inj₁ err = hPutStrLn stderr "error" -- TODO: pretty print error
-... | inj₂ result = writeFile (fileName ++ ".agda") result
-{-# COMPILE GHC runCertifier as runCertifier #-}
+runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Proof
+runCertifier rawInput with traverseEitherList (toWellScoped {⊥}) rawInput
+... | inj₁ _ = nothing
+... | inj₂ inputTrace = just (proof (isTrace? inputTrace))
