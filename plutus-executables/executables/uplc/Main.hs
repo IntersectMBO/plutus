@@ -57,6 +57,7 @@ import Text.Read (readMaybe)
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
+import Agda.Interaction.Base (ComputeMode (DefaultCompute))
 import Agda.Interaction.FindFile qualified as HAgda.File
 import Agda.Interaction.Imports qualified as HAgda.Imp
 import Agda.Interaction.Options (CommandLineOptions (optIncludePaths, optLibraries, optLocalInterfaces),
@@ -67,13 +68,21 @@ import Agda.Syntax.Common.Pretty qualified as HAgda.Pretty
 import Agda.Syntax.Parser qualified as HAgda.Parser
 import Agda.TypeChecking.Monad.Base (Interface (iModuleName), TCM)
 
-import Agda.Compiler.Backend (Interface (iModuleName), crInterface, getScope, getTCState,
-                              iInsideScope, iScope, setCommandLineOptions, setScope, stScope)
+import Agda.Compiler.Backend (Interface (iImportedModules, iModuleName), crInterface, getScope,
+                              getTCState, iInsideScope, iScope, setCommandLineOptions, setScope,
+                              stScope)
+import Agda.Interaction.BasicOps (evalInCurrent)
 import Agda.Main (runTCMPrettyErrors)
+import Agda.Syntax.Concrete.Pretty qualified as Concrete
+import Agda.Syntax.Scope.Base (AbstractModule, AbstractName, ThingsInScope, allNamesInScope)
 import Agda.Syntax.Scope.Monad (getCurrentScope, setCurrentModule)
+import Agda.Syntax.Translation.AbstractToConcrete (ToConcrete (toConcrete))
 import Agda.Syntax.Translation.ConcreteToAbstract (ToAbstract (toAbstract))
+import Agda.TypeChecking.Pretty (PrettyTCM (..))
 import Agda.Utils.FileName qualified as HAgda.File
+import Agda.Utils.Maybe (fromJust)
 import Data.ByteString (ByteString)
+import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import Data.Traversable (forM)
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -319,7 +328,8 @@ runAgda uTerm = do
 
 runAgda' :: [AgdaFFI.UTerm] -> IO () -- TCM () -- HAgda.Imp.CheckResult
 runAgda' rawTrace = do
-  (parseTraceResult, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser $ agdaUnparse rawTrace
+  let program = "runCertifier \"bla\" (" ++ agdaUnparse rawTrace ++ ")"
+  (parseTraceResult, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser $ program
   let parsedTrace =
         case parseTraceResult of
           Right (res, _) -> res
@@ -338,23 +348,18 @@ runAgda' rawTrace = do
     result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
     let interface = crInterface result
         moduleName = iModuleName interface
+        scope = fromJust $ Map.lookup moduleName $ iScope interface
+        allScopes = toList $ iScope interface
         insideScope = iInsideScope interface
-    -- liftIO $ print insideScope
+        imports = iImportedModules interface
     setScope insideScope
-    -- liftIO $ print (iScope . crInterface $ result)
-    -- setCurrentScope (iModuleName . crInterface $ result) (iScope . crInterface $ result)
-    -- x <- getTCState
-    -- liftIO $ print (view stScope x)
-    -- setCurrentModule (iModuleName . HAgda.Imp.crInterface $ result)
-    -- liftIO $ putStrLn (show . iModuleName . HAgda.Imp.crInterface $ result)
-    -- x <- getCurrentScope
-    -- liftIO $ putStrLn (show x)
-    -- liftIO $ putStrLn (show . HAgda.Pretty.pretty $ parsedTrace)
     internalisedTrace <- toAbstract parsedTrace
+    intermediate <- prettyTCM internalisedTrace
+    -- liftIO $ print intermediate
+    decisionProcedureResult <- evalInCurrent DefaultCompute internalisedTrace
+    final <- prettyTCM decisionProcedureResult
+    liftIO $ print final
     return ()
-    -- liftIO $ putStrLn (show internalisedTrace)
-
--- https://hackage.haskell.org/package/Agda-2.7.0.1/docs/Agda-Interaction-BasicOps.html#v:evalInCurrent
 
 instance AgdaUnparse AgdaFFI.UTerm where
   agdaUnparse =
@@ -399,8 +404,7 @@ instance AgdaUnparse () where
   agdaUnparse _ = "⊤"
 
 instance AgdaUnparse a => AgdaUnparse [a] where
-  agdaUnparse []       = "[]"
-  agdaUnparse (x : xs) = agdaUnparse x ++ " ∷ " ++ agdaUnparse xs
+  agdaUnparse l = "(" ++ foldr (\x xs -> agdaUnparse x ++ " ∷ " ++ xs) "[]" l ++ ")"
 
 instance (AgdaUnparse a, AgdaUnparse b) => AgdaUnparse (a, b) where
   agdaUnparse (x, y) = "(" ++ agdaUnparse x ++ " , " ++ agdaUnparse y ++ ")"
@@ -583,6 +587,15 @@ runDbg (DbgOptions inp ifmt cekModel semvar) = do
     -- nilSlippage is important so as to get correct live up-to-date budget
     cekTrans <- fst <$> D.mkCekTrans cekparams Cek.restrictingEnormous Cek.noEmitter D.nilSlippage
     Repl.runInputT replSettings $
+        -- MAYBE: use cutoff or partialIterT to prevent runaway
+        -- MAYBE: use cutoff or partialIterT to prevent runaway
+        -- MAYBE: use cutoff or partialIterT to prevent runaway
+        -- MAYBE: use cutoff or partialIterT to prevent runaway
+
+        -- MAYBE: use cutoff or partialIterT to prevent runaway
+
+        -- MAYBE: use cutoff or partialIterT to prevent runaway
+
         -- MAYBE: use cutoff or partialIterT to prevent runaway
         -- MAYBE: use cutoff or partialIterT to prevent runaway
 

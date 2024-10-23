@@ -7,7 +7,7 @@ open import Builtin
 open import Data.Unit
 open import Data.Nat
 open import Data.Integer
-open import Utils.List
+open import Utils
 
 -- this doesn't work for some reason ...
 -- fromNat : ℕ → ℤ
