@@ -5,11 +5,11 @@
 {
   shellHookExports = ''
     export AGDA_STDLIB_SRC="${repoRoot.nix.agda-with-stdlib}/src"
-    export PLUTUS_METHATHEORY_SRC="${repoRoot.nix.plutus-metatheory}/src"
+    export PLUTUS_METHATHEORY_SRC="${repoRoot.src.plutus-metatheory}/src"
   '';
 
   wrapProgramArgs = ''
     --set AGDA_STDLIB_SRC "${repoRoot.nix.agda-with-stdlib}/src" \
-    --set PLUTUS_METHATHEORY_SRC "${repoRoot.nix.plutus-metatheory}/src"
+    --set PLUTUS_METHATHEORY_SRC "${repoRoot.src.plutus-metatheory}/src"
   '';
 }
