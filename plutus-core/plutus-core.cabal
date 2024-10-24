@@ -376,18 +376,19 @@ test-suite plutus-core-test
   default-language: Haskell2010
   build-depends:
     , aeson
-    , base                                            >=4.9   && <5
+    , base                             >=4.9   && <5
     , bytestring
     , containers
     , data-default-class
     , extra
     , filepath
-    , flat                                            ^>=0.6
+    , flat                             ^>=0.6
     , hedgehog
     , hex-text
     , mmorph
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
     , prettyprinter
     , serialise
     , tasty
@@ -442,16 +443,17 @@ test-suite untyped-plutus-core-test
     Transform.Simplify.Lib
 
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                             >=4.9   && <5
     , base16-bytestring
     , bytestring
     , cardano-crypto-class
     , dlist
-    , flat                                            ^>=0.6
+    , flat                             ^>=0.6
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
     , pretty-show
     , prettyprinter
     , QuickCheck
@@ -617,15 +619,17 @@ test-suite plutus-ir-test
 
   build-tool-depends: tasty-discover:tasty-discover
   build-depends:
-    , base                                                       >=4.9   && <5
+    , base                             >=4.9   && <5
     , containers
     , filepath
-    , flat                                                       ^>=0.6
+    , flat                             ^>=0.6
     , hashable
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
+    , plutus-core:plutus-ir
     , QuickCheck
     , serialise
     , tasty
@@ -675,7 +679,7 @@ executable plutus
 
   build-depends:
     , aeson-pretty
-    , base                                  >=4.9   && <5
+    , base                   >=4.9   && <5
     , brick
     , bytestring
     , containers
@@ -685,10 +689,11 @@ executable plutus
     , lens
     , megaparsec
     , microlens
-    , microlens-th                          ^>=0.4
+    , microlens-th           ^>=0.4
     , mono-traversable
     , mtl
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.36
+    , plutus-core            ^>=1.36
+    , plutus-core:plutus-ir
     , prettyprinter
     , primitive
     , serialise
@@ -696,8 +701,8 @@ executable plutus
     , singletons-th
     , text
     , text-zipper
-    , vty                                   ^>=6
-    , vty-crossplatform                     ^>=0.2
+    , vty                    ^>=6
+    , vty-crossplatform      ^>=0.2
 
   ghc-options:        -O2 -threaded -rtsopts -with-rtsopts=-N
   default-extensions:
@@ -720,15 +725,17 @@ library plutus-core-execlib
 
   build-depends:
     , aeson
-    , base                                                       >=4.9   && <5
+    , base                             >=4.9   && <5
     , bytestring
-    , flat                                                       ^>=0.6
+    , flat                             ^>=0.6
     , lens
     , megaparsec
     , monoidal-containers
     , mtl
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
+    , plutus-core:plutus-ir
     , prettyprinter
     , text
 
@@ -777,25 +784,26 @@ library plutus-core-testlib
     UntypedPlutusCore.Test.DeBruijn.Good
 
   build-depends:
-    , base                                  >=4.9     && <5
+    , base                        >=4.9     && <5
     , bifunctors
     , bytestring
     , containers
     , data-default-class
-    , dependent-map                         >=0.4.0.0
+    , dependent-map               >=0.4.0.0
     , filepath
     , free
     , hashable
-    , hedgehog                              >=1.0
+    , hedgehog                    >=1.0
     , hedgehog-quickcheck
     , lazy-search
     , lens
     , mmorph
     , mtl
     , multiset
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.36
-    , prettyprinter                         >=1.1.0.1
-    , prettyprinter-configurable            ^>=1.36
+    , plutus-core                 ^>=1.36
+    , plutus-core:plutus-ir
+    , prettyprinter               >=1.1.0.1
+    , prettyprinter-configurable  ^>=1.36
     , QuickCheck
     , quickcheck-instances
     , quickcheck-transformer
@@ -827,7 +835,8 @@ library plutus-ir-cert
   exposed-modules:  PlutusIR.Certifier
   build-depends:
     , base
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.36
+    , plutus-core            ^>=1.36
+    , plutus-core:plutus-ir
 
 ----------------------------------------------
 -- profiling

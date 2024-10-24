@@ -74,17 +74,18 @@ library
 
   build-depends:
     , array
-    , base                                  >=4.9   && <5
+    , base                   >=4.9   && <5
     , bytestring
     , containers
     , either
     , extra
-    , flat                                  ^>=0.6
+    , flat                   ^>=0.6
     , ghc
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.36
-    , plutus-tx                             ^>=1.36
+    , plutus-core            ^>=1.36
+    , plutus-core:plutus-ir
+    , plutus-tx              ^>=1.36
     , prettyprinter
     , template-haskell
     , text
@@ -162,20 +163,22 @@ test-suite plutus-tx-plugin-tests
     Unicode.Spec
 
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                             >=4.9   && <5
     , base16-bytestring
     , bytestring
     , containers
     , deepseq
     , filepath
-    , flat                                            ^>=0.6
+    , flat                             ^>=0.6
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.36
-    , plutus-tx-plugin                                ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
+    , plutus-tx                        ^>=1.36
+    , plutus-tx-plugin                 ^>=1.36
     , plutus-tx-test-util
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.36
+    , plutus-tx:plutus-tx-testlib
     , serialise
     , tasty
     , tasty-golden
@@ -203,10 +206,12 @@ test-suite size
   main-is:            Main.hs
   hs-source-dirs:     test/size
   build-depends:
-    , base                                            >=4.9   && <5.0
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.36
-    , plutus-tx-plugin                                ^>=1.36
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.36
+    , base                             >=4.9   && <5.0
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
+    , plutus-tx                        ^>=1.36
+    , plutus-tx-plugin                 ^>=1.36
+    , plutus-tx:plutus-tx-testlib
     , tagged
     , tasty
 

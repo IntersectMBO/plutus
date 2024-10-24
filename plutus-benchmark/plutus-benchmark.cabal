@@ -174,11 +174,13 @@ test-suite plutus-benchmark-nofib-tests
   hs-source-dirs: nofib/test
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                             >=4.9   && <5
     , nofib-internal
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.36
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
+    , plutus-tx                        ^>=1.36
+    , plutus-tx:plutus-tx-testlib
     , tasty
     , tasty-hunit
     , tasty-quickcheck
@@ -360,14 +362,15 @@ test-suite ed25519-costs-test
   main-is:        Spec.hs
   other-modules:  PlutusBenchmark.Ed25519.Common
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                             >=4.9   && <5
     , bytestring
     , cardano-crypto-class
     , hedgehog
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.36
-    , plutus-tx                                       ^>=1.36
-    , plutus-tx-plugin                                ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
+    , plutus-tx                        ^>=1.36
+    , plutus-tx-plugin                 ^>=1.36
 
 ---------------- BLS12-381 experiments ----------------
 
@@ -452,10 +455,11 @@ test-suite plutus-benchmark-script-contexts-tests
   hs-source-dirs: script-contexts/test
   other-modules:
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                             >=4.9   && <5
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.36
-    , plutus-tx:plutus-tx-testlib                     ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
+    , plutus-tx:plutus-tx-testlib      ^>=1.36
     , script-contexts-internal
     , tasty
     , tasty-hunit
@@ -478,16 +482,17 @@ library marlowe-internal
   build-depends:
     , base
     , bytestring
-    , cardano-crypto-class                            >=2.1.5 && <2.3
+    , cardano-crypto-class             >=2.1.5 && <2.3
     , directory
     , filepath
     , mtl
     , newtype-generics
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.36
-    , plutus-ledger-api                               ^>=1.36
-    , plutus-tx                                       ^>=1.36
-    , plutus-tx-plugin                                ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-execlib
+    , plutus-ledger-api                ^>=1.36
+    , plutus-tx                        ^>=1.36
+    , plutus-tx-plugin                 ^>=1.36
     , serialise
 
 executable marlowe-validators
@@ -533,11 +538,13 @@ test-suite plutus-benchmark-marlowe-tests
   hs-source-dirs: marlowe/test
   other-modules:
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                             >=4.9   && <5
     , marlowe-internal
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.36
-    , plutus-ledger-api                               ^>=1.36
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
+    , plutus-ledger-api                ^>=1.36
+    , plutus-tx                        ^>=1.36
+    , plutus-tx:plutus-tx-testlib
     , tasty
 
 ---------------- agda evaluators ----------------
@@ -624,12 +631,13 @@ test-suite bitwise-test
   main-is:        Main.hs
   hs-source-dirs: bitwise/test
   build-depends:
-    , base                                      >=4.9   && <5
+    , base                             >=4.9   && <5
     , bitwise-internal
     , cryptohash-sha512
     , ed25519
-    , plutus-core:plutus-core-testlib           ^>=1.36
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}  ^>=1.36
+    , plutus-core:plutus-core-testlib  ^>=1.36
+    , plutus-tx                        ^>=1.36
+    , plutus-tx:plutus-tx-testlib
     , tasty
     , tasty-hunit
 

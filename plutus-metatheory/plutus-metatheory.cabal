@@ -67,7 +67,8 @@ library
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-execlib
     , process
     , text
     , transformers
@@ -605,7 +606,8 @@ test-suite test-NEAT
     , base
     , lazy-search
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
     , plutus-metatheory
     , size-based
     , Stream

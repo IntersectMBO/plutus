@@ -16,10 +16,7 @@
 
 module PlutusBenchmark.NoFib.Queens where
 
-{- Andrew Tolmach and Thomas Nordin's contraint solver
-
-	See Proceedings of WAAAPL '99
--}
+{- Andrew Tolmach and Thomas Nordin's contraint solver. See Proceedings of WAAAPL '99 -}
 
 import Control.DeepSeq (NFData)
 import Control.Monad (forM_)

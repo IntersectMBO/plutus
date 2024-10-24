@@ -70,7 +70,7 @@ isCaseReduce? = translation? isCR?
 ## An Example:
 
 (program 1.1.0
-	 (case (constr 1 (con integer 12) (con integer 42)) (lam x (lam y x)) (lam x (lam y (case (constr 0 (con integer 99)) y))) )
+  (case (constr 1 (con integer 12) (con integer 42)) (lam x (lam y x)) (lam x (lam y (case (constr 0 (con integer 99)) y))) )
 )
 
 becomes:
