@@ -52,7 +52,8 @@ library
     , base
     , directory
     , filepath
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.36
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
     , tasty
     , tasty-expected-failure
     , tasty-golden
