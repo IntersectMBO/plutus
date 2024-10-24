@@ -29,7 +29,7 @@ in
   welcomeMessage = "🤟 \\033[1;34mWelcome to Plutus\\033[0m 🤟";
 
   packages = [
-    repoRoot.nix.agda-with-stdlib
+    repoRoot.nix.agda.agda-with-stdlib
 
     # R environment
     repoRoot.nix.r-with-packages
