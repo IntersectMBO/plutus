@@ -344,7 +344,6 @@ runAgda certName rawTrace = do
                 [ metatheoryPath -- "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src"
                 , stdlibPath -- "/nix/store/g9vi7hzrp1cqgm21355549yyqcpkjnxx-standard-library-1.7.3/src"
                 ]
-            , optLocalInterfaces = True
             }
     setCommandLineOptions opts
     result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
