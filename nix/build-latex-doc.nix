@@ -16,7 +16,7 @@ repoRoot.nix.build-latex {
 
 
   buildInputs = lib.optionals withAgda [
-    repoRoot.nix.agda-with-stdlib
+    repoRoot.nix.agda.agda-with-stdlib
   ];
 
 

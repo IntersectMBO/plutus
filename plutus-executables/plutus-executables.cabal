@@ -85,10 +85,13 @@ executable uplc
   main-is:        uplc/Main.hs
   hs-source-dirs: executables
   build-depends:
+    , Agda                             ==2.6.4
     , base                             >=4.9   && <5
     , bytestring
+    , containers
     , criterion
     , deepseq
+    , filepath
     , flat                             ^>=0.6
     , haskeline
     , mtl
@@ -99,6 +102,8 @@ executable uplc
     , prettyprinter
     , split
     , text
+
+-- build-tool-depends: Agda:agda
 
 test-suite test-simple
   import:             lang, os-support
