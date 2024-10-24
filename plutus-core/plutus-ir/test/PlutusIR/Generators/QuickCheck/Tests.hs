@@ -210,7 +210,8 @@ noStructuralErrors term =
 prop_noStructuralErrors :: Property
 prop_noStructuralErrors = withMaxSuccess 99 $
   forAllDoc "ty,tm" genTypeAndTerm_ shrinkClosedTypedTerm $ \(_, termPir) -> ioProperty $ do
-    termUPlc <- fmap UPLC._progTerm . modifyError throw . toUPlc $ Program () latestVersion termPir
+    termUPlc <- fmap UPLC._progTerm . modifyError (userError . displayException) . toUPlc $
+        Program () latestVersion termPir
     noStructuralErrors termUPlc
 
 -- | Test that evaluation of an ill-typed terms fails with a structural error.
