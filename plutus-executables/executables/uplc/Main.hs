@@ -82,6 +82,7 @@ import Agda.TypeChecking.Pretty (PrettyTCM (..))
 import Agda.Utils.FileName qualified as HAgda.File
 import Agda.Utils.Maybe (fromJust)
 import Data.ByteString (ByteString)
+import Data.List (isInfixOf, isSuffixOf)
 import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import Data.Traversable (forM)
@@ -91,6 +92,7 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data qualified as Data
 import PlutusCore.Default qualified as PLC
 import PlutusPrelude qualified as UPLC
+import System.Environment (getEnv)
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
@@ -317,23 +319,21 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
                 (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
                 (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
           rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
-      runAgda' rawAgdaTrace
+      runAgda certName rawAgdaTrace
     runCertifier Nothing _ = pure ()
 
-runAgda :: AgdaFFI.UTerm -> IO () -- HAgda.Concrete.Expr
-runAgda uTerm = do
-  let rawExpr = agdaUnparse uTerm
-  (Right res, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser rawExpr
-  putStrLn $ "Parsed: " ++ show res
-
-runAgda' :: [(SimplifierStage, (AgdaFFI.UTerm, AgdaFFI.UTerm))] -> IO () -- TCM () -- HAgda.Imp.CheckResult
-runAgda' rawTrace = do
+runAgda :: String -> [(SimplifierStage, (AgdaFFI.UTerm, AgdaFFI.UTerm))] -> IO ()
+runAgda certName rawTrace = do
   let program = "runCertifier (" ++ agdaUnparse rawTrace ++ ")"
-  (parseTraceResult, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser $ program
+  (parseTraceResult, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser program
   let parsedTrace =
         case parseTraceResult of
           Right (res, _) -> res
           Left err       -> error $ show err
+  -- path <- getEnv "PATH"
+  -- let paths = splitOn ":" path
+  --     agdaStdLib = head $ filter (isInfixOf "standard-library-1.7.3") paths
+  -- print paths
   let inputFile = HAgda.File.AbsolutePath "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src/Test.agda"
   runTCMPrettyErrors $ do
     let opts =
@@ -347,18 +347,14 @@ runAgda' rawTrace = do
     setCommandLineOptions opts
     result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
     let interface = crInterface result
-        moduleName = iModuleName interface
-        scope = fromJust $ Map.lookup moduleName $ iScope interface
-        allScopes = toList $ iScope interface
         insideScope = iInsideScope interface
-        imports = iImportedModules interface
     setScope insideScope
     internalisedTrace <- toAbstract parsedTrace
     intermediate <- prettyTCM internalisedTrace
-    -- liftIO $ print intermediate
+    -- liftIO $ writeFile (certName ++ ".agda") (show intermediate)
     decisionProcedureResult <- evalInCurrent DefaultCompute internalisedTrace
     final <- prettyTCM decisionProcedureResult
-    liftIO $ print final
+    liftIO $ writeFile (certName ++ ".agda") (show final)
     return ()
 
 instance AgdaUnparse AgdaFFI.UTerm where
