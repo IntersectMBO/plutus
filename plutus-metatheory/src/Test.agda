@@ -11,4 +11,5 @@ open import Utils
 import Agda.Builtin.Bool
 import Relation.Nullary
 import VerifiedCompilation.UntypedTranslation
+open import Agda.Builtin.Maybe
 open import Data.Empty using (⊥)
