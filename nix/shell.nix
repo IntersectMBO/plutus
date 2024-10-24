@@ -92,7 +92,7 @@ in
 
   shellHook = ''
     ${builtins.readFile certEnv}
-    ${repoRoot.nix.agda-extra-env.shellHookExports}
+    ${repoRoot.nix.agda.shell-hook-exports}
   '';
 
   preCommit = {
