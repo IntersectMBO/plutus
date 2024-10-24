@@ -51,6 +51,7 @@ import Flat (unflat)
 import Options.Applicative
 import Prettyprinter ((<+>))
 import System.Exit (exitFailure)
+import System.FilePath ((</>))
 import System.IO (hPrint, stderr)
 import Text.Read (readMaybe)
 
@@ -85,6 +86,7 @@ import Data.ByteString (ByteString)
 import Data.List (isInfixOf, isSuffixOf)
 import Data.Map.Strict qualified as Map
 import Data.Text (Text)
+import Data.Text qualified as Text
 import Data.Traversable (forM)
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -330,17 +332,17 @@ runAgda certName rawTrace = do
         case parseTraceResult of
           Right (res, _) -> res
           Left err       -> error $ show err
-  -- path <- getEnv "PATH"
-  -- let paths = splitOn ":" path
-  --     agdaStdLib = head $ filter (isInfixOf "standard-library-1.7.3") paths
-  -- print paths
-  let inputFile = HAgda.File.AbsolutePath "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src/Test.agda"
+  stdlibPath <- getEnv "AGDA_STDLIB_SRC"
+  metatheoryPath <- getEnv "PLUTUS_METHATHEORY_SRC"
+  print stdlibPath
+  print metatheoryPath
+  let inputFile = HAgda.File.AbsolutePath (Text.pack $ metatheoryPath </> "Test.agda") -- "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src/Test.agda"
   runTCMPrettyErrors $ do
     let opts =
           defaultOptions
             { optIncludePaths =
-                [ "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src"
-                , "/nix/store/g9vi7hzrp1cqgm21355549yyqcpkjnxx-standard-library-1.7.3/src"
+                [ metatheoryPath -- "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src"
+                , stdlibPath -- "/nix/store/g9vi7hzrp1cqgm21355549yyqcpkjnxx-standard-library-1.7.3/src"
                 ]
             , optLocalInterfaces = True
             }
@@ -355,7 +357,6 @@ runAgda certName rawTrace = do
     decisionProcedureResult <- evalInCurrent DefaultCompute internalisedTrace
     final <- prettyTCM decisionProcedureResult
     liftIO $ writeFile (certName ++ ".agda") (show final)
-    return ()
 
 instance AgdaUnparse AgdaFFI.UTerm where
   agdaUnparse =
@@ -405,7 +406,7 @@ instance AgdaUnparse ByteString where
   agdaUnparse = show  -- maybe this should be encoded some other way
 
 instance AgdaUnparse () where
-  agdaUnparse _ = "⊤"
+  agdaUnparse _ = "tt"
 
 instance AgdaUnparse a => AgdaUnparse [a] where
   agdaUnparse l = "(" ++ foldr (\x xs -> agdaUnparse x ++ " ∷ " ++ xs) "[]" l ++ ")"
