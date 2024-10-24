@@ -81,16 +81,17 @@ executable plc
     , plutus-core:plutus-core-execlib
 
 executable uplc
-  import:             lang, os-support
-  main-is:            uplc/Main.hs
-  hs-source-dirs:     executables
+  import:         lang, os-support
+  main-is:        uplc/Main.hs
+  hs-source-dirs: executables
   build-depends:
-    , Agda                                            ==2.6.4
-    , base                                            >=4.9   && <5
+    , Agda                             ==2.6.4
+    , base                             >=4.9   && <5
     , bytestring
     , containers
     , criterion
     , deepseq
+    , filepath
     , flat                             ^>=0.6
     , haskeline
     , mtl
