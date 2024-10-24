@@ -2,6 +2,7 @@ let
   unit = all a. a -> a
 in
 let
-  SomeType = all a. a -> a
+  data SomeType | match_SomeType where
+    Constr : unit -> SomeType
 in
 \(arg : SomeType) -> error {unit}

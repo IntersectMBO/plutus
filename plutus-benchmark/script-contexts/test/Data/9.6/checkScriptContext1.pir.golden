@@ -999,8 +999,17 @@
       UpperBound : Extended a -> Bool -> UpperBound a
     data (Interval :: * -> *) a | Interval_match where
       Interval : LowerBound a -> UpperBound a -> Interval a
-    Vote = all a. a -> a
-    ScriptPurpose = all a. a -> a
+    data ScriptPurpose | ScriptPurpose_match where
+      Certifying : integer -> TxCert -> ScriptPurpose
+      Minting : bytestring -> ScriptPurpose
+      Proposing : integer -> ProposalProcedure -> ScriptPurpose
+      Rewarding : Credential -> ScriptPurpose
+      Spending : TxOutRef -> ScriptPurpose
+      Voting : Voter -> ScriptPurpose
+    data Vote | Vote_match where
+      Abstain : Vote
+      VoteNo : Vote
+      VoteYes : Vote
     data TxInfo | TxInfo_match where
       TxInfo :
         List TxInInfo ->
