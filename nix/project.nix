@@ -41,23 +41,25 @@ let
       };
 
       modules = [
+        repoRoot.nix.agda.agda-project-module-patch
+
         # Common
         {
           packages = {
             # plutus-metatheory needs agda with the stdlib around for the custom setup
             # I can't figure out a way to apply this as a blanket change for all the
             # components in the package, oh well
-            plutus-metatheory.components.library.build-tools = [ repoRoot.nix.agda-with-stdlib ];
-            plutus-metatheory.components.exes.plc-agda.build-tools = [ repoRoot.nix.agda-with-stdlib ];
-            plutus-metatheory.components.tests.test-NEAT.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-metatheory.components.library.build-tools = [ repoRoot.nix.agda.agda-with-stdlib ];
+            plutus-metatheory.components.exes.plc-agda.build-tools = [ repoRoot.nix.agda.agda-with-stdlib ];
+            plutus-metatheory.components.tests.test-NEAT.build-tools = [ repoRoot.nix.agda.agda-with-stdlib ];
 
-            plutus-executables.components.exes.uplc.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-executables.components.exes.uplc.build-tools = [ repoRoot.nix.agda.agda-with-stdlib ];
             plutus-executables.components.exes.uplc.postInstall = ''
-              wrapProgram $out/bin/uplc ${repoRoot.nix.agda-extra-env.wrapProgramArgs}
+              wrapProgram $out/bin/uplc ${repoRoot.nix.agda.wrap-program-args}
             '';
 
-            plutus-executables.components.tests.test-simple.build-tools = [ repoRoot.nix.agda-with-stdlib ];
-            plutus-executables.components.tests.test-detailed.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-executables.components.tests.test-simple.build-tools = [ repoRoot.nix.agda.agda-with-stdlib ];
+            plutus-executables.components.tests.test-detailed.build-tools = [ repoRoot.nix.agda.agda-with-stdlib ];
 
             plutus-core.components.benchmarks.update-cost-model = {
               build-tools = [ repoRoot.nix.r-with-packages ];
