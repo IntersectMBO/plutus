@@ -77,6 +77,8 @@ newtype ColdCommitteeCredential = ColdCommitteeCredential V2.Credential
     , PlutusTx.UnsafeFromData
     )
 
+PlutusTx.makeLift ''ColdCommitteeCredential
+
 newtype HotCommitteeCredential = HotCommitteeCredential V2.Credential
   deriving stock (Generic)
   deriving (Pretty) via (PrettyShow HotCommitteeCredential)
@@ -88,6 +90,8 @@ newtype HotCommitteeCredential = HotCommitteeCredential V2.Credential
     , PlutusTx.FromData
     , PlutusTx.UnsafeFromData
     )
+
+PlutusTx.makeLift ''HotCommitteeCredential
 
 newtype DRepCredential = DRepCredential V2.Credential
   deriving stock (Generic)
@@ -101,12 +105,22 @@ newtype DRepCredential = DRepCredential V2.Credential
     , PlutusTx.UnsafeFromData
     )
 
+PlutusTx.makeLift ''DRepCredential
+
 data DRep
   = DRep DRepCredential
   | DRepAlwaysAbstain
   | DRepAlwaysNoConfidence
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow DRep)
+
+PlutusTx.makeLift ''DRep
+PlutusTx.makeIsDataIndexed
+  ''DRep
+  [ ('DRep, 0)
+  , ('DRepAlwaysAbstain, 1)
+  , ('DRepAlwaysNoConfidence, 2)
+  ]
 
 instance PlutusTx.Eq DRep where
   {-# INLINEABLE (==) #-}
@@ -121,6 +135,14 @@ data Delegatee
   | DelegStakeVote V2.PubKeyHash DRep
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow Delegatee)
+
+PlutusTx.makeLift ''Delegatee
+PlutusTx.makeIsDataIndexed
+  ''Delegatee
+  [ ('DelegStake, 0)
+  , ('DelegVote, 1)
+  , ('DelegStakeVote, 2)
+  ]
 
 instance PlutusTx.Eq Delegatee where
   {-# INLINEABLE (==) #-}
@@ -160,6 +182,22 @@ data TxCert
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow TxCert)
 
+PlutusTx.makeLift ''TxCert
+PlutusTx.makeIsDataIndexed
+  ''TxCert
+  [ ('TxCertRegStaking, 0)
+  , ('TxCertUnRegStaking, 1)
+  , ('TxCertDelegStaking, 2)
+  , ('TxCertRegDeleg, 3)
+  , ('TxCertRegDRep, 4)
+  , ('TxCertUpdateDRep, 5)
+  , ('TxCertUnRegDRep, 6)
+  , ('TxCertPoolRegister, 7)
+  , ('TxCertPoolRetire, 8)
+  , ('TxCertAuthHotCommittee, 9)
+  , ('TxCertResignColdCommittee, 10)
+  ]
+
 instance PlutusTx.Eq TxCert where
   {-# INLINEABLE (==) #-}
   TxCertRegStaking a b == TxCertRegStaking a' b' =
@@ -189,6 +227,14 @@ data Voter
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow Voter)
 
+PlutusTx.makeLift ''Voter
+PlutusTx.makeIsDataIndexed
+  ''Voter
+  [ ('CommitteeVoter, 0)
+  , ('DRepVoter, 1)
+  , ('StakePoolVoter, 2)
+  ]
+
 instance PlutusTx.Eq Voter where
   {-# INLINEABLE (==) #-}
   CommitteeVoter a == CommitteeVoter a' =
@@ -207,6 +253,14 @@ data Vote
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow Vote)
 
+PlutusTx.makeLift ''Vote
+PlutusTx.makeIsDataIndexed
+  ''Vote
+  [ ('VoteNo, 0)
+  , ('VoteYes, 1)
+  , ('Abstain, 2)
+  ]
+
 instance PlutusTx.Eq Vote where
   {-# INLINEABLE (==) #-}
   VoteNo == VoteNo   = Haskell.True
@@ -220,6 +274,9 @@ data GovernanceActionId = GovernanceActionId
   , gaidGovActionIx :: Haskell.Integer
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
+
+PlutusTx.makeLift ''GovernanceActionId
+PlutusTx.makeIsDataIndexed ''GovernanceActionId [('GovernanceActionId, 0)]
 
 instance Pretty GovernanceActionId where
   pretty GovernanceActionId{..} =
@@ -241,6 +298,9 @@ data Committee = Committee
   }
   deriving stock (Generic, Haskell.Show)
 
+PlutusTx.makeLift ''Committee
+PlutusTx.makeIsDataIndexed ''Committee [('Committee, 0)]
+
 instance Pretty Committee where
   pretty Committee{..} =
     vsep
@@ -255,6 +315,9 @@ newtype Constitution = Constitution
   deriving stock (Generic)
   deriving newtype (Haskell.Show, Haskell.Eq)
 
+PlutusTx.makeLift ''Constitution
+PlutusTx.makeIsDataIndexed ''Constitution [('Constitution, 0)]
+
 instance Pretty Constitution where
   pretty (Constitution script) = "constitutionScript:" <+> pretty script
 
@@ -267,6 +330,9 @@ data ProtocolVersion = ProtocolVersion
   , pvMinor :: Haskell.Integer
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
+
+PlutusTx.makeLift ''ProtocolVersion
+PlutusTx.makeIsDataIndexed ''ProtocolVersion [('ProtocolVersion, 0)]
 
 instance Pretty ProtocolVersion where
   pretty ProtocolVersion{..} =
@@ -301,6 +367,8 @@ newtype ChangedParameters = ChangedParameters {getChangedParameters :: PlutusTx.
     , Pretty
     )
 
+PlutusTx.makeLift ''ChangedParameters
+
 data GovernanceAction
   = ParameterChange
       (Haskell.Maybe GovernanceActionId)
@@ -322,6 +390,18 @@ data GovernanceAction
   deriving stock (Generic, Haskell.Show)
   deriving (Pretty) via (PrettyShow GovernanceAction)
 
+PlutusTx.makeLift ''GovernanceAction
+PlutusTx.makeIsDataIndexed
+  ''GovernanceAction
+  [ ('ParameterChange, 0)
+  , ('HardForkInitiation, 1)
+  , ('TreasuryWithdrawals, 2)
+  , ('NoConfidence, 3)
+  , ('UpdateCommittee, 4)
+  , ('NewConstitution, 5)
+  , ('InfoAction, 6)
+  ]
+
 -- | A proposal procedure. The optional anchor is omitted.
 data ProposalProcedure = ProposalProcedure
   { ppDeposit          :: V2.Lovelace
@@ -329,6 +409,9 @@ data ProposalProcedure = ProposalProcedure
   , ppGovernanceAction :: GovernanceAction
   }
   deriving stock (Generic, Haskell.Show)
+
+PlutusTx.makeLift ''ProposalProcedure
+PlutusTx.makeIsDataIndexed ''ProposalProcedure [('ProposalProcedure, 0)]
 
 instance Pretty ProposalProcedure where
   pretty ProposalProcedure{..} =
@@ -355,6 +438,17 @@ data ScriptPurpose
   deriving stock (Generic, Haskell.Show)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
+PlutusTx.makeLift ''ScriptPurpose
+PlutusTx.makeIsDataIndexed
+  ''ScriptPurpose
+  [ ('Minting, 0)
+  , ('Spending, 1)
+  , ('Rewarding, 2)
+  , ('Certifying, 3)
+  , ('Voting, 4)
+  , ('Proposing, 5)
+  ]
+
 -- | Like `ScriptPurpose` but with an optional datum for spending scripts.
 data ScriptInfo
   = MintingScript V2.CurrencySymbol
@@ -372,12 +466,26 @@ data ScriptInfo
   deriving stock (Generic, Haskell.Show)
   deriving (Pretty) via (PrettyShow ScriptInfo)
 
+PlutusTx.makeLift ''ScriptInfo
+PlutusTx.makeIsDataIndexed
+  ''ScriptInfo
+  [ ('MintingScript, 0)
+  , ('SpendingScript, 1)
+  , ('RewardingScript, 2)
+  , ('CertifyingScript, 3)
+  , ('VotingScript, 4)
+  , ('ProposingScript, 5)
+  ]
+
 -- | An input of a pending transaction.
 data TxInInfo = TxInInfo
   { txInInfoOutRef   :: V3.TxOutRef
   , txInInfoResolved :: V2.TxOut
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
+
+PlutusTx.makeLift ''TxInInfo
+PlutusTx.makeIsDataIndexed ''TxInInfo [('TxInInfo, 0)]
 
 instance PlutusTx.Eq TxInInfo where
   TxInInfo ref res == TxInInfo ref' res' =
@@ -412,6 +520,9 @@ data TxInfo = TxInfo
   }
   deriving stock (Generic, Haskell.Show)
 
+PlutusTx.makeLift ''TxInfo
+PlutusTx.makeIsDataIndexed ''TxInfo [('TxInfo, 0)]
+
 -- | The context that the currently-executing script can access.
 data ScriptContext = ScriptContext
   { scriptContextTxInfo     :: TxInfo
@@ -423,6 +534,9 @@ data ScriptContext = ScriptContext
   -- with the purpose
   }
   deriving stock (Generic, Haskell.Show)
+
+PlutusTx.makeLift ''ScriptContext
+PlutusTx.makeIsDataIndexed ''ScriptContext [('ScriptContext, 0)]
 
 {-# INLINEABLE findOwnInput #-}
 
@@ -558,116 +672,7 @@ spendsOutput txInfo txId i =
               PlutusTx.&& i PlutusTx.== V3.txOutRefIdx outRef
    in Data.List.any spendsOutRef (txInfoInputs txInfo)
 
-PlutusTx.makeLift ''ColdCommitteeCredential
-PlutusTx.makeLift ''HotCommitteeCredential
-PlutusTx.makeLift ''DRepCredential
 
-PlutusTx.makeLift ''DRep
-PlutusTx.makeIsDataIndexed
-  ''DRep
-  [ ('DRep, 0)
-  , ('DRepAlwaysAbstain, 1)
-  , ('DRepAlwaysNoConfidence, 2)
-  ]
-
-PlutusTx.makeLift ''Delegatee
-PlutusTx.makeIsDataIndexed
-  ''Delegatee
-  [ ('DelegStake, 0)
-  , ('DelegVote, 1)
-  , ('DelegStakeVote, 2)
-  ]
-
-PlutusTx.makeLift ''TxCert
-PlutusTx.makeIsDataIndexed
-  ''TxCert
-  [ ('TxCertRegStaking, 0)
-  , ('TxCertUnRegStaking, 1)
-  , ('TxCertDelegStaking, 2)
-  , ('TxCertRegDeleg, 3)
-  , ('TxCertRegDRep, 4)
-  , ('TxCertUpdateDRep, 5)
-  , ('TxCertUnRegDRep, 6)
-  , ('TxCertPoolRegister, 7)
-  , ('TxCertPoolRetire, 8)
-  , ('TxCertAuthHotCommittee, 9)
-  , ('TxCertResignColdCommittee, 10)
-  ]
-
-PlutusTx.makeLift ''Voter
-PlutusTx.makeIsDataIndexed
-  ''Voter
-  [ ('CommitteeVoter, 0)
-  , ('DRepVoter, 1)
-  , ('StakePoolVoter, 2)
-  ]
-
-PlutusTx.makeLift ''Vote
-PlutusTx.makeIsDataIndexed
-  ''Vote
-  [ ('VoteNo, 0)
-  , ('VoteYes, 1)
-  , ('Abstain, 2)
-  ]
-
-PlutusTx.makeLift ''GovernanceActionId
-PlutusTx.makeIsDataIndexed ''GovernanceActionId [('GovernanceActionId, 0)]
-
-PlutusTx.makeLift ''Committee
-PlutusTx.makeIsDataIndexed ''Committee [('Committee, 0)]
-
-PlutusTx.makeLift ''Constitution
-PlutusTx.makeIsDataIndexed ''Constitution [('Constitution, 0)]
-
-PlutusTx.makeLift ''ProtocolVersion
-PlutusTx.makeIsDataIndexed ''ProtocolVersion [('ProtocolVersion, 0)]
-
-PlutusTx.makeLift ''ChangedParameters
-PlutusTx.makeLift ''GovernanceAction
-PlutusTx.makeIsDataIndexed
-  ''GovernanceAction
-  [ ('ParameterChange, 0)
-  , ('HardForkInitiation, 1)
-  , ('TreasuryWithdrawals, 2)
-  , ('NoConfidence, 3)
-  , ('UpdateCommittee, 4)
-  , ('NewConstitution, 5)
-  , ('InfoAction, 6)
-  ]
-
-PlutusTx.makeLift ''ProposalProcedure
-PlutusTx.makeIsDataIndexed ''ProposalProcedure [('ProposalProcedure, 0)]
-
-PlutusTx.makeLift ''ScriptPurpose
-PlutusTx.makeIsDataIndexed
-  ''ScriptPurpose
-  [ ('Minting, 0)
-  , ('Spending, 1)
-  , ('Rewarding, 2)
-  , ('Certifying, 3)
-  , ('Voting, 4)
-  , ('Proposing, 5)
-  ]
-
-PlutusTx.makeLift ''TxInInfo
-PlutusTx.makeIsDataIndexed ''TxInInfo [('TxInInfo, 0)]
-
-PlutusTx.makeLift ''TxInfo
-PlutusTx.makeIsDataIndexed ''TxInfo [('TxInfo, 0)]
-
-PlutusTx.makeLift ''ScriptInfo
-PlutusTx.makeIsDataIndexed
-  ''ScriptInfo
-  [ ('MintingScript, 0)
-  , ('SpendingScript, 1)
-  , ('RewardingScript, 2)
-  , ('CertifyingScript, 3)
-  , ('VotingScript, 4)
-  , ('ProposingScript, 5)
-  ]
-
-PlutusTx.makeLift ''ScriptContext
-PlutusTx.makeIsDataIndexed ''ScriptContext [('ScriptContext, 0)]
 
 instance Pretty TxInfo where
   pretty TxInfo{..} =

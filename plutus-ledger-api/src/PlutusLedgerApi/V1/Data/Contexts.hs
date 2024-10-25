@@ -71,6 +71,9 @@ data TxInInfo = TxInInfo
     , txInInfoResolved :: TxOut
     } deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
+makeLift ''TxInInfo
+makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
+
 instance Eq TxInInfo where
     TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
 
@@ -86,6 +89,14 @@ data ScriptPurpose
     | Certifying DCert
     deriving stock (Generic, Haskell.Show, Haskell.Eq)
     deriving Pretty via (PrettyShow ScriptPurpose)
+
+makeLift ''ScriptPurpose
+makeIsDataIndexed ''ScriptPurpose
+    [ ('Minting,0)
+    , ('Spending,1)
+    , ('Rewarding,2)
+    , ('Certifying,3)
+    ]
 
 instance Eq ScriptPurpose where
     {-# INLINABLE (==) #-}
@@ -110,6 +121,9 @@ data TxInfo = TxInfo
     , txInfoData        :: [(DatumHash, Datum)] -- ^ The lookup table of datums attached to the transaction
     , txInfoId          :: TxId  -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
     } deriving stock (Generic, Haskell.Show, Haskell.Eq)
+
+makeLift ''TxInfo
+makeIsDataIndexed ''TxInfo [('TxInfo,0)]
 
 instance Eq TxInfo where
     {-# INLINABLE (==) #-}
@@ -137,6 +151,9 @@ data ScriptContext = ScriptContext
     , scriptContextPurpose :: ScriptPurpose -- ^ the purpose of the currently-executing script
     }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
+
+makeLift ''ScriptContext
+makeIsDataIndexed ''ScriptContext [('ScriptContext,0)]
 
 instance Eq ScriptContext where
     {-# INLINABLE (==) #-}
@@ -266,21 +283,3 @@ spendsOutput p h i =
                 && i == txOutRefIdx outRef
 
     in Data.List.any spendsOutRef (txInfoInputs p)
-
-makeLift ''TxInInfo
-makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
-
-makeLift ''TxInfo
-makeIsDataIndexed ''TxInfo [('TxInfo,0)]
-
-
-makeLift ''ScriptPurpose
-makeIsDataIndexed ''ScriptPurpose
-    [ ('Minting,0)
-    , ('Spending,1)
-    , ('Rewarding,2)
-    , ('Certifying,3)
-    ]
-
-makeLift ''ScriptContext
-makeIsDataIndexed ''ScriptContext [('ScriptContext,0)]

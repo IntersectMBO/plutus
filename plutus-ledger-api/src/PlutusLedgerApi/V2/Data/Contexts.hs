@@ -63,6 +63,9 @@ data TxInInfo = TxInInfo
     , txInInfoResolved :: TxOut
     } deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
+makeLift ''TxInInfo
+makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
+
 instance Eq TxInInfo where
     TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
 
@@ -88,6 +91,9 @@ data TxInfo = TxInfo
     , txInfoId              :: TxId  -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
     } deriving stock (Generic, Haskell.Show)
 
+makeLift ''TxInfo
+makeIsDataIndexed ''TxInfo [('TxInfo,0)]
+
 instance Pretty TxInfo where
     pretty TxInfo{txInfoInputs, txInfoReferenceInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoRedeemers, txInfoData, txInfoId} =
         vsep
@@ -111,6 +117,9 @@ data ScriptContext = ScriptContext
     , scriptContextPurpose :: ScriptPurpose -- ^ the purpose of the currently-executing script
     }
     deriving stock (Generic,  Haskell.Show)
+
+makeLift ''ScriptContext
+makeIsDataIndexed ''ScriptContext [('ScriptContext,0)]
 
 instance Pretty ScriptContext where
     pretty ScriptContext{scriptContextTxInfo, scriptContextPurpose} =
@@ -213,12 +222,3 @@ spendsOutput p h i =
                 && i == txOutRefIdx outRef
 
     in Data.List.any spendsOutRef (txInfoInputs p)
-
-makeLift ''TxInInfo
-makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
-
-makeLift ''TxInfo
-makeIsDataIndexed ''TxInfo [('TxInfo,0)]
-
-makeLift ''ScriptContext
-makeIsDataIndexed ''ScriptContext [('ScriptContext,0)]
