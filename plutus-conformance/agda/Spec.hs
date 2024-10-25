@@ -142,7 +142,6 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-25"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-26"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-27"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-20"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-29"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-30"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-31"
