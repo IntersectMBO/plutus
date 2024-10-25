@@ -13,12 +13,13 @@ import PlutusLedgerApi.V1.Data.Value
 import PlutusTx qualified
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Data.AssocMap qualified as Map
+import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
 -- | A very crude deterministic generator for 'ScriptContext's with size
 -- approximately proportional to the input integer.
-mkScriptContext :: Int -> ScriptContext
+mkScriptContext :: Integer -> ScriptContext
 mkScriptContext i =
   ScriptContext
     (mkTxInfo i)
@@ -26,11 +27,11 @@ mkScriptContext i =
     (SpendingScript (TxOutRef (TxId "") 0) Nothing)
 
 
-mkTxInfo :: Int -> TxInfo
+mkTxInfo :: Integer -> TxInfo
 mkTxInfo i = TxInfo {
   txInfoInputs=mempty,
   txInfoReferenceInputs=mempty,
-  txInfoOutputs=fmap mkTxOut [1..i],
+  txInfoOutputs=Data.List.map mkTxOut (Data.List.fromSOP ([1..i] :: [Integer])),
   txInfoFee=10000,
   txInfoMint=mempty,
   txInfoTxCerts=mempty,
@@ -46,7 +47,7 @@ mkTxInfo i = TxInfo {
   txInfoTreasuryDonation=Nothing
   }
 
-mkTxOut :: Int -> TxOut
+mkTxOut :: Integer -> TxOut
 mkTxOut i = TxOut {
   txOutAddress=pubKeyHashAddress (PubKeyHash ""),
   txOutValue=mkValue i,
@@ -54,7 +55,7 @@ mkTxOut i = TxOut {
   txOutReferenceScript=Nothing
   }
 
-mkValue :: Int -> Value
+mkValue :: Integer -> Value
 mkValue i = assetClassValue (assetClass adaSymbol adaToken) (fromIntegral i)
 
 -- This example decodes the script context (which is O(size-of-context) work), and then also
@@ -69,7 +70,7 @@ checkScriptContext1 d =
   let !sc = PlutusTx.unsafeFromBuiltinData d
       ScriptContext txi _ _ = sc
   in
-  if PlutusTx.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
+  if Data.List.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
   then ()
   else PlutusTx.traceError "Odd number of outputs"
 

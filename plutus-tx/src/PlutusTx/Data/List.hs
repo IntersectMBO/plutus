@@ -10,15 +10,22 @@ module PlutusTx.Data.List (
     mapMaybe,
     any,
     foldMap,
+    map,
+    length,
+    fromSOP,
+    toSOP,
 ) where
 
 import PlutusTx.Builtins qualified as B
-import PlutusTx.Builtins.Internal (BuiltinList, mkList, unsafeDataAsList)
+import PlutusTx.Builtins.Internal (BuiltinList)
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData.Class (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.Lift (makeLift)
-import PlutusTx.Prelude hiding (any, filter, find, findIndices, foldMap, mapMaybe, pred)
+import PlutusTx.Prelude hiding (any, filter, find, findIndices, foldMap, length, map, mapMaybe,
+                         pred)
 import Prettyprinter (Pretty (..))
 
+import Data.Semigroup qualified as Haskell
 import Prelude qualified as Haskell
 
 newtype List a = List (BuiltinList BuiltinData)
@@ -34,25 +41,50 @@ instance Eq (List a) where
 
 instance ToData (List a) where
     {-# INLINEABLE toBuiltinData #-}
-    toBuiltinData (List l) = mkList l
+    toBuiltinData (List l) = BI.mkList l
 
 instance FromData (List a) where
     {-# INLINEABLE fromBuiltinData #-}
-    fromBuiltinData = Just . List . unsafeDataAsList
+    fromBuiltinData = Just . List . BI.unsafeDataAsList
 
 instance UnsafeFromData (List a) where
     {-# INLINEABLE unsafeFromBuiltinData #-}
-    unsafeFromBuiltinData = List . unsafeDataAsList
+    unsafeFromBuiltinData = List . BI.unsafeDataAsList
 
 instance (UnsafeFromData a, Pretty a) => Pretty (List a) where
     {-# INLINEABLE pretty #-}
     pretty = pretty . toSOP
+
+append :: List a -> List a -> List a
+append (List l) (List l') = List (go l l')
+  where
+    go xs ys =
+        B.caseList'
+            ys
+            (\h t -> BI.mkCons h (go t ys))
+            xs
+
+instance Semigroup (List a) where
+    (<>) = append
+
+instance Monoid (List a) where
+    mempty = List B.mkNil
+
+instance Haskell.Semigroup  (List a) where
+    (<>) = append
+
+instance Haskell.Monoid (List a) where
+    mempty = List B.mkNil
 
 {-# INLINEABLE toSOP #-}
 toSOP :: (UnsafeFromData a) => List a -> [a]
 toSOP (List l) = go l
   where
     go = B.caseList' [] (\h t -> unsafeFromBuiltinData h : go t)
+
+{-# INLINEABLE fromSOP #-}
+fromSOP :: (ToData a) => [a] -> List a
+fromSOP = List . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData
 
 {-# INLINEABLE find #-}
 find :: (UnsafeFromData a) => (a -> Bool) -> List a -> Maybe a
@@ -126,7 +158,6 @@ any pred (List l) = go l
                 in pred h' || go t
             )
 
--- TODO: implement Foldable instead
 {-# INLINEABLE foldMap #-}
 foldMap :: (UnsafeFromData a, Monoid m) => (a -> m) -> List a -> m
 foldMap f (List l) = go l
@@ -138,5 +169,22 @@ foldMap f (List l) = go l
                 let h' = unsafeFromBuiltinData h
                 in f h' <> go t
             )
+{-# INLINEABLE map #-}
+map :: (UnsafeFromData a, ToData b) => (a -> b) -> List a -> List b
+map f (List l) = List (go l)
+  where
+    go =
+        B.caseList'
+            B.mkNil
+            (\h t -> BI.mkCons (toBuiltinData $ f $ unsafeFromBuiltinData h) (go t))
+
+{-# INLINEABLE length #-}
+length :: List a -> Integer
+length (List l) = go l 0
+  where
+    go =
+        B.caseList'
+            id
+            (\_ t -> B.addInteger 1 . go t)
 
 makeLift ''List
