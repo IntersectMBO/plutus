@@ -58,6 +58,8 @@ import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.V3.Tx qualified as V3
 import PlutusTx qualified
 import PlutusTx.Data.AssocMap
+import PlutusTx.Data.List (List)
+import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio (Rational)
 
@@ -312,7 +314,7 @@ data GovernanceAction
   | NoConfidence (Haskell.Maybe GovernanceActionId)
   | UpdateCommittee
       (Haskell.Maybe GovernanceActionId)
-      [ColdCommitteeCredential] -- ^ Committee members to be removed
+      (List ColdCommitteeCredential) -- ^ Committee members to be removed
       (Map ColdCommitteeCredential Haskell.Integer) -- ^ Committee members to be added
       Rational -- ^ New quorum
   | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
@@ -387,24 +389,24 @@ instance Pretty TxInInfo where
 
 -- | TxInfo for PlutusV3
 data TxInfo = TxInfo
-  { txInfoInputs                :: [TxInInfo]
-  , txInfoReferenceInputs       :: [TxInInfo]
-  , txInfoOutputs               :: [V2.TxOut]
+  { txInfoInputs                :: List TxInInfo
+  , txInfoReferenceInputs       :: List TxInInfo
+  , txInfoOutputs               :: List V2.TxOut
   , txInfoFee                   :: V2.Lovelace
   , txInfoMint                  :: V2.Value
   -- ^ The 'Value' minted by this transaction.
   --
   -- /Invariant:/ This field does not contain Ada with zero quantity, unlike
   -- their namesakes in Plutus V1 and V2's ScriptContexts.
-  , txInfoTxCerts               :: [TxCert]
+  , txInfoTxCerts               :: List TxCert
   , txInfoWdrl                  :: Map V2.Credential V2.Lovelace
   , txInfoValidRange            :: V2.POSIXTimeRange
-  , txInfoSignatories           :: [V2.PubKeyHash]
+  , txInfoSignatories           :: List V2.PubKeyHash
   , txInfoRedeemers             :: Map ScriptPurpose V2.Redeemer
   , txInfoData                  :: Map V2.DatumHash V2.Datum
   , txInfoId                    :: V3.TxId
   , txInfoVotes                 :: Map Voter (Map GovernanceActionId Vote)
-  , txInfoProposalProcedures    :: [ProposalProcedure]
+  , txInfoProposalProcedures    :: List ProposalProcedure
   , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
   , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
   }
@@ -431,7 +433,7 @@ findOwnInput
     { scriptContextTxInfo = TxInfo{txInfoInputs}
     , scriptContextScriptInfo = SpendingScript txOutRef _
     } =
-    PlutusTx.find
+    Data.List.find
       (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== txOutRef)
       txInfoInputs
 findOwnInput _ = Haskell.Nothing
@@ -462,7 +464,7 @@ Note: this only searches the true transaction inputs and not the referenced tran
 -}
 findTxInByTxOutRef :: V3.TxOutRef -> TxInfo -> Haskell.Maybe TxInInfo
 findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
-  PlutusTx.find
+  Data.List.find
     (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== outRef)
     txInfoInputs
 
@@ -475,7 +477,7 @@ findContinuingOutputs :: ScriptContext -> [Haskell.Integer]
 findContinuingOutputs ctx
   | Haskell.Just TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
       findOwnInput ctx =
-      PlutusTx.findIndices
+      Data.List.findIndices
         (f txOutAddress)
         (txInfoOutputs (scriptContextTxInfo ctx))
   where
@@ -491,7 +493,7 @@ getContinuingOutputs :: ScriptContext -> [V2.TxOut]
 getContinuingOutputs ctx
   | Haskell.Just TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
       findOwnInput ctx =
-      PlutusTx.filter (f txOutAddress) (txInfoOutputs (scriptContextTxInfo ctx))
+      Data.List.filter (f txOutAddress) (txInfoOutputs (scriptContextTxInfo ctx))
   where
     f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
 getContinuingOutputs _ = PlutusTx.traceError "Lf" -- "Can't get any continuing outputs"
@@ -500,7 +502,7 @@ getContinuingOutputs _ = PlutusTx.traceError "Lf" -- "Can't get any continuing o
 
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: TxInfo -> V2.PubKeyHash -> Haskell.Bool
-txSignedBy TxInfo{txInfoSignatories} k = case PlutusTx.find ((PlutusTx.==) k) txInfoSignatories of
+txSignedBy TxInfo{txInfoSignatories} k = case Data.List.find ((PlutusTx.==) k) txInfoSignatories of
   Haskell.Just _  -> Haskell.True
   Haskell.Nothing -> Haskell.False
 
@@ -512,7 +514,7 @@ pubKeyOutputsAt pk p =
   let flt V2.TxOut{txOutAddress = V2.Address (V2.PubKeyCredential pk') _, txOutValue}
         | pk PlutusTx.== pk' = Haskell.Just txOutValue
       flt _ = Haskell.Nothing
-   in PlutusTx.mapMaybe flt (txInfoOutputs p)
+   in Data.List.mapMaybe flt (txInfoOutputs p)
 
 {-# INLINEABLE valuePaidTo #-}
 
@@ -525,13 +527,13 @@ valuePaidTo ptx pkh = PlutusTx.mconcat (pubKeyOutputsAt pkh ptx)
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: TxInfo -> V2.Value
 valueSpent =
-  PlutusTx.foldMap (V2.txOutValue PlutusTx.. txInInfoResolved) PlutusTx.. txInfoInputs
+  Data.List.foldMap (V2.txOutValue PlutusTx.. txInInfoResolved) PlutusTx.. txInfoInputs
 
 {-# INLINEABLE valueProduced #-}
 
 -- | Get the total value of outputs produced by this transaction.
 valueProduced :: TxInfo -> V2.Value
-valueProduced = PlutusTx.foldMap V2.txOutValue PlutusTx.. txInfoOutputs
+valueProduced = Data.List.foldMap V2.txOutValue PlutusTx.. txInfoOutputs
 
 {-# INLINEABLE ownCurrencySymbol #-}
 
@@ -554,7 +556,7 @@ spendsOutput txInfo txId i =
         let outRef = txInInfoOutRef inp
          in txId PlutusTx.== V3.txOutRefId outRef
               PlutusTx.&& i PlutusTx.== V3.txOutRefIdx outRef
-   in PlutusTx.any spendsOutRef (txInfoInputs txInfo)
+   in Data.List.any spendsOutRef (txInfoInputs txInfo)
 
 PlutusTx.makeLift ''ColdCommitteeCredential
 PlutusTx.makeLift ''HotCommitteeCredential
