@@ -1,19 +1,4 @@
-(program 1.0.0
- [
-  [
-   (builtin writeBits)
-   [
-    [
-     [
-      (builtin writeBits)
-      (con bytestring #00ff)
-     ]
-     (con (list integer) [10])
-    ]
-    (con bool True)
-   ]
-   (con (list integer) [10])
-  ]
-  (con bool False)
- ]
-)
+(program 1.0.0 [
+  [ [ (builtin writeBits) (con bytestring #00) ] (con (list integer) [6]) ]
+  (con bool True)
+])

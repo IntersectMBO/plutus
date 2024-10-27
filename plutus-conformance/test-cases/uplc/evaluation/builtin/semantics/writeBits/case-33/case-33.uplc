@@ -1,12 +1,4 @@
-(program 1.0.0
- [
-  [
-   [
-    (builtin writeBits)
-    (con bytestring #00000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
-   ]
-   (con (list integer) [340, 342, 343, 343, 342, 340, 340, 343, 342, 340, 340, 340])
-  ]
-  (con bool True)
- ]
-)
+(program 1.0.0 [
+  [ [ (builtin writeBits) (con bytestring #f4ff) ] (con (list integer) [1,10,1,10,1,10,1,10,1,10,1,10,10,10,10,11,11,9]) ]
+  (con bool False)
+])
