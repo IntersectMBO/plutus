@@ -119,14 +119,16 @@ rec {
   };
 
 
+  # TODO this is a bit of a hack, but it's the only way to get the uplc
+  # executable to find the metatheory and the stdandard library.
   shell-hook-exports = ''
     export AGDA_STDLIB_SRC="${agda-stdlib}/src"
-    export PLUTUS_METHATHEORY_SRC="${../plutus-metatheory/src}"
+    export PLUTUS_METHATHEORY_SRC="./plutus-metatheory/src"
   '';
 
 
   wrap-program-args = ''
     --set AGDA_STDLIB_SRC "${agda-stdlib}/src" \
-    --set PLUTUS_METHATHEORY_SRC "${../plutus-metatheory/src}"
+    --set PLUTUS_METHATHEORY_SRC "./plutus-metatheory/src"
   '';
 }
