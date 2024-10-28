@@ -1,4 +1,11 @@
 
+<a id='changelog-1.37.0.0'></a>
+# 1.37.0.0 — 2024-10-28
+
+## Added
+
+- In #6530 added support for pattern matching builtins: `CaseList` and `CaseData`.
+
 <a id='changelog-1.36.0.0'></a>
 # 1.36.0.0 — 2024-10-09
 

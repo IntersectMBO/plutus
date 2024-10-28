@@ -62,7 +62,7 @@ executable pir
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core                      ^>=1.36
+    , plutus-core                      ^>=1.37
     , plutus-core:plutus-core-execlib
     , plutus-core:plutus-ir
     , text
@@ -77,7 +77,7 @@ executable plc
     , bytestring
     , flat                             ^>=0.6
     , optparse-applicative
-    , plutus-core                      ^>=1.36
+    , plutus-core                      ^>=1.37
     , plutus-core:plutus-core-execlib
 
 executable uplc
@@ -93,7 +93,7 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.36
+    , plutus-core                      ^>=1.37
     , plutus-core:plutus-core-execlib
     , plutus-metatheory
     , prettyprinter
@@ -124,7 +124,7 @@ test-suite test-detailed
     , base
     , directory
     , extra
-    , plutus-core        ^>=1.36
+    , plutus-core        ^>=1.37
     , plutus-metatheory
     , process
     , tasty
