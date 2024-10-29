@@ -454,19 +454,6 @@ runDbg (DbgOptions inp ifmt cekModel semvar) = do
     -- nilSlippage is important so as to get correct live up-to-date budget
     cekTrans <- fst <$> D.mkCekTrans cekparams Cek.restrictingEnormous Cek.noEmitter D.nilSlippage
     Repl.runInputT replSettings $
-        -- MAYBE: use cutoff or partialIterT to prevent runaway
-        -- MAYBE: use cutoff or partialIterT to prevent runaway
-        -- MAYBE: use cutoff or partialIterT to prevent runaway
-        -- MAYBE: use cutoff or partialIterT to prevent runaway
-
-        -- MAYBE: use cutoff or partialIterT to prevent runaway
-
-        -- MAYBE: use cutoff or partialIterT to prevent runaway
-
-        -- MAYBE: use cutoff or partialIterT to prevent runaway
-        -- MAYBE: use cutoff or partialIterT to prevent runaway
-
-        -- MAYBE: use cutoff or partialIterT to prevent runaway
         D.iterTM (handleDbg cekTrans) $ D.runDriverT nterm
 
 -- TODO: this is just an example of an optional single breakpoint, decide
