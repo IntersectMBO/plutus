@@ -1,4 +1,6 @@
-module Test where
+-- Do not edit without also changing AgdaUnparse in plutus-executables.
+
+module Certifier where
 
 open import VerifiedCompilation
 open import Untyped

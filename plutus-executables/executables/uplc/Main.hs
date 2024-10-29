@@ -1,21 +1,13 @@
  -- editorconfig-checker-disable
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE LambdaCase                #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE TypeApplications          #-}
-{-# LANGUAGE TypeSynonymInstances      #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# LANGUAGE NamedFieldPuns            #-}
+
 module Main (main) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
 import PlutusCore.Data (Data)
-import PlutusCore.Default (BuiltinSemanticsVariant (..), DSum (..))
+import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -25,7 +17,6 @@ import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
 
-import MAlonzo.Code.VerifiedCompilation qualified as Agda
 import Untyped qualified as AgdaFFI
 
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
@@ -44,7 +35,6 @@ import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
 import Data.ByteString.Lazy as BSL (readFile)
 import Data.Foldable
-import Data.Functor.Identity
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
 import Flat (unflat)
@@ -61,39 +51,17 @@ import System.Console.Haskeline qualified as Repl
 import Agda.Interaction.Base (ComputeMode (DefaultCompute))
 import Agda.Interaction.FindFile qualified as HAgda.File
 import Agda.Interaction.Imports qualified as HAgda.Imp
-import Agda.Interaction.Options (CommandLineOptions (optIncludePaths, optLibraries, optLocalInterfaces),
-                                 defaultOptions)
-import Agda.Syntax.Abstract qualified as HAgda.Abstract
-import Agda.Syntax.Abstract qualified as HAgda.Concrete
-import Agda.Syntax.Common.Pretty qualified as HAgda.Pretty
+import Agda.Interaction.Options (CommandLineOptions (optIncludePaths), defaultOptions)
 import Agda.Syntax.Parser qualified as HAgda.Parser
-import Agda.TypeChecking.Monad.Base (Interface (iModuleName), TCM)
 
-import Agda.Compiler.Backend (Interface (iImportedModules, iModuleName), crInterface, getScope,
-                              getTCState, iInsideScope, iScope, setCommandLineOptions, setScope,
-                              stScope)
+import Agda.Compiler.Backend (crInterface, iInsideScope, setCommandLineOptions, setScope)
 import Agda.Interaction.BasicOps (evalInCurrent)
 import Agda.Main (runTCMPrettyErrors)
-import Agda.Syntax.Concrete.Pretty qualified as Concrete
-import Agda.Syntax.Scope.Base (AbstractModule, AbstractName, ThingsInScope, allNamesInScope)
-import Agda.Syntax.Scope.Monad (getCurrentScope, setCurrentModule)
-import Agda.Syntax.Translation.AbstractToConcrete (ToConcrete (toConcrete))
 import Agda.Syntax.Translation.ConcreteToAbstract (ToAbstract (toAbstract))
 import Agda.TypeChecking.Pretty (PrettyTCM (..))
 import Agda.Utils.FileName qualified as HAgda.File
-import Agda.Utils.Maybe (fromJust)
-import Data.ByteString (ByteString)
-import Data.List (isInfixOf, isSuffixOf)
-import Data.Map.Strict qualified as Map
-import Data.Text (Text)
+import AgdaUnparse (agdaUnparse)
 import Data.Text qualified as Text
-import Data.Traversable (forM)
-import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
-import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
-import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
-import PlutusCore.Data qualified as Data
-import PlutusCore.Default qualified as PLC
-import PlutusPrelude qualified as UPLC
 import System.Environment (getEnv)
 
 uplcHelpText :: String
@@ -313,18 +281,35 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
     UPLC.simplifyProgramWithTrace UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
   writeProgram outp ofmt mode simplified
   runCertifier cert simplificationTrace
-  where
-    runCertifier (Just certName) (SimplifierTrace simplTrace) = do
-      let processAgdaAST Simplification {beforeAST, stage, afterAST} =
-              case (UPLC.deBruijnTerm beforeAST, UPLC.deBruijnTerm afterAST) of
-                (Right before', Right after')             -> (stage, (AgdaFFI.conv (void before'), AgdaFFI.conv (void after')))
-                (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
-                (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
-          rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
-      runAgda certName rawAgdaTrace
-    runCertifier Nothing _ = pure ()
 
-runAgda :: String -> [(SimplifierStage, (AgdaFFI.UTerm, AgdaFFI.UTerm))] -> IO ()
+---------------- Agda certifier ----------------
+
+-- | Run the Agda certifier on the simplification trace, if requested
+runCertifier
+  :: Maybe String
+  -- ^ Should we run the Agda certifier? If so, what should the certificate file be called?
+  -> SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  -- ^ The trace produced by the simplification process
+  -> IO ()
+runCertifier (Just certName) (SimplifierTrace simplTrace) = do
+  let processAgdaAST Simplification {beforeAST, stage, afterAST} =
+          case (UPLC.deBruijnTerm beforeAST, UPLC.deBruijnTerm afterAST) of
+            (Right before', Right after')             ->
+              (stage, (AgdaFFI.conv (void before'), AgdaFFI.conv (void after')))
+            (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
+            (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
+      rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
+  runAgda certName rawAgdaTrace
+runCertifier Nothing _ = pure ()
+
+-- | Run the Agda compiler on the metatheory and evaluate the 'runCertifier' function
+-- on the given trace.
+runAgda
+  :: String
+  -- ^ The name of the certificate file to write
+  -> [(SimplifierStage, (AgdaFFI.UTerm, AgdaFFI.UTerm))]
+  -- ^ The trace produced by the simplification process
+  -> IO ()
 runAgda certName rawTrace = do
   let program = "runCertifier (" ++ agdaUnparse rawTrace ++ ")"
   (parseTraceResult, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser program
@@ -334,15 +319,13 @@ runAgda certName rawTrace = do
           Left err       -> error $ show err
   stdlibPath <- getEnv "AGDA_STDLIB_SRC"
   metatheoryPath <- getEnv "PLUTUS_METHATHEORY_SRC"
-  print stdlibPath
-  print metatheoryPath
-  let inputFile = HAgda.File.AbsolutePath (Text.pack $ metatheoryPath </> "Test.agda") -- "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src/Test.agda"
+  let inputFile = HAgda.File.AbsolutePath (Text.pack $ metatheoryPath </> "Certifier.agda")
   runTCMPrettyErrors $ do
     let opts =
           defaultOptions
             { optIncludePaths =
-                [ metatheoryPath -- "/home/ana/Workspace/IOG/plutus/plutus-metatheory/src"
-                , stdlibPath -- "/nix/store/g9vi7hzrp1cqgm21355549yyqcpkjnxx-standard-library-1.7.3/src"
+                [ metatheoryPath
+                , stdlibPath
                 ]
             }
     setCommandLineOptions opts
@@ -351,129 +334,9 @@ runAgda certName rawTrace = do
         insideScope = iInsideScope interface
     setScope insideScope
     internalisedTrace <- toAbstract parsedTrace
-    intermediate <- prettyTCM internalisedTrace
-    -- liftIO $ writeFile (certName ++ ".agda") (show intermediate)
     decisionProcedureResult <- evalInCurrent DefaultCompute internalisedTrace
     final <- prettyTCM decisionProcedureResult
     liftIO $ writeFile (certName ++ ".agda") (show final)
-
-instance AgdaUnparse AgdaFFI.UTerm where
-  agdaUnparse =
-    \case
-      AgdaFFI.UVar n -> "(UVar " ++ agdaUnparse (fromInteger n :: Natural) ++ ")"
-      AgdaFFI.ULambda term -> "(ULambda " ++ agdaUnparse term ++ ")"
-      AgdaFFI.UApp t u -> "(UApp " ++ agdaUnparse t ++ " " ++ agdaUnparse u ++ ")"
-      AgdaFFI.UCon someValue -> "(UCon " ++ (agdaUnparseValue . mkValueDSum) someValue ++ ")"
-      AgdaFFI.UError -> "UError"
-      AgdaFFI.UBuiltin fun -> "(UBuiltin " ++ agdaUnparse fun ++ ")"
-      AgdaFFI.UDelay term -> "(UDelay " ++ agdaUnparse term ++ ")"
-      AgdaFFI.UForce term -> "(UForce " ++ agdaUnparse term ++ ")"
-      AgdaFFI.UConstr i terms -> "(UConstr " ++ agdaUnparse i ++ " " ++ agdaUnparse terms ++ ")"
-      AgdaFFI.UCase term cases -> "(UCase " ++ agdaUnparse term ++ " " ++ agdaUnparse cases ++ ")"
-
-
-instance AgdaUnparse UPLC.DefaultFun where
-  agdaUnparse = lowerInitialChar . show
-
-class AgdaUnparse a where
-  agdaUnparse :: a -> String
-
-instance AgdaUnparse SimplifierStage where
-  agdaUnparse FloatDelay = "floatDelayT"
-  agdaUnparse ForceDelay = "forceDelayT"
-  agdaUnparse CaseOfCase = "caseOfCaseT"
-  agdaUnparse CaseReduce = "caseReduceT"
-  agdaUnparse Inline     = "inlineT"
-  agdaUnparse CSE        = "cseT"
-
-instance AgdaUnparse Natural where
-  agdaUnparse = show
-
-instance AgdaUnparse Integer where
-  agdaUnparse x = "(ℤ.pos " ++ show x ++ ")"
-
-instance AgdaUnparse Bool where
-  agdaUnparse True  = "true"
-  agdaUnparse False = "false"
-
-instance AgdaUnparse Char where
-  agdaUnparse c = [c]
-instance AgdaUnparse Text where
-  agdaUnparse = T.unpack
-
-instance AgdaUnparse ByteString where
-  agdaUnparse = show  -- maybe this should be encoded some other way
-
-instance AgdaUnparse () where
-  agdaUnparse _ = "tt"
-
-instance AgdaUnparse a => AgdaUnparse [a] where
-  agdaUnparse l = "(" ++ foldr (\x xs -> agdaUnparse x ++ " ∷ " ++ xs) "[]" l ++ ")"
-
-instance (AgdaUnparse a, AgdaUnparse b) => AgdaUnparse (a, b) where
-  agdaUnparse (x, y) = "(" ++ agdaUnparse x ++ " , " ++ agdaUnparse y ++ ")"
-
-instance AgdaUnparse Data where
-  agdaUnparse (Data.Constr i args) =
-    "(ConstrDATA" ++ " " ++ agdaUnparse i ++ " " ++ agdaUnparse args ++ ")"
-  agdaUnparse (Data.Map assocList) =
-    "(MapDATA" ++ " " ++ agdaUnparse assocList ++ ")"
-  agdaUnparse (Data.List xs) =
-    "(ListDATA" ++ " " ++ agdaUnparse xs ++ ")"
-  agdaUnparse (Data.I i) =
-    "(iDATA" ++ " " ++ agdaUnparse i ++ ")"
-  agdaUnparse (Data.B b) =
-    "(bDATA" ++ " " ++ agdaUnparse b ++ ")"
-
-instance AgdaUnparse BLS12_381.G1.Element where
-  agdaUnparse = show
-
-instance AgdaUnparse BLS12_381.G2.Element where
-  agdaUnparse = show
-
-instance AgdaUnparse BLS12_381.Pairing.MlResult where
-  agdaUnparse = show
-
-agdaUnparseValue :: DSum (PLC.ValueOf UPLC.DefaultUni) Identity -> String
-agdaUnparseValue dSum =
-  "(tagCon " ++
-    case dSum of
-      PLC.ValueOf PLC.DefaultUniInteger _ :=> Identity val ->
-        "integer " ++ agdaUnparse val
-      PLC.ValueOf PLC.DefaultUniByteString _ :=> Identity val ->
-        "bytestring " ++ agdaUnparse val
-      PLC.ValueOf PLC.DefaultUniString _ :=> Identity val ->
-        "string " ++ agdaUnparse val
-      PLC.ValueOf PLC.DefaultUniBool _ :=> Identity val ->
-        "bool " ++ agdaUnparse val
-      PLC.ValueOf PLC.DefaultUniUnit _ :=> Identity _ ->
-        "unit " ++ agdaUnparse ()
-      PLC.ValueOf PLC.DefaultUniData _ :=> Identity val ->
-        "pdata " ++ agdaUnparse val
-      PLC.ValueOf (PLC.DefaultUniList elemType) _ :=> Identity val ->
-        "list " ++ agdaUnparseDList elemType val
-      PLC.ValueOf (PLC.DefaultUniPair type1 type2) _ :=> Identity val ->
-        "pair " ++ agdaUnparseDPair type1 type2 val
-      PLC.ValueOf PLC.DefaultUniBLS12_381_G1_Element _ :=> Identity val ->
-        "bls12-381-g1-element " ++  agdaUnparse val
-      PLC.ValueOf PLC.DefaultUniBLS12_381_G2_Element _ :=> Identity val ->
-        "bls12-381-g2-element " ++  agdaUnparse val
-      PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult _ :=> Identity val ->
-        "bls12-381-mlresult " ++ agdaUnparse val
-      _ -> error "BUG: agdaUnparseValue: unexpected value"
-  ++ ")"
-  where
-    agdaUnparseDList elemType xs =
-      let xs' :: [DSum (PLC.ValueOf PLC.DefaultUni) Identity]
-          xs' = mkValueDSum . PLC.Some . PLC.ValueOf elemType <$> xs
-        in agdaUnparse $ agdaUnparseValue <$> xs'
-    agdaUnparseDPair type1 type2 (x, y) =
-      let x' = mkValueDSum $ PLC.Some $ PLC.ValueOf type1 x
-          y' = mkValueDSum $ PLC.Some $ PLC.ValueOf type2 y
-        in agdaUnparse (agdaUnparseValue x', agdaUnparseValue y')
-
-mkValueDSum :: PLC.Some (PLC.ValueOf UPLC.DefaultUni) -> DSum (PLC.ValueOf UPLC.DefaultUni) Identity
-mkValueDSum (PLC.Some valueOf@(PLC.ValueOf _ a)) = valueOf :=> Identity a
 
 ---------------- Script application ----------------
 
