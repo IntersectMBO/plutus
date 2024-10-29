@@ -28,7 +28,7 @@ import PlutusCore.Test (ToUPlc (toUPlc), goldenUEvalLogs)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Plugin (plc)
-import PlutusTx.Test (goldenPir)
+import PlutusTx.Test (goldenPirReadable)
 
 import Data.Functor.Identity
 import Data.Proxy (Proxy (Proxy))
@@ -38,7 +38,7 @@ profiling :: TestNested
 profiling =
   testNested "Profiling" . pure $ do
     testNestedGhc
-      [ goldenPir "fib" fibTest
+      [ goldenPirReadable "fib" fibTest
       , goldenUEvalLogs
           "fib4"
           [ toUPlc fibTest
@@ -49,7 +49,7 @@ profiling =
           [ toUPlc factTest
           , toUPlc $ plc (Proxy @"4") (4 :: Integer)
           ]
-      , goldenPir "addInt" addIntTest
+      , goldenPirReadable "addInt" addIntTest
       , goldenUEvalLogs
           "addInt3"
           [ toUPlc addIntTest
@@ -73,7 +73,7 @@ profiling =
           [ toUPlc letRecInFunTest
           , toUPlc $ plc (Proxy @"3") (3 :: Integer)
           ]
-      , goldenPir "idCode" idTest
+      , goldenPirReadable "idCode" idTest
       , goldenUEvalLogs "id" [toUPlc idTest]
       , goldenUEvalLogs "swap" [toUPlc swapTest]
       , goldenUEvalLogs

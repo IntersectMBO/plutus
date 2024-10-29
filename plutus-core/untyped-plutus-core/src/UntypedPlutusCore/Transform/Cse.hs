@@ -11,6 +11,8 @@ import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
 import UntypedPlutusCore.Size (termSize)
+import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CSE), SimplifierT,
+                                               recordSimplification)
 
 import Control.Arrow ((>>>))
 import Control.Lens (foldrOf, transformOf)
@@ -215,7 +217,7 @@ cse ::
   ) =>
   BuiltinSemanticsVariant fun ->
   Term Name uni fun ann ->
-  m (Term Name uni fun ann)
+  SimplifierT Name uni fun ann m (Term Name uni fun ann)
 cse builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t
@@ -229,7 +231,9 @@ cse builtinSemanticsVariant t0 = do
           . join
           . Map.elems
           $ countOccs builtinSemanticsVariant annotated
-  mkCseTerm commonSubexprs annotated
+  result <- mkCseTerm commonSubexprs annotated
+  recordSimplification t0 CSE result
+  return result
 
 -- | The second pass. See Note [CSE].
 annotate :: Term name uni fun ann -> Term name uni fun (Path, ann)

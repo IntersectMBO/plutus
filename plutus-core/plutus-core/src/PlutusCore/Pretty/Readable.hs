@@ -272,3 +272,11 @@ iterInterAppPrettyM fun args =
     let ppArg (Left ty)    = prettyArg $ inBraces ty
         ppArg (Right term) = prettyArg term
     in prettyFun fun :| map ppArg args
+
+-- | Pretty-print something with the @PrettyConfigReadable@ config.
+prettyReadable :: (PrettyReadable a) => a -> Doc ann
+prettyReadable = prettyBy (botPrettyConfigReadable prettyConfigName def)
+
+-- | Pretty-print something with the @PrettyConfigReadableSimple@ config.
+prettyReadableSimple :: (PrettyReadable a) => a -> Doc ann
+prettyReadableSimple = prettyBy (botPrettyConfigReadable prettyConfigNameSimple def)

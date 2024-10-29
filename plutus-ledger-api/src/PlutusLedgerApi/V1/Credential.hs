@@ -26,6 +26,7 @@ import PlutusTx qualified
 import PlutusTx.Blueprint (HasBlueprintDefinition, definitionRef)
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
+import PlutusTx.Show (deriveShow)
 import Prettyprinter (Pretty (..), (<+>))
 
 -- | Staking credential used to assign rewards.
@@ -83,7 +84,10 @@ instance PlutusTx.Eq Credential where
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------
 
-$(PlutusTx.makeIsDataSchemaIndexed ''Credential [('PubKeyCredential, 0), ('ScriptCredential, 1)])
-$(PlutusTx.makeIsDataSchemaIndexed ''StakingCredential [('StakingHash, 0), ('StakingPtr, 1)])
-$(PlutusTx.makeLift ''Credential)
-$(PlutusTx.makeLift ''StakingCredential)
+PlutusTx.makeIsDataSchemaIndexed ''Credential [('PubKeyCredential, 0), ('ScriptCredential, 1)]
+PlutusTx.makeIsDataSchemaIndexed ''StakingCredential [('StakingHash, 0), ('StakingPtr, 1)]
+PlutusTx.makeLift ''Credential
+PlutusTx.makeLift ''StakingCredential
+
+deriveShow ''Credential
+deriveShow ''StakingCredential

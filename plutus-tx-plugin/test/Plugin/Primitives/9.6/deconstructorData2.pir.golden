@@ -1,127 +1,111 @@
-program
-  1.1.0
-  (let
-    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-      Tuple2 : a -> b -> Tuple2 a b
-    ~`$fFunctorTuple2_$cfmap` : all c a b. (a -> b) -> Tuple2 c a -> Tuple2 c b
-      = /\c a b ->
-          \(f : a -> b) ->
-            let
-              !f : a -> b = f
-            in
-            \(ds : Tuple2 c a) ->
-              Tuple2_match
-                {c}
-                {a}
-                ds
-                {Tuple2 c b}
-                (\(c : c) (a : a) -> Tuple2 {c} {b} c (f a))
-    ~`$fFunctorTuple2` :
-       all c. (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) (Tuple2 c)
-      = `$fFunctorTuple2_$cfmap`
-  in
-  letrec
-    data (List :: * -> *) a | List_match where
-      Nil : List a
-      Cons : a -> List a -> List a
-  in
-  let
-    ~`$fFunctorList_$cfmap` : all a b. (a -> b) -> List a -> List b
-      = /\a b ->
-          \(f : a -> b) ->
-            let
-              !f : a -> b = f
-            in
-            letrec
-              ~go : List a -> List b
-                = \(ds : List a) ->
-                    List_match
-                      {a}
-                      ds
-                      {all dead. List b}
-                      (/\dead -> Nil {b})
-                      (\(x : a) (xs : List a) ->
-                         /\dead -> Cons {b} (f x) (go xs))
-                      {all dead. dead}
-            in
-            \(eta : List a) -> go eta
-    ~`$fFunctorList` : (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) List
-      = `$fFunctorList_$cfmap`
-    ~`.` : all b c a. (b -> c) -> (a -> b) -> a -> c
-      = /\b c a -> \(f : b -> c) (g : a -> b) (x : a) -> f (g x)
-    ~fmap :
-       all (f :: * -> *).
-         (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) f ->
-         (all a b. (a -> b) -> f a -> f b)
-      = /\(f :: * -> *) ->
-          \(v : (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) f) -> v
-    ~`$fHasFromOpaqueBuiltinDataBuiltinData_$cfromOpaque` : data -> data
-      = \(eta : data) -> eta
-    !chooseList : all a b. list a -> b -> b -> b = chooseList
-    !head : all a. list a -> a = headList
-    !tail : all a. list a -> list a = tailList
-    !unitval : unit = ()
-    ~`$fHasFromOpaqueBuiltinListList_$cfromOpaque` :
-       all arep a. (\arep a -> arep -> a) arep a -> list arep -> List a
-      = /\arep a ->
-          \(`$dHasFromOpaque` : (\arep a -> arep -> a) arep a) ->
-            letrec
-              ~go : list arep -> List a
-                = \(l : list arep) ->
-                    let
-                      !l : list arep = l
-                    in
-                    chooseList
-                      {arep}
-                      {unit -> List a}
-                      l
-                      (\(ds : unit) -> Nil {a})
-                      (\(ds : unit) ->
-                         Cons
-                           {a}
-                           (`$dHasFromOpaque` (head {arep} l))
-                           (go (tail {arep} l)))
-                      unitval
-            in
-            \(eta : list arep) -> go eta
-    !fst : all a b. pair a b -> a = fstPair
-    !snd : all a b. pair a b -> b = sndPair
-    !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
-    ~unsafeDataAsConstr : data -> Tuple2 integer (List data)
-      = \(d : data) ->
+let
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+  ~`$fFunctorTuple2_$cfmap` : all c a b. (a -> b) -> Tuple2 c a -> Tuple2 c b
+    = /\c a b ->
+        \(f : a -> b) ->
           let
-            !d : data = d
-            !p : pair integer (list data) = unsafeDataAsConstr d
+            !f : a -> b = f
           in
-          Tuple2
-            {integer}
-            {List data}
-            (fst {integer} {list data} p)
-            (let
-              !a : list data = snd {integer} {list data} p
-            in
-            `$fHasFromOpaqueBuiltinListList_$cfromOpaque`
-              {data}
-              {data}
-              `$fHasFromOpaqueBuiltinDataBuiltinData_$cfromOpaque`
-              a)
-    !unsafeDataAsI : data -> integer = unIData
-    ~unsafeDataAsI : data -> integer
-      = \(d : data) -> let !d : data = d in unsafeDataAsI d
+          \(ds : Tuple2 c a) ->
+            Tuple2_match
+              {c}
+              {a}
+              ds
+              {Tuple2 c b}
+              (\(c : c) (a : a) -> Tuple2 {c} {b} c (f a))
+  ~`$fFunctorTuple2` :
+     all c. (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) (Tuple2 c)
+    = `$fFunctorTuple2_$cfmap`
+in
+letrec
+  data (List :: * -> *) a | List_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+let
+  ~`$fFunctorList_$cfmap` : all a b. (a -> b) -> List a -> List b
+    = /\a b ->
+        \(f : a -> b) ->
+          let
+            !f : a -> b = f
+          in
+          letrec
+            ~go : List a -> List b
+              = \(ds : List a) ->
+                  List_match
+                    {a}
+                    ds
+                    {all dead. List b}
+                    (/\dead -> Nil {b})
+                    (\(x : a) (xs : List a) -> /\dead -> Cons {b} (f x) (go xs))
+                    {all dead. dead}
+          in
+          \(eta : List a) -> go eta
+  ~`$fFunctorList` : (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) List
+    = `$fFunctorList_$cfmap`
+  ~`.` : all b c a. (b -> c) -> (a -> b) -> a -> c
+    = /\b c a -> \(f : b -> c) (g : a -> b) (x : a) -> f (g x)
+  ~fmap :
+     all (f :: * -> *).
+       (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) f ->
+       (all a b. (a -> b) -> f a -> f b)
+    = /\(f :: * -> *) ->
+        \(v : (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) f) -> v
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r = caseList
+in
+letrec
+  ~caseData_go : list data -> List data
+    = caseList'
+        {data}
+        {List data}
+        (Nil {data})
+        (\(x : data) ->
+           let
+             !x : data = x
+           in
+           \(xs : list data) ->
+             let
+               !xs : list data = xs
+             in
+             Cons {data} x (caseData_go xs))
+in
+let
+  !fst : all a b. pair a b -> a = fstPair
+  !snd : all a b. pair a b -> b = sndPair
+  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
+  ~unsafeDataAsConstr : data -> Tuple2 integer (List data)
+    = \(d : data) ->
+        let
+          !d : data = d
+          !p : pair integer (list data) = unsafeDataAsConstr d
+        in
+        Tuple2
+          {integer}
+          {List data}
+          (fst {integer} {list data} p)
+          (let
+            !f : list data -> List data = caseData_go
+            !a : list data = snd {integer} {list data} p
+          in
+          f a)
+  !unsafeDataAsI : data -> integer = unIData
+  ~unsafeDataAsI : data -> integer
+    = \(d : data) -> let !d : data = d in unsafeDataAsI d
+in
+\(ds : data) ->
+  let
+    !ds : data = ds
   in
-  \(ds : data) ->
-    let
-      !ds : data = ds
-    in
-    `.`
-      {List data -> List integer}
-      {Tuple2 integer (List data) -> Tuple2 integer (List integer)}
-      {data -> integer}
-      (fmap
-         {Tuple2 integer}
-         (`$fFunctorTuple2` {integer})
-         {List data}
-         {List integer})
-      (fmap {List} `$fFunctorList` {data} {integer})
-      unsafeDataAsI
-      (unsafeDataAsConstr ds))
+  `.`
+    {List data -> List integer}
+    {Tuple2 integer (List data) -> Tuple2 integer (List integer)}
+    {data -> integer}
+    (fmap
+       {Tuple2 integer}
+       (`$fFunctorTuple2` {integer})
+       {List data}
+       {List integer})
+    (fmap {List} `$fFunctorList` {data} {integer})
+    unsafeDataAsI
+    (unsafeDataAsConstr ds)

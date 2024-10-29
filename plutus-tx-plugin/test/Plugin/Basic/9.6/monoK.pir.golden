@@ -1,3 +1,1 @@
-program
-  1.1.0
-  (\(ds : integer) -> let !ds : integer = ds in \(ds : integer) -> ds)
+\(ds : integer) -> let !ds : integer = ds in \(ds : integer) -> ds

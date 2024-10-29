@@ -71,8 +71,8 @@ library
   -- other-extensions:
   build-depends:
     , base         >=4.9   && <5
-    , plutus-core  ^>=1.34
-    , plutus-tx    ^>=1.34
+    , plutus-core  ^>=1.36
+    , plutus-tx    ^>=1.36
     , text
 
   hs-source-dirs:   testlib

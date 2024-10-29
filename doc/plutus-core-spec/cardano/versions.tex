@@ -44,7 +44,7 @@ There are currently three ``Plutus'' ledger languages (i.e. ledger languages who
 \begin{enumerate}
   \item \LL{PlutusV1}
   \item \LL{PlutusV2}
-  \item \LL{PlutusV3} (forthcoming)
+  \item \LL{PlutusV3}
 \end{enumerate}
 
 \noindent Table~\ref{table:ll-introduction} shows when each Plutus ledger language was introduced.
@@ -67,7 +67,7 @@ Ledger languages remain available permanently after they have been introduced.
 
 \noindent Ledger languages can evolve over time.
 We can make backwards-compatible changes when the major protocol version changes, but backwards-incompatible changes can only be introduced by creating a whole new ledger language.\footnote{
-  See~\cite{CIP-35} for more details on how the process of evolution works.
+  See~\cite{CIP-0035} for more details on how the process of evolution works.
 }
 This means that to fully explain the behaviour of a ledger language we may need to also index by the protocol version.
 
@@ -106,7 +106,7 @@ Hence the tables are simplified to only show when something is \emph{introduced}
         \LL{PlutusV2} & 7.0 & Batch 2 \\
         \LL{PlutusV2} & 8.0 & Batch 3 \\
         \LL{PlutusV3} & 9.0 & Batch 4 \\
-        \LL{??} & ?? & Batch X \\
+        \LL{PlutusV3} & 10.0 & Batch 5 \\
         \hline
     \end{tabular}
     \caption{Introduction of built-in functions and types}

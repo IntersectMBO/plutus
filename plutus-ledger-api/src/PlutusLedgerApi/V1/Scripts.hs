@@ -4,6 +4,7 @@
 {-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -38,6 +39,7 @@ import PlutusTx.Blueprint.Schema (Schema (..), emptyBytesSchema)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..), emptySchemaInfo)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal as BI
+import PlutusTx.Show (deriveShow)
 import Prettyprinter (Pretty)
 
 {- Note [Serialise instances for Datum and Redeemer]
@@ -165,8 +167,14 @@ newtype Context = Context BuiltinData
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------
 
-$(makeLift ''ScriptHash)
-$(makeLift ''DatumHash)
-$(makeLift ''RedeemerHash)
-$(makeLift ''Datum)
-$(makeLift ''Redeemer)
+makeLift ''ScriptHash
+makeLift ''DatumHash
+makeLift ''RedeemerHash
+makeLift ''Datum
+makeLift ''Redeemer
+
+deriveShow ''ScriptHash
+deriveShow ''DatumHash
+deriveShow ''RedeemerHash
+deriveShow ''Datum
+deriveShow ''Redeemer
