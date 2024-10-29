@@ -46,11 +46,11 @@ let
       description = "Multi-currency paper";
     };
 
-    # plutus-core-spec-old = build-latex-doc {
-    #   name = "plutus-core-spec-old";
-    #   description = "Plutus core specification (old version)";
-    #   src = inputs.self + /doc/plutus-core-spec-old;
-    # };
+    plutus-core-spec-old = build-latex-doc {
+      name = "plutus-core-spec-old";
+      description = "Plutus core specification (old version)";
+      src = inputs.self + /doc/plutus-core-spec-old;
+    };
 
     plutus-core-spec = build-latex-doc {
       name = "plutus-core-spec";
