@@ -1,19 +1,19 @@
 % I tried resetting the note number from V1-builtins here, but that made
 % some hyperlinks wrong.  To get note numbers starting at one in each section, I
 % think we have to define a new counter every time.
-\newcounter{notenumberE}
+\newcounter{notenumberF}
 \renewcommand{\note}[1]{
   \bigskip
-  \refstepcounter{notenumberE}
-  \noindent\textbf{Note \thenotenumberE. #1}
+  \refstepcounter{notenumberF}
+  \noindent\textbf{Note \thenotenumberF. #1}
 }
 
-\subsection{Batch X}
-\label{sec:default-builtins-X}
+\subsection{Batch 6}
+\label{sec:default-builtins-6}
 
 \subsubsection{Built-in functions}
-\label{sec:built-in-functions-X}
-The Xth batch of builtin operations is defined in Table~\ref{table:built-in-functions-X}.
+\label{sec:built-in-functions-6}
+The 6th batch of builtin operations is defined in Table~\ref{table:built-in-functions-6}.
 
 \setlength{\LTleft}{2mm}  % Shift the table right a bit to centre it on the page
 \begin{longtable}[H]{|l|p{67mm}|p{18mm}|c|c|}
@@ -28,10 +28,10 @@ The Xth batch of builtin operations is defined in Table~\ref{table:built-in-func
     \hline
     \endhead
     \hline
-    \caption{Built-in Functions}
+    \caption{Built-in functions, batch 6}
     \endfoot
-    \caption[]{Built-in Functions}
-    \label{table:built-in-functions-X}
+    \caption[]{Built-in functions, batch 6}
+    \label{table:built-in-functions-6}
     \endlastfoot
     \TT{expModInteger}        & $[\ty{integer}, \ty{integer}, $ \text{$\;\; \ty{integer}] \to \ty{integer}$}
         & $ b^e (\modfn m)$  & Yes & \ref{note:exp-mod-integer}\\
