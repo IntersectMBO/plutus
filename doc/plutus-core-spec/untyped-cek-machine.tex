@@ -39,7 +39,7 @@ to apply a variable to some other term).
        &&& | \enspace \VConstr{i}{\repetition{V}} \enspace | \enspace \VBuiltin{b}{\repetition{V}}{\eta}\\
     \textrm{Environment} & \rho & ::= & [] \enspace | \enspace \rho[x \mapsto V] \\
     \textrm{Expected builtin arguments} & \eta & ::= & [\iota] \enspace | \enspace \iota \cons \eta\\
-    \end{array}\] 
+    \end{array}\]
     \caption{Grammar of CEK machine states for Plutus Core}
     \label{fig:untyped-cek-states}
 \end{figure}%
@@ -72,7 +72,7 @@ to apply a variable to some other term).
   \in \Fun$.  This means that we can never have an empty $\eta$ in
   $\VBuiltin{b}{\repetition{V}}{\eta}$, which isn't entirely obvious.
   We'll have to revisit this if we ever have nullary builtins.}
-  
+
 \kwxm{Do we need to insist that CEK-values are well-formed, for example that
   there are enough variables in the environments to yield closed terms and that
   in $\VBuiltin{b}{\repetition{V}}{\eta}$ $\eta$ is a suffix of $\arity{b}$?
@@ -205,7 +205,7 @@ rightmost (ie, the most recent) bindings in the environment first.
 
 \begin{figure}[H]
   \centering
-  
+
   \begin{subfigure}[b]{\textwidth}
     \begin{align*}
       \unload{\VCon{\tn}{c}} &= \con{\tn}{c}\\
@@ -227,7 +227,7 @@ rightmost (ie, the most recent) bindings in the environment first.
     \caption{Discharging CEK values}
     \label{fig:discharge-val}
   \end{subfigure}
-  
+
   \begin{subfigure}[c]{\textwidth}
     \begin{align*}
       \Unload{\rho}{M} &= [(\unload{V_1})/x_1]\cdots[(\unload{V_n})/x_n]M \quad
@@ -236,7 +236,7 @@ rightmost (ie, the most recent) bindings in the environment first.
     \caption{Iterated substitution/discharging}
     \label{fig:discharge-env}
   \end{subfigure}
-  
+
   \caption{Discharging CEK values to obtain Plutus Core terms}
   \label{fig:discharge-cek-val}
 \end{figure}%

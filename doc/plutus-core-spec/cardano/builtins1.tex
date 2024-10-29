@@ -160,10 +160,10 @@ the various `$\inj$' functions defined earlier.  Some valid \texttt{data}
 constants are
 
 \begin{verbatim}
-   (con data (Constr 1 [(I 2), (B #), (Map [])]) 
-   (con data (Map [((I 0), (B #00)), ((I 1), (B #0F))])) 
-   (con data (List [(I 0), (I 1), (B #7FFF), (List []]))) 
-   (con data (I -22)) 
+   (con data (Constr 1 [(I 2), (B #), (Map [])])
+   (con data (Map [((I 0), (B #00)), ((I 1), (B #0F))]))
+   (con data (List [(I 0), (I 1), (B #7FFF), (List []])))
+   (con data (I -22))
    (con data (B #001A)).
 \end{verbatim}
 % TODO: be more relaxed about parenthesisation in general
@@ -300,7 +300,7 @@ it applies at each possible monomorphisation in an obvious way.
     \TT{mkPairData}               & $[\ty{data}, \ty{data}]$ \text{\;\; $\to \pairOf{\ty{data}}{\ty{data}}$}  & $(x,y) \mapsto (x,y) $ & No & \\[2mm]
     \TT{mkNilData}                & $[\ty{unit}] \to \listOf{\ty{data}} $                       & $() \mapsto []$ & No & \\[2mm]
     \TT{mkNilPairData}            & $[\ty{unit}] $ \text{$\;\; \to \listOf{\pairOf{\ty{data}}{\ty{data}}} $}   & $() \mapsto []$ & No & \\[2mm]
-    \hline 
+    \hline
 \end{longtable}
 
 \kwxm{Maybe try \texttt{tabulararray} to see what sort of output that gives for the big table.}
@@ -439,7 +439,7 @@ We use a uniform interface for digital signature verification algorithms. A
 digital signature verification function takes three bytestring arguments (in the
 given order):
 \begin{itemize}
-  \item a public key $\vk$ (in this context $\vk$ is also known as a \textit{verification key}) 
+  \item a public key $\vk$ (in this context $\vk$ is also known as a \textit{verification key})
   \item a message $m$
   \item a signature  $s$.
 \end{itemize}

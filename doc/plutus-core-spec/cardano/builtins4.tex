@@ -94,7 +94,7 @@ by the functions $\itobsLE: \Z \times \Z \rightarrow \withError{\B^*}$ and $\ito
 the case $n=0$:
 
 $$
-\itobsLE (w,n) = \itobsBE (w,n) = 
+\itobsLE (w,n) = \itobsBE (w,n) =
 \begin{cases}
   \errorX & \text{if $n<0$ or $n \geq 2^{65536}$}\\
   \errorX & \text{if $w<0$ or $w > 8192$}\\
@@ -144,7 +144,7 @@ integers.  It takes two arguments:
 \item A boolean endianness flag $e$.
 \item The bytestring $s$ to be converted.
 \end{itemize}
-\noindent  
+\noindent
 The conversion is little-endian if $e$ is \texttt{(con bool False)} and
 big-endian if $e$ is \texttt{(con bool True)}. In both cases the empty bytestring is
 converted to the integer 0. All bytestrings are legal inputs and there is no
@@ -184,11 +184,11 @@ types.
 \end{table}
 
 %% \paragraph{$G_1$ and $G_2$}.
-\noindent Here $G_1$ and  $G_2$ are both additive cyclic groups of prime order $r$, where 
+\noindent Here $G_1$ and  $G_2$ are both additive cyclic groups of prime order $r$, where
 $$
 r = \mathtt{0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001}.
 $$
-        
+
 \paragraph{The fields $\Fq$ and $\Fqq$.}
 \noindent To define the groups $G_1$ and $G_2$ we need the finite field $\Fq$ where
 \begin{align*}
@@ -294,7 +294,7 @@ this.
     \TT{bls12\_381\_G1\_uncompress}  &
     $[ \ty{bytestring}]$
       \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $\uncompress_{G_1}$  &  Yes & \ref{note:group-uncompression}\\[2mm]
-    \hline 
+    \hline
 %% G2
     \TT{bls12\_381\_G2\_add}  &
     $[ \ty{bls12\_381\_G2\_element}$,
@@ -319,7 +319,7 @@ this.
     \TT{bls12\_381\_G2\_uncompress}  &
     $[ \ty{bytestring}]$
       \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $\uncompress_{G_2}$  &  Yes & \ref{note:group-uncompression}\\[2mm]
-    \hline 
+    \hline
     \TT{bls12\_381\_millerLoop}  &
     $[ \ty{bls12\_381\_G1\_element}$,
       \text{\; $\ty{bls12\_381\_G2\_element} ]$}
@@ -359,7 +359,7 @@ second argument to the appropriate \texttt{hashToGroup} function.
 \newcommand{\ymin}{y_{\text{min}}}
 \newcommand{\ymax}{y_{\text{max}}}
 
-\note{Compression for elements of $G_1$ and $G_2$.} 
+\note{Compression for elements of $G_1$ and $G_2$.}
 \label{note:group-compression}
 Points in $G_1$ and $G_2$ are encoded as bytestrings in a ``compressed'' format
 where only the $x$-coordinate of a point is encoded and some metadata is used to
@@ -397,9 +397,9 @@ $$
 \noindent Thus in all cases the encoding of an element of $G_1$ requires exactly 384 bits,
 or 48 bytes.
 
-\medskip 
+\medskip
 
-\noindent 
+\noindent
 \begin{itemize}
 \item Similarly, every non-identity element of $G_2$ can be written
 in the form $(x,y)$ with $x,y \in \Fqq$.  We define
@@ -427,7 +427,7 @@ Zcash also supports a serialisation format where both the $x$- and
 $y$-coordinates of a point are encoded, and in that case the leading bit of the
 encoded point is 0.  We do not support this format.
 
-\note{Uncompression for elements of $G_1$ and $G_2$.} 
+\note{Uncompression for elements of $G_1$ and $G_2$.}
 \label{note:group-uncompression}
 There are two (partial) ``uncompression'' functions $\uncompress_{G_1}$ and
 $\uncompress_{G_2}$ which convert bytestrings into group elements; these are

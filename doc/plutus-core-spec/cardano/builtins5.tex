@@ -91,10 +91,10 @@ extending the usual single-bit logical operations $\wedge$, $\vee$, and $\oplus$
 bytestrings have different lengths.
 
 \begin{itemize}
-\item If the first argument of one of the bitwise logical operations is $\false$ 
+\item If the first argument of one of the bitwise logical operations is $\false$
 then the longer bytestring is (conceptually) truncated on the right to have the
 same length as the shorter one.
-\item If the first argument is $\true$ 
+\item If the first argument is $\true$
 then the shorter bytestring is (conceptually) extended on the right to have the
 same length as the longer one.  In the case of $\Xand$ the shorter bytestring is
 extended with $\bitzero$ bits and in the case of $\Xor$ and $\Xxor$ it is
@@ -123,7 +123,7 @@ representations of bytestrings as follows, where $b$ is a bitstring of length $m
 is a bitstring of length $n$:
 
 \begin{align*}
-\Xand\,(\false, b, c) &= d_{l-1} \cdots d_0 
+\Xand\,(\false, b, c) &= d_{l-1} \cdots d_0
 \quad \text{where $l=\min\{m,n\}$ and $d_i = \trunc\,(b,m-l)_i \wedge \trunc\,(c,n-l)_i$}\\
 \Xand\,(\true, b, c) &= d_{l-1} \cdots d_0
 \quad \text{where $l=\max\{m,n\}$ and $d_i = \ext\,(b,l-m,\bitone)_i \wedge \ext\,(c,l-n,\bitone)_i$}
@@ -132,14 +132,14 @@ is a bitstring of length $n$:
 \begin{align*}
 \Xor\,(\false, b, c) &= d_{l-1} \cdots d_0
   \quad \text{where $l=\min\{m,n\}$ and $d_i = \trunc\,(b,m-l)_i \vee \trunc\,(c,n-l)_i$}\\
-\Xor\,(\true, b, c) &= d_{l-1} \cdots d_0 
+\Xor\,(\true, b, c) &= d_{l-1} \cdots d_0
 \quad \text{where $l=\max\{m,n\}$ and $d_i = \ext\,(b,l-m,\bitzero)_i \vee \ext\,(c,l-n,\bitzero)_i$}
 \end{align*}
 %
 \begin{align*}
 \Xxor\,(\false, b, c) &= d_{l-1} \cdots d_0
   \quad \text{where $l=\min\{m,n\}$ and $d_i = \trunc\,(b,m-l)_i \oplus \trunc\,(c,n-l)_i$}\\
-\Xxor\,(\true, b, c) &= d_{l-1} \cdots d_0 
+\Xxor\,(\true, b, c) &= d_{l-1} \cdots d_0
 \quad \text{where $l=\max\{m,n\}$ and $d_i = \ext\,(b,l-m,\bitzero)_i \oplus \ext\,(c,l-n,\bitzero)_i$}.
 \end{align*}
 
@@ -173,7 +173,7 @@ The \texttt{rotateByteString} builtin takes a bytestring $s$ and an integer $k$
 and rotates the bits of $s$ $k$ places to the left if $k \geq 0$ and $k$ places
 to the right if $k < 0$.  The length of the output bytestring is the same as
 that of the input.  The denotation of
-\texttt{rotateByteString} (defined on the bitstring representation of $s$) is 
+\texttt{rotateByteString} (defined on the bitstring representation of $s$) is
 
 $$
 \mathsf{rotate}\,(b_{n-1} \cdots b_0, k) = d_{n-1}\cdots d_0 \quad\text{where $d_i = b_{(i-k)\bmod n}$}.
@@ -206,9 +206,9 @@ for \textsf{false}, $\bitone$ for \textsf{true}).  The list $J$ is allowed to
 contain repetitions.
 
 \smallskip
-\noindent Formally, 
+\noindent Formally,
 $$
-\mathsf{writeBits}(b_{n-1}{\cdots}b_0, [j_0, \ldots, j_{l-1}], u) = 
+\mathsf{writeBits}(b_{n-1}{\cdots}b_0, [j_0, \ldots, j_{l-1}], u) =
 \begin{cases}
 \errorX & \text{if $\exists k \in \{0, \ldots, l-1\}$ such that $j_k < 0$ or $j_k \geq n$} \\
 d_{n-1}{\cdots}d_0 & \text{otherwise}
