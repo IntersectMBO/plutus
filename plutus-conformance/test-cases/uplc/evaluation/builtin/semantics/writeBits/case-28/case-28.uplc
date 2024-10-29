@@ -1,4 +1,4 @@
 (program 1.0.0 [
-  [ [ (builtin writeBits) (con bytestring #ff) ] (con (list integer) [0]) ]
-  (con (list bool) [True])
+  [ [ (builtin writeBits) (con bytestring #00) ] (con (list integer) [8]) ]
+  (con bool True)
 ])

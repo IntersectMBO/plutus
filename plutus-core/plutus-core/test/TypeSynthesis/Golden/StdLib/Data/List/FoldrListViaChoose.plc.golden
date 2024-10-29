@@ -1,0 +1,1 @@
+all a r. (a -> r -> r) -> r -> list a -> r

@@ -75,7 +75,7 @@ PLUTUS_VERSION="$(find ${BUILD_CONTENTS}/plutus-core-* -printf '%f\n' -quit | se
 
 GIT_REV="$(git rev-parse HEAD)"
 
-GIT_REV_SHORT="$(git rev-parse --short HEAD)"
+GIT_REV_SHORT="$(git rev-parse --short HEAD | cut -c 1-7)"
 
 
 # Here we merge each package's internal libraries into a single folder, for example:
@@ -226,8 +226,57 @@ time linkchecker "${OUTPUT_DIR}/index.html" \
   --no-warnings \
   --output failures \
   --file-output text 
-
-
 if [[ "$?" != "0" ]]; then 
   echo "Found broken or unreachable 'href=' links in the files above (also see ./linkchecker-out.txt)"
 fi 
+
+
+# Add a <select> element into the prologue for navigating to other haddock versions.
+echo "Injecting additional prologue html"
+
+list-valid-plutus-versions() {
+  git fetch --tags --force
+  local versions="$(git tag | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | sort -rV | uniq | tr ' ' '\n')"
+  local min_ver="1.30.0.0"
+  echo master 
+  echo latest
+  for ver in $versions; do
+    if [[ "$(echo -ne "$ver\n$min_ver" | sort -V | head -n 1 | tr -d '\n')" == "$min_ver" ]]; then
+      echo "$ver"  
+    fi
+  done
+}
+
+inject-text-at-char() {
+  local file="$1"
+  local char="$2"
+  local text="$3"
+  cat <<EOF > "$file"
+$(cut -c 1-$char "$file")
+$(echo -n "$text")
+$(cut -c $((char+1))- "$file")
+EOF
+}
+
+build-version-select-html() {
+  html+='<p>Select another plutus version: '
+  html+='<select name="page" onchange="window.location.href = this.value;">'
+  for version in $(list-valid-plutus-versions); do
+    if [[ "$version" == "$PLUTUS_VERSION" ]]; then
+      html+='<option selected'
+    else 
+      html+='<option'
+    fi 
+    html+=" value=\"https://plutus.cardano.intersectmbo.org/haddock/$version/\">$version</option>"
+  done
+  html+="</select></p>"
+  echo "$html"
+}
+
+SELECT_ELEM_POSITION_IN_INDEX_HTML=1463
+
+inject-text-at-char "$OUTPUT_DIR/index.html" $SELECT_ELEM_POSITION_IN_INDEX_HTML "$(build-version-select-html)"
+
+
+
+

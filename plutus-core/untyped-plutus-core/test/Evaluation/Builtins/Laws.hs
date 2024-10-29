@@ -69,7 +69,7 @@ getSet =
     let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
           mkConstant @ByteString () bs,
           mkConstant @[Integer] () [i],
-          mkConstant @[Bool] () [b]
+          mkConstant @Bool () b
           ]
     evaluatesToConstant bs lhs
 
@@ -84,7 +84,7 @@ setGet =
     let lhsInner = mkIterAppNoAnn (builtin () PLC.WriteBits) [
           mkConstant @ByteString () bs,
           mkConstant @[Integer] () [i],
-          mkConstant @[Bool] () [b]
+          mkConstant @Bool () b
           ]
     let lhs = mkIterAppNoAnn (builtin () PLC.ReadBit) [
           lhsInner,
@@ -100,60 +100,69 @@ setSet =
     i <- forAllIndexOf bs
     b1 <- forAll Gen.bool
     b2 <- forAll Gen.bool
-    let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
+    let lhsInner = mkIterAppNoAnn (builtin () PLC.WriteBits) [
           mkConstant @ByteString () bs,
           mkConstant @[Integer] () [i, i],
-          mkConstant @[Bool] () [b1, b2]
+          mkConstant @Bool () b1
+          ]
+    let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
+          lhsInner,
+          mkConstant @[Integer] () [i, i],
+          mkConstant @Bool () b2
           ]
     let rhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
           mkConstant @ByteString () bs,
           mkConstant @[Integer] () [i],
-          mkConstant @[Bool] () [b2]
+          mkConstant @Bool () b2
           ]
     evaluateTheSame lhs rhs
 
 -- | Checks that:
 --
--- * Writing with an empty changelist does nothing; and
--- * If you write with one changelist, then a second, it is the same as
---   writing with their concatenation.
+-- * Writing with an empty list of positions does nothing; and if you write a
+-- * boolean b with one list of positions, then a second, it is the same as
+-- * writing b with their concatenation.
 writeBitsHomomorphismLaws :: TestTree
 writeBitsHomomorphismLaws =
   testGroup "homomorphism to lists" [
-    testPropertyNamed "identity -> []" "write_bits_h_1" $
-      mapTestLimitAtLeast 99 (`div` 20) identityProp,
-    testPropertyNamed "composition -> concatenation" "write_bits_h_2" $
-      mapTestLimitAtLeast 50 (`div` 20) compositionProp
+    testPropertyNamed "identity -> []" "write_bits_h_1_false" $
+      mapTestLimitAtLeast 99 (`div` 20) (identityProp False),
+    testPropertyNamed "identity -> []" "write_bits_h_1_true" $
+      mapTestLimitAtLeast 99 (`div` 20) (identityProp True),
+    testPropertyNamed "composition -> concatenation" "write_bits_h_2_false" $
+      mapTestLimitAtLeast 50 (`div` 20) (compositionProp False),
+    testPropertyNamed "composition -> concatenation" "write_bits_h_2_true" $
+      mapTestLimitAtLeast 50 (`div` 20) (compositionProp True)
     ]
     where
-      identityProp :: Property
-      identityProp = property $ do
+      identityProp :: Bool -> Property
+      identityProp b = property $ do
         bs <- forAllByteString 1 512
         let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
               mkConstant @ByteString () bs,
               mkConstant @[Integer] () [],
-              mkConstant @[Bool] () []
+              mkConstant @Bool () b
               ]
         evaluatesToConstant bs lhs
-      compositionProp :: Property
-      compositionProp = property $ do
+      compositionProp :: Bool -> Property
+      compositionProp b = property $ do
         bs <- forAllByteString 1 512
-        (ixes1, bits1) <- forAllChangelistsOf bs
-        (ixes2, bits2) <- forAllChangelistsOf bs
+        ixes1 <- forAllListsOfIndices bs
+        ixes2 <- forAllListsOfIndices bs
         let lhsInner = mkIterAppNoAnn (builtin () PLC.WriteBits) [
               mkConstant @ByteString () bs,
               mkConstant @[Integer] () ixes1,
-              mkConstant @[Bool] () bits1
+              mkConstant @Bool () b
               ]
         let lhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
               lhsInner,
               mkConstant @[Integer] () ixes2,
-              mkConstant @[Bool] () bits2
+              mkConstant @Bool () b
               ]
         let rhs = mkIterAppNoAnn (builtin () PLC.WriteBits) [
               mkConstant @ByteString () bs,
               mkConstant @[Integer] () (ixes1 <> ixes2),
-              mkConstant @[Bool] () (bits1 <> bits2)
+              mkConstant @Bool () b
               ]
         evaluateTheSame lhs rhs
 
@@ -479,12 +488,11 @@ unitProp f isPadding unit = property $ do
 forAllIndexOf :: ByteString -> PropertyT IO Integer
 forAllIndexOf bs = forAll . Gen.integral . Range.linear 0 . fromIntegral $ BS.length bs * 8 - 1
 
-forAllChangelistsOf :: ByteString -> PropertyT IO ([Integer], [Bool])
-forAllChangelistsOf bs = do
+forAllListsOfIndices :: ByteString -> PropertyT IO [Integer]
+forAllListsOfIndices bs = do
   ourLen :: Int <- forAll . Gen.integral . Range.linear 0 $ 8 * len - 1
   ixes <- forAll . Gen.list (Range.singleton ourLen) $ genIndex
-  bits <- forAll . Gen.list (Range.singleton ourLen) $ Gen.bool
-  pure (ixes, bits)
+  pure ixes
   where
     len :: Int
     len = BS.length bs

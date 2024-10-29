@@ -28,16 +28,16 @@ import Data.Proxy
 
 typeclasses :: TestNested
 typeclasses = testNested "Typeclasses" . pure $ testNestedGhc
-  [ goldenPir "sizedBasic" sizedBasic
-  , goldenPir "sizedPair" sizedPair
-  , goldenPir "multiFunction" multiFunction
-  , goldenPir "defaultMethods" defaultMethods
-  , goldenPir "partialApplication" partialApplication
-  , goldenPir "sequenceTest" sequenceTest
-  , goldenPir "compareTest" compareTest
-  , goldenPir "concatTest" concatTest
-  , goldenPir "sumTest" sumTest
-  , goldenPir "fmapDefaultTest" fmapDefaultTest
+  [ goldenPirReadable "sizedBasic" sizedBasic
+  , goldenPirReadable "sizedPair" sizedPair
+  , goldenPirReadable "multiFunction" multiFunction
+  , goldenPirReadable "defaultMethods" defaultMethods
+  , goldenPirReadable "partialApplication" partialApplication
+  , goldenPirReadable "sequenceTest" sequenceTest
+  , goldenPirReadable "compareTest" compareTest
+  , goldenPirReadable "concatTest" concatTest
+  , goldenPirReadable "sumTest" sumTest
+  , goldenPirReadable "fmapDefaultTest" fmapDefaultTest
   ]
 
 class Sized a where
@@ -80,7 +80,7 @@ instance PersonLike Alien where
 multiFunction :: CompiledCode (Person -> Bool)
 multiFunction = plc (Proxy @"multiFunction") (
     let
-        {-# NOINLINE predicate #-}
+        {-# OPAQUE predicate #-}
         predicate :: (PersonLike p) => p -> Bool
         predicate p = likesAnimal p Cat P.&& (age p `Builtins.lessThanInteger` 30)
     in \(p::Person) -> predicate p)
@@ -88,7 +88,7 @@ multiFunction = plc (Proxy @"multiFunction") (
 defaultMethods :: CompiledCode (Integer -> Integer)
 defaultMethods = plc (Proxy @"defaultMethods") (
     let
-        {-# NOINLINE f #-}
+        {-# OPAQUE f #-}
         f :: (DefaultMethods a) => a -> Integer
         f a = method2 a
     in \(a::Integer) -> f a)

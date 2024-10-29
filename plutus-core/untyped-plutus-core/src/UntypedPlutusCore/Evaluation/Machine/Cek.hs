@@ -10,8 +10,8 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , evaluateCek
     , evaluateCekNoEmit
     , EvaluationResult(..)
-    , extractEvaluationResult
-    , unsafeToEvaluationResult
+    , splitStructuralOperational
+    , unsafeSplitStructuralOperational
     -- * Errors
     , CekUserError(..)
     , ErrorWithCause(..)

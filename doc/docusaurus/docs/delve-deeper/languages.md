@@ -1,5 +1,5 @@
 ---
-sidebar_position: 38
+sidebar_position: 1
 ---
 
 # Overview of Languages Compiling to UPLC
@@ -24,19 +24,28 @@ A standalone DSL is a new language with its own syntax and semantics.
 By crafting a new language from scratch, you avoid inheriting the limitations and complexities of existing languages, allowing you to tailor-make it to be as simple, intuitive and elegant as possible to program for the specific domain it targets.
 
 On the other hand, standalone DSLs have some disadvantages.
-First, designing and implementing them can be challenging.
-Not only must the syntax and semantics be created from scratch, but you also need to build all necessary compiler components, tooling, and a library ecosystem from the ground up.
-This can be a formidable task, as developing, testing, and maintaining compilers and tooling, along with establishing and maintining a library ecosystem, require substantial efforts, particularly with the addition of new language features over time.
+First, from the language developer’s perspective, designing and implementing them can be challenging.
+Not only must the syntax and semantics be created from scratch, but you also need to build all necessary compiler components, tooling, documentation, and a library ecosystem from the ground up.
 
-Second, users will need to adopt a new programming language and incorporate it into their existing tech stacks.
+This can be a formidable task, requiring substantial efforts, particularly with the addition of new language features over time.
+Creating adequate documentation, in particular, can be especially challenging for standalone DSLs, and is a challenge that is easy to overlook.
+Given the limited amount of external learning resources, the official documentation often becomes the primary, if not sole, source of knowledge.
+As a result, it needs to be thorough, detailed, and clearly written to provide a positive learning experience for users.
+
+Second, from the user's perspective, they will need to adopt a new programming language and incorporate it into their existing tech stacks.
 This can present a considerable challenge, as it involves a learning curve, increased cognitive load, and the necessity to introduce and manage additional tools.
+Additional languages mean additional complexity.
+
+In general, it's highly advantageous for a software development team to minimize the number of languages they use, as this not only reduces complexity but strengthens the network effect of programming languages.
+Learning a new DSL is harder than you might think - even a relatively simple one with a "fluent syntax", due to the scarcity of learning resources, and the potential irrelevance of previous experience.
+Furthermore, the knowledge learned may not transfer well.
 
 ## Embedded DSLs
 
 An embedded DSL (commonly referred to as an eDSL) generally takes the form of a library in a host programming language.
 Functional languages such as Haskell are particularly well-suited for hosting eDSLs, as the implementation of an eDSL largely involves functions that construct and transform abstract syntax trees (ASTs).
 
-Embedded DSLs can be much easier than standlone DSLs to develop, and to integrate into projects that already use the host language.
+Embedded DSLs can be much easier than standalone DSLs to develop, and to integrate into projects that already use the host language.
 Embedded DSLs, however, come with the drawback that the complexity of constructing and manipulating ASTs are exposed to the users.
 When using an embedded DSL, you are essentially writing programs that create and manage ASTs, rather than straightforward code.
 
@@ -49,6 +58,9 @@ Like standalone DSLs, this also introduces additional learning curves and cognit
 Another disadvantage of eDSLs is that it is harder, compared to the other two approaches, to produce readable target code or accurate source mappings for debuggers.
 This stems from the nature of eDSLs, which are libraries that construct and manipulate ASTs.
 Since they do not have direct access to the host language's ASTs, it can be challenging to retrieve information related to the source code, such as variable names, module names and code locations.
+
+Lastly, eDSLs often cannot leverage the host language's existing library ecosystem.
+Again, using an eDSL involves constructing and manipulating ASTs rather than writing regular programs, which means many existing libraries would be inapplicable.
 
 The eDSLs described above fall under the category of "deep embedding".
 There's another category of eDSLs, called "shallow embedding", which, unlikely deep embedding, does not construct intermediate ASTs.

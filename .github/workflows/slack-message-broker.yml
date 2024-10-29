@@ -1,12 +1,14 @@
-# This workflow is triggered whenever any of the workflows listed in on.workflow_run.workflows 
-# has been cancelled or has failed, and will send a message to the plutus-ci channel.
+# This workflow sends a message to the plutus-ci channel whenever a status check fails, 
+# and tried to notify the author of the commit that caused the failure.
 
 name: "📮 Slack Message Broker"
 
 on:
+  check_run:
+    types: [completed]
   workflow_run:
-    types: [completed, requested, in_progress]
     workflows: 
+      - "🔗 Broken Links"
       - "🗽 Cardano Constitution Tests"
       - "💰 Cost Model Benchmark"
       - "🦕 Docusaurus Site" 
@@ -15,6 +17,7 @@ on:
       - "🔮 Metatheory Site"
       - "🌘 Nightly Testsuite"
       - "📝 Papers & Specs"
+      - "🏛️ PlutusTx Template"
 
 jobs:
   Send:
@@ -23,34 +26,99 @@ jobs:
       - name: Prepare Slack Message
         uses: actions/github-script@main
         id: prepare-slack-message
+        if: > 
+          (github.event_name == 'workflow_run' && !github.event.workflow_run.pull_requests[0].draft) || 
+          (github.event_name == 'check_run' && !github.event.check_run.check_suite.pull_requests[0].draft)
         with:
           script: | 
-            const name = "${{ github.event.workflow_run.name }}";
-            const url = "${{ github.event.workflow_run.html_url }}";
-            const status = "${{ github.event.workflow_run.status }}";
-            const conclusion = "${{ github.event.workflow_run.conclusion }}";
-            const failure_conclusions = [ "failure", "null", "cancelled", "action_required", "neutral", "timed_out" ];
-            let message = "";
-            if (conclusion == "") {
-              message = `${name} \`${status}\` ⏳ <${url}|View Logs>`;
-            } 
-            else if (conclusion == "success") {
-              message = `${name} \`${conclusion}\` ✅ <${url}|View Logs>`;
-            } 
-            else if (conclusion == "skipped") {
-              message = `${name} \`${conclusion}\` ⏩ <${url}|View Logs>`;
-            } 
-            else if (failure_conclusions.includes(conclusion)) {
-              message = `${name} \`${conclusion}\` ❌ <${url}|View Logs> @channel`;
-            } 
-            else {
-              message = `${name} \`${conclusion}\` ⁉️ <${url}|View Logs> Unknown Conclusion @channel`;
+            console.log(${{ toJson(github.event) }});
+
+
+            function getSlackMemberToBeNotified() {
+              const senderLogin = "${{ github.event.sender.login }}";
+              const slackMemberIds = {
+                "zeme-wana": "U03HGDNDRKR",
+                "effectfully": "UBH8K0ZU2",
+                "kwxm": "UCF4SL4BT",
+                "Unisay": "U02V796524S",
+                "ramsay-t": "U05T49F9FV1",
+                "ana-pantilie": "U05V2854W86",
+                "zliu41": "U03BP2HTKDK",
+                "bezirg": "UQ1LUSR8B",
+                "erikd": "U914V9D2B"
+              };
+              if (senderLogin in slackMemberIds) {
+                return `<@${slackMemberIds[senderLogin]}>`;
+              } else {
+                return "@{senderLogin}";
+              }
             }
-            console.log(message);
+
+
+            let message = "";
+            let shouldSendMessage = false;
+            let slackMember = getSlackMemberToBeNotified();
+            
+         
+            function handleWorkflowRunEvent() {
+              const name = "${{ github.event.workflow_run.name }}";
+              const url = "${{ github.event.workflow_run.html_url }}";
+              const status = "${{ github.event.workflow_run.status }}";
+              const conclusion = "${{ github.event.workflow_run.conclusion }}";
+              const failureConclusions = [ "failure", "null", "action_required", "neutral", "timed_out" ];
+
+              if (failureConclusions.includes(conclusion)) {
+                message = `❌ ${name} \`${conclusion}\` <${url}|View Logs> ${slackMember}`;
+                shouldSendMessage = true;
+              } else {
+                message = `${name} \`${status}\` \`${conclusion}\` <${url}|View Logs> ${slackMember}`;
+                shouldSendMessage = false;
+              }
+            }
+
+
+            function handleCheckRunEvent() {
+              const name = "${{ github.event.check_run.name }}";
+              const status = "${{ github.event.check_run.status }}";
+              const conclusion = "${{ github.event.check_run.conclusion }}";
+              const url = "${{ github.event.check_run.html_url }}";
+
+              const checkRunWatchlist = [
+                "ci/hydra-build:aarch64-darwin.required",
+                "ci/hydra-build:x86_64-darwin.required",
+                "ci/hydra-build:x86_64-linux.required",
+                "ci/eval"
+              ];
+
+              if (conclusion == "failure" && checkRunWatchlist.includes(name)) {
+                message = `❌ ${name} \`${conclusion}\` <${url}|View Logs> ${slackMember}`;
+                shouldSendMessage = true;
+              } else {
+                message = `${name} \`${status}\` \`${conclusion}\` <${url}|View Logs> ${slackMember}`;
+                shouldSendMessage = false;
+              }
+            }
+
+
+            if ("${{ github.event_name }}" == "workflow_run") {
+              handleWorkflowRunEvent();
+            } else if ("${{ github.event_name }}" == "check_run") {
+              handleCheckRunEvent();
+            } else {
+              message = `Unknown event: ${{ github.event_name }}`;
+              shouldSendMessage = true;
+            }
+
+            console.log(`message:  ${message}`);
+            console.log(`shouldSendMessage:  ${shouldSendMessage}`);
+
             core.setOutput("message", message); 
+            core.setOutput("shouldSendMessage", shouldSendMessage); 
+
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v1.27.0
+        if: ${{ steps.prepare-slack-message.outputs.shouldSendMessage == 'true' }}
         env:
             SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
         with:
@@ -68,5 +136,6 @@ jobs:
                 }
               ]
             }
+
 
 

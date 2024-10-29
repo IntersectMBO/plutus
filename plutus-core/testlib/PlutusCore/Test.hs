@@ -193,7 +193,7 @@ instance
   toUPlc =
     pure
       . TPLC.runQuote
-      . TPLC.evalCompile TPLC.defaultCompilationOpts
+      . flip runReaderT TPLC.defaultCompilationOpts
       . TPLC.compileProgram
 
 instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where
@@ -227,7 +227,7 @@ runTPlc values = do
         foldl1
           (unsafeFromRight .* TPLC.applyProgram)
           ps
-  liftEither . first toException . TPLC.extractEvaluationResult $
+  liftEither . first toException . TPLC.splitStructuralOperational $
     TPLC.evaluateCkNoEmit TPLC.defaultBuiltinsRuntimeForTesting t
 
 -- | An evaluation failure plus the final budget and logs.

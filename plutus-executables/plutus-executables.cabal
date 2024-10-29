@@ -55,14 +55,16 @@ executable pir
   main-is:        pir/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , base                                                       >=4.9   && <5
+    , base                             >=4.9   && <5
     , bytestring
     , cassava
     , containers
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib, plutus-ir}  ^>=1.34
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-execlib
+    , plutus-core:plutus-ir
     , text
     , transformers
 
@@ -71,26 +73,28 @@ executable plc
   main-is:        plc/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                             >=4.9   && <5
     , bytestring
-    , flat                                            ^>=0.6
+    , flat                             ^>=0.6
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.34
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-execlib
 
 executable uplc
   import:         lang, os-support
   main-is:        uplc/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                             >=4.9   && <5
     , bytestring
     , criterion
     , deepseq
-    , flat                                            ^>=0.6
+    , flat                             ^>=0.6
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.34
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-execlib
     , plutus-metatheory
     , prettyprinter
     , split
@@ -120,7 +124,7 @@ test-suite test-detailed
     , base
     , directory
     , extra
-    , plutus-core        ^>=1.34
+    , plutus-core        ^>=1.36
     , plutus-metatheory
     , process
     , tasty

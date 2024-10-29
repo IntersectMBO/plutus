@@ -46,6 +46,7 @@ import PlutusCore.StdLib.Data.Data
 import PlutusCore.StdLib.Data.Function qualified as Plc
 import PlutusCore.StdLib.Data.Integer
 import PlutusCore.StdLib.Data.List qualified as Builtin
+import PlutusCore.StdLib.Data.MatchOption
 import PlutusCore.StdLib.Data.Pair
 import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.ScottUnit qualified as Scott
@@ -260,7 +261,7 @@ test_ScottToMetaUnit =
         let runtime = mkMachineParameters def $ CostModel defaultCekMachineCostsForTesting ()
         -- @scottToMetaUnit Scott.map@ is ill-typed, but still runs successfully, since the builtin
         -- doesn't look at the argument.
-        unsafeToEvaluationResult (evaluateCekNoEmit runtime (eraseTerm $ applyTerm Scott.map)) @?=
+        unsafeSplitStructuralOperational (evaluateCekNoEmit runtime (eraseTerm $ applyTerm Scott.map)) @?=
             res
 
 -- | Test that an exception thrown in the builtin application code does not get caught in the CEK
@@ -328,33 +329,38 @@ test_ExpensivePlus =
 -- | Test that @Null@, @Head@ and @Tail@ are enough to get pattern matching on built-in lists.
 test_BuiltinList :: TestTree
 test_BuiltinList =
-    testCase "BuiltinList" $ do
-        let xs  = [1..10]
-            res = mkConstant @Integer @DefaultUni () $ foldr (-) 0 xs
-            term
-                = mkIterAppNoAnn (mkIterInstNoAnn Builtin.foldrList [integer, integer])
-                    [ Builtin () SubtractInteger
-                    , mkConstant @Integer () 0
-                    , mkConstant @[Integer] () xs
-                    ]
-        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?= Right (EvaluationSuccess res)
+    testGroup "BuiltinList" $ enumerate <&> \optMatch ->
+        testCase (show optMatch) $ do
+            let xs  = [1..10]
+                res = mkConstant @Integer @DefaultUni () $ foldr (-) 0 xs
+                term
+                    = mkIterAppNoAnn
+                        (mkIterInstNoAnn (Builtin.foldrList optMatch) [integer, integer])
+                        [ Builtin () SubtractInteger
+                        , mkConstant @Integer () 0
+                        , mkConstant @[Integer] () xs
+                        ]
+            typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
+                Right (EvaluationSuccess res)
 
 -- | Test that right-folding a built-in list with built-in 'Cons' recreates that list.
 test_IdBuiltinList :: TestTree
 test_IdBuiltinList =
-    testCase "IdBuiltinList" $ do
-        let xsTerm :: TermLike term tyname name DefaultUni DefaultFunExt => term ()
-            xsTerm = mkConstant @[Integer] () [1..10]
-            listOfInteger = mkTyBuiltin @_ @[Integer] ()
-            term
-                = mkIterAppNoAnn
-                    (mkIterInstNoAnn (mapFun Left Builtin.foldrList) [integer, listOfInteger])
-                    [ tyInst () (builtin () $ Left MkCons) integer
-                    , mkConstant @[Integer] () []
-                    , xsTerm
-                    ]
-        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?=
-            Right (EvaluationSuccess xsTerm)
+    testGroup "IdBuiltinList" $ enumerate <&> \optMatch ->
+        testCase (show optMatch) $ do
+            let xsTerm :: TermLike term tyname name DefaultUni DefaultFunExt => term ()
+                xsTerm = mkConstant @[Integer] () [1..10]
+                listOfInteger = mkTyBuiltin @_ @[Integer] ()
+                term
+                    = mkIterAppNoAnn
+                        (mkIterInstNoAnn (mapFun Left $ Builtin.foldrList optMatch)
+                            [integer, listOfInteger])
+                        [ tyInst () (builtin () $ Left MkCons) integer
+                        , mkConstant @[Integer] () []
+                        , xsTerm
+                        ]
+            typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?=
+                Right (EvaluationSuccess xsTerm)
 
 test_BuiltinPair :: TestTree
 test_BuiltinPair =
@@ -376,56 +382,59 @@ test_BuiltinPair =
 
 test_SwapEls :: TestTree
 test_SwapEls =
-    testCase "SwapEls" $ do
-        let xs = zip [1..10] $ cycle [False, True]
-            res = mkConstant @Integer @DefaultUni () $
-                    foldr (\p r -> r + (if snd p then -1 else 1) * fst p) 0 xs
-            el = mkTyBuiltin @_ @(Integer, Bool) ()
-            instProj p = mkIterInstNoAnn (builtin () p) [integer, bool]
-            fun = runQuote $ do
-                    p <- freshName "p"
-                    r <- freshName "r"
-                    return
-                        . lamAbs () p el
-                        . lamAbs () r integer
-                        $ mkIterAppNoAnn (builtin () AddInteger)
-                            [ Var () r
-                            , mkIterAppNoAnn (builtin () MultiplyInteger)
-                                [ mkIterAppNoAnn (tyInst () (builtin () IfThenElse) integer)
-                                    [ apply () (instProj SndPair) $ Var () p
-                                    , mkConstant @Integer () (-1)
-                                    , mkConstant @Integer () 1
+    testGroup "SwapEls" $ enumerate <&> \optMatch ->
+        testCase (show optMatch) $ do
+            let xs = zip [1..10] $ cycle [False, True]
+                res = mkConstant @Integer @DefaultUni () $
+                        foldr (\p r -> r + (if snd p then -1 else 1) * fst p) 0 xs
+                el = mkTyBuiltin @_ @(Integer, Bool) ()
+                instProj p = mkIterInstNoAnn (builtin () p) [integer, bool]
+                fun = runQuote $ do
+                        p <- freshName "p"
+                        r <- freshName "r"
+                        return
+                            . lamAbs () p el
+                            . lamAbs () r integer
+                            $ mkIterAppNoAnn (builtin () AddInteger)
+                                [ Var () r
+                                , mkIterAppNoAnn (builtin () MultiplyInteger)
+                                    [ mkIterAppNoAnn (tyInst () (builtin () IfThenElse) integer)
+                                        [ apply () (instProj SndPair) $ Var () p
+                                        , mkConstant @Integer () (-1)
+                                        , mkConstant @Integer () 1
+                                        ]
+                                    , apply () (instProj FstPair) $ Var () p
                                     ]
-                                , apply () (instProj FstPair) $ Var () p
                                 ]
-                            ]
-            term
-                = mkIterAppNoAnn (mkIterInstNoAnn Builtin.foldrList [el, integer])
-                    [ fun
-                    , mkConstant @Integer () 0
-                    , mkConstant () xs
-                    ]
-        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
-          Right (EvaluationSuccess res)
+                term
+                    = mkIterAppNoAnn (mkIterInstNoAnn (Builtin.foldrList optMatch) [el, integer])
+                        [ fun
+                        , mkConstant @Integer () 0
+                        , mkConstant () xs
+                        ]
+            typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
+              Right (EvaluationSuccess res)
 
 -- | Test that right-folding a built-in 'Data' with the constructors of 'Data' recreates the
 -- original value.
 test_IdBuiltinData :: TestTree
 test_IdBuiltinData =
-    testCase "IdBuiltinData" $ do
-        let dTerm :: TermLike term tyname name DefaultUni fun => term ()
-            dTerm = mkConstant @Data () $ Map [(I 42, Constr 4 [List [B "abc", Constr 2 []], I 0])]
-            emb = builtin () . Left
-            term = mkIterAppNoAnn ofoldrData
-                [ emb ConstrData
-                , emb MapData
-                , emb ListData
-                , emb IData
-                , emb BData
-                , dTerm
-                ]
-        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?=
-            Right (EvaluationSuccess dTerm)
+    testGroup "IdBuiltinData" $ enumerate <&> \optMatch ->
+        testCase (show optMatch) $ do
+            let dTerm :: TermLike term tyname name DefaultUni fun => term ()
+                dTerm = mkConstant @Data () $
+                    Map [(I 42, Constr 4 [List [B "abc", Constr 2 []], I 0])]
+                emb = builtin () . Left
+                term = mkIterAppNoAnn (ofoldrData optMatch)
+                    [ emb ConstrData
+                    , emb MapData
+                    , emb ListData
+                    , emb IData
+                    , emb BData
+                    , dTerm
+                    ]
+            typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?=
+                Right (EvaluationSuccess dTerm)
 
 -- | For testing how an evaluator instantiated at a particular 'ExBudgetMode' handles the
 -- 'TrackCosts' builtin.
@@ -489,7 +498,7 @@ test_SerialiseDataImpossible =
             dataLoop = Apply () (Builtin () SerialiseData) $ mkConstant () loop where
                 loop = List [loop]
             budgetMode = restricting . ExRestrictingBudget $ ExBudget 10000000000 10000000
-            evalRestricting params = unsafeToEvaluationResult . fst . runCekNoEmit params budgetMode
+            evalRestricting params = unsafeSplitStructuralOperational . fst . runCekNoEmit params budgetMode
         typecheckAnd def evalRestricting defaultBuiltinCostModelForTesting dataLoop @?=
             Right EvaluationFailure
 
@@ -645,6 +654,41 @@ test_String = testNestedM "String" $ do
     fails "indexByteString-out-of-bounds-empty" IndexByteString []
         [cons @ByteString "", cons @Integer 0]
 
+test_MatchList :: MatchOption -> TestNested
+test_MatchList optMatch = testNestedM "MatchList" $ do
+    let -- the null function that utilizes the ChooseList builtin (through the matchList helper
+        -- function)
+        nullViaMatch :: [Integer] -> Term TyName Name DefaultUni DefaultFun ()
+        nullViaMatch l =
+            mkIterAppNoAnn
+                (tyInst ()
+                    (apply () (tyInst () (Builtin.matchList optMatch) integer) $ cons l)
+                    bool)
+                [ -- zero
+                  true
+                  -- cons
+                , runQuote $ do
+                        a1 <- freshName "a1"
+                        a2 <- freshName "a2"
+                        pure
+                            . lamAbs () a1 integer
+                            . lamAbs () a2 (TyApp () Builtin.list integer)
+                            $ false
+                ]
+
+    embed . testCase "nullViaMatch []" $
+        Right (EvaluationSuccess true) @=?
+            typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting
+                (nullViaMatch [])
+    embed . testCase "nullViaMatch [1]" $
+        Right (EvaluationSuccess false) @=?
+            typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting
+                (nullViaMatch [1])
+    embed . testCase "nullViaMatch [1..10]" $
+        Right (EvaluationSuccess false) @=?
+            typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting
+                (nullViaMatch [1..10])
+
 -- | Test all list-related builtins
 test_List :: TestNested
 test_List = testNestedM "List" $ do
@@ -661,32 +705,44 @@ test_List = testNestedM "List" $ do
     evals @[Integer] [1] MkCons [integer] [cons @Integer 1, cons @[Integer] []]
     evals @[Integer] [1,2] MkCons [integer] [cons @Integer 1, cons @[Integer] [2]]
 
-    embed . testCase "nullViaChooseList []" $
+    test_MatchList UseChoose
+    test_MatchList UseCase
+
+test_MatchData :: MatchOption -> TestNested
+test_MatchData optMatch = testNestedM (show optMatch) $ do
+    let actualExp =
+            mkIterAppNoAnn
+                (tyInst () (apply () (matchData optMatch) $ cons $ I 3) bool)
+                [ -- constr
+                  runQuote $ do
+                    a1 <- freshName "a1"
+                    a2 <- freshName "a2"
+                    pure $ lamAbs () a1 integer $ lamAbs () a2 (TyApp () Builtin.list dataTy) false
+                , -- map
+                  runQuote $ do
+                    a1 <- freshName "a1"
+                    let listDataData = TyApp () Builtin.list $ mkIterTyAppNoAnn pair [dataTy,dataTy]
+                    pure $ lamAbs () a1 listDataData false
+                , -- list
+                  runQuote $ do
+                    a1 <- freshName "a1"
+                    pure $ lamAbs () a1 (TyApp () Builtin.list dataTy) false
+
+                , -- I
+                  runQuote $ do
+                    a1 <- freshName "a1"
+                    pure $ lamAbs () a1 integer true
+
+                , -- B
+                  runQuote $ do
+                    a1 <- freshName "a1"
+                    pure $ lamAbs () a1 (mkTyBuiltin @_ @ByteString ()) false
+                ]
+
+    embed . testCase "chooseData" $
         Right (EvaluationSuccess true) @=?
             typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting
-                (nullViaChooseList [])
-    embed . testCase "nullViaChooseList [1]" $
-        Right (EvaluationSuccess false) @=?
-            typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting
-                (nullViaChooseList [1])
-    embed . testCase "nullViaChooseList [1..10]" $
-        Right (EvaluationSuccess false) @=?
-            typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting
-                (nullViaChooseList [1..10])
-
-  where
-   -- the null function that utilizes the ChooseList builtin (through the caseList helper function)
-   nullViaChooseList :: [Integer] -> Term TyName Name DefaultUni DefaultFun ()
-   nullViaChooseList l = mkIterAppNoAnn
-                      (tyInst () (apply () (tyInst () Builtin.caseList integer) $ cons l) bool)
-                      [ -- zero
-                        true
-                        -- cons
-                      , runQuote $ do
-                              a1 <- freshName "a1"
-                              a2 <- freshName "a2"
-                              pure $ lamAbs () a1 integer $ lamAbs () a2 (TyApp () Builtin.list integer) false
-                      ]
+                actualExp
 
 -- | Test all PlutusData builtins
 test_Data :: TestNested
@@ -727,36 +783,9 @@ test_Data = testNestedM "Data" $ do
     evals @[Data] [I 3, I 4, B ""] UnListData [] [cons $ List [I 3, I 4, B ""]]
     evals @ByteString "\162\ETX@Ehello8c" SerialiseData [] [cons $ Map [(I 3, B ""), (B "hello", I $ -100)]]
 
-    -- ChooseData
-    let actualExp = mkIterAppNoAnn
-                      (tyInst () (apply () caseData $ cons $ I 3) bool)
-                      [ -- constr
-                        runQuote $ do
-                              a1 <- freshName "a1"
-                              a2 <- freshName "a2"
-                              pure $ lamAbs () a1 integer $ lamAbs () a2 (TyApp () Builtin.list dataTy) false
-                        -- map
-                      , runQuote $ do
-                              a1 <- freshName "a1"
-                              pure $ lamAbs () a1 (TyApp () Builtin.list $ mkIterTyAppNoAnn pair [dataTy,dataTy]) false
-                       -- list
-                      , runQuote $ do
-                              a1 <- freshName "a1"
-                              pure $ lamAbs () a1 (TyApp () Builtin.list dataTy) false
-                       -- I
-                      , runQuote $ do
-                              a1 <- freshName "a1"
-                              pure $ lamAbs () a1 integer true
-                        -- B
-                      , runQuote $ do
-                              a1 <- freshName "a1"
-                              pure $ lamAbs () a1 (mkTyBuiltin @_ @ByteString ()) false
-                      ]
-
-    embed . testCase "chooseData" $
-        Right (EvaluationSuccess true) @=?
-            typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting
-                actualExp
+    testNestedM "MatchData" $ do
+        test_MatchData UseChoose
+        test_MatchData UseCase
 
 -- | Test all cryptography-related builtins
 test_Crypto :: TestNested

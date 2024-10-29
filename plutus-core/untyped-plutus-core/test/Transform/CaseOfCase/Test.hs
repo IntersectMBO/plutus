@@ -23,8 +23,10 @@ import Test.Tasty.HUnit (testCase, (@?=))
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (CekMachineCosts, CekValue, EvaluationResult (..),
-                                                 evaluateCek, noEmitter, unsafeToEvaluationResult)
+                                                 evaluateCek, noEmitter,
+                                                 unsafeSplitStructuralOperational)
 import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
+import UntypedPlutusCore.Transform.Simplifier (evalSimplifier)
 
 test_caseOfCase :: TestTree
 test_caseOfCase =
@@ -110,16 +112,21 @@ caseOfCaseWithError =
 testCaseOfCaseWithError :: TestTree
 testCaseOfCaseWithError =
   testCase "Transformation doesn't evaluate error eagerly" do
-    let simplifiedTerm = caseOfCase caseOfCaseWithError
+    let simplifiedTerm = evalCaseOfCase caseOfCaseWithError
     evaluateUplc simplifiedTerm @?= evaluateUplc caseOfCaseWithError
 
 ----------------------------------------------------------------------------------------------------
 -- Helper functions --------------------------------------------------------------------------------
 
+evalCaseOfCase
+  :: Term Name DefaultUni DefaultFun ()
+  -> Term Name DefaultUni DefaultFun ()
+evalCaseOfCase term = evalSimplifier $ caseOfCase term
+
 evaluateUplc
   :: UPLC.Term Name DefaultUni DefaultFun ()
   -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
-evaluateUplc = unsafeToEvaluationResult . fst <$> evaluateCek noEmitter machineParameters
+evaluateUplc = unsafeSplitStructuralOperational . fst <$> evaluateCek noEmitter machineParameters
  where
   costModel :: CostModel CekMachineCosts BuiltinCostModel =
     CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
@@ -135,4 +142,4 @@ goldenVsSimplified name =
     . encodeUtf8
     . render
     . prettyClassicSimple
-    . caseOfCase
+    . evalCaseOfCase

@@ -230,6 +230,7 @@ builtinNames = [
     , 'Builtins.head
     , 'Builtins.tail
     , 'Builtins.chooseList
+    , 'Builtins.caseList'
     , 'Builtins.mkNilData
     , 'Builtins.mkNilPairData
     , 'Builtins.mkCons
@@ -237,6 +238,7 @@ builtinNames = [
 
     , ''Builtins.BuiltinData
     , 'Builtins.chooseData
+    , 'Builtins.caseData'
     , 'Builtins.equalsData
     , 'Builtins.serialiseData
     , 'Builtins.mkConstr
@@ -408,6 +410,7 @@ defineBuiltinTerms = do
             PLC.HeadList -> defineBuiltinInl 'Builtins.head
             PLC.TailList -> defineBuiltinInl 'Builtins.tail
             PLC.ChooseList -> defineBuiltinInl 'Builtins.chooseList
+            PLC.CaseList -> defineBuiltinInl 'Builtins.caseList'
             PLC.MkNilData -> defineBuiltinInl 'Builtins.mkNilData
             PLC.MkNilPairData -> defineBuiltinInl 'Builtins.mkNilPairData
             PLC.MkCons -> defineBuiltinInl 'Builtins.mkCons
@@ -427,6 +430,7 @@ defineBuiltinTerms = do
             PLC.UnBData -> defineBuiltinInl 'Builtins.unsafeDataAsB
             PLC.UnIData -> defineBuiltinInl 'Builtins.unsafeDataAsI
             PLC.SerialiseData -> defineBuiltinInl 'Builtins.serialiseData
+            PLC.CaseData -> defineBuiltinInl 'Builtins.caseData'
 
             -- BLS
             PLC.Bls12_381_G1_equal -> defineBuiltinInl 'Builtins.bls12_381_G1_equals

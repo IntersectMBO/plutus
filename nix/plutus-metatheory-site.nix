@@ -35,7 +35,12 @@ let
 
   plutus-metatheory-site = pkgs.runCommand "plutus-metatheory-site"
     {
-      buildInputs = [ pkgs.jekyll pkgs.linkchecker ];
+      buildInputs = [
+        pkgs.jekyll
+        # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
+        # pkgs.linkchecker
+        inputs.nixpkgs-2405.legacyPackages.linkchecker
+      ];
     }
     ''
       mkdir "$out"

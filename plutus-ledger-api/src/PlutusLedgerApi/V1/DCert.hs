@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -24,6 +25,7 @@ import PlutusTx.Blueprint.Schema.Annotation (SchemaDescription (..), SchemaTitle
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude qualified as P
+import PlutusTx.Show (deriveShow)
 import Prettyprinter.Extras (Pretty, PrettyShow (PrettyShow))
 
 {-# ANN DCertDelegRegKey (SchemaTitle "DCertDelegRegKey") #-}
@@ -87,15 +89,16 @@ instance P.Eq DCert where
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------
 
-$(makeLift ''DCert)
-$( makeIsDataSchemaIndexed
-    ''DCert
-    [ ('DCertDelegRegKey, 0)
-    , ('DCertDelegDeRegKey, 1)
-    , ('DCertDelegDelegate, 2)
-    , ('DCertPoolRegister, 3)
-    , ('DCertPoolRetire, 4)
-    , ('DCertGenesis, 5)
-    , ('DCertMir, 6)
-    ]
- )
+makeLift ''DCert
+makeIsDataSchemaIndexed
+  ''DCert
+  [ ('DCertDelegRegKey, 0)
+  , ('DCertDelegDeRegKey, 1)
+  , ('DCertDelegDelegate, 2)
+  , ('DCertPoolRegister, 3)
+  , ('DCertPoolRetire, 4)
+  , ('DCertGenesis, 5)
+  , ('DCertMir, 6)
+  ]
+
+deriveShow ''DCert

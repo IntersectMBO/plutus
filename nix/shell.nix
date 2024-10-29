@@ -35,6 +35,9 @@ in
     repoRoot.nix.r-with-packages
     pkgs.R
 
+    # LaTeX environment
+    pkgs.texliveFull
+
     # Misc useful stuff, could make these commands but there's a lot already
     pkgs.jekyll
     pkgs.plantuml
@@ -47,11 +50,16 @@ in
     pkgs.gawk
     pkgs.scriv
     pkgs.fswatch
-    pkgs.linkchecker
+    pkgs.yarn
+
+    # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
+    # pkgs.linkchecker
+    inputs.nixpkgs-2405.legacyPackages.linkchecker
 
     # Needed to make building things work, not for commands
     pkgs.zlib
     pkgs.cacert
+    pkgs.upx
 
     # Needed for the cabal CLI to download under https
     pkgs.curl

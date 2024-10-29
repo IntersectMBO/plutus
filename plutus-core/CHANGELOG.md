@@ -1,4 +1,52 @@
 
+<a id='changelog-1.36.0.0'></a>
+# 1.36.0.0 — 2024-10-09
+
+## Changed
+
+- The signature of the `writeBits` PLC builtin has been changed from
+```
+[bytestring, list integer, list boolean] -> bytestring
+```
+
+   to
+
+```
+[bytestring, list integer, boolean] -> bytestring
+```
+
+   Instead of a list of boolean values to write to bit positions specified in the
+   second argument it now takes a single boolean value which is used to update the
+   bits at all of the given positions.  If it's necessary to set some bits and
+   clear others then the function should be called twice, once with `True` as the
+   third argument and once with `False`.
+
+<a id='changelog-1.35.0.0'></a>
+# 1.35.0.0 — 2024-10-04
+
+## Removed
+
+- Removed `PlutusIR.Core.Instance.Pretty.Readable.PrettyPir`.
+  Use `PlutusCore.Pretty.Readable.PrettyReadable` instead.
+
+## Changed
+
+- Renamed `PlutusIR.Core.Instance.Pretty.Readable.prettyPirReadable`
+  to `PlutusCore.Pretty.Readable.prettyReadable`.
+- Renamed `PlutusIR.Core.Instance.Pretty.Readable.prettyPirReadableSimple`
+  to `PlutusCore.Pretty.Readable.prettyReadableSimple`.
+
+<a id='changelog-1.34.1.0'></a>
+# 1.34.1.0 — 2024-09-14
+
+## Removed
+
+- Removed the `uplc`, `plc` and `pir` executables from this package. They are now in the new `plutus-executables` package.
+
+## Fixed
+
+- A bug in the`findFirstSetBit` builtin has been fixed.
+
 <a id='changelog-1.34.0.0'></a>
 # 1.34.0.0 — 2024-09-09
 

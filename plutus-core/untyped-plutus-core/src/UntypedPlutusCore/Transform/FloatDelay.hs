@@ -61,18 +61,25 @@ import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Name.UniqueSet qualified as USet
 import UntypedPlutusCore.Core.Plated (termSubterms)
 import UntypedPlutusCore.Core.Type (Term (..))
+import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (FloatDelay), SimplifierT,
+                                               recordSimplification)
 
 import Control.Lens (forOf, forOf_, transformOf)
-import Control.Monad ((>=>))
 import Control.Monad.Trans.Writer.CPS (Writer, execWriter, runWriter, tell)
 
 floatDelay ::
-  (PLC.MonadQuote m, PLC.Rename (Term name uni fun a), PLC.HasUnique name PLC.TermUnique) =>
+  ( PLC.MonadQuote m
+  , PLC.Rename (Term name uni fun a)
+  , PLC.HasUnique name PLC.TermUnique
+  ) =>
   Term name uni fun a ->
-  m (Term name uni fun a)
-floatDelay =
-  PLC.rename >=> \t ->
-    pure . uncurry (flip simplifyBodies) $ simplifyArgs (unforcedVars t) t
+  SimplifierT name uni fun a m (Term name uni fun a)
+floatDelay term = do
+  result <-
+    PLC.rename term >>= \t ->
+        pure . uncurry (flip simplifyBodies) $ simplifyArgs (unforcedVars t) t
+  recordSimplification term FloatDelay result
+  return result
 
 {- | First pass. Returns the names of all variables, at least one occurrence
 of which is not under `Force`.

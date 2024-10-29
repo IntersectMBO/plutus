@@ -85,8 +85,6 @@ import Data.Set qualified as Set
 import Data.Text qualified as Text
 import Data.Type.Bool qualified as PlutusTx.Bool
 import GHC.Num.Integer qualified
-import PlutusCore.Compiler.Types (UPLCSimplifierTrace (UPLCSimplifierTrace),
-                                  initUPLCSimplifierTrace)
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
@@ -185,7 +183,7 @@ Note also, this `sm_pre_inline` pass doesn't include some of the inlining GHC do
 plugin.
 The GHC desugarer generates a large number of intermediate definitions and general clutter that
 should be removed quickly. So GHC's "simple optimiser" (GHC.Core.SimpleOpt) also inlines things with
-single occurrences. This is why the NOINLINE pragma is needed to avoid inlining of bindings that
+single occurrences. This is why the OPAQUE pragma is needed to avoid inlining of bindings that
 have single occurrence.
 None of -fmax-simplifier-iterations=0  -fforce-recomp -O0 would prevent it,
 nor will turning off `sm_pre_inline`.
@@ -569,7 +567,7 @@ runCompiler moduleName opts expr = do
     when (opts ^. posDoTypecheck) . void $
         liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-    uplcP <- PLC.evalCompile plcOpts $ PLC.compileProgram plcP
+    uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat

@@ -4,8 +4,6 @@
 :toc: left
 :reproducible:
 
-image:https://img.shields.io/matrix/plutus-core%3Amatrix.org[link=https://matrix.to/#/#plutus-core:matrix.org]
-
 == Introduction
 
 Plutus Core is the scripting language embedded in the Cardano ledger and forms the basis of the Plutus Platform, an application development platform for developing distributed applications using the Cardano blockchain.
@@ -70,7 +68,6 @@ The documentation for the metatheory can be found https://plutus.cardano.interse
 
 == Licensing
 
-You are free to copy, modify, and distribute this software under the terms of the Apache 2.0 license. 
+You are free to copy, modify, and distribute this software under the terms of the Apache 2.0 license.
 
 See the link:./LICENSE[LICENSE] and link:./NOTICE[NOTICE] files for details.
-
