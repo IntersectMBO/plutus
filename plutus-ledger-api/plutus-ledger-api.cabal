@@ -134,6 +134,7 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.V2.EvaluationContext
     PlutusLedgerApi.Test.V3.Data.EvaluationContext
     PlutusLedgerApi.Test.V3.EvaluationContext
+    PlutusLedgerApi.Test.V3.MintValue
 
   build-depends:
     , barbies
@@ -170,6 +171,7 @@ test-suite plutus-ledger-api-test
     Spec.ScriptDecodeError
     Spec.V1.Data.Value
     Spec.V1.Value
+    Spec.V3.MintValue
     Spec.Versions
 
   build-depends:

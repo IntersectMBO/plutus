@@ -12,7 +12,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 
 module PlutusLedgerApi.V3.MintValue
-  ( MintValue
+  ( MintValue (..) -- Constructor is exported for testing
   , emptyMintValue
   , mintValueToMap
   , mintValueMinted
@@ -52,7 +52,7 @@ Users should project 'MintValue' into 'Value' using 'mintValueMinted' or 'mintVa
 -}
 
 -- | A 'MintValue' represents assets that are minted and burned in a transaction.
-newtype MintValue = MintValue (Map CurrencySymbol (Map TokenName Integer))
+newtype MintValue = UnsafeMintValue (Map CurrencySymbol (Map TokenName Integer))
   deriving stock (Generic, Data, Typeable, Haskell.Show)
   deriving anyclass (NFData)
   deriving newtype (ToData, FromData, UnsafeFromData)
@@ -87,23 +87,23 @@ instance HasBlueprintSchema MintValue referencedTypes where
 
 {-# INLINEABLE emptyMintValue #-}
 emptyMintValue :: MintValue
-emptyMintValue = MintValue Map.empty
+emptyMintValue = UnsafeMintValue Map.empty
 
 {-# INLINEABLE mintValueToMap #-}
 mintValueToMap :: MintValue -> Map CurrencySymbol (Map TokenName Integer)
-mintValueToMap (MintValue m) = m
+mintValueToMap (UnsafeMintValue m) = m
 
 -- | Get the 'Value' minted by the 'MintValue'.
 {-# INLINEABLE mintValueMinted #-}
 mintValueMinted :: MintValue -> Value
-mintValueMinted (MintValue values) = filterQuantities (\x -> [x | x > 0]) values
+mintValueMinted (UnsafeMintValue values) = filterQuantities (\x -> [x | x > 0]) values
 
 {- | Get the 'Value' burned by the 'MintValue'.
 All the negative quantities in the 'MintValue' become positive in the resulting 'Value'.
 -}
 {-# INLINEABLE mintValueBurned #-}
 mintValueBurned :: MintValue -> Value
-mintValueBurned (MintValue values) = filterQuantities (\x -> [abs x | x < 0]) values
+mintValueBurned (UnsafeMintValue values) = filterQuantities (\x -> [abs x | x < 0]) values
 
 {-# INLINEABLE filterQuantities #-}
 filterQuantities :: (Integer -> [Integer]) -> Map CurrencySymbol (Map TokenName Integer) -> Value
