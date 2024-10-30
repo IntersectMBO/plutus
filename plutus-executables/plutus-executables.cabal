@@ -105,8 +105,8 @@ executable uplc
   main-is:        uplc/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , Agda                             ==2.6.4
-    , base                             >=4.9   && <5
+    , Agda                             ==2.6.4.3
+    , base                             >=4.9     && <5
     , bytestring
     , criterion
     , deepseq
