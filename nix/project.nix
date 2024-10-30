@@ -41,7 +41,7 @@ let
       };
 
       modules = [
-        repoRoot.nix.agda.agda-project-module-patch
+        # repoRoot.nix.agda.agda-project-module-patch
 
         # Common
         {
