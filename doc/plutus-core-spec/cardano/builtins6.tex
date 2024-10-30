@@ -48,11 +48,11 @@ $$
   \begin{cases}
      \modfn(a^e,m) & \text{if $m > 0$ and $e \geq 0$}\\
      \min\{r \in \N: ra^{-e} \equiv 1\pmod{m}\}\  & \text{if $m > 0, e < 0$ and $\mathrm{gcd}(a,m) = 1$}\\
-     \errorX & \text{otherwise}
+     \errorX & \text{otherwise.}
   \end{cases}
 $$ 
 
-\noindent The fact that this is well defined when $e<0$ and $\mathrm{gcd}(a,m) = 1$
+\noindent The fact that this is well defined for the case $e<0$ and $\mathrm{gcd}(a,m) = 1$
 follows, for example, from Proposition I.3.1 of~\cite{Koblitz-GTM}.  See
 Note~\ref{note:integer-division-functions} of
 Section~\ref{sec:built-in-functions-1} for the definition of $\modfn$.
