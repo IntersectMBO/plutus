@@ -115,7 +115,7 @@ and
 $$
    \kindstar{v} \text{\quad if $v \in \Var_*$}.
 $$
-   
+
 \kwxm{I'm using syntax to represent kinds here.  I haven't introduced actual
   kinds because (a) we don't have a proper type system in Plutus Core (yet), and
   (b) the \texttt{TypeScheme} type in the implementation only has one kind of
@@ -209,7 +209,7 @@ and only if one of the following holds:
 \begin{itemize}
   \item $T = P$ and $S =\varnothing$.
   \item $P \in \Var_\#$ and $S = \{(v_\#, T)\}$.
-  \item 
+  \item
     \begin{itemize}
     \item $T = \op(T_1, \ldots, T_n)$ with each $T_i \in \Uni$.
     \item $P = \op(P_1, \ldots, P_n)$ with each $P_i \in \Unihash$.
@@ -224,7 +224,7 @@ and only if one of the following holds:
 
 \kwxm{\sf I tried using inference rules for this but the final case
   got kind of out of hand.}
-  
+
 \subsection{Built-in functions}
 \label{sec:builtin-functions}
 
@@ -365,7 +365,7 @@ $[\tau_1, \ldots, \tau_m] \rightarrow \tau$ to emphasise that the entries are
 
 \medskip
 \noindent Also, given an arity $= [\iota_1, \ldots, \iota_n]$, the \textit{reduced
-  arity} is 
+  arity} is
 $$
 \alphabar = [\iota_j : \iota_j \notin \QVar].
 $$%
@@ -522,7 +522,7 @@ the function.
 %%     \end{array}\]
 %% \end{minipage}
 
-  
+
 \subsection{Evaluation of built-in functions}
 \label{sec:builtin-evaluation}
 
@@ -548,7 +548,7 @@ describes the conditions for type compatibility.
   returning a constant of a third type.  However, I think it'll be very hard to
   describe what's actually going on so I'm just assuming that builtins always
   check this stuff.}
-  
+
 
 \medskip
 \noindent In detail, given a reduced arity $\alphabar = [\tau_1, \ldots,
