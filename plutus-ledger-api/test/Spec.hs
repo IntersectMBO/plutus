@@ -20,6 +20,7 @@ import Spec.Interval qualified
 import Spec.ScriptDecodeError qualified
 import Spec.V1.Data.Value qualified as Data.Value
 import Spec.V1.Value qualified as Value
+import Spec.V2.OutputDatum qualified as OutputDatum
 import Spec.Versions qualified
 
 import Test.Tasty
@@ -137,6 +138,7 @@ tests = testGroup "plutus-ledger-api"
         , Spec.ContextDecoding.tests
         , Value.test_Value
         , Value.test_FaceValue
+        , OutputDatum.testOutputDatum
         ]
       , testGroup "Data"
         [ Spec.Data.Eval.tests

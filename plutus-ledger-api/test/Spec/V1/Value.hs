@@ -122,6 +122,7 @@ test_split = testProperty "split" . scaleTestsBy 7 $ \value ->
     let (valueL, valueR) = split value
     in Numeric.negate valueL <> valueR <=> value
 
+test_roundTripFaceValue :: TestTree
 test_roundTripFaceValue = testProperty "unFaceValue followed by FaceValue returns the original" $
       \(faceValue :: FaceValue) ->
       unFaceValue (FaceValue $ unFaceValue faceValue) === unFaceValue faceValue
