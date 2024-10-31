@@ -4,7 +4,7 @@
 
 It's important for software engineers to put on the product hat from time to time, gaining firsthand experience, insights and knowledge of our products.
 This is especially true for us, as our products - programming languages and compilers - are designed for and used by developers.
-This makes it even more important for engineers involved in day-to-day, hands-on technical work to directly participate in product roles and processes, as they are well-positioned to understand technical nuances from a user’s perspective and to connect and communicate effectively with users.
+This makes it even more important for engineers involved in day-to-day, hands-on technical work to directly participate in product roles and processes, as they are well-positioned to understand technical nuances from a user’s perspective, to study and grasp the technical details of related products, and to connect and communicate effectively with users.
 
 Benefits of doing so include:
 
