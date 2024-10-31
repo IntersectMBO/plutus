@@ -3,7 +3,9 @@
 {-# LANGUAGE TemplateHaskell       #-}
 
 module PlutusTx.Data.List (
-    List,
+    -- constructor exported for testing
+    List(List),
+    append,
     find,
     findIndices,
     filter,
