@@ -30,6 +30,8 @@ import Prettyprinter (Pretty (..))
 import Data.Semigroup qualified as Haskell
 import Prelude qualified as Haskell
 
+-- | A list type backed directly by 'Data'. It is meant to be used whenever fast
+-- encoding/decoding to/from 'Data' is needed.
 newtype List a = List (BuiltinList BuiltinData)
   deriving stock (Haskell.Show, Haskell.Eq)
 
