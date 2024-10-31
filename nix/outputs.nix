@@ -30,8 +30,11 @@ in
     latex-documents = repoRoot.nix.latex-documents;
 
     hydraJobs.required = lib.iogx.mkHydraRequiredJob { };
-  }
 
+  }
+  {
+    packages.agda = repoRoot.nix.agda;
+  }
   {
     packages.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
     packages.pre-commit-check = ghc96.pre-commit-check;
@@ -63,9 +66,7 @@ in
   (lib.optionalAttrs (system == "aarch64-darwin")
     {
       # Plausibly if things build on x86 darwin then they'll build on aarch darwin.
-      # Se we only build roots and devshells on aarch to avoid overloading the builders.
-      # Note: We can't build the 9.6 shell on aarch64-darwin
-      # because of https://github.com/well-typed/cborg/issues/311
+      # Se we only build roots and dev sshells on aarch to avoid overloading the builders.
       hydraJobs.ghc810.devShell = ghc810.devShell;
       hydraJobs.ghc96.devShell = ghc96.devShell;
       hydraJobs.ghc98.devShell = ghc98.devShell;
