@@ -9,7 +9,7 @@ import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Value
 import PlutusLedgerApi.V3 (OutputDatum (NoOutputDatum), PubKeyHash (..), Redeemer (..),
                            ScriptContext (..), ScriptInfo (SpendingScript), TxId (..), TxInfo (..),
-                           TxOut (..), TxOutRef (..), always)
+                           TxOut (..), TxOutRef (..), always, emptyMintValue)
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as PlutusTx
@@ -32,7 +32,7 @@ mkTxInfo i = TxInfo {
   txInfoReferenceInputs=mempty,
   txInfoOutputs=fmap mkTxOut [1..i],
   txInfoFee=10000,
-  txInfoMint=mempty,
+  txInfoMint=emptyMintValue,
   txInfoTxCerts=mempty,
   txInfoWdrl=Map.empty,
   txInfoValidRange=always,

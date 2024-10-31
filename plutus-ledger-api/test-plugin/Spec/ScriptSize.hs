@@ -16,6 +16,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersFo
 import PlutusCore.StdLib.Data.Unit (unitval)
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3 qualified as V3
+import PlutusLedgerApi.V3.MintValue (emptyMintValue)
 import PlutusTx (CompiledCode, liftCodeDef, unsafeApplyCode)
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins.Internal qualified as BI
@@ -164,7 +165,7 @@ dummyScriptContext =
           , V3.txInfoReferenceInputs = []
           , V3.txInfoOutputs = []
           , V3.txInfoFee = 1000000 :: V3.Lovelace
-          , V3.txInfoMint = mempty
+          , V3.txInfoMint = emptyMintValue
           , V3.txInfoTxCerts = []
           , V3.txInfoWdrl = Map.empty
           , V3.txInfoValidRange =
