@@ -28,19 +28,20 @@ import PlutusTx.IsData
 import PlutusTx.Lift (liftCodeDef, makeLift)
 import PlutusTx.List qualified as List
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm,
-                                    unsafeRunTermCek)
+import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
 import PlutusTx.TH (compile)
 
 import Data.List qualified as Haskell
 import Data.Maybe qualified as Haskell
 
-import Hedgehog (Gen, MonadTest, Property, Range, forAll, property, test, (===))
+import Hedgehog (Gen, Property, Range, forAll, property, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testProperty)
 
+-- | Semantics of lists. Used to model the expected behavior of the various
+-- PlutusTx list types.
 newtype ListS a = ListS {getListS :: [a]}
   deriving stock (Show, Eq)
   deriving newtype (Semigroup, Monoid)
@@ -430,7 +431,7 @@ lengthSpec = property $ do
 
 propertyTests :: TestTree
 propertyTests =
-  testGroup "TESTING List property tests"
+  testGroup "List property tests"
     [ testProperty "areInverses" areInversesSpec
     , testProperty "toSOP" toSOPSpec
     , testProperty "fromSOP" fromSOPSpec
