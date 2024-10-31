@@ -125,6 +125,7 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.Common.EvaluationContext
     PlutusLedgerApi.Test.EvaluationEvent
     PlutusLedgerApi.Test.Examples
+    PlutusLedgerApi.Test.Orphans
     PlutusLedgerApi.Test.Scripts
     PlutusLedgerApi.Test.V1.Data.EvaluationContext
     PlutusLedgerApi.Test.V1.Data.Value
@@ -135,6 +136,21 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.V3.Data.EvaluationContext
     PlutusLedgerApi.Test.V3.EvaluationContext
     PlutusLedgerApi.Test.V3.MintValue
+
+  other-modules:
+    PlutusLedgerApi.Test.Common.QuickCheck.Utils
+    PlutusLedgerApi.Test.Orphans.PlutusTx
+    PlutusLedgerApi.Test.Orphans.V1
+    PlutusLedgerApi.Test.Orphans.V1.Address
+    PlutusLedgerApi.Test.Orphans.V1.Contexts
+    PlutusLedgerApi.Test.Orphans.V1.Credential
+    PlutusLedgerApi.Test.Orphans.V1.Crypto
+    PlutusLedgerApi.Test.Orphans.V1.DCert
+    PlutusLedgerApi.Test.Orphans.V1.Interval
+    PlutusLedgerApi.Test.Orphans.V1.Scripts
+    PlutusLedgerApi.Test.Orphans.V1.Time
+    PlutusLedgerApi.Test.Orphans.V1.Tx
+    PlutusLedgerApi.Test.Orphans.V1.Value
 
   build-depends:
     , barbies
@@ -149,6 +165,7 @@ library plutus-ledger-api-testlib
     , plutus-tx                        ^>=1.36
     , prettyprinter
     , QuickCheck
+    , quickcheck-instances
     , serialise
     , text
 
