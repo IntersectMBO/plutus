@@ -151,6 +151,9 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.Orphans.V1.Time
     PlutusLedgerApi.Test.Orphans.V1.Tx
     PlutusLedgerApi.Test.Orphans.V1.Value
+    PlutusLedgerApi.Test.Orphans.V2
+    PlutusLedgerApi.Test.Orphans.V2.Contexts
+    PlutusLedgerApi.Test.Orphans.V2.Tx
 
   build-depends:
     , barbies
