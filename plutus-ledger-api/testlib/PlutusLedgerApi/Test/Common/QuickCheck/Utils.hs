@@ -19,7 +19,7 @@ import Data.ByteString qualified as BS
 import Data.Coerce (coerce)
 import Data.Proxy (Proxy (Proxy))
 import Data.Word (Word64)
-import GHC.TypeNats (KnownNat, Natural, natVal)
+import GHC.TypeNats (KnownNat, Nat, natVal)
 import Test.QuickCheck (Arbitrary (arbitrary, shrink), CoArbitrary, Function (function),
                         functionMap, vectorOf)
 import Test.QuickCheck.Instances.ByteString ()
@@ -28,7 +28,7 @@ import Test.QuickCheck.Instances.ByteString ()
 constructor, instead providing a read-only pattern, as well as an accessor
 function, to ensure that the size invariant is maintained.
 -}
-newtype SizedByteString (n :: Natural) = UnsafeSizedByteString ByteString
+newtype SizedByteString (n :: Nat) = UnsafeSizedByteString ByteString
   deriving
     (Eq
     ,Ord
@@ -63,7 +63,7 @@ instance Function (SizedByteString n) where
 {- | Read-only pattern for accessing the underlying 'ByteString'. Use it just
 like you would use a data constructor in a pattern match.
 -}
-pattern SizedByteString :: forall (n :: Natural). ByteString -> SizedByteString n
+pattern SizedByteString :: forall (n :: Nat). ByteString -> SizedByteString n
 pattern SizedByteString bs <- UnsafeSizedByteString bs
 
 {-# COMPLETE SizedByteString #-}
@@ -72,7 +72,7 @@ pattern SizedByteString bs <- UnsafeSizedByteString bs
 specified in its type.
 -}
 unSizedByteString ::
-  forall (n :: Natural).
+  forall (n :: Nat).
   SizedByteString n ->
   ByteString
 unSizedByteString = coerce
