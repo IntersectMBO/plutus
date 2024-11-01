@@ -1,13 +1,3 @@
-# WIP
-
-## Added
-
-- `PlutusLedgerApi.Test.Orphans` module to testlib with quickcheck instances for all ledger types.
-
-## Removed
-
-- `Arbitrary` instances from `PlutusLedgerApi.Test.V1.Value` and `PlutusLedgerApi.Test.V3.MintValue`. Import `PlutusLedgerApi.Test.Orphans` instead.
-
 
 <a id='changelog-1.34.0.0'></a>
 # 1.34.0.0 — 2024-09-09
