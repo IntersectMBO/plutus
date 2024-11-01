@@ -7,7 +7,7 @@
   [
    [
     (builtin verifyEcdsaSecp256k1Signature)
-    (con bytestring #032e433589dce61863199171f4d1e3fa946a5832621fcd29559940a0950f96fb6)
+    (con bytestring #032e433589dce61863199171f4d1e3fa946a5832621fcd29559940a0950f96fb61)
    ]
    [(builtin sha2_256) (con bytestring #)]
   ]
