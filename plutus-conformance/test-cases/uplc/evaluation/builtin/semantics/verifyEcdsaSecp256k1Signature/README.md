@@ -1,6 +1,7 @@
 ### Test vectors for `verifyEcdsaSecp256k1Signature`
 
-The `test-vector-*` test case have been generated using `OpenSSL 3.0.14.4` using the following procedure.
+Most of the `test-vector-*` test case have been generated using `OpenSSL
+3.0.14.4` using the following procedure.
 
    1. Type `openssl ecparam -name secp256k1 -outform DER -out secp256k1.der` to generate the `secp256k1` elliptic curve parameters and store them in the file `secp256k1.der`
    
