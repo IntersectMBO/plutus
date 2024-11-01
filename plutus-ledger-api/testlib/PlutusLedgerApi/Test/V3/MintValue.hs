@@ -1,36 +1,15 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE KindSignatures    #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
 
 module PlutusLedgerApi.Test.V3.MintValue where
 
 import Data.Coerce (coerce)
-import PlutusCore.Generators.QuickCheck.Split (multiSplit0)
-import PlutusLedgerApi.Test.V1.Value (NoArbitrary (..), uniqueNames)
 import PlutusLedgerApi.V1.Value (CurrencySymbol (..), TokenName (..))
 import PlutusLedgerApi.V3.MintValue (MintValue (..))
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.List qualified as List
-import Test.QuickCheck (Arbitrary (..))
-
-instance Arbitrary MintValue where
-  arbitrary = do
-    -- Generate values for all of the 'TokenName's in the final 'MintValue'
-    -- and split them into a list of lists.
-    faceValues <- multiSplit0 0.2 . map unQuantity =<< arbitrary
-    -- Generate 'TokenName's and 'CurrencySymbol's.
-    currencies <-
-      uniqueNames CurrencySymbol
-        =<< traverse (uniqueNames TokenName) faceValues
-    pure $ listsToMintValue currencies
-
-  shrink =
-    map listsToMintValue
-      . coerce
-        (shrink @[(NoArbitrary CurrencySymbol, [(NoArbitrary TokenName, Integer)])])
-      . mintValueToLists
+import Test.QuickCheck (Arbitrary)
 
 -- | Convert a list representation of a 'MintValue' to the 'MintValue'.
 listsToMintValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> MintValue
