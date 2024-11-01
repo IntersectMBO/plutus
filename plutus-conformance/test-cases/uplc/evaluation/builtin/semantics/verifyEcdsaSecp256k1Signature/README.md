@@ -9,7 +9,7 @@ Most of the `test-vector-*` test case have been generated using `OpenSSL
       to generate a keypair and store it in the file `pk.der`
 
    3. Type `openssl ec -in pk.der -outform DER -pubout -conv_form compressed -out vk.der` to
-      generate a compressed verification key (ie public key) and store it in the file vk.der.
+      generate a compressed verification key (ie public key) and store it in the file `vk.der`.
    
    4. Given a message in `msg.txt`, generate a signature for the SHA2-256 hash
       of the message using the private key generated earlier using `openssl
