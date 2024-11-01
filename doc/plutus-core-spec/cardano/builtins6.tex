@@ -1,0 +1,58 @@
+% I tried resetting the note number from V1-builtins here, but that made
+% some hyperlinks wrong.  To get note numbers starting at one in each section, I
+% think we have to define a new counter every time.
+\newcounter{notenumberF}
+\renewcommand{\note}[1]{
+  \bigskip
+  \refstepcounter{notenumberF}
+  \noindent\textbf{Note \thenotenumberF. #1}
+}
+
+\subsection{Batch 6}
+\label{sec:default-builtins-6}
+
+\subsubsection{Built-in functions}
+\label{sec:built-in-functions-6}
+The 6th batch of builtin operations is defined in Table~\ref{table:built-in-functions-6}.
+
+\setlength{\LTleft}{2mm}  % Shift the table right a bit to centre it on the page
+\begin{longtable}[H]{|l|p{67mm}|p{18mm}|c|c|}
+    \hline
+    \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
+    & & & fail? & \\
+    \hline
+    \endfirsthead
+    \hline
+    \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
+    & & & fail? & \\
+    \hline
+    \endhead
+    \hline
+    \caption{Built-in functions, Batch 6}
+    \endfoot
+    \caption[]{Built-in functions, Batch 6}
+    \label{table:built-in-functions-6}
+    \endlastfoot
+    \TT{expModInteger}        & $[\ty{integer}, \ty{integer}, $ \text{$\;\; \ty{integer}] \to \ty{integer}$}
+        & $\mathsf{expMod} $  & Yes & \ref{note:exp-mod-integer}\\
+\hline
+\end{longtable}
+
+\note{Modular Exponentiation.}
+\label{note:exp-mod-integer}
+The \texttt{expModInteger} function performs modular exponentiation.  Its denotation
+$\mathsf{expMod}: \Z \times \Z \times \Z \rightarrow \Z_{\errorX}$ is given by
+
+$$
+\mathsf{expMod}(a,e,m) =
+  \begin{cases}
+     \modfn(a^e,m) & \text{if $m > 0$ and $e \geq 0$}\\
+     \min\{r \in \N: ra^{-e} \equiv 1\pmod{m}\}\  & \text{if $m > 0, e < 0$ and $\mathrm{gcd}(a,m) = 1$}\\
+     \errorX & \text{otherwise.}
+  \end{cases}
+$$ 
+
+\noindent The fact that this is well defined for the case $e<0$ and $\mathrm{gcd}(a,m) = 1$
+follows, for example, from Proposition I.3.1 of~\cite{Koblitz-GTM}.  See
+Note~\ref{note:integer-division-functions} of
+Section~\ref{sec:built-in-functions-1} for the definition of $\modfn$.

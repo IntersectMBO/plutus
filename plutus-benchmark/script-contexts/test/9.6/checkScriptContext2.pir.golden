@@ -747,13 +747,6 @@
                (go xs))
   in
   let
-    ~`$fUnsafeFromDataValue` :
-       data -> (\k v -> List (Tuple2 k v)) bytestring integer
-      = `$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-          {bytestring}
-          {integer}
-          unBData
-          unIData
     data StakingCredential | StakingCredential_match where
       StakingHash : Credential -> StakingCredential
       StakingPtr : integer -> integer -> integer -> StakingCredential
@@ -853,7 +846,11 @@
                     {bytestring}
                     {(\k v -> List (Tuple2 k v)) bytestring integer}
                     unBData
-                    `$fUnsafeFromDataValue`
+                    (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                       {bytestring}
+                       {integer}
+                       unBData
+                       unIData)
                     (headList {data} l))
                  (let
                    !tup : pair integer (list data)
@@ -1168,7 +1165,11 @@
                          {bytestring}
                          {(\k v -> List (Tuple2 k v)) bytestring integer}
                          unBData
-                         `$fUnsafeFromDataValue`
+                         (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                            {bytestring}
+                            {integer}
+                            unBData
+                            unIData)
                          (headList {data} l))
                       (let
                         !d : data = headList {data} l

@@ -40,10 +40,10 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
 
 
 %   @sqs   = '  ( ($printable # ['\\])  | (\\$printable) )* '
-%   
+%
 %   -- A double quoted string, allowing escaped characters including \".  Similar to @sqs
 %   @dqs   = \" ( ($printable # [\"\\]) | (\\$printable) )* \"
-%   
+%
 %   -- A sequence of printable characters not containing '(' or ')' such that the
 %   -- first character is not a space or a single or double quote.  If there are any
 %   -- further characters then they must comprise a sequence of printable characters
@@ -52,7 +52,7 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
 %   -- below.
 %   $nonparen = $printable # [\(\)]
 %   @chars = ($nonparen # ['\"$white]) ($nonparen* ($nonparen # $white))?
-%   
+%
 %       <literalconst> "()" | @sqs | @dqs | @chars { tok (\p s -> alex $ TkLiteralConst p (textOf s)) `andBegin` 0 }
 
 %% "()"

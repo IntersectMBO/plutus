@@ -58,6 +58,7 @@ import Data.Function ((&))
 import Data.Maybe (Maybe (..))
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V2 qualified as V2
+import PlutusLedgerApi.V3.MintValue qualified as V3
 import PlutusLedgerApi.V3.Tx qualified as V3
 import PlutusTx (makeIsDataSchemaIndexed)
 import PlutusTx qualified
@@ -65,15 +66,14 @@ import PlutusTx.AssocMap (Map, lookup, toList)
 import PlutusTx.Blueprint (HasBlueprintDefinition, HasBlueprintSchema, HasSchemaDefinition,
                            Schema (SchemaBuiltInData), SchemaInfo (..), emptySchemaInfo)
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
+import PlutusTx.Blueprint.Definition.Derive (definitionRef)
 import PlutusTx.Blueprint.Schema (withSchemaInfo)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio (Rational)
+import Prelude qualified as Haskell
 import Prettyprinter (nest, vsep, (<+>))
 import Prettyprinter.Extras (Pretty (pretty), PrettyShow (PrettyShow))
-
-import PlutusTx.Blueprint.Definition.Derive (definitionRef)
-import Prelude qualified as Haskell
 
 newtype ColdCommitteeCredential = ColdCommitteeCredential V2.Credential
   deriving stock (Generic)
@@ -480,7 +480,7 @@ data TxInfo = TxInfo
   , txInfoReferenceInputs       :: [TxInInfo]
   , txInfoOutputs               :: [V2.TxOut]
   , txInfoFee                   :: V2.Lovelace
-  , txInfoMint                  :: V2.Value
+  , txInfoMint                  :: V3.MintValue
   -- ^ The 'Value' minted by this transaction.
   --
   -- /Invariant:/ This field does not contain Ada with zero quantity, unlike
