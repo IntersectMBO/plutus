@@ -1,4 +1,7 @@
--- s value out of range (equal to group order): one less -> False, not error
+-- Generated using OpenSSL 3.0.14.4
+-- Signing key a1adc24fc72eeb3ca032f68134a21c83dbebed4d7088a3794dbe65b4570604fd
+-- Same as test-vector-01, but with the s component of the signature adjusted to
+-- be out of range (equal to the group order): one less -> False, not error
 -- Expect error
 (program 1.0.0
  [
