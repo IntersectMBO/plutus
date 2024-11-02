@@ -57,12 +57,21 @@ following sizes:
 \item $s$: 64 bytes.
 \end{itemize}
 The public key $\vk$ is expected to be in the 33-byte compressed form described
-in~\cite{Bitcoin-ECDSA}.  Moreover, the ECDSA scheme admits two distinct valid
+in~\cite{Bitcoin-ECDSA}.  It is expected that the inputs to the function are
+well formed, and if they are not then an error will occur.  For example, the
+signature $s$ encodes a pair $(R,S)$ of 32-byte bytestrings which are big-endian
+encodings of integers, and both of these integers must lie between 0 and
+$\left|G\right|-1$ (inclusive), where $G$ is the relevant subgroup of the
+\texttt{secp256k1} curve; it is also required that the last 32 bytes of the
+verification key are the big-endian encoding of the $x$-coordinate of a point in
+$G$.
+
+Moreover, the ECDSA scheme admits two distinct valid
 signatures for a given message and private key, and  we follow the restriction
 imposed by Bitcoin (see~\cite{BIP-146},
 \texttt{LOW\_S}) and \textbf{only accept the smaller signature};
 \texttt{verifyEcdsa\-Secp\-256k1Signature} will return $\false$ if the larger
-one is supplied.
+one is supplied.  
 
 % For more on the lower signature business, see
 %    https://github.com/IntersectMBO/plutus/pull/4591#issuecomment-1120797931
@@ -90,3 +99,4 @@ following sizes:
 \item $m$: unrestricted
 \item $s$: 64 bytes.
 \end{itemize}
+\noindent  Any deviation from the conditions of BIP-340~\cite{BIP-340} will cause an error.
