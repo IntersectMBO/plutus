@@ -280,9 +280,6 @@ library
     plutus-core/src plutus-core/stdlib plutus-core/examples
     untyped-plutus-core/src prelude
 
-  if impl(ghc <9)
-    build-depends: ghc-bignum
-
   -- Notes on dependencies:
   -- * Bound on cardano-crypto-class for the fixed SECP primitives and 9.6 support
   -- * The bound on 'dependent-sum' is needed to avoid https://github.com/obsidiansystems/dependent-sum/issues/72

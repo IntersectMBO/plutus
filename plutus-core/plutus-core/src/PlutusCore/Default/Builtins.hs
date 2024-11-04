@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns          #-}
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -47,7 +48,9 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
+#if MIN_VERSION_base(4,15,0)
 import GHC.Num.Integer (Integer (..))
+#endif
 import GHC.Types (Int (..))
 import NoThunks.Class (NoThunks)
 import Prettyprinter (viaShow)
@@ -1567,6 +1570,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 -- See Note [Operational vs structural errors within builtins].
                 case uniListA of
                     DefaultUniList _ ->
+#if MIN_VERSION_base(4,15,0)
                         fromValueOf uniListA <$> case i of
                             IS i# -> pure $ drop (I# i#) xs
                             IP _ -> case drop maxBound xs of
@@ -1575,6 +1579,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                                    throwing _StructuralUnliftingError
                                        "Panic: unreachable clause executed"
                             IN _ -> pure xs
+#else
+                        throwing _StructuralUnliftingError "'dropList' is not supported on GHC-8.10"
+#endif
                     _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE dropListDenotation #-}
         in makeBuiltinMeaning
