@@ -88,6 +88,7 @@ rec {
   # - manually compile the executable (fortunately it has no extra dependencies!)
   #   and do the compilation at the end of the library derivation.
   agda-project-module-patch = {
+    packages.Agda.doHaddock = false;
     packages.Agda.package.buildType = lib.mkForce "Simple";
     packages.Agda.components.library.enableSeparateDataOutput = lib.mkForce true;
     packages.Agda.components.library.postInstall = ''
