@@ -30,11 +30,8 @@ in
     latex-documents = repoRoot.nix.latex-documents;
 
     hydraJobs.required = lib.iogx.mkHydraRequiredJob { };
+  }
 
-  }
-  {
-    packages.agda = repoRoot.nix.agda;
-  }
   {
     packages.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
     packages.pre-commit-check = ghc96.pre-commit-check;
