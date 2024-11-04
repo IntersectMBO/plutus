@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -46,6 +47,8 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
+import GHC.Num.Integer (Integer (..))
+import GHC.Types (Int (..))
 import NoThunks.Class (NoThunks)
 import Prettyprinter (viaShow)
 
@@ -1559,11 +1562,19 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramNullList)
 
     toBuiltinMeaning _semvar DropList =
-        let dropListDenotation :: Int -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
+        let dropListDenotation :: Integer -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             dropListDenotation i (SomeConstant (Some (ValueOf uniListA xs))) = do
                 -- See Note [Operational vs structural errors within builtins].
                 case uniListA of
-                    DefaultUniList _ -> pure . fromValueOf uniListA $ drop i xs
+                    DefaultUniList _ ->
+                        fromValueOf uniListA <$> case i of
+                            IS i# -> pure $ drop (I# i#) xs
+                            IP _ -> case drop maxBound xs of
+                               []  -> pure []
+                               _ ->
+                                   throwing _StructuralUnliftingError
+                                       "Panic: unreachable clause executed"
+                            IN _ -> pure xs
                     _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE dropListDenotation #-}
         in makeBuiltinMeaning
