@@ -85,6 +85,13 @@ module PlutusLedgerApi.V3 (
   V2.adaToken,
   V2.Lovelace (..),
 
+  -- *** Mint Value
+  MintValue.MintValue,
+  MintValue.emptyMintValue,
+  MintValue.mintValueToMap,
+  MintValue.mintValueMinted,
+  MintValue.mintValueBurned,
+
   -- *** Time
   V2.POSIXTime (..),
   V2.POSIXTimeRange,
@@ -152,6 +159,7 @@ import PlutusLedgerApi.Common qualified as Common
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3.Contexts qualified as Contexts
 import PlutusLedgerApi.V3.EvaluationContext qualified as EvaluationContext
+import PlutusLedgerApi.V3.MintValue qualified as MintValue
 import PlutusLedgerApi.V3.ParamName qualified as ParamName
 import PlutusLedgerApi.V3.Tx qualified as Tx
 import PlutusTx.Ratio qualified as Ratio
