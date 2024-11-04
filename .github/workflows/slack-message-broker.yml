@@ -77,8 +77,8 @@ jobs:
               const workflowRunPrIsNull = "${{ github.event.workflow_run.pull_requests == null }}" === "true";
               const isDraftPrWorkflowRun = "${{ github.event.workflow_run.pull_requests[0][0].draft }}" === "true";
 
-              const checkRunPrIsNull = "${{ github.event.check_run.check_suite.pull_requests == null }}" === "true";
-              const isDraftPrCheckRun = "${{ github.event.check_run.check_suite.pull_requests[0].draft }}" === "true";
+              const checkRunPrIsNull = "${{ github.event.check_run.pull_requests == null }}" === "true";
+              const isDraftPrCheckRun = "${{ github.event.check_run.pull_requests[0][0].draft }}" === "true";
 
               console.log(`isWorkflowRunEvent:  ${isWorkflowRunEvent}`);
               console.log(`isCheckRunEvent:  ${isCheckRunEvent}`);
