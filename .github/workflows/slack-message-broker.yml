@@ -26,6 +26,7 @@ jobs:
       - name: Prepare Slack Message
         uses: actions/github-script@main
         id: prepare-slack-message
+
         with:
           script: | 
             console.log(${{ toJson(github.event) }});
@@ -67,10 +68,33 @@ jobs:
               }
             }
 
+                              
+            const isWorkflowRunEvent = "${{ github.event_name }}" == "workflow_run";
+            const isCheckRunEvent = "${{ github.event_name }}" == "check_run";
 
-            let message = "";
-            let shouldSendMessage = false;
-            let slackMembers = getSlackMembersToBeNotified();
+            
+            function isDraftPullRequest() {
+              const workflowRunPrIsNull = "${{ github.event.workflow_run.pull_requests == null }}" === "true";
+              const isDraftPrWorkflowRun = "${{ github.event.workflow_run.pull_requests[0][0].draft }}" === "true";
+
+              const checkRunPrIsNull = "${{ github.event.check_run.check_suite.pull_requests == null }}" === "true";
+              const isDraftPrCheckRun = "${{ github.event.check_run.check_suite.pull_requests[0].draft }}" === "true";
+
+              console.log(`isWorkflowRunEvent:  ${isWorkflowRunEvent}`);
+              console.log(`isCheckRunEvent:  ${isCheckRunEvent}`);
+              console.log(`workflowRunPrIsNull:  ${workflowRunPrIsNull}`);
+              console.log(`checkRunPrIsNull:  ${checkRunPrIsNull}`);
+              console.log(`isDraftPrWorkflowRun:  ${isDraftPrWorkflowRun}`);
+              console.log(`isDraftPrCheckRun:  ${isDraftPrCheckRun}`);
+
+              return isDraftPrWorkflowRun || isDraftPrCheckRun;
+            }
+
+            const slackMembers = getSlackMembersToBeNotified();
+            const isDraftPR = isDraftPullRequest();
+
+            let message;
+            let shouldSendMessage;
             
          
             function handleWorkflowRunEvent() {
@@ -113,35 +137,14 @@ jobs:
             }
 
 
-            if ("${{ github.event_name }}" == "workflow_run") {
+            if (!isDraftPR && isWorkflowRunEvent) { 
               handleWorkflowRunEvent();
-            } else if ("${{ github.event_name }}" == "check_run") {
+            } else if (!isDraftPR && isCheckRunEvent) { 
               handleCheckRunEvent();
             } else {
-              message = `Unknown event: ${{ github.event_name }}`;
+              message = `Unknown event or draft PR: ${{ github.event_name }}`;
               shouldSendMessage = true;
             }
-
-            
-            function printDraftPrDebugInfo() {
-              const eventName = "${{ github.event_name }}";
-              const workflowRunPrIsNull = "${{ github.event.workflow_run.pull_requests == null }}";
-              const checkRunPrIsNull = "${{ github.event.check_run.check_suite.pull_requests == null }}";
-              const pullRequestZeroWorkflowRun = "${{ github.event.workflow_run.pull_requests[0] }}";
-              const pullRequestZeroCheckRun = "${{ github.event.check_run.check_suite.pull_requests[0] }}";
-              const isDraftPrWorkflowRun = "${{ github.event.workflow_run.pull_requests[0].draft }}";
-              const isDraftPrCheckRun = "${{ github.event.check_run.check_suite.pull_requests[0].draft }}";
-
-              console.log(`eventName:  ${eventName}`);
-              console.log(`workflowRunPrIsNull:  ${workflowRunPrIsNull}`);
-              console.log(`checkRunPrIsNull:  ${checkRunPrIsNull}`);
-              console.log(`pullRequestZeroWorkflowRun:  ${pullRequestZeroWorkflowRun}`);
-              console.log(`pullRequestZeroCheckRun:  ${pullRequestZeroCheckRun}`);
-              console.log(`isDraftPrWorkflowRun:  ${isDraftPrWorkflowRun}`);
-              console.log(`isDraftPrCheckRun:  ${isDraftPrCheckRun}`);
-            }
-
-            printDraftPrDebugInfo();
 
             console.log(`message:  ${message}`);
             console.log(`shouldSendMessage:  ${shouldSendMessage}`);
