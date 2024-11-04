@@ -41,7 +41,10 @@ let
       };
 
       modules = [
-        repoRoot.nix.agda.agda-project-module-patch
+
+        (
+          lib.mkIf (!isCrossCompiling) repoRoot.nix.agda.agda-project-module-patch
+        )
 
         # Common
         {
