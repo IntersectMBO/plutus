@@ -46,7 +46,11 @@ let
       modules = [
 
         (
-          lib.mkIf (!isCompilingMingwW64) repoRoot.nix.agda.agda-project-module-patch
+          lib.mkIf (!isCompilingMingwW64 && !isCompilingMingwW64) (repoRoot.nix.agda.agda-project-module-patch { ghc = "ghc"; })
+        )
+
+        (
+          lib.mkIf isCompilingMusl64 (repoRoot.nix.agda.agda-project-module-patch { ghc = "x86_64-unknown-linux-musl-ghc"; })
         )
 
         # Common

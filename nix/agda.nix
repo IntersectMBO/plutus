@@ -86,7 +86,7 @@ rec {
   # - turn off the custom setup
   # - manually compile the executable (fortunately it has no extra dependencies!)
   #   and do the compilation at the end of the library derivation.
-  agda-project-module-patch = {
+  agda-project-module-patch = { ghc }: {
     packages.Agda.doHaddock = false;
     packages.Agda.package.buildType = lib.mkForce "Simple";
     packages.Agda.components.library.enableSeparateDataOutput = lib.mkForce true;
@@ -98,8 +98,8 @@ rec {
       echo "***************************************************************************"
       echo "***************************************************************************"
       echo "***************************************************************************"
-      ${pkgs.which}/bin/which ghc
-      ghc src/main/Main.hs -package-db=$out/package.conf.d -o agda
+
+      ${ghc} src/main/Main.hs -package-db=$out/package.conf.d -o agda
 
       # Find all the files in $data
       shopt -s globstar
@@ -121,7 +121,7 @@ rec {
     version = "2.6.4.3";
     compiler-nix-name = "ghc96";
     cabalProjectLocal = "extra-packages: ieee754, filemanip";
-    modules = [ agda-project-module-patch ];
+    modules = [ (agda-project-module-patch { ghc = "ghc"; }) ];
   };
 
 
