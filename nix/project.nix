@@ -4,7 +4,10 @@
 
 let
   cabalProject = pkgs.haskell-nix.cabalProject' ({ config, pkgs, ... }:
-    let isCrossCompiling = pkgs.stdenv.hostPlatform != pkgs.stdenv.buildPlatform; in
+    let
+      isCompilingMingwW64 = pkgs.stdenv.hostPlatform.system == "x86_64-windows" && pkgs.stdenv.hostPlatform.libc == "msvcrt";
+      isCompilingMusl64 = pkgs.stdenv.hostPlatform.system == "x86_64-linux" && pkgs.stdenv.hostPlatform.libc == "musl";
+    in
     {
       name = "plutus";
 
@@ -43,7 +46,7 @@ let
       modules = [
 
         (
-          lib.mkIf (!isCrossCompiling) repoRoot.nix.agda.agda-project-module-patch
+          lib.mkIf (!isCompilingMingwW64) repoRoot.nix.agda.agda-project-module-patch
         )
 
         # Common
