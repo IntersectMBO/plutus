@@ -642,7 +642,7 @@ step ((s , case- ρ ts) ◅ V-ƛ _ _)          = ◆ -- case of lambda
 step ((s , case- ρ ts) ◅ V-con _ _)        = ◆ -- case of constant
 step ((s , case- ρ ts) ◅ V-delay _ _)      = ◆ -- case of delay
 step ((s , case- ρ ts) ◅ V-I⇒ _ _)         = ◆ -- case of builtin value
-step ((s , case- ρ ts) ◅ V-IΠ _ _)         = ◆ -- case of delqyed builtin
+step ((s , case- ρ ts) ◅ V-IΠ _ _)         = ◆ -- case of delayed builtin
 step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = either (BUILTIN' b (app bapp v)) (λ _ → ◆) (s ◅_)
 step ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) = s ◅ V-I b (app bapp v)
 

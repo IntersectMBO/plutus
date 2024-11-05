@@ -115,3 +115,13 @@ _ = casereduce refl {!!}
 -}
 
 ```
+## Semantic Equivalence
+
+```
+open import VerifiedCompilation.SemanticEquivalence using (SemanticallyEquivalent; eq)
+open import Untyped.CEK using (stepper; step)
+
+equiv : SemanticallyEquivalent CaseReduce
+equiv {x = (case (constr i xs) vs)} {x' = x'} {p = casereduce lookup t} with stepper 10000000 (Untyped.CEK.ε Untyped.CEK.; Untyped.CEK.[] ▻ (case (constr i xs) vs))
+... | s = eq {n = 10000000} {!!}
+```
