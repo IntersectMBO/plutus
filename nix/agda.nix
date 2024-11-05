@@ -2,7 +2,6 @@
 
 rec {
 
-  # Need a newer version for 2.6.2 compatibility
   agda-stdlib = agda-packages.standard-library.overrideAttrs (oldAtts: rec {
 
     version = "1.7.3";
@@ -94,6 +93,17 @@ rec {
     packages.Agda.components.library.postInstall = ''
       # Compile the executable using the package DB we've just made, which contains
       # the main Agda library
+      echo "***************************************************************************"
+      echo "***************************************************************************"
+      echo "***************************************************************************"
+      echo "***************************************************************************"
+      env
+      echo "***************************************************************************"
+      echo "***************************************************************************"
+      echo "***************************************************************************"
+      echo "***************************************************************************"
+      env | sort
+      which ghc
       ghc src/main/Main.hs -package-db=$out/package.conf.d -o agda
 
       # Find all the files in $data
