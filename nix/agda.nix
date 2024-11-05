@@ -86,16 +86,17 @@ rec {
   # - turn off the custom setup
   # - manually compile the executable (fortunately it has no extra dependencies!)
   #   and do the compilation at the end of the library derivation.
-  # In addition, depending on whether we are cross-compiling or not, the compiler
-  # name (ghc) will be different, so we need to pass it in.
-  agda-project-module-patch = { ghc }: {
+  # In addition, depending on whether we are cross-compiling or not, the
+  # compiler-nix-name handed to us by haskell.nix will be different, so we need
+  # to pass it in.
+  agda-project-module-patch = { compiler-nix-name }: {
     packages.Agda.doHaddock = lib.mkForce false;
     packages.Agda.package.buildType = lib.mkForce "Simple";
     packages.Agda.components.library.enableSeparateDataOutput = lib.mkForce true;
     packages.Agda.components.library.postInstall = ''
       # Compile the executable using the package DB we've just made, which contains
       # the main Agda library
-      ${ghc} src/main/Main.hs -package-db=$out/package.conf.d -o agda
+      ${compiler-nix-name} src/main/Main.hs -package-db=$out/package.conf.d -o agda
 
       # Find all the files in $data
       shopt -s globstar
@@ -110,12 +111,12 @@ rec {
 
 
   agda-project-module-patch-default = agda-project-module-patch {
-    ghc = "ghc";
+    compiler-nix-name = "ghc";
   };
 
 
   agda-project-module-patch-musl64 = agda-project-module-patch {
-    ghc = "x86_64-unknown-linux-musl-ghc";
+    compiler-nix-name = "x86_64-unknown-linux-musl-ghc";
   };
 
 
