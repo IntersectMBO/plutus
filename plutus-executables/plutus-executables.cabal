@@ -23,6 +23,7 @@ source-repository head
 common lang
   default-language:   Haskell2010
   default-extensions:
+    BangPatterns
     DeriveFoldable
     DeriveFunctor
     DeriveGeneric
@@ -30,12 +31,20 @@ common lang
     DeriveTraversable
     DerivingStrategies
     DerivingVia
+    ExistentialQuantification
     ExplicitForAll
     FlexibleContexts
+    GADTs
     GeneralizedNewtypeDeriving
     ImportQualifiedPost
+    LambdaCase
+    MultiParamTypeClasses
+    NamedFieldPuns
+    OverloadedStrings
     ScopedTypeVariables
     StandaloneDeriving
+    TypeApplications
+    TypeSynonymInstances
 
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
@@ -49,6 +58,17 @@ common lang
 common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
+
+library lib
+  import:          lang, os-support
+  hs-source-dirs:  src
+  exposed-modules: AgdaUnparse
+  build-depends:
+    , base               >=4.9   && <5
+    , bytestring
+    , plutus-core        ^>=1.36
+    , plutus-metatheory
+    , text
 
 executable pir
   import:         lang
@@ -85,20 +105,25 @@ executable uplc
   main-is:        uplc/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , base                             >=4.9   && <5
+    , Agda                             ==2.6.4.3
+    , base                             >=4.9     && <5
     , bytestring
     , criterion
     , deepseq
+    , filepath
     , flat                             ^>=0.6
     , haskeline
     , mtl
     , optparse-applicative
     , plutus-core                      ^>=1.36
     , plutus-core:plutus-core-execlib
+    , plutus-executables:lib
     , plutus-metatheory
     , prettyprinter
     , split
     , text
+
+-- build-tool-depends: Agda:agda
 
 test-suite test-simple
   import:             lang, os-support

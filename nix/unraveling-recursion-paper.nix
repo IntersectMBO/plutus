@@ -35,7 +35,7 @@ repoRoot.nix.build-latex {
   };
 
   buildInputs = [
-    repoRoot.nix.agda-with-stdlib
+    repoRoot.nix.agda.agda-with-stdlib
     pkgs.zip
   ];
 
