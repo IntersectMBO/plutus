@@ -86,6 +86,8 @@ rec {
   # - turn off the custom setup
   # - manually compile the executable (fortunately it has no extra dependencies!)
   #   and do the compilation at the end of the library derivation.
+  # In addition, depending on whether we are cross-compiling or not, the compiler
+  # name (ghc) will be different, so we need to pass it in.
   agda-project-module-patch = { ghc }: {
     packages.Agda.doHaddock = lib.mkForce false;
     packages.Agda.package.buildType = lib.mkForce "Simple";
@@ -93,12 +95,6 @@ rec {
     packages.Agda.components.library.postInstall = ''
       # Compile the executable using the package DB we've just made, which contains
       # the main Agda library
-      env
-      echo "***************************************************************************"
-      echo "***************************************************************************"
-      echo "***************************************************************************"
-      echo "***************************************************************************"
-
       ${ghc} src/main/Main.hs -package-db=$out/package.conf.d -o agda
 
       # Find all the files in $data
@@ -113,6 +109,16 @@ rec {
   };
 
 
+  agda-project-module-patch-default = agda-project-module-patch {
+    ghc = "ghc";
+  };
+
+
+  agda-project-module-patch-musl64 = agda-project-module-patch {
+    ghc = "x86_64-unknown-linux-musl-ghc";
+  };
+
+
   agda-with-stdlib = agda-packages.agda.withPackages [ agda-stdlib ];
 
 
@@ -121,7 +127,7 @@ rec {
     version = "2.6.4.3";
     compiler-nix-name = "ghc96";
     cabalProjectLocal = "extra-packages: ieee754, filemanip";
-    modules = [ (agda-project-module-patch { ghc = "ghc"; }) ];
+    modules = [ agda-project-module-patch-default ];
   };
 
 
