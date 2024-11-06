@@ -264,6 +264,16 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
   !lookup :
      all k a.
        (\a -> a -> data) k ->
@@ -282,8 +292,8 @@ let
               !k : data = `$dToData` ds
             in
             letrec
-              !go : list (pair data data) -> Maybe data
-                = caseList
+              ~go : list (pair data data) -> Maybe data
+                = caseList'
                     {pair data data}
                     {Maybe data}
                     (Nothing {data})
@@ -346,8 +356,8 @@ in
                    = mkCons {pair data data} (mkPairData k a) []
                in
                letrec
-                 !go : list (pair data data) -> list (pair data data)
-                   = caseList
+                 ~go : list (pair data data) -> list (pair data data)
+                   = caseList'
                        {pair data data}
                        {list (pair data data)}
                        nilCase
@@ -372,8 +382,8 @@ in
         !k : data = iData (addInteger 5 n)
       in
       letrec
-        !go : list (pair data data) -> list (pair data data)
-          = caseList
+        ~go : list (pair data data) -> list (pair data data)
+          = caseList'
               {pair data data}
               {list (pair data data)}
               []

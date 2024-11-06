@@ -1,4 +1,14 @@
 let
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
 in
@@ -8,8 +18,8 @@ letrec
     Cons : a -> List a -> List a
 in
 letrec
-  !go : list (pair data data) -> List (Tuple2 integer bytestring)
-    = caseList
+  ~go : list (pair data data) -> List (Tuple2 integer bytestring)
+    = caseList'
         {pair data data}
         {List (Tuple2 integer bytestring)}
         (Nil {Tuple2 integer bytestring})
@@ -26,7 +36,7 @@ in
 letrec
   !go : list (pair data data) -> list (pair data data) -> list (pair data data)
     = \(acc : list (pair data data)) ->
-        caseList
+        caseList'
           {pair data data}
           {list (pair data data)}
           acc
@@ -135,8 +145,8 @@ in
                              n)))))
   in
   letrec
-    !go : list (pair data data) -> list (pair data data)
-      = caseList
+    ~go : list (pair data data) -> list (pair data data)
+      = caseList'
           {pair data data}
           {list (pair data data)}
           []
@@ -146,8 +156,8 @@ in
                !k' : data = fstPair {data} {data} hd
              in
              letrec
-               !go : list (pair data data) -> Maybe data
-                 = caseList
+               ~go : list (pair data data) -> Maybe data
+                 = caseList'
                      {pair data data}
                      {Maybe data}
                      (Nothing {data})
@@ -219,8 +229,8 @@ in
                                 n))))))
   in
   letrec
-    !go : list (pair data data) -> list (pair data data)
-      = caseList
+    ~go : list (pair data data) -> list (pair data data)
+      = caseList'
           {pair data data}
           {list (pair data data)}
           []
@@ -233,8 +243,8 @@ in
                  !k : data = fstPair {data} {data} hd
                in
                letrec
-                 !go : list (pair data data) -> Bool
-                   = caseList
+                 ~go : list (pair data data) -> Bool
+                   = caseList'
                        {pair data data}
                        {Bool}
                        False

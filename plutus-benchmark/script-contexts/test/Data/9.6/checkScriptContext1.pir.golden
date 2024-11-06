@@ -68,13 +68,23 @@
                  (unIData (headList {data} (tailList {data} args))))
             (/\dead -> traceError {GovernanceActionId} "PT1")
             {all dead. dead}
+    !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+      = /\a r ->
+          \(z : r) (f : a -> list a -> r) (xs : list a) ->
+            chooseList
+              {a}
+              {all dead. r}
+              xs
+              (/\dead -> z)
+              (/\dead -> f (headList {a} xs) (tailList {a} xs))
+              {r}
     !`$fUnsafeFromDataList_$cunsafeFromBuiltinData` :
        all a. (\a -> data -> a) a -> data -> List a
       = /\a ->
           \(`$dUnsafeFromData` : (\a -> data -> a) a) ->
             letrec
-              !go : list data -> List a
-                = caseList
+              ~go : list data -> List a
+                = caseList'
                     {data}
                     {List a}
                     (Nil {a})
@@ -440,8 +450,8 @@
             {all dead. dead}
   in
   letrec
-    !go : list data -> List ProposalProcedure
-      = caseList
+    ~go : list data -> List ProposalProcedure
+      = caseList'
           {data}
           {List ProposalProcedure}
           (Nil {ProposalProcedure})
@@ -728,8 +738,8 @@
             {all dead. dead}
   in
   letrec
-    !go : list data -> List TxCert
-      = caseList
+    ~go : list data -> List TxCert
+      = caseList'
           {data}
           {List TxCert}
           (Nil {TxCert})
@@ -855,8 +865,8 @@
             {all dead. dead}
   in
   letrec
-    !go : list data -> List TxOut
-      = caseList
+    ~go : list data -> List TxOut
+      = caseList'
           {data}
           {List TxOut}
           (Nil {TxOut})
@@ -907,8 +917,8 @@
             {all dead. dead}
   in
   letrec
-    !go : list data -> List TxInInfo
-      = caseList
+    ~go : list data -> List TxInInfo
+      = caseList'
           {data}
           {List TxInInfo}
           (Nil {TxInInfo})
@@ -919,8 +929,8 @@
                (go xs))
   in
   letrec
-    !go : list data -> List TxInInfo
-      = caseList
+    ~go : list data -> List TxInInfo
+      = caseList'
           {data}
           {List TxInInfo}
           (Nil {TxInInfo})

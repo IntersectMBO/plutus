@@ -8,9 +8,17 @@ in
 letrec
   !go : list data -> integer -> data
     = \(xs : list data) (i : integer) ->
-        caseList
-          {data}
-          {Unit -> Unit -> data}
+        (let
+            r = Unit -> Unit -> data
+          in
+          \(z : r) (f : data -> list data -> r) (xs : list data) ->
+            chooseList
+              {data}
+              {all dead. r}
+              xs
+              (/\dead -> z)
+              (/\dead -> f (headList {data} xs) (tailList {data} xs))
+              {r})
           (\(ds : Unit) -> error {Unit -> data})
           (\(x : data) (xs : list data) (ds : Unit) (eta : Unit) ->
              Bool_match
