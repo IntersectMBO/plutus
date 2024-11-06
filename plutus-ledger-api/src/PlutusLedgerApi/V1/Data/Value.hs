@@ -21,10 +21,14 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-spec-constr #-}
 {-# OPTIONS_GHC -fno-specialise #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
--- We need -fexpose-all-unfoldings to compile the Marlowe validator
--- with GHC 9.6.2.
+-- We need -fexpose-all-unfoldings to compile the Marlowe validator with GHC 9.6.2.
 -- TODO. Look into this more closely: see https://github.com/IntersectMBO/plutus/issues/6172.
+
+{-# HLINT ignore "Redundant if" #-}
+{-# HLINT ignore "Replace case with maybe" #-}
 
 -- | Functions for working with 'Value'.
 module PlutusLedgerApi.V1.Data.Value (
@@ -86,6 +90,7 @@ import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..), emptySchemaInfo)
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal (BuiltinList, BuiltinPair)
 import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.Data.AssocMap (Map)
 import PlutusTx.Data.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
@@ -283,7 +288,7 @@ taken to be zero.
 There is no 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
 do the right thing in some cases.
  -}
-newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
+newtype Value = Value { getValue :: Map CurrencySymbol (Map TokenName Integer) }
     deriving stock (Generic, Typeable, Haskell.Show)
     deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving Pretty via (PrettyShow Value)
@@ -406,7 +411,7 @@ assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
 
 {-# INLINABLE unionVal #-}
 -- | Combine two 'Value' maps, assumes the well-definedness of the two maps.
-unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (These Integer Integer))
+unionVal :: Value -> Value -> Map CurrencySymbol (Map TokenName (These Integer Integer))
 unionVal (Value l) (Value r) =
     let
         combined = Map.union l r
@@ -458,7 +463,7 @@ isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 checkPred :: (These Integer Integer -> Bool) -> Value -> Value -> Bool
 checkPred f l r =
     let
-      inner :: Map.Map TokenName (These Integer Integer) -> Bool
+      inner :: Map TokenName (These Integer Integer) -> Bool
       inner = Map.all f
     in
       Map.all inner (unionVal l r)
@@ -512,7 +517,7 @@ split :: Value -> (Value, Value)
 split (Value mp) = (negate (Value neg), Value pos) where
   (neg, pos) = Map.mapThese splitIntl mp
 
-  splitIntl :: Map.Map TokenName Integer -> These (Map.Map TokenName Integer) (Map.Map TokenName Integer)
+  splitIntl :: Map TokenName Integer -> These (Map TokenName Integer) (Map TokenName Integer)
   splitIntl mp' = These l r where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
 
@@ -570,14 +575,14 @@ unordEqWith is0 eqV = goBoth where
                     -- null l2 case
                     (\() -> True)
                     -- non-null l2 case
-                    (\ _ _ -> Map.all is0 (Map.unsafeFromBuiltinList l2 :: Map.Map BuiltinData BuiltinData))
+                    (\ _ _ -> Map.all is0 (Map.unsafeFromBuiltinList l2 :: Map BuiltinData BuiltinData))
             )
             -- non-null l1 case
             ( \hd1 tl1 ->
                 B.matchList
                     l2
                     -- null l2 case
-                    (\() -> Map.all is0 (Map.unsafeFromBuiltinList l1 :: Map.Map BuiltinData BuiltinData))
+                    (\() -> Map.all is0 (Map.unsafeFromBuiltinList l1 :: Map BuiltinData BuiltinData))
                     -- non-null l2 case
                     ( \hd2 tl2 ->
                         let
@@ -647,10 +652,10 @@ unordEqWith is0 eqV = goBoth where
 --- given a function checking whether a value is zero and a function
 -- checking equality of values.
 eqMapOfMapsWith
-    :: (Map.Map TokenName Integer -> Bool)
-    -> (Map.Map TokenName Integer -> Map.Map TokenName Integer -> Bool)
-    -> Map.Map CurrencySymbol (Map.Map TokenName Integer)
-    -> Map.Map CurrencySymbol (Map.Map TokenName Integer)
+    :: (Map TokenName Integer -> Bool)
+    -> (Map TokenName Integer -> Map TokenName Integer -> Bool)
+    -> Map CurrencySymbol (Map TokenName Integer)
+    -> Map CurrencySymbol (Map TokenName Integer)
     -> Bool
 eqMapOfMapsWith is0 eqV map1 map2 =
     let xs1 = Map.toBuiltinList map1
@@ -665,8 +670,8 @@ eqMapOfMapsWith is0 eqV map1 map2 =
 eqMapWith
     :: (Integer -> Bool)
     -> (Integer -> Integer -> Bool)
-    -> Map.Map TokenName Integer
-    -> Map.Map TokenName Integer
+    -> Map TokenName Integer
+    -> Map TokenName Integer
     -> Bool
 eqMapWith is0 eqV map1 map2 =
     let xs1 = Map.toBuiltinList map1
