@@ -46,6 +46,7 @@ module PlutusLedgerApi.V1.Value (
     , Value(..)
     , singleton
     , valueOf
+    , withCurrencySymbol
     , currencySymbolValueOf
     , lovelaceValue
     , lovelaceValueOf
@@ -353,26 +354,37 @@ instance MeetSemiLattice Value where
 -- | Get the quantity of the given currency in the 'Value'.
 -- Assumes that the underlying map doesn't contain duplicate keys.
 valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
-valueOf (Value mp) cur tn =
-    case Map.lookup cur mp of
-        Nothing -> 0
-        Just i  -> case Map.lookup tn i of
-            Nothing -> 0
-            Just v  -> v
+valueOf value cur tn =
+  withCurrencySymbol cur value 0 \tokens ->
+    case Map.lookup tn tokens of
+      Nothing -> 0
+      Just v  -> v
 
-{-# INLINABLE currencySymbolValueOf #-}
--- | Get the total value of the currency symbol in the 'Value' map.
--- Assumes that the underlying map doesn't contain duplicate keys.
---
--- Note that each token of the currency symbol may have a value that is positive,
--- zero or negative.
+{-# INLINEABLE withCurrencySymbol #-}
+
+{- | Apply a continuation function to the token quantities of the given currency
+symbol in the value or return a default value if the currency symbol is not present
+in the value.
+-}
+withCurrencySymbol :: CurrencySymbol -> Value -> a -> (Map TokenName Integer -> a) -> a
+withCurrencySymbol currency value def k =
+  case Map.lookup currency (getValue value) of
+    Nothing              -> def
+    Just tokenQuantities -> k tokenQuantities
+
+{-# INLINEABLE currencySymbolValueOf #-}
+
+{- | Get the total value of the currency symbol in the 'Value' map.
+Assumes that the underlying map doesn't contain duplicate keys.
+
+Note that each token of the currency symbol may have a value that is positive,
+zero or negative.
+-}
 currencySymbolValueOf :: Value -> CurrencySymbol -> Integer
-currencySymbolValueOf (Value mp) cur = case Map.lookup cur mp of
-    Nothing     -> 0
-    Just tokens ->
-        -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
-        -- the latter materializes the intermediate result of `Map.elems tokens`.
-        PlutusTx.List.foldr (\(_, amt) acc -> amt + acc) 0 (Map.toList tokens)
+currencySymbolValueOf value cur = withCurrencySymbol cur value 0 \tokens ->
+  -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
+  -- the latter materializes the intermediate result of `Map.elems tokens`.
+  PlutusTx.List.foldr (\(_, amt) acc -> amt + acc) 0 (Map.toList tokens)
 
 {-# INLINABLE symbols #-}
 -- | The list of 'CurrencySymbol's of a 'Value'.
