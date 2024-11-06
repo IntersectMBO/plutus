@@ -90,7 +90,6 @@ rec {
   # compiler-nix-name handed to us by haskell.nix will be different, so we need
   # to pass it in.
   agda-project-module-patch = { compiler-nix-name }: {
-    packages.Agda.doHaddock = lib.mkForce false;
     packages.Agda.package.buildType = lib.mkForce "Simple";
     packages.Agda.components.library.enableSeparateDataOutput = lib.mkForce true;
     packages.Agda.components.library.postInstall = ''
