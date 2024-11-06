@@ -12,9 +12,7 @@ author:          Plutus Core Team
 maintainer:      ana.pantilie@iohk.io
 category:        Development
 build-type:      Simple
-extra-doc-files:
-  CHANGELOG.md
-  README.md
+extra-doc-files: CHANGELOG.md
 
 source-repository head
   type:     git
