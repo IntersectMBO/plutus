@@ -112,7 +112,9 @@ analyseTxInfoV3 i = do
   putStr "Fee:     "
   print $ V3.txInfoFee i
   putStr "Mint:    "
-  analyseValue $ V3.txInfoMint i
+  analyseValue $ V3.mintValueMinted (V3.txInfoMint i)
+  putStr "Burn:    "
+  analyseValue $ V3.mintValueBurned (V3.txInfoMint i)
   analyseOutputs (V3.txInfoOutputs i) V3.txOutValue
 
 analyseScriptContext :: EventAnalyser

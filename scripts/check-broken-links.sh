@@ -5,27 +5,36 @@ TARGETS=(
     *.adoc
 )
 
+# For some reason linkchecker fails to check these URLs though they are valid.
+# It's plausible that these domains are blocking the linkchecker user agent, or 
+# that we are running into rate-limiting issues, or that linkchecker is 
+# not following redirects properly.
 IGNORE_URLS=(
-    --ignore-url https://img.shields.io/matrix/plutus-core%3Amatrix.org # For some reason linkchecker fails to check this URL though it is valid
+    https://www.haskell.org/cabal
+    https://pvp.haskell.org
+    https://github.com/cardano-foundation/CIPs/pulls\?q\=is%3Apr+is%3Aopen+label%3A%22Category%3A+Plutus%22
 )
 
-FAILED=0
+check_links() {
+    linkchecker --no-warnings --recursion-level 0 --output failures --check-extern --stdin
+}
 
 grep_links() {
-    grep -oE "\b(https?://|www\.)[^\[\(\)\"]+\b" "$1"
+    for file in $(find "${TARGETS[@]}"); do
+        grep -oE "\b(https?://|www\.)[^\[\(\)\"]+\b" "${file}"
+    done
 }
 
-check_links() {
-    linkchecker --no-warnings --recursion-level 0 --output failures --check-extern "${IGNORE_URLS[@]}" --stdin 
+valid_links() {
+    local all_links="$(grep_links | tr ' ' '\n' | sort | uniq)"
+    local ignore_links="$(echo "${IGNORE_URLS[@]}" | tr ' ' '\n' | sort | uniq)"
+    comm -3 <(echo "$all_links") <(echo "$ignore_links")
 }
 
-for file in $(find "${TARGETS[@]}"); do 
-    echo "Checking ${file}"
-    grep_links "${file}" | check_links
-    if [ $? -ne 0 ]; then 
-        echo "${file} has broken links, see output above"
-        FAILED=1
-    fi 
-done 
+check_links <<< "$(valid_links)"
 
-exit "${FAILED}"
+if [[ "$?" != "0" ]]; then
+    echo "Found broken links, see output above"
+    exit 1
+fi
+

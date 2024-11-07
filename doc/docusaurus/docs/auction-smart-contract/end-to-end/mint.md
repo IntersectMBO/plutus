@@ -89,3 +89,7 @@ node mint-token-for-auction.mjs
 
 and you should see a message "Minted a token at address ..." printed in the console.
 Within a minute, you should be able to find the transaction using the transaction hash on [Cardanoscan](https://preview.cardanoscan.io/) and review its details.
+
+Illustration of the minting transaction:
+
+![Minting the token](../../../static/img/tx1.png)

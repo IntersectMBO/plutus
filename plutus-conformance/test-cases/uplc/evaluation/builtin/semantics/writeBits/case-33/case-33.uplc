@@ -1,12 +1,4 @@
-(program 1.0.0
- [
-  [
-   [
-    (builtin writeBits)
-    (con bytestring #00000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
-   ]
-   (con (list integer) [340, 342, 343, 1, 2, 3]) -- The leading indices are used if the lists are of different lengths.
-  ]
-  (con (list bool) [True, True, True])
- ]
-)
+(program 1.0.0 [
+  [ [ (builtin writeBits) (con bytestring #f4ff) ] (con (list integer) [1,10,1,10,1,10,1,10,1,10,1,10,10,10,10,11,11,9]) ]
+  (con bool False)
+])

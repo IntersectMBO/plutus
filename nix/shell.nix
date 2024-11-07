@@ -29,11 +29,14 @@ in
   welcomeMessage = "🤟 \\033[1;34mWelcome to Plutus\\033[0m 🤟";
 
   packages = [
-    repoRoot.nix.agda-with-stdlib
+    repoRoot.nix.agda.agda-with-stdlib
 
     # R environment
     repoRoot.nix.r-with-packages
     pkgs.R
+
+    # LaTeX environment
+    pkgs.texliveFull
 
     # Misc useful stuff, could make these commands but there's a lot already
     pkgs.jekyll
@@ -47,8 +50,11 @@ in
     pkgs.gawk
     pkgs.scriv
     pkgs.fswatch
-    pkgs.linkchecker
     pkgs.yarn
+
+    # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
+    # pkgs.linkchecker
+    inputs.nixpkgs-2405.legacyPackages.linkchecker
 
     # Needed to make building things work, not for commands
     pkgs.zlib
@@ -86,6 +92,7 @@ in
 
   shellHook = ''
     ${builtins.readFile certEnv}
+    ${repoRoot.nix.agda.shell-hook-exports}
   '';
 
   preCommit = {

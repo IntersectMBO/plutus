@@ -27,6 +27,7 @@ containing the generated proof object, a.k.a. the _certificate_. The certificate
 it into Agda and checking that it is correctly typed.
 
 ```
+{-# OPTIONS --allow-unsolved-metas #-}
 module VerifiedCompilation where
 ```
 
@@ -48,6 +49,8 @@ open import Agda.Builtin.Unit using (⊤;tt)
 import IO.Primitive as IO using (return;_>>=_)
 import VerifiedCompilation.UCaseOfCase as UCC
 import VerifiedCompilation.UForceDelay as UFD
+import VerifiedCompilation.UFloatDelay as UFlD
+import VerifiedCompilation.UCSE as UCSE
 open import Data.Empty using (⊥)
 open import Scoped using (ScopeError;deBError)
 open import VerifiedCompilation.Equality using (DecEq)
@@ -55,100 +58,96 @@ import Relation.Binary as Binary using (Decidable)
 open import VerifiedCompilation.UntypedTranslation using (Translation; Relation; translation?)
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
+import Agda.Builtin.Int
+import Relation.Nary as Nary using (Decidable)
 ```
 
 ## Compiler optimisation traces
 
-A `Trace` represents a sequence of optimisation transformations applied to a program. It is a list of pairs of ASTs,
-where each pair represents the before and after of a transformation application.
-The `IsTransformation` type is a sum type that represents the possible transformations which are implemented in their
-respective modules. Adding a new transformation requires extending this type.
+A `Trace` represents a sequence of optimisation transformations applied to a program. It is a list of pairs of ASTs
+and a tag (`SimplifierTag`), where each pair represents the before and after of a transformation application and the
+tag indicates which transformation was applied.
+The `Transformation` type is a sum type that represents the possible transformations which are implemented in their
+respective modules. 
 
 The `isTrace?` decision procedure is at the core of the certification process. It produces the proof that the given
-list of ASTs are in relation with one another according to the transformations implemented in the project. It is
-parametrised by the relation type in order to provide a generic interface for testing, but in practice it is always
-instantiated with the `IsTransformation` type.
+list of ASTs are in relation with one another according to the transformations implemented in the project.
 
-The `IsTransformation?` decision procedure implements a logical disjunction of the different transformation types.
+The `isTransformation?` decision procedure just dispatches to the decision procedure indicated by the tag.
 
 **TODO**: The `Trace` type or decision procedure should also enforce that the second element of a pair is the first
 element of the next pair in the list. This might not be necessary if we decide that we can assume that the function
 which produces a `Trace` always produces a correct one, although it might be useful to make this explicit in the type.
+```
 
-**TODO**: The compiler should provide information on which transformation was applied at each step in the trace.
-`IsTransformation?` is currently quadratic in the number of transformations, which is not ideal.
+data SimplifierTag : Set where
+  floatDelayT : SimplifierTag
+  forceDelayT : SimplifierTag
+  caseOfCaseT : SimplifierTag
+  caseReduceT : SimplifierTag
+  inlineT : SimplifierTag
+  cseT : SimplifierTag
+
+{-# FOREIGN GHC import UntypedPlutusCore.Transform.Simplifier #-}
+{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | CaseOfCase | CaseReduce | Inline | CSE) #-}
+
+data Transformation : SimplifierTag → Relation where
+  isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CaseOfCase ast ast' → Transformation caseOfCaseT ast ast'
+  isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation forceDelayT ast ast'
+  isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation floatDelayT ast ast'
+  isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation cseT ast ast'
+  inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation inlineT ast ast'
+  caseReduceNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation caseReduceT ast ast'
+
+data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
+  empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
+  cons
+    : {X : Set}{{_ : DecEq X}} 
+    {tag : SimplifierTag} {x x' : X ⊢}
+    {xs : List (SimplifierTag × (X ⊢) × (X ⊢))}
+    → Transformation tag x x'
+    → Trace xs
+    → Trace ((tag , x , x') ∷ xs)
+
+isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (Transformation tag ast ast')
+isTransformation? tag ast ast' with tag
+isTransformation? tag ast ast' | floatDelayT with UFlD.isFloatDelay? ast ast'
+... | no ¬p = no λ { (isFlD x) → ¬p x }
+... | yes p = yes (isFlD p)
+isTransformation? tag ast ast' | forceDelayT with UFD.isForceDelay? ast ast'
+... | no ¬p = no λ { (isFD x) → ¬p x }
+... | yes p = yes (isFD p)
+isTransformation? tag ast ast' | caseOfCaseT with UCC.isCaseOfCase? ast ast'
+... | no ¬p = no λ { (isCoC x) → ¬p x }
+... | yes p = yes (isCoC p)
+isTransformation? tag ast ast' | caseReduceT = yes caseReduceNotImplemented
+isTransformation? tag ast ast' | inlineT = yes inlineNotImplemented
+isTransformation? tag ast ast' | cseT with UCSE.isUntypedCSE? ast ast'
+... | no ¬p = no λ { (isCSE x) → ¬p x }
+... | yes p = yes (isCSE p)
+
+isTrace? : {X : Set} {{_ : DecEq X}} → Unary.Decidable (Trace {X})
+isTrace? [] = yes empty
+isTrace? ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
+... | no ¬pₜ = no λ {(cons _ rest) → ¬pₜ rest}
+... | yes pₜ with isTransformation? tag x₁ x₂
+...                 | no ¬pₑ = no λ {(cons x _) → ¬pₑ x}
+...                 | yes pₑ = yes (cons pₑ pₜ)
+
 
 ```
 
-data Trace (R : Relation) : { X : Set } {{_ : DecEq X}} → List ((X ⊢) × (X ⊢)) → Set₁ where
-  empty : {X : Set}{{_ : DecEq X}}  → Trace R {X} []
-  cons : {X : Set}{{_ : DecEq X}}  {x x' : X ⊢} {xs : List ((X ⊢) × (X ⊢))} → R x x' → Trace R {X} xs → Trace R {X} ((x , x') ∷ xs)
-
-data IsTransformation : Relation where
-  isCoC : {X : Set}{{_ : DecEq X}}  → (ast ast' : X ⊢) → UCC.CoC ast ast' → IsTransformation ast ast'
-  isFD : {X : Set}{{_ : DecEq X}}  → (ast ast' : X ⊢) → UFD.FD zero zero ast ast' → IsTransformation ast ast'
-
-isTrace? : {X : Set} {{_ : DecEq X}} {R : Relation} → Binary.Decidable (R {X}) → Unary.Decidable (Trace R {X})
-isTrace? {X} {R} isR? [] = yes empty
-isTrace? {X} {R} isR? ((x₁ , x₂) ∷ xs) with isTrace? {X} {R} isR? xs
-... | no ¬p = no λ {(cons a as) → ¬p as}
-... | yes p with isR? x₁ x₂
-...   | no ¬p = no λ {(cons x x₁) → ¬p x}
-...   | yes p₁ = yes (cons p₁ p)
-
-isTransformation? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (IsTransformation {X})
-isTransformation? ast₁ ast₂ with UCC.isCoC? ast₁ ast₂
-... | scrt with UFD.isFD? zero zero ast₁ ast₂
-isTransformation? ast₁ ast₂ | no ¬p | no ¬p₁ = no λ {(isCoC .ast₁ .ast₂ x) → ¬p x
-                                                   ; (isFD .ast₁ .ast₂ x) → ¬p₁ x}
-isTransformation? ast₁ ast₂ | no ¬p | yes p = yes (isFD ast₁ ast₂ p)
-isTransformation? ast₁ ast₂ | yes p | no ¬p = yes (isCoC ast₁ ast₂ p)
--- TODO: this does not make much sense, see TODO above
-isTransformation? ast₁ ast₂ | yes p | yes p₁ = yes (isCoC ast₁ ast₂ p)
-
-```
-## Serialising the proofs
-
-The proof objects are converted to a textual representation which can be written to a file.
-
-**TODO**: Finish the implementation. A textual representation is not usually ideal, but it is a good starting point.
-
-```
-showTranslation : {X : Set} {{_ : DecEq X}} {ast ast' : X ⊢} → Translation IsTransformation ast ast' → String
-showTranslation (Translation.istranslation x) = "istranslation TODO"
-showTranslation Translation.var = "var"
-showTranslation (Translation.ƛ t) = "(ƛ " ++ showTranslation t ++ ")"
-showTranslation (Translation.app t t₁) = "(app " ++ showTranslation t ++ " " ++ showTranslation t₁ ++ ")"
-showTranslation (Translation.force t) = "(force " ++ showTranslation t ++ ")"
-showTranslation (Translation.delay t) = "(delay " ++ showTranslation t ++ ")"
-showTranslation Translation.con = "con"
-showTranslation (Translation.constr x) = "(constr TODO)"
-showTranslation (Translation.case x t) = "(case TODO " ++ showTranslation t ++ ")"
-showTranslation Translation.builtin = "builtin"
-showTranslation Translation.error = "error"
-
-showTrace : {X : Set} {{_ : DecEq X}} {xs : List ((X ⊢) × (X ⊢))} → Trace (Translation IsTransformation) xs → String
-showTrace empty = "empty"
-showTrace (cons x bla) = "(cons " ++ showTranslation x ++ showTrace bla ++ ")"
-
-serializeTraceProof : {X : Set} {{_ : DecEq X}} {xs : List ((X ⊢) × (X ⊢))} → Dec (Trace (Translation IsTransformation) xs) → String
-serializeTraceProof (no ¬p) = "no"
-serializeTraceProof (yes p) = "yes " ++ showTrace p
-
-```
 
 ## The certification function
 
-The `runCertifier` function is the top-level function which can be called by the compiler through the foreign function interface.
-It represents the "impure top layer" which receives the list of ASTs produced by the compiler and writes the certificate
-generated by the `certifier` function to disk. Again, the `certifier` is generic for testing purposes but it is instantiated
-with the top-level decision procedures by the `runCertifier` function.
+The `runCertifier` function is the top-level function which can be called by the compiler.
 
 ```
 
 {-# FOREIGN GHC import qualified Data.Text.IO as TextIO #-}
 {-# FOREIGN GHC import qualified System.IO as IO #-}
 {-# FOREIGN GHC import qualified Data.Text as Text #-}
+{-# FOREIGN GHC import PlutusCore.Compiler.Types #-}
 
 postulate FileHandle : Set
 {-# COMPILE GHC FileHandle = type IO.Handle #-}
@@ -167,27 +166,23 @@ buildPairs [] = []
 buildPairs (x ∷ []) = (x , x) ∷ []
 buildPairs (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ buildPairs (x₂ ∷ xs)
 
-traverseEitherList : {A B E : Set} → (A → Either E B) → List A → Either E (List B)
+traverseEitherList : {A B E : Set} → (A → Either E B) → List (SimplifierTag × A × A) → Either E (List (SimplifierTag × B × B))
 traverseEitherList _ [] = inj₂ []
-traverseEitherList f (x ∷ xs) with f x
-... | inj₁ err = inj₁ err
-... | inj₂ x' with traverseEitherList f xs
-...     | inj₁ err = inj₁ err
-...     | inj₂ resList = inj₂ (x' ∷ resList)
+traverseEitherList f ((tag , before , after) ∷ xs) with f before
+... | inj₁ e = inj₁ e
+... | inj₂ b with f after
+... | inj₁ e = inj₁ e
+... | inj₂ a with traverseEitherList f xs
+... | inj₁ e = inj₁ e
+... | inj₂ xs' = inj₂ (((tag , b , a)) ∷ xs')
 
-certifier
-  : {X : Set} {{_ : DecEq X}}
-  → List Untyped
-  → Unary.Decidable (Trace (Translation IsTransformation) {Maybe X})
-  → Either ScopeError String
-certifier {X} rawInput isRTrace? with traverseEitherList toWellScoped rawInput
-... | inj₁ err = inj₁ err
-... | inj₂ rawTrace =
-  let inputTrace = buildPairs rawTrace
-   in inj₂ (serializeTraceProof (isRTrace? inputTrace))
+data Proof : Set₁ where
+  proof
+    : {X : Set} {result : List (SimplifierTag × (X ⊢) × (X ⊢))} {{_ : DecEq X}}
+    → Dec (Trace {X} result)
+    → Proof
 
-runCertifier : String → List Untyped → IO ⊤
-runCertifier fileName rawInput with certifier rawInput (isTrace? {Maybe ⊥} {Translation IsTransformation} (translation? isTransformation?))
-... | inj₁ err = hPutStrLn stderr "error" -- TODO: pretty print error
-... | inj₂ result = writeFile (fileName ++ ".agda") result
-{-# COMPILE GHC runCertifier as runCertifier #-}
+runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Proof
+runCertifier rawInput with traverseEitherList (toWellScoped {⊥}) rawInput
+... | inj₁ _ = nothing
+... | inj₂ inputTrace = just (proof (isTrace? inputTrace))

@@ -14,7 +14,7 @@ on:
 jobs:
   run:
     name: Run 
-    runs-on: [self-hosted, plutus-shared]
+    runs-on: [self-hosted, plutus-ci]
     permissions:
       contents: write
     environment:
@@ -29,7 +29,7 @@ jobs:
 
       - name: Deploy Site 
         if: github.event_name == 'push'
-        uses: JamesIves/github-pages-deploy-action@v4.6.4
+        uses: JamesIves/github-pages-deploy-action@v4.6.8
         with:
           folder: doc/docusaurus/build
           target-folder: docs

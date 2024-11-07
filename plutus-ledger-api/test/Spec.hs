@@ -20,6 +20,7 @@ import Spec.Interval qualified
 import Spec.ScriptDecodeError qualified
 import Spec.V1.Data.Value qualified as Data.Value
 import Spec.V1.Value qualified as Value
+import Spec.V3.MintValue qualified as MintValue
 import Spec.Versions qualified
 
 import Test.Tasty
@@ -136,6 +137,7 @@ tests = testGroup "plutus-ledger-api"
         , Spec.CostModelParams.tests
         , Spec.ContextDecoding.tests
         , Value.test_Value
+        , MintValue.tests
         ]
       , testGroup "Data"
         [ Spec.Data.Eval.tests

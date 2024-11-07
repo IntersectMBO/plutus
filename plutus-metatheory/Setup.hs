@@ -109,13 +109,13 @@ agdaPreProcessor _ lbi _ = D.PreProcessor
           D.notice verb "***** agda already run, skipping preprocessor hook"
 
     runAgda :: D.Verbosity -> IO ()
-    runAgda verb = D.runProgram verb agdaProgram
-      [ "--compile-dir", D.buildDir lbi
-      , "--compile"
-      , "--ghc-dont-call-ghc"
-      , "--local-interfaces"
-      , "src/Main.lagda.md"
-      ]
+    runAgda verb =
+      D.runProgram verb agdaProgram
+        [ "--compile-dir", D.buildDir lbi
+        , "--compile"
+        , "--ghc-dont-call-ghc"
+        , "src/Main.lagda.md"
+        ]
 
     agdaProgram :: D.ConfiguredProgram
     agdaProgram = D.simpleConfiguredProgram "agda" (D.FoundOnSystem "agda")

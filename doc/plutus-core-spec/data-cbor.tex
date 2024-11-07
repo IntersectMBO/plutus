@@ -42,7 +42,7 @@ the CBOR standard~\cite{rfc8949-CBOR}, but with some refinements. Specifically
 We introduce some extra notation for use here and in
 Appendix~\ref{appendix:flat-serialisation}.
 
-\medskip 
+\medskip
 \noindent The notation $f: X \rightharpoonup Y$ indicates that $f$ is a partial
 map from $X$ to $Y$.  We denote the empty bytestring by $\epsilon$ and (as
 in~\ref{sec:notation-lists}) use $\length(s)$ to denote the length of a
@@ -76,7 +76,7 @@ returns the remainder of $s$ together with $x$.  Decoders for complex types will
 often be built up from decoders for simpler types.  Decoders are
 \textit{partial} functions because they can fail, for instance, if there is
 insufficient input, or if the input is not well formed, or if a decoded value is
-outside some specified range. 
+outside some specified range.
 
 Many of the decoders which we define below involve a number of cases for
 different forms of input, and we implicitly assume that the decoder fails if
@@ -120,7 +120,7 @@ there is insufficient input:
 $$ \bsToInt_k(s) = (s', \sum_{i=0}^{k-1}256^ib_i) \qquad \text{if $s = [b_{k-1},
     \ldots, b_0] \cdot s'$}.
 $$
- 
+
 \noindent We now define an encoder $\eHead: \Nab{0}{7} \times
 \Nab{0}{2^{64}-1} \rightarrow \B^*$ which takes a major type and a
 natural number and encodes them as a CBOR head using the standard encoding:
@@ -137,7 +137,7 @@ $$
 $$
 
 \noindent The corresponding decoder $\dHead: \B^* \rightharpoonup \B^* \times
-\Nab{0}{7} \times \Nab{0}{2^{64}-1}$ is given by 
+\Nab{0}{7} \times \Nab{0}{2^{64}-1}$ is given by
 
 $$
   \dHead(n \cdot s) =
@@ -174,7 +174,7 @@ with indefinite heads for a given major type:
   \eIndef(m) &= [32m+31]\\
   \dIndef(n \cdot s) & = (s, m) \qquad \text{if $n = 32m+31$}.
 \end{align*}
-  
+
 \noindent Note that $\eIndef$ and $\dIndef$ are only defined for $m \in
 \{2,3,4,5\}$ (and we shall only use them in these cases). The case $m=31$
 corresponds to the break byte and for $m \in \{0,1,6\}$ the value is not well
@@ -190,14 +190,14 @@ length up to 64.  To this end, suppose that $a = [a_1, \ldots, a_{64k+r}] \in
 the \textit{canonical 64-byte decomposition} $\bar{a}$ of $a$ to be
 $$
 \bar{a} = [[a_1, \ldots, a_{64}],
-  [a_{65}, \ldots, a_{128}] ,\ldots, 
+  [a_{65}, \ldots, a_{128}] ,\ldots,
   [a_{64(k-1)+1}, \ldots, a_{64k}]] \in (\B^*)^*
 $$
 \noindent if $r=0$ and
 
 $$
 \bar{a} = [[a_1, \ldots, a_{64}],
-  [a_{65}, \ldots, a_{128}], \ldots, 
+  [a_{65}, \ldots, a_{128}], \ldots,
   [a_{64(k-1)+1}, \ldots, a_{64k}], [a_{64k+1}, \ldots, a_{64k+r}]] \in (\B^*)^*
 $$
 \noindent if $r>0$.  The canonical decomposition of the empty list is $\bar{\epsilon} = []$.
@@ -299,7 +299,7 @@ $$
 \end{cases}
 $$
 
-\noindent 
+\noindent
 The encoder $\eZ: \Z \rightarrow \B^*$ for integers is now defined by
 $$ \eZ(n) =
 \begin{cases}
@@ -344,10 +344,10 @@ $\mathtt{Constr}\: i\, l$).
 
 \paragraph{The encoder.} The encoder is given by
 \begin{alignat*}{2}
-&  \eData(\mathtt{Map}\: l) && = \eHead(5,\length(l)) \cdot \eDataStarSq(l)\\ 
-&  \eData(\mathtt{List}\: l) && = \eIndef(4) \cdot \eDataStar(l) \cdot 255\\ 
+&  \eData(\mathtt{Map}\: l) && = \eHead(5,\length(l)) \cdot \eDataStarSq(l)\\
+&  \eData(\mathtt{List}\: l) && = \eIndef(4) \cdot \eDataStar(l) \cdot 255\\
 &  \eData(\mathtt{Constr}\: i\, l) && = \ecTag(i) \cdot \eIndef(4) \cdot  \eDataStar(l) \cdot 255\\
-& \eData(\mathtt{I}\: n) && = \eZ(n)\\ 
+& \eData(\mathtt{I}\: n) && = \eZ(n)\\
 &  \eData(\mathtt{B}\: s) && = \eBS(s).
 \end{alignat*}
 
@@ -368,7 +368,7 @@ $$
   \end{cases}
 $$
 
-\noindent 
+\noindent
 In the final case of $\ecTag$ we emit a head with major type 4 and argument
 2. This indicates that an encoding of a list of length 2 will follow: the first
 element of the list is the constructor number and the second is the argument
