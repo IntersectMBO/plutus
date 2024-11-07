@@ -24,7 +24,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@main
-            
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
       - name: Cold Build On ${{ matrix.os }} & ${{ matrix.ghc }}
         run: | 
           nix develop --no-warn-dirty --accept-flake-config .#${{ matrix.ghc }} \
