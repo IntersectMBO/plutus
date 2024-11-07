@@ -9,6 +9,7 @@ on:
   workflow_run:
     workflows: 
       - "🔗 Broken Links"
+      - "👷 Cabal Build All"
       - "🗽 Cardano Constitution Tests"
       - "💰 Cost Model Benchmark"
       - "🦕 Docusaurus Site" 
