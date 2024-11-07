@@ -21,14 +21,10 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-spec-constr #-}
 {-# OPTIONS_GHC -fno-specialise #-}
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 -- We need -fexpose-all-unfoldings to compile the Marlowe validator with GHC 9.6.2.
 -- TODO. Look into this more closely: see https://github.com/IntersectMBO/plutus/issues/6172.
-
-{-# HLINT ignore "Redundant if" #-}
-{-# HLINT ignore "Replace case with maybe" #-}
 
 -- | Functions for working with 'Value'.
 module PlutusLedgerApi.V1.Data.Value (

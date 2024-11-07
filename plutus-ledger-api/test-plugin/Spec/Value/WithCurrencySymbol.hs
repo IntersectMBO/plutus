@@ -4,7 +4,6 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -14,8 +13,6 @@
 {-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-
-{-# HLINT ignore "Use const" #-}
 
 module Spec.Value.WithCurrencySymbol where
 
@@ -47,7 +44,7 @@ tests = testGroup "withCurrencySymbol" [testPropsInHaskell, testPropsInPlinth]
 
 prop_EachCurrencySymbolGetsContinuationApplied :: Value -> Bool
 prop_EachCurrencySymbolGetsContinuationApplied v =
-  List.all (\cs -> withCurrencySymbol cs v False (\_tokens -> True)) (symbols v)
+  List.all (\cs -> withCurrencySymbol cs v False (const True)) (symbols v)
 
 prop_CorrectTokenQuantitiesAreSelected
   :: (CurrencySymbol, TokenName, Integer) -> Bool
