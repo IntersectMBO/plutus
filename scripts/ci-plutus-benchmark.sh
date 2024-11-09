@@ -19,7 +19,7 @@
 # (see the curl command) meaning the script output has to be escaped first before we can insert it.
 # For consistent results, the benchmarks should be run on a CPU with a fixed frequency or a performance governor.
 
-set -e
+set -ex
 
 if [ -z "$BENCHMARK_NAME" ] ; then
    echo "[ci-plutus-benchmark]: 'BENCHMARK_NAME' is not set, exiting."
