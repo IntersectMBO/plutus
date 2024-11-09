@@ -132,11 +132,6 @@ let
             #plutus-metatheory.package.ghcOptions = "-Werror";
             plutus-tx.ghcOptions = [ "-Werror" ];
             plutus-tx-plugin.ghcOptions = [ "-Werror" ];
-            # This package's tests require doctest, which generates Haskell source
-            # code. However, it does not add derivation strategies in said code,
-            # which will fail the build with -Werror. Furthermore, barring an
-            # upstream fix, there's nothing we can do about it other than
-            # disabling -Werror on it.
             prettyprinter-configurable.ghcOptions = [ "-Werror" ];
           };
         })
