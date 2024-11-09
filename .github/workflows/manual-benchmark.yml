@@ -120,6 +120,7 @@ jobs:
           nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
         env:
           BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
+          CAPABILITY_NUM: ${{ steps.extract-benchmark.outputs.capability_num }}
           PR_NUMBER: ${{ github.event.issue.number }}
           PR_BRANCH: ${{ steps.extract-branch.outputs.head_ref }}
 
