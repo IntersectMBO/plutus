@@ -21,7 +21,7 @@
 # the benchmark to a single core. Experiments have shown that this can lead to more stable results.
 # This is only available on linux.
 
-set -e
+set -ex
 
 if [ -z "$BENCHMARK_NAME" ] ; then
    echo "[ci-plutus-benchmark]: 'BENCHMARK_NAME' is not set, exiting."
