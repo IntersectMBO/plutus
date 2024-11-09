@@ -235,6 +235,7 @@ builtinNames = [
     , 'Builtins.mkNilData
     , 'Builtins.mkNilPairData
     , 'Builtins.mkCons
+    , 'Builtins.drop
 
     , ''Builtins.BuiltinData
     , 'Builtins.chooseData
@@ -456,6 +457,7 @@ defineBuiltinTerms = do
             PLC.MkNilData -> defineBuiltinInl 'Builtins.mkNilData
             PLC.MkNilPairData -> defineBuiltinInl 'Builtins.mkNilPairData
             PLC.MkCons -> defineBuiltinInl 'Builtins.mkCons
+            PLC.DropList -> defineBuiltinInl 'Builtins.drop
 
             -- Data
             PLC.ChooseData -> defineBuiltinInl 'Builtins.chooseData
