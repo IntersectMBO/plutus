@@ -66,10 +66,10 @@ cabal update
 echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
 
-if [[ -z $(which taskset) ]]; then
-   TASKSET="taskset -c $CAPABILITY_NUM"
-else
+if ! which taskset; then
    TASKSET=""
+else
+   TASKSET="taskset -c $CAPABILITY_NUM"
 fi
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch at $PR_BRANCH_REF ..."
