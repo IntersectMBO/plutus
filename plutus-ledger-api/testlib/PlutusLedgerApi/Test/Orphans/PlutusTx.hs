@@ -13,7 +13,10 @@ module PlutusLedgerApi.Test.Orphans.PlutusTx (
   Blake2b244Hash (..),
   getBlake2b256Hash,
   getBlake2b244Hash,
+  UnsortedAssocMap,
+  getUnsortedAssocMap,
   ) where
+
 
 import Data.ByteString (ByteString)
 import Data.Coerce (coerce)
@@ -23,10 +26,11 @@ import PlutusLedgerApi.Test.Common.QuickCheck.Utils (unSizedByteString)
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Prelude qualified as PlutusTx
+import Prettyprinter (Pretty)
 import Test.QuickCheck (Arbitrary (arbitrary, shrink), Arbitrary1 (liftArbitrary, liftShrink),
                         CoArbitrary (coarbitrary), Function (function), Gen,
                         NonNegative (NonNegative), functionMap, getNonNegative, liftArbitrary,
-                        oneof, scale, sized, variant)
+                        oneof, scale, shuffle, sized, variant)
 import Test.QuickCheck.Instances.ByteString ()
 
 instance Arbitrary PlutusTx.BuiltinByteString where
@@ -172,10 +176,10 @@ instance Function PlutusTx.BuiltinData where
           ) ->
         PlutusTx.BuiltinData
       outOf = \case
-        Left (ix, dats) -> Builtins.mkConstr ix dats
-        Right (Left kvs) -> Builtins.mkMap kvs
-        Right (Right (Left ell)) -> Builtins.mkList ell
-        Right (Right (Right (Left i))) -> Builtins.mkI i
+        Left (ix, dats)                  -> Builtins.mkConstr ix dats
+        Right (Left kvs)                 -> Builtins.mkMap kvs
+        Right (Right (Left ell))         -> Builtins.mkList ell
+        Right (Right (Right (Left i)))   -> Builtins.mkI i
         Right (Right (Right (Right bs))) -> Builtins.mkB bs
 
 {- | This generates well-defined maps: specifically, there are no duplicate
@@ -185,7 +189,6 @@ whole entries, or shrink values associated with keys.
 In order to make this instance even moderately efficient, we require an 'Ord'
 constraint on keys. In practice, this isn't a significant limitation, as
 basically all Plutus types have such an instance.
-
 -}
 instance (Arbitrary k, Ord k) => Arbitrary1 (AssocMap.Map k) where
   {-# INLINEABLE liftArbitrary #-}
@@ -195,6 +198,7 @@ instance (Arbitrary k, Ord k) => Arbitrary1 (AssocMap.Map k) where
       keyList <- Set.toList <$> arbitrary
       -- Then generate a value for each
       traverse (\key -> (key,) <$> genVal) keyList
+
   {-# INLINEABLE liftShrink #-}
   liftShrink shrinkVal aMap =
     AssocMap.unsafeFromList <$> do
@@ -204,6 +208,7 @@ instance (Arbitrary k, Ord k) => Arbitrary1 (AssocMap.Map k) where
 instance (Arbitrary k, Arbitrary v, Ord k) => Arbitrary (AssocMap.Map k v) where
   {-# INLINEABLE arbitrary #-}
   arbitrary = liftArbitrary arbitrary
+
   {-# INLINEABLE shrink #-}
   shrink = liftShrink shrink
 
@@ -214,3 +219,40 @@ instance (CoArbitrary k, CoArbitrary v) => CoArbitrary (AssocMap.Map k v) where
 instance (Function k, Function v) => Function (AssocMap.Map k v) where
   {-# INLINEABLE function #-}
   function = functionMap AssocMap.toList AssocMap.unsafeFromList
+
+
+-- | Unsorted AssocMap with no duplicate keys
+newtype UnsortedAssocMap k v = UnsortedAssocMap (AssocMap.Map k v)
+  deriving newtype (Show, Eq, Ord, Pretty)
+
+instance (Arbitrary k, Ord k) => Arbitrary1 (UnsortedAssocMap k) where
+  {-# INLINEABLE liftArbitrary #-}
+  liftArbitrary genVal =
+    UnsortedAssocMap . AssocMap.unsafeFromList <$> do
+      keyList <- Set.toList <$> arbitrary
+      unsortedKeyList <- shuffle keyList
+      traverse (\key -> (key,) <$> genVal) unsortedKeyList
+
+  {-# INLINEABLE liftShrink #-}
+  liftShrink shrinkVal (UnsortedAssocMap aMap) =
+    UnsortedAssocMap . AssocMap.unsafeFromList <$> do
+      let asList = AssocMap.toList aMap
+      liftShrink (\(key, val) -> (key,) <$> shrinkVal val) asList
+
+instance (Arbitrary k, Arbitrary v, Ord k) => Arbitrary (UnsortedAssocMap k v) where
+  {-# INLINEABLE arbitrary #-}
+  arbitrary = liftArbitrary arbitrary
+
+  {-# INLINEABLE shrink #-}
+  shrink = liftShrink shrink
+
+instance (CoArbitrary k, CoArbitrary v) => CoArbitrary (UnsortedAssocMap k v) where
+  {-# INLINEABLE coarbitrary #-}
+  coarbitrary (UnsortedAssocMap aMap) = coarbitrary aMap
+
+instance (Function k, Function v) => Function (UnsortedAssocMap k v) where
+  {-# INLINEABLE function #-}
+  function = functionMap @(AssocMap.Map k v) coerce coerce
+
+getUnsortedAssocMap :: UnsortedAssocMap k v -> AssocMap.Map k v
+getUnsortedAssocMap = coerce

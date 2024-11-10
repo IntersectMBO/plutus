@@ -2,7 +2,7 @@
 
 module Spec.V1.Data.Value where
 
-import PlutusLedgerApi.Test.Orphans ()
+import PlutusLedgerApi.Test.QuickCheck ()
 import PlutusLedgerApi.Test.V1.Data.Value as Value
 -- TODO: import a new PlutusLedgerApi.Data.V1 module instead
 import PlutusLedgerApi.V1.Data.Value
