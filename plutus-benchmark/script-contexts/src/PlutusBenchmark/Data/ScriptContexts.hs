@@ -56,7 +56,7 @@ mkTxOut i = TxOut {
   }
 
 mkValue :: Integer -> Value
-mkValue i = assetClassValue (assetClass adaSymbol adaToken) (fromIntegral i)
+mkValue i = assetClassValue (assetClass adaSymbol adaToken) i
 
 -- This example decodes the script context (which is O(size-of-context) work), and then also
 -- does some work that's roughly proportional to the size of the script context (counting the
