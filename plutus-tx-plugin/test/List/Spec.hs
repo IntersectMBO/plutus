@@ -233,7 +233,7 @@ findIndicesSpec = property $ do
         `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
-    (semanticsToList expected)
+    (semanticsToDataList expected)
 
 filterProgram :: CompiledCode (Integer -> [Integer] -> [Integer])
 filterProgram = $$(compile [|| \n -> List.filter (\x -> x PlutusTx.> n) ||])
@@ -263,7 +263,7 @@ filterSpec = property $ do
         `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
-    (semanticsToList expected)
+    (semanticsToDataList expected)
 
 mapMaybeProgram :: CompiledCode (Integer -> [Integer] -> [Integer])
 mapMaybeProgram =
@@ -302,7 +302,7 @@ mapMaybeSpec = property $ do
         `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
-    (semanticsToList expected)
+    (semanticsToDataList expected)
 
 anyProgram :: CompiledCode (Integer -> [Integer] -> Bool)
 anyProgram = $$(compile [|| \n -> List.any (\x -> x PlutusTx.> n) ||])
