@@ -10,6 +10,7 @@ import IntegerLiterals.Strict.NegativeLiterals.Spec qualified
 import IntegerLiterals.Strict.NoNegativeLiterals.Spec qualified
 import IsData.Spec qualified as IsData
 import Lift.Spec qualified as Lift
+import List.Spec qualified as List
 import Optimization.Spec qualified as Optimization
 import Plugin.Spec qualified as Plugin
 import ShortCircuit.Spec qualified as ShortCircuit
@@ -44,4 +45,5 @@ tests =
     , embed ShortCircuit.tests
     , embed Unicode.tests
     , embed AssocMap.propertyTests
+    , embed List.propertyTests
     ]
