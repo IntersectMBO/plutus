@@ -587,7 +587,7 @@ findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
 {- | Find the indices of all the outputs that pay to the same script address we are
 currently spending from, if any.
 -}
-findContinuingOutputs :: ScriptContext -> [Haskell.Integer]
+findContinuingOutputs :: ScriptContext -> List Haskell.Integer
 findContinuingOutputs ctx
   | Haskell.Just TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
       findOwnInput ctx =
@@ -603,7 +603,7 @@ findContinuingOutputs _ = PlutusTx.traceError "Le" -- "Can't find any continuing
 {- | Get all the outputs that pay to the same script address we are currently spending
 from, if any.
 -}
-getContinuingOutputs :: ScriptContext -> [V2.TxOut]
+getContinuingOutputs :: ScriptContext -> List V2.TxOut
 getContinuingOutputs ctx
   | Haskell.Just TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
       findOwnInput ctx =
@@ -623,7 +623,7 @@ txSignedBy TxInfo{txInfoSignatories} k = case Data.List.find ((PlutusTx.==) k) t
 {-# INLINEABLE pubKeyOutputsAt #-}
 
 -- | Get the values paid to a public key address by a pending transaction.
-pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> [V2.Value]
+pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> List V2.Value
 pubKeyOutputsAt pk p =
   let flt V2.TxOut{txOutAddress = V2.Address (V2.PubKeyCredential pk') _, txOutValue}
         | pk PlutusTx.== pk' = Haskell.Just txOutValue
@@ -634,7 +634,7 @@ pubKeyOutputsAt pk p =
 
 -- | Get the total value paid to a public key address by a pending transaction.
 valuePaidTo :: TxInfo -> V2.PubKeyHash -> V2.Value
-valuePaidTo ptx pkh = PlutusTx.mconcat (pubKeyOutputsAt pkh ptx)
+valuePaidTo ptx pkh = Data.List.mconcat (pubKeyOutputsAt pkh ptx)
 
 {-# INLINEABLE valueSpent #-}
 

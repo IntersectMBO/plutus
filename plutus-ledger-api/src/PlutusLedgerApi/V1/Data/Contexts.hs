@@ -196,7 +196,7 @@ findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
 
 {-# INLINABLE findContinuingOutputs #-}
 -- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
-findContinuingOutputs :: ScriptContext -> [Integer]
+findContinuingOutputs :: ScriptContext -> List Integer
 findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = Data.List.findIndices (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
         f addr TxOut{txOutAddress=otherAddress} = addr == otherAddress
@@ -204,7 +204,7 @@ findContinuingOutputs _ = traceError "Le" -- "Can't find any continuing outputs"
 
 {-# INLINABLE getContinuingOutputs #-}
 -- | Get all the outputs that pay to the same script address we are currently spending from, if any.
-getContinuingOutputs :: ScriptContext -> [TxOut]
+getContinuingOutputs :: ScriptContext -> List TxOut
 getContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = Data.List.filter (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
         f addr TxOut{txOutAddress=otherAddress} = addr == otherAddress
@@ -243,7 +243,7 @@ txSignedBy TxInfo{txInfoSignatories} k = case Data.List.find ((==) k) txInfoSign
 
 {-# INLINABLE pubKeyOutputsAt #-}
 -- | Get the values paid to a public key address by a pending transaction.
-pubKeyOutputsAt :: PubKeyHash -> TxInfo -> [Value]
+pubKeyOutputsAt :: PubKeyHash -> TxInfo -> List Value
 pubKeyOutputsAt pk p =
     let flt TxOut{txOutAddress = Address (PubKeyCredential pk') _, txOutValue} | pk == pk' = Just txOutValue
         flt _                             = Nothing
@@ -252,7 +252,7 @@ pubKeyOutputsAt pk p =
 {-# INLINABLE valuePaidTo #-}
 -- | Get the total value paid to a public key address by a pending transaction.
 valuePaidTo :: TxInfo -> PubKeyHash -> Value
-valuePaidTo ptx pkh = mconcat (pubKeyOutputsAt pkh ptx)
+valuePaidTo ptx pkh = Data.List.mconcat (pubKeyOutputsAt pkh ptx)
 
 {-# INLINABLE valueSpent #-}
 -- | Get the total value of inputs spent by this transaction.

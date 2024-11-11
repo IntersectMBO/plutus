@@ -208,7 +208,7 @@ findSpec = property $ do
 findIndicesProgram :: CompiledCode (Integer -> [Integer] -> [Integer])
 findIndicesProgram = $$(compile [|| \n -> List.findIndices (\x -> x PlutusTx.> n) ||])
 
-dataFindIndicesProgram :: CompiledCode (Integer -> Data.List Integer -> [Integer])
+dataFindIndicesProgram :: CompiledCode (Integer -> Data.List Integer -> Data.List Integer)
 dataFindIndicesProgram = $$(compile [|| \n -> Data.List.findIndices (\x -> x PlutusTx.> n) ||])
 
 findIndicesSpec :: Property
@@ -238,7 +238,7 @@ findIndicesSpec = property $ do
 filterProgram :: CompiledCode (Integer -> [Integer] -> [Integer])
 filterProgram = $$(compile [|| \n -> List.filter (\x -> x PlutusTx.> n) ||])
 
-dataFilterProgram :: CompiledCode (Integer -> Data.List Integer -> [Integer])
+dataFilterProgram :: CompiledCode (Integer -> Data.List Integer -> Data.List Integer)
 dataFilterProgram = $$(compile [|| \n -> Data.List.filter (\x -> x PlutusTx.> n) ||])
 
 filterSpec :: Property
@@ -272,7 +272,7 @@ mapMaybeProgram =
     \n -> PlutusTx.mapMaybe (\x -> if x PlutusTx.> n then Just 1 else Nothing)
   ||])
 
-dataMapMaybeProgram :: CompiledCode (Integer -> Data.List Integer -> [Integer])
+dataMapMaybeProgram :: CompiledCode (Integer -> Data.List Integer -> Data.List Integer)
 dataMapMaybeProgram =
   $$(compile
   [||

@@ -14,6 +14,7 @@ module PlutusTx.Data.List (
     foldMap,
     map,
     length,
+    mconcat,
     fromSOP,
     toSOP,
 ) where
@@ -24,7 +25,7 @@ import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData.Class (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude hiding (any, filter, find, findIndices, foldMap, length, map, mapMaybe,
-                         pred)
+                         mconcat, pred)
 import Prettyprinter (Pretty (..))
 
 import Data.Semigroup qualified as Haskell
@@ -58,6 +59,12 @@ instance UnsafeFromData (List a) where
 instance (UnsafeFromData a, Pretty a) => Pretty (List a) where
     {-# INLINEABLE pretty #-}
     pretty = pretty . toSOP
+
+{-# INLINEABLE cons #-}
+cons :: (ToData a) => a -> List a -> List a
+cons h (List t) = List (BI.mkCons (toBuiltinData h) t)
+
+{-# INLINEABLE append #-}
 
 append :: List a -> List a -> List a
 append (List l) (List l') = List (go l)
@@ -104,48 +111,45 @@ find pred' (List l) = go l
                         else go t
             )
 
--- TODO: return [] or List?
 {-# INLINEABLE findIndices #-}
-findIndices :: (UnsafeFromData a) => (a -> Bool) -> List a -> [Integer]
+findIndices :: (UnsafeFromData a) => (a -> Bool) -> List a -> List Integer
 findIndices pred' (List l) = go 0 l
   where
     go i =
         B.caseList'
-            []
+            mempty
             (\h t ->
                 let h' = unsafeFromBuiltinData h
                     indices = go (B.addInteger 1 i) t
                 in
                     if pred' h'
-                        then i : indices
+                        then i `cons` indices
                         else indices
             )
 
--- TODO: return [] or List?
 {-# INLINEABLE filter #-}
-filter :: (UnsafeFromData a) => (a -> Bool) -> List a -> [a]
+filter :: (UnsafeFromData a, ToData a) => (a -> Bool) -> List a -> List a
 filter pred (List l) = go l
   where
     go =
         B.caseList'
-            []
+            mempty
             (\h t ->
                 let h' = unsafeFromBuiltinData h
-                in if pred h' then h' : go t else go t
+                in if pred h' then h' `cons` go t else go t
             )
 
--- TODO: return [] or List?
 {-# INLINEABLE mapMaybe #-}
-mapMaybe :: (UnsafeFromData a) => (a -> Maybe b) -> List a -> [b]
+mapMaybe :: (UnsafeFromData a, ToData b) => (a -> Maybe b) -> List a -> List b
 mapMaybe f (List l) = go l
   where
     go =
         B.caseList'
-            []
+            mempty
             (\h t ->
                 let h' = unsafeFromBuiltinData h
                 in case f h' of
-                    Just b  -> b : go t
+                    Just b  -> b `cons` go t
                     Nothing -> go t
             )
 
@@ -189,5 +193,18 @@ length (List l) = go l 0
         B.caseList'
             id
             (\_ t -> B.addInteger 1 . go t)
+
+{-# INLINABLE mconcat #-}
+-- | Plutus Tx version of 'Data.Monoid.mconcat'.
+mconcat :: (Monoid a, UnsafeFromData a) => List a -> a
+mconcat (List l) = go l
+  where
+    go =
+        B.caseList'
+            mempty
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in h' <> go t
+            )
 
 makeLift ''List
