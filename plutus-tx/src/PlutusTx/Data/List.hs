@@ -60,13 +60,12 @@ instance (UnsafeFromData a, Pretty a) => Pretty (List a) where
     pretty = pretty . toSOP
 
 append :: List a -> List a -> List a
-append (List l) (List l') = List (go l l')
+append (List l) (List l') = List (go l)
   where
-    go xs ys =
+    go =
         B.caseList'
-            ys
-            (\h t -> BI.mkCons h (go t ys))
-            xs
+            l'
+            (\h t -> BI.mkCons h (go t))
 
 instance Semigroup (List a) where
     (<>) = append
@@ -92,7 +91,7 @@ fromSOP = List . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData
 
 {-# INLINEABLE find #-}
 find :: (UnsafeFromData a) => (a -> Bool) -> List a -> Maybe a
-find pred (List l) = go l
+find pred' (List l) = go l
   where
     go =
         B.caseList'
@@ -100,7 +99,7 @@ find pred (List l) = go l
             (\h t ->
                 let h' = unsafeFromBuiltinData h
                 in
-                    if pred h'
+                    if pred' h'
                         then Just h'
                         else go t
             )
@@ -108,16 +107,16 @@ find pred (List l) = go l
 -- TODO: return [] or List?
 {-# INLINEABLE findIndices #-}
 findIndices :: (UnsafeFromData a) => (a -> Bool) -> List a -> [Integer]
-findIndices pred (List l) = go 0 l
+findIndices pred' (List l) = go 0 l
   where
     go i =
         B.caseList'
             []
             (\h t ->
                 let h' = unsafeFromBuiltinData h
-                    indices = go (B.addInteger i 1) t
+                    indices = go (B.addInteger 1 i) t
                 in
-                    if pred h'
+                    if pred' h'
                         then i : indices
                         else indices
             )
