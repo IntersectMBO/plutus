@@ -27,6 +27,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCosted
                                                     singletonRose)
 import PlutusCore.Pretty (PrettyConfigPlc)
 
+
 import PlutusCore.Bitwise qualified as Bitwise
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
