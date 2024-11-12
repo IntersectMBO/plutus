@@ -52,6 +52,10 @@ in
     pkgs.fswatch
     pkgs.yarn
 
+    # This is used to get `taskset` for ./scripts/ci-plutus-benchmark.sh, but
+    # it's not available on macOS.
+    pkgs.util-linux
+
     # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
     # pkgs.linkchecker
     inputs.nixpkgs-2405.legacyPackages.linkchecker
@@ -102,6 +106,7 @@ in
     editorconfig-checker.enable = true;
     nixpkgs-fmt.enable = true;
     optipng.enable = true;
+    # fourmolu.enable = true;
     hlint.enable = false;
   };
 }

@@ -2,7 +2,6 @@ module Spec.V1.Value where
 
 import PlutusLedgerApi.Test.V1.Value as Value
 import PlutusLedgerApi.V1
-import PlutusLedgerApi.V1.Value
 import PlutusTx.Numeric qualified as Numeric
 
 import Control.Lens

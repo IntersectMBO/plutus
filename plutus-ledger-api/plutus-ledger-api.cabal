@@ -171,7 +171,6 @@ test-suite plutus-ledger-api-test
     Spec.ScriptDecodeError
     Spec.V1.Data.Value
     Spec.V1.Value
-    Spec.V3.MintValue
     Spec.Versions
 
   build-depends:
@@ -211,11 +210,13 @@ test-suite plutus-ledger-api-plugin-test
     Spec.Budget
     Spec.Data.Budget
     Spec.Data.Value
+    Spec.MintValue.V3
     Spec.ReturnUnit.V1
     Spec.ReturnUnit.V2
     Spec.ReturnUnit.V3
     Spec.ScriptSize
     Spec.Value
+    Spec.Value.WithCurrencySymbol
 
   if os(windows)
     buildable: False 
@@ -232,10 +233,13 @@ test-suite plutus-ledger-api-plugin-test
     , plutus-ledger-api:plutus-ledger-api-testlib
     , plutus-tx                                    ^>=1.36
     , plutus-tx-plugin                             ^>=1.36
+    , plutus-tx-test-util
     , plutus-tx:plutus-tx-testlib
     , prettyprinter
+    , QuickCheck
     , tasty
     , tasty-hunit
+    , tasty-quickcheck
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
 -- running this in CI.

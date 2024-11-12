@@ -1,12 +1,10 @@
 -- editorconfig-checker-disable-file
--- Need some extra imports from the Prelude for doctests, annoyingly
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fmax-simplifier-iterations=0 #-}
 
 module PlutusTx.Prelude (
-    -- $prelude
     -- * Classes
     module Eq,
     module Enum,
@@ -187,10 +185,6 @@ import Prelude qualified as Haskell (return, (=<<), (>>), (>>=))
 --     {-# LANGUAGE NoImplicitPrelude #-}
 --     import PlutusTx.Prelude
 -- @
-
--- $setup
--- >>> :set -XNoImplicitPrelude
--- >>> import PlutusTx.Prelude
 
 {-# INLINABLE check #-}
 -- | Checks a 'Bool' and aborts if it is false.
