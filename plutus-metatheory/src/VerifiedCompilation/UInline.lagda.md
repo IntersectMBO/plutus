@@ -20,7 +20,7 @@ open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Untyped.RenamingSubstitution using (weaken)
-
+open import Data.Empty using (⊥)
 ```
 ## Translation Relation
 
@@ -34,11 +34,18 @@ variable
   x x' y : X ⊢
 
 data pureInline : Relation where
-  reduce : {{_ : DecEq X}} → Translation pureInline x (ƛ x') → pureInline x x' -- FIXME: ...??
-  inline : {{_ : DecEq X}}(x' : Maybe X ⊢) (y y' : X ⊢)
-         → Translation pureInline x x'
-         → Translation pureInline y y'
-         → pureInline (ƛ x · y) (x' [ y' ]) -- FIXME: I'm not sure this is right now...
+  tr : {{_ : DecEq X}} {x x' : X ⊢} → Translation pureInline x x' → pureInline x x'
+  _⨾_ : {{_ : DecEq X}} {x x' x'' : X ⊢} → pureInline x x' → pureInline x' x'' → pureInline x x''
+  inline : {{_ : DecEq X}}{x' : X ⊢} {x : Maybe X ⊢} {y : X ⊢}
+         → pureInline (x [ y ]) x'
+         → pureInline (ƛ x · y) x'
+
+_ : pureInline {⊥} (ƛ (` nothing) · error) error
+_ = inline (tr reflexive)
+
+_ : {X : Set} {a b : X} {{_ : DecEq X}} → pureInline (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
+_ = tr (Translation.app (Translation.istranslation (inline (tr reflexive))) reflexive) ⨾ inline (tr reflexive)
+
 ```
 However, this has several intermediate values that are very hard to determine for a decision procedure.
 
@@ -55,15 +62,15 @@ variable
 
 data Inline : Env → Relation where
   tr : {{_ : DecEq X}} → Translation (Inline □) {X} x y → Inline □ x y
-  var : {{_ : DecEq X}} {z : (Maybe X) ⊢} → Inline (e , x) z (weaken y) → Inline e (ƛ z · x) y
-  sub : {{_ : DecEq X}} {x y : X ⊢} → Inline e x y → Inline (e , x) (` nothing) (weaken y)
-  sub⁺ : {{_ : DecEq X}} {x y : (Maybe X) ⊢} {v : Maybe X} → Inline e (` v) y → Inline (e , x) (` (just v)) (weaken y)
+  var : {{_ : DecEq X}} {z : X ⊢} → Inline (e , x) z y → Inline e (z · x) y
+  sub : {{_ : DecEq X}} {x : (Maybe X) ⊢ } {y v : X ⊢} → Inline e (x [ v ]) y → Inline (e , v) (ƛ x) y
+  not-inlined : {{_ : DecEq X}} {x y v : X ⊢} → Inline e (x · v) y → Inline (e , v) x y
 
-_ : {X : Set} {a b : X} {{_ : DecEq X}} → pureInline (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` b) · (` a))
-_ = {!!}
+_ : {X : Set} {a b : X} {{_ : DecEq X}} → Inline □ (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
+_ = var (var (sub (sub (tr reflexive))))
 
-_ : {X : Set} {a b : X} {{_ : DecEq X}} → Inline □ (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` b) · (` a))
-_ = {!!}
+_ : {X : Set} {a b : X} {{_ : DecEq X}} → Inline □ (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((ƛ ((` (just a)) · (` nothing))) · (` b))
+_ = var (var (sub (not-inlined (tr reflexive))))
 
 ```
 ## Decision Procedure
