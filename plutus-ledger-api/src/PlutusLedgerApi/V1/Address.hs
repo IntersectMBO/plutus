@@ -10,7 +10,14 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
-module PlutusLedgerApi.V1.Address where
+module PlutusLedgerApi.V1.Address
+  ( Address (..)
+  , pubKeyHashAddress
+  , toPubKeyHash
+  , toScriptHash
+  , scriptHashAddress
+  , stakingCredential
+  ) where
 
 import Control.DeepSeq (NFData)
 import Data.Typeable (Typeable)
