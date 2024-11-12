@@ -26,6 +26,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek (CekMachineCosts, CekValue, Eval
                                                  evaluateCek, noEmitter,
                                                  unsafeSplitStructuralOperational)
 import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
+import UntypedPlutusCore.Transform.Simplifier (evalSimplifier)
 
 test_caseOfCase :: TestTree
 test_caseOfCase =
@@ -111,11 +112,16 @@ caseOfCaseWithError =
 testCaseOfCaseWithError :: TestTree
 testCaseOfCaseWithError =
   testCase "Transformation doesn't evaluate error eagerly" do
-    let simplifiedTerm = caseOfCase caseOfCaseWithError
+    let simplifiedTerm = evalCaseOfCase caseOfCaseWithError
     evaluateUplc simplifiedTerm @?= evaluateUplc caseOfCaseWithError
 
 ----------------------------------------------------------------------------------------------------
 -- Helper functions --------------------------------------------------------------------------------
+
+evalCaseOfCase
+  :: Term Name DefaultUni DefaultFun ()
+  -> Term Name DefaultUni DefaultFun ()
+evalCaseOfCase term = evalSimplifier $ caseOfCase term
 
 evaluateUplc
   :: UPLC.Term Name DefaultUni DefaultFun ()
@@ -136,4 +142,4 @@ goldenVsSimplified name =
     . encodeUtf8
     . render
     . prettyClassicSimple
-    . caseOfCase
+    . evalCaseOfCase

@@ -1,0 +1,8 @@
+{
+  "label": "End to end",
+  "position": 10,
+  "link": {
+    "type": "generated-index",
+    "description": "We will now demonstrate the process of running the auction example end-to-end on Cardano's Preview testnet."
+  }
+}

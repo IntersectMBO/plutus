@@ -6,12 +6,20 @@ module UntypedPlutusCore.Transform.CaseReduce
 
 import PlutusCore.MkPlc
 import UntypedPlutusCore.Core
+import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CaseReduce), SimplifierT,
+                                               recordSimplification)
 
 import Control.Lens (transformOf)
 import Data.Vector qualified as V
 
-caseReduce :: Term name uni fun a -> Term name uni fun a
-caseReduce = transformOf termSubterms processTerm
+caseReduce
+    :: Monad m
+    => Term name uni fun a
+    -> SimplifierT name uni fun a m (Term name uni fun a)
+caseReduce term = do
+    let result = transformOf termSubterms processTerm term
+    recordSimplification term CaseReduce result
+    return result
 
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case

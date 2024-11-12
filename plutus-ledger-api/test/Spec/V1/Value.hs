@@ -1,5 +1,3 @@
-{-# LANGUAGE MultiWayIf #-}
-
 module Spec.V1.Value where
 
 import PlutusLedgerApi.Test.V1.Value as Value

@@ -45,6 +45,8 @@ module PlutusTx.Builtins (
                          -- * Data
                          , BuiltinData
                          , chooseData
+                         , BI.caseData'
+                         , caseData
                          , matchData
                          , matchData'
                          , equalsData
@@ -73,6 +75,8 @@ module PlutusTx.Builtins (
                          , mkNil
                          , mkNilOpaque
                          , null
+                         , BI.caseList'
+                         , caseList
                          , matchList
                          , matchList'
                          , headMaybe
@@ -133,7 +137,6 @@ module PlutusTx.Builtins (
                          ) where
 
 import Data.Maybe
-import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.HasBuiltin
 import PlutusTx.Builtins.HasOpaque
@@ -418,23 +421,26 @@ encodeUtf8 = BI.encodeUtf8
 null :: forall a. BI.BuiltinList a -> Bool
 null l = fromOpaque (BI.null l)
 
+{-# INLINABLE caseList #-}
+caseList :: forall a r . (() -> r) -> (a -> BI.BuiltinList a -> r) -> BI.BuiltinList a -> r
+caseList nilCase consCase l = BI.caseList' nilCase (\x xs _ -> consCase x xs) l ()
+
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> (() -> r) -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.chooseList l nilCase (\_ -> consCase (BI.head l) (BI.tail l)) ()
+matchList l nilCase consCase = caseList nilCase consCase l
 
 {-# INLINABLE matchList' #-}
--- | Like `matchList` but evaluates @nilCase@ strictly.
 matchList' :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList' l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
+matchList' l nilCase consCase = BI.caseList' nilCase consCase l
 
 {-# INLINE headMaybe #-}
 headMaybe :: BI.BuiltinList a -> Maybe a
-headMaybe l = matchList' l Nothing (\h _ -> Just h)
+headMaybe = BI.caseList' Nothing (\h _ -> Just h)
 
 {-# INLINE uncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
 uncons :: BI.BuiltinList a -> Maybe (a, BI.BuiltinList a)
-uncons l = matchList' l Nothing (\h t -> Just (h, t))
+uncons = BI.caseList' Nothing (\h t -> Just (h, t))
 
 {-# INLINE unsafeUncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
@@ -512,6 +518,35 @@ unsafeDataAsB = BI.unsafeDataAsB
 equalsData :: BuiltinData -> BuiltinData -> Bool
 equalsData d1 d2 = fromOpaque (BI.equalsData d1 d2)
 
+{-# INLINABLE caseData #-}
+caseData
+    :: (Integer -> [BuiltinData] -> r)
+    -> ([(BuiltinData, BuiltinData)] -> r)
+    -> ([BuiltinData] -> r)
+    -> (Integer -> r)
+    -> (BuiltinByteString -> r)
+    -> BuiltinData
+    -> r
+caseData constrCase mapCase listCase iCase bCase =
+   BI.caseData'
+     (\i ds -> constrCase i (fromOpaque ds))
+     (\ps -> mapCase (fromOpaque ps))
+     (\ds -> listCase (fromOpaque ds))
+     iCase
+     bCase
+
+{-# INLINABLE matchData' #-}
+matchData'
+    :: BuiltinData
+    -> (Integer -> BI.BuiltinList BuiltinData -> r)
+    -> (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> r)
+    -> (BI.BuiltinList BuiltinData -> r)
+    -> (Integer -> r)
+    -> (BuiltinByteString -> r)
+    -> r
+matchData' d constrCase mapCase listCase iCase bCase =
+    BI.caseData' constrCase mapCase listCase iCase bCase d
+
 {-# INLINABLE matchData #-}
 -- | Given a 'BuiltinData' value and matching functions for the five constructors,
 -- applies the appropriate matcher to the arguments of the constructor and returns the result.
@@ -524,35 +559,7 @@ matchData
     -> (BuiltinByteString -> r)
     -> r
 matchData d constrCase mapCase listCase iCase bCase =
-   chooseData
-   d
-   (\_ -> uncurry constrCase (unsafeDataAsConstr d))
-   (\_ -> mapCase (unsafeDataAsMap d))
-   (\_ -> listCase (unsafeDataAsList d))
-   (\_ -> iCase (unsafeDataAsI d))
-   (\_ -> bCase (unsafeDataAsB d))
-   ()
-
-{-# INLINABLE matchData' #-}
--- | Given a 'BuiltinData' value and matching functions for the five constructors,
--- applies the appropriate matcher to the arguments of the constructor and returns the result.
-matchData'
-    :: BuiltinData
-    -> (Integer -> BI.BuiltinList BuiltinData -> r)
-    -> (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> r)
-    -> (BI.BuiltinList BuiltinData -> r)
-    -> (Integer -> r)
-    -> (BuiltinByteString -> r)
-    -> r
-matchData' d constrCase mapCase listCase iCase bCase =
-   chooseData
-   d
-   (\_ -> let tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
-   (\_ -> mapCase (BI.unsafeDataAsMap d))
-   (\_ -> listCase (BI.unsafeDataAsList d))
-   (\_ -> iCase (unsafeDataAsI d))
-   (\_ -> bCase (unsafeDataAsB d))
-   ()
+   caseData constrCase mapCase listCase iCase bCase d
 
 -- G1 --
 {-# INLINABLE bls12_381_G1_equals #-}
@@ -801,28 +808,27 @@ readBit ::
   Bool
 readBit bs i = fromOpaque (BI.readBit bs i)
 
--- | Given a 'BuiltinByteString', a list of indexes to change, and a list of values to change those
--- indexes to, set the /bit/ at each of the specified index as follows:
+-- | Given a 'BuiltinByteString', a list of indexes to change, and a boolean
+-- value 'b' to change those indexes to, set the /bit/ at each of the specified
+-- index as follows:
 --
--- * If the corresponding entry in the list of values is 'True', set that bit;
+-- * If 'b' is 'True', set that bit;
 -- * Otherwise, clear that bit.
 --
 -- Will error if any of the indexes are out-of-bounds: that is, if the index is either negative, or
 -- equal to or greater than the total number of bits in the 'BuiltinByteString' argument.
 --
--- If the two list arguments have mismatched lengths, the longer argument will be truncated to match
--- the length of the shorter one:
---
--- * @writeBits bs [0, 1, 4] [True]@ is the same as @writeBits bs [0] [True]@
--- * @writeBits bs [0] [True, False, True]@ is the same as @writeBits bs [0] [True]@
---
 -- = Note
 --
 -- This differs slightly from the description of the [corresponding operation in
--- CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#writebits); instead of a
--- single changelist argument comprised of pairs, we instead pass two lists, one for indexes to
--- change, and one for the values to change those indexes to. Effectively, we are passing the
--- changelist argument \'unzipped\'.
+-- CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#writebits);
+-- instead of a single changelist argument comprised of pairs, we instead pass a
+-- single list of indexes to change, and a single boolean value to change those
+-- indexes to. The original proposal allowed one to set and clear bits in a
+-- single operation, but constructing the list of boolean values for the updates
+-- was somewhat expensive.  If it's really necessary to set some bits and clear
+-- others then it is easier to call the function twice, once to set bits and
+-- and once to clear them.
 --
 -- = See also
 --
@@ -834,9 +840,9 @@ readBit bs i = fromOpaque (BI.readBit bs i)
 writeBits ::
   BuiltinByteString ->
   [Integer] ->
-  [Bool] ->
+  Bool ->
   BuiltinByteString
-writeBits bs ixes bits = BI.writeBits bs (toOpaque ixes) (toOpaque bits)
+writeBits bs ixes bit = BI.writeBits bs (toOpaque ixes) (toOpaque bit)
 
 -- | Given a length (first argument) and a byte (second argument), produce a 'BuiltinByteString' of
 -- that length, with that byte in every position. Will error if given a negative length, or a second

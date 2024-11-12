@@ -26,14 +26,14 @@ by about 35\% (without using compression).
 
 
 \section{Encoding and decoding}
-Let $\Bits = \{\bits{0},\bits{1}\}^*$, the set of all finite sequences of
-bits.  For brevity we write a sequence of bits in the form $b_{n-1} \cdots b_0$
-instead of $[b_{n-1}, \ldots, b_0]$: thus $\bits{011001}$ instead of $[\bits{0},
+Firstly recall some notation from Section~\ref{sec:notation}.  The set of all
+finite sequences of bits is denoted by $\Bits = \{\bits{0},\bits{1}\}^*$.  For
+brevity we write a sequence of bits in the form $b_{n-1} \cdots b_0$ instead of
+$[b_{n-1}, \ldots, b_0]$: thus $\bits{011001}$ instead of $[\bits{0},
   \bits{1},\bits{1},\bits{0},\bits{0},\bits{1}])$.  We denote the empty sequence
 by $\epsilon$, and use $\length(s)$ to denote the length of a sequence of bits,
 and $\cdot$ to denote concatenation (or prepending or appending a single bit to
-a sequence of bits).%
-\nomenclature[As]{$\Bits$}{The set of strings of bits}
+a sequence of bits).% \nomenclature[As]{$\Bits$}{The set of strings of bits}
 
 \medskip
 \noindent Similarly to the CBOR encoding for \texttt{data} described in
@@ -86,7 +86,7 @@ then $\pad$ still adds an extra byte of padding; $\pad$ is used both for
 internal alignment (for example, to make sure that the contents of a bytestring
 are aligned on byte boundaries) and at the end of a complete encoding of a
 Plutus Core program to to make the length a multiple of 8 bits.
-Symbolically, 
+Symbolically,
 $$
 \pad(s)  = s \cdot \pp{k} \quad \text{if $\length(s) = 8n+k$ with $n,k \in \N$ and $0 \leq k \leq 7$}
 $$
@@ -209,7 +209,7 @@ E_C ([b_1, \ldots, b_n]) = \E_8(n) \cdot \E_8(b_1) \cdot \cdots \cdot \E_8(b_n).
 $$
 
 \noindent
-We define an encoder $\E_{C^*}$ for lists of chunks by 
+We define an encoder $\E_{C^*}$ for lists of chunks by
 $$
 \E_{C^*} (s, [c_1, \ldots, c_n]) = s \cdot E_C(c_1) \cdot \cdots \cdot E_C(c_n) \cdot \bits{00000000}.
 $$
@@ -338,7 +338,7 @@ $$
 \end{cases}
 $$
 
-\noindent 
+\noindent
 
 \subsection{Terms}
 Plutus Core terms are encoded by emitting a 4-bit tag identifying the type of
@@ -476,7 +476,7 @@ denotes the universe of types defined in Sections~\ref{sec:default-builtins-1},
  &\dtype(3 \cdot l) &&= (l, \ty{unit})       \\
  &\dtype(4 \cdot l) &&= (l, \ty{bool})       \\
  &\dtype([7,5] \cdot l) &&= (l', \listOf{t}) &&\quad \text{if $\dtype(l) = (l', t)$}\\
- &\dtype([7,7,6] \cdot l) &&= (l'', \pairOf{t_1}{t_2}) 
+ &\dtype([7,7,6] \cdot l) &&= (l'', \pairOf{t_1}{t_2})
   &&\ \begin{cases}
       \text{if} & \dtype(l) = (l', t_1)\\
       \text{and} & \dtype(l') = (l'', t_2)
@@ -540,7 +540,7 @@ bytestring constants during program execution.
   &\dConstant{\ty{bool}}(\bits{0} \cdot s)  &&= (s, \texttt{False}) \\
   &\dConstant{\ty{bool}}(\bits{1} \cdot s)  &&= (s, \texttt{True}) \\
   &\dConstant{\listOf{\tn}}(s)              &&= \Dlist^{\tn}_{\mathsf{constant}}(s, l) \\
-  &\dConstant{\pairOf{\tn_1}{\tn_2}}(s)     &&= (s'', (c_1, c_2)) 
+  &\dConstant{\pairOf{\tn_1}{\tn_2}}(s)     &&= (s'', (c_1, c_2))
   && \begin{cases}
        \text{if}  & \dConstant{\tn_1}(s) = (s', c_1) \\
        \text{and} & \dConstant{\tn_2}(s') = (s'', c_2)
@@ -553,7 +553,7 @@ bytestring constants during program execution.
 \subsection{Built-in functions}
 Built-in functions are represented by seven-bit integer tags and encoded and
 decoded using $\E_7$ and $\D_7$.  The tags are specified in
-Tables~\ref{table:builtin-tags-V1}, \ref{table:builtin-tags-V2}, and~\ref{table:builtin-tags-V3}.  We
+Tables~\ref{table:builtin-tags-batch-1}--\ref{table:builtin-tags-batch-6}.  We
 assume that there are (partial) functions $\Tag$ and $\unTag$ which convert back
 and forth between builtin names and their tags.
 
@@ -588,17 +588,17 @@ and forth between builtin names and their tags.
    \TT{lessThanByteString}       &    $\bits{0010000}$  &  16    &        \TT{unConstrData}             &    $\bits{0101010}$  &  42 \\
    \TT{lessThanEqualsByteString} &    $\bits{0010001}$  &  17    &        \TT{unMapData}                &    $\bits{0101011}$  &  43 \\
    \TT{sha2\_256}                &    $\bits{0010010}$  &  18    &        \TT{unListData}               &    $\bits{0101100}$  &  44 \\
-   \TT{sha3\_256}                &    $\bits{0010011}$  &  19    &        \TT{unIData}                  &    $\bits{0101101}$  &  45 \\       
-   \TT{blake2b\_256}             &    $\bits{0010100}$  &  20    &        \TT{unBData}                  &    $\bits{0101110}$  &  46 \\       
-   \TT{verifyEd25519Signature}   &    $\bits{0010101}$  &  21    &        \TT{equalsData}               &    $\bits{0101111}$  &  47 \\       
+   \TT{sha3\_256}                &    $\bits{0010011}$  &  19    &        \TT{unIData}                  &    $\bits{0101101}$  &  45 \\
+   \TT{blake2b\_256}             &    $\bits{0010100}$  &  20    &        \TT{unBData}                  &    $\bits{0101110}$  &  46 \\
+   \TT{verifyEd25519Signature}   &    $\bits{0010101}$  &  21    &        \TT{equalsData}               &    $\bits{0101111}$  &  47 \\
    \TT{appendString}             &    $\bits{0010110}$  &  22    &        \TT{mkPairData}               &    $\bits{0110000}$  &  48 \\
    \TT{equalsString}             &    $\bits{0010111}$  &  23    &        \TT{mkNilData}                &    $\bits{0110001}$  &  49 \\
    \TT{encodeUtf8}               &    $\bits{0011000}$  &  24    &        \TT{mkNilPairData}            &    $\bits{0110010}$  &  50 \\
    \TT{decodeUtf8}               &    $\bits{0011001}$  &  25    & & & \\
 \hline
 \end{tabular}
-\caption{Tags for PlutusV1 builtins}
-\label{table:builtin-tags-V1}
+\caption{Tags for built-in functions (batch 1)}
+\label{table:builtin-tags-batch-1}
 \end{table}
 
 \begin{table}[H]
@@ -609,12 +609,24 @@ and forth between builtin names and their tags.
   Builtin & Binary & Decimal\\
   \hline
  \TT{serialiseData}                   & $\bits{0110011}$  & 51 \\
+\hline
+\end{tabular}
+\caption{Tags for built-in functions (batch 2)}
+\label{table:builtin-tags-batch-2}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|}
+  \hline
+  \Strut
+  Builtin & Binary & Decimal\\
+  \hline
  \TT{verifyEcdsaSecp256k1Signature}   & $\bits{0110100}$  & 52 \\
  \TT{verifySchnorrSecp256k1Signature} & $\bits{0110101}$  & 53 \\
 \hline
 \end{tabular}
-\caption{Extra tags for PlutusV2 builtins}
-\label{table:builtin-tags-V2}
+\caption{Tags for built-in functions (batch 3)}
 \end{table}
 
 \begin{table}[H]
@@ -643,18 +655,57 @@ and forth between builtin names and their tags.
     \TT{bls12\_381\_finalVerify}     & $\bits{1000110}$  & 70 \\
     \TT{keccak\_256}                 & $\bits{1000111}$  & 71 \\
     \TT{blake2b\_224}                & $\bits{1001000}$  & 72 \\
+    \TT{integerToByteString}         & $\bits{1001000}$  & 73 \\
+    \TT{byteStringToInteger}         & $\bits{1001000}$  & 74 \\
 \hline
 \end{tabular}
-\caption{Extra tags for future builtins}
-\label{table:builtin-tags-V3}
+\caption{Tags for built-in functions (batch 4)}
+\label{table:builtin-tags-batch-4}
 \end{table}
 
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|}
+  \hline
+  \Strut
+  Builtin & Binary & Decimal\\
+  \hline
+    \TT{andByteString}               & $\bits{1001011}$  & 75 \\
+    \TT{orByteString}                & $\bits{1001100}$  & 76 \\
+    \TT{xorByteString}               & $\bits{1001101}$  & 77 \\
+    \TT{complementByteString}        & $\bits{1001110}$  & 78 \\
+    \TT{readBit}                     & $\bits{1001111}$  & 79 \\
+    \TT{writeBits}                   & $\bits{1010000}$  & 80 \\
+    \TT{replicateByte}               & $\bits{1010001}$  & 81 \\
+    \TT{shiftByteString}             & $\bits{1010010}$  & 82 \\
+    \TT{rotateByteString}            & $\bits{1010011}$  & 83 \\
+    \TT{countSetBits}                & $\bits{1010100}$  & 84 \\
+    \TT{findFirstSetBit}             & $\bits{1010101}$  & 85 \\
+    \TT{ripemd\_160}                 & $\bits{1010110}$  & 86 \\
+\hline
+\end{tabular}
+\caption{Tags for built-in functions (batch 5)}
+\label{table:builtin-tags-batch-5}
+\end{table}
 
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|}
+  \hline
+  \Strut
+  Builtin & Binary & Decimal\\
+  \hline
+ \TT{expModInteger}   & $\bits{1010111}$  & 87 \\
+\hline
+\end{tabular}
+\caption{Tags for built-in functions (batch 6)}
+\label{table:builtin-tags-batch-6}
+\end{table}
 
 \subsection{Variable names}
 Variable names are encoded and decoded using the $\Ename$ and $\Dname$
 functions, and variables bound in \texttt{lam} expressions are encoded and
-decoded by the $\Ebinder$ and $\Dbinder$ functions.  
+decoded by the $\Ebinder$ and $\Dbinder$ functions.
 
 \paragraph{De Bruijn indices.}
 We use serialised de Bruijn-indexed terms for script transmission because
@@ -750,7 +801,7 @@ sequences.
 % remove it if the page breaks change.
 \begin{figure}[H]
   \centering
-  {\small  
+  {\small
         \begin{Verbatim}[commandchars=\\\{\}]
              00000101 : \textrm{Final integer chunk: \texttt{0000101} \arrow 5}
              00000000 : \textrm{Final integer chunk: \texttt{0000000} \arrow 0}
@@ -794,4 +845,3 @@ sequences.
       \caption{\texttt{flat} encoding of \texttt{index.uplc}}
       \label{fig:index-bytestring-example}
   \end{figure}
-

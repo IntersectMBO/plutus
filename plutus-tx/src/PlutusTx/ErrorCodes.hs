@@ -35,7 +35,7 @@ When writing a new error description please follow existing patterns:
 
 -- | All error codes used in the plutus prelude associated with a human-readable description.
 plutusPreludeErrorCodes :: Map Builtins.BuiltinString String
-plutusPreludeErrorCodes = Map.fromDistinctAscList
+plutusPreludeErrorCodes = Map.fromList
   [ ("PT1", "TH Generation of Indexed Data Error")
   , ("PT2", "PlutusTx.IsData.Class.unsafeFromBuiltinData: Void is not supported")
   , ("PT3", "PlutusTx.Ratio: zero denominator")

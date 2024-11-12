@@ -321,7 +321,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature xorByteString                   = ∙ [ bool ↑ , bytestring ↑ , bytestring ↑ ]⟶  bytestring ↑
     signature complementByteString            = ∙ [ bytestring ↑ ]⟶  bytestring ↑
     signature readBit                         = ∙ [ bytestring ↑ , integer ↑ ]⟶  bool ↑
-    signature writeBits                       = ∙ [ bytestring ↑ , list integer , list bool ]⟶  bytestring ↑
+    signature writeBits                       = ∙ [ bytestring ↑ , list integer , bool ↑ ]⟶  bytestring ↑
     signature replicateByte                   = ∙ [ integer ↑ , integer ↑ ]⟶  bytestring ↑
     signature shiftByteString                 = ∙ [ bytestring ↑ , integer ↑ ]⟶  bytestring ↑
     signature rotateByteString                = ∙ [ bytestring ↑ , integer ↑ ]⟶  bytestring ↑
@@ -491,7 +491,7 @@ postulate
   xorBYTESTRING             : Bool -> ByteString -> ByteString -> ByteString
   complementBYTESTRING      : ByteString -> ByteString
   readBIT                   : ByteString -> Int -> Maybe Bool
-  writeBITS                 : ByteString -> List Int -> List Bool -> Maybe ByteString
+  writeBITS                 : ByteString -> List Int -> Bool -> Maybe ByteString
   replicateBYTE             : Int -> Int -> Maybe ByteString
   shiftBYTESTRING           : ByteString -> Int -> ByteString
   rotateBYTESTRING          : ByteString -> Int -> ByteString
@@ -609,7 +609,7 @@ postulate
 {-# COMPILE GHC xorBYTESTRING = Bitwise.xorByteString #-}
 {-# COMPILE GHC complementBYTESTRING = Bitwise.complementByteString #-}
 {-# COMPILE GHC readBIT = \s n -> builtinResultToMaybe $ Bitwise.readBit s (fromIntegral n) #-}
-{-# COMPILE GHC writeBITS = \s ps us -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) us #-}
+{-# COMPILE GHC writeBITS = \s ps u -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) u #-}
 -- The Plutus Core version of `replicateByte n w` can fail in two ways: if n < 0 or n >= 8192 then
 -- the implementation PlutusCore.Bitwise will return BuiltinFailure; if w < 0 or w >= 256 then the
 -- denotation in `PlutusCore.Default.Builtins` will fail when the builtin machinery tries to convert

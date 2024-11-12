@@ -37,7 +37,7 @@ $$%
 
   I'm somewhat tempted to dump this in favour of SOS.}
 \kwxm{Do we need a uniqueness condition on names somewhere?}
-    
+
 We define the semantics of Plutus Core using contextual semantics (or reduction
 semantics): see~\cite{Felleisen-Hieb} or~\cite{Felleisen-Semantics-Engineering}
 or~\cite[5.3]{Harper:PFPL}, for example.  We use $A$ to denote a partial
@@ -135,7 +135,7 @@ $\lamU{x}{N}$.%
         \BinaryInfC{$\step{\force{A}}{A}$}
     \end{prooftree}
 
-%    \hfill\begin{minipage}{0.3\linewidth}  
+%    \hfill\begin{minipage}{0.3\linewidth}
       \begin{prooftree}
         \AxiomC{} % If we're putting these side by side we need \strut here to get rules aligned
         % \RightLabel{\textsf{error}}
@@ -149,7 +149,7 @@ $\lamU{x}{N}$.%
     \end{prooftree}
 % \end{minipage}\hfill\hfill %% Don't know why we need two \hfills here but only one at the start
 % \\
-    \caption{Reduction via Contextual Semantics} %% Oops
+    \caption{Reduction via contextual semantics} %% Oops
     \label{fig:untyped-reduction}
 \end{subfigure}
 
@@ -188,5 +188,5 @@ program to be closed.
   \textit{do} need special rules for the final argument because if $M \in A$ we
   have to look at $b$ to make sure that the final argument (or force) is the
   right kind of thing.}
-  
-  
+
+

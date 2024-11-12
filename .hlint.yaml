@@ -25,3 +25,5 @@
 - fixity: infixr 1 <=<
 # first is too lazy, see:  https://github.com/input-output-hk/plutus/issues/3876
 - ignore: {name: Use first, within: [UntypedPlutusCore.Evaluation.Machine.Cek]}
+- ignore: {name: Redundant if, within: [PlutusLedgerApi.V1.Value, PlutusLedgerApi.V1.Data.Value]}
+- ignore: {name: Replace case with maybe, within: [PlutusLedgerApi.V1.Value, PlutusLedgerApi.V1.Data.Value]}

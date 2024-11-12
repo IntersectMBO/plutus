@@ -408,6 +408,11 @@ chooseList :: BuiltinList a -> b -> b -> b
 chooseList (BuiltinList [])    b1 _ = b1
 chooseList (BuiltinList (_:_)) _ b2 = b2
 
+{-# OPAQUE caseList' #-}
+caseList' :: forall a r . r -> (a -> BuiltinList a -> r) -> BuiltinList a -> r
+caseList' nilCase _        (BuiltinList [])       = nilCase
+caseList' _       consCase (BuiltinList (x : xs)) = consCase x (BuiltinList xs)
+
 {-# OPAQUE mkNilData #-}
 mkNilData :: BuiltinUnit -> BuiltinList BuiltinData
 mkNilData _ = BuiltinList []
@@ -470,6 +475,24 @@ chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
     PLC.List{}   -> listCase
     PLC.I{}      -> iCase
     PLC.B{}      -> bCase
+
+{-# OPAQUE caseData' #-}
+caseData'
+    :: (Integer -> BuiltinList BuiltinData -> r)
+    -> (BuiltinList (BuiltinPair BuiltinData BuiltinData) -> r)
+    -> (BuiltinList BuiltinData -> r)
+    -> (Integer -> r)
+    -> (BuiltinByteString -> r)
+    -> BuiltinData
+    -> r
+caseData' constrCase mapCase listCase iCase bCase (BuiltinData d) = case d of
+    PLC.Constr i ds -> constrCase i (BuiltinList (fmap dataToBuiltinData ds))
+    PLC.Map ps      -> mapCase (BuiltinList (fmap p2p ps))
+    PLC.List ds     -> listCase (BuiltinList (fmap dataToBuiltinData ds))
+    PLC.I i         -> iCase i
+    PLC.B b         -> bCase (BuiltinByteString b)
+  where
+    p2p (d1, d2) = BuiltinPair (dataToBuiltinData d1, dataToBuiltinData d2)
 
 {-# OPAQUE mkConstr #-}
 mkConstr :: BuiltinInteger -> BuiltinList BuiltinData -> BuiltinData
@@ -799,10 +822,10 @@ readBit (BuiltinByteString bs) i =
 writeBits ::
   BuiltinByteString ->
   BuiltinList BuiltinInteger ->
-  BuiltinList BuiltinBool ->
+  BuiltinBool ->
   BuiltinByteString
-writeBits (BuiltinByteString bs) (BuiltinList ixes) (BuiltinList bits) =
-  case Bitwise.writeBits bs ixes (fmap (\(BuiltinBool b) -> b) bits) of
+writeBits (BuiltinByteString bs) (BuiltinList ixes) (BuiltinBool bit) =
+  case Bitwise.writeBits bs ixes bit of
     BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
       Haskell.error "writeBits errored."
     BuiltinSuccess bs' -> BuiltinByteString bs'

@@ -1,42 +1,11 @@
 let
-  !`$fToDataInteger_$ctoBuiltinData` : integer -> data
-    = \(i : integer) -> iData i
   data (These :: * -> * -> *) a b | These_match where
     That : b -> These a b
     These : a -> b -> These a b
     This : a -> These a b
-  !`$fToDataThese_$ctoBuiltinData` :
-     all a b. (\a -> a -> data) a -> (\a -> a -> data) b -> These a b -> data
-    = /\a b ->
-        \(`$dToData` : (\a -> a -> data) a)
-         (`$dToData` : (\a -> a -> data) b)
-         (ds : These a b) ->
-          These_match
-            {a}
-            {b}
-            ds
-            {data}
-            (\(arg : b) -> constrData 1 (mkCons {data} (`$dToData` arg) []))
-            (\(arg : a) (arg : b) ->
-               constrData
-                 2
-                 (mkCons
-                    {data}
-                    (`$dToData` arg)
-                    (mkCons {data} (`$dToData` arg) [])))
-            (\(arg : a) -> constrData 0 (mkCons {data} (`$dToData` arg) []))
-  ~`$dToData` : These integer integer -> data
-    = `$fToDataThese_$ctoBuiltinData`
-        {integer}
-        {integer}
-        `$fToDataInteger_$ctoBuiltinData`
-        `$fToDataInteger_$ctoBuiltinData`
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !f : integer -> integer -> Bool
-    = \(x : integer) (y : integer) ->
-        ifThenElse {Bool} (lessThanInteger x y) False True
   !`$fUnsafeFromDataThese_$cunsafeFromBuiltinData` :
      all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> These a b
     = /\a b ->
@@ -73,11 +42,109 @@ let
                       {all dead. dead})
                  {all dead. dead})
             {all dead. dead}
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
+  !all :
+     all k a.
+       (\a -> data -> a) a ->
+       (a -> Bool) ->
+       (\k a -> list (pair data data)) k a ->
+       Bool
+    = /\k a ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a) (p : a -> Bool) ->
+          letrec
+            ~go : list (pair data data) -> Bool
+              = caseList'
+                  {pair data data}
+                  {Bool}
+                  True
+                  (\(hd : pair data data) ->
+                     Bool_match
+                       (p (`$dUnsafeFromData` (sndPair {data} {data} hd)))
+                       {all dead. list (pair data data) -> Bool}
+                       (/\dead -> go)
+                       (/\dead -> \(ds : list (pair data data)) -> False)
+                       {all dead. dead})
+          in
+          \(ds : (\k a -> list (pair data data)) k a) -> go ds
+in
+letrec
+  ~go : list (pair data data) -> Bool
+    = caseList'
+        {pair data data}
+        {Bool}
+        True
+        (\(hd : pair data data) ->
+           let
+             !nt : list (pair data data) = unMapData (sndPair {data} {data} hd)
+           in
+           Bool_match
+             (all
+                {bytestring}
+                {These integer integer}
+                (`$fUnsafeFromDataThese_$cunsafeFromBuiltinData`
+                   {integer}
+                   {integer}
+                   unIData
+                   unIData)
+                (\(k' : These integer integer) ->
+                   These_match
+                     {integer}
+                     {integer}
+                     k'
+                     {Bool}
+                     (\(b : integer) ->
+                        ifThenElse {Bool} (lessThanInteger 0 b) False True)
+                     (\(a : integer) (b : integer) ->
+                        ifThenElse {Bool} (lessThanInteger a b) False True)
+                     (\(a : integer) ->
+                        ifThenElse {Bool} (lessThanInteger a 0) False True))
+                nt)
+             {all dead. list (pair data data) -> Bool}
+             (/\dead -> go)
+             (/\dead -> \(ds : list (pair data data)) -> False)
+             {all dead. dead})
+in
+let
+  !`$fToDataInteger_$ctoBuiltinData` : integer -> data
+    = \(i : integer) -> iData i
+  !`$fToDataThese_$ctoBuiltinData` :
+     all a b. (\a -> a -> data) a -> (\a -> a -> data) b -> These a b -> data
+    = /\a b ->
+        \(`$dToData` : (\a -> a -> data) a)
+         (`$dToData` : (\a -> a -> data) b)
+         (ds : These a b) ->
+          These_match
+            {a}
+            {b}
+            ds
+            {data}
+            (\(arg : b) -> constrData 1 (mkCons {data} (`$dToData` arg) []))
+            (\(arg : a) (arg : b) ->
+               constrData
+                 2
+                 (mkCons
+                    {data}
+                    (`$dToData` arg)
+                    (mkCons {data} (`$dToData` arg) [])))
+            (\(arg : a) -> constrData 0 (mkCons {data} (`$dToData` arg) []))
+  ~`$dToData` : These integer integer -> data
+    = `$fToDataThese_$ctoBuiltinData`
+        {integer}
+        {integer}
+        `$fToDataInteger_$ctoBuiltinData`
+        `$fToDataInteger_$ctoBuiltinData`
   !`$fToDataMap_$ctoBuiltinData` :
      all k a. (\k a -> list (pair data data)) k a -> data
     = /\k a -> \(ds : (\k a -> list (pair data data)) k a) -> mapData ds
-  data Unit | Unit_match where
-    Unit : Unit
   !map :
      all k a b.
        (\a -> data -> a) a ->
@@ -90,27 +157,21 @@ let
          (`$dToData` : (\a -> a -> data) b)
          (f : a -> b) ->
           letrec
-            !go : list (pair data data) -> list (pair data data)
-              = \(xs : list (pair data data)) ->
-                  chooseList
-                    {pair data data}
-                    {Unit -> list (pair data data)}
-                    xs
-                    (\(ds : Unit) -> [])
-                    (\(ds : Unit) ->
-                       let
-                         !hd : pair data data = headList {pair data data} xs
-                         !tl : list (pair data data)
-                           = tailList {pair data data} xs
-                         !v : data = sndPair {data} {data} hd
-                       in
-                       mkCons
-                         {pair data data}
-                         (mkPairData
-                            (fstPair {data} {data} hd)
-                            (`$dToData` (f (`$dUnsafeFromData` v))))
-                         (go tl))
-                    Unit
+            ~go : list (pair data data) -> list (pair data data)
+              = caseList'
+                  {pair data data}
+                  {list (pair data data)}
+                  []
+                  (\(hd : pair data data) (tl : list (pair data data)) ->
+                     let
+                       !v : data = sndPair {data} {data} hd
+                     in
+                     mkCons
+                       {pair data data}
+                       (mkPairData
+                          (fstPair {data} {data} hd)
+                          (`$dToData` (f (`$dUnsafeFromData` v))))
+                       (go tl))
           in
           \(ds : (\k a -> list (pair data data)) k a) -> go ds
 in
@@ -118,51 +179,39 @@ letrec
   !safeAppend :
      list (pair data data) -> list (pair data data) -> list (pair data data)
     = \(xs : list (pair data data)) (xs : list (pair data data)) ->
-        chooseList
+        caseList'
           {pair data data}
-          {Unit -> list (pair data data)}
+          {list (pair data data)}
           xs
-          (\(ds : Unit) -> xs)
-          (\(ds : Unit) ->
+          (\(hd : pair data data) (tl : list (pair data data)) ->
              let
-               !hd : pair data data = headList {pair data data} xs
-               !tl : list (pair data data) = tailList {pair data data} xs
                !v : data = sndPair {data} {data} hd
                !k : data = fstPair {data} {data} hd
+               !eta : list (pair data data) = safeAppend tl xs
+               !nilCase : list (pair data data)
+                 = mkCons {pair data data} (mkPairData k v) []
              in
              letrec
-               !go : list (pair data data) -> list (pair data data)
-                 = \(xs : list (pair data data)) ->
-                     chooseList
-                       {pair data data}
-                       {Unit -> list (pair data data)}
-                       xs
-                       (\(ds : Unit) ->
-                          mkCons {pair data data} (mkPairData k v) [])
-                       (\(ds : Unit) ->
-                          let
-                            !hd : pair data data = headList {pair data data} xs
-                            !tl : list (pair data data)
-                              = tailList {pair data data} xs
-                          in
-                          Bool_match
-                            (ifThenElse
-                               {Bool}
-                               (equalsData k (fstPair {data} {data} hd))
-                               True
-                               False)
-                            {all dead. list (pair data data)}
-                            (/\dead ->
-                               mkCons {pair data data} (mkPairData k v) tl)
-                            (/\dead -> mkCons {pair data data} hd (go tl))
-                            {all dead. dead})
-                       Unit
-             in
-             let
-               !eta : list (pair data data) = safeAppend tl xs
+               ~go : list (pair data data) -> list (pair data data)
+                 = caseList'
+                     {pair data data}
+                     {list (pair data data)}
+                     nilCase
+                     (\(hd : pair data data) (tl : list (pair data data)) ->
+                        Bool_match
+                          (ifThenElse
+                             {Bool}
+                             (equalsData k (fstPair {data} {data} hd))
+                             True
+                             False)
+                          {all dead. list (pair data data)}
+                          (/\dead ->
+                             mkCons {pair data data} (mkPairData k v) tl)
+                          (/\dead -> mkCons {pair data data} hd (go tl))
+                          {all dead. dead})
              in
              go eta)
-          Unit
+          xs
 in
 let
   data (Maybe :: * -> *) a | Maybe_match where
@@ -171,33 +220,24 @@ let
   !lookup' : data -> list (pair data data) -> Maybe data
     = \(k : data) ->
         letrec
-          !go : list (pair data data) -> Maybe data
-            = \(xs : list (pair data data)) ->
-                chooseList
-                  {pair data data}
-                  {Unit -> Maybe data}
-                  xs
-                  (\(ds : Unit) -> Nothing {data})
-                  (\(ds : Unit) ->
-                     let
-                       !hd : pair data data = headList {pair data data} xs
-                     in
-                     Bool_match
-                       (ifThenElse
-                          {Bool}
-                          (equalsData k (fstPair {data} {data} hd))
-                          True
-                          False)
-                       {all dead. Maybe data}
-                       (/\dead ->
-                          let
-                            !ds : list (pair data data)
-                              = tailList {pair data data} xs
-                          in
+          ~go : list (pair data data) -> Maybe data
+            = caseList'
+                {pair data data}
+                {Maybe data}
+                (Nothing {data})
+                (\(hd : pair data data) ->
+                   Bool_match
+                     (ifThenElse
+                        {Bool}
+                        (equalsData k (fstPair {data} {data} hd))
+                        True
+                        False)
+                     {all dead. list (pair data data) -> Maybe data}
+                     (/\dead ->
+                        \(ds : list (pair data data)) ->
                           Just {data} (sndPair {data} {data} hd))
-                       (/\dead -> go (tailList {pair data data} xs))
-                       {all dead. dead})
-                  Unit
+                     (/\dead -> go)
+                     {all dead. dead})
         in
         \(m : list (pair data data)) -> go m
   !union :
@@ -216,18 +256,60 @@ let
          (`$dToData` : (\a -> a -> data) b)
          (ds : (\k a -> list (pair data data)) k a) ->
           letrec
-            !goRight : list (pair data data) -> list (pair data data)
-              = \(xs : list (pair data data)) ->
-                  chooseList
+            ~goRight : list (pair data data) -> list (pair data data)
+              = caseList'
+                  {pair data data}
+                  {list (pair data data)}
+                  []
+                  (\(hd : pair data data) (tl : list (pair data data)) ->
+                     let
+                       !v : data = sndPair {data} {data} hd
+                       !k : data = fstPair {data} {data} hd
+                     in
+                     Maybe_match
+                       {data}
+                       (lookup' k ds)
+                       {all dead. list (pair data data)}
+                       (\(r : data) ->
+                          /\dead ->
+                            mkCons
+                              {pair data data}
+                              (mkPairData
+                                 k
+                                 (`$fToDataThese_$ctoBuiltinData`
+                                    {a}
+                                    {b}
+                                    `$dToData`
+                                    `$dToData`
+                                    (These
+                                       {a}
+                                       {b}
+                                       (`$dUnsafeFromData` v)
+                                       (`$dUnsafeFromData` r))))
+                              (goRight tl))
+                       (/\dead ->
+                          mkCons
+                            {pair data data}
+                            (mkPairData
+                               k
+                               (`$fToDataThese_$ctoBuiltinData`
+                                  {a}
+                                  {b}
+                                  `$dToData`
+                                  `$dToData`
+                                  (That {a} {b} (`$dUnsafeFromData` v))))
+                            (goRight tl))
+                       {all dead. dead})
+          in
+          \(ds : (\k a -> list (pair data data)) k b) ->
+            letrec
+              ~goLeft : list (pair data data) -> list (pair data data)
+                = caseList'
                     {pair data data}
-                    {Unit -> list (pair data data)}
-                    xs
-                    (\(ds : Unit) -> [])
-                    (\(ds : Unit) ->
+                    {list (pair data data)}
+                    []
+                    (\(hd : pair data data) (tl : list (pair data data)) ->
                        let
-                         !hd : pair data data = headList {pair data data} xs
-                         !tl : list (pair data data)
-                           = tailList {pair data data} xs
                          !v : data = sndPair {data} {data} hd
                          !k : data = fstPair {data} {data} hd
                        in
@@ -251,7 +333,7 @@ let
                                          {b}
                                          (`$dUnsafeFromData` v)
                                          (`$dUnsafeFromData` r))))
-                                (goRight tl))
+                                (goLeft tl))
                          (/\dead ->
                             mkCons
                               {pair data data}
@@ -262,118 +344,35 @@ let
                                     {b}
                                     `$dToData`
                                     `$dToData`
-                                    (That {a} {b} (`$dUnsafeFromData` v))))
-                              (goRight tl))
+                                    (This {a} {b} (`$dUnsafeFromData` v))))
+                              (goLeft tl))
                          {all dead. dead})
-                    Unit
-          in
-          \(ds : (\k a -> list (pair data data)) k b) ->
-            letrec
-              !goLeft : list (pair data data) -> list (pair data data)
-                = \(xs : list (pair data data)) ->
-                    chooseList
-                      {pair data data}
-                      {Unit -> list (pair data data)}
-                      xs
-                      (\(ds : Unit) -> [])
-                      (\(ds : Unit) ->
-                         let
-                           !hd : pair data data = headList {pair data data} xs
-                           !tl : list (pair data data)
-                             = tailList {pair data data} xs
-                           !v : data = sndPair {data} {data} hd
-                           !k : data = fstPair {data} {data} hd
-                         in
-                         Maybe_match
-                           {data}
-                           (lookup' k ds)
-                           {all dead. list (pair data data)}
-                           (\(r : data) ->
-                              /\dead ->
-                                mkCons
-                                  {pair data data}
-                                  (mkPairData
-                                     k
-                                     (`$fToDataThese_$ctoBuiltinData`
-                                        {a}
-                                        {b}
-                                        `$dToData`
-                                        `$dToData`
-                                        (These
-                                           {a}
-                                           {b}
-                                           (`$dUnsafeFromData` v)
-                                           (`$dUnsafeFromData` r))))
-                                  (goLeft tl))
-                           (/\dead ->
-                              mkCons
-                                {pair data data}
-                                (mkPairData
-                                   k
-                                   (`$fToDataThese_$ctoBuiltinData`
-                                      {a}
-                                      {b}
-                                      `$dToData`
-                                      `$dToData`
-                                      (This {a} {b} (`$dUnsafeFromData` v))))
-                                (goLeft tl))
-                           {all dead. dead})
-                      Unit
+            in
+            let
+              !goRight : list (pair data data) -> list (pair data data)
+                = goRight
+              !goLeft : list (pair data data) -> list (pair data data) = goLeft
             in
             safeAppend (goLeft ds) (goRight ds)
+  data Unit | Unit_match where
+    Unit : Unit
 in
 letrec
   !rev : all a. list a -> list a -> list a
     = /\a ->
         \(l : list a) (acc : list a) ->
-          chooseList
+          caseList'
             {a}
             {Unit -> list a}
-            l
             (\(ds : Unit) -> acc)
-            (\(ds : Unit) ->
-               rev {a} (tailList {a} l) (mkCons {a} (headList {a} l) acc))
+            (\(x : a) (xs : list a) (ds : Unit) ->
+               rev {a} xs (mkCons {a} x acc))
+            l
             Unit
 in
 let
   !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
     = \(d : data) -> d
-  !all :
-     all k a.
-       (\a -> data -> a) a ->
-       (a -> Bool) ->
-       (\k a -> list (pair data data)) k a ->
-       Bool
-    = /\k a ->
-        \(`$dUnsafeFromData` : (\a -> data -> a) a) (p : a -> Bool) ->
-          letrec
-            !go : list (pair data data) -> Bool
-              = \(xs : list (pair data data)) ->
-                  chooseList
-                    {pair data data}
-                    {Unit -> Bool}
-                    xs
-                    (\(ds : Unit) -> True)
-                    (\(ds : Unit) ->
-                       Bool_match
-                         (p
-                            (`$dUnsafeFromData`
-                               (sndPair
-                                  {data}
-                                  {data}
-                                  (headList {pair data data} xs))))
-                         {all dead. Bool}
-                         (/\dead -> go (tailList {pair data data} xs))
-                         (/\dead ->
-                            let
-                              !ds : list (pair data data)
-                                = tailList {pair data data} xs
-                            in
-                            False)
-                         {all dead. dead})
-                    Unit
-          in
-          \(ds : (\k a -> list (pair data data)) k a) -> go ds
   !unordEqWith :
      (data -> Bool) ->
      (data -> data -> Bool) ->
@@ -385,26 +384,36 @@ let
         letrec
           !goBoth :
              list (pair data data) -> list (pair data data) -> Bool
-            = \(l : list (pair data data)) ->
-                let
-                  ~hd : pair data data = headList {pair data data} l
-                  ~v : data = sndPair {data} {data} hd
-                  ~tl : list (pair data data) = tailList {pair data data} l
-                in
-                \(l : list (pair data data)) ->
-                  let
-                    ~hd : pair data data = headList {pair data data} l
-                  in
-                  chooseList
-                    {pair data data}
-                    {Unit -> Bool}
-                    l
-                    (\(ds : Unit) ->
-                       chooseList
+            = \(l : list (pair data data))
+               (l : list (pair data data)) ->
+                caseList'
+                  {pair data data}
+                  {Unit -> Bool}
+                  (\(ds : Unit) ->
+                     caseList'
+                       {pair data data}
+                       {Unit -> Bool}
+                       (\(ds : Unit) -> True)
+                       (\(x : pair data data)
+                         (xs : list (pair data data))
+                         (ds : Unit) ->
+                          all
+                            {data}
+                            {data}
+                            `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                            is
+                            l)
+                       l
+                       Unit)
+                  (\(x : pair data data) ->
+                     let
+                       ~v : data = sndPair {data} {data} x
+                     in
+                     \(xs : list (pair data data))
+                      (ds : Unit) ->
+                       caseList'
                          {pair data data}
                          {Unit -> Bool}
-                         l
-                         (\(ds : Unit) -> True)
                          (\(ds : Unit) ->
                             all
                               {data}
@@ -412,22 +421,11 @@ let
                               `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
                               is
                               l)
-                         Unit)
-                    (\(ds : Unit) ->
-                       chooseList
-                         {pair data data}
-                         {Unit -> Bool}
-                         l
-                         (\(ds : Unit) ->
-                            all
-                              {data}
-                              {data}
-                              `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                              is
-                              l)
-                         (\(ds : Unit) ->
+                         (\(x : pair data data)
+                           (xs : list (pair data data))
+                           (ds : Unit) ->
                             let
-                              !d : data = fstPair {data} {data} hd
+                              !d : data = fstPair {data} {data} x
                             in
                             letrec
                               !goRight :
@@ -436,96 +434,93 @@ let
                                  Bool
                                 = \(acc : list (pair data data))
                                    (l : list (pair data data)) ->
-                                    let
-                                      ~hd : pair data data
-                                        = headList {pair data data} l
-                                      ~v : data = sndPair {data} {data} hd
-                                    in
-                                    chooseList
+                                    caseList'
                                       {pair data data}
                                       {Unit -> Bool}
-                                      l
                                       (\(ds : Unit) -> False)
-                                      (\(ds : Unit) ->
-                                         Bool_match
-                                           (is v)
-                                           {all dead. Bool}
-                                           (/\dead ->
-                                              goRight
-                                                acc
-                                                (tailList {pair data data} l))
-                                           (/\dead ->
-                                              Bool_match
-                                                (ifThenElse
-                                                   {Bool}
-                                                   (equalsData
-                                                      (fstPair {data} {data} hd)
-                                                      d)
-                                                   True
-                                                   False)
-                                                {all dead. Bool}
-                                                (/\dead ->
-                                                   Bool_match
-                                                     (eqV v v)
-                                                     {all dead. Bool}
-                                                     (/\dead ->
-                                                        goBoth
-                                                          tl
-                                                          (rev
-                                                             {pair data data}
-                                                             acc
-                                                             (tailList
-                                                                {pair data data}
-                                                                l)))
-                                                     (/\dead -> False)
-                                                     {all dead. dead})
-                                                (/\dead ->
-                                                   goRight
-                                                     (mkCons
-                                                        {pair data data}
-                                                        hd
-                                                        acc)
-                                                     (tailList
-                                                        {pair data data}
-                                                        l))
-                                                {all dead. dead})
-                                           {all dead. dead})
+                                      (\(x : pair data data) ->
+                                         let
+                                           ~v : data = sndPair {data} {data} x
+                                         in
+                                         \(xs : list (pair data data))
+                                          (ds : Unit) ->
+                                           Bool_match
+                                             (is v)
+                                             {all dead. Bool}
+                                             (/\dead -> goRight acc xs)
+                                             (/\dead ->
+                                                Bool_match
+                                                  (ifThenElse
+                                                     {Bool}
+                                                     (equalsData
+                                                        (fstPair
+                                                           {data}
+                                                           {data}
+                                                           x)
+                                                        d)
+                                                     True
+                                                     False)
+                                                  {all dead. Bool}
+                                                  (/\dead ->
+                                                     Bool_match
+                                                       (eqV v v)
+                                                       {all dead. Bool}
+                                                       (/\dead ->
+                                                          goBoth
+                                                            xs
+                                                            (rev
+                                                               {pair data data}
+                                                               acc
+                                                               xs))
+                                                       (/\dead -> False)
+                                                       {all dead. dead})
+                                                  (/\dead ->
+                                                     goRight
+                                                       (mkCons
+                                                          {pair data data}
+                                                          x
+                                                          acc)
+                                                       xs)
+                                                  {all dead. dead})
+                                             {all dead. dead})
+                                      l
                                       Unit
                             in
                             Bool_match
                               (ifThenElse
                                  {Bool}
-                                 (equalsData d (fstPair {data} {data} hd))
+                                 (equalsData d (fstPair {data} {data} x))
                                  True
                                  False)
                               {all dead. Bool}
                               (/\dead ->
                                  Bool_match
-                                   (eqV v (sndPair {data} {data} hd))
+                                   (eqV v (sndPair {data} {data} x))
                                    {all dead. Bool}
-                                   (/\dead ->
-                                      goBoth tl (tailList {pair data data} l))
+                                   (/\dead -> goBoth xs xs)
                                    (/\dead -> False)
                                    {all dead. dead})
                               (/\dead ->
                                  Bool_match
                                    (is v)
                                    {all dead. Bool}
-                                   (/\dead -> goBoth tl l)
+                                   (/\dead -> goBoth xs l)
                                    (/\dead ->
                                       goRight
                                         (Bool_match
-                                           (is (sndPair {data} {data} hd))
+                                           (is (sndPair {data} {data} x))
                                            {all dead. list (pair data data)}
                                            (/\dead -> [])
                                            (/\dead ->
-                                              mkCons {pair data data} hd [])
+                                              mkCons {pair data data} x [])
                                            {all dead. dead})
-                                        (tailList {pair data data} l))
+                                        xs)
                                    {all dead. dead})
                               {all dead. dead})
+                         l
                          Unit)
-                    Unit
+                  l
+                  Unit
         in
         \(eta : list (pair data data)) (eta : list (pair data data)) ->
           goBoth eta eta
@@ -539,90 +534,73 @@ in
       bytestring
       ((\k a -> list (pair data data)) bytestring integer)) ->
   Bool_match
-    (all
-       {bytestring}
-       {(\k a -> list (pair data data)) bytestring (These integer integer)}
-       (\(eta : data) -> unMapData eta)
-       (all
-          {bytestring}
-          {These integer integer}
-          (`$fUnsafeFromDataThese_$cunsafeFromBuiltinData`
-             {integer}
-             {integer}
-             unIData
-             unIData)
-          (\(k' : These integer integer) ->
-             These_match
-               {integer}
-               {integer}
-               k'
-               {Bool}
-               (\(b : integer) -> f 0 b)
-               (\(a : integer) (b : integer) -> f a b)
-               (\(a : integer) -> f a 0)))
-       (map
-          {bytestring}
-          {These
-             ((\k a -> list (pair data data)) bytestring integer)
-             ((\k a -> list (pair data data)) bytestring integer)}
-          {(\k a -> list (pair data data)) bytestring (These integer integer)}
-          (`$fUnsafeFromDataThese_$cunsafeFromBuiltinData`
-             {(\k a -> list (pair data data)) bytestring integer}
-             {(\k a -> list (pair data data)) bytestring integer}
-             (\(eta : data) -> unMapData eta)
-             (\(eta : data) -> unMapData eta))
-          (`$fToDataMap_$ctoBuiltinData` {bytestring} {These integer integer})
-          (\(k :
-               These
-                 ((\k a -> list (pair data data)) bytestring integer)
-                 ((\k a -> list (pair data data)) bytestring integer)) ->
-             These_match
+    (let
+      !m : list (pair data data)
+        = map
+            {bytestring}
+            {These
+               ((\k a -> list (pair data data)) bytestring integer)
+               ((\k a -> list (pair data data)) bytestring integer)}
+            {(\k a -> list (pair data data)) bytestring (These integer integer)}
+            (`$fUnsafeFromDataThese_$cunsafeFromBuiltinData`
                {(\k a -> list (pair data data)) bytestring integer}
                {(\k a -> list (pair data data)) bytestring integer}
-               k
-               {(\k a -> list (pair data data))
-                  bytestring
-                  (These integer integer)}
-               (\(b : (\k a -> list (pair data data)) bytestring integer) ->
-                  map
-                    {bytestring}
-                    {integer}
-                    {These integer integer}
-                    unIData
-                    `$dToData`
-                    (\(ds : integer) -> That {integer} {integer} ds)
-                    b)
-               (\(a : (\k a -> list (pair data data)) bytestring integer)
-                 (b : (\k a -> list (pair data data)) bytestring integer) ->
-                  union
-                    {bytestring}
-                    {integer}
-                    {integer}
-                    unIData
-                    unIData
-                    `$fToDataInteger_$ctoBuiltinData`
-                    `$fToDataInteger_$ctoBuiltinData`
-                    a
-                    b)
-               (\(a : (\k a -> list (pair data data)) bytestring integer) ->
-                  map
-                    {bytestring}
-                    {integer}
-                    {These integer integer}
-                    unIData
-                    `$dToData`
-                    (\(ds : integer) -> This {integer} {integer} ds)
-                    a))
-          (union
-             {bytestring}
-             {(\k a -> list (pair data data)) bytestring integer}
-             {(\k a -> list (pair data data)) bytestring integer}
-             (\(eta : data) -> unMapData eta)
-             (\(eta : data) -> unMapData eta)
-             (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
-             (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
-             l
-             r)))
+               (\(eta : data) -> unMapData eta)
+               (\(eta : data) -> unMapData eta))
+            (`$fToDataMap_$ctoBuiltinData` {bytestring} {These integer integer})
+            (\(k :
+                 These
+                   ((\k a -> list (pair data data)) bytestring integer)
+                   ((\k a -> list (pair data data)) bytestring integer)) ->
+               These_match
+                 {(\k a -> list (pair data data)) bytestring integer}
+                 {(\k a -> list (pair data data)) bytestring integer}
+                 k
+                 {(\k a -> list (pair data data))
+                    bytestring
+                    (These integer integer)}
+                 (\(b : (\k a -> list (pair data data)) bytestring integer) ->
+                    map
+                      {bytestring}
+                      {integer}
+                      {These integer integer}
+                      unIData
+                      `$dToData`
+                      (\(ds : integer) -> That {integer} {integer} ds)
+                      b)
+                 (\(a : (\k a -> list (pair data data)) bytestring integer)
+                   (b : (\k a -> list (pair data data)) bytestring integer) ->
+                    union
+                      {bytestring}
+                      {integer}
+                      {integer}
+                      unIData
+                      unIData
+                      `$fToDataInteger_$ctoBuiltinData`
+                      `$fToDataInteger_$ctoBuiltinData`
+                      a
+                      b)
+                 (\(a : (\k a -> list (pair data data)) bytestring integer) ->
+                    map
+                      {bytestring}
+                      {integer}
+                      {These integer integer}
+                      unIData
+                      `$dToData`
+                      (\(ds : integer) -> This {integer} {integer} ds)
+                      a))
+            (union
+               {bytestring}
+               {(\k a -> list (pair data data)) bytestring integer}
+               {(\k a -> list (pair data data)) bytestring integer}
+               (\(eta : data) -> unMapData eta)
+               (\(eta : data) -> unMapData eta)
+               (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
+               (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
+               l
+               r)
+    in
+    go m)
     {all dead. Bool}
     (/\dead ->
        Bool_match

@@ -50,6 +50,8 @@ module PlutusCore.Pretty
     -- * Readable view
     , ShowKinds (..)
     , PrettyConfigReadable (..)
+    , prettyReadable
+    , prettyReadableSimple
     , pcrConfigName
     , pcrRenderContext
     , pcrShowKinds

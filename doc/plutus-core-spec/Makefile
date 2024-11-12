@@ -5,14 +5,14 @@ BIB=${DOC}.bib
 
 FIGS=./figures
 
-SRC = *.tex cardano/*.tex ${BIB} # ${FIGS}/*.tex 
+SRC = *.tex cardano/*.tex ${BIB} # ${FIGS}/*.tex
 
 
 LATEX = pdflatex -halt-on-error -shell-escape # To get pstricks to work with PDF
 BIBTEX = bibtex
 MAKEINDEX = makeindex
 
-.PHONEY: all pdf figs again clean 
+.PHONEY: all pdf figs again clean
 
 #----------------------------------------------------------------
 
@@ -36,7 +36,7 @@ figs:
 	cd ${FIGS} && ${MAKE}
 
 #----------------------------------------------------------------
-again: 
+again:
 	touch ${DOC}.tex && ${MAKE}
 
 clean:

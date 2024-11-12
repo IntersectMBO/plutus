@@ -52,7 +52,7 @@ encodePoint (Point (x, y)) = result
   where
     zeroPos :: Integer
     zeroPos = 7
-    result = writeBits yBS [zeroPos] [xLSBVal]
+    result = writeBits yBS [zeroPos] xLSBVal
     yBS = integerToByteString LittleEndian 32 y
     xBS = integerToByteString LittleEndian 32 x
     xLSBVal = readBit xBS 248
@@ -117,7 +117,7 @@ xRecover y =
 
 {-# INLINEABLE clearBit #-}
 clearBit :: Integer -> BuiltinByteString -> BuiltinByteString
-clearBit ix bs = writeBits bs [ix] [False]
+clearBit ix bs = writeBits bs [ix] False
 
 {-# INLINEABLE inv #-}
 inv :: Integer -> Integer
