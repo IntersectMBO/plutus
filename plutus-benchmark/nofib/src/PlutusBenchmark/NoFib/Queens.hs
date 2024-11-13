@@ -203,6 +203,7 @@ instance TxPrelude.Eq Assign
     where (a := b) == (a' := b') = a==a' && b==b'
 instance TxPrelude.Ord Assign
     where (a := b) < (a' := b') = (a<a') || (a==a' && b < b')
+          (a := b) <= (a' := b') = (a<a') || (a==a' && b <= b')
 
 type Relation = Assign -> Assign -> Bool
 
