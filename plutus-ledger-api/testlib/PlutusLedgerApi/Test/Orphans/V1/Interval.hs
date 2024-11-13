@@ -80,22 +80,17 @@ of this instance.
 -}
 instance Arbitrary (LowerBound POSIXTime) where
   {-# INLINEABLE arbitrary #-}
-  arbitrary = do
-    e <- arbitrary
-    case e of
-      -- For a finite bound, it makes sense to talk about it being open or
-      -- closed.
-      Finite _ -> LowerBound e <$> arbitrary
-      -- If the bound is infinite, it _must_ be open.
-      _        -> pure . LowerBound e $ False
+  -- While it seem like there is no sense in closed bounds at infinities, cardano-node actually
+  -- produces such intervals in TxInfo so we generate them as well
+  arbitrary = LowerBound <$> arbitrary <*> arbitrary
 
   {-# INLINEABLE shrink #-}
   shrink (LowerBound e c) = case e of
     Finite _ ->
       [LowerBound e' c | e' <- shrink e] ++
       [LowerBound e c' | c' <- shrink c]
-    -- Negative or positive infinity bounds can't really shrink sensibly
-    _        -> []
+    PosInf -> [LowerBound e c' | c' <- shrink c]
+    NegInf -> [LowerBound e c' | c' <- shrink c]
 
 instance CoArbitrary a => CoArbitrary (LowerBound a) where
   {-# INLINEABLE coarbitrary #-}
@@ -115,22 +110,17 @@ of this instance.
 -}
 instance Arbitrary (UpperBound POSIXTime) where
   {-# INLINEABLE arbitrary #-}
-  arbitrary = do
-    e <- arbitrary
-    case e of
-      -- For a finite bound, it makes sense to talk about it being open or
-      -- closed.
-      Finite _ -> UpperBound e <$> arbitrary
-      -- If the bound is infinite, it _must_ be open.
-      _        -> pure . UpperBound e $ False
+  -- While it seem like there is no sense in closed bounds at infinities, cardano-node actually
+  -- produces such intervals in TxInfo so we generate them as well
+  arbitrary = UpperBound <$> arbitrary <*> arbitrary
 
   {-# INLINEABLE shrink #-}
   shrink (UpperBound e c) = case e of
     Finite _ ->
       [UpperBound e' c | e' <- shrink e] ++
       [UpperBound e c' | c' <- shrink c]
-    -- Negative or positive infinity bounds can't really shrink sensibly
-    _        -> []
+    PosInf -> [UpperBound e c' | c' <- shrink c]
+    NegInf -> [UpperBound e c' | c' <- shrink c]
 
 instance CoArbitrary a => CoArbitrary (UpperBound a) where
   {-# INLINEABLE coarbitrary #-}
