@@ -21,18 +21,18 @@ module PlutusLedgerApi.Test.Orphans.PlutusTx (
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Coerce (coerce)
-import Data.Kind (Type)
 import Data.Set qualified as Set
 import Data.Word (Word8)
+import PlutusCore.Generators.QuickCheck.Builtin ()
 import PlutusLedgerApi.Test.Common.QuickCheck.Utils (unSizedByteString)
+import PlutusTx qualified
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Prelude qualified as PlutusTx
 import Prettyprinter (Pretty)
 import Test.QuickCheck (Arbitrary (arbitrary, shrink), Arbitrary1 (liftArbitrary, liftShrink),
-                        CoArbitrary (coarbitrary), Function (function), Gen,
-                        NonNegative (NonNegative), functionMap, getNonNegative, liftArbitrary,
-                        oneof, scale, shuffle, sized, variant)
+                        CoArbitrary (coarbitrary), Function (function), functionMap, liftArbitrary,
+                        shuffle, variant)
 import Test.QuickCheck.Instances.ByteString ()
 
 instance Arbitrary PlutusTx.BuiltinByteString where
@@ -96,53 +96,10 @@ deriving via PlutusTx.BuiltinByteString instance CoArbitrary Blake2b256Hash
 getBlake2b256Hash :: Blake2b256Hash -> PlutusTx.BuiltinByteString
 getBlake2b256Hash = coerce
 
-{- | This is a very general instance, able to produce 'PlutusTx.BuiltinData' of
-basically any shape. You probably want something more focused than this.
--}
+-- cannot derive via because BuiltinData is not a newtype
 instance Arbitrary PlutusTx.BuiltinData where
-  {-# INLINEABLE arbitrary #-}
-  arbitrary = sized $ \size -> go size
-    where
-      scaleDown :: forall (a :: Type). Gen a -> Gen a
-      scaleDown = scale (`quot` 4)
-      go :: Int -> Gen PlutusTx.BuiltinData
-      go size
-        | size <= 0 = oneof [genB, genI]
-        | otherwise = oneof [genB, genI, genConstr, genList, genMap]
-      genB :: Gen PlutusTx.BuiltinData
-      genB = Builtins.mkB <$> arbitrary
-      genI :: Gen PlutusTx.BuiltinData
-      genI = Builtins.mkI <$> arbitrary
-      genConstr :: Gen PlutusTx.BuiltinData
-      genConstr =
-        Builtins.mkConstr . getNonNegative
-          <$> arbitrary
-          <*> scaleDown (liftArbitrary arbitrary)
-      genList :: Gen PlutusTx.BuiltinData
-      genList =
-        Builtins.mkList <$> scaleDown (liftArbitrary arbitrary)
-      genMap :: Gen PlutusTx.BuiltinData
-      genMap =
-        Builtins.mkMap <$> scaleDown (liftArbitrary ((,) <$> arbitrary <*> arbitrary))
-  {-# INLINEABLE shrink #-}
-  shrink dat =
-    Builtins.matchData
-      dat
-      shrinkConstr
-      shrinkMap
-      shrinkList
-      (fmap (Builtins.mkI . getNonNegative) . shrink . NonNegative)
-      (fmap Builtins.mkB . shrink)
-    where
-      shrinkConstr :: Integer -> [PlutusTx.BuiltinData] -> [PlutusTx.BuiltinData]
-      shrinkConstr ix dats = do
-        NonNegative ix' <- shrink (NonNegative ix)
-        dats' <- shrink dats
-        pure . Builtins.mkConstr ix' $ dats'
-      shrinkMap :: [(PlutusTx.BuiltinData, PlutusTx.BuiltinData)] -> [PlutusTx.BuiltinData]
-      shrinkMap kvs = Builtins.mkMap <$> shrink kvs
-      shrinkList :: [PlutusTx.BuiltinData] -> [PlutusTx.BuiltinData]
-      shrinkList ell = Builtins.mkList <$> shrink ell
+  arbitrary = PlutusTx.dataToBuiltinData <$> arbitrary
+  shrink = fmap PlutusTx.dataToBuiltinData . shrink . PlutusTx.builtinDataToData
 
 instance CoArbitrary PlutusTx.BuiltinData where
   {-# INLINEABLE coarbitrary #-}
