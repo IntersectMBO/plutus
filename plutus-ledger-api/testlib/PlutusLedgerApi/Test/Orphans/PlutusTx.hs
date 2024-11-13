@@ -19,9 +19,11 @@ module PlutusLedgerApi.Test.Orphans.PlutusTx (
 
 
 import Data.ByteString (ByteString)
+import Data.ByteString qualified as BS
 import Data.Coerce (coerce)
 import Data.Kind (Type)
 import Data.Set qualified as Set
+import Data.Word (Word8)
 import PlutusLedgerApi.Test.Common.QuickCheck.Utils (unSizedByteString)
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Builtins qualified as Builtins
@@ -53,11 +55,20 @@ newtype Blake2b244Hash = Blake2b244Hash PlutusTx.BuiltinByteString
   deriving (Eq, Ord) via PlutusTx.BuiltinByteString
   deriving stock (Show)
 
+bytestringWrite :: ByteString -> Int -> Word8 -> ByteString
+bytestringWrite bs i w = BS.take i bs <> BS.singleton w <> BS.drop (i + 1) bs
+
 -- No shrinker, as it doesn't make much sense to.
 instance Arbitrary Blake2b244Hash where
   {-# INLINEABLE arbitrary #-}
   arbitrary =
     Blake2b244Hash . PlutusTx.toBuiltin @ByteString . unSizedByteString @28 <$> arbitrary
+
+  {-# INLINEABLE shrink #-}
+  shrink (Blake2b244Hash bs) =
+    let bs' = PlutusTx.fromBuiltin bs
+    in foldMap (\i -> [Blake2b244Hash . PlutusTx.toBuiltin $ bytestringWrite bs' i b
+                      | b <- shrink (BS.index bs' i)]) [0..27]
 
 deriving via PlutusTx.BuiltinByteString instance CoArbitrary Blake2b244Hash
 
@@ -69,11 +80,16 @@ newtype Blake2b256Hash = Blake2b256Hash PlutusTx.BuiltinByteString
   deriving (Eq, Ord) via PlutusTx.BuiltinByteString
   deriving stock (Show)
 
--- No shrinker, as it doesn't make much sense to.
 instance Arbitrary Blake2b256Hash where
   {-# INLINEABLE arbitrary #-}
   arbitrary =
     Blake2b256Hash . PlutusTx.toBuiltin @ByteString . unSizedByteString @32 <$> arbitrary
+
+  {-# INLINEABLE shrink #-}
+  shrink (Blake2b256Hash bs) =
+    let bs' = PlutusTx.fromBuiltin bs
+    in foldMap (\i -> [Blake2b256Hash . PlutusTx.toBuiltin $ bytestringWrite bs' i b
+                      | b <- shrink (BS.index bs' i)]) [0..31]
 
 deriving via PlutusTx.BuiltinByteString instance CoArbitrary Blake2b256Hash
 
