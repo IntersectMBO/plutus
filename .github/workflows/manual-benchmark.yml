@@ -43,13 +43,15 @@ jobs:
         uses: actions/github-script@main
         with:
           script: |
-            const regex = /^\/benchmark\s*(.*?)\s*$/;
+            const regex = /^\/benchmark\s*([^\s]*)\s*(cap=([0-9]+))?$/;
             const comment = context.payload.comment.body;
             const match = comment.match(regex)
-            if (match !== null && match.length == 2)
+            if (match !== null && match.length == 4 && match[1] !== '') {
               core.setOutput('benchmark', match[1]);
-            else
-              core.setFailed(`Unable to extract benchmark name from ${comment}`);
+              core.setOutput('capability_num', match[3] || "");
+            } else {
+              core.setFailed(`Unable to extract benchmark name from comment '${comment}'`);
+            }
 
       - name: Extract Branch Name
         id: extract-branch
@@ -116,6 +118,7 @@ jobs:
           nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
         env:
           BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
+          CAPABILITY_NUM: ${{ steps.extract-benchmark.outputs.capability_num }}
           PR_NUMBER: ${{ github.event.issue.number }}
           PR_BRANCH: ${{ steps.extract-branch.outputs.head_ref }}
 
