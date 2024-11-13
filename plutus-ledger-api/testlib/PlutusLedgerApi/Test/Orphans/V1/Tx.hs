@@ -31,7 +31,8 @@ instance Arbitrary TxOutRef where
 
   {-# INLINEABLE shrink #-}
   shrink (TxOutRef tid ix) =
-    TxOutRef <$> shrink tid <*> (fmap getNonNegative . shrink . NonNegative $ ix)
+    [TxOutRef tid' ix | tid' <- shrink tid] ++
+    [TxOutRef tid ix' | NonNegative ix' <- shrink (NonNegative ix)]
 
 instance CoArbitrary TxOutRef where
   {-# INLINEABLE coarbitrary #-}
@@ -52,11 +53,10 @@ instance Arbitrary TxOut where
       <*> arbitrary -- maybe datum hash
 
   {-# INLINEABLE shrink #-}
-  shrink (TxOut addr val mdh) = do
-    addr' <- shrink addr
-    val' <- Value.getUtxoValue <$> shrink (Value.UTxOValue val)
-    mdh' <- shrink mdh
-    pure . TxOut addr' val' $ mdh'
+  shrink (TxOut addr val mdh) =
+    [TxOut addr' val mdh | addr' <- shrink addr] ++
+    [TxOut addr val' mdh | Value.UTxOValue val' <- shrink (Value.UTxOValue val)] ++
+    [TxOut addr val mdh' | mdh' <- shrink mdh]
 
 instance CoArbitrary TxOut where
   {-# INLINEABLE coarbitrary #-}

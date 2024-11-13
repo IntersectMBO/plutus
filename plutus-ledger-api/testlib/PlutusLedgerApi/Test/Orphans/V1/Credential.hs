@@ -25,6 +25,11 @@ instance Arbitrary Credential where
       , ScriptCredential <$> arbitrary
       ]
 
+  {-# INLINEABLE shrink #-}
+  shrink = \case
+    PubKeyCredential pkh -> PubKeyCredential <$> shrink pkh
+    ScriptCredential sh -> ScriptCredential <$> shrink sh
+
 instance CoArbitrary Credential where
   {-# INLINEABLE coarbitrary #-}
   coarbitrary = \case
@@ -59,13 +64,11 @@ instance Arbitrary StakingCredential where
 
   {-# INLINEABLE shrink #-}
   shrink = \case
-    -- Since Credentials don't shrink, we don't shrink this case
-    StakingHash _ -> []
-    StakingPtr i j k -> do
-      NonNegative i' <- shrink (NonNegative i)
-      NonNegative j' <- shrink (NonNegative j)
-      NonNegative k' <- shrink (NonNegative k)
-      pure . StakingPtr i' j' $ k'
+    StakingHash cred -> StakingHash <$> shrink cred
+    StakingPtr i j k ->
+      [StakingPtr i' j k | NonNegative i' <- shrink (NonNegative i)] ++
+      [StakingPtr i j' k | NonNegative j' <- shrink (NonNegative j)] ++
+      [StakingPtr i j k' | NonNegative k' <- shrink (NonNegative k)]
 
 instance CoArbitrary StakingCredential where
   {-# INLINEABLE coarbitrary #-}

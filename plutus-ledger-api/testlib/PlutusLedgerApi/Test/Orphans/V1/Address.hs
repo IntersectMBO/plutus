@@ -14,7 +14,9 @@ instance Arbitrary Address where
 
   {-# INLINEABLE shrink #-}
   -- As Credential does not shrink, we just pass it through.
-  shrink (Address cred scred) = Address cred <$> shrink scred
+  shrink (Address cred scred) =
+    [ Address cred' scred | cred' <- shrink cred ] ++
+    [ Address cred scred' | scred' <- shrink scred ]
 
 instance CoArbitrary Address where
   {-# INLINEABLE coarbitrary #-}

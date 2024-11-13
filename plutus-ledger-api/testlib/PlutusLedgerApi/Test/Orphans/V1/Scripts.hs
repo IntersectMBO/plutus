@@ -46,8 +46,6 @@ instance Function RedeemerHash where
   {-# INLINEABLE function #-}
   function = functionMap coerce RedeemerHash
 
-
--- | BLAKE2b-244 hash. This does not shrink.
 deriving via Blake2b244Hash instance Arbitrary ScriptHash
 
 deriving via Blake2b244Hash instance CoArbitrary ScriptHash

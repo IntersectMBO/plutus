@@ -25,7 +25,8 @@ instance Arbitrary TxOutRef where
 
   {-# INLINEABLE shrink #-}
   shrink (TxOutRef tid ix) =
-    TxOutRef <$> shrink tid <*> (fmap getNonNegative . shrink . NonNegative $ ix)
+    [TxOutRef tid' ix | tid' <- shrink tid] ++
+    [TxOutRef tid ix' | ix' <- fmap getNonNegative . shrink . NonNegative $ ix]
 
 instance CoArbitrary TxOutRef where
   {-# INLINEABLE coarbitrary #-}

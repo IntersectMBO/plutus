@@ -125,9 +125,11 @@ instance Arbitrary Delegatee where
 
   {-# INLINEABLE shrink #-}
   shrink = \case
-    DelegStake _ -> [] -- PubKeyHashes don't shrink anyway
+    DelegStake pkh -> DelegStake <$> shrink pkh
     DelegVote drep -> DelegVote <$> shrink drep
-    DelegStakeVote pkh drep -> DelegStakeVote pkh <$> shrink drep
+    DelegStakeVote pkh drep ->
+      [DelegStakeVote pkh' drep | pkh' <- shrink pkh] ++
+      [DelegStakeVote pkh drep' | drep' <- shrink drep]
 
 instance CoArbitrary Delegatee where
   {-# INLINEABLE coarbitrary #-}
@@ -178,24 +180,34 @@ instance Arbitrary TxCert where
   {-# INLINEABLE shrink #-}
   shrink = \case
     TxCertRegStaking cred mLovelace ->
-      TxCertRegStaking <$> shrink cred <*> shrink mLovelace
+      [TxCertRegStaking cred' mLovelace | cred' <- shrink cred] ++
+      [TxCertRegStaking cred mLovelace' | mLovelace' <- shrink mLovelace]
     TxCertUnRegStaking cred mLovelace ->
-      TxCertUnRegStaking <$> shrink cred <*> shrink mLovelace
+      [TxCertUnRegStaking cred' mLovelace | cred' <- shrink cred] ++
+      [TxCertUnRegStaking cred mLovelace' | mLovelace' <- shrink mLovelace]
     TxCertDelegStaking cred deleg ->
-      TxCertDelegStaking <$> shrink cred <*> shrink deleg
+      [TxCertDelegStaking cred' deleg | cred' <- shrink cred] ++
+      [TxCertDelegStaking cred deleg' | deleg' <- shrink deleg]
     TxCertRegDeleg cred deleg lovelace ->
-      TxCertRegDeleg <$> shrink cred <*> shrink deleg <*> shrink lovelace
+      [TxCertRegDeleg cred' deleg lovelace | cred' <- shrink cred] ++
+      [TxCertRegDeleg cred deleg' lovelace | deleg' <- shrink deleg] ++
+      [TxCertRegDeleg cred deleg lovelace' | lovelace' <- shrink lovelace]
     TxCertRegDRep drepCred lovelace ->
-      TxCertRegDRep <$> shrink drepCred <*> shrink lovelace
+      [TxCertRegDRep drepCred' lovelace | drepCred' <- shrink drepCred] ++
+      [TxCertRegDRep drepCred lovelace' | lovelace' <- shrink lovelace]
     TxCertUpdateDRep drepCred -> TxCertUpdateDRep <$> shrink drepCred
     TxCertUnRegDRep drepCred lovelace ->
-      TxCertUnRegDRep <$> shrink drepCred <*> shrink lovelace
-    -- PubKeyHash doesn't shrink, so we don't bother either
-    TxCertPoolRegister _ _ -> []
+      [TxCertUnRegDRep drepCred' lovelace | drepCred' <- shrink drepCred] ++
+      [TxCertUnRegDRep drepCred lovelace' | lovelace' <- shrink lovelace]
+    TxCertPoolRegister pkh vrf ->
+      [TxCertPoolRegister pkh' vrf | pkh' <- shrink pkh] ++
+      [TxCertPoolRegister pkh vrf' | vrf' <- shrink vrf]
     TxCertPoolRetire pkh epoch ->
-      TxCertPoolRetire pkh . getPositive <$> shrink (Positive epoch)
+      [TxCertPoolRetire pkh' epoch | pkh' <- shrink pkh] ++
+      [TxCertPoolRetire pkh epoch' | epoch' <- shrink epoch]
     TxCertAuthHotCommittee cold hot ->
-      TxCertAuthHotCommittee <$> shrink cold <*> shrink hot
+      [TxCertAuthHotCommittee cold' hot | cold' <- shrink cold] ++
+      [TxCertAuthHotCommittee cold hot' | hot' <- shrink hot]
     TxCertResignColdCommittee cold -> TxCertResignColdCommittee <$> shrink cold
 
 instance CoArbitrary TxCert where
@@ -352,8 +364,7 @@ instance Arbitrary Voter where
   shrink = \case
     CommitteeVoter hcc -> CommitteeVoter <$> shrink hcc
     DRepVoter drepCred -> DRepVoter <$> shrink drepCred
-    -- PubKeyHashes don't shrink so we don't bother either
-    _ -> []
+    StakePoolVoter pkh -> StakePoolVoter <$> shrink pkh
 
 instance CoArbitrary Voter where
   {-# INLINEABLE coarbitrary #-}
@@ -427,10 +438,11 @@ instance Arbitrary GovernanceActionId where
     GovernanceActionId
       <$> arbitrary
       <*> (getNonNegative <$> arbitrary)
+
   {-# INLINEABLE shrink #-}
   shrink (GovernanceActionId tid ix) =
-    -- Hashes don't shrink, so we don't bother either
-    GovernanceActionId tid . getNonNegative <$> shrink (NonNegative ix)
+    [GovernanceActionId tid' ix | tid' <- shrink tid] ++
+    [GovernanceActionId tid ix' | NonNegative ix' <- shrink (NonNegative ix)]
 
 instance CoArbitrary GovernanceActionId where
   {-# INLINEABLE coarbitrary #-}
@@ -454,6 +466,7 @@ instance Arbitrary Committee where
     num <- chooseInt (1, 100)
     let quorum = Ratio.unsafeRatio (fromIntegral num) 100
     pure . Committee committee $ quorum
+
   {-# INLINEABLE shrink #-}
   shrink (Committee committee quorum) = do
     committee' <- liftShrink (fmap getPositive . shrink . Positive) committee
@@ -498,11 +511,11 @@ instance Arbitrary ProtocolVersion where
     NonNegative major <- arbitrary
     NonNegative minor <- arbitrary
     pure . ProtocolVersion major $ minor
+
   {-# INLINEABLE shrink #-}
-  shrink (ProtocolVersion major minor) = do
-    NonNegative major' <- shrink (NonNegative major)
-    NonNegative minor' <- shrink (NonNegative minor)
-    pure . ProtocolVersion major' $ minor'
+  shrink (ProtocolVersion major minor) =
+    [ProtocolVersion major' minor | NonNegative major' <- shrink (NonNegative major)] ++
+    [ProtocolVersion major minor' | NonNegative minor' <- shrink (NonNegative minor)]
 
 instance CoArbitrary ProtocolVersion where
   {-# INLINEABLE coarbitrary #-}
@@ -557,25 +570,21 @@ instance Arbitrary GovernanceAction where
   {-# INLINEABLE shrink #-}
   shrink = \case
     ParameterChange mgid cp msh ->
-      ParameterChange
-        <$> shrink mgid
-        <*> shrink cp
-        <*> shrink msh
+      [ParameterChange mgid' cp msh | mgid' <- shrink mgid] ++
+      [ParameterChange mgid cp' msh | cp' <- shrink cp] ++
+      [ParameterChange mgid cp msh' | msh' <- shrink msh]
     HardForkInitiation mgid v ->
-      HardForkInitiation
-        <$> shrink mgid
-        <*> shrink v
+      [HardForkInitiation mgid' v | mgid' <- shrink mgid] ++
+      [HardForkInitiation mgid v' | v' <- shrink v]
     TreasuryWithdrawals wdrls msh ->
-      TreasuryWithdrawals
-        <$> shrink wdrls
-        <*> shrink msh
+      [TreasuryWithdrawals wdrls' msh | wdrls' <- shrink wdrls] ++
+      [TreasuryWithdrawals wdrls msh' | msh' <- shrink msh]
     NoConfidence msh -> NoConfidence <$> shrink msh
     -- No quorum shrinking
-    UpdateCommittee mgid creds mems quorum -> do
-      mgid' <- shrink mgid
-      creds' <- shrink creds
-      mems' <- shrink mems
-      pure . UpdateCommittee mgid' creds' mems' $ quorum
+    UpdateCommittee mgid creds mems quorum ->
+      [UpdateCommittee mgid' creds mems quorum | mgid' <- shrink mgid] ++
+      [UpdateCommittee mgid creds' mems quorum | creds' <- shrink creds] ++
+      [UpdateCommittee mgid creds mems' quorum | mems' <- shrink mems]
     NewConstitution mgid c -> NewConstitution <$> shrink mgid <*> shrink c
     _ -> []
 
@@ -682,7 +691,9 @@ instance Arbitrary ProposalProcedure where
 
   {-# INLINEABLE shrink #-}
   shrink (ProposalProcedure dep raddr ga) =
-    ProposalProcedure <$> shrink dep <*> shrink raddr <*> shrink ga
+    [ProposalProcedure dep' raddr ga | dep' <- shrink dep] ++
+    [ProposalProcedure dep raddr' ga | raddr' <- shrink raddr] ++
+    [ProposalProcedure dep raddr ga' | ga' <- shrink ga]
 
 instance CoArbitrary ProposalProcedure where
   {-# INLINEABLE coarbitrary #-}
@@ -707,9 +718,11 @@ instance Function ProposalProcedure where
 instance Arbitrary TxOutRef where
   {-# INLINEABLE arbitrary #-}
   arbitrary = TxOutRef <$> arbitrary <*> (getNonNegative <$> arbitrary)
+
   {-# INLINEABLE shrink #-}
   shrink (TxOutRef tid ix) =
-    TxOutRef <$> shrink tid <*> (fmap getNonNegative . shrink . NonNegative $ ix)
+    [TxOutRef tid' ix | tid' <- shrink tid] ++
+    [TxOutRef tid ix' | NonNegative ix' <- shrink (NonNegative ix)]
 
 instance CoArbitrary TxOutRef where
   {-# INLINEABLE coarbitrary #-}
@@ -738,15 +751,13 @@ instance Arbitrary ScriptPurpose where
     Minting cs -> Minting <$> shrink cs
     Spending txo -> Spending <$> shrink txo
     Rewarding cred -> Rewarding <$> shrink cred
-    Certifying ix cert -> do
-      cert' <- shrink cert
-      NonNegative ix' <- shrink (NonNegative ix)
-      pure . Certifying ix' $ cert'
+    Certifying ix cert ->
+      [Certifying ix' cert | NonNegative ix' <- shrink (NonNegative ix)] ++
+      [Certifying ix cert' | cert' <- shrink cert]
     Voting voter -> Voting <$> shrink voter
-    Proposing ix pp -> do
-      pp' <- shrink pp
-      NonNegative ix' <- shrink (NonNegative ix)
-      pure . Proposing ix' $ pp'
+    Proposing ix pp ->
+      [Proposing ix' pp | NonNegative ix' <- shrink (NonNegative ix)] ++
+      [Proposing ix pp' | pp' <- shrink pp]
 
 instance CoArbitrary ScriptPurpose where
   {-# INLINEABLE coarbitrary #-}
@@ -823,15 +834,17 @@ instance Arbitrary ScriptInfo where
   {-# INLINEABLE shrink #-}
   shrink = \case
     MintingScript cs -> MintingScript <$> shrink cs
-    SpendingScript outRef mdat -> SpendingScript <$> shrink outRef <*> shrink mdat
+    SpendingScript outRef mdat ->
+      [SpendingScript outRef' mdat | outRef' <- shrink outRef] ++
+      [SpendingScript outRef mdat' | mdat' <- shrink mdat]
     RewardingScript cred -> RewardingScript <$> shrink cred
-    CertifyingScript ix cert -> do
-      NonNegative ix' <- shrink (NonNegative ix)
-      CertifyingScript ix' <$> shrink cert
+    CertifyingScript ix cert ->
+      [CertifyingScript ix' cert | NonNegative ix' <- shrink (NonNegative ix)] ++
+      [CertifyingScript ix cert' | cert' <- shrink cert]
     VotingScript voter -> VotingScript <$> shrink voter
-    ProposingScript ix pp -> do
-      NonNegative ix' <- shrink (NonNegative ix)
-      ProposingScript ix' <$> shrink pp
+    ProposingScript ix pp ->
+      [ProposingScript ix' pp | NonNegative ix' <- shrink (NonNegative ix)] ++
+      [ProposingScript ix pp' | pp' <- shrink pp]
 
 instance CoArbitrary ScriptInfo where
   {-# INLINEABLE coarbitrary #-}
@@ -883,7 +896,8 @@ instance Arbitrary TxInInfo where
 
   {-# INLINEABLE shrink #-}
   shrink (TxInInfo toutref tout) =
-    TxInInfo <$> shrink toutref <*> shrink tout
+    [TxInInfo toutref' tout | toutref' <- shrink toutref] ++
+    [TxInInfo toutref tout' | tout' <- shrink tout]
 
 instance CoArbitrary TxInInfo where
   {-# INLINEABLE coarbitrary #-}
@@ -925,41 +939,39 @@ instance Arbitrary TxInfo where
       $ tDonation
 
   {-# INLINEABLE shrink #-}
-  shrink (TxInfo ins routs outs fee mint cert wdrl val sigs rds dats tid votes pps cur don) = do
-    NonEmpty ins' <- shrink (NonEmpty ins)
-    routs' <- shrink routs
-    NonEmpty outs' <- shrink (NonEmpty outs)
-    fee' <- shrink fee
-    mint' <- shrink mint
-    cert' <- shrink cert
-    wdrl' <- shrink wdrl
-    valid' <- shrink val
-    sigs' <- shrink sigs
-    reds' <- shrink rds
-    dats' <- shrink dats
-    tid' <- shrink tid
-    votes' <- shrink votes
-    pps' <- shrink pps
-    currT' <- shrink cur
-    tDonation' <- shrink don
-    pure $
-      TxInfo
-        ins'
-        routs'
-        outs'
-        fee'
-        mint'
-        cert'
-        wdrl'
-        valid'
-        sigs'
-        reds'
-        dats'
-        tid'
-        votes'
-        pps'
-        currT'
-        tDonation'
+  shrink (TxInfo ins routs outs fee mint cert wdrl val sigs rds dats tid votes pps cur don) =
+    [TxInfo ins' routs outs fee mint cert wdrl val sigs rds dats tid votes pps cur don
+    | NonEmpty ins' <- shrink (NonEmpty ins)] ++
+    [TxInfo ins routs' outs fee mint cert wdrl val sigs rds dats tid votes pps cur don
+    | routs' <- shrink routs] ++
+    [TxInfo ins routs outs' fee mint cert wdrl val sigs rds dats tid votes pps cur don
+    | NonEmpty outs' <- shrink (NonEmpty outs)] ++
+    [TxInfo ins routs outs fee' mint cert wdrl val sigs rds dats tid votes pps cur don
+    | fee' <- shrink fee] ++
+    [TxInfo ins routs outs fee mint' cert wdrl val sigs rds dats tid votes pps cur don
+    | mint' <- shrink mint] ++
+    [TxInfo ins routs outs fee mint cert' wdrl val sigs rds dats tid votes pps cur don
+    | cert' <- shrink cert] ++
+    [TxInfo ins routs outs fee mint cert wdrl' val sigs rds dats tid votes pps cur don
+    | wdrl' <- shrink wdrl] ++
+    [TxInfo ins routs outs fee mint cert wdrl val' sigs rds dats tid votes pps cur don
+    | val' <- shrink val] ++
+    [TxInfo ins routs outs fee mint cert wdrl val sigs' rds dats tid votes pps cur don
+    | sigs' <- shrink sigs] ++
+    [TxInfo ins routs outs fee mint cert wdrl val sigs rds' dats tid votes pps cur don
+    | rds' <- shrink rds] ++
+    [TxInfo ins routs outs fee mint cert wdrl val sigs rds dats' tid votes pps cur don
+    | dats' <- shrink dats] ++
+    [TxInfo ins routs outs fee mint cert wdrl val sigs rds dats tid' votes pps cur don
+    | tid' <- shrink tid] ++
+    [TxInfo ins routs outs fee mint cert wdrl val sigs rds dats tid votes' pps cur don
+    | votes' <- shrink votes] ++
+    [TxInfo ins routs outs fee mint cert wdrl val sigs rds dats tid votes pps' cur don
+    | pps' <- shrink pps] ++
+    [TxInfo ins routs outs fee mint cert wdrl val sigs rds dats tid votes pps cur' don
+    | cur' <- shrink cur] ++
+    [TxInfo ins routs outs fee mint cert wdrl val sigs rds dats tid votes pps cur don'
+    | don' <- shrink don]
 
 instance CoArbitrary TxInfo where
   {-# INLINEABLE coarbitrary #-}
@@ -1043,7 +1055,9 @@ instance Arbitrary ScriptContext where
 
   {-# INLINEABLE shrink #-}
   shrink (ScriptContext tinfo red sinfo) =
-    ScriptContext <$> shrink tinfo <*> shrink red <*> shrink sinfo
+    [ScriptContext tinfo' red sinfo | tinfo' <- shrink tinfo] ++
+    [ScriptContext tinfo red' sinfo | red' <- shrink red] ++
+    [ScriptContext tinfo red sinfo' | sinfo' <- shrink sinfo]
 
 instance CoArbitrary ScriptContext where
   {-# INLINEABLE coarbitrary #-}

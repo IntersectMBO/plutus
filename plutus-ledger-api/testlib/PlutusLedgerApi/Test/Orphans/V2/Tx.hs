@@ -25,11 +25,10 @@ instance Arbitrary OutputDatum where
       ]
 
   {-# INLINEABLE shrink #-}
-  -- We only shrink the OutputDatum case, since the others wouldn't shrink
-  -- anyway.
   shrink = \case
+    NoOutputDatum -> []
+    OutputDatumHash h -> OutputDatumHash <$> shrink h
     OutputDatum d -> OutputDatum <$> shrink d
-    _ -> []
 
 instance CoArbitrary OutputDatum where
   {-# INLINEABLE coarbitrary #-}
@@ -66,11 +65,10 @@ instance Arbitrary TxOut where
 
   {-# INLINEABLE shrink #-}
   shrink (TxOut addr val od msh) =
-    TxOut
-      <$> shrink addr
-      <*> (Value.getUtxoValue <$> shrink (Value.UTxOValue val))
-      <*> shrink od
-      <*> shrink msh
+    [TxOut addr' val od msh | addr' <- shrink addr] ++
+    [TxOut addr val' od msh | val' <- Value.getUtxoValue <$> shrink (Value.UTxOValue val)] ++
+    [TxOut addr val od' msh | od' <- shrink od] ++
+    [TxOut addr val od msh' | msh' <- shrink msh]
 
 instance CoArbitrary TxOut where
   {-# INLINEABLE coarbitrary #-}

@@ -30,13 +30,12 @@ instance Arbitrary DCert where
   shrink = \case
     DCertDelegRegKey sc -> DCertDelegRegKey <$> shrink sc
     DCertDelegDeRegKey sc -> DCertDelegDeRegKey <$> shrink sc
-    -- PubKeyHash can't shrink, so we just pass it through, as otherwise, the
-    -- semantics of shrinking would mean the whole think can't shrink.
-    DCertDelegDelegate sc pkh -> DCertDelegDelegate <$> shrink sc <*> pure pkh
-    -- PubKeyHash can't shrink, so neither can this.
-    DCertPoolRegister _ _ -> []
-    -- PubKeyHash can't shrink, so we just pass it through, as otherwise, the
-    -- semantics of shrinking would mean the whole think can't shrink.
+    DCertDelegDelegate sc pkh ->
+      [DCertDelegDelegate sc' pkh | sc' <- shrink sc] ++
+      [DCertDelegDelegate sc pkh' | pkh' <- shrink pkh]
+    DCertPoolRegister pid pvfr ->
+      [DCertPoolRegister pid' pvfr | pid' <- shrink pid] ++
+      [DCertPoolRegister pid pvfr' | pvfr' <- shrink pvfr]
     DCertPoolRetire pkh e ->
       DCertPoolRetire pkh . getNonNegative <$> shrink (NonNegative e)
     -- None of the other constructors have any data, so we don't shrink them.

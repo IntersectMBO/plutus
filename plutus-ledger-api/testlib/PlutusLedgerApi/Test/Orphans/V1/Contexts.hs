@@ -29,7 +29,8 @@ instance Arbitrary ScriptContext where
 
   {-# INLINEABLE shrink #-}
   shrink (ScriptContext tinfo p) =
-    ScriptContext <$> shrink tinfo <*> shrink p
+    [ScriptContext tinfo' p | tinfo' <- shrink tinfo] ++
+    [ScriptContext tinfo p' | p' <- shrink p]
 
 instance CoArbitrary ScriptContext where
   {-# INLINEABLE coarbitrary #-}
@@ -50,7 +51,8 @@ instance Arbitrary TxInInfo where
 
   {-# INLINEABLE shrink #-}
   shrink (TxInInfo outref resolved) =
-    TxInInfo <$> shrink outref <*> shrink resolved
+        [TxInInfo outref' resolved | outref' <- shrink outref] ++
+        [TxInInfo outref resolved' | resolved' <- shrink resolved]
 
 instance CoArbitrary TxInInfo where
   {-# INLINEABLE coarbitrary #-}
@@ -81,18 +83,27 @@ instance Arbitrary TxInfo where
       <*> arbitrary -- tid
 
   {-# INLINEABLE shrink #-}
-  shrink (TxInfo ins outs fee mint dcert wdrl validRange sigs dats tid) = do
-    NonEmpty ins' <- shrink (NonEmpty ins)
-    NonEmpty outs' <- shrink (NonEmpty outs)
-    Value.FeeValue fee' <- shrink (Value.FeeValue fee)
-    Value.MintValue mint' <- shrink (Value.MintValue mint)
-    dcert' <- shrink dcert
-    wdrl' <- shrink wdrl
-    validRange' <- shrink validRange
-    sigs' <- Set.toList <$> shrink (Set.fromList sigs)
-    dats' <- shrink dats
-    tid' <- shrink tid
-    pure . TxInfo ins' outs' fee' mint' dcert' wdrl' validRange' sigs' dats' $ tid'
+  shrink (TxInfo ins outs fee mint dcert wdrl validRange sigs dats tid) =
+    [ TxInfo ins' outs fee mint dcert wdrl validRange sigs dats tid
+    | NonEmpty ins' <- shrink (NonEmpty ins) ] ++
+    [ TxInfo ins outs' fee mint dcert wdrl validRange sigs dats tid
+    | NonEmpty outs' <- shrink (NonEmpty outs) ] ++
+    [ TxInfo ins outs fee' mint dcert wdrl validRange sigs dats tid
+    | Value.FeeValue fee' <- shrink (Value.FeeValue fee) ] ++
+    [ TxInfo ins outs fee mint' dcert wdrl validRange sigs dats tid
+    | Value.MintValue mint' <- shrink (Value.MintValue mint) ] ++
+    [ TxInfo ins outs fee mint dcert' wdrl validRange sigs dats tid
+    | dcert' <- shrink dcert ] ++
+    [ TxInfo ins outs fee mint dcert wdrl' validRange sigs dats tid
+    | wdrl' <- shrink wdrl ] ++
+    [ TxInfo ins outs fee mint dcert wdrl validRange' sigs dats tid
+    | validRange' <- shrink validRange ] ++
+    [ TxInfo ins outs fee mint dcert wdrl validRange sigs' dats tid
+    | sigs' <- Set.toList <$> shrink (Set.fromList sigs) ] ++
+    [ TxInfo ins outs fee mint dcert wdrl validRange sigs dats' tid
+    | dats' <- shrink dats ] ++
+    [ TxInfo ins outs fee mint dcert wdrl validRange sigs dats tid'
+    | tid' <- shrink tid ]
 
 instance CoArbitrary TxInfo where
   {-# INLINEABLE coarbitrary #-}

@@ -88,7 +88,9 @@ instance Arbitrary (LowerBound POSIXTime) where
 
   {-# INLINEABLE shrink #-}
   shrink (LowerBound e c) = case e of
-    Finite _ -> LowerBound <$> shrink e <*> shrink c
+    Finite _ ->
+      [LowerBound e' c | e' <- shrink e] ++
+      [LowerBound e c' | c' <- shrink c]
     -- Negative or positive infinity bounds can't really shrink sensibly
     _        -> []
 
@@ -121,7 +123,9 @@ instance Arbitrary (UpperBound POSIXTime) where
 
   {-# INLINEABLE shrink #-}
   shrink (UpperBound e c) = case e of
-    Finite _ -> UpperBound <$> shrink e <*> shrink c
+    Finite _ ->
+      [UpperBound e' c | e' <- shrink e] ++
+      [UpperBound e c' | c' <- shrink c]
     -- Negative or positive infinity bounds can't really shrink sensibly
     _        -> []
 
