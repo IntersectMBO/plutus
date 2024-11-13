@@ -35,14 +35,17 @@ instance Arbitrary1 Extended where
     PosInf -> []
 
 {- | This makes use of the 'Arbitrary1' instance of 'Extended' internally,
-and thus is subject to the same caveats.
+and thus is subject to the same caveats, but shrinks towards 'Finite 0'
 -}
-instance Arbitrary a => Arbitrary (Extended a) where
+instance (Num a, Arbitrary a) => Arbitrary (Extended a) where
   {-# INLINEABLE arbitrary #-}
   arbitrary = liftArbitrary arbitrary
 
   {-# INLINEABLE shrink #-}
-  shrink = liftShrink shrink
+  shrink = \case
+    NegInf -> [Finite 0]
+    Finite x -> Finite <$> shrink x
+    PosInf -> [Finite 0]
 
 instance CoArbitrary a => CoArbitrary (Extended a) where
   {-# INLINEABLE coarbitrary #-}
