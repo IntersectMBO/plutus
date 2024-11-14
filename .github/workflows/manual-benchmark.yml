@@ -43,7 +43,7 @@ jobs:
         uses: actions/github-script@main
         with:
           script: |
-            const regex = /^\/benchmark\s*([^\s]*)\s*(cap=([0-9]+))?$/;
+            const regex = /^\/benchmark\s*([^\s]*)\s*(cap=([0-9]+))?\s*$/;
             const comment = context.payload.comment.body;
             const match = comment.match(regex)
             if (match !== null && match.length == 4 && match[1] !== '') {
