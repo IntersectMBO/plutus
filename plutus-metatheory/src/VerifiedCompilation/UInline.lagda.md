@@ -29,14 +29,10 @@ the term is substituted in. This can be expressed quite easily and cleanly with 
 substitution operation from the general metatheory.
 
 ```
-variable
-  X : Set
-  x x' y : X ⊢
-
 data pureInline : Relation where
-  tr : {{_ : DecEq X}} {x x' : X ⊢} → Translation pureInline x x' → pureInline x x'
-  _⨾_ : {{_ : DecEq X}} {x x' x'' : X ⊢} → pureInline x x' → pureInline x' x'' → pureInline x x''
-  inline : {{_ : DecEq X}}{x' : X ⊢} {x : Maybe X ⊢} {y : X ⊢}
+  tr : {X : Set} {{_ : DecEq X}} {x x' : X ⊢} → Translation pureInline x x' → pureInline x x'
+  _⨾_ : {X : Set} {{_ : DecEq X}} {x x' x'' : X ⊢} → pureInline x x' → pureInline x' x'' → pureInline x x''
+  inline : {X : Set} {{_ : DecEq X}}{x' : X ⊢} {x : Maybe X ⊢} {y : X ⊢}
          → pureInline (x [ y ]) x'
          → pureInline (ƛ x · y) x'
 
@@ -52,39 +48,60 @@ However, this has several intermediate values that are very hard to determine fo
 The Haskell code works by building an environment of variable values and then inlines from these. We can
 replicate that here to try and make the decision procedure easier.
 ```
-data Env : Set₁ where
+data Env {X : Set}{{_ : DecEq X}} : Set where
   □ : Env
-  _,_ : Env → (X ⊢) → Env
+  _,_ : Env {X} → (X ⊢) → Env {X}
 
+```
+# Decidable Inline Type
 
-variable
-  e : Env
+This type is closer to how the Haskell code works, and also closer to the way Jacco's inline example works in the literature.
 
-data Inline : Env → Relation where
-  tr : {{_ : DecEq X}} → Translation (Inline □) {X} x y → Inline □ x y
-  var : {{_ : DecEq X}} {z : X ⊢} → Inline (e , x) z y → Inline e (z · x) y
-  sub : {{_ : DecEq X}} {x : (Maybe X) ⊢ } {y v : X ⊢} → Inline e (x [ v ]) y → Inline (e , v) (ƛ x) y
-  not-inlined : {{_ : DecEq X}} {x y v : X ⊢} → Inline e (x · v) y → Inline (e , v) x y
+It recurses to the Translation type, but it needs to not do that initially or the `translation?` decision procedure
+will recurse infinitely. Instead there is the `last-sub` constructor to allow the recursion only if at least
+something has happened.
+
+```
+
+data Inline {X : Set} {{ _ : DecEq X}} : Env {X} → Relation where
+  var : {x y z : X ⊢} {e : Env} → Inline (e , x) z y → Inline e (z · x) y
+  last-sub : {x : (Maybe X) ⊢ } {y v : X ⊢} → Translation (Inline {X} □) (x [ v ]) y → Inline (□ , v) (ƛ x) y
+  sub : {x : (Maybe X) ⊢ } {y v : X ⊢} {e : Env} → Inline e (x [ v ]) y → Inline (e , v) (ƛ x) y
 
 _ : {X : Set} {a b : X} {{_ : DecEq X}} → Inline □ (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
-_ = var (var (sub (sub (tr reflexive))))
+_ = var (var (sub (last-sub reflexive)))
 
-_ : {X : Set} {a b : X} {{_ : DecEq X}} → Inline □ (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((ƛ ((` (just a)) · (` nothing))) · (` b))
-_ = var (var (sub (not-inlined (tr reflexive))))
-
+_ : {X : Set} {a b : X} {{_ : DecEq X}} → Translation (Inline {X} □) (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((ƛ ((` (just a)) · (` nothing))) · (` b))
+_ = Translation.app (Translation.istranslation (var (last-sub reflexive))) reflexive
+```
+# Inline implies pureInline
+```
+--- TODO
+postulate
+  Inline→pureInline : {X : Set} {{ _ : DecEq X}} → {x y : X ⊢} → Inline {X} □ x y → pureInline x y
 ```
 ## Decision Procedure
 
 ```
-isInline? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation (Inline □) {X})
+isInline? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation (Inline □))
 
-isIl? : {X : Set} {{_ : DecEq X}} → (e : Env) → Binary.Decidable (Inline e)
-isIl? ast ast' = {!!}
-{-
-isIl? ast ast' with (isApp? (isLambda? isTerm?) isTerm?) ast
-... | no ¬p = no λ { (inline x x' y y' x₁ x₂) → ¬p (isapp (islambda (isterm x)) (isterm y)) }
-... | yes (isapp (islambda (isterm x)) (isterm y)) = {!!}
--}
+{-# TERMINATING #-}
+isIl? : {X : Set} {{_ : DecEq X}} → (e : Env {X}) → Binary.Decidable (Inline {X} e)
+isIl? e ast ast' with (isApp? isTerm? isTerm? ast)
+... | yes (isapp (isterm x) (isterm y)) with isIl? (e , y) x ast'
+...     | yes p = yes (var p)
+...     | no ¬p = no λ { (var p) → ¬p p }
+isIl? e ast ast' | no ¬app with (isLambda? isTerm? ast)
+isIl? □ ast ast' | no ¬app | no ¬ƛ = no λ { (var p) → ¬app (isapp (isterm _) (isterm _)) }
+isIl? (e , v) ast ast' | no ¬app | no ¬ƛ = no λ { (var p) → ¬app (isapp (isterm _) (isterm _)) ; (last-sub t) → ¬ƛ (islambda (isterm _)) ; (sub p) → ¬ƛ (islambda (isterm _)) }
+isIl? □ .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) = no (λ ())
+isIl? {X} (□ , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isInline? {X} (x [ v ]) ast')
+... | yes t = yes (last-sub t)
+... | no ¬t = no λ { (last-sub t) → ¬t {!t!} ; (sub p) → {!!} }
+isIl? ((e , v₁) , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isIl? (e , v₁) (x [ v ]) ast')
+... | yes p = yes (sub p)
+... | no ¬p = no λ { (sub p) → ¬p p }
+
 isInline? = translation? (isIl? □)
 
 ```

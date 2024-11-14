@@ -33,7 +33,7 @@ we can build a decision procedure to apply them recursivley down the AST structu
 ```
 Relation = { X : Set } → {{_ : DecEq X}} → (X ⊢) → (X ⊢) → Set₁
 
-data Translation (R : Relation) { X : Set } {{_ : DecEq X}} : (X ⊢) → (X ⊢) → Set₁ where
+data Translation { X : Set } {{_ : DecEq X}} (R : Relation) : (X ⊢) → (X ⊢) → Set₁ where
   istranslation : {ast ast' : X ⊢} → R ast ast' → Translation R ast ast'
   var : {x : X} → Translation R (` x) (` x) -- We assume we won't want to translate variables individually?
   ƛ   : {x x' : Maybe X ⊢}
@@ -50,7 +50,7 @@ data Translation (R : Relation) { X : Set } {{_ : DecEq X}} : (X ⊢) → (X ⊢
   delay : {t t' : X ⊢} →
         Translation R t t' →
         Translation R (delay t) (delay t')
-  con : {tc : TmCon} → Translation R {X} (con tc) (con tc)
+  con : {tc : TmCon} → Translation {X} R (con tc) (con tc)
   constr : {xs xs' : List (X ⊢)} { n : ℕ }
                 → Pointwise (Translation R) xs xs'
                   ------------------------
@@ -60,8 +60,8 @@ data Translation (R : Relation) { X : Set } {{_ : DecEq X}} : (X ⊢) → (X ⊢
                 → Translation R p p'
                 ------------------------
                 → Translation R (case p alts) (case p' alts')
-  builtin : {b : Builtin} → Translation R {X} (builtin b) (builtin b)
-  error : Translation R {X} error error
+  builtin : {b : Builtin} → Translation {X} R (builtin b) (builtin b)
+  error : Translation {X} R error error
 ```
 For the decision procedure we have the rather dissapointing 110 lines to demonstrate to Agda that,
 having determine that we aren't in the translation pattern, we are in fact, still not in the translation pattern
@@ -73,12 +73,12 @@ open import Data.Product
 translation?
   : {X' : Set} {{ _ : DecEq X'}} {R : Relation}
   → ({ X : Set } {{ _ : DecEq X}} → Binary.Decidable (R {X}))
-  → Binary.Decidable (Translation R {X'})
+  → Binary.Decidable (Translation {X'} R)
 
 decPointwiseTranslation?
   : {X' : Set} {{ _ : DecEq X'}} {R : Relation}
   → ({ X : Set } {{ _ : DecEq X}} → Binary.Decidable (R {X}))
-  → Binary.Decidable (Pointwise (Translation R {X'}))
+  → Binary.Decidable (Pointwise (Translation {X'} R))
 decPointwiseTranslation? isR? [] [] = yes Pointwise.[]
 decPointwiseTranslation? isR? [] (x ∷ ys) = no (λ ())
 decPointwiseTranslation? isR? (x ∷ xs) [] = no (λ ())
@@ -227,7 +227,7 @@ convert-pointwise f Pointwise.[] = Pointwise.[]
 convert-pointwise {R = R} {S = S} f (x∼y Pointwise.∷ p) = f x∼y Pointwise.∷ convert-pointwise {R =  R} {S = S} f p
 
 {-# TERMINATING #-}
-convert : {{deX : DecEq X}} → (∀ {Y : Set} {{deY : DecEq Y}} {y y' : Y ⊢} → R y y' → S y y') → (Translation R {{deX}} x x' → Translation S {{deX}} x x')
+convert : {{deX : DecEq X}} → (∀ {Y : Set} {{deY : DecEq Y}} {y y' : Y ⊢} → R y y' → S y y') → (Translation {{deX}} R x x' → Translation {{deX}} S x x')
 convert f (Translation.istranslation xx') = Translation.istranslation (f xx')
 convert f Translation.var = Translation.var
 convert f (Translation.ƛ xx') = Translation.ƛ (convert f xx')
@@ -241,12 +241,12 @@ convert {R = R} {S = S} f (case (x∼y Pointwise.∷ x) xx') = Translation.case 
 convert f Translation.builtin = Translation.builtin
 convert f Translation.error = Translation.error
 
-pointwise-reflexive : (∀ {X : Set} {{deX : DecEq X}} {x : X ⊢} → Translation R {{deX}} x x) → (∀ {X : Set} {{deX : DecEq X}} {xs : List (X ⊢)} → Pointwise (Translation R {{deX}}) xs xs)
+pointwise-reflexive : (∀ {X : Set} {{deX : DecEq X}} {x : X ⊢} → Translation {{deX}} R x x) → (∀ {X : Set} {{deX : DecEq X}} {xs : List (X ⊢)} → Pointwise (Translation {{deX}} R) xs xs)
 pointwise-reflexive f {xs = List.[]} = Pointwise.[]
 pointwise-reflexive f {xs = x List.∷ xs} = f Pointwise.∷ pointwise-reflexive f
 
 {-# TERMINATING #-}
-reflexive : {{deX : DecEq X}} → Translation R {{deX}} x x
+reflexive : {{deX : DecEq X}} → Translation {{deX}} R x x
 reflexive {x = ` x} = var
 reflexive {x = ƛ x} = ƛ reflexive
 reflexive {x = x · x₁} = app reflexive reflexive
