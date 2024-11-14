@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns         #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE PatternSynonyms      #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns         #-}
@@ -9,6 +10,7 @@ module Data.RandomAccessList.SkewBinary
     , safeIndexZero
     , unsafeIndexZero
     , safeIndexOne
+    , safeIndexOneCont
     , unsafeIndexOne
     , Data.RandomAccessList.SkewBinary.null
     , uncons
@@ -129,9 +131,9 @@ unsafeIndexOne (BHead w t ts) !i =
            else indexTree halfSize (offset' - halfSize) t2
 
 -- 1-based
-{-# INLINE safeIndexZero #-}
-safeIndexOne :: RAList a -> Word64 -> Maybe a
+safeIndexOne :: forall a. RAList a -> Word64 -> Maybe a
 safeIndexOne = skip where
+    skip :: RAList a -> Word64 -> Maybe a
     skip Nil _ = Nothing
     skip (BHead w t ts) i =
         if i <= w
@@ -150,6 +152,30 @@ safeIndexOne = skip where
            then indexTree halfSize offset' t1
            else indexTree halfSize (offset' - halfSize) t2
     indexTree _ _ (Leaf _) = Nothing
+
+-- 1-based
+{-# INLINE safeIndexOneCont #-}
+safeIndexOneCont :: forall a b. b -> (a -> b) -> RAList a -> Word64 -> b
+safeIndexOneCont z f = skip where
+    skip :: RAList a -> Word64 -> b
+    skip Nil _ = z
+    skip (BHead w t ts) i =
+        if i <= w
+        then indexTree w i t
+        else skip ts (i-w)
+
+    indexTree :: Word64 -> Word64 -> Tree a -> b
+    indexTree !w 1 t = case t of
+        Node x _ _ -> f x
+        Leaf x     -> if w == 1 then f x else z
+    indexTree _ 0 _ = z -- "index zero"
+    indexTree treeSize offset (Node _ t1 t2) =
+        let halfSize = unsafeShiftR treeSize 1 -- probably faster than `div w 2`
+            offset' = offset - 1
+        in if offset' <= halfSize
+           then indexTree halfSize offset' t1
+           else indexTree halfSize (offset' - halfSize) t2
+    indexTree _ _ (Leaf _) = z
 
 instance RAL.RandomAccessList (RAList a) where
     type Element (RAList a) = a
