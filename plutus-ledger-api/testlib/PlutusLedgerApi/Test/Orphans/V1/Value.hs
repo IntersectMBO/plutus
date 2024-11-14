@@ -29,10 +29,10 @@ import PlutusLedgerApi.V1.Value (AssetClass (AssetClass), CurrencySymbol (Curren
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Prelude qualified as PlutusTx
 import Test.QuickCheck (Arbitrary (arbitrary, shrink), Arbitrary1 (liftArbitrary, liftShrink),
-                        CoArbitrary, Function (function), Gen, NonEmptyList (NonEmpty),
-                        NonZero (NonZero), Positive (Positive), chooseBoundedIntegral, chooseInt,
-                        frequency, functionMap, getNonEmpty, getNonZero, getPositive, resize, scale,
-                        sized, vectorOf)
+                        CoArbitrary, Function (function), Gen, Large (getLarge),
+                        NonEmptyList (NonEmpty), NonZero (NonZero), Positive (Positive),
+                        chooseBoundedIntegral, chooseInt, frequency, functionMap, getNonEmpty,
+                        getNonZero, getPositive, resize, scale, sized, vectorOf)
 
 deriving via (CurrencySymbol, TokenName) instance Arbitrary AssetClass
 
@@ -304,7 +304,12 @@ newtype FeeValue = FeeValue Value
 
 instance Arbitrary FeeValue where
   {-# INLINEABLE arbitrary #-}
-  arbitrary = FeeValue . singleton adaSymbol adaToken . getPositive <$> arbitrary
+  arbitrary = FeeValue
+    . singleton adaSymbol adaToken
+    . fromIntegral @Int
+    . getLarge
+    . getPositive
+    <$> arbitrary
 
   {-# INLINEABLE shrink #-}
   shrink (FeeValue v) =
