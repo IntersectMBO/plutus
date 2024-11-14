@@ -288,6 +288,10 @@ data ParamName =
   | ComplementByteString'memory'arguments'slope
   | ReadBit'cpu'arguments
   | ReadBit'memory'arguments
+  | WriteBits'cpu'arguments'intercept
+  | WriteBits'cpu'arguments'slope
+  | WriteBits'memory'arguments'intercept
+  | WriteBits'memory'arguments'slope
   | ReplicateByte'cpu'arguments'intercept
   | ReplicateByte'cpu'arguments'slope
   | ReplicateByte'memory'arguments'intercept
@@ -311,10 +315,6 @@ data ParamName =
   | Ripemd_160'memory'arguments
 
 --  not enabled yet:
---    WriteBits'cpu'arguments'intercept
---    WriteBits'cpu'arguments'slope
---    WriteBits'memory'arguments'intercept
---    WriteBits'memory'arguments'slope
 --    ExpModInteger'cpu'arguments
 --    ExpModInteger'memory'arguments
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)

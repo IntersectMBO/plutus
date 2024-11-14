@@ -1,12 +1,19 @@
 (program 1.0.0
  [
   [
+   (builtin writeBits)
    [
-    (builtin writeBits)
-    (con bytestring #00000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
+    [
+     [
+      (builtin writeBits)
+      (con bytestring #00ff)
+     ]
+     (con (list integer) [10])
+    ]
+    (con bool True)
    ]
-   (con (list integer) [340, 342, 344, 340, 342, 343])  -- 344 is out of bounds
+   (con (list integer) [10])
   ]
-  (con (list bool) [True, True, True, False, False, False])
+  (con bool False)
  ]
 )

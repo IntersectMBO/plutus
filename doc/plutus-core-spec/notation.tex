@@ -1,4 +1,5 @@
 \section{Some basic notation}
+\label{sec:notation}
 We begin with some notation which will be used throughout the document.
 
 \subsection{Sets}
@@ -6,13 +7,13 @@ We begin with some notation which will be used throughout the document.
 \begin{itemize}
   \item The symbol $\disj$ denotes a disjoint union of sets;  for emphasis we often use this
     to denote the union of sets which we know to be disjoint.%
-    \nomenclature[Azz]{$\disj$}{Disjoint union of sets}%
+    \nomenclature[Ayy]{$\disj$}{Disjoint union of sets}%
 
   \item Given a set $X$, $X^*$ denotes the set of finite sequences of elements of $X$:
     $$
     X^*= \bigdisj{\{X^n: n \in \mathbb{N}\}}.
     $$%
-    \nomenclature[Azz]{$X^*$}{The set of all finite sequences of elements of a set $X$}
+    \nomenclature[Ayy]{$X^*$}{The set of all finite sequences of elements of a set $X$}
   \item $\N = \{0,1,2,3,\ldots\}$.%
     \nomenclature[An1]{$\N$}{$\{0,1,2,3,\ldots\}$}
 
@@ -27,6 +28,12 @@ We begin with some notation which will be used throughout the document.
 
   \item $\B^*$ is the set of all bytestrings.%
     \nomenclature[Ab2]{$\B^*$}{The set of all bytestrings}
+
+  \item $\b = \{\mathtt{0}, \mathtt{1}\}$, the set of bits.%
+    \nomenclature[Ac1]{$\b$}{$\{\mathtt{0}, \mathtt{1}\}$}%
+
+  \item $\b^*$ is the set of all bitstrings.%
+    \nomenclature[Ac2]{$\b^*$}{The set of all bitstrings}
 
   \item $\Z = \{\ldots, -2, -1, 0, 1, 2, \ldots\}$.%
     \nomenclature[Aw]{$\Z$}{$\{\ldots, -2, -1, 0, 1, 2, \ldots\}$}
@@ -81,12 +88,51 @@ We begin with some notation which will be used throughout the document.
 %%\item We say that the list $L'$ is a \textit{proper prefix} of the list
 %%  $L = [x_1, \ldots, x_n]$, and
 %%  write $L' \prec L$,  if $L' = [x_1, \ldots, x_m]$ for some $m<n$.
-\item In the special case of bitstrings (ie, lists of elements of $\{0,1\}$) we
-  sometimes use notation such as \texttt{101110} to denote the list
-  $[1,0,1,1,1,0]$; we use a teletype font to avoid confusion with decimal
-  numbers.
 
 \item Given a syntactic category $V$, the symbol $\repetition{V}$ denotes a
   possibly empty list $[V_1,\ldots, V_n]$ of elements $V_i \in V$.%
   \nomenclature[B5]{$\repetition{V}$}{A sequence $[V_1,\ldots, V_n]$}%
 \end{itemize}
+
+\subsection{Bytestrings and bitstrings}
+\label{sec:notation-bytestrings}
+
+We make frequent use of bytestrings and bitstrings and for the sake of
+conciseness we occasionally use special notation.  We also define conversion
+functions between bytestrings and bistrings
+
+\begin{itemize}
+\item We typically index the bytes in bytestrings starting from the
+  \textit{left} end but the bits in bitstrings from the \textit{right} end.
+
+\item The bytestring $[c_0, \ldots, c_n]$ may be denoted by $c_0{\cdots}c_n$ ($n
+  \geq 1$, $c_i \in \B$);  the empty bytestring may be denoted by $\epsilon$.
+
+\item The bitstring $[b_n, \ldots, b_0]$ may be denoted by $b_n{\cdots}b_0$ ($n
+  \geq 1$, $b_i \in \b$); the empty bitstring may be denoted by $\epsilon$: we
+  also use this symbol for the empty bytestring, but this should not cause any
+  confusion.
+
+\item In the special case of bitstrings sometimes use notation such as
+  \texttt{101110} to denote the list $[1,0,1,1,1,0]$; we use a teletype font to
+  avoid confusion with decimal numbers.
+
+\item A bytestring can naturally be viewed as a bitstring whose length is a
+  multiple of 8 simply by concatenating the bits of the individual bytes, and
+  vice-versa (by breaking the bitstring into groups of 8 bits).  To make this
+  precise we define two conversion functions $\bitsof: \B^* \rightarrow \b^*$
+  and $\bytesof: \{s \in \b^* : 8 \mid \length(s)\} \rightarrow \B^*$.  These
+  depend on the fact that any $c \in \B$ can be written uniquely in the form
+  $\Sigma_{i=0}^72^ib_i$ with $b_0, \ldots, b_7 \in \b$.
+  \begin{itemize}
+    \item $\bitsof([c_0, \ldots, c_{n-1}]) = [b_{8n-1}, \ldots, b_0]$ where $c_j=\Sigma_{i=0}^72^ib_{8(n-j-1)+i}$
+    \item $\bytesof([b_{8n-1}, \ldots, b_0]) = [c_0, \ldots, c_{n-1}]$ where $c_j=\Sigma_{i=0}^72^ib_{8(n-j-1)+i}$.
+  \end{itemize}
+\end{itemize}
+
+\subsection{Miscellaneous notation}
+\begin{itemize}
+\item Given integers $k \in \Z$ and $n \geq 1$ we write $k \bmod n = \min\{r \in \Z: r \geq 0 \text{ and } n | k - r \}$
+\end{itemize}
+
+

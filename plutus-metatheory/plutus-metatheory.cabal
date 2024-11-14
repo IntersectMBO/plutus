@@ -67,7 +67,8 @@ library
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.35
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-execlib
     , process
     , text
     , transformers
@@ -328,7 +329,10 @@ library
     MAlonzo.Code.Utils.Reflection
     MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.VerifiedCompilation.Equality
+    MAlonzo.Code.VerifiedCompilation.Purity
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
+    MAlonzo.Code.VerifiedCompilation.UCSE
+    MAlonzo.Code.VerifiedCompilation.UFloatDelay
     MAlonzo.Code.VerifiedCompilation.UForceDelay
     MAlonzo.Code.VerifiedCompilation.UntypedTranslation
     MAlonzo.Code.VerifiedCompilation.UntypedViews
@@ -580,6 +584,9 @@ library
     MAlonzo.Code.Utils.Reflection
     MAlonzo.RTE
     MAlonzo.RTE.Float
+    MAlonzo.Code.VerifiedCompilation.Purity
+    MAlonzo.Code.VerifiedCompilation.UCSE
+    MAlonzo.Code.VerifiedCompilation.UFloatDelay
 
 executable plc-agda
   import:         lang, os-support
@@ -599,7 +606,8 @@ test-suite test-NEAT
     , base
     , lazy-search
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.35
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
     , plutus-metatheory
     , size-based
     , Stream

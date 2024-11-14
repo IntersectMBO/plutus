@@ -15,10 +15,10 @@
 
 \subsection{Batch 4}
 \label{sec:default-builtins-4}
-The fourth batch of builtins adds support for
+The fourth batch of built-in types and functions adds support for
 \begin{itemize}
-\item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions.
-\item Conversion functions from integers to bytestrings and vice-versa.
+\item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions (see~\cite{CIP-0101}).
+\item Conversion functions from integers to bytestrings and vice-versa (see~\cite{CIP-0121}).
 \item BLS12-381 elliptic curve pairing operations
 (see~\cite{CIP-0381}, \cite{BLS12-381}, \cite[4.2.1]{IETF-pairing-friendly-curves}, \cite{BLST-library}).
  For clarity these are described separately in Sections~\ref{sec:bls-types-4} and \ref{sec:bls-builtins-4}.
@@ -37,29 +37,29 @@ The fourth batch of builtins adds support for
     % (continued). Unfortunately it doesn't seem to be easy to do that in a
     % longtable.
     \endfoot
-%%    \caption[]{Built-in Functions}
-    \caption[]{Miscellaneous built-in Functions}
+%%    \caption[]{Built-in functions, Batch 4}
+    \caption[]{Batch 4: miscellaneous built-in functions}
     \label{table:misc-built-in-functions-4}
     \endlastfoot
 %% G1
     \hline
     \TT{blake2b\_224} & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using
-                                                                   \TT{Blake2b-224}~\cite{IETF-Blake2}.} & & \\
+                                                                   \TT{Blake2b-224}~\cite{IETF-Blake2}} & No & \\[2mm]
     \TT{keccak\_256}  & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using
-                                                                   \TT{Keccak-256}~\cite{KeccakRef3}.} & & \\
+                                                                   \TT{Keccak-256}~\cite{KeccakRef3}} & No & \\
     \hline\strut
     \TT{integerToByteString} & $[\ty{bool}, \ty{integer}, \ty{integer}]$  \text{\: $\to \ty{bytestring}$}
                                         & $(e, w, n) $ \text{$\mapsto \begin{cases}
-                                        \itobsLE(w,n) & \text{if $e=\mathtt{false}$}\\
-                                        \itobsBE(w,n) & \text{if $e=\mathtt{true}$}\\
+                                        \itobsLE(w,n) & \text{if $e=\false$}\\
+                                        \itobsBE(w,n) & \text{if $e=\true$}\\
                                         \end{cases}$}
-                                        & Yes & \ref{note:itobs}\strut\\ \strut
+                                        & Yes & \ref{note:itobs}\strut \\[6mm]
     \TT{byteStringToInteger} & $[\ty{bool}, \ty{bytestring}] $ \text{\: $ \to \ty{bytestring}$}
                                         & $(e, [c_0, \ldots, c_{N-1}]) $ \text{\; $\mapsto \begin{cases}
-                                        \sum_{i=0}^{N-1}c_{i}256^i & \text{if $e=\mathtt{false}$}\\
-                                        \sum_{i=0}^{N-1}c_{i}256^{N-1-i} & \text{if $e=\mathtt{true}$}\\
+                                        \sum_{i=0}^{N-1}c_{i}256^i & \text{if $e=\false$}\\
+                                        \sum_{i=0}^{N-1}c_{i}256^{N-1-i} & \text{if $e=\true$}\\
                                         \end{cases}$}
-                                        &  & \ref{note:bstoi}\\
+                                        &  No & \ref{note:bstoi}\\[12mm]
     \hline
 \end{longtable}
 
@@ -94,7 +94,7 @@ by the functions $\itobsLE: \Z \times \Z \rightarrow \withError{\B^*}$ and $\ito
 the case $n=0$:
 
 $$
-\itobsLE (w,n) = \itobsBE (w,n) = 
+\itobsLE (w,n) = \itobsBE (w,n) =
 \begin{cases}
   \errorX & \text{if $n<0$ or $n \geq 2^{65536}$}\\
   \errorX & \text{if $w<0$ or $w > 8192$}\\
@@ -144,7 +144,7 @@ integers.  It takes two arguments:
 \item A boolean endianness flag $e$.
 \item The bytestring $s$ to be converted.
 \end{itemize}
-\noindent  
+\noindent
 The conversion is little-endian if $e$ is \texttt{(con bool False)} and
 big-endian if $e$ is \texttt{(con bool True)}. In both cases the empty bytestring is
 converted to the integer 0. All bytestrings are legal inputs and there is no
@@ -179,16 +179,16 @@ types.
         $\TyMlResult$    &   $\MlResultDenotation$  &  None (see Note~\ref{note:bls-syntax})\\
         \hline
     \end{tabular}
-    \caption{Atomic Types}
+    \caption{Atomic types, Batch 4}
     \label{table:built-in-types-4}
 \end{table}
 
 %% \paragraph{$G_1$ and $G_2$}.
-\noindent Here $G_1$ and  $G_2$ are both additive cyclic groups of prime order $r$, where 
+\noindent Here $G_1$ and  $G_2$ are both additive cyclic groups of prime order $r$, where
 $$
 r = \mathtt{0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001}.
 $$
-        
+
 \paragraph{The fields $\Fq$ and $\Fqq$.}
 \noindent To define the groups $G_1$ and $G_2$ we need the finite field $\Fq$ where
 \begin{align*}
@@ -246,6 +246,7 @@ $\MlResultDenotation$, the denotation of $\TyMlResult$, precisely, but it
 must be a multiplicative abelian group. See Note~\ref{note:pairing} for more on
 this.
 
+\newpage
 \subsubsection{BLS12-381 built-in functions}
 \label{sec:bls-builtins-4}
 
@@ -259,77 +260,77 @@ this.
     & \text{Note} \\ & & & fail?
     & \\ \hline \endfirsthead \hline \text{Function} & \text{Type}
     & \text{Denotation} & \text{Can} & \text{Note}\\ & & & fail?
-    & \\ \hline \endhead \hline \caption{BLS12-381 built-in Functions}
+    & \\ \hline \endhead \hline \caption{Batch 4: BLS12-381 built-in functions)}
     % This caption goes on every page of the table except the last.  Ideally it
     % would appear only on the first page and all the rest would say
     % (continued). Unfortunately it doesn't seem to be easy to do that in a
     % longtable.
     \endfoot
 %%    \caption[]{Built-in Functions}
-    \caption[]{BLS12-381 built-in Functions (continued)}
+    \caption[]{Batch 4: BLS12-381 built-in functions (continued)}
     \label{table:built-in-functions-4}
     \endlastfoot
 %% G1
     \TT{bls12\_381\_G1\_add}  &
     $[ \ty{bls12\_381\_G1\_element}$,
       \text{\; $\ty{bls12\_381\_G1\_element} ]$}
-      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $(a,b) \mapsto a+b$  &  No & \\
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $(a,b) \mapsto a+b$  &  No & \\[2mm]
     \TT{bls12\_381\_G1\_neg}  &
-      $ [ \ty{bls12\_381\_G1\_element} ]$  \text{\;\; $\to \ty{bls12\_381\_G1\_element}$} & $a \mapsto -a$  & No & \\
+      $ [ \ty{bls12\_381\_G1\_element} ]$  \text{\;\; $\to \ty{bls12\_381\_G1\_element}$} & $a \mapsto -a$  & No & \\[2mm]
     \TT{bls12\_381\_G1\_scalarMul}  &
     $[ \ty{integer}$,
       \text{\; $\ty{bls12\_381\_G1\_element} ]$}
-      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $(n,a) \mapsto na$ &  No & \\
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $(n,a) \mapsto na$ &  No & \\[2mm]
     \TT{bls12\_381\_G1\_equal}  &
     $[ \ty{bls12\_381\_G1\_element}$,
       \text{\; $\ty{bls12\_381\_G1\_element} ]$}
-      \text{\: $ \to \ty{bool}$} & $=$ &  No & \\
+      \text{\: $ \to \ty{bool}$} & $=$ &  No & \\[2mm]
     \TT{bls12\_381\_G1\_hashToGroup}  &
     $[ \ty{bytestring}, \ty{bytestring}]$
-      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $\hash_{G_1}$ &  Yes & \ref{note:hashing-into-group}\\
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $\hash_{G_1}$ &  Yes & \ref{note:hashing-into-group}\\[2mm]
     \TT{bls12\_381\_G1\_compress}  &
     $[\ty{bls12\_381\_G1\_element}]$
-      \text{\: $ \to \ty{bytestring}$} & $\compress_{G_1}$  &  No & \ref{note:group-compression}\\
+      \text{\: $ \to \ty{bytestring}$} & $\compress_{G_1}$  &  No & \ref{note:group-compression}\\[2mm]
     \TT{bls12\_381\_G1\_uncompress}  &
     $[ \ty{bytestring}]$
-      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $\uncompress_{G_1}$  &  Yes & \ref{note:group-uncompression}\\
-    \hline 
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $\uncompress_{G_1}$  &  Yes & \ref{note:group-uncompression}\\[2mm]
+    \hline
 %% G2
     \TT{bls12\_381\_G2\_add}  &
     $[ \ty{bls12\_381\_G2\_element}$,
       \text{\; $\ty{bls12\_381\_G2\_element} ]$}
-      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $(a,b) \mapsto a+b$ &  No & \\
+      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $(a,b) \mapsto a+b$ &  No & \\[2mm]
     \TT{bls12\_381\_G2\_neg}  &
-      $ [ \ty{bls12\_381\_G2\_element} ]$  \text{\;\; $\to \ty{bls12\_381\_G2\_element}$} & $a \mapsto -a$  & No & \\
+      $ [ \ty{bls12\_381\_G2\_element} ]$  \text{\;\; $\to \ty{bls12\_381\_G2\_element}$} & $a \mapsto -a$  & No & \\[2mm]
     \TT{bls12\_381\_G2\_scalarMul}  &
     $[ \ty{integer}$,
       \text{\; $\ty{bls12\_381\_G2\_element} ]$}
-      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $(n,a) \mapsto na$ &  No & \\
+      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $(n,a) \mapsto na$ &  No & \\[2mm]
     \TT{bls12\_381\_G2\_equal}  &
     $[ \ty{bls12\_381\_G2\_element}$,
       \text{\; $\ty{bls12\_381\_G2\_element} ]$}
-      \text{\: $ \to \ty{bool}$} & $=$ &  No & \\
+      \text{\: $ \to \ty{bool}$} & $=$ &  No & \\[2mm]
     \TT{bls12\_381\_G2\_hashToGroup}  &
     $[ \ty{bytestring}, \ty{bytestring}]$
-      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $\hash_{G_2}$  &  Yes & \ref{note:hashing-into-group}\\
+      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $\hash_{G_2}$  &  Yes & \ref{note:hashing-into-group}\\[2mm]
     \TT{bls12\_381\_G2\_compress}  &
     $[\ty{bls12\_381\_G2\_element}]$
-      \text{\: $ \to \ty{bytestring}$} & $\compress_{G_2}$  &  No & \ref{note:group-compression}\\
+      \text{\: $ \to \ty{bytestring}$} & $\compress_{G_2}$  &  No & \ref{note:group-compression}\\[2mm]
     \TT{bls12\_381\_G2\_uncompress}  &
     $[ \ty{bytestring}]$
-      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $\uncompress_{G_2}$  &  Yes & \ref{note:group-uncompression}\\
-    \hline 
+      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $\uncompress_{G_2}$  &  Yes & \ref{note:group-uncompression}\\[2mm]
+    \hline
     \TT{bls12\_381\_millerLoop}  &
     $[ \ty{bls12\_381\_G1\_element}$,
       \text{\; $\ty{bls12\_381\_G2\_element} ]$}
-    \text{\: $ \to \TyMlResult$} & $e$ &  No & \ref{note:pairing}\\
+    \text{\: $ \to \TyMlResult$} & $e$ &  No & \ref{note:pairing}\\[2mm]
     \TT{bls12\_381\_mulMlResult}  &
     $[ \TyMlResult$,
     \text{\; $\TyMlResult]$}
-    \text{\: $\to \TyMlResult$} & $(a,b) \mapsto ab$ & No & \ref{note:pairing}\\
+    \text{\: $\to \TyMlResult$} & $(a,b) \mapsto ab$ & No & \ref{note:pairing}\\[2mm]
     \TT{bls12\_381\_finalVerify}  &
     $[ \TyMlResult$,
-    \text{\; $\TyMlResult] \to \ty{bool}$} & $\phi$ & No & \ref{note:pairing}\\
+    \text{\; $\TyMlResult] \to \ty{bool}$} & $\phi$ & No & \ref{note:pairing}\\[2mm]
     \hline
 \end{longtable}
 
@@ -358,7 +359,7 @@ second argument to the appropriate \texttt{hashToGroup} function.
 \newcommand{\ymin}{y_{\text{min}}}
 \newcommand{\ymax}{y_{\text{max}}}
 
-\note{Compression for elements of $G_1$ and $G_2$.} 
+\note{Compression for elements of $G_1$ and $G_2$.}
 \label{note:group-compression}
 Points in $G_1$ and $G_2$ are encoded as bytestrings in a ``compressed'' format
 where only the $x$-coordinate of a point is encoded and some metadata is used to
@@ -396,9 +397,9 @@ $$
 \noindent Thus in all cases the encoding of an element of $G_1$ requires exactly 384 bits,
 or 48 bytes.
 
-\medskip 
+\medskip
 
-\noindent 
+\noindent
 \begin{itemize}
 \item Similarly, every non-identity element of $G_2$ can be written
 in the form $(x,y)$ with $x,y \in \Fqq$.  We define
@@ -426,7 +427,7 @@ Zcash also supports a serialisation format where both the $x$- and
 $y$-coordinates of a point are encoded, and in that case the leading bit of the
 encoded point is 0.  We do not support this format.
 
-\note{Uncompression for elements of $G_1$ and $G_2$.} 
+\note{Uncompression for elements of $G_1$ and $G_2$.}
 \label{note:group-uncompression}
 There are two (partial) ``uncompression'' functions $\uncompress_{G_1}$ and
 $\uncompress_{G_2}$ which convert bytestrings into group elements; these are
@@ -551,8 +552,8 @@ the group multiplication operation in $\MlResultDenotation$.
 where
 $$
 \phi(a,b) = \begin{cases}
-               \mathtt{true} & \text{if $\psi(ab^{-1}) = 1_{\mu_r}$} \\
-               \mathtt{false} & \text{otherwise.}
+               \true & \text{if $\psi(ab^{-1}) = 1_{\mu_r}$} \\
+               \false & \text{otherwise.}
             \end{cases}
 $$
 \end{itemize}
