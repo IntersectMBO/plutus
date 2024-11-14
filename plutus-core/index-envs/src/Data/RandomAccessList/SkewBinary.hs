@@ -16,7 +16,6 @@ module Data.RandomAccessList.SkewBinary
     , uncons
     ) where
 
-import Control.Monad (guard)
 import Data.Bits (unsafeShiftR)
 import Data.Word
 import GHC.Exts
@@ -26,8 +25,8 @@ import Data.RandomAccessList.Class qualified as RAL
 -- | A complete binary tree.
 -- Note: the size of the tree is not stored/cached,
 -- unless it appears as a root tree in 'RAList', which the size is stored inside the Cons.
-data Tree a = Node a !(Tree a) !(Tree a)
-            | Leaf a
+data Tree a = Leaf a
+            | Node a !(Tree a) !(Tree a)
             deriving stock (Eq, Show)
 
 -- | A strict list of complete binary trees accompanied by their size.
@@ -131,27 +130,24 @@ unsafeIndexOne (BHead w t ts) !i =
            else indexTree halfSize (offset' - halfSize) t2
 
 -- 1-based
-safeIndexOne :: forall a. RAList a -> Word64 -> Maybe a
-safeIndexOne = skip where
-    skip :: RAList a -> Word64 -> Maybe a
-    skip Nil _ = Nothing
-    skip (BHead w t ts) i =
-        if i <= w
-        then indexTree w i t
-        else skip ts (i-w)
-
+safeIndexOne :: RAList a -> Word64 -> Maybe a
+safeIndexOne Nil _ = Nothing
+safeIndexOne (BHead w t ts) !i =
+    if i <= w
+    then indexTree w i t
+    else safeIndexOne ts (i-w)
+  where
     indexTree :: Word64 -> Word64 -> Tree a -> Maybe a
-    indexTree !w 1 t = case t of
-        Node x _ _ -> Just x
-        Leaf x     -> x <$ guard (w == 1)
     indexTree _ 0 _ = Nothing -- "index zero"
+    indexTree 1 1 (Leaf x) = Just x
+    indexTree _ _ (Leaf _) = Nothing
+    indexTree _ 1 (Node x _ _) = Just x
     indexTree treeSize offset (Node _ t1 t2) =
         let halfSize = unsafeShiftR treeSize 1 -- probably faster than `div w 2`
             offset' = offset - 1
         in if offset' <= halfSize
            then indexTree halfSize offset' t1
            else indexTree halfSize (offset' - halfSize) t2
-    indexTree _ _ (Leaf _) = Nothing
 
 -- 1-based
 {-# INLINE safeIndexOneCont #-}
