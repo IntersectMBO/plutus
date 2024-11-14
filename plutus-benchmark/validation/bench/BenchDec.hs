@@ -39,6 +39,11 @@ main = benchWith mkDecBM
             !(benchScript :: SerialisedScript) =
                 force (serialiseUPLC $ UPLC.Program () v unsaturated)
 
+            -- The validation benchmarks were all created from PlutusV1 scripts
+            ll = PlutusV1
+            pv = ledgerLanguageIntroducedIn ll
+
             -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
-        in whnf (either throw id . void . deserialiseScript futurePV
-                ) benchScript
+        in flip whnf benchScript $ \scriptBytes ->
+            let scriptForEval = either throw id $ deserialiseScript pv scriptBytes
+            in either throw id . void $ mkTermToEvaluate ll pv scriptForEval []
